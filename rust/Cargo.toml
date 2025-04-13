@@ -7,5 +7,8 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-flutter_rust_bridge = "=2.7.0"
+flutter_rust_bridge = "=2.8.0"
 nahpu_api = { path = "../nahpu_api" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
