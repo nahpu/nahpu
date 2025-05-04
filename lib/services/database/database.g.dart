@@ -1049,11 +1049,11 @@ class Media extends Table with TableInfo<Media, MediaData> {
   static const VerificationMeta _primaryIdMeta =
       const VerificationMeta('primaryId');
   late final GeneratedColumn<int> primaryId = GeneratedColumn<int>(
-      'primaryId', aliasedName, true,
+      'primaryId', aliasedName, false,
       hasAutoIncrement: true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
-      $customConstraints: 'PRIMARY KEY AUTOINCREMENT');
+      $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT');
   static const VerificationMeta _projectUuidMeta =
       const VerificationMeta('projectUuid');
   late final GeneratedColumn<String> projectUuid = GeneratedColumn<String>(
@@ -1218,7 +1218,7 @@ class Media extends Table with TableInfo<Media, MediaData> {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return MediaData(
       primaryId: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}primaryId']),
+          .read(DriftSqlType.int, data['${effectivePrefix}primaryId'])!,
       projectUuid: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}projectUuid']),
       secondaryId: attachedDatabase.typeMapping
@@ -1259,7 +1259,7 @@ class Media extends Table with TableInfo<Media, MediaData> {
 }
 
 class MediaData extends DataClass implements Insertable<MediaData> {
-  final int? primaryId;
+  final int primaryId;
   final String? projectUuid;
   final String? secondaryId;
   final String? category;
@@ -1272,7 +1272,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
   final String? fileName;
   final String? caption;
   const MediaData(
-      {this.primaryId,
+      {required this.primaryId,
       this.projectUuid,
       this.secondaryId,
       this.category,
@@ -1287,9 +1287,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (!nullToAbsent || primaryId != null) {
-      map['primaryId'] = Variable<int>(primaryId);
-    }
+    map['primaryId'] = Variable<int>(primaryId);
     if (!nullToAbsent || projectUuid != null) {
       map['projectUuid'] = Variable<String>(projectUuid);
     }
@@ -1328,9 +1326,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
 
   MediaCompanion toCompanion(bool nullToAbsent) {
     return MediaCompanion(
-      primaryId: primaryId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(primaryId),
+      primaryId: Value(primaryId),
       projectUuid: projectUuid == null && nullToAbsent
           ? const Value.absent()
           : Value(projectUuid),
@@ -1366,7 +1362,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MediaData(
-      primaryId: serializer.fromJson<int?>(json['primaryId']),
+      primaryId: serializer.fromJson<int>(json['primaryId']),
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
       secondaryId: serializer.fromJson<String?>(json['secondaryId']),
       category: serializer.fromJson<String?>(json['category']),
@@ -1384,7 +1380,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'primaryId': serializer.toJson<int?>(primaryId),
+      'primaryId': serializer.toJson<int>(primaryId),
       'projectUuid': serializer.toJson<String?>(projectUuid),
       'secondaryId': serializer.toJson<String?>(secondaryId),
       'category': serializer.toJson<String?>(category),
@@ -1400,7 +1396,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
   }
 
   MediaData copyWith(
-          {Value<int?> primaryId = const Value.absent(),
+          {int? primaryId,
           Value<String?> projectUuid = const Value.absent(),
           Value<String?> secondaryId = const Value.absent(),
           Value<String?> category = const Value.absent(),
@@ -1413,7 +1409,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
           Value<String?> fileName = const Value.absent(),
           Value<String?> caption = const Value.absent()}) =>
       MediaData(
-        primaryId: primaryId.present ? primaryId.value : this.primaryId,
+        primaryId: primaryId ?? this.primaryId,
         projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
         secondaryId: secondaryId.present ? secondaryId.value : this.secondaryId,
         category: category.present ? category.value : this.category,
@@ -1501,7 +1497,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
 }
 
 class MediaCompanion extends UpdateCompanion<MediaData> {
-  final Value<int?> primaryId;
+  final Value<int> primaryId;
   final Value<String?> projectUuid;
   final Value<String?> secondaryId;
   final Value<String?> category;
@@ -1572,7 +1568,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
   }
 
   MediaCompanion copyWith(
-      {Value<int?>? primaryId,
+      {Value<int>? primaryId,
       Value<String?>? projectUuid,
       Value<String?>? secondaryId,
       Value<String?>? category,
@@ -12899,7 +12895,7 @@ typedef $PersonnelProcessedTableManager = ProcessedTableManager<
     PersonnelData,
     PrefetchHooks Function({bool specimenRefs})>;
 typedef $MediaCreateCompanionBuilder = MediaCompanion Function({
-  Value<int?> primaryId,
+  Value<int> primaryId,
   Value<String?> projectUuid,
   Value<String?> secondaryId,
   Value<String?> category,
@@ -12913,7 +12909,7 @@ typedef $MediaCreateCompanionBuilder = MediaCompanion Function({
   Value<String?> caption,
 });
 typedef $MediaUpdateCompanionBuilder = MediaCompanion Function({
-  Value<int?> primaryId,
+  Value<int> primaryId,
   Value<String?> projectUuid,
   Value<String?> secondaryId,
   Value<String?> category,
@@ -12939,7 +12935,7 @@ final class $MediaReferences
 
   $NarrativeProcessedTableManager get narrativeRefs {
     final manager = $NarrativeTableManager($_db, $_db.narrative).filter(
-        (f) => f.mediaID.primaryId.sqlEquals($_itemColumn<int>('primaryId')));
+        (f) => f.mediaID.primaryId.sqlEquals($_itemColumn<int>('primaryId')!));
 
     final cache = $_typedResult.readTableOrNull(_narrativeRefsTable($_db));
     return ProcessedTableManager(
@@ -13149,7 +13145,7 @@ class $MediaTableManager extends RootTableManager<
           createComputedFieldComposer: () =>
               $MediaAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
-            Value<int?> primaryId = const Value.absent(),
+            Value<int> primaryId = const Value.absent(),
             Value<String?> projectUuid = const Value.absent(),
             Value<String?> secondaryId = const Value.absent(),
             Value<String?> category = const Value.absent(),
@@ -13177,7 +13173,7 @@ class $MediaTableManager extends RootTableManager<
             caption: caption,
           ),
           createCompanionCallback: ({
-            Value<int?> primaryId = const Value.absent(),
+            Value<int> primaryId = const Value.absent(),
             Value<String?> projectUuid = const Value.absent(),
             Value<String?> secondaryId = const Value.absent(),
             Value<String?> category = const Value.absent(),

@@ -126,7 +126,7 @@ CREATE TABLE narrative (
 );
 
 CREATE TABLE media (
-    primaryId INT PRIMARY KEY AUTOINCREMENT,
+    primaryId INT NOT NULL PRIMARY KEY AUTOINCREMENT,
     projectUuid TEXT,
     secondaryId TEXT,
     category TEXT,

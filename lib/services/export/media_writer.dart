@@ -35,7 +35,7 @@ class MediaWriterServices {
     for (var media in mediaList) {
       List<String> mediaDetails = await _getMedia(media);
       String linkedData = await MediaCategoryServices(ref: ref)
-          .getLinkedData(media.primaryId!, media.category);
+          .getLinkedData(media.primaryId, media.category);
       mediaDetails.insert(1, linkedData);
       writer.writeln(mediaDetails.toDelimitedText(delimiter));
     }
