@@ -12612,8 +12612,8 @@ final class $PersonnelReferences
               db.personnel.uuid, db.specimen.preparatorID));
 
   $SpecimenProcessedTableManager get specimenRefs {
-    final manager = $SpecimenTableManager($_db, $_db.specimen)
-        .filter((f) => f.preparatorID.uuid($_item.uuid));
+    final manager = $SpecimenTableManager($_db, $_db.specimen).filter(
+        (f) => f.preparatorID.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_specimenRefsTable($_db));
     return ProcessedTableManager(
@@ -12868,7 +12868,8 @@ class $PersonnelTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (specimenRefs)
-                    await $_getPrefetchedData(
+                    await $_getPrefetchedData<PersonnelData, Personnel,
+                            SpecimenData>(
                         currentTable: table,
                         referencedTable:
                             $PersonnelReferences._specimenRefsTable(db),
@@ -12937,8 +12938,8 @@ final class $MediaReferences
               $_aliasNameGenerator(db.media.primaryId, db.narrative.mediaID));
 
   $NarrativeProcessedTableManager get narrativeRefs {
-    final manager = $NarrativeTableManager($_db, $_db.narrative)
-        .filter((f) => f.mediaID.primaryId($_item.primaryId));
+    final manager = $NarrativeTableManager($_db, $_db.narrative).filter(
+        (f) => f.mediaID.primaryId.sqlEquals($_itemColumn<int>('primaryId')));
 
     final cache = $_typedResult.readTableOrNull(_narrativeRefsTable($_db));
     return ProcessedTableManager(
@@ -13214,7 +13215,7 @@ class $MediaTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (narrativeRefs)
-                    await $_getPrefetchedData(
+                    await $_getPrefetchedData<MediaData, Media, NarrativeData>(
                         currentTable: table,
                         referencedTable:
                             $MediaReferences._narrativeRefsTable(db),
@@ -13288,7 +13289,7 @@ final class $SiteReferences extends BaseReferences<_$Database, Site, SiteData> {
 
   $CollEventProcessedTableManager get collEventRefs {
     final manager = $CollEventTableManager($_db, $_db.collEvent)
-        .filter((f) => f.siteID.id($_item.id));
+        .filter((f) => f.siteID.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_collEventRefsTable($_db));
     return ProcessedTableManager(
@@ -13607,7 +13608,7 @@ class $SiteTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (collEventRefs)
-                    await $_getPrefetchedData(
+                    await $_getPrefetchedData<SiteData, Site, CollEventData>(
                         currentTable: table,
                         referencedTable:
                             $SiteReferences._collEventRefsTable(db),
@@ -13908,9 +13909,10 @@ final class $CollEventReferences
       .createAlias($_aliasNameGenerator(db.collEvent.siteID, db.site.id));
 
   $SiteProcessedTableManager? get siteID {
-    if ($_item.siteID == null) return null;
-    final manager =
-        $SiteTableManager($_db, $_db.site).filter((f) => f.id($_item.siteID!));
+    final $_column = $_itemColumn<int>('siteID');
+    if ($_column == null) return null;
+    final manager = $SiteTableManager($_db, $_db.site)
+        .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_siteIDTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
@@ -14850,9 +14852,10 @@ final class $NarrativeReferences
       $_aliasNameGenerator(db.narrative.mediaID, db.media.primaryId));
 
   $MediaProcessedTableManager? get mediaID {
-    if ($_item.mediaID == null) return null;
+    final $_column = $_itemColumn<int>('mediaID');
+    if ($_column == null) return null;
     final manager = $MediaTableManager($_db, $_db.media)
-        .filter((f) => f.primaryId($_item.mediaID!));
+        .filter((f) => f.primaryId.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_mediaIDTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
@@ -15705,9 +15708,10 @@ final class $SpecimenReferences
           $_aliasNameGenerator(db.specimen.preparatorID, db.personnel.uuid));
 
   $PersonnelProcessedTableManager? get preparatorID {
-    if ($_item.preparatorID == null) return null;
+    final $_column = $_itemColumn<String>('preparatorID');
+    if ($_column == null) return null;
     final manager = $PersonnelTableManager($_db, $_db.personnel)
-        .filter((f) => f.uuid($_item.preparatorID!));
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_preparatorIDTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
