@@ -14,7 +14,6 @@ class NahpuTheme {
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: appBarLightTheme,
-      cardTheme: cardTheme,
       inputDecorationTheme: inputDecorationTheme,
     );
   }
@@ -25,7 +24,6 @@ class NahpuTheme {
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: appBarDarkTheme,
-      cardTheme: cardTheme,
       inputDecorationTheme: inputDecorationTheme,
     );
   }

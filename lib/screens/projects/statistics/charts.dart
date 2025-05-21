@@ -58,14 +58,14 @@ class BarChartViewer extends StatelessWidget {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              tooltipRoundedRadius: 16,
+              tooltipBorderRadius: BorderRadius.circular(8),
               direction: TooltipDirection.top,
               fitInsideHorizontally: true,
               fitInsideVertically: true,
-              tooltipBgColor: Theme.of(context)
+              getTooltipColor: (group) => Theme.of(context)
                   .colorScheme
                   .secondaryContainer
-                  .withAlpha((0.9 * 255).toInt()),
+                  .withAlpha((0.8 * 255).toInt()),
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 return BarTooltipItem(
                     rod.toY.truncateZero(),
