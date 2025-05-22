@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:nahpu/services/database/database.dart' as db;
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/projects/dashboard.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
@@ -355,41 +356,46 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
             leading: Icon(Icons.info_outlined),
             title: Text('Details'),
           ),
-          onTap: () {
-            _getProjectInfo(widget.project.uuid);
+          onTap: () async {
+            db.ProjectData data = await _getProjectInfo(widget.project.uuid);
+            _showProjectDialog(data);
           },
         ),
       ],
     );
   }
 
-  void _getProjectInfo(String projectUuid) {
+  Future<db.ProjectData> _getProjectInfo(String projectUuid) async {
     // We technically can directly call the projectInfoProvider here,
     // but for the popup menu to work, we need to implement Future.delayed
     // and call the provider from the onTap function of the popup menu.
     // when we tested this, users have to tap twice to get the popup menu to work.
     // This solution works well.
-    ProjectServices(ref: ref).getProjectByUuid(projectUuid).then(
-          (value) => showDialog<void>(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Project information'),
-                content: SingleChildScrollView(
-                    child: ProjectInfo(projectData: value)),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('Close'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-        );
+    db.ProjectData data =
+        await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
+    return data;
   }
+
+  void _showProjectDialog(db.ProjectData? value) => {
+        showDialog<void>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Project information'),
+              content:
+                  SingleChildScrollView(child: ProjectInfo(projectData: value)),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Close'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      };
 }
 
 class ProjectIcon extends StatelessWidget {
