@@ -1,4 +1,5 @@
 pub mod archive;
+pub mod databases;
 
 pub fn test_lib() -> String {
     "Hello from NAHPU-API".to_string()
