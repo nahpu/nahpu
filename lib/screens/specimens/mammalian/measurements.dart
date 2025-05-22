@@ -219,6 +219,7 @@ class MammalMeasurementFormsState
           padding: const EdgeInsets.all(5),
           child: DropdownButtonFormField(
               value: ctr.accuracyCtr,
+              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Accuracy',
                 hintText: 'Select measurement accuracy',
@@ -242,62 +243,69 @@ class MammalMeasurementFormsState
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            DropdownButtonFormField<SpecimenSex>(
-                value: getSpecimenSex(ctr.sexCtr),
+            Expanded(
+              child: DropdownButtonFormField<SpecimenSex>(
+                  value: getSpecimenSex(ctr.sexCtr),
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Sex',
+                    hintText: 'Select specimen sex',
+                  ),
+                  items: specimenSexList
+                      .map((e) => DropdownMenuItem(
+                            value:
+                                SpecimenSex.values[specimenSexList.indexOf(e)],
+                            child: CommonDropdownText(text: e),
+                          ))
+                      .toList(),
+                  onChanged: (SpecimenSex? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        ctr.sexCtr = newValue.index;
+                        SpecimenServices(ref: ref).updateMammalMeasurement(
+                          widget.specimenUuid,
+                          MammalMeasurementCompanion(
+                            sex: db.Value(
+                              newValue.index,
+                            ),
+                          ),
+                        );
+                      });
+                    }
+                  }),
+            ),
+            Expanded(
+              child: DropdownButtonFormField<SpecimenAge>(
+                value: getSpecimenAge(ctr.ageCtr),
+                isExpanded: true,
                 decoration: const InputDecoration(
-                  labelText: 'Sex',
-                  hintText: 'Select specimen sex',
+                  labelText: 'Age',
+                  hintText: 'Select specimen age',
                 ),
-                items: specimenSexList
+                items: specimenAgeList
                     .map((e) => DropdownMenuItem(
-                          value: SpecimenSex.values[specimenSexList.indexOf(e)],
+                          value: SpecimenAge.values[specimenAgeList.indexOf(e)],
                           child: CommonDropdownText(text: e),
                         ))
                     .toList(),
-                onChanged: (SpecimenSex? newValue) {
+                onChanged: (SpecimenAge? newValue) {
                   if (newValue != null) {
-                    setState(() {
-                      ctr.sexCtr = newValue.index;
-                      SpecimenServices(ref: ref).updateMammalMeasurement(
-                        widget.specimenUuid,
-                        MammalMeasurementCompanion(
-                          sex: db.Value(
-                            newValue.index,
+                    setState(
+                      () {
+                        ctr.ageCtr = newValue.index;
+                        SpecimenServices(ref: ref).updateMammalMeasurement(
+                          widget.specimenUuid,
+                          MammalMeasurementCompanion(
+                            age: db.Value(
+                              newValue.index,
+                            ),
                           ),
-                        ),
-                      );
-                    });
+                        );
+                      },
+                    );
                   }
-                }),
-            DropdownButtonFormField<SpecimenAge>(
-              value: getSpecimenAge(ctr.ageCtr),
-              decoration: const InputDecoration(
-                labelText: 'Age',
-                hintText: 'Select specimen age',
+                },
               ),
-              items: specimenAgeList
-                  .map((e) => DropdownMenuItem(
-                        value: SpecimenAge.values[specimenAgeList.indexOf(e)],
-                        child: CommonDropdownText(text: e),
-                      ))
-                  .toList(),
-              onChanged: (SpecimenAge? newValue) {
-                if (newValue != null) {
-                  setState(
-                    () {
-                      ctr.ageCtr = newValue.index;
-                      SpecimenServices(ref: ref).updateMammalMeasurement(
-                        widget.specimenUuid,
-                        MammalMeasurementCompanion(
-                          age: db.Value(
-                            newValue.index,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }
-              },
             ),
           ],
         ),
@@ -398,6 +406,7 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<TestisPosition>(
               value: getTestisPosition(widget.ctr.testisPosCtr),
+              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Position',
                 hintText: 'Select testis position',
