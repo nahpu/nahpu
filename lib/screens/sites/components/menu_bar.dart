@@ -7,8 +7,10 @@ import 'package:nahpu/services/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
   return SiteServices(ref: ref).createNewSite().then((_) {
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (_) => const SiteViewer()));
+    if (context.mounted) {
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const SiteViewer()));
+    }
   });
 }
 

@@ -328,16 +328,20 @@ void showDeleteAlertOnMenu({
 }) {
   Future.delayed(
     const Duration(milliseconds: 0),
-    () => showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return DeleteAlerts(
-          deletePrompt: deletePrompt,
-          title: title,
-          onDelete: onDelete,
+    () {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return DeleteAlerts(
+              deletePrompt: deletePrompt,
+              title: title,
+              onDelete: onDelete,
+            );
+          },
         );
-      },
-    ),
+      }
+    },
   );
 }
 

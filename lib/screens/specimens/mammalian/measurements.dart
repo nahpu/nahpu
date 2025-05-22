@@ -219,7 +219,6 @@ class MammalMeasurementFormsState
           padding: const EdgeInsets.all(5),
           child: DropdownButtonFormField(
               value: ctr.accuracyCtr,
-              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Accuracy',
                 hintText: 'Select measurement accuracy',
@@ -243,41 +242,36 @@ class MammalMeasurementFormsState
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            Expanded(
-              child: DropdownButtonFormField<SpecimenSex>(
-                  value: getSpecimenSex(ctr.sexCtr),
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Sex',
-                    hintText: 'Select specimen sex',
-                  ),
-                  items: specimenSexList
-                      .map((e) => DropdownMenuItem(
-                            value:
-                                SpecimenSex.values[specimenSexList.indexOf(e)],
-                            child: CommonDropdownText(text: e),
-                          ))
-                      .toList(),
-                  onChanged: (SpecimenSex? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        ctr.sexCtr = newValue.index;
-                        SpecimenServices(ref: ref).updateMammalMeasurement(
-                          widget.specimenUuid,
-                          MammalMeasurementCompanion(
-                            sex: db.Value(
-                              newValue.index,
-                            ),
+            DropdownButtonFormField<SpecimenSex>(
+                value: getSpecimenSex(ctr.sexCtr),
+                decoration: const InputDecoration(
+                  labelText: 'Sex',
+                  hintText: 'Select specimen sex',
+                ),
+                items: specimenSexList
+                    .map((e) => DropdownMenuItem(
+                          value: SpecimenSex.values[specimenSexList.indexOf(e)],
+                          child: CommonDropdownText(text: e),
+                        ))
+                    .toList(),
+                onChanged: (SpecimenSex? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      ctr.sexCtr = newValue.index;
+                      SpecimenServices(ref: ref).updateMammalMeasurement(
+                        widget.specimenUuid,
+                        MammalMeasurementCompanion(
+                          sex: db.Value(
+                            newValue.index,
                           ),
-                        );
-                      });
-                    }
-                  }),
-            ),
+                        ),
+                      );
+                    });
+                  }
+                }),
             Expanded(
               child: DropdownButtonFormField<SpecimenAge>(
                 value: getSpecimenAge(ctr.ageCtr),
-                isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Age',
                   hintText: 'Select specimen age',
@@ -406,7 +400,6 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<TestisPosition>(
               value: getTestisPosition(widget.ctr.testisPosCtr),
-              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Position',
                 hintText: 'Select testis position',
@@ -610,6 +603,7 @@ class OvaryOpeningField extends ConsumerWidget {
               specimenAge == SpecimenAge.adult,
           child: DropdownButtonFormField<PubicSymphysis>(
             value: _getPubicSymphysis(),
+            isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Pubic symphysis',
               hintText: 'Select pubic symphysis condition',

@@ -16,8 +16,10 @@ enum MenuSelection {
 
 Future<void> createNewNarrative(BuildContext context, WidgetRef ref) {
   return NarrativeServices(ref: ref).createNewNarrative().then((_) {
-    Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const NarrativeViewer()));
+    if (context.mounted) {
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const NarrativeViewer()));
+    }
   });
 }
 
