@@ -208,8 +208,13 @@ class GeoLocationServices {
   Future<Position> _getCoordinates(LocationPermission permission) async {
     if (permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse) {
+      final LocationSettings locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 100,
+        timeLimit: const Duration(seconds: 10),
+      );
       Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+          locationSettings: locationSettings);
       return position;
     }
     throw Exception('Location permissions are denied');

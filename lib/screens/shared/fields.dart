@@ -45,7 +45,7 @@ class CommonDateField extends StatelessWidget {
   }
 }
 
-class CommonTimeField extends StatelessWidget {
+class CommonTimeField extends ConsumerStatefulWidget {
   const CommonTimeField({
     super.key,
     required this.controller,
@@ -62,22 +62,43 @@ class CommonTimeField extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  CommonTimeFieldState createState() => CommonTimeFieldState();
+}
+
+class CommonTimeFieldState extends ConsumerState<CommonTimeField> {
+  @override
   Widget build(BuildContext context) {
     return TextField(
       decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
+        labelText: widget.labelText,
+        hintText: widget.hintText,
       ),
-      controller: controller,
-      onTap: () {
-        showTimePicker(context: context, initialTime: initialTime).then((time) {
-          if (time != null) {
-            controller.text = time.format(context);
-            onTap();
-          }
-        });
+      controller: widget.controller,
+      onTap: () async {
+        final time = await _showTimePicker(
+          context: context,
+          initialTime: widget.initialTime,
+        );
+        if (time != null && mounted) {
+          widget.controller.text = _formatTimeOfDay(time);
+          widget.onTap();
+        }
       },
     );
+  }
+
+  Future<TimeOfDay?> _showTimePicker({
+    required BuildContext context,
+    required TimeOfDay initialTime,
+  }) {
+    return showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+  }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    return time.format(context);
   }
 }
 

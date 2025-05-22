@@ -205,20 +205,19 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
                 hintText: 'Enter sunrise time',
               ),
               onTap: () async {
-                await showTimePicker(
+                final value = await _showTimePicker(
                   context: context,
                   initialTime: TimeOfDay.now(),
-                ).then((value) {
-                  if (value != null) {
-                    final formattedTime = value.format(context);
-                    widget.weatherCtr.sunriseTimeCtr.text = formattedTime;
-                    CollEventServices(ref: ref).updateWeatherData(
-                        widget.eventID,
-                        WeatherCompanion(
-                          sunriseTime: db.Value(value.format(context)),
-                        ));
-                  }
-                });
+                );
+                if (value != null && mounted) {
+                  final formattedTime = _formatTimeOfDay(value);
+                  widget.weatherCtr.sunriseTimeCtr.text = formattedTime;
+                  CollEventServices(ref: ref).updateWeatherData(
+                      widget.eventID,
+                      WeatherCompanion(
+                        sunriseTime: db.Value(formattedTime),
+                      ));
+                }
               },
             ),
             TextField(
@@ -228,18 +227,16 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
                 hintText: 'Enter sunset time',
               ),
               onTap: () async {
-                final value = await showTimePicker(
+                final value = await _showTimePicker(
                   context: context,
                   initialTime: TimeOfDay.now(),
                 );
                 if (value != null && mounted) {
-                  final formattedTime = value.format(context);
+                  final formattedTime = _formatTimeOfDay(value);
                   widget.weatherCtr.sunsetTimeCtr.text = formattedTime;
-                  CollEventServices(ref: ref).updateWeatherData(
-                      widget.eventID,
-                      WeatherCompanion(
-                        sunsetTime: db.Value(value.format(context)),
-                      ));
+                  _updateWeatherData(WeatherCompanion(
+                    sunsetTime: db.Value(formattedTime),
+                  ));
                 }
               },
             ),
@@ -295,6 +292,24 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
         const SizedBox(height: 30),
       ],
     );
+  }
+
+  Future<TimeOfDay?> _showTimePicker({
+    required BuildContext context,
+    required TimeOfDay initialTime,
+  }) async {
+    return await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+  }
+
+  void _updateWeatherData(WeatherCompanion weatherData) {
+    CollEventServices(ref: ref).updateWeatherData(widget.eventID, weatherData);
+  }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    return time.format(context);
   }
 }
 
