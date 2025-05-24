@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=nahpu
+Comment=A digital cataloging app for natural history specimens
+Exec=nahpu 
+Icon=${SNAP}/meta/gui/nahpu.png
+Terminal=false
+Type=Application
+Categories=Science;

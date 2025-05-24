@@ -1,0 +1,49 @@
+name: nahpu
+base: core22 # the base snap is the execution environment for this snap
+version: "1.0.0-rc5" # the version of your application
+summary: A digital cataloging app for natural history specimens # 79 char long summary
+description: |
+  NAHPU (NAtural History Project Utility), 
+  loosely named after the Greater Malay Chevrotain, Tragulus napu, 
+  is a field cataloging app designed for natural history collections. 
+  The current version is equipped to catalog specimens of mammals and birds.
+
+grade: stable
+confinement: strict
+architectures:
+  - build-on: amd64
+
+slots:
+  dbus-segui:
+    interface: dbus
+    bus: session
+    name: com.hhandika.nahpu
+
+apps:
+  segui:
+    command: nahpu
+    plugs:
+      - network
+      - home
+      - removable-media
+      - cifs-mount
+    slots:
+      - dbus-nahpu
+    extensions: [gnome]
+
+parts:
+  rust-lib:
+    plugin: rust
+    build-packages:
+      - musl-tools
+    source: rust/
+    override-build: |
+      rustup target add x86_64-unknown-linux-musl
+      cargo build --release --target x86_64-unknown-linux-musl
+  segui:
+    source: .
+    build-packages:
+      - curl
+      - rust-all
+    plugin: flutter
+    flutter-target: lib/main.dart

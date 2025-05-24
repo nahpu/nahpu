@@ -1,0 +1,37 @@
+display_name: NAHPU
+package_name: nahpu
+maintainer:
+  name: Heru Handika
+  email: hhandi1@lsu.edu
+co_authors:
+  - name: Jacob A. Esselstyn
+    email: esseltyn@lsu.edu
+  - name: Andre E. Moncrieff
+    email: amoncr2@lsu.edu
+priority: optional
+section: x11
+installed_size: 19800000
+essential: false
+icon: assets/launcher/icon_desktop.png
+
+postinstall_scripts:
+  - echo "NAHPU has been successfully installed."
+
+keywords:
+  - science
+  - nature
+  - museum
+
+generic_name: A digital cataloging app for natural history specimens
+description: |
+  NAHPU (NAtural History Project Utility), 
+  loosely named after the Greater Malay Chevrotain, Tragulus napu, 
+  is a field cataloging app designed for natural history collections. 
+  The current version is equipped to catalog specimens of mammals and birds.
+
+categories:
+  - Science
+  - Education
+  - Biology
+
+startup_notify: true

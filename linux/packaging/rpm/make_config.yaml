@@ -1,0 +1,29 @@
+icon: assets/launcher/icon_desktop.png
+summary: A digital cataloging app for natural history specimens
+group: Applications/Productivity
+vendor: Heru Handika
+packager: Heru Handika
+packagerEmail: hhandi1@lsu.edu
+license: MIT
+url: https://www.nahpu.app/
+
+display_name: NAHPU
+
+keywords:
+  - science
+  - nature
+  - museum
+
+generic_name: A digital cataloging app for natural history specimens
+description: |
+  NAHPU (NAtural History Project Utility), 
+  loosely named after the Greater Malay Chevrotain, Tragulus napu, 
+  is a field cataloging app designed for natural history collections. 
+  The current version is equipped to catalog specimens of mammals and birds.
+
+categories:
+  - Science
+  - Education
+  - Biology
+
+startup_notify: true
