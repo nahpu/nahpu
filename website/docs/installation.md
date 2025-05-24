@@ -16,7 +16,7 @@ Requirements: Windows 10 or later.
 
 To install the app, follow these steps:
 
-1. Download the latest version of the app from [GitHub](https://github.com/hhandika/nahpu/releases).
+1. Download the latest version of the app from [GitHub](https://github.com/hhandika/nahpu/releases/latest/download/nahpu-Windows-x86_64.zip).
 2. Extract the downloaded ZIP file to a folder on your computer.
 3. For easier access, create a shortcut to the `nahpu.exe` file on your desktop or taskbar.
 4. Open the app by double-clicking the `nahpu.exe` file or the shortcut you created.
@@ -27,7 +27,7 @@ To install the app, follow these steps:
 Requirements: Android 8.0 (Oreo) or later.
 To install the app, follow these steps:
 
-1. Download the latest version of the app from [GitHub](https://github.com/hhandika/nahpu/releases)
+1. Download the latest version of the app from [GitHub](https://github.com/nahpu/nahpu/releases/latest/download/nahpu-Android.apk)
 2. Open the downloaded APK file on your Android device.
 3. If prompted, enable installation from unknown sources in your device settings.
 4. Follow the on-screen instructions to complete the installation.
@@ -39,8 +39,8 @@ Requirements: Ubuntu 22.04+ or other distributions with GLIBC 2.34+
 
 To install the app, follow these steps:
 
-1. Download the latest version of the app from [GitHub](https://github.com/hhandika/nahpu/releases)
-2. Extract the downloaded GUNZIP file to a folder on your computer: `tar -xvf nahpu-linux-x86_64-<version>.tar.gz`
+1. Download the latest version of the app from [GitHub](https://github.com/nahpu/nahpu/releases/latest/download/nahpu-Linux-x86_64.tar.gz).
+2. Extract the downloaded `nahpu-Linux-x86_64.tar.gz` file to a folder on your computer.
 3. Run the nahpu executable.
 
 ## Apple Devices (iOS/iPadOS/macOS)
