@@ -28,11 +28,10 @@ Requirements: Android 8.0 (Oreo) or later.
 
 To install the app, follow these steps:
 
-1. Download the latest version of the app from GitHub:
-    - [Most Android APK (64-bit)](https://github.com/nahpu/nahpu/releases/latest/download/nahpu-arm64-v8a-release.apk).
+1. Download the latest version of the app from [GitHub](https://github.com/nahpu/nahpu/releases/latest/download/nahpu-Android.apk).
+    <!-- - [Most Android APK (64-bit)](https://github.com/nahpu/nahpu/releases/latest/download/nahpu-arm64-v8a-release.apk).
     - [Older Android APK (32-bit)](https://github.com/nahpu/nahpu/releases/latest/download/nahpu-armeabi-v7a-release.apk).
-    - [ChromeOS APK (64-bit)](https://github.com/nahpu/nahpu/releases/latest/download/nahpu-x86_64-release.apk).
-
+    - [ChromeOS APK (64-bit)](https://github.com/nahpu/nahpu/releases/latest/download/nahpu-x86_64-release.apk). -->
 2. Open the downloaded APK file on your Android device.
 3. If prompted, enable installation from unknown sources in your device settings.
 4. Follow the on-screen instructions to complete the installation.
