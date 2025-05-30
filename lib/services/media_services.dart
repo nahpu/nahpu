@@ -188,9 +188,14 @@ class MediaFinder extends AppServices {
             .getProjectDirByUUID(media.projectUuid!);
         File mediaPath = _getMediaPath(projectDir, media.fileName!, category);
         if (kDebugMode) print(mediaPath.path);
-        _checkPath(mediaPath);
-
-        mediaPaths.add(mediaPath);
+        if (_checkPath(mediaPath)) {
+          mediaPaths.add(mediaPath);
+        } else {
+          if (kDebugMode) {
+            print('Media file not found: ${media.fileName}');
+          }
+        }
+        // mediaPaths.add(mediaPath);
       }
     }
     return mediaPaths;
@@ -203,9 +208,10 @@ class MediaFinder extends AppServices {
     return File(fullPath);
   }
 
-  void _checkPath(File file) {
-    if (!file.existsSync()) {
-      throw Exception('File not found ${file.path}. Please, check the file');
-    }
+  bool _checkPath(File file) {
+    return file.existsSync();
+    // if (!file.existsSync()) {
+    //   throw Exception('File not found ${file.path}. Please, check the file');
+    // }
   }
 }

@@ -88,10 +88,10 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm> {
                               });
                               try {
                                 await _bundleProject();
+                                _finishProcessing();
                               } catch (e) {
                                 _showError(e.toString());
                               }
-                              _finishProcessing();
                             },
                       isRunning: _isRunning,
                       icon: Icons.archive_outlined,
