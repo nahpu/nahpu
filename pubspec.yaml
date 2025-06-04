@@ -62,7 +62,7 @@ dependencies:
   file_picker: ^10.0.0
   geolocator: ^14.0.0
   xml: ^6.3.0
-  flutter_rust_bridge: 2.10.0
+  flutter_rust_bridge: 2.9.0
   mobile_scanner: ^7.0.0
   sqlite3: ^2.4.4
   rust_lib_nahpu:
