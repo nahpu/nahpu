@@ -67,6 +67,7 @@ dependencies:
   sqlite3: ^2.4.4
   rust_lib_nahpu:
     path: rust_builder
+  open_file_manager: ^2.0.1
 
 dev_dependencies:
   flutter_test:

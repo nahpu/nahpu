@@ -116,30 +116,29 @@ class SelectDirField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Platform.isIOS || Platform.isAndroid
-        ? const SizedBox.shrink()
-        : Row(
-            children: [
-              dirPath != null
-                  ? const Icon(Icons.folder_open_outlined)
-                  : const SizedBox.shrink(),
-              Expanded(
-                child: Text(
-                  _getDirPath(),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              dirPath == null
-                  ? IconButton(
-                      icon: const Icon(Icons.folder_outlined),
-                      onPressed: onPressed,
-                    )
-                  : IconButton(
-                      onPressed: onCanceled,
-                      icon: const Icon(Icons.clear_rounded)),
-            ],
-          );
+    // return Platform.isIOS || Platform.isAndroid
+    //     ? const SizedBox.shrink()
+    return Row(
+      children: [
+        dirPath != null
+            ? const Icon(Icons.folder_open_outlined)
+            : const SizedBox.shrink(),
+        Expanded(
+          child: Text(
+            _getDirPath(),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        dirPath == null
+            ? IconButton(
+                icon: const Icon(Icons.folder_outlined),
+                onPressed: onPressed,
+              )
+            : IconButton(
+                onPressed: onCanceled, icon: const Icon(Icons.clear_rounded)),
+      ],
+    );
   }
 
   String _getDirPath() {

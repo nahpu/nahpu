@@ -35,7 +35,9 @@ class FilePickerServices {
   }
 
   Future<Directory?> selectDir() async {
-    final result = await getDirectoryPath();
+    final result = Platform.isIOS
+        ? await FilePicker.platform.getDirectoryPath()
+        : await getDirectoryPath();
     if (result != null) {
       if (kDebugMode) {
         print('Selected directory: $result');

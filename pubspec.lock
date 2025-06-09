@@ -863,6 +863,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.0"
+  open_file_manager:
+    dependency: "direct main"
+    description:
+      name: open_file_manager
+      sha256: e8a08a7a12b33b5d77b0d458c2ae656a4396ff1dd1d79a877f7dcb228f47fadc
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   package_config:
     dependency: transitive
     description:
