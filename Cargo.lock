@@ -572,6 +572,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nahpu_api"
+version = "0.1.0"
+source = "git+https://github.com/nahpu/nahpu_api.git#247b7f84ab7cda03e23c1ac824647283f08c8df4"
+dependencies = [
+ "flate2",
+ "zip",
+]
+
+[[package]]
 name = "num-conv"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -730,7 +739,7 @@ name = "rust_lib_nahpu"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
- "nahpu_api",
+ "nahpu_api 0.1.0 (git+https://github.com/nahpu/nahpu_api.git)",
 ]
 
 [[package]]
