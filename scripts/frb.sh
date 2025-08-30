@@ -19,7 +19,7 @@ cargo update
 cd ..
 
 echo "Updating FRB"
-cargo install 'flutter_rust_bridge_codegen@^2.0.0-dev.0'
+cargo install 'flutter_rust_bridge_codegen@^2.11.1'
 
 echo "Updating Dart dependencies"
 flutter pub upgrade

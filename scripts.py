@@ -17,7 +17,7 @@ FRB_FILES = [DART_FRB, DART_FRB_IO, DART_FRB_WEB, RUST_FRB_IO, RUST_FRB, RUST_FR
 DMG_CONFIG = "packages/config.json"
 OUTPUT_DMG = "packages/mdd.dmg"
 
-FRB_INSTALL_NAME = "flutter_rust_bridge_codegen@^2.0.0-dev.0"
+FRB_INSTALL_NAME = "flutter_rust_bridge_codegen@^2.11.1"
 
 IOS_PODS_FILES = "ios/Podfile ios/Podfile.lock ios/Pods/"
 MACOS_PODS_FILES = "macos/Podfile macos/Podfile.lock macos/Pods/"
