@@ -160,7 +160,7 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
             },
           ),
           DropdownButtonFormField<SpecimenSex>(
-            value: getSpecimenSex(ctr.sexCtr),
+            initialValue: getSpecimenSex(ctr.sexCtr),
             decoration: const InputDecoration(
               labelText: 'Sex',
               hintText: 'Choose one',
@@ -190,7 +190,7 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
         useHorizontalLayout: widget.useHorizontalLayout,
         children: [
           DropdownButtonFormField<int?>(
-            value: ctr.broodPatchCtr,
+            initialValue: ctr.broodPatchCtr,
             decoration: const InputDecoration(
               labelText: 'Brood patch',
               hintText: 'Choose one',
@@ -218,7 +218,7 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
             },
           ),
           DropdownButtonFormField<int?>(
-            value: ctr.hasBursaCtr,
+            initialValue: ctr.hasBursaCtr,
             decoration: const InputDecoration(
               labelText: 'Bursa present',
               hintText: 'Choose one',
@@ -549,7 +549,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
           Padding(
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<OvaryAppearance>(
-              value: _getOvaryAppearance(),
+              initialValue: _getOvaryAppearance(),
               decoration: const InputDecoration(
                 labelText: 'Appearance',
                 hintText: 'Choose one',
@@ -639,7 +639,7 @@ class SkullOssField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField(
-      value: ctr.skullOssCtr,
+      initialValue: ctr.skullOssCtr,
       decoration: const InputDecoration(
         labelText: 'Skull ossification (%)',
         hintText: 'Enter percentage',
@@ -678,7 +678,7 @@ class FatField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField<FatCategory>(
-        value: _getFatCategory(),
+        initialValue: _getFatCategory(),
         decoration: const InputDecoration(
           labelText: 'Fat',
           hintText: 'Enter amount of fat',
@@ -823,7 +823,7 @@ class OviductForm extends ConsumerWidget {
         },
       ),
       DropdownButtonFormField<OviductAppearance>(
-        value: _getOviductAppearance(),
+        initialValue: _getOviductAppearance(),
         decoration: const InputDecoration(
           labelText: 'Appearance',
           hintText: 'Choose one',
@@ -893,7 +893,7 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
             ctr: widget.ctr,
           ),
           DropdownButtonFormField<int?>(
-            value: widget.ctr.wingIsMoltCtr,
+            initialValue: widget.ctr.wingIsMoltCtr,
             decoration: const InputDecoration(
               labelText: 'Wing Molting',
               hintText: 'Choose one',
@@ -930,7 +930,7 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
             ),
           ),
           DropdownButtonFormField<int?>(
-            value: widget.ctr.wingIsMoltCtr,
+            initialValue: widget.ctr.wingIsMoltCtr,
             decoration: const InputDecoration(
               labelText: 'Tail Molting',
               hintText: 'Choose one',
@@ -1070,7 +1070,7 @@ class BodyMoltForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField<BodyMolt>(
-      value: _getMoltValue(),
+      initialValue: _getMoltValue(),
       decoration: const InputDecoration(
         labelText: 'Body Molt',
         hintText: 'Choose one',

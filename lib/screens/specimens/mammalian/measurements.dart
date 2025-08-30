@@ -218,7 +218,7 @@ class MammalMeasurementFormsState
         Padding(
           padding: const EdgeInsets.all(5),
           child: DropdownButtonFormField(
-              value: ctr.accuracyCtr,
+              initialValue: ctr.accuracyCtr,
               decoration: const InputDecoration(
                 labelText: 'Accuracy',
                 hintText: 'Select measurement accuracy',
@@ -243,7 +243,7 @@ class MammalMeasurementFormsState
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             DropdownButtonFormField<SpecimenSex>(
-                value: getSpecimenSex(ctr.sexCtr),
+                initialValue: getSpecimenSex(ctr.sexCtr),
                 isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Sex',
@@ -271,7 +271,7 @@ class MammalMeasurementFormsState
                   }
                 }),
             DropdownButtonFormField<SpecimenAge>(
-              value: getSpecimenAge(ctr.ageCtr),
+              initialValue: getSpecimenAge(ctr.ageCtr),
               isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Age',
@@ -399,7 +399,7 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
           Padding(
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<TestisPosition>(
-              value: getTestisPosition(widget.ctr.testisPosCtr),
+              initialValue: getTestisPosition(widget.ctr.testisPosCtr),
               decoration: const InputDecoration(
                 labelText: 'Position',
                 hintText: 'Select testis position',
@@ -510,7 +510,7 @@ class ScrotalMaleFormState extends ConsumerState<ScrotalMaleForm> {
           Padding(
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<EpididymisAppearance>(
-              value: _getEpididymisAppearance(),
+              initialValue: _getEpididymisAppearance(),
               decoration: const InputDecoration(
                 labelText: 'Epididymis',
                 hintText: 'Select epididymis appearance',
@@ -573,7 +573,7 @@ class OvaryOpeningField extends ConsumerWidget {
         Visibility(
           visible: specimenSex == SpecimenSex.female,
           child: DropdownButtonFormField<VaginaOpening>(
-            value: _getVaginaOpening(),
+            initialValue: _getVaginaOpening(),
             decoration: const InputDecoration(
               labelText: 'Vagina opening',
               hintText: 'Select vagina opening',
@@ -602,7 +602,7 @@ class OvaryOpeningField extends ConsumerWidget {
           visible: specimenSex == SpecimenSex.female &&
               specimenAge == SpecimenAge.adult,
           child: DropdownButtonFormField<PubicSymphysis>(
-            value: _getPubicSymphysis(),
+            initialValue: _getPubicSymphysis(),
             isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Pubic symphysis',
@@ -674,7 +674,7 @@ class FemaleGonadForm extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<ReproductiveStage>(
-              value: _getReproductiveStage(),
+              initialValue: _getReproductiveStage(),
               decoration: const InputDecoration(
                 labelText: 'Reproductive stage',
                 hintText: 'Select reproductive stage',
@@ -711,7 +711,7 @@ class FemaleGonadForm extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<MammaeCondition>(
-              value: _getMammaeCondition(),
+              initialValue: _getMammaeCondition(),
               decoration: const InputDecoration(
                 labelText: 'Mammae condition',
                 hintText: 'Select mammae condition',

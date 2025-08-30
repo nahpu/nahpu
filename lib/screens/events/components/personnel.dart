@@ -157,7 +157,7 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
       children: [
         Expanded(
           child: DropdownButtonFormField<String>(
-            value: widget.controller.nameIDCtr,
+            initialValue: widget.controller.nameIDCtr,
             isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Personnel',
@@ -260,7 +260,7 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
           data: (data) {
             return DropdownButtonFormField<String>(
               isExpanded: true,
-              value: widget.controller.roleCtr,
+              initialValue: widget.controller.roleCtr,
               decoration: const InputDecoration(
                 labelText: 'Role',
                 hintText: 'Enter a role',

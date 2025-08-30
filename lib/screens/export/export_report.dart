@@ -53,7 +53,7 @@ class ReportFormState extends ConsumerState<ReportForm> {
                 : 'assets/icons/csv.svg',
           ),
           DropdownButtonFormField<ReportType>(
-            value: _reportType,
+            initialValue: _reportType,
             decoration: const InputDecoration(
               labelText: 'Type',
             ),
@@ -73,7 +73,7 @@ class ReportFormState extends ConsumerState<ReportForm> {
             },
           ),
           DropdownButtonFormField<ReportFmt>(
-            value: _reportType == ReportType.coordinate
+            initialValue: _reportType == ReportType.coordinate
                 ? ReportFmt.kml
                 : ReportFmt.csv,
             decoration: const InputDecoration(

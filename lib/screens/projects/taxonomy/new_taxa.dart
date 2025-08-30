@@ -136,7 +136,7 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                 labelText: 'Class',
                 hintText: 'Select a taxon class',
               ),
-              value: widget.ctr.taxonClassCtr,
+              initialValue: widget.ctr.taxonClassCtr,
               items: supportedTaxonClass
                   .map((e) => DropdownMenuItem(
                         value: e,

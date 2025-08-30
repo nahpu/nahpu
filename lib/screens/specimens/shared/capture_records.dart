@@ -158,7 +158,7 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
       children: [
         DropdownButtonFormField<int?>(
             isExpanded: true,
-            value: siteIDctr,
+            initialValue: siteIDctr,
             decoration: const InputDecoration(
               labelText: 'Site ID',
               hintText: 'Choose a site',
@@ -213,7 +213,7 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
             }),
         DropdownButtonFormField<int?>(
             isExpanded: true,
-            value: widget.specimenCtr.collEventIDCtr,
+            initialValue: widget.specimenCtr.collEventIDCtr,
             decoration: const InputDecoration(
               labelText: 'Event ID',
               hintText: 'Choose a collecting event ID',
@@ -331,7 +331,7 @@ class MethodField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField<int?>(
-        value: specimenCtr.collMethodCtr,
+        initialValue: specimenCtr.collMethodCtr,
         decoration: const InputDecoration(
           labelText: 'Method',
           hintText: 'Choose a method type',
@@ -521,7 +521,7 @@ class CoordinateFieldState extends ConsumerState<CoordinateField> {
   Widget build(BuildContext context) {
     return CommonPadding(
       child: DropdownButtonFormField<int?>(
-        value: widget.specimenCtr.coordinateCtr,
+        initialValue: widget.specimenCtr.coordinateCtr,
         decoration: const InputDecoration(
           labelText: 'Coordinate ID',
           hintText: 'Choose a method type',
@@ -636,7 +636,7 @@ class CollPersonnelField extends ConsumerWidget {
         children: [
           Expanded(
             child: DropdownButtonFormField<int>(
-              value: specimenCtr.collPersonnelCtr,
+              initialValue: specimenCtr.collPersonnelCtr,
               decoration: const InputDecoration(
                 labelText: 'Collector',
                 hintText: 'Choose a person',

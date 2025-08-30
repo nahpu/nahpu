@@ -42,7 +42,7 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm> {
         children: [
           const FileFormatIcon(path: 'assets/icons/pdf.svg'),
           DropdownButtonFormField(
-              value: PdfExportType.narrative,
+              initialValue: PdfExportType.narrative,
               decoration: const InputDecoration(
                 labelText: 'Record type',
               ),
@@ -63,7 +63,7 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm> {
                 }
               }),
           DropdownButtonFormField(
-              value: _pdfPageFormat,
+              initialValue: _pdfPageFormat,
               decoration: const InputDecoration(
                 labelText: 'Page format',
               ),
@@ -84,7 +84,7 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm> {
                 }
               }),
           DropdownButtonFormField(
-              value: _pdfPageOrientation,
+              initialValue: _pdfPageOrientation,
               decoration: const InputDecoration(
                 labelText: 'Page orientation',
               ),

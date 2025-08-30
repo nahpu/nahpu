@@ -50,7 +50,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
         children: [
           FileFormatIcon(path: _getDbIconPath()),
           DropdownButtonFormField(
-            value: exportFmt,
+            initialValue: exportFmt,
             decoration: const InputDecoration(
               labelText: 'Database format',
             ),

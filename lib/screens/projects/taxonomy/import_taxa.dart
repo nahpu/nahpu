@@ -263,7 +263,7 @@ class InputFormatField extends StatelessWidget {
       decoration: const InputDecoration(
         labelText: 'Input Format',
       ),
-      value: inputFmt,
+      initialValue: inputFmt,
       items: taxonImportFmt
           .map((e) => DropdownMenuItem(
                 value: TaxonImportFmt.values[taxonImportFmt.indexOf(e)],

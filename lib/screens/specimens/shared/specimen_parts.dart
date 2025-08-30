@@ -668,7 +668,7 @@ class SpecimenTypeField extends ConsumerWidget {
     return ref.watch(specimenTypesProvider).when(
           data: (data) {
             return DropdownButtonFormField(
-              value: _getValue(),
+              initialValue: _getValue(),
               decoration: const InputDecoration(
                 labelText: 'Preparation type',
                 hintText: 'Enter preparation type',
@@ -716,7 +716,7 @@ class SpecimenTreatmentField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField(
-      value: _getValue(),
+      initialValue: _getValue(),
       decoration: const InputDecoration(
         labelText: 'Treatment',
         hintText: 'Enter treatment',
@@ -761,7 +761,7 @@ class AdditionalTreatmentField extends StatelessWidget {
     return Visibility(
       visible: isVisible,
       child: DropdownButtonFormField(
-        value: _getValue(),
+        initialValue: _getValue(),
         decoration: const InputDecoration(
           labelText: 'Additional treatment',
           hintText: 'Enter additional treatment',
@@ -821,7 +821,7 @@ class AdditionalPartFields extends ConsumerWidget {
         Visibility(
           visible: visible || partCtr.preparatorCtr != null,
           child: DropdownButtonFormField<String>(
-            value: partCtr.preparatorCtr,
+            initialValue: partCtr.preparatorCtr,
             decoration: const InputDecoration(
               labelText: 'Preparator',
               hintText: 'If different from voucher preparator',

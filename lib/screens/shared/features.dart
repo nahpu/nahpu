@@ -53,7 +53,7 @@ class SiteIdField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField(
-      value: value,
+      initialValue: value,
       decoration: const InputDecoration(
         labelText: 'Site ID',
         hintText: 'Enter a site',

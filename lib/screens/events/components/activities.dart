@@ -32,7 +32,7 @@ class CollActivityFields extends ConsumerWidget {
         child: Column(
           children: [
             DropdownButtonFormField(
-              value: collEventCtr.primaryCollMethodCtr,
+              initialValue: collEventCtr.primaryCollMethodCtr,
               decoration: const InputDecoration(
                 labelText: 'Primary activity',
                 hintText: 'Add activity',

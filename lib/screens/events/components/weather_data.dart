@@ -245,7 +245,7 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
         Padding(
           padding: const EdgeInsets.only(left: 5, right: 5),
           child: DropdownButtonFormField(
-            value: widget.weatherCtr.moonPhaseCtr,
+            initialValue: widget.weatherCtr.moonPhaseCtr,
             decoration: const InputDecoration(
               labelText: 'Moon Phase',
               hintText: 'Select moon phase',

@@ -56,7 +56,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
         children: [
           FileFormatIcon(path: _matchFileIconPath()),
           DropdownButtonFormField<ExportRecordType>(
-            value: _recordType,
+            initialValue: _recordType,
             decoration: const InputDecoration(
               labelText: 'Record type',
             ),
@@ -73,7 +73,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
           Visibility(
             visible: _recordType == ExportRecordType.specimenRecord,
             child: DropdownButtonFormField<TaxonRecordType?>(
-              value: _taxonRecordType,
+              initialValue: _taxonRecordType,
               decoration: const InputDecoration(
                 labelText: 'Taxon group',
               ),
@@ -98,7 +98,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
           Visibility(
             visible: _isMammalSpecimenRecord(),
             child: DropdownButtonFormField<MammalRecordType>(
-              value: _mammalRecordType,
+              initialValue: _mammalRecordType,
               decoration: const InputDecoration(
                 labelText: 'Mammal group',
               ),
@@ -133,7 +133,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
                 }),
           ),
           DropdownButtonFormField<ExportFmt>(
-            value: exportCtr.exportFmtCtr,
+            initialValue: exportCtr.exportFmtCtr,
             decoration: const InputDecoration(
               labelText: 'Format',
             ),

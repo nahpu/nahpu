@@ -521,7 +521,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
           isLastField: false,
         ),
         DropdownButtonFormField(
-          value: _getDatum(),
+          initialValue: _getDatum(),
           decoration: const InputDecoration(
             labelText: 'Datum',
             hintText: 'Specify the datum',

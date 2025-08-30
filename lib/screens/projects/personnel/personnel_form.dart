@@ -134,7 +134,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
             ),
           ),
           DropdownButtonFormField(
-            value: widget.ctr.roleCtr,
+            initialValue: widget.ctr.roleCtr,
             decoration: const InputDecoration(
               labelText: 'Specimen care role',
               hintText: 'Enter role',

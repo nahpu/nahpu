@@ -462,7 +462,7 @@ class PhotoDetailForm extends ConsumerWidget {
           },
         ),
         DropdownButtonFormField<String>(
-          value: ctr.photographerCtr,
+          initialValue: ctr.photographerCtr,
           decoration: const InputDecoration(
             labelText: 'Photographer',
             hintText: 'Select Personnel',

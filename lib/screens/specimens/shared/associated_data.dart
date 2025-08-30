@@ -298,7 +298,7 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
               labelText: 'Data Type',
               hintText: 'Select data type',
             ),
-            value: widget.ctr.typeCtr,
+            initialValue: widget.ctr.typeCtr,
             items: dataOptions.map((String value) {
               return DropdownMenuItem<String>(
                 value: value,

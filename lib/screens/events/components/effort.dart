@@ -450,7 +450,7 @@ class CollectionMethods extends ConsumerWidget {
               print('Collection Methods: $data');
             }
             return DropdownButtonFormField(
-              value: ctr.methodCtr,
+              initialValue: ctr.methodCtr,
               decoration: const InputDecoration(
                 labelText: 'Method',
                 hintText: 'Select a method',

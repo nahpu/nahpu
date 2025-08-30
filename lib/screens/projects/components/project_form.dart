@@ -361,7 +361,7 @@ class TaxonGroupFields extends ConsumerWidget {
                 child: CommonDropdownText(text: taxonGroup),
               ))
           .toList(),
-      value: matchCatFmtToTaxonGroup(catalogFmt),
+      initialValue: matchCatFmtToTaxonGroup(catalogFmt),
       onChanged: (String? newValue) {
         catalogFmt = matchTaxonGroupToCatFmt(newValue!);
         ref.read(catalogFmtNotifierProvider.notifier).set(catalogFmt);

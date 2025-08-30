@@ -166,7 +166,7 @@ class IDConfidence extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonPadding(
         child: DropdownButtonFormField<int?>(
-      value: specimenCtr.idConfidenceCtr,
+      initialValue: specimenCtr.idConfidenceCtr,
       onChanged: (int? value) {
         SpecimenServices(ref: ref).updateSpecimen(
           specimenUuid,
@@ -261,7 +261,7 @@ class SpecimenConditionField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField(
-      value: specimenCtr.conditionCtr,
+      initialValue: specimenCtr.conditionCtr,
       onChanged: (String? value) {
         SpecimenServices(ref: ref).updateSpecimen(
           specimenUuid,
@@ -375,7 +375,7 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
                   ))
               : const SizedBox.shrink(),
           DropdownButtonFormField<String>(
-            value: widget.specimenCtr.catalogerCtr,
+            initialValue: widget.specimenCtr.catalogerCtr,
             decoration: const InputDecoration(
               labelText: 'Cataloger',
               hintText: 'Choose a person with field number',
@@ -425,7 +425,7 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
             },
           ),
           DropdownButtonFormField<String>(
-            value: widget.specimenCtr.preparatorCtr,
+            initialValue: widget.specimenCtr.preparatorCtr,
             decoration: const InputDecoration(
               labelText: 'Preparator',
               hintText: 'Choose a preparator (default is cataloger)',
