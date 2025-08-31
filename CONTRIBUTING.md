@@ -35,27 +35,15 @@ Before you begin, ensure you have the following installed:
    cargo install flutter_rust_bridge_codegen
    ```
 
-4. **Build the Rust library and generate code:**
+4. **Build the Rust library and generate code (optional):**
 
-   The Rust library is in the `rust` directory. The generated code is in `lib/src/rust`. To build the library and generate the code, run the following command:
-
-   ```sh
-   python scripts.py frb --generate
-   ```
-
-   You can also use the shell scripts in the `scripts` directory:
-
-   For macOS/Linux:
+   Rust bindings live in rust/. After changing any Rust code (see [Rust API section](#rust-api)), regenerate the bridge code:
 
    ```sh
-   ./scripts/frb.sh
+   flutter_rust_bridge_codegen --generate
    ```
 
-   For Windows:
-
-   ```powershell
-   ./scripts/ps/frb.ps1
-   ```
+You can skip the manual cargo build; Flutter will build the Rust library when needed.
 
 ### Running the App
 
@@ -107,6 +95,18 @@ Here are some common issues and their solutions:
 - `website/`: Docusaurus documentation website.
 - `android/`, `ios/`, `linux/`, `macos/`, `windows/`: Platform-specific code.
 - `scripts/`: Build and utility scripts.
+
+## Rust API
+
+Rust bindings live in rust/. That directory must contain only Flutter-facing bridge code layered on the NAHPU Core API (https://github.com/nahpu/nahpu_api). Review that API first to understand available models and functions.
+
+Include only:
+
+- Wrapper functions and types exported via flutter_rust_bridge
+- Glue: type conversions, error/result mapping, async helpers
+- Minimal (de)serialization required for the bridge
+
+Do not add core business logic, domain models, or substantial algorithms here. Contribute those to the NAHPU Core API repository, then update/regenerate the bindings in this project. This separation keeps codebases clean and enables reuse of core logic in other integrations (e.g., Python, R).
 
 ## Submitting Contributions
 
