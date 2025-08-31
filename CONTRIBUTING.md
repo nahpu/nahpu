@@ -37,7 +37,7 @@ Before you begin, ensure you have the following installed:
 
 4. **Build the Rust library and generate code (optional):**
 
-   Rust bindings live in rust/. After changing any Rust code (see [Rust API section](#rust-api)), regenerate the bridge code:
+   Rust bindings are in rust/. After any Rust changes (see Rust API section below), regenerate the bridge code. You may also need to rerun generation after `flutter upgrade` or `flutter pub upgrade`.
 
    ```sh
    flutter_rust_bridge_codegen --generate
