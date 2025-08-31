@@ -98,7 +98,7 @@ Here are some common issues and their solutions:
 
 ## Rust API
 
-Rust bindings live in rust/. That directory must contain only Flutter-facing bridge code layered on the NAHPU Core API (https://github.com/nahpu/nahpu_api). Review that API first to understand available models and functions.
+Rust bindings live in rust/. That directory must contain only Flutter-facing bridge code layered on the [NAHPU Core API](https://github.com/nahpu/nahpu_api). Review that API first to understand available models and functions.
 
 Include only:
 
