@@ -55,13 +55,13 @@ class SiteInfo extends ConsumerWidget {
           TextField(
             controller: siteFormCtr.siteIDCtr,
             inputFormatters: [
-              LengthLimitingTextInputFormatter(20),
+              LengthLimitingTextInputFormatter(40),
               FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9-_]+'))
             ],
             decoration: const InputDecoration(
               labelText: 'Site ID',
               hintText:
-                  'Enter a site ID (max. 15 chars), e.g. "CAMP-01", "LINE-1"',
+                  'Enter a site ID (max. 40 chars), e.g. "CAMP-01", "LINE-1"',
             ),
             onChanged: (value) {
               siteFormCtr.siteIDCtr.value = TextEditingValue(
