@@ -58,4 +58,14 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   Future<void> deleteAllSites(String projectUuid) {
     return (delete(site)..where((t) => t.projectUuid.equals(projectUuid))).go();
   }
+
+  Future<List<String>> getDistinctHabitatTypes() async {
+    final query = selectOnly(site)
+      ..addColumns([site.habitatType])
+      ..where(site.habitatType.isNotNull())
+      ..groupBy([site.habitatType]);
+    
+    final result = await query.get();
+    return result.map((row) => row.read(site.habitatType)!).toList();
+  }
 }
