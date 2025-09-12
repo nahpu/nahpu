@@ -224,6 +224,7 @@ class SpecimenFormCtrModel {
     required this.conditionCtr,
     required this.prepDateCtr,
     required this.prepTimeCtr,
+    required this.collDateCtr,
     required this.collTimeCtr,
     required this.captureDateCtr,
     required this.captureTimeCtr,
@@ -247,6 +248,7 @@ class SpecimenFormCtrModel {
   TextEditingController fieldNumberCtr;
   TextEditingController prepDateCtr;
   TextEditingController prepTimeCtr;
+  TextEditingController collDateCtr;
   TextEditingController collTimeCtr;
   TextEditingController captureDateCtr;
   TextEditingController captureTimeCtr;
@@ -270,6 +272,7 @@ class SpecimenFormCtrModel {
         museumIDCtr: TextEditingController(),
         prepDateCtr: TextEditingController(),
         prepTimeCtr: TextEditingController(),
+        collDateCtr: TextEditingController(),
         collTimeCtr: TextEditingController(),
         captureDateCtr: TextEditingController(),
         captureTimeCtr: TextEditingController(),
@@ -296,6 +299,7 @@ class SpecimenFormCtrModel {
         speciesCtr: specimen.speciesID,
         prepDateCtr: TextEditingController(text: specimen.prepDate),
         prepTimeCtr: TextEditingController(text: specimen.prepTime),
+        collDateCtr: TextEditingController(text: specimen.collectionDate),
         collTimeCtr: TextEditingController(text: specimen.collectionTime),
         captureDateCtr: TextEditingController(text: specimen.captureDate),
         captureTimeCtr: TextEditingController(text: specimen.captureTime),
@@ -311,6 +315,7 @@ class SpecimenFormCtrModel {
     fieldNumberCtr.dispose();
     prepDateCtr.dispose();
     prepTimeCtr.dispose();
+    collDateCtr.dispose();
     collTimeCtr.dispose();
     captureDateCtr.dispose();
     captureTimeCtr.dispose();

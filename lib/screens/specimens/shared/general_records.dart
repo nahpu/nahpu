@@ -73,24 +73,23 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
                 specimenUuid: widget.specimenUuid,
                 specimenCtr: widget.specimenCtr),
           ),
-          widget.specimenCtr.conditionCtr == 'Freshly Euthanized'
-              ? AdaptiveLayout(
-                  useHorizontalLayout: widget.useHorizontalLayout,
-                  children: [
-                      SpecimenConditionField(
-                        specimenCtr: widget.specimenCtr,
-                        specimenUuid: widget.specimenUuid,
-                      ),
-                      SpecimenCollectedField(
-                        specimenCtr: widget.specimenCtr,
-                        specimenUuid: widget.specimenUuid,
-                      ),
-                    ])
-              : CommonPadding(
-                  child: SpecimenConditionField(
-                  specimenCtr: widget.specimenCtr,
-                  specimenUuid: widget.specimenUuid,
-                )),
+          SpecimenConditionField(
+            specimenCtr: widget.specimenCtr,
+            specimenUuid: widget.specimenUuid,
+          ),
+          AdaptiveLayout(
+            useHorizontalLayout: widget.useHorizontalLayout,
+            children: [
+              SpecimenCollectionDateField(
+                specimenCtr: widget.specimenCtr,
+                specimenUuid: widget.specimenUuid,
+              ),  
+              SpecimenCollectionTimeField(
+                specimenCtr: widget.specimenCtr,
+                specimenUuid: widget.specimenUuid,
+              ),
+            ]
+          ),      
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
@@ -219,8 +218,39 @@ class IDMethod extends ConsumerWidget {
   }
 }
 
-class SpecimenCollectedField extends ConsumerWidget {
-  const SpecimenCollectedField({
+class SpecimenCollectionDateField extends ConsumerWidget {
+  const SpecimenCollectionDateField({
+    super.key,
+    required this.specimenCtr,
+    required this.specimenUuid,
+  });
+
+  final String specimenUuid;
+  final SpecimenFormCtrModel specimenCtr;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CommonDateField(
+      controller: specimenCtr.collDateCtr,
+      labelText: 'Collection date',
+      hintText: 'Enter date',
+      initialDate: DateTime.now(),
+      lastDate: DateTime.now(),
+      onTap: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+              collectionDate: db.Value(
+            specimenCtr.collDateCtr.text,
+          )),
+        );
+      }
+    );
+  }
+}
+
+class SpecimenCollectionTimeField extends ConsumerWidget {
+  const SpecimenCollectionTimeField({
     super.key,
     required this.specimenCtr,
     required this.specimenUuid,
@@ -232,19 +262,20 @@ class SpecimenCollectedField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTimeField(
-        controller: specimenCtr.collTimeCtr,
-        labelText: 'Collection time',
-        hintText: 'Enter time',
-        initialTime: TimeOfDay.now(),
-        onTap: () {
-          SpecimenServices(ref: ref).updateSpecimen(
-            specimenUuid,
-            SpecimenCompanion(
-                collectionTime: db.Value(
-              specimenCtr.collTimeCtr.text,
-            )),
-          );
-        });
+      controller: specimenCtr.collTimeCtr,
+      labelText: 'Collection time',
+      hintText: 'Enter time',
+      initialTime: TimeOfDay.now(),
+      onTap: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+              collectionTime: db.Value(
+            specimenCtr.collTimeCtr.text,
+          )),
+        );
+      }
+    );
   }
 }
 
@@ -260,24 +291,27 @@ class SpecimenConditionField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DropdownButtonFormField(
-      initialValue: specimenCtr.conditionCtr,
-      onChanged: (String? value) {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(condition: db.Value(value)),
-        );
-      },
-      decoration: const InputDecoration(
-        labelText: 'Condition',
-        hintText: 'Choose a condition',
-      ),
-      items: conditionList
-          .map((String condition) => DropdownMenuItem(
-                value: condition,
-                child: CommonDropdownText(text: condition),
-              ))
-          .toList(),
+
+    return CommonPadding(
+      child: DropdownButtonFormField(
+        initialValue: specimenCtr.conditionCtr,
+        onChanged: (String? value) {
+          SpecimenServices(ref: ref).updateSpecimen(
+            specimenUuid,
+            SpecimenCompanion(condition: db.Value(value)),
+          );
+        },
+        decoration: const InputDecoration(
+          labelText: 'Condition',
+          hintText: 'Choose a condition',
+        ),
+        items: conditionList
+            .map((String condition) => DropdownMenuItem(
+                  value: condition,
+                  child: CommonDropdownText(text: condition),
+                ))
+            .toList(),
+      )
     );
   }
 }
@@ -631,12 +665,14 @@ class CollRecordInfoContent extends StatelessWidget {
       ),
       InfoContent(
         header: 'Condition field',
-        content: 'Freshly euthanized specimens are those that'
-            ' have known time of euthanasia.'
-            ' If the specimen is freshly euthanized,'
-            ' the collection time field will be enabled to help keep track'
-            ' post-mortem interval.'
-            ' Select other condition if you are unsure of the time of euthanasia.',
+        content: 'The condition field is a qualitative measure of the freshness'
+            ' of the specimen at time of prep.'
+            ' Condition can depend on factors including time since death,' 
+            ' temperature, sun exposure (especially for salvage specimens), etc.'
+            ' If the collection time (i.e., time of death) and prep times are known,'
+            ' these can also be added for a more quantitative'
+            ' measure of condition at time of prep.'
+            
       ),
     ]);
   }
