@@ -240,9 +240,18 @@ class SpecimenCollectionDateField extends ConsumerWidget {
         SpecimenServices(ref: ref).updateSpecimen(
           specimenUuid,
           SpecimenCompanion(
-              collectionDate: db.Value(
-            specimenCtr.collDateCtr.text,
-          )),
+            collectionDate: db.Value(
+              specimenCtr.collDateCtr.text,
+            )
+          ),
+        );
+      },
+      onClear: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+            collectionDate: db.Value(null)
+          ),
         );
       }
     );
@@ -273,6 +282,14 @@ class SpecimenCollectionTimeField extends ConsumerWidget {
               collectionTime: db.Value(
             specimenCtr.collTimeCtr.text,
           )),
+        );
+      },
+      onClear: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+              collectionTime: db.Value(null)
+          )
         );
       }
     );
@@ -342,6 +359,14 @@ class PrepDateField extends ConsumerWidget {
           ),
         );
       },
+      onClear: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+            prepDate: db.Value(null)
+          ),
+        );
+      }      
     );
   }
 }
@@ -359,18 +384,27 @@ class PrepTimeField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTimeField(
-        controller: specimenCtr.prepTimeCtr,
-        labelText: 'Prep. time',
-        hintText: 'Enter time',
-        initialTime: TimeOfDay.now(),
-        onTap: () {
-          SpecimenServices(ref: ref).updateSpecimen(
-            specimenUuid,
-            SpecimenCompanion(
-              prepTime: db.Value(specimenCtr.prepTimeCtr.text),
-            ),
-          );
-        });
+      controller: specimenCtr.prepTimeCtr,
+      labelText: 'Prep. time',
+      hintText: 'Enter time',
+      initialTime: TimeOfDay.now(),
+      onTap: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+            prepTime: db.Value(specimenCtr.prepTimeCtr.text),
+          ),
+        );
+      },
+      onClear: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+              prepTime: db.Value(null)
+          )
+        );
+      }
+    );
   }
 }
 

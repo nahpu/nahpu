@@ -486,19 +486,28 @@ class CaptureDate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-        labelText: 'Capture date',
-        hintText: 'Enter date',
-        controller: specimenCtr.captureDateCtr,
-        initialDate: DateTime.now(),
-        lastDate: DateTime.now(),
-        onTap: () {
-          SpecimenServices(ref: ref).updateSpecimen(
-            specimenUuid,
-            SpecimenCompanion(
-              captureDate: db.Value(specimenCtr.captureDateCtr.text),
-            ),
-          );
-        });
+      labelText: 'Capture date',
+      hintText: 'Enter date',
+      controller: specimenCtr.captureDateCtr,
+      initialDate: DateTime.now(),
+      lastDate: DateTime.now(),
+      onTap: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+            captureDate: db.Value(specimenCtr.captureDateCtr.text),
+          ),
+        );
+      },
+      onClear: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+            captureDate: db.Value(null),
+          ),
+        );
+      },      
+    );
   }
 }
 
@@ -613,6 +622,14 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
                 ),
               );
             },
+            onClear: () {
+              SpecimenServices(ref: ref).updateSpecimen(
+                widget.specimenUuid,
+                SpecimenCompanion(
+                    captureTime: db.Value(null)
+                )
+              );
+            }              
           );
   }
 }

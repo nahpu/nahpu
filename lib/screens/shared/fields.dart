@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class CommonDateField extends StatelessWidget {
+class CommonDateField extends ConsumerStatefulWidget {
   const CommonDateField({
     super.key,
     required this.controller,
@@ -12,6 +12,7 @@ class CommonDateField extends StatelessWidget {
     required this.initialDate,
     required this.lastDate,
     required this.onTap,
+    required this.onClear,
   });
 
   final TextEditingController controller;
@@ -20,25 +21,39 @@ class CommonDateField extends StatelessWidget {
   final DateTime initialDate;
   final DateTime lastDate;
   final VoidCallback onTap;
+  final VoidCallback onClear;
 
+  @override
+  CommonDateFieldState createState() => CommonDateFieldState();
+}
+
+class CommonDateFieldState extends ConsumerState<CommonDateField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
       decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
+        labelText: widget.labelText,
+        hintText: widget.hintText,
       ),
-      controller: controller,
+      controller: widget.controller,
       onTap: () async {
         final selectedDate = await showDatePicker(
             context: context,
-            initialDate: initialDate,
+            cancelText: "Clear",
+            initialDate: widget.initialDate,
             firstDate: DateTime(2000),
-            lastDate: lastDate);
+            lastDate: widget.lastDate);
 
-        if (selectedDate != null) {
-          controller.text = DateFormat.yMMMd().format(selectedDate);
-          onTap();
+        // OK pressed
+        if (selectedDate != null && mounted) {
+          widget.controller.text = DateFormat.yMMMd().format(selectedDate);
+          widget.onTap();
+        }
+
+        // Clear pressed (or picker closed) 
+        if (selectedDate == null && mounted) {
+          widget.controller.text = "";
+          widget.onClear();
         }
       },
     );
@@ -53,6 +68,7 @@ class CommonTimeField extends ConsumerStatefulWidget {
     required this.hintText,
     required this.initialTime,
     required this.onTap,
+    required this.onClear,
   });
 
   final TextEditingController controller;
@@ -60,6 +76,7 @@ class CommonTimeField extends ConsumerStatefulWidget {
   final String hintText;
   final TimeOfDay initialTime;
   final VoidCallback onTap;
+  final VoidCallback onClear;
 
   @override
   CommonTimeFieldState createState() => CommonTimeFieldState();
@@ -77,11 +94,20 @@ class CommonTimeFieldState extends ConsumerState<CommonTimeField> {
       onTap: () async {
         final time = await _showTimePicker(
           context: context,
+          cancelText: "Clear",
           initialTime: widget.initialTime,
         );
+
+        // OK pressed
         if (time != null && mounted) {
           widget.controller.text = _formatTimeOfDay(time);
           widget.onTap();
+        }
+
+        // Clear pressed (or picker closed)
+        if (time == null && mounted) {
+          widget.controller.text = "";
+          widget.onClear();
         }
       },
     );
@@ -89,10 +115,12 @@ class CommonTimeFieldState extends ConsumerState<CommonTimeField> {
 
   Future<TimeOfDay?> _showTimePicker({
     required BuildContext context,
+    required String cancelText,
     required TimeOfDay initialTime,
   }) {
     return showTimePicker(
       context: context,
+      cancelText: cancelText,
       initialTime: initialTime,
     );
   }
