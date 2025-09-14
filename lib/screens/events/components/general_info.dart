@@ -89,25 +89,29 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
               CommonDateField(
-                  labelText: 'Start Date',
-                  hintText: 'Enter date',
-                  controller: widget.collEventCtr.startDateCtr,
-                  initialDate: _getInitialStartDate(),
-                  lastDate: DateTime.now(),
-                  onTap: () {
-                    setState(
-                      () {
-                        // _getEventID();
-                        CollEventServices(ref: ref).updateCollEvent(
-                          widget.collEventId,
-                          CollEventCompanion(
-                            startDate:
-                                db.Value(widget.collEventCtr.startDateCtr.text),
-                          ),
-                        );
-                      },
-                    );
-                  }),
+                labelText: 'Start Date',
+                hintText: 'Enter date',
+                controller: widget.collEventCtr.startDateCtr,
+                initialDate: _getInitialStartDate(),
+                lastDate: DateTime.now(),
+                onTap: () {
+                  CollEventServices(ref: ref).updateCollEvent(
+                    widget.collEventId,
+                    CollEventCompanion(
+                      startDate:
+                          db.Value(widget.collEventCtr.startDateCtr.text),
+                    ),
+                  );
+                },
+                onClear: () {
+                  CollEventServices(ref: ref).updateCollEvent(
+                    widget.collEventId,
+                    CollEventCompanion(
+                      startDate: db.Value(null),
+                    ),
+                  );
+                }
+              ),
               EndDateField(
                 collEventId: widget.collEventId,
                 collEventCtr: widget.collEventCtr,
@@ -172,6 +176,14 @@ class EndDateField extends ConsumerWidget {
           ),
         );
       },
+      onClear: () {
+        CollEventServices(ref: ref).updateCollEvent(
+          collEventId,
+          CollEventCompanion(
+            startDate: db.Value(null),
+          ),
+        );
+      }      
     );
   }
 }
@@ -319,8 +331,8 @@ class EventTimeField extends ConsumerWidget {
       useHorizontalLayout: useHorizontalLayout,
       children: [
         CommonTimeField(
-          labelText: 'Start time',
-          hintText: 'Enter date',
+          labelText: 'Start Time',
+          hintText: 'Enter time',
           controller: collEventCtr.startTimeCtr,
           initialTime: _getInitialTime(ref),
           onTap: () {
@@ -331,10 +343,18 @@ class EventTimeField extends ConsumerWidget {
               ),
             );
           },
+          onClear: () {
+            CollEventServices(ref: ref).updateCollEvent(
+              collEventId,
+              CollEventCompanion(
+                  startTime: db.Value(null)
+              )
+            );
+          }            
         ),
         CommonTimeField(
-          labelText: 'End time',
-          hintText: 'Enter date',
+          labelText: 'End Time',
+          hintText: 'Enter time',
           controller: collEventCtr.endTimeCtr,
           initialTime: _getInitialTime(ref),
           onTap: () {
@@ -345,6 +365,14 @@ class EventTimeField extends ConsumerWidget {
               ),
             );
           },
+          onClear: () {
+            CollEventServices(ref: ref).updateCollEvent(
+              collEventId,
+              CollEventCompanion(
+                  endTime: db.Value(null)
+              )
+            );
+          }         
         ),
       ],
     );
