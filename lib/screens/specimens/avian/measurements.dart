@@ -896,9 +896,12 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
             initialValue: widget.ctr.wingIsMoltCtr,
             decoration: const InputDecoration(
               labelText: 'Wing Molting',
-              hintText: 'Choose one',
             ),
             items: const [
+              DropdownMenuItem(
+                value: null,
+                child: HintDropdownText(text: 'Choose one'),
+              ),
               DropdownMenuItem(
                 value: 1,
                 child: CommonDropdownText(text: 'Yes'),
@@ -909,16 +912,14 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
               ),
             ],
             onChanged: (int? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  _wingMolting = newValue == 1 ? true : false;
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                      widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        wingIsMolt: db.Value(newValue),
-                      ));
-                });
-              }
+              setState(() {
+                _wingMolting = (newValue != null && newValue == 1) ? true : false;
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      wingIsMolt: db.Value(newValue),
+                    ));
+              });
             },
           ),
           Visibility(
@@ -932,10 +933,13 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
           DropdownButtonFormField<int?>(
             initialValue: widget.ctr.wingIsMoltCtr,
             decoration: const InputDecoration(
-              labelText: 'Tail Molting',
-              hintText: 'Choose one',
+              labelText: 'Tail Molting'
             ),
             items: const [
+              DropdownMenuItem(
+                value: null,
+                child: HintDropdownText(text: 'Choose one'),
+              ),              
               DropdownMenuItem(
                 value: 1,
                 child: CommonDropdownText(text: 'Yes'),
@@ -946,16 +950,14 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
               ),
             ],
             onChanged: (int? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  _tailMolting = newValue == 1 ? true : false;
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                      widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        tailIsMolt: db.Value(newValue),
-                      ));
-                });
-              }
+              setState(() {
+                _tailMolting = (newValue != null && newValue == 1) ? true : false;
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      tailIsMolt: db.Value(newValue),
+                    ));
+              });
             },
           ),
           Visibility(

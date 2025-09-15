@@ -210,6 +210,27 @@ class CommonDropdownText extends StatelessWidget {
   }
 }
 
+class HintDropdownText extends StatelessWidget {
+  const HintDropdownText({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+
+    // attempts to copy the default hint text styling
+    final hintStyle = Theme.of(context).inputDecorationTheme.hintStyle?.copyWith(
+        color: Theme.of(context).inputDecorationTheme.hintStyle?.color?.withOpacity(0.6)
+    );
+
+    return Text(
+      text,
+      style: hintStyle,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
 class CommonNumField extends ConsumerWidget {
   const CommonNumField({
     super.key,
