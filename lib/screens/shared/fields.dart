@@ -459,3 +459,29 @@ class AutoCompleteText extends StatelessWidget {
     );
   }
 }
+
+class DropDownMenuItems {
+  static DropdownMenuItem<int?> chooseOneListItem = DropdownMenuItem(
+    value: null,
+    child: HintDropdownText(text: 'Choose one')
+  );
+  
+  static List<DropdownMenuItem<int?>> booleanDropDownItems() {
+    return [
+      chooseOneListItem,
+      DropdownMenuItem(
+        value: 1,
+        child: CommonDropdownText(text: 'Yes')
+      ),
+      DropdownMenuItem(
+        value: 0,
+        child: CommonDropdownText(text: 'No')
+      )
+    ];
+  }
+
+  static List<DropdownMenuItem<int?>> addChooseOneToList(List<DropdownMenuItem<int?>> list) {
+    list.insert(0, chooseOneListItem);
+    return list;
+  }
+}
