@@ -330,6 +330,7 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
             initialDate: DateTime.now(),
             lastDate: DateTime.now(),
             onTap: () {},
+            onClear: () {},
           ),
           Visibility(
             visible: widget.ctr.typeCtr == 'Link',
