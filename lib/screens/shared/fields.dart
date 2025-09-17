@@ -210,6 +210,27 @@ class CommonDropdownText extends StatelessWidget {
   }
 }
 
+class HintDropdownText extends StatelessWidget {
+  const HintDropdownText({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+
+    // attempts to copy the default hint text styling
+    final hintStyle = Theme.of(context).inputDecorationTheme.hintStyle?.copyWith(
+        color: Theme.of(context).inputDecorationTheme.hintStyle?.color?.withOpacity(0.6)
+    );
+
+    return Text(
+      text,
+      style: hintStyle,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
 class CommonNumField extends ConsumerWidget {
   const CommonNumField({
     super.key,
@@ -436,5 +457,31 @@ class AutoCompleteText extends StatelessWidget {
       keyboardType: TextInputType.text,
       textInputAction: TextInputAction.done,
     );
+  }
+}
+
+class DropDownMenuItems {
+  static DropdownMenuItem<int?> chooseOneListItem = DropdownMenuItem(
+    value: null,
+    child: HintDropdownText(text: 'Choose one')
+  );
+  
+  static List<DropdownMenuItem<int?>> booleanDropDownItems() {
+    return [
+      chooseOneListItem,
+      DropdownMenuItem(
+        value: 1,
+        child: CommonDropdownText(text: 'Yes')
+      ),
+      DropdownMenuItem(
+        value: 0,
+        child: CommonDropdownText(text: 'No')
+      )
+    ];
+  }
+
+  static List<DropdownMenuItem<int?>> addChooseOneToList(List<DropdownMenuItem<int?>> list) {
+    list.insert(0, chooseOneListItem);
+    return list;
   }
 }
