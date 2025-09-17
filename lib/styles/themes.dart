@@ -66,7 +66,7 @@ class NahpuTheme {
       ),
       hintStyle: TextStyle(
         fontSize: 16,
-        color: const Color(0xfffafafa),
+        color: Color(0xfffafafa),
         fontWeight: FontWeight.w600,
         letterSpacing: 0.11
       ),
