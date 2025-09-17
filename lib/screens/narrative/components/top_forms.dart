@@ -62,6 +62,12 @@ class DateForm extends ConsumerWidget {
           NarrativeCompanion(date: db.Value(narrativeCtr.dateCtr.text)),
         );
       },
+      onClear: () {
+        NarrativeServices(ref: ref).updateNarrative(
+          narrativeId,
+          NarrativeCompanion(date: db.Value(null)),
+        );
+      }
     );
   }
 }

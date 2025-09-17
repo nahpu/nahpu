@@ -810,6 +810,7 @@ class AdditionalPartFields extends ConsumerWidget {
           controller: partCtr.timeTakenCtr,
           initialTime: TimeOfDay.now(),
           onTap: () {},
+          onClear: () {},
         ),
         Align(
           alignment: Alignment.centerLeft,
@@ -855,6 +856,7 @@ class AdditionalPartFields extends ConsumerWidget {
             initialDate: DateTime.now(),
             lastDate: DateTime.now(),
             onTap: () {},
+            onClear: () {},
           ),
         ),
         Visibility(

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/providers/sites.dart';
 
 class Habitat extends ConsumerWidget {
   const Habitat(
@@ -27,18 +30,38 @@ class Habitat extends ConsumerWidget {
         padding: const EdgeInsets.all(5),
         child: Column(
           children: [
-            TextFormField(
-              controller: siteFormCtr.habitatTypeCtr,
-              decoration: const InputDecoration(
-                labelText: 'Type',
-                hintText:
-                    'E.g. "Urban", "Upper Montane Forest", "Desert", "etc."',
-              ),
-              onChanged: (value) => SiteServices(ref: ref).updateSite(
-                id,
-                SiteCompanion(habitatType: db.Value(value)),
-              ),
-            ),
+            ref.watch(habitatTypeProvider).when(
+                  data: (data) {
+                    return DropdownButtonFormField<String?>(
+                      initialValue: siteFormCtr.habitatTypeCtr.text.isEmpty
+                          ? null
+                          : siteFormCtr.habitatTypeCtr.text,
+                      decoration: const InputDecoration(
+                        labelText: 'Type',
+                        hintText: 'Select a habitat type',
+                      ),
+                      items: data
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: CommonDropdownText(text: e),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          siteFormCtr.habitatTypeCtr.text = newValue;
+                          SiteServices(ref: ref).updateSite(
+                            id,
+                            SiteCompanion(habitatType: db.Value(newValue)),
+                          );
+                        }
+                      },
+                    );
+                  },
+                  loading: () => const CommonProgressIndicator(),
+                  error: (e, __) => Text(e.toString()),
+                ),
             TextFormField(
               controller: siteFormCtr.habitatConditionCtr,
               decoration: const InputDecoration(

@@ -6358,6 +6358,13 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _collectionDateMeta =
+      const VerificationMeta('collectionDate');
+  late final GeneratedColumn<String> collectionDate = GeneratedColumn<String>(
+      'collectionDate', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   static const VerificationMeta _collectionTimeMeta =
       const VerificationMeta('collectionTime');
   late final GeneratedColumn<String> collectionTime = GeneratedColumn<String>(
@@ -6474,6 +6481,7 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
         condition,
         prepDate,
         prepTime,
+        collectionDate,
         collectionTime,
         captureDate,
         isRelativeTime,
@@ -6543,6 +6551,12 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
     if (data.containsKey('prepTime')) {
       context.handle(_prepTimeMeta,
           prepTime.isAcceptableOrUnknown(data['prepTime']!, _prepTimeMeta));
+    }
+    if (data.containsKey('collectionDate')) {
+      context.handle(
+          _collectionDateMeta,
+          collectionDate.isAcceptableOrUnknown(
+              data['collectionDate']!, _collectionDateMeta));
     }
     if (data.containsKey('collectionTime')) {
       context.handle(
@@ -6655,6 +6669,8 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
           .read(DriftSqlType.string, data['${effectivePrefix}prepDate']),
       prepTime: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}prepTime']),
+      collectionDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}collectionDate']),
       collectionTime: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}collectionTime']),
       captureDate: attachedDatabase.typeMapping
@@ -6718,6 +6734,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
   final String? condition;
   final String? prepDate;
   final String? prepTime;
+  final String? collectionDate;
   final String? collectionTime;
 
   /// v4 update
@@ -6747,6 +6764,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       this.condition,
       this.prepDate,
       this.prepTime,
+      this.collectionDate,
       this.collectionTime,
       this.captureDate,
       this.isRelativeTime,
@@ -6789,6 +6807,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     }
     if (!nullToAbsent || prepTime != null) {
       map['prepTime'] = Variable<String>(prepTime);
+    }
+    if (!nullToAbsent || collectionDate != null) {
+      map['collectionDate'] = Variable<String>(collectionDate);
     }
     if (!nullToAbsent || collectionTime != null) {
       map['collectionTime'] = Variable<String>(collectionTime);
@@ -6865,6 +6886,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       prepTime: prepTime == null && nullToAbsent
           ? const Value.absent()
           : Value(prepTime),
+      collectionDate: collectionDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(collectionDate),
       collectionTime: collectionTime == null && nullToAbsent
           ? const Value.absent()
           : Value(collectionTime),
@@ -6926,6 +6950,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       condition: serializer.fromJson<String?>(json['condition']),
       prepDate: serializer.fromJson<String?>(json['prepDate']),
       prepTime: serializer.fromJson<String?>(json['prepTime']),
+      collectionDate: serializer.fromJson<String?>(json['collectionDate']),
       collectionTime: serializer.fromJson<String?>(json['collectionTime']),
       captureDate: serializer.fromJson<String?>(json['captureDate']),
       isRelativeTime: serializer.fromJson<int?>(json['isRelativeTime']),
@@ -6957,6 +6982,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       'condition': serializer.toJson<String?>(condition),
       'prepDate': serializer.toJson<String?>(prepDate),
       'prepTime': serializer.toJson<String?>(prepTime),
+      'collectionDate': serializer.toJson<String?>(collectionDate),
       'collectionTime': serializer.toJson<String?>(collectionTime),
       'captureDate': serializer.toJson<String?>(captureDate),
       'isRelativeTime': serializer.toJson<int?>(isRelativeTime),
@@ -6985,6 +7011,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           Value<String?> condition = const Value.absent(),
           Value<String?> prepDate = const Value.absent(),
           Value<String?> prepTime = const Value.absent(),
+          Value<String?> collectionDate = const Value.absent(),
           Value<String?> collectionTime = const Value.absent(),
           Value<String?> captureDate = const Value.absent(),
           Value<int?> isRelativeTime = const Value.absent(),
@@ -7011,6 +7038,8 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
         condition: condition.present ? condition.value : this.condition,
         prepDate: prepDate.present ? prepDate.value : this.prepDate,
         prepTime: prepTime.present ? prepTime.value : this.prepTime,
+        collectionDate:
+            collectionDate.present ? collectionDate.value : this.collectionDate,
         collectionTime:
             collectionTime.present ? collectionTime.value : this.collectionTime,
         captureDate: captureDate.present ? captureDate.value : this.captureDate,
@@ -7051,6 +7080,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       condition: data.condition.present ? data.condition.value : this.condition,
       prepDate: data.prepDate.present ? data.prepDate.value : this.prepDate,
       prepTime: data.prepTime.present ? data.prepTime.value : this.prepTime,
+      collectionDate: data.collectionDate.present
+          ? data.collectionDate.value
+          : this.collectionDate,
       collectionTime: data.collectionTime.present
           ? data.collectionTime.value
           : this.collectionTime,
@@ -7100,6 +7132,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           ..write('condition: $condition, ')
           ..write('prepDate: $prepDate, ')
           ..write('prepTime: $prepTime, ')
+          ..write('collectionDate: $collectionDate, ')
           ..write('collectionTime: $collectionTime, ')
           ..write('captureDate: $captureDate, ')
           ..write('isRelativeTime: $isRelativeTime, ')
@@ -7130,6 +7163,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
         condition,
         prepDate,
         prepTime,
+        collectionDate,
         collectionTime,
         captureDate,
         isRelativeTime,
@@ -7159,6 +7193,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           other.condition == this.condition &&
           other.prepDate == this.prepDate &&
           other.prepTime == this.prepTime &&
+          other.collectionDate == this.collectionDate &&
           other.collectionTime == this.collectionTime &&
           other.captureDate == this.captureDate &&
           other.isRelativeTime == this.isRelativeTime &&
@@ -7186,6 +7221,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
   final Value<String?> condition;
   final Value<String?> prepDate;
   final Value<String?> prepTime;
+  final Value<String?> collectionDate;
   final Value<String?> collectionTime;
   final Value<String?> captureDate;
   final Value<int?> isRelativeTime;
@@ -7212,6 +7248,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     this.condition = const Value.absent(),
     this.prepDate = const Value.absent(),
     this.prepTime = const Value.absent(),
+    this.collectionDate = const Value.absent(),
     this.collectionTime = const Value.absent(),
     this.captureDate = const Value.absent(),
     this.isRelativeTime = const Value.absent(),
@@ -7239,6 +7276,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     this.condition = const Value.absent(),
     this.prepDate = const Value.absent(),
     this.prepTime = const Value.absent(),
+    this.collectionDate = const Value.absent(),
     this.collectionTime = const Value.absent(),
     this.captureDate = const Value.absent(),
     this.isRelativeTime = const Value.absent(),
@@ -7266,6 +7304,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     Expression<String>? condition,
     Expression<String>? prepDate,
     Expression<String>? prepTime,
+    Expression<String>? collectionDate,
     Expression<String>? collectionTime,
     Expression<String>? captureDate,
     Expression<int>? isRelativeTime,
@@ -7293,6 +7332,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       if (condition != null) 'condition': condition,
       if (prepDate != null) 'prepDate': prepDate,
       if (prepTime != null) 'prepTime': prepTime,
+      if (collectionDate != null) 'collectionDate': collectionDate,
       if (collectionTime != null) 'collectionTime': collectionTime,
       if (captureDate != null) 'captureDate': captureDate,
       if (isRelativeTime != null) 'isRelativeTime': isRelativeTime,
@@ -7323,6 +7363,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       Value<String?>? condition,
       Value<String?>? prepDate,
       Value<String?>? prepTime,
+      Value<String?>? collectionDate,
       Value<String?>? collectionTime,
       Value<String?>? captureDate,
       Value<int?>? isRelativeTime,
@@ -7349,6 +7390,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       condition: condition ?? this.condition,
       prepDate: prepDate ?? this.prepDate,
       prepTime: prepTime ?? this.prepTime,
+      collectionDate: collectionDate ?? this.collectionDate,
       collectionTime: collectionTime ?? this.collectionTime,
       captureDate: captureDate ?? this.captureDate,
       isRelativeTime: isRelativeTime ?? this.isRelativeTime,
@@ -7397,6 +7439,9 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     }
     if (prepTime.present) {
       map['prepTime'] = Variable<String>(prepTime.value);
+    }
+    if (collectionDate.present) {
+      map['collectionDate'] = Variable<String>(collectionDate.value);
     }
     if (collectionTime.present) {
       map['collectionTime'] = Variable<String>(collectionTime.value);
@@ -7461,6 +7506,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
           ..write('condition: $condition, ')
           ..write('prepDate: $prepDate, ')
           ..write('prepTime: $prepTime, ')
+          ..write('collectionDate: $collectionDate, ')
           ..write('collectionTime: $collectionTime, ')
           ..write('captureDate: $captureDate, ')
           ..write('isRelativeTime: $isRelativeTime, ')
@@ -15650,6 +15696,7 @@ typedef $SpecimenCreateCompanionBuilder = SpecimenCompanion Function({
   Value<String?> condition,
   Value<String?> prepDate,
   Value<String?> prepTime,
+  Value<String?> collectionDate,
   Value<String?> collectionTime,
   Value<String?> captureDate,
   Value<int?> isRelativeTime,
@@ -15677,6 +15724,7 @@ typedef $SpecimenUpdateCompanionBuilder = SpecimenCompanion Function({
   Value<String?> condition,
   Value<String?> prepDate,
   Value<String?> prepTime,
+  Value<String?> collectionDate,
   Value<String?> collectionTime,
   Value<String?> captureDate,
   Value<int?> isRelativeTime,
@@ -15749,6 +15797,10 @@ class $SpecimenFilterComposer extends Composer<_$Database, Specimen> {
 
   ColumnFilters<String> get prepTime => $composableBuilder(
       column: $table.prepTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get collectionDate => $composableBuilder(
+      column: $table.collectionDate,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get collectionTime => $composableBuilder(
       column: $table.collectionTime,
@@ -15852,6 +15904,10 @@ class $SpecimenOrderingComposer extends Composer<_$Database, Specimen> {
 
   ColumnOrderings<String> get prepTime => $composableBuilder(
       column: $table.prepTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get collectionDate => $composableBuilder(
+      column: $table.collectionDate,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get collectionTime => $composableBuilder(
       column: $table.collectionTime,
@@ -15957,6 +16013,9 @@ class $SpecimenAnnotationComposer extends Composer<_$Database, Specimen> {
   GeneratedColumn<String> get prepTime =>
       $composableBuilder(column: $table.prepTime, builder: (column) => column);
 
+  GeneratedColumn<String> get collectionDate => $composableBuilder(
+      column: $table.collectionDate, builder: (column) => column);
+
   GeneratedColumn<String> get collectionTime => $composableBuilder(
       column: $table.collectionTime, builder: (column) => column);
 
@@ -16052,6 +16111,7 @@ class $SpecimenTableManager extends RootTableManager<
             Value<String?> condition = const Value.absent(),
             Value<String?> prepDate = const Value.absent(),
             Value<String?> prepTime = const Value.absent(),
+            Value<String?> collectionDate = const Value.absent(),
             Value<String?> collectionTime = const Value.absent(),
             Value<String?> captureDate = const Value.absent(),
             Value<int?> isRelativeTime = const Value.absent(),
@@ -16079,6 +16139,7 @@ class $SpecimenTableManager extends RootTableManager<
             condition: condition,
             prepDate: prepDate,
             prepTime: prepTime,
+            collectionDate: collectionDate,
             collectionTime: collectionTime,
             captureDate: captureDate,
             isRelativeTime: isRelativeTime,
@@ -16106,6 +16167,7 @@ class $SpecimenTableManager extends RootTableManager<
             Value<String?> condition = const Value.absent(),
             Value<String?> prepDate = const Value.absent(),
             Value<String?> prepTime = const Value.absent(),
+            Value<String?> collectionDate = const Value.absent(),
             Value<String?> collectionTime = const Value.absent(),
             Value<String?> captureDate = const Value.absent(),
             Value<int?> isRelativeTime = const Value.absent(),
@@ -16133,6 +16195,7 @@ class $SpecimenTableManager extends RootTableManager<
             condition: condition,
             prepDate: prepDate,
             prepTime: prepTime,
+            collectionDate: collectionDate,
             collectionTime: collectionTime,
             captureDate: captureDate,
             isRelativeTime: isRelativeTime,
