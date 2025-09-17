@@ -11,7 +11,6 @@ import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/import.dart';
-import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:path/path.dart';
 
@@ -230,7 +229,6 @@ class GeoLocationServices {
     return ctr;
   }
 }
-
 
 class HabitatServices extends AppServices {
   const HabitatServices({required super.ref});

@@ -188,5 +188,20 @@ final siteEntryProvider =
 );
 
 typedef _$SiteEntry = AutoDisposeAsyncNotifier<List<SiteData>>;
+String _$habitatTypeHash() => r'7b113e56bc166d2e66c5482eca4a23385ad62dfc';
+
+/// See also [HabitatType].
+@ProviderFor(HabitatType)
+final habitatTypeProvider =
+    AutoDisposeAsyncNotifierProvider<HabitatType, List<String>>.internal(
+  HabitatType.new,
+  name: r'habitatTypeProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$habitatTypeHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$HabitatType = AutoDisposeAsyncNotifier<List<String>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,153 +9,26 @@ part of 'validation.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$ProjectForm {
-  ProjectFormField get projectName => throw _privateConstructorUsedError;
-  ProjectFormField get existingProject => throw _privateConstructorUsedError;
+  ProjectFormField get projectName;
+  ProjectFormField get existingProject;
 
   /// Create a copy of ProjectForm
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $ProjectFormCopyWith<ProjectForm> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $ProjectFormCopyWith<$Res> {
-  factory $ProjectFormCopyWith(
-          ProjectForm value, $Res Function(ProjectForm) then) =
-      _$ProjectFormCopyWithImpl<$Res, ProjectForm>;
-  @useResult
-  $Res call({ProjectFormField projectName, ProjectFormField existingProject});
-
-  $ProjectFormFieldCopyWith<$Res> get projectName;
-  $ProjectFormFieldCopyWith<$Res> get existingProject;
-}
-
-/// @nodoc
-class _$ProjectFormCopyWithImpl<$Res, $Val extends ProjectForm>
-    implements $ProjectFormCopyWith<$Res> {
-  _$ProjectFormCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of ProjectForm
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? projectName = null,
-    Object? existingProject = null,
-  }) {
-    return _then(_value.copyWith(
-      projectName: null == projectName
-          ? _value.projectName
-          : projectName // ignore: cast_nullable_to_non_nullable
-              as ProjectFormField,
-      existingProject: null == existingProject
-          ? _value.existingProject
-          : existingProject // ignore: cast_nullable_to_non_nullable
-              as ProjectFormField,
-    ) as $Val);
-  }
-
-  /// Create a copy of ProjectForm
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $ProjectFormFieldCopyWith<$Res> get projectName {
-    return $ProjectFormFieldCopyWith<$Res>(_value.projectName, (value) {
-      return _then(_value.copyWith(projectName: value) as $Val);
-    });
-  }
-
-  /// Create a copy of ProjectForm
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $ProjectFormFieldCopyWith<$Res> get existingProject {
-    return $ProjectFormFieldCopyWith<$Res>(_value.existingProject, (value) {
-      return _then(_value.copyWith(existingProject: value) as $Val);
-    });
-  }
-}
-
-/// @nodoc
-abstract class _$$ProjectFormImplCopyWith<$Res>
-    implements $ProjectFormCopyWith<$Res> {
-  factory _$$ProjectFormImplCopyWith(
-          _$ProjectFormImpl value, $Res Function(_$ProjectFormImpl) then) =
-      __$$ProjectFormImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({ProjectFormField projectName, ProjectFormField existingProject});
-
-  @override
-  $ProjectFormFieldCopyWith<$Res> get projectName;
-  @override
-  $ProjectFormFieldCopyWith<$Res> get existingProject;
-}
-
-/// @nodoc
-class __$$ProjectFormImplCopyWithImpl<$Res>
-    extends _$ProjectFormCopyWithImpl<$Res, _$ProjectFormImpl>
-    implements _$$ProjectFormImplCopyWith<$Res> {
-  __$$ProjectFormImplCopyWithImpl(
-      _$ProjectFormImpl _value, $Res Function(_$ProjectFormImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of ProjectForm
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? projectName = null,
-    Object? existingProject = null,
-  }) {
-    return _then(_$ProjectFormImpl(
-      projectName: null == projectName
-          ? _value.projectName
-          : projectName // ignore: cast_nullable_to_non_nullable
-              as ProjectFormField,
-      existingProject: null == existingProject
-          ? _value.existingProject
-          : existingProject // ignore: cast_nullable_to_non_nullable
-              as ProjectFormField,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$ProjectFormImpl extends _ProjectForm {
-  const _$ProjectFormImpl(
-      {required this.projectName, required this.existingProject})
-      : super._();
-
-  @override
-  final ProjectFormField projectName;
-  @override
-  final ProjectFormField existingProject;
-
-  @override
-  String toString() {
-    return 'ProjectForm(projectName: $projectName, existingProject: $existingProject)';
-  }
+      _$ProjectFormCopyWithImpl<ProjectForm>(this as ProjectForm, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ProjectFormImpl &&
+            other is ProjectForm &&
             (identical(other.projectName, projectName) ||
                 other.projectName == projectName) &&
             (identical(other.existingProject, existingProject) ||
@@ -165,147 +38,356 @@ class _$ProjectFormImpl extends _ProjectForm {
   @override
   int get hashCode => Object.hash(runtimeType, projectName, existingProject);
 
-  /// Create a copy of ProjectForm
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ProjectFormImplCopyWith<_$ProjectFormImpl> get copyWith =>
-      __$$ProjectFormImplCopyWithImpl<_$ProjectFormImpl>(this, _$identity);
-}
-
-abstract class _ProjectForm extends ProjectForm {
-  const factory _ProjectForm(
-      {required final ProjectFormField projectName,
-      required final ProjectFormField existingProject}) = _$ProjectFormImpl;
-  const _ProjectForm._() : super._();
-
-  @override
-  ProjectFormField get projectName;
-  @override
-  ProjectFormField get existingProject;
-
-  /// Create a copy of ProjectForm
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ProjectFormImplCopyWith<_$ProjectFormImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$ProjectFormField {
-  String? get errMsg => throw _privateConstructorUsedError;
-  bool get isValid => throw _privateConstructorUsedError;
-
-  /// Create a copy of ProjectFormField
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $ProjectFormFieldCopyWith<ProjectFormField> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $ProjectFormFieldCopyWith<$Res> {
-  factory $ProjectFormFieldCopyWith(
-          ProjectFormField value, $Res Function(ProjectFormField) then) =
-      _$ProjectFormFieldCopyWithImpl<$Res, ProjectFormField>;
-  @useResult
-  $Res call({String? errMsg, bool isValid});
-}
-
-/// @nodoc
-class _$ProjectFormFieldCopyWithImpl<$Res, $Val extends ProjectFormField>
-    implements $ProjectFormFieldCopyWith<$Res> {
-  _$ProjectFormFieldCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of ProjectFormField
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? errMsg = freezed,
-    Object? isValid = null,
-  }) {
-    return _then(_value.copyWith(
-      errMsg: freezed == errMsg
-          ? _value.errMsg
-          : errMsg // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isValid: null == isValid
-          ? _value.isValid
-          : isValid // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$ProjectNameImplCopyWith<$Res>
-    implements $ProjectFormFieldCopyWith<$Res> {
-  factory _$$ProjectNameImplCopyWith(
-          _$ProjectNameImpl value, $Res Function(_$ProjectNameImpl) then) =
-      __$$ProjectNameImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String? errMsg, bool isValid});
-}
-
-/// @nodoc
-class __$$ProjectNameImplCopyWithImpl<$Res>
-    extends _$ProjectFormFieldCopyWithImpl<$Res, _$ProjectNameImpl>
-    implements _$$ProjectNameImplCopyWith<$Res> {
-  __$$ProjectNameImplCopyWithImpl(
-      _$ProjectNameImpl _value, $Res Function(_$ProjectNameImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of ProjectFormField
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? errMsg = freezed,
-    Object? isValid = null,
-  }) {
-    return _then(_$ProjectNameImpl(
-      errMsg: freezed == errMsg
-          ? _value.errMsg
-          : errMsg // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isValid: null == isValid
-          ? _value.isValid
-          : isValid // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$ProjectNameImpl implements _ProjectName {
-  _$ProjectNameImpl({required this.errMsg, this.isValid = false});
-
-  @override
-  final String? errMsg;
-  @override
-  @JsonKey()
-  final bool isValid;
-
   @override
   String toString() {
-    return 'ProjectFormField(errMsg: $errMsg, isValid: $isValid)';
+    return 'ProjectForm(projectName: $projectName, existingProject: $existingProject)';
   }
+}
+
+/// @nodoc
+abstract mixin class $ProjectFormCopyWith<$Res> {
+  factory $ProjectFormCopyWith(
+          ProjectForm value, $Res Function(ProjectForm) _then) =
+      _$ProjectFormCopyWithImpl;
+  @useResult
+  $Res call({ProjectFormField projectName, ProjectFormField existingProject});
+
+  $ProjectFormFieldCopyWith<$Res> get projectName;
+  $ProjectFormFieldCopyWith<$Res> get existingProject;
+}
+
+/// @nodoc
+class _$ProjectFormCopyWithImpl<$Res> implements $ProjectFormCopyWith<$Res> {
+  _$ProjectFormCopyWithImpl(this._self, this._then);
+
+  final ProjectForm _self;
+  final $Res Function(ProjectForm) _then;
+
+  /// Create a copy of ProjectForm
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? projectName = null,
+    Object? existingProject = null,
+  }) {
+    return _then(_self.copyWith(
+      projectName: null == projectName
+          ? _self.projectName
+          : projectName // ignore: cast_nullable_to_non_nullable
+              as ProjectFormField,
+      existingProject: null == existingProject
+          ? _self.existingProject
+          : existingProject // ignore: cast_nullable_to_non_nullable
+              as ProjectFormField,
+    ));
+  }
+
+  /// Create a copy of ProjectForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProjectFormFieldCopyWith<$Res> get projectName {
+    return $ProjectFormFieldCopyWith<$Res>(_self.projectName, (value) {
+      return _then(_self.copyWith(projectName: value));
+    });
+  }
+
+  /// Create a copy of ProjectForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProjectFormFieldCopyWith<$Res> get existingProject {
+    return $ProjectFormFieldCopyWith<$Res>(_self.existingProject, (value) {
+      return _then(_self.copyWith(existingProject: value));
+    });
+  }
+}
+
+/// Adds pattern-matching-related methods to [ProjectForm].
+extension ProjectFormPatterns on ProjectForm {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_ProjectForm value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectForm() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_ProjectForm value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectForm():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_ProjectForm value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectForm() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            ProjectFormField projectName, ProjectFormField existingProject)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectForm() when $default != null:
+        return $default(_that.projectName, _that.existingProject);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            ProjectFormField projectName, ProjectFormField existingProject)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectForm():
+        return $default(_that.projectName, _that.existingProject);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            ProjectFormField projectName, ProjectFormField existingProject)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectForm() when $default != null:
+        return $default(_that.projectName, _that.existingProject);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class _ProjectForm extends ProjectForm {
+  const _ProjectForm({required this.projectName, required this.existingProject})
+      : super._();
+
+  @override
+  final ProjectFormField projectName;
+  @override
+  final ProjectFormField existingProject;
+
+  /// Create a copy of ProjectForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$ProjectFormCopyWith<_ProjectForm> get copyWith =>
+      __$ProjectFormCopyWithImpl<_ProjectForm>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ProjectNameImpl &&
+            other is _ProjectForm &&
+            (identical(other.projectName, projectName) ||
+                other.projectName == projectName) &&
+            (identical(other.existingProject, existingProject) ||
+                other.existingProject == existingProject));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, projectName, existingProject);
+
+  @override
+  String toString() {
+    return 'ProjectForm(projectName: $projectName, existingProject: $existingProject)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$ProjectFormCopyWith<$Res>
+    implements $ProjectFormCopyWith<$Res> {
+  factory _$ProjectFormCopyWith(
+          _ProjectForm value, $Res Function(_ProjectForm) _then) =
+      __$ProjectFormCopyWithImpl;
+  @override
+  @useResult
+  $Res call({ProjectFormField projectName, ProjectFormField existingProject});
+
+  @override
+  $ProjectFormFieldCopyWith<$Res> get projectName;
+  @override
+  $ProjectFormFieldCopyWith<$Res> get existingProject;
+}
+
+/// @nodoc
+class __$ProjectFormCopyWithImpl<$Res> implements _$ProjectFormCopyWith<$Res> {
+  __$ProjectFormCopyWithImpl(this._self, this._then);
+
+  final _ProjectForm _self;
+  final $Res Function(_ProjectForm) _then;
+
+  /// Create a copy of ProjectForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? projectName = null,
+    Object? existingProject = null,
+  }) {
+    return _then(_ProjectForm(
+      projectName: null == projectName
+          ? _self.projectName
+          : projectName // ignore: cast_nullable_to_non_nullable
+              as ProjectFormField,
+      existingProject: null == existingProject
+          ? _self.existingProject
+          : existingProject // ignore: cast_nullable_to_non_nullable
+              as ProjectFormField,
+    ));
+  }
+
+  /// Create a copy of ProjectForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProjectFormFieldCopyWith<$Res> get projectName {
+    return $ProjectFormFieldCopyWith<$Res>(_self.projectName, (value) {
+      return _then(_self.copyWith(projectName: value));
+    });
+  }
+
+  /// Create a copy of ProjectForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProjectFormFieldCopyWith<$Res> get existingProject {
+    return $ProjectFormFieldCopyWith<$Res>(_self.existingProject, (value) {
+      return _then(_self.copyWith(existingProject: value));
+    });
+  }
+}
+
+/// @nodoc
+mixin _$ProjectFormField {
+  String? get errMsg;
+  bool get isValid;
+
+  /// Create a copy of ProjectFormField
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ProjectFormFieldCopyWith<ProjectFormField> get copyWith =>
+      _$ProjectFormFieldCopyWithImpl<ProjectFormField>(
+          this as ProjectFormField, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ProjectFormField &&
             (identical(other.errMsg, errMsg) || other.errMsg == errMsg) &&
             (identical(other.isValid, isValid) || other.isValid == isValid));
   }
@@ -313,51 +395,324 @@ class _$ProjectNameImpl implements _ProjectName {
   @override
   int get hashCode => Object.hash(runtimeType, errMsg, isValid);
 
-  /// Create a copy of ProjectFormField
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$ProjectNameImplCopyWith<_$ProjectNameImpl> get copyWith =>
-      __$$ProjectNameImplCopyWithImpl<_$ProjectNameImpl>(this, _$identity);
+  String toString() {
+    return 'ProjectFormField(errMsg: $errMsg, isValid: $isValid)';
+  }
 }
 
-abstract class _ProjectName implements ProjectFormField {
-  factory _ProjectName({required final String? errMsg, final bool isValid}) =
-      _$ProjectNameImpl;
+/// @nodoc
+abstract mixin class $ProjectFormFieldCopyWith<$Res> {
+  factory $ProjectFormFieldCopyWith(
+          ProjectFormField value, $Res Function(ProjectFormField) _then) =
+      _$ProjectFormFieldCopyWithImpl;
+  @useResult
+  $Res call({String? errMsg, bool isValid});
+}
+
+/// @nodoc
+class _$ProjectFormFieldCopyWithImpl<$Res>
+    implements $ProjectFormFieldCopyWith<$Res> {
+  _$ProjectFormFieldCopyWithImpl(this._self, this._then);
+
+  final ProjectFormField _self;
+  final $Res Function(ProjectFormField) _then;
+
+  /// Create a copy of ProjectFormField
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? errMsg = freezed,
+    Object? isValid = null,
+  }) {
+    return _then(_self.copyWith(
+      errMsg: freezed == errMsg
+          ? _self.errMsg
+          : errMsg // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isValid: null == isValid
+          ? _self.isValid
+          : isValid // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [ProjectFormField].
+extension ProjectFormFieldPatterns on ProjectFormField {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_ProjectFormField value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectFormField() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_ProjectFormField value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectFormField():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_ProjectFormField value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectFormField() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String? errMsg, bool isValid)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectFormField() when $default != null:
+        return $default(_that.errMsg, _that.isValid);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String? errMsg, bool isValid) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectFormField():
+        return $default(_that.errMsg, _that.isValid);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String? errMsg, bool isValid)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ProjectFormField() when $default != null:
+        return $default(_that.errMsg, _that.isValid);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class _ProjectFormField implements ProjectFormField {
+  _ProjectFormField({required this.errMsg, this.isValid = false});
 
   @override
-  String? get errMsg;
+  final String? errMsg;
   @override
-  bool get isValid;
+  @JsonKey()
+  final bool isValid;
 
   /// Create a copy of ProjectFormField
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ProjectNameImplCopyWith<_$ProjectNameImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  _$ProjectFormFieldCopyWith<_ProjectFormField> get copyWith =>
+      __$ProjectFormFieldCopyWithImpl<_ProjectFormField>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _ProjectFormField &&
+            (identical(other.errMsg, errMsg) || other.errMsg == errMsg) &&
+            (identical(other.isValid, isValid) || other.isValid == isValid));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, errMsg, isValid);
+
+  @override
+  String toString() {
+    return 'ProjectFormField(errMsg: $errMsg, isValid: $isValid)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$ProjectFormFieldCopyWith<$Res>
+    implements $ProjectFormFieldCopyWith<$Res> {
+  factory _$ProjectFormFieldCopyWith(
+          _ProjectFormField value, $Res Function(_ProjectFormField) _then) =
+      __$ProjectFormFieldCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String? errMsg, bool isValid});
+}
+
+/// @nodoc
+class __$ProjectFormFieldCopyWithImpl<$Res>
+    implements _$ProjectFormFieldCopyWith<$Res> {
+  __$ProjectFormFieldCopyWithImpl(this._self, this._then);
+
+  final _ProjectFormField _self;
+  final $Res Function(_ProjectFormField) _then;
+
+  /// Create a copy of ProjectFormField
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? errMsg = freezed,
+    Object? isValid = null,
+  }) {
+    return _then(_ProjectFormField(
+      errMsg: freezed == errMsg
+          ? _self.errMsg
+          : errMsg // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isValid: null == isValid
+          ? _self.isValid
+          : isValid // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
 }
 
 /// @nodoc
 mixin _$PersonnelForm {
-  PersonnelFormField get name => throw _privateConstructorUsedError;
-  PersonnelFormField get email => throw _privateConstructorUsedError;
-  PersonnelFormField get initial => throw _privateConstructorUsedError;
-  PersonnelFormField get collNum => throw _privateConstructorUsedError;
+  PersonnelFormField get name;
+  PersonnelFormField get email;
+  PersonnelFormField get initial;
+  PersonnelFormField get collNum;
 
   /// Create a copy of PersonnelForm
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $PersonnelFormCopyWith<PersonnelForm> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$PersonnelFormCopyWithImpl<PersonnelForm>(
+          this as PersonnelForm, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PersonnelForm &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.initial, initial) || other.initial == initial) &&
+            (identical(other.collNum, collNum) || other.collNum == collNum));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, name, email, initial, collNum);
+
+  @override
+  String toString() {
+    return 'PersonnelForm(name: $name, email: $email, initial: $initial, collNum: $collNum)';
+  }
 }
 
 /// @nodoc
-abstract class $PersonnelFormCopyWith<$Res> {
+abstract mixin class $PersonnelFormCopyWith<$Res> {
   factory $PersonnelFormCopyWith(
-          PersonnelForm value, $Res Function(PersonnelForm) then) =
-      _$PersonnelFormCopyWithImpl<$Res, PersonnelForm>;
+          PersonnelForm value, $Res Function(PersonnelForm) _then) =
+      _$PersonnelFormCopyWithImpl;
   @useResult
   $Res call(
       {PersonnelFormField name,
@@ -372,14 +727,12 @@ abstract class $PersonnelFormCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$PersonnelFormCopyWithImpl<$Res, $Val extends PersonnelForm>
+class _$PersonnelFormCopyWithImpl<$Res>
     implements $PersonnelFormCopyWith<$Res> {
-  _$PersonnelFormCopyWithImpl(this._value, this._then);
+  _$PersonnelFormCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final PersonnelForm _self;
+  final $Res Function(PersonnelForm) _then;
 
   /// Create a copy of PersonnelForm
   /// with the given fields replaced by the non-null parameter values.
@@ -391,24 +744,24 @@ class _$PersonnelFormCopyWithImpl<$Res, $Val extends PersonnelForm>
     Object? initial = null,
     Object? collNum = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       name: null == name
-          ? _value.name
+          ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as PersonnelFormField,
       email: null == email
-          ? _value.email
+          ? _self.email
           : email // ignore: cast_nullable_to_non_nullable
               as PersonnelFormField,
       initial: null == initial
-          ? _value.initial
+          ? _self.initial
           : initial // ignore: cast_nullable_to_non_nullable
               as PersonnelFormField,
       collNum: null == collNum
-          ? _value.collNum
+          ? _self.collNum
           : collNum // ignore: cast_nullable_to_non_nullable
               as PersonnelFormField,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of PersonnelForm
@@ -416,8 +769,8 @@ class _$PersonnelFormCopyWithImpl<$Res, $Val extends PersonnelForm>
   @override
   @pragma('vm:prefer-inline')
   $PersonnelFormFieldCopyWith<$Res> get name {
-    return $PersonnelFormFieldCopyWith<$Res>(_value.name, (value) {
-      return _then(_value.copyWith(name: value) as $Val);
+    return $PersonnelFormFieldCopyWith<$Res>(_self.name, (value) {
+      return _then(_self.copyWith(name: value));
     });
   }
 
@@ -426,8 +779,8 @@ class _$PersonnelFormCopyWithImpl<$Res, $Val extends PersonnelForm>
   @override
   @pragma('vm:prefer-inline')
   $PersonnelFormFieldCopyWith<$Res> get email {
-    return $PersonnelFormFieldCopyWith<$Res>(_value.email, (value) {
-      return _then(_value.copyWith(email: value) as $Val);
+    return $PersonnelFormFieldCopyWith<$Res>(_self.email, (value) {
+      return _then(_self.copyWith(email: value));
     });
   }
 
@@ -436,8 +789,8 @@ class _$PersonnelFormCopyWithImpl<$Res, $Val extends PersonnelForm>
   @override
   @pragma('vm:prefer-inline')
   $PersonnelFormFieldCopyWith<$Res> get initial {
-    return $PersonnelFormFieldCopyWith<$Res>(_value.initial, (value) {
-      return _then(_value.copyWith(initial: value) as $Val);
+    return $PersonnelFormFieldCopyWith<$Res>(_self.initial, (value) {
+      return _then(_self.copyWith(initial: value));
     });
   }
 
@@ -446,79 +799,179 @@ class _$PersonnelFormCopyWithImpl<$Res, $Val extends PersonnelForm>
   @override
   @pragma('vm:prefer-inline')
   $PersonnelFormFieldCopyWith<$Res> get collNum {
-    return $PersonnelFormFieldCopyWith<$Res>(_value.collNum, (value) {
-      return _then(_value.copyWith(collNum: value) as $Val);
+    return $PersonnelFormFieldCopyWith<$Res>(_self.collNum, (value) {
+      return _then(_self.copyWith(collNum: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$PersonnelFormImplCopyWith<$Res>
-    implements $PersonnelFormCopyWith<$Res> {
-  factory _$$PersonnelFormImplCopyWith(
-          _$PersonnelFormImpl value, $Res Function(_$PersonnelFormImpl) then) =
-      __$$PersonnelFormImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {PersonnelFormField name,
-      PersonnelFormField email,
-      PersonnelFormField initial,
-      PersonnelFormField collNum});
+/// Adds pattern-matching-related methods to [PersonnelForm].
+extension PersonnelFormPatterns on PersonnelForm {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $PersonnelFormFieldCopyWith<$Res> get name;
-  @override
-  $PersonnelFormFieldCopyWith<$Res> get email;
-  @override
-  $PersonnelFormFieldCopyWith<$Res> get initial;
-  @override
-  $PersonnelFormFieldCopyWith<$Res> get collNum;
-}
-
-/// @nodoc
-class __$$PersonnelFormImplCopyWithImpl<$Res>
-    extends _$PersonnelFormCopyWithImpl<$Res, _$PersonnelFormImpl>
-    implements _$$PersonnelFormImplCopyWith<$Res> {
-  __$$PersonnelFormImplCopyWithImpl(
-      _$PersonnelFormImpl _value, $Res Function(_$PersonnelFormImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of PersonnelForm
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? name = null,
-    Object? email = null,
-    Object? initial = null,
-    Object? collNum = null,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_PersonnelForm value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$PersonnelFormImpl(
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as PersonnelFormField,
-      email: null == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as PersonnelFormField,
-      initial: null == initial
-          ? _value.initial
-          : initial // ignore: cast_nullable_to_non_nullable
-              as PersonnelFormField,
-      collNum: null == collNum
-          ? _value.collNum
-          : collNum // ignore: cast_nullable_to_non_nullable
-              as PersonnelFormField,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _PersonnelForm() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_PersonnelForm value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelForm():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_PersonnelForm value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelForm() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(PersonnelFormField name, PersonnelFormField email,
+            PersonnelFormField initial, PersonnelFormField collNum)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelForm() when $default != null:
+        return $default(_that.name, _that.email, _that.initial, _that.collNum);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(PersonnelFormField name, PersonnelFormField email,
+            PersonnelFormField initial, PersonnelFormField collNum)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelForm():
+        return $default(_that.name, _that.email, _that.initial, _that.collNum);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(PersonnelFormField name, PersonnelFormField email,
+            PersonnelFormField initial, PersonnelFormField collNum)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelForm() when $default != null:
+        return $default(_that.name, _that.email, _that.initial, _that.collNum);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$PersonnelFormImpl extends _PersonnelForm {
-  const _$PersonnelFormImpl(
+class _PersonnelForm extends PersonnelForm {
+  const _PersonnelForm(
       {required this.name,
       required this.email,
       required this.initial,
@@ -534,16 +987,19 @@ class _$PersonnelFormImpl extends _PersonnelForm {
   @override
   final PersonnelFormField collNum;
 
+  /// Create a copy of PersonnelForm
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'PersonnelForm(name: $name, email: $email, initial: $initial, collNum: $collNum)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$PersonnelFormCopyWith<_PersonnelForm> get copyWith =>
+      __$PersonnelFormCopyWithImpl<_PersonnelForm>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PersonnelFormImpl &&
+            other is _PersonnelForm &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.initial, initial) || other.initial == initial) &&
@@ -553,153 +1009,133 @@ class _$PersonnelFormImpl extends _PersonnelForm {
   @override
   int get hashCode => Object.hash(runtimeType, name, email, initial, collNum);
 
-  /// Create a copy of PersonnelForm
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$PersonnelFormImplCopyWith<_$PersonnelFormImpl> get copyWith =>
-      __$$PersonnelFormImplCopyWithImpl<_$PersonnelFormImpl>(this, _$identity);
+  String toString() {
+    return 'PersonnelForm(name: $name, email: $email, initial: $initial, collNum: $collNum)';
+  }
 }
 
-abstract class _PersonnelForm extends PersonnelForm {
-  const factory _PersonnelForm(
-      {required final PersonnelFormField name,
-      required final PersonnelFormField email,
-      required final PersonnelFormField initial,
-      required final PersonnelFormField collNum}) = _$PersonnelFormImpl;
-  const _PersonnelForm._() : super._();
+/// @nodoc
+abstract mixin class _$PersonnelFormCopyWith<$Res>
+    implements $PersonnelFormCopyWith<$Res> {
+  factory _$PersonnelFormCopyWith(
+          _PersonnelForm value, $Res Function(_PersonnelForm) _then) =
+      __$PersonnelFormCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {PersonnelFormField name,
+      PersonnelFormField email,
+      PersonnelFormField initial,
+      PersonnelFormField collNum});
 
   @override
-  PersonnelFormField get name;
+  $PersonnelFormFieldCopyWith<$Res> get name;
   @override
-  PersonnelFormField get email;
+  $PersonnelFormFieldCopyWith<$Res> get email;
   @override
-  PersonnelFormField get initial;
+  $PersonnelFormFieldCopyWith<$Res> get initial;
   @override
-  PersonnelFormField get collNum;
+  $PersonnelFormFieldCopyWith<$Res> get collNum;
+}
+
+/// @nodoc
+class __$PersonnelFormCopyWithImpl<$Res>
+    implements _$PersonnelFormCopyWith<$Res> {
+  __$PersonnelFormCopyWithImpl(this._self, this._then);
+
+  final _PersonnelForm _self;
+  final $Res Function(_PersonnelForm) _then;
 
   /// Create a copy of PersonnelForm
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PersonnelFormImplCopyWith<_$PersonnelFormImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? name = null,
+    Object? email = null,
+    Object? initial = null,
+    Object? collNum = null,
+  }) {
+    return _then(_PersonnelForm(
+      name: null == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as PersonnelFormField,
+      email: null == email
+          ? _self.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as PersonnelFormField,
+      initial: null == initial
+          ? _self.initial
+          : initial // ignore: cast_nullable_to_non_nullable
+              as PersonnelFormField,
+      collNum: null == collNum
+          ? _self.collNum
+          : collNum // ignore: cast_nullable_to_non_nullable
+              as PersonnelFormField,
+    ));
+  }
+
+  /// Create a copy of PersonnelForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PersonnelFormFieldCopyWith<$Res> get name {
+    return $PersonnelFormFieldCopyWith<$Res>(_self.name, (value) {
+      return _then(_self.copyWith(name: value));
+    });
+  }
+
+  /// Create a copy of PersonnelForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PersonnelFormFieldCopyWith<$Res> get email {
+    return $PersonnelFormFieldCopyWith<$Res>(_self.email, (value) {
+      return _then(_self.copyWith(email: value));
+    });
+  }
+
+  /// Create a copy of PersonnelForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PersonnelFormFieldCopyWith<$Res> get initial {
+    return $PersonnelFormFieldCopyWith<$Res>(_self.initial, (value) {
+      return _then(_self.copyWith(initial: value));
+    });
+  }
+
+  /// Create a copy of PersonnelForm
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PersonnelFormFieldCopyWith<$Res> get collNum {
+    return $PersonnelFormFieldCopyWith<$Res>(_self.collNum, (value) {
+      return _then(_self.copyWith(collNum: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$PersonnelFormField {
-  String? get errMsg => throw _privateConstructorUsedError;
-  bool get isValid => throw _privateConstructorUsedError;
+  String? get errMsg;
+  bool get isValid;
 
   /// Create a copy of PersonnelFormField
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $PersonnelFormFieldCopyWith<PersonnelFormField> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $PersonnelFormFieldCopyWith<$Res> {
-  factory $PersonnelFormFieldCopyWith(
-          PersonnelFormField value, $Res Function(PersonnelFormField) then) =
-      _$PersonnelFormFieldCopyWithImpl<$Res, PersonnelFormField>;
-  @useResult
-  $Res call({String? errMsg, bool isValid});
-}
-
-/// @nodoc
-class _$PersonnelFormFieldCopyWithImpl<$Res, $Val extends PersonnelFormField>
-    implements $PersonnelFormFieldCopyWith<$Res> {
-  _$PersonnelFormFieldCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of PersonnelFormField
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? errMsg = freezed,
-    Object? isValid = null,
-  }) {
-    return _then(_value.copyWith(
-      errMsg: freezed == errMsg
-          ? _value.errMsg
-          : errMsg // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isValid: null == isValid
-          ? _value.isValid
-          : isValid // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$PersonnelFormFieldImplCopyWith<$Res>
-    implements $PersonnelFormFieldCopyWith<$Res> {
-  factory _$$PersonnelFormFieldImplCopyWith(_$PersonnelFormFieldImpl value,
-          $Res Function(_$PersonnelFormFieldImpl) then) =
-      __$$PersonnelFormFieldImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String? errMsg, bool isValid});
-}
-
-/// @nodoc
-class __$$PersonnelFormFieldImplCopyWithImpl<$Res>
-    extends _$PersonnelFormFieldCopyWithImpl<$Res, _$PersonnelFormFieldImpl>
-    implements _$$PersonnelFormFieldImplCopyWith<$Res> {
-  __$$PersonnelFormFieldImplCopyWithImpl(_$PersonnelFormFieldImpl _value,
-      $Res Function(_$PersonnelFormFieldImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of PersonnelFormField
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? errMsg = freezed,
-    Object? isValid = null,
-  }) {
-    return _then(_$PersonnelFormFieldImpl(
-      errMsg: freezed == errMsg
-          ? _value.errMsg
-          : errMsg // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isValid: null == isValid
-          ? _value.isValid
-          : isValid // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$PersonnelFormFieldImpl implements _PersonnelFormField {
-  _$PersonnelFormFieldImpl({required this.errMsg, this.isValid = false});
-
-  @override
-  final String? errMsg;
-  @override
-  @JsonKey()
-  final bool isValid;
-
-  @override
-  String toString() {
-    return 'PersonnelFormField(errMsg: $errMsg, isValid: $isValid)';
-  }
+      _$PersonnelFormFieldCopyWithImpl<PersonnelFormField>(
+          this as PersonnelFormField, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PersonnelFormFieldImpl &&
+            other is PersonnelFormField &&
             (identical(other.errMsg, errMsg) || other.errMsg == errMsg) &&
             (identical(other.isValid, isValid) || other.isValid == isValid));
   }
@@ -707,30 +1143,282 @@ class _$PersonnelFormFieldImpl implements _PersonnelFormField {
   @override
   int get hashCode => Object.hash(runtimeType, errMsg, isValid);
 
+  @override
+  String toString() {
+    return 'PersonnelFormField(errMsg: $errMsg, isValid: $isValid)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PersonnelFormFieldCopyWith<$Res> {
+  factory $PersonnelFormFieldCopyWith(
+          PersonnelFormField value, $Res Function(PersonnelFormField) _then) =
+      _$PersonnelFormFieldCopyWithImpl;
+  @useResult
+  $Res call({String? errMsg, bool isValid});
+}
+
+/// @nodoc
+class _$PersonnelFormFieldCopyWithImpl<$Res>
+    implements $PersonnelFormFieldCopyWith<$Res> {
+  _$PersonnelFormFieldCopyWithImpl(this._self, this._then);
+
+  final PersonnelFormField _self;
+  final $Res Function(PersonnelFormField) _then;
+
   /// Create a copy of PersonnelFormField
   /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? errMsg = freezed,
+    Object? isValid = null,
+  }) {
+    return _then(_self.copyWith(
+      errMsg: freezed == errMsg
+          ? _self.errMsg
+          : errMsg // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isValid: null == isValid
+          ? _self.isValid
+          : isValid // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [PersonnelFormField].
+extension PersonnelFormFieldPatterns on PersonnelFormField {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_PersonnelFormField value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelFormField() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_PersonnelFormField value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelFormField():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_PersonnelFormField value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelFormField() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String? errMsg, bool isValid)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelFormField() when $default != null:
+        return $default(_that.errMsg, _that.isValid);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String? errMsg, bool isValid) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelFormField():
+        return $default(_that.errMsg, _that.isValid);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String? errMsg, bool isValid)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PersonnelFormField() when $default != null:
+        return $default(_that.errMsg, _that.isValid);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class _PersonnelFormField implements PersonnelFormField {
+  _PersonnelFormField({required this.errMsg, this.isValid = false});
+
+  @override
+  final String? errMsg;
+  @override
+  @JsonKey()
+  final bool isValid;
+
+  /// Create a copy of PersonnelFormField
+  /// with the given fields replaced by the non-null parameter values.
+  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$PersonnelFormFieldCopyWith<_PersonnelFormField> get copyWith =>
+      __$PersonnelFormFieldCopyWithImpl<_PersonnelFormField>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _PersonnelFormField &&
+            (identical(other.errMsg, errMsg) || other.errMsg == errMsg) &&
+            (identical(other.isValid, isValid) || other.isValid == isValid));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, errMsg, isValid);
+
+  @override
+  String toString() {
+    return 'PersonnelFormField(errMsg: $errMsg, isValid: $isValid)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$PersonnelFormFieldCopyWith<$Res>
+    implements $PersonnelFormFieldCopyWith<$Res> {
+  factory _$PersonnelFormFieldCopyWith(
+          _PersonnelFormField value, $Res Function(_PersonnelFormField) _then) =
+      __$PersonnelFormFieldCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String? errMsg, bool isValid});
+}
+
+/// @nodoc
+class __$PersonnelFormFieldCopyWithImpl<$Res>
+    implements _$PersonnelFormFieldCopyWith<$Res> {
+  __$PersonnelFormFieldCopyWithImpl(this._self, this._then);
+
+  final _PersonnelFormField _self;
+  final $Res Function(_PersonnelFormField) _then;
+
+  /// Create a copy of PersonnelFormField
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  _$$PersonnelFormFieldImplCopyWith<_$PersonnelFormFieldImpl> get copyWith =>
-      __$$PersonnelFormFieldImplCopyWithImpl<_$PersonnelFormFieldImpl>(
-          this, _$identity);
+  $Res call({
+    Object? errMsg = freezed,
+    Object? isValid = null,
+  }) {
+    return _then(_PersonnelFormField(
+      errMsg: freezed == errMsg
+          ? _self.errMsg
+          : errMsg // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isValid: null == isValid
+          ? _self.isValid
+          : isValid // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
 }
 
-abstract class _PersonnelFormField implements PersonnelFormField {
-  factory _PersonnelFormField(
-      {required final String? errMsg,
-      final bool isValid}) = _$PersonnelFormFieldImpl;
-
-  @override
-  String? get errMsg;
-  @override
-  bool get isValid;
-
-  /// Create a copy of PersonnelFormField
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PersonnelFormFieldImplCopyWith<_$PersonnelFormFieldImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+// dart format on

@@ -1,16 +1,16 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'validation.g.dart';
 part 'validation.freezed.dart';
 
 @freezed
-class ProjectForm with _$ProjectForm {
+abstract class ProjectForm with _$ProjectForm {
   const ProjectForm._();
 
   const factory ProjectForm({
@@ -27,11 +27,11 @@ class ProjectForm with _$ProjectForm {
 }
 
 @freezed
-class ProjectFormField with _$ProjectFormField {
+abstract class ProjectFormField with _$ProjectFormField {
   factory ProjectFormField({
     required String? errMsg,
     @Default(false) bool isValid,
-  }) = _ProjectName;
+  }) = _ProjectFormField;
 }
 
 @riverpod
@@ -122,7 +122,7 @@ class ProjectFormValidator extends _$ProjectFormValidator {
 }
 
 @freezed
-class PersonnelForm with _$PersonnelForm {
+abstract class PersonnelForm with _$PersonnelForm {
   const PersonnelForm._();
 
   const factory PersonnelForm({
@@ -146,7 +146,7 @@ class PersonnelForm with _$PersonnelForm {
 }
 
 @freezed
-class PersonnelFormField with _$PersonnelFormField {
+abstract class PersonnelFormField with _$PersonnelFormField {
   factory PersonnelFormField({
     required String? errMsg,
     @Default(false) bool isValid,

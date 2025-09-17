@@ -31,37 +31,37 @@ class Habitat extends ConsumerWidget {
         child: Column(
           children: [
             ref.watch(habitatTypeProvider).when(
-              data: (data) {
-                return DropdownButtonFormField<String?>(
-                  value: siteFormCtr.habitatTypeCtr.text.isEmpty 
-                      ? null 
-                      : siteFormCtr.habitatTypeCtr.text,
-                  decoration: const InputDecoration(
-                    labelText: 'Type',
-                    hintText: 'Select a habitat type',
-                  ),
-                  items: data
-                      .map(
-                        (e) => DropdownMenuItem(
-                          value: e,
-                          child: CommonDropdownText(text: e),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      siteFormCtr.habitatTypeCtr.text = newValue;
-                      SiteServices(ref: ref).updateSite(
-                        id,
-                        SiteCompanion(habitatType: db.Value(newValue)),
-                      );
-                    }
+                  data: (data) {
+                    return DropdownButtonFormField<String?>(
+                      initialValue: siteFormCtr.habitatTypeCtr.text.isEmpty
+                          ? null
+                          : siteFormCtr.habitatTypeCtr.text,
+                      decoration: const InputDecoration(
+                        labelText: 'Type',
+                        hintText: 'Select a habitat type',
+                      ),
+                      items: data
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: CommonDropdownText(text: e),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          siteFormCtr.habitatTypeCtr.text = newValue;
+                          SiteServices(ref: ref).updateSite(
+                            id,
+                            SiteCompanion(habitatType: db.Value(newValue)),
+                          );
+                        }
+                      },
+                    );
                   },
-                );
-              },
-              loading: () => const CommonProgressIndicator(),
-              error: (e, __) => Text(e.toString()),
-            ),
+                  loading: () => const CommonProgressIndicator(),
+                  error: (e, __) => Text(e.toString()),
+                ),
             TextFormField(
               controller: siteFormCtr.habitatConditionCtr,
               decoration: const InputDecoration(
