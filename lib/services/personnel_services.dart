@@ -77,6 +77,10 @@ class PersonnelServices extends AppServices {
     return await PersonnelQuery(dbAccess).getAllPersonnel();
   }
 
+  Future<List<PersonnelData>> getPersonnelByProjectUuid(String projectUuid) async {
+    return await PersonnelQuery(dbAccess).getPersonnelByProjectUuid(projectUuid);
+  }  
+
   Future<void> deleteProjectPersonnel(String personnelUuid) async {
     bool isUsedInPersonnel = await PersonnelQuery(dbAccess)
         .isPersonnelUsedBySpecimenRecords(
