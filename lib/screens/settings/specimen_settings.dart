@@ -112,7 +112,19 @@ class SpecimenTypeSettings extends ConsumerWidget {
         }
       },
       resetLabel: 'Match database types',
-      onReset: () => SpecimenPartServices(ref: ref).getSpecimenTypes(),
+      onReset: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CommonAlertDialog(
+              titleText: 'Match database types?',
+              descText: 'Matching database types will'
+                ' delete all unused specimen part types',
+              confirmFunction: SpecimenPartServices(ref: ref).getSpecimenTypes,
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -156,7 +168,19 @@ class TreatmentOptionSettings extends ConsumerWidget {
         }
       },
       resetLabel: 'Match database treatments',
-      onReset: () => SpecimenPartServices(ref: ref).getTreatmentOptions(),
+      onReset: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CommonAlertDialog(
+              titleText: 'Match database treatments?',
+              descText: 'Matching database types will'
+                ' delete all unused treatments',
+              confirmFunction: SpecimenPartServices(ref: ref).getTreatmentOptions,
+            );
+          }
+        );
+      }
     );
   }
 }

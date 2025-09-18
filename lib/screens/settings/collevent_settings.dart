@@ -65,7 +65,17 @@ class CollMethodSettings extends ConsumerWidget {
       },
       resetLabel: 'Match database methods',
       onReset: () {
-        CollMethodServices(ref: ref).getAllMethods();
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CommonAlertDialog(
+              titleText: 'Match database methods?',
+              descText: 'Matching database types will'
+                ' delete all unused collection methods',
+              confirmFunction: CollMethodServices(ref: ref).getAllMethods,
+            );
+          },
+        );
       },
     );
   }
@@ -103,7 +113,17 @@ class PersonnelRoleSetting extends ConsumerWidget {
       },
       resetLabel: 'Match database roles',
       onReset: () {
-        CollEvenPersonnelServices(ref: ref).getAllRoles();
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CommonAlertDialog(
+              titleText: 'Match database roles?',
+              descText: 'Matching database types will'
+                ' delete all unused personnel roles',
+              confirmFunction: CollEvenPersonnelServices(ref: ref).getAllRoles,
+            );
+          },
+        );
       },
     );
   }
