@@ -7,7 +7,6 @@ import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
-// import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
