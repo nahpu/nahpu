@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/birds.dart';
@@ -195,26 +196,15 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
               labelText: 'Brood patch',
               hintText: 'Choose one',
             ),
-            items: const [
-              DropdownMenuItem(
-                value: 1,
-                child: CommonDropdownText(text: 'Yes'),
-              ),
-              DropdownMenuItem(
-                value: 0,
-                child: CommonDropdownText(text: 'No'),
-              ),
-            ],
+            items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                      widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        broodPatch: db.Value(newValue),
-                      ));
-                });
-              }
+              setState(() {
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      broodPatch: db.Value(newValue),
+                    ));
+              });
             },
           ),
           DropdownButtonFormField<int?>(
@@ -223,27 +213,16 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
               labelText: 'Bursa present',
               hintText: 'Choose one',
             ),
-            items: const [
-              DropdownMenuItem(
-                value: 1,
-                child: CommonDropdownText(text: 'Yes'),
-              ),
-              DropdownMenuItem(
-                value: 0,
-                child: CommonDropdownText(text: 'No'),
-              ),
-            ],
+            items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  _hasBursa = newValue == 1;
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                      widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        hasBursa: db.Value(newValue),
-                      ));
-                });
-              }
+              setState(() {
+                _hasBursa = newValue == 1;
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      hasBursa: db.Value(newValue),
+                    ));
+              });
             },
           ),
         ],
@@ -497,6 +476,13 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
   bool _isLargeOvum = false;
   @override
   Widget build(BuildContext context) {
+    final List<DropdownMenuItem<int?>> ovaryApperanceItems = ovaryAppearanceList
+        .map((e) => DropdownMenuItem<int?>(
+              value: ovaryAppearanceList.indexOf(e),
+              child: CommonDropdownText(text: e),
+            ))
+        .toList();
+
     return Visibility(
       visible: widget.sex == SpecimenSex.female,
       child: Column(
@@ -548,33 +534,25 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
           ),
           Padding(
             padding: const EdgeInsets.all(5),
-            child: DropdownButtonFormField<OvaryAppearance>(
-              initialValue: _getOvaryAppearance(),
-              decoration: const InputDecoration(
-                labelText: 'Appearance',
-                hintText: 'Choose one',
-              ),
-              items: ovaryAppearanceList
-                  .map((e) => DropdownMenuItem(
-                        value: OvaryAppearance
-                            .values[ovaryAppearanceList.indexOf(e)],
-                        child: CommonDropdownText(text: e),
-                      ))
-                  .toList(),
-              onChanged: (OvaryAppearance? newValue) {
-                if (newValue != null) {
+            child: DropdownButtonFormField<int?>(
+                initialValue: widget.ctr.ovaryAppearanceCtr,
+                decoration: const InputDecoration(
+                  labelText: 'Appearance',
+                ),
+                items:
+                    DropDownMenuItems.addChooseOneToList(ovaryApperanceItems),
+                onChanged: (int? newValue) {
                   setState(() {
-                    _isLargeOvum = newValue == OvaryAppearance.large;
+                    if (kDebugMode) print(OvaryAppearance.large.index);
+                    _isLargeOvum = (newValue == OvaryAppearance.large.index);
                     SpecimenServices(ref: ref).updateAvianMeasurement(
                       widget.specimenUuid,
                       AvianMeasurementCompanion(
-                        ovaryAppearance: db.Value(newValue.index),
+                        ovaryAppearance: db.Value(newValue),
                       ),
                     );
                   });
-                }
-              },
-            ),
+                }),
           ),
           Visibility(
             visible: _isLargeOvum,
@@ -617,13 +595,6 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
       ),
     );
   }
-
-  OvaryAppearance? _getOvaryAppearance() {
-    if (widget.ctr.ovaryAppearanceCtr != null) {
-      return OvaryAppearance.values[widget.ctr.ovaryAppearanceCtr!];
-    }
-    return null;
-  }
 }
 
 class SkullOssField extends ConsumerWidget {
@@ -638,20 +609,21 @@ class SkullOssField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DropdownButtonFormField(
-      initialValue: ctr.skullOssCtr,
-      decoration: const InputDecoration(
-        labelText: 'Skull ossification (%)',
-        hintText: 'Enter percentage',
-      ),
-      items: skullOssificationList
-          .map((e) => DropdownMenuItem(
-                value: e,
-                child: CommonDropdownText(text: '$e %'),
-              ))
-          .toList(),
-      onChanged: (int? newValue) {
-        if (newValue != null) {
+    final List<DropdownMenuItem<int?>> skullOssItems = skullOssificationList
+        .map((e) => DropdownMenuItem<int?>(
+              value: e,
+              child: CommonDropdownText(text: '$e %'),
+            ))
+        .toList();
+
+    return DropdownButtonFormField<int?>(
+        initialValue: ctr.skullOssCtr,
+        decoration: const InputDecoration(
+          labelText: 'Skull ossification (%)',
+          hintText: 'Enter percentage',
+        ),
+        items: DropDownMenuItems.addChooseOneToList(skullOssItems),
+        onChanged: (int? newValue) {
           ctr.skullOssCtr = newValue;
           SpecimenServices(ref: ref).updateAvianMeasurement(
             specimenUuid,
@@ -659,9 +631,7 @@ class SkullOssField extends ConsumerWidget {
               skullOssification: db.Value(newValue),
             ),
           );
-        }
-      },
-    );
+        });
   }
 }
 
@@ -677,35 +647,27 @@ class FatField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DropdownButtonFormField<FatCategory>(
-        initialValue: _getFatCategory(),
+    final List<DropdownMenuItem<int?>> fatCategoryItems = fatCategoryList
+        .map((e) => DropdownMenuItem<int?>(
+              value: fatCategoryList.indexOf(e),
+              child: CommonDropdownText(text: e),
+            ))
+        .toList();
+
+    return DropdownButtonFormField<int?>(
+        initialValue: ctr.fatCtr,
         decoration: const InputDecoration(
           labelText: 'Fat',
-          hintText: 'Enter amount of fat',
         ),
-        items: fatCategoryList
-            .map((e) => DropdownMenuItem(
-                  value: FatCategory.values[fatCategoryList.indexOf(e)],
-                  child: CommonDropdownText(text: e),
-                ))
-            .toList(),
-        onChanged: (FatCategory? newValue) {
-          if (newValue != null) {
-            SpecimenServices(ref: ref).updateAvianMeasurement(
-              specimenUuid,
-              AvianMeasurementCompanion(
-                fat: db.Value(newValue.index),
-              ),
-            );
-          }
+        items: DropDownMenuItems.addChooseOneToList(fatCategoryItems),
+        onChanged: (int? newValue) {
+          SpecimenServices(ref: ref).updateAvianMeasurement(
+            specimenUuid,
+            AvianMeasurementCompanion(
+              fat: db.Value(newValue),
+            ),
+          );
         });
-  }
-
-  FatCategory? _getFatCategory() {
-    if (ctr.fatCtr != null) {
-      return FatCategory.values[ctr.fatCtr!];
-    }
-    return null;
   }
 }
 
@@ -804,6 +766,14 @@ class OviductForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final List<DropdownMenuItem<int?>> oviductAppearanceItems =
+        oviductAppearanceList
+            .map((e) => DropdownMenuItem<int?>(
+                  value: oviductAppearanceList.indexOf(e),
+                  child: CommonDropdownText(text: e),
+                ))
+            .toList();
+
     return AdaptiveLayout(useHorizontalLayout: useHorizontalLayout, children: [
       CommonNumField(
         controller: ctr.oviductWidthCtr,
@@ -822,38 +792,21 @@ class OviductForm extends ConsumerWidget {
           }
         },
       ),
-      DropdownButtonFormField<OviductAppearance>(
-        initialValue: _getOviductAppearance(),
-        decoration: const InputDecoration(
-          labelText: 'Appearance',
-          hintText: 'Choose one',
-        ),
-        items: oviductAppearanceList
-            .map((e) => DropdownMenuItem(
-                  value: OviductAppearance
-                      .values[oviductAppearanceList.indexOf(e)],
-                  child: CommonDropdownText(text: e),
-                ))
-            .toList(),
-        onChanged: (OviductAppearance? newValue) {
-          if (newValue != null) {
+      DropdownButtonFormField<int?>(
+          initialValue: ctr.oviductAppearanceCtr,
+          decoration: const InputDecoration(
+            labelText: 'Appearance',
+          ),
+          items: DropDownMenuItems.addChooseOneToList(oviductAppearanceItems),
+          onChanged: (int? newValue) {
             SpecimenServices(ref: ref).updateAvianMeasurement(
               specimenUuid,
               AvianMeasurementCompanion(
-                oviductAppearance: db.Value(newValue.index),
+                oviductAppearance: db.Value(newValue),
               ),
             );
-          }
-        },
-      ),
+          }),
     ]);
-  }
-
-  OviductAppearance? _getOviductAppearance() {
-    if (ctr.oviductAppearanceCtr != null) {
-      return OviductAppearance.values[ctr.oviductAppearanceCtr!];
-    }
-    return null;
   }
 }
 
@@ -896,29 +849,17 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
             initialValue: widget.ctr.wingIsMoltCtr,
             decoration: const InputDecoration(
               labelText: 'Wing Molting',
-              hintText: 'Choose one',
             ),
-            items: const [
-              DropdownMenuItem(
-                value: 1,
-                child: CommonDropdownText(text: 'Yes'),
-              ),
-              DropdownMenuItem(
-                value: 0,
-                child: CommonDropdownText(text: 'No'),
-              ),
-            ],
+            items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  _wingMolting = newValue == 1 ? true : false;
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                      widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        wingIsMolt: db.Value(newValue),
-                      ));
-                });
-              }
+              setState(() {
+                _wingMolting = newValue == 1;
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      wingIsMolt: db.Value(newValue),
+                    ));
+              });
             },
           ),
           Visibility(
@@ -931,31 +872,17 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
           ),
           DropdownButtonFormField<int?>(
             initialValue: widget.ctr.wingIsMoltCtr,
-            decoration: const InputDecoration(
-              labelText: 'Tail Molting',
-              hintText: 'Choose one',
-            ),
-            items: const [
-              DropdownMenuItem(
-                value: 1,
-                child: CommonDropdownText(text: 'Yes'),
-              ),
-              DropdownMenuItem(
-                value: 0,
-                child: CommonDropdownText(text: 'No'),
-              ),
-            ],
+            decoration: const InputDecoration(labelText: 'Tail Molting'),
+            items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  _tailMolting = newValue == 1 ? true : false;
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                      widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        tailIsMolt: db.Value(newValue),
-                      ));
-                });
-              }
+              setState(() {
+                _tailMolting = newValue == 1;
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      tailIsMolt: db.Value(newValue),
+                    ));
+              });
             },
           ),
           Visibility(
@@ -1069,36 +996,27 @@ class BodyMoltForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DropdownButtonFormField<BodyMolt>(
-      initialValue: _getMoltValue(),
-      decoration: const InputDecoration(
-        labelText: 'Body Molt',
-        hintText: 'Choose one',
-      ),
-      items: bodyMoltList
-          .map((e) => DropdownMenuItem(
-                value: BodyMolt.values[bodyMoltList.indexOf(e)],
-                child: CommonDropdownText(text: e),
-              ))
-          .toList(),
-      onChanged: (BodyMolt? newValue) {
-        if (newValue != null) {
+    final List<DropdownMenuItem<int?>> bodyMoltItems = bodyMoltList
+        .map((e) => DropdownMenuItem<int?>(
+              value: bodyMoltList.indexOf(e),
+              child: CommonDropdownText(text: e),
+            ))
+        .toList();
+
+    return DropdownButtonFormField<int?>(
+        initialValue: ctr.bodyMoltCtr,
+        decoration: const InputDecoration(
+          labelText: 'Body Molt',
+        ),
+        items: DropDownMenuItems.addChooseOneToList(bodyMoltItems),
+        onChanged: (int? newValue) {
           SpecimenServices(ref: ref).updateAvianMeasurement(
             specimenUuid,
             AvianMeasurementCompanion(
-              bodyMolt: db.Value(newValue.index),
+              bodyMolt: db.Value(newValue),
             ),
           );
-        }
-      },
-    );
-  }
-
-  BodyMolt? _getMoltValue() {
-    if (ctr.bodyMoltCtr != null) {
-      return BodyMolt.values[ctr.bodyMoltCtr!];
-    }
-    return null;
+        });
   }
 }
 

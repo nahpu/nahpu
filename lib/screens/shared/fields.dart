@@ -50,7 +50,7 @@ class CommonDateFieldState extends ConsumerState<CommonDateField> {
           widget.onTap();
         }
 
-        // Clear pressed (or picker closed) 
+        // Clear pressed (or picker closed)
         if (selectedDate == null && mounted) {
           widget.controller.text = "";
           widget.onClear();
@@ -205,6 +205,32 @@ class CommonDropdownText extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.bodyLarge,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+class HintDropdownText extends StatelessWidget {
+  const HintDropdownText({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    // attempts to copy the default hint text styling
+    final hintStyle = Theme.of(context)
+        .inputDecorationTheme
+        .hintStyle
+        ?.copyWith(
+            color: Theme.of(context)
+                .inputDecorationTheme
+                .hintStyle
+                ?.color
+                ?.withValues(alpha: 0.6));
+
+    return Text(
+      text,
+      style: hintStyle,
       overflow: TextOverflow.ellipsis,
     );
   }
@@ -436,5 +462,24 @@ class AutoCompleteText extends StatelessWidget {
       keyboardType: TextInputType.text,
       textInputAction: TextInputAction.done,
     );
+  }
+}
+
+class DropDownMenuItems {
+  static DropdownMenuItem<int?> chooseOneListItem = DropdownMenuItem(
+      value: null, child: HintDropdownText(text: 'Choose one'));
+
+  static List<DropdownMenuItem<int?>> booleanDropDownItems() {
+    return [
+      chooseOneListItem,
+      DropdownMenuItem(value: 1, child: CommonDropdownText(text: 'Yes')),
+      DropdownMenuItem(value: 0, child: CommonDropdownText(text: 'No'))
+    ];
+  }
+
+  static List<DropdownMenuItem<int?>> addChooseOneToList(
+      List<DropdownMenuItem<int?>> list) {
+    list.insert(0, chooseOneListItem);
+    return list;
   }
 }

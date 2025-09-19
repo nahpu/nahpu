@@ -71,6 +71,47 @@ class CommonLineDivider extends StatelessWidget {
   }
 }
 
+class CommonAlertDialog extends StatelessWidget {
+  const CommonAlertDialog({
+    super.key,
+    required this.titleText,
+    this.descText,
+    required this.confirmFunction
+  });
+
+  final String titleText;
+  final String? descText;
+  final Function() confirmFunction;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(titleText),
+      content: descText == null ? null: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 350),
+        child:
+          Text(descText!)),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          }, 
+          child: const Text('Cancel')
+        ),
+        TextButton(
+          onPressed: () {
+            confirmFunction();
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          }, 
+          child: const Text('OK')
+        )
+      ],
+    );
+  }
+}
+
 class TileSvgIcon extends StatelessWidget {
   const TileSvgIcon({super.key, required this.iconPath});
 

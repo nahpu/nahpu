@@ -64,6 +64,12 @@ class NahpuTheme {
       floatingLabelStyle: TextStyle(
         fontSize: 16,
       ),
+      hintStyle: TextStyle(
+        fontSize: 16,
+        color: Color(0xfffafafa),
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.11
+      ),
     );
   }
 }
