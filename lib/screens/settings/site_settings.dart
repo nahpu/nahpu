@@ -62,7 +62,17 @@ class HabitatTypeSettings extends ConsumerWidget {
       },
       resetLabel: 'Match database habitat types',
       onReset: () {
-        HabitatServices(ref: ref).getAllHabitats();
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CommonAlertDialog(
+              titleText: 'Match database habitat types?',
+              descText: 'Matching database types will'
+                ' delete all unused habitat types',
+              confirmFunction: HabitatServices(ref: ref).getAllHabitats,
+            );
+          }
+        );
       },
     );
   }
