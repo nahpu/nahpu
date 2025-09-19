@@ -125,6 +125,7 @@ class SpecimenTypeSettings extends ConsumerWidget {
           },
         );
       },
+      forceSentenceCase: true,
     );
   }
 }
@@ -180,7 +181,8 @@ class TreatmentOptionSettings extends ConsumerWidget {
             );
           }
         );
-      }
+      },
+      forceSentenceCase: false,
     );
   }
 }

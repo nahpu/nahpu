@@ -210,6 +210,7 @@ class SettingChips extends StatelessWidget {
     required this.onPressed,
     required this.resetLabel,
     required this.onReset,
+    required this.forceSentenceCase,
   });
 
   final String title;
@@ -220,6 +221,7 @@ class SettingChips extends StatelessWidget {
   final TextEditingController controller;
   final String resetLabel;
   final VoidCallback onReset;
+  final bool forceSentenceCase;
 
   @override
   Widget build(BuildContext context) {
@@ -251,7 +253,7 @@ class SettingChips extends StatelessWidget {
                 onChanged: (String value) {
                   if (value.isNotEmpty) {
                     controller.value = TextEditingValue(
-                      text: value.toSentenceCase(),
+                      text: forceSentenceCase ? value.toSentenceCase() : value,
                       selection: controller.selection,
                     );
                   }
