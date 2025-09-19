@@ -32,22 +32,27 @@ class Habitat extends ConsumerWidget {
           children: [
             ref.watch(habitatTypeProvider).when(
                   data: (data) {
+                    final items = data
+                        .map(
+                          (e) => DropdownMenuItem<String?>(
+                            value: e,
+                            child: CommonDropdownText(text: e),
+                          ),
+                        )
+                        .toList();
+
+                    final current = siteFormCtr.habitatTypeCtr.text;
+                    final initialValue = (current.isNotEmpty && data.contains(current))
+                        ? current
+                        : null;
+
                     return DropdownButtonFormField<String?>(
-                      initialValue: siteFormCtr.habitatTypeCtr.text.isEmpty
-                          ? null
-                          : siteFormCtr.habitatTypeCtr.text,
+                      initialValue: initialValue,
                       decoration: const InputDecoration(
                         labelText: 'Type',
                         hintText: 'Select a habitat type',
                       ),
-                      items: data
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: CommonDropdownText(text: e),
-                            ),
-                          )
-                          .toList(),
+                      items: items,
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           siteFormCtr.habitatTypeCtr.text = newValue;
