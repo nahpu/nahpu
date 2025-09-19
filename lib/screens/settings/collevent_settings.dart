@@ -77,6 +77,7 @@ class CollMethodSettings extends ConsumerWidget {
           },
         );
       },
+      forceSentenceCase: true,
     );
   }
 }
@@ -125,6 +126,7 @@ class PersonnelRoleSetting extends ConsumerWidget {
           },
         );
       },
+      forceSentenceCase: true,
     );
   }
 }
