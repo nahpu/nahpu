@@ -72,6 +72,33 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
         .toList();
   }
 
+  Future<List<TaxonomyData>> getTaxaWithSpecimenData(String projectUuid) async {
+    final query = select(specimen)
+      ..where((t) => t.projectUuid.equals(projectUuid))
+      ..where((t) => t.speciesID.isNotNull());
+    final specimenList = await query.get();
+    final speciesCount = <int, int>{};
+    for (final s in specimenList) {
+      speciesCount[s.speciesID!] = (speciesCount[s.speciesID!] ?? 0) + 1;
+    }
+
+    final speciesWithEnoughSpecimens = <int>[];
+    speciesCount.forEach((speciesId, count) {
+      if (count >= 3) {
+        // Using 3 as the minimum
+        speciesWithEnoughSpecimens.add(speciesId);
+      }
+    });
+
+    if (speciesWithEnoughSpecimens.isEmpty) {
+      return [];
+    }
+
+    final taxonQuery = select(taxonomy)
+      ..where((t) => t.id.isIn(speciesWithEnoughSpecimens));
+    return await taxonQuery.get();
+  }
+
   Future<void> createTaxon(TaxonomyCompanion form) {
     return into(taxonomy).insert(form);
   }
