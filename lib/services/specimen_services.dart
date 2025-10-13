@@ -185,6 +185,11 @@ class SpecimenServices extends AppServices {
     return filteredList;
   }
 
+  Future<List<SpecimenData>> getSpecimensByTaxonId(int taxonId) async {
+    return SpecimenQuery(dbAccess)
+        .getSpecimensByTaxonId(currentProjectUuid, taxonId);
+  }
+
   Future<List<int?>> getAllSpecies() {
     return SpecimenQuery(dbAccess).getAllSpecies(currentProjectUuid);
   }
