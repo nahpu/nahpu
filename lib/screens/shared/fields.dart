@@ -14,6 +14,7 @@ class CommonDateField extends ConsumerStatefulWidget {
     required this.lastDate,
     required this.onTap,
     required this.onClear,
+    this.errorText,
   });
 
   final DateEditingController controller;
@@ -23,6 +24,7 @@ class CommonDateField extends ConsumerStatefulWidget {
   final DateTime lastDate;
   final VoidCallback onTap;
   final VoidCallback onClear;
+  final String? errorText;
 
   @override
   CommonDateFieldState createState() => CommonDateFieldState();
@@ -35,6 +37,7 @@ class CommonDateFieldState extends ConsumerState<CommonDateField> {
       decoration: InputDecoration(
         labelText: widget.labelText,
         hintText: widget.hintText,
+        errorText: widget.errorText,
       ),
       controller: widget.controller,
       onTap: () async {
@@ -75,6 +78,7 @@ class CommonTimeField extends ConsumerStatefulWidget {
     required this.initialTime,
     required this.onTap,
     required this.onClear,
+    this.errorText,
   });
 
   final TimeEditingController controller;
@@ -83,6 +87,7 @@ class CommonTimeField extends ConsumerStatefulWidget {
   final TimeOfDay initialTime;
   final VoidCallback onTap;
   final VoidCallback onClear;
+  final String? errorText;
 
   @override
   CommonTimeFieldState createState() => CommonTimeFieldState();
@@ -114,6 +119,7 @@ class CommonTimeFieldState extends ConsumerState<CommonTimeField> {
       decoration: InputDecoration(
         labelText: widget.labelText,
         hintText: widget.hintText,
+        errorText: widget.errorText,
       ),
       controller: widget.controller,
       onTap: () async {
@@ -377,6 +383,7 @@ class AutoCompleteField extends StatelessWidget {
     required this.onSelected,
     required this.labelText,
     required this.hintText,
+    this.errorText,
   });
 
   final FocusNode focusNode;
@@ -385,6 +392,7 @@ class AutoCompleteField extends StatelessWidget {
   final void Function(String) onSelected;
   final String labelText;
   final String hintText;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -414,6 +422,7 @@ class AutoCompleteField extends StatelessWidget {
           focusNode: focusNode,
           labelText: labelText,
           hintText: hintText,
+          errorText: errorText,
           onFieldSubmitted: (String value) {
             onFieldSubmitted();
           },
@@ -461,6 +470,7 @@ class AutoCompleteText extends StatelessWidget {
     required this.hintText,
     required this.onFieldSubmitted,
     required this.enable,
+    this.errorText,
   });
 
   final TextEditingController controller;
@@ -469,6 +479,7 @@ class AutoCompleteText extends StatelessWidget {
   final String labelText;
   final String hintText;
   final bool enable;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -478,6 +489,7 @@ class AutoCompleteText extends StatelessWidget {
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
+        errorText: errorText,
       ),
       focusNode: focusNode,
       onFieldSubmitted: onFieldSubmitted,

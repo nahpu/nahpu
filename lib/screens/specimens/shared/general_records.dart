@@ -347,6 +347,9 @@ class PrepDateField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
       controller: specimenCtr.prepDateCtr,
+      errorText: specimenCtr.prepDateCtr.text.isEmpty
+          ? 'This field is recommended.'
+          : null,
       labelText: 'Prep. date',
       hintText: 'Enter date',
       initialDate: DateTime.now(),
@@ -385,6 +388,9 @@ class PrepTimeField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTimeField(
       controller: specimenCtr.prepTimeCtr,
+      errorText: specimenCtr.prepTimeCtr.text.isEmpty
+        ? 'This field is recommended.'
+        : null,
       labelText: 'Prep. time',
       hintText: 'Enter time',
       initialTime: TimeOfDay.now(),
@@ -444,9 +450,12 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
               : const SizedBox.shrink(),
           DropdownButtonFormField<String>(
             initialValue: widget.specimenCtr.catalogerCtr,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Cataloger',
               hintText: 'Choose a person with field number',
+              errorText: widget.specimenCtr.catalogerCtr == null
+                  ? 'This field is recommended.'
+                  : null,
             ),
             items: ref.watch(projectPersonnelProvider).when(
                   data: (data) => data

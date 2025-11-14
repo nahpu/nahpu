@@ -58,10 +58,11 @@ class SiteInfo extends ConsumerWidget {
               LengthLimitingTextInputFormatter(40),
               FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9-_]+'))
             ],
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Site ID',
               hintText:
                   'Enter a site ID (max. 40 chars), e.g. "CAMP-01", "LINE-1"',
+              errorText: siteFormCtr.siteIDCtr.text.isEmpty ? 'This field is recommended.' : null,
             ),
             onChanged: (value) {
               siteFormCtr.siteIDCtr.value = TextEditingValue(

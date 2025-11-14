@@ -63,7 +63,9 @@ class MammalMeasurementFormsState
               hintText: 'Enter TTL',
               isLastField: false,
               isDouble: true,
-              errorText: _hblErrorText,
+              errorText: (_hblErrorText != null && _hblErrorText!.isNotEmpty)
+                ? _hblErrorText
+                : (ctr.totalLengthCtr.text.isEmpty ? 'This field is recommended.' : null),
               onChanged: (String? value) {
                   setState(() {
                     _getHBTailPercent();
@@ -82,7 +84,9 @@ class MammalMeasurementFormsState
               hintText: 'Enter TL',
               isDouble: true,
               isLastField: false,
-              errorText: _hblErrorText,
+              errorText: (_hblErrorText != null && _hblErrorText!.isNotEmpty)
+                ? _hblErrorText
+                : (ctr.tailLengthCtr.text.isEmpty ? 'This field is recommended.' : null),
               onChanged: (String? value) {
                   setState(() {
                     _getHBTailPercent();
@@ -133,6 +137,9 @@ class MammalMeasurementFormsState
               controller: ctr.hindFootCtr,
               labelText: 'Hind foot length (mm)',
               hintText: 'Enter HF length',
+              errorText: ctr.hindFootCtr.text.isEmpty
+                  ? 'This field is recommended.'
+                  : null,
               isDouble: true,
               isLastField: false,
               onChanged: (String? value) {
@@ -152,6 +159,9 @@ class MammalMeasurementFormsState
               controller: ctr.earCtr,
               labelText: 'Ear length (mm)',
               hintText: 'Enter ER length',
+              errorText: ctr.earCtr.text.isEmpty
+                  ? 'This field is recommended.'
+                  : null,
               isLastField: false,
               isDouble: true,
               onChanged: (String? value) {
@@ -176,6 +186,9 @@ class MammalMeasurementFormsState
                 controller: ctr.weightCtr,
                 labelText: 'Weight (grams)',
                 hintText: 'Enter specimen weight',
+                errorText: ctr.weightCtr.text.isEmpty
+                    ? 'This field is recommended.'
+                    : null,
                 isDouble: true,
                 isLastField: false,
                 onChanged: (value) {
@@ -244,9 +257,12 @@ class MammalMeasurementFormsState
             DropdownButtonFormField<SpecimenSex>(
                 initialValue: getSpecimenSex(ctr.sexCtr),
                 isExpanded: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Sex',
                   hintText: 'Select specimen sex',
+                  errorText: getSpecimenSex(ctr.sexCtr) == null
+                      ? 'This field is recommended.'
+                      : null,
                 ),
                 items: specimenSexList
                     .map((e) => DropdownMenuItem(
@@ -272,9 +288,12 @@ class MammalMeasurementFormsState
             DropdownButtonFormField<SpecimenAge>(
               initialValue: getSpecimenAge(ctr.ageCtr),
               isExpanded: true,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Age',
                 hintText: 'Select specimen age',
+                errorText: getSpecimenSex(ctr.ageCtr) == null
+                      ? 'This field is recommended.'
+                      : null,
               ),
               items: specimenAgeList
                   .map((e) => DropdownMenuItem(
@@ -400,6 +419,8 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<TestisPosition>(
               initialValue: getTestisPosition(widget.ctr.testisPosCtr),
+              validator: (value) =>
+                  value == null ? 'This field is recommended.' : null,
               decoration: const InputDecoration(
                 labelText: 'Position',
                 hintText: 'Select testis position',
@@ -675,6 +696,8 @@ class FemaleGonadForm extends ConsumerWidget {
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<ReproductiveStage>(
               initialValue: _getReproductiveStage(),
+              validator: (value) =>
+                  value == null ? 'This field is recommended.' : null,
               decoration: const InputDecoration(
                 labelText: 'Reproductive stage',
                 hintText: 'Select reproductive stage',

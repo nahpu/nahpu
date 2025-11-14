@@ -158,10 +158,14 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
       children: [
         DropdownButtonFormField<int?>(
             isExpanded: true,
+            validator: (value) =>
+                value == null ? 'This field is recommended.' : null,
             initialValue: siteIDctr,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Site ID',
               hintText: 'Choose a site',
+              errorText:
+                  siteIDctr == null ? 'This field is recommended.' : null,
             ),
             items: ref.watch(siteInEventProvider).when(
                 data: (data) {
@@ -213,10 +217,15 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
             }),
         DropdownButtonFormField<int?>(
             isExpanded: true,
+            validator: (value) =>
+                value == null ? 'This field is recommended.' : null,
             initialValue: widget.specimenCtr.collEventIDCtr,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Event ID',
               hintText: 'Choose a collecting event ID',
+              errorText: widget.specimenCtr.collEventIDCtr == null
+                  ? 'This field is recommended.'
+                  : null,
             ),
             items: ref.watch(collEventEntryProvider).when(
                 data: (data) {

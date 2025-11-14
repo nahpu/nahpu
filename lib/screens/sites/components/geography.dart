@@ -68,9 +68,10 @@ class MainSiteLocality extends ConsumerWidget {
       children: [
         TextFormField(
           controller: siteFormCtr.countryCtr,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Country',
             hintText: 'Enter a country',
+            errorText: siteFormCtr.countryCtr.text.isEmpty ? 'This field is recommended.' : null,
           ),
           onChanged: (value) {
             SiteServices(ref: ref).updateSite(
@@ -81,9 +82,10 @@ class MainSiteLocality extends ConsumerWidget {
         ),
         TextFormField(
           controller: siteFormCtr.stateProvinceCtr,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'State/Province',
             hintText: 'Enter a state/province',
+            errorText: siteFormCtr.stateProvinceCtr.text.isEmpty ? 'This field is recommended.' : null,
           ),
           onChanged: (value) {
             SiteServices(ref: ref).updateSite(
@@ -94,7 +96,7 @@ class MainSiteLocality extends ConsumerWidget {
         ),
         TextFormField(
           controller: siteFormCtr.countyCtr,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'County/Parish/District',
             hintText: 'Enter a county/parish/district',
           ),
@@ -139,9 +141,12 @@ class PreciseLocality extends ConsumerWidget {
     return TextFormField(
       controller: siteFormCtr.localityCtr,
       maxLines: 3,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: 'Precise Locality',
         hintText: 'Enter a precise locality lower than municipality',
+        errorText: siteFormCtr.localityCtr.text.isEmpty
+            ? 'This field is recommended.'
+            : null,
       ),
       onChanged: (value) {
         SiteServices(ref: ref).updateSite(

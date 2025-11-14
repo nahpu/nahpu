@@ -99,6 +99,26 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
     return await taxonQuery.get();
   }
 
+  Future<List<TaxonomyData>> getAllTaxaWithSpecimenData(String projectUuid) async {
+    final query = select(specimen)
+      ..where((t) => t.projectUuid.equals(projectUuid))
+      ..where((t) => t.speciesID.isNotNull());
+    final specimenList = await query.get();
+    final speciesIdSet = specimenList.map((s) => s.speciesID).toSet();
+
+    if (speciesIdSet.isEmpty) {
+       return [];
+     }
+
+    final nonNullableIds = speciesIdSet.whereType<int>();
+
+    if (nonNullableIds.isEmpty) {
+      return [];
+    }
+
+    return await (select(taxonomy)..where((t) => t.id.isIn(nonNullableIds))).get();
+  }
+
   Future<void> createTaxon(TaxonomyCompanion form) {
     return into(taxonomy).insert(form);
   }

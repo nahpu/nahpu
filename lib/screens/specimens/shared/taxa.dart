@@ -67,11 +67,13 @@ class SpeciesAutoComplete extends ConsumerStatefulWidget {
     required this.specimenUuid,
     required this.speciesCtr,
     required this.options,
+    this.errorText,
   });
 
   final String specimenUuid;
   final TextEditingController speciesCtr;
   final List<String> options;
+  final String? errorText;
 
   @override
   SpeciesAutoCompleteState createState() => SpeciesAutoCompleteState();
@@ -96,6 +98,7 @@ class SpeciesAutoCompleteState extends ConsumerState<SpeciesAutoComplete> {
         options: widget.options,
         labelText: 'Species',
         hintText: 'Type species name',
+        errorText: widget.errorText,
         onSelected: (String selection) {
           setState(() {
             _inputTaxon(selection);
@@ -145,6 +148,8 @@ class SpeciesInputField extends StatelessWidget {
         child: SpeciesAutoComplete(
       specimenUuid: specimenUuid,
       speciesCtr: _getSpeciesCtr,
+      errorText:
+        speciesCtr == null ? 'This field is recommended.' : null,
       options: _options,
     ));
   }

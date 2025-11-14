@@ -1,40 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/projects/outliers/outlier_results_view.dart';
+import 'package:nahpu/screens/projects/validation/specimen_validation/validation_results_view.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/statistics/outlier_detection_services.dart';
+import 'package:nahpu/services/validation/specimen_validation_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 
 final speciesListProvider =
     FutureProvider.autoDispose<List<TaxonomyData>>((ref) async {
   final projectUuid = ref.read(projectUuidProvider);
-  final taxa =
-      TaxonomyQuery(ref.read(databaseProvider)).getTaxaWithSpecimenData(projectUuid);
+  final taxa = TaxonomyQuery(ref.read(databaseProvider))
+      .getAllTaxaWithSpecimenData(projectUuid);
+
   return taxa;
 });
 
-class OutlierSelectionView extends ConsumerStatefulWidget {
-  const OutlierSelectionView({super.key});
+class SpecimenValidationView extends ConsumerStatefulWidget {
+  const SpecimenValidationView({super.key});
 
   @override
-  OutlierSelectionViewState createState() => OutlierSelectionViewState();
+  SpecimenValidationViewState createState() => SpecimenValidationViewState();
 }
 
-class OutlierSelectionViewState extends ConsumerState<OutlierSelectionView> {
+class SpecimenValidationViewState extends ConsumerState<SpecimenValidationView> {
   final List<int> _selectedTaxa = [];
   bool _selectAll = false;
   bool _isLoading = false;
+  bool _detectOutliers = true;
+  bool _findMissingFields = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Outlier Analysis'),
+        title: const Text('Specimen Validation'),
       ),
       body: ref.watch(speciesListProvider).when(
             data: (data) {
@@ -51,6 +54,25 @@ class OutlierSelectionViewState extends ConsumerState<OutlierSelectionView> {
               }
               return Column(
                 children: [
+                  CheckboxListTile(
+                    title: const Text('Detect statistical outliers'),
+                    value: _detectOutliers,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _detectOutliers = value ?? false;
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('Find missing mandatory fields'),
+                    value: _findMissingFields,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _findMissingFields = value ?? false;
+                      });
+                    },
+                  ),
+                  const Divider(),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -96,39 +118,48 @@ class OutlierSelectionViewState extends ConsumerState<OutlierSelectionView> {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: ProgressButton(
-                      label: 'Run Analysis',
+                      label: 'Run Validation',
                       icon: Icons.analytics_outlined,
                       isRunning: _isLoading,
-                      onPressed: _selectedTaxa.isEmpty
-                          ? null
-                          : () async {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                              try {
-                                final outliers = await OutlierDetectionServices(
-                                        ref: ref)
-                                    .findOutliers(_selectedTaxa);
-                                if (context.mounted) {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => OutlierResultsView(
-                                          outlierSpecimens: outliers),
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error: $e')),
-                                  );
-                                }
-                              } finally {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
-                            },
+                      onPressed:
+                          (_selectedTaxa.isEmpty || (!_detectOutliers && !_findMissingFields))
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
+                                  try {
+                                    final results =
+                                        await SpecimenValidationServices(ref: ref)
+                                            .runValidation(
+                                      _selectedTaxa,
+                                      detectOutliers: _detectOutliers,
+                                      findMissingFields: _findMissingFields,
+                                    );
+                                    if (context.mounted) {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ValidationResultsView(
+                                                  results: results),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(content: Text('Error: $e')),
+                                      );
+                                    }
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                    }
+                                  }
+                                },
                     ),
                   ),
                 ],

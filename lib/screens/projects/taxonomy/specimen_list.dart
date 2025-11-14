@@ -13,6 +13,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/validation/models.dart';
 
 class SpecimenListPage extends ConsumerStatefulWidget {
   const SpecimenListPage({
@@ -157,10 +158,12 @@ class SpecimenList extends StatelessWidget {
     super.key,
     required this.data,
     required this.additionalHeight,
+    this.validationResults,
   });
 
   final List<SpecimenData> data;
   final int additionalHeight;
+  final List<ValidationResult>? validationResults;
 
   @override
   Widget build(BuildContext context) {
@@ -183,6 +186,10 @@ class SpecimenList extends StatelessWidget {
                     fieldNumber: data[index].fieldNumber),
                 subtitle: SpecimenListSubtitle(
                   data: data[index],
+                  issues: validationResults
+                      ?.where((e) => e.specimen.uuid == data[index].uuid)
+                      .expand((e) => e.issues)
+                      .toList(),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
@@ -248,19 +255,45 @@ class SpecimenListSubtitle extends ConsumerWidget {
   const SpecimenListSubtitle({
     super.key,
     required this.data,
+    this.issues,
   });
 
   final SpecimenData? data;
+  final List<String>? issues;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder(
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return Text(
-            snapshot.data ?? '',
-            style: Theme.of(context).textTheme.titleSmall,
-          );
+          if (issues != null && issues!.isNotEmpty) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  snapshot.data ?? '',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: issues!
+                      .map((e) => Chip(
+                            label: Text(e,
+                                style: Theme.of(context).textTheme.labelSmall),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.errorContainer,
+                          ))
+                      .toList(),
+                ),
+              ],
+            );
+          } else {
+            return Text(
+              snapshot.data ?? '',
+              style: Theme.of(context).textTheme.titleSmall,
+            );
+          }
         } else {
           return const Text('Loading...');
         }

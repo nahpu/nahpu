@@ -53,6 +53,9 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
             controller: ctr.weightCtr,
             labelText: 'Weight (grams)',
             hintText: 'Enter weight',
+            errorText: ctr.weightCtr.text.isEmpty
+                ? 'This field is recommended.'
+                : null,
             isDouble: true,
             isLastField: false,
             onChanged: (String? value) {
@@ -71,6 +74,9 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
             controller: ctr.wingspanCtr,
             labelText: 'Wingspan (mm)',
             hintText: 'Enter wingspan length',
+            errorText: ctr.wingspanCtr.text.isEmpty
+                ? 'This field is recommended.'
+                : null,
             isDouble: true,
             isLastField: false,
             onChanged: (String? value) {
@@ -162,9 +168,12 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
           ),
           DropdownButtonFormField<SpecimenSex>(
             initialValue: getSpecimenSex(ctr.sexCtr),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Sex',
               hintText: 'Choose one',
+              errorText: getSpecimenSex(ctr.sexCtr) == null
+                ? 'This field is recommended.'
+                : null,
             ),
             items: specimenSexList
                 .map((e) => DropdownMenuItem(
