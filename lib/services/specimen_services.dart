@@ -90,6 +90,10 @@ class SpecimenServices extends AppServices {
     return SpecimenQuery(dbAccess).getAllSpecimens(currentProjectUuid);
   }
 
+  Future<List<SpecimenData>> getSpecimensWithNullSpecies() async {
+    return SpecimenQuery(dbAccess).getSpecimensWithNullSpecies(currentProjectUuid);
+  }
+
   Future<List<String>> getAllSpecimenUuids() async {
     return SpecimenQuery(dbAccess).getAllSpecimenUuids(currentProjectUuid);
   }

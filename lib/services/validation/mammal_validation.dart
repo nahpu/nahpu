@@ -1,7 +1,9 @@
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/validation/mandatory_fields.dart';
 import 'package:nahpu/services/validation/models.dart';
+import 'package:nahpu/services/validation/validation_utils.dart';
 
 class MammalValidation extends AppServices {
   const MammalValidation({
@@ -72,31 +74,26 @@ class MammalValidation extends AppServices {
     final missingFieldsResults = <ValidationResult>[];
     for (int i = 0; i < specimens.length; i++) {
       final specimen = specimens[i];
+      final measurement = measurements[i];
       final issues = <String>[];
 
       // Check fields from SpecimenData
-      if (specimen.catalogerID == null) issues.add('Missing: Cataloger');
-      if (specimen.fieldNumber == null) issues.add('Missing: Field Number');
-      if (specimen.speciesID == null) issues.add('Missing: Species');
-      if (specimen.prepDate == null || specimen.prepDate!.isEmpty) {
-        issues.add('Missing: Prep Date');
-      }
-      if (specimen.prepTime == null || specimen.prepTime!.isEmpty) {
-        issues.add('Missing: Prep Time');
-      }
-      if (specimen.collEventID == null) issues.add('Missing: Event ID');
+      issues.addAll(ValidationUtils.checkMissingFields(
+        specimen.toJson(),
+        [
+          ...MandatoryFieldService.specimenGeneral,
+          ...MandatoryFieldService.specimenCapture
+        ],
+      ));
 
       // Check fields from MammalMeasurementData
-      final measurement = measurements[i];
-      if (measurement.sex == null) issues.add('Missing: Sex');
-      if (measurement.age == null) issues.add('Missing: Age');
-      if (measurement.totalLength == null) issues.add('Missing: Total Length');
-      if (measurement.tailLength == null) issues.add('Missing: Tail Length');
-      if (measurement.hindFootLength == null) {
-        issues.add('Missing: Hind Foot Length');
-      }
-      if (measurement.earLength == null) issues.add('Missing: Ear Length');
-      if (measurement.weight == null) issues.add('Missing: Weight');
+      issues.addAll(ValidationUtils.checkMissingFields(
+        measurement.toJson(),
+        [
+          ...MandatoryFieldService.mammalDropdowns,
+          ...MandatoryFieldService.mammalMeasurements
+        ],
+      ));
 
       if (issues.isNotEmpty) {
         missingFieldsResults.add(

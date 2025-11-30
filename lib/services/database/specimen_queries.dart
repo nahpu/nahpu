@@ -21,6 +21,14 @@ class SpecimenQuery extends DatabaseAccessor<Database>
         .get();
   }
 
+  Future<List<SpecimenData>> getSpecimensWithNullSpecies(
+      String projectUuid) async {
+    return (select(specimen)
+          ..where((t) => t.projectUuid.equals(projectUuid))
+          ..where((t) => t.speciesID.isNull()))
+        .get();
+  }
+
   Future<List<SpecimenData>> getSpecimenPerEvent(int eventID) {
     return (select(specimen)..where((t) => t.collEventID.equals(eventID)))
         .get();

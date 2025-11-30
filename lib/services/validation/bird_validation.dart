@@ -1,7 +1,10 @@
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/validation/mandatory_fields.dart';
 import 'package:nahpu/services/validation/models.dart';
+import 'package:nahpu/services/validation/validation_utils.dart';
+
 
 class BirdValidation extends AppServices {
   const BirdValidation({
@@ -112,25 +115,26 @@ class BirdValidation extends AppServices {
     final missingFieldsResults = <ValidationResult>[];
     for (int i = 0; i < specimens.length; i++) {
       final specimen = specimens[i];
+      final measurement = measurements[i];
       final issues = <String>[];
 
-      // Shared fields from SpecimenData
-      if (specimen.catalogerID == null) issues.add('Missing: Cataloger');
-      if (specimen.fieldNumber == null) issues.add('Missing: Field Number');
-      if (specimen.speciesID == null) issues.add('Missing: Species');
-      if (specimen.prepDate == null || specimen.prepDate!.isEmpty) {
-        issues.add('Missing: Prep Date');
-      }
-      if (specimen.prepTime == null || specimen.prepTime!.isEmpty) {
-        issues.add('Missing: Prep Time');
-      }
-      if (specimen.collEventID == null) issues.add('Missing: Event ID');
+      // Check fields from SpecimenData
+      issues.addAll(ValidationUtils.checkMissingFields(
+        specimen.toJson(),
+        [
+          ...MandatoryFieldService.specimenGeneral,
+          ...MandatoryFieldService.specimenCapture
+        ],
+      ));
 
-      // Avian specific fields
-      final measurement = measurements[i];
-      if (measurement.sex == null) issues.add('Missing: Sex');
-      if (measurement.weight == null) issues.add('Missing: Weight');
-      if (measurement.wingspan == null) issues.add('Missing: Wingspan');
+      // Note: Avian specific mandatory fields can be defined in MandatoryFieldService
+      // For now, retaining the specific checks using the utility with manual list
+      issues.addAll(ValidationUtils.checkMissingFields(
+        measurement.toJson(),
+        [
+          ...MandatoryFieldService.avianMeasurements
+        ],
+      ));
 
       if (issues.isNotEmpty) {
         missingFieldsResults.add(
