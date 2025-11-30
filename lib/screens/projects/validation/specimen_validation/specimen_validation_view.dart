@@ -141,7 +141,12 @@ class SpecimenValidationViewState extends ConsumerState<SpecimenValidationView> 
                                         MaterialPageRoute(
                                           builder: (context) =>
                                               ValidationResultsView(
-                                                  results: results),
+                                            results: results,
+                                            taxonIds: _selectedTaxa,
+                                            detectOutliers: _detectOutliers,
+                                            findMissingFields:
+                                                _findMissingFields,
+                                          ),
                                         ),
                                       );
                                     }

@@ -182,8 +182,10 @@ class SpecimenList extends StatelessWidget {
               return ListTile(
                 leading: Icon(_getLeadingIcon(data[index].taxonGroup)),
                 title: SpecimenListTitle(
-                    catalogerID: data[index].catalogerID,
-                    fieldNumber: data[index].fieldNumber),
+                  catalogerID: data[index].catalogerID,
+                  fieldNumber: data[index].fieldNumber,
+                  speciesID: data[index].speciesID,
+                ),
                 subtitle: SpecimenListSubtitle(
                   data: data[index],
                   issues: validationResults
@@ -218,13 +220,25 @@ class SpecimenListTitle extends ConsumerWidget {
     super.key,
     required this.catalogerID,
     required this.fieldNumber,
+    required this.speciesID,
   });
 
   final String? catalogerID;
   final int? fieldNumber;
+  final int? speciesID;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (catalogerID == null && speciesID == null) {
+      return Text(
+        'Empty Specimen',
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.apply(fontStyle: FontStyle.italic),
+      );
+    }
+
     return FutureBuilder(
       builder: (context, snapshot) {
         if (snapshot.hasData) {
