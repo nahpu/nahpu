@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/taxonomy/specimen_list.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -98,6 +97,9 @@ class SpecimenValidationViewState
                         ),
                       ),
                     ),
+                    // Results Summary
+                    if (validationState.results != null)
+                      _buildResultsSummary(validationState.results!),
                     // Results List
                     if (validationState.results != null)
                       _buildResultsList(validationState.results!),
@@ -115,8 +117,7 @@ class SpecimenValidationViewState
                   color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          Theme.of(context).colorScheme.shadow.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.shadow.withAlpha(25),
                       blurRadius: 4,
                       offset: const Offset(0, -2),
                     ),
@@ -154,35 +155,100 @@ class SpecimenValidationViewState
     return true;
   }
 
+  Widget _buildResultsSummary(List<ValidationResult> results) {
+    final specimenCount = results.length;
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
+        child: Card(
+          color: specimenCount > 0
+              ? Theme.of(context).colorScheme.errorContainer.withAlpha(51)
+              : Theme.of(context).colorScheme.primaryContainer.withAlpha(51),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(
+                  specimenCount > 0
+                      ? Icons.warning_amber_rounded
+                      : Icons.check_circle_outline,
+                  color: specimenCount > 0
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.primary,
+                  size: 32,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Validation Results',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        specimenCount > 0
+                            ? '$specimenCount specimen${specimenCount != 1 ? 's' : ''} with issues found'
+                            : 'No issues found! 🎉',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSortSelection(
-      DataValidationNotifier notifier, DataValidationState state) {
+    DataValidationNotifier notifier, DataValidationState state) {
     return ExpansionTile(
       title: const Text('Sort By'),
       subtitle: Text(_getSortLabel(state.sortOption)),
       children: [
-        RadioListTile<ValidationSort>(
-          title: const Text('Species'),
-          value: ValidationSort.species,
+        RadioGroup<ValidationSort>(
           groupValue: state.sortOption,
           onChanged: (value) {
             if (value != null) notifier.setSortOption(value);
           },
-        ),
-        RadioListTile<ValidationSort>(
-          title: const Text('Field Number'),
-          value: ValidationSort.fieldNumber,
-          groupValue: state.sortOption,
-          onChanged: (value) {
-            if (value != null) notifier.setSortOption(value);
-          },
-        ),
-        RadioListTile<ValidationSort>(
-          title: const Text('Page Number'),
-          value: ValidationSort.pageNumber,
-          groupValue: state.sortOption,
-          onChanged: (value) {
-            if (value != null) notifier.setSortOption(value);
-          },
+          child: Column(
+            children: [
+              ListTile(
+                title: const Text('Species'),
+                leading: Radio<ValidationSort>.adaptive(
+                  value: ValidationSort.species,
+                ),
+                onTap: () {
+                  notifier.setSortOption(ValidationSort.species);
+                },
+              ),
+              ListTile(
+                title: const Text('Field Number'),
+                leading: Radio<ValidationSort>.adaptive(
+                  value: ValidationSort.fieldNumber,
+                ),
+                onTap: () {
+                  notifier.setSortOption(ValidationSort.fieldNumber);
+                },
+              ),
+              ListTile(
+                title: const Text('Page Number'),
+                leading: Radio<ValidationSort>.adaptive(
+                  value: ValidationSort.pageNumber,
+                ),
+                onTap: () {
+                  notifier.setSortOption(ValidationSort.pageNumber);
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -311,15 +377,6 @@ class SpecimenValidationViewState
   }
 
   Widget _buildResultsList(List<ValidationResult> results) {
-    if (results.isEmpty) {
-      return const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Center(child: Text('No issues found! 🎉')),
-        ),
-      );
-    }
-
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
