@@ -142,9 +142,6 @@ class MammalValidation extends AppServices {
       'hindFootLength': (m) => m.hindFootLength,
       'earLength': (m) => m.earLength,
       'weight': (m) => m.weight,
-      'forearm': (m) => m.forearm,
-      'testisLength': (m) => m.testisLength,
-      'testisWidth': (m) => m.testisWidth,
     };
   }
 }

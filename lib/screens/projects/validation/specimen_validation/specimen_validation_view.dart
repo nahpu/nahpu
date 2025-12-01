@@ -270,28 +270,26 @@ class SpecimenValidationViewState
     final notifier = ref.read(dataValidationProvider.notifier);
     return ref.watch(speciesListProvider).when(
           data: (data) {
-            if (data.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('No species with enough data (min. 3 specimens).'),
-              );
-            }
-
+            // The speciesListProvider returns real taxa.
+            // We effectively have data.length + 1 items because of "Empty Species"
+            final totalItems = data.length + 1;
             final isAllSelected =
-                validationState.selectedSpecies.length == data.length;
+                validationState.selectedSpecies.length == totalItems;
 
             return ExpansionTile(
               title: const Text('Select Species'),
               subtitle: Text(
-                  '${validationState.selectedSpecies.length} of ${data.length} selected'),
+                  '${validationState.selectedSpecies.length} of $totalItems selected'),
               leading: Checkbox(
                 value: isAllSelected,
                 onChanged: (_) {
                   if (isAllSelected) {
                     notifier.setSpeciesSelection([]);
                   } else {
-                    notifier
-                        .setSpeciesSelection(data.map((e) => e.id).toList());
+                    // Select all actual species + (-1 for empty)
+                    final allIds = data.map((e) => e.id).toList();
+                    allIds.add(-1);
+                    notifier.setSpeciesSelection(allIds);
                   }
                 },
               ),
@@ -303,20 +301,47 @@ class SpecimenValidationViewState
                     child: ListView.builder(
                       controller: _speciesScrollController,
                       shrinkWrap: true,
-                      itemCount: data.length,
+                      // +1 for the "Empty Species" item
+                      itemCount: totalItems,
                       itemBuilder: (context, index) {
+                        // Render Empty Species as the last item
+                        if (index == data.length) {
+                          const emptySpeciesId = -1;
+                          return CheckboxListTile(
+                            controlAffinity: ListTileControlAffinity.leading,
+                            title: const Text(
+                              'Empty Species',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                            value: validationState.selectedSpecies
+                                .contains(emptySpeciesId),
+                            onChanged: (bool? value) {
+                              List<int> current =
+                                  List.from(validationState.selectedSpecies);
+                              if (value == true) {
+                                current.add(emptySpeciesId);
+                              } else {
+                                current.remove(emptySpeciesId);
+                              }
+                              notifier.setSpeciesSelection(current);
+                            },
+                          );
+                        }
+                        
+                        // Render actual species
+                        final species = data[index];
                         return CheckboxListTile(
                           controlAffinity: ListTileControlAffinity.leading,
-                          title: Text(getSpeciesName(data[index])),
+                          title: Text(getSpeciesName(species)),
                           value: validationState.selectedSpecies
-                              .contains(data[index].id),
+                              .contains(species.id),
                           onChanged: (bool? value) {
                             List<int> current =
                                 List.from(validationState.selectedSpecies);
                             if (value == true) {
-                              current.add(data[index].id);
+                              current.add(species.id);
                             } else {
-                              current.remove(data[index].id);
+                              current.remove(species.id);
                             }
                             notifier.setSpeciesSelection(current);
                           },
@@ -401,7 +426,10 @@ class SpecimenValidationViewState
                     builder: (context) => SpecimenFormView(
                           specimenUuid: data.uuid,
                         )),
-              );
+              ).then((_) {
+                // Re-run validation when returning from the editor to update the list
+                ref.read(dataValidationProvider.notifier).validate();
+              });
             },
           );
         },

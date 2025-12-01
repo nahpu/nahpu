@@ -31,7 +31,8 @@ class BirdValidation extends AppServices {
 
     if (detectOutliers) {
       results.addAll(_findQuantitativeOutliers(avianMeasurements));
-      results.addAll(_findQualitativeOutliers(avianMeasurements));
+      // disabled for now
+      // results.addAll(_findQualitativeOutliers(avianMeasurements));
     }
     if (findMissingFields) {
       results.addAll(_findMissingFields(avianMeasurements));
@@ -77,49 +78,49 @@ class BirdValidation extends AppServices {
     return outlierResults;
   }
 
-  List<ValidationResult> _findQualitativeOutliers(
-      List<AvianMeasurementData> measurements) {
-    final outlierResults = <ValidationResult>[];
-    if (measurements.length < 3) return outlierResults;
+  // List<ValidationResult> _findQualitativeOutliers(
+  //     List<AvianMeasurementData> measurements) {
+  //   final outlierResults = <ValidationResult>[];
+  //   if (measurements.length < 3) return outlierResults;
 
-    final qualitativeFields = _getAvianQualitativeFields();
+  //   final qualitativeFields = _getAvianQualitativeFields();
 
-    for (var fieldName in qualitativeFields.keys) {
-      if (!fieldsToCheck.contains(fieldName)) continue;
+  //   for (var fieldName in qualitativeFields.keys) {
+  //     if (!fieldsToCheck.contains(fieldName)) continue;
 
-      final values = <String>[];
-      for (int i = 0; i < specimens.length; i++) {
-        final value = qualitativeFields[fieldName]!(measurements[i]);
-        if (value != null && value.isNotEmpty) {
-          values.add(value);
-        }
-      }
-      final frequencies = <String, int>{};
-      for (var value in values) {
-        frequencies[value] = (frequencies[value] ?? 0) + 1;
-      }
+  //     final values = <String>[];
+  //     for (int i = 0; i < specimens.length; i++) {
+  //       final value = qualitativeFields[fieldName]!(measurements[i]);
+  //       if (value != null && value.isNotEmpty) {
+  //         values.add(value);
+  //       }
+  //     }
+  //     final frequencies = <String, int>{};
+  //     for (var value in values) {
+  //       frequencies[value] = (frequencies[value] ?? 0) + 1;
+  //     }
 
-      for (int i = 0; i < specimens.length; i++) {
-        final value = qualitativeFields[fieldName]!(measurements[i]);
-        if (value != null && value.isNotEmpty) {
-          final freq = frequencies[value]!;
-          if ((freq / specimens.length < 0.1) ||
-              (freq == 1 && specimens.length > 5)) {
-            outlierResults.add(
-              ValidationResult(
-                specimen: specimens[i],
-                speciesName: speciesName,
-                issues: [
-                  'Outlier: ${MandatoryFieldService.fieldLabels[fieldName]}'
-                ],
-              ),
-            );
-          }
-        }
-      }
-    }
-    return outlierResults;
-  }
+  //     for (int i = 0; i < specimens.length; i++) {
+  //       final value = qualitativeFields[fieldName]!(measurements[i]);
+  //       if (value != null && value.isNotEmpty) {
+  //         final freq = frequencies[value]!;
+  //         if ((freq / specimens.length < 0.1) ||
+  //             (freq == 1 && specimens.length > 5)) {
+  //           outlierResults.add(
+  //             ValidationResult(
+  //               specimen: specimens[i],
+  //               speciesName: speciesName,
+  //               issues: [
+  //                 'Outlier: ${MandatoryFieldService.fieldLabels[fieldName]}'
+  //               ],
+  //             ),
+  //           );
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return outlierResults;
+  // }
 
   List<ValidationResult> _findMissingFields(
       List<AvianMeasurementData> measurements) {
@@ -181,19 +182,13 @@ class BirdValidation extends AppServices {
     return {
       'weight': (m) => m.weight,
       'wingspan': (m) => m.wingspan,
-      'bursaLength': (m) => m.bursaLength,
-      'bursaWidth': (m) => m.bursaWidth,
-      'testisLength': (m) => m.testisLength,
-      'testisWidth': (m) => m.testisWidth,
-      'ovaryLength': (m) => m.ovaryLength,
-      'ovaryWidth': (m) => m.ovaryWidth,
     };
   }
 
-  Map<String, String? Function(AvianMeasurementData)>
-      _getAvianQualitativeFields() {
-    return {
-      'sex': (m) => m.sex?.toString(),
-    };
-  }
+  // Map<String, String? Function(AvianMeasurementData)>
+  //     _getAvianQualitativeFields() {
+  //   return {
+  //     'sex': (m) => m.sex?.toString(),
+  //   };
+  // }
 }

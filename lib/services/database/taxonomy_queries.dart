@@ -72,6 +72,7 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
         .toList();
   }
 
+  // this isn't used
   Future<List<TaxonomyData>> getTaxaWithSpecimenData(String projectUuid) async {
     final query = select(specimen)
       ..where((t) => t.projectUuid.equals(projectUuid))

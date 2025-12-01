@@ -14,6 +14,7 @@ class SpecimenValidationServices extends AppServices {
     required bool detectOutliers,
     required bool findMissingFields,
     required List<String> fieldsToCheck,
+    bool validateEmptySpecies = false,
   }) async {
     final validationResults = <String, ValidationResult>{};
 
@@ -39,26 +40,28 @@ class SpecimenValidationServices extends AppServices {
     }
 
     // 2. Validate specimens with null speciesID (not associated with any taxon yet)
-    final nullSpeciesSpecimens =
-        await SpecimenServices(ref: ref).getSpecimensWithNullSpecies();
+    if (validateEmptySpecies) {
+      final nullSpeciesSpecimens =
+          await SpecimenServices(ref: ref).getSpecimensWithNullSpecies();
 
-    if (nullSpeciesSpecimens.isNotEmpty) {
-      // Group them by taxon group (e.g. 'General Mammals', 'Birds') to apply the correct validator.
-      final Map<String, List<SpecimenData>> byGroup = {};
-      for (var s in nullSpeciesSpecimens) {
-        final group = s.taxonGroup ?? 'Unknown';
-        byGroup.putIfAbsent(group, () => []).add(s);
-      }
+      if (nullSpeciesSpecimens.isNotEmpty) {
+        // Group them by taxon group (e.g. 'General Mammals', 'Birds') to apply the correct validator.
+        final Map<String, List<SpecimenData>> byGroup = {};
+        for (var s in nullSpeciesSpecimens) {
+          final group = s.taxonGroup ?? 'Unknown';
+          byGroup.putIfAbsent(group, () => []).add(s);
+        }
 
-      for (var entry in byGroup.entries) {
-        await _validateGroup(
-          entry.value,
-          "Unknown Species", // Use placeholder name
-          validationResults,
-          detectOutliers,
-          findMissingFields,
-          fieldsToCheck,
-        );
+        for (var entry in byGroup.entries) {
+          await _validateGroup(
+            entry.value,
+            "Unknown Species", // Use placeholder name
+            validationResults,
+            detectOutliers,
+            findMissingFields,
+            fieldsToCheck,
+          );
+        }
       }
     }
 

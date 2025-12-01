@@ -60,6 +60,8 @@ class DataValidationNotifier
         .getAllTaxaWithSpecimenData(projectUuid);
     
     final allSpeciesIds = taxa.map((e) => e.id).toList();
+    // -1 represents "Empty Species" (specimens with null speciesID)
+    allSpeciesIds.add(-1);
 
     return DataValidationState(
       selectedSpecies: allSpeciesIds, // Default: Select All
@@ -125,9 +127,15 @@ class DataValidationNotifier
       // Fetch original order for page number sorting
       _originalOrder = await SpecimenServices(ref: ref).getAllSpecimenUuids();
 
+      // Prepare the list of IDs for the service. 
+      // We separate -1 (Empty Species) from actual database IDs.
+      final selectedIds = List<int>.from(currentState.selectedSpecies);
+      final bool validateEmptySpecies = selectedIds.remove(-1);
+
       final results =
           await SpecimenValidationServices(ref: ref).runValidation(
-        currentState.selectedSpecies,
+        selectedIds,
+        validateEmptySpecies: validateEmptySpecies,
         detectOutliers: currentState.detectOutliers,
         findMissingFields: currentState.findMissingFields,
         fieldsToCheck: currentState.selectedFields.toList(),

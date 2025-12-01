@@ -419,8 +419,6 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<TestisPosition>(
               initialValue: getTestisPosition(widget.ctr.testisPosCtr),
-              validator: (value) =>
-                  value == null ? 'This field is recommended.' : null,
               decoration: const InputDecoration(
                 labelText: 'Position',
                 hintText: 'Select testis position',
@@ -696,8 +694,6 @@ class FemaleGonadForm extends ConsumerWidget {
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<ReproductiveStage>(
               initialValue: _getReproductiveStage(),
-              validator: (value) =>
-                  value == null ? 'This field is recommended.' : null,
               decoration: const InputDecoration(
                 labelText: 'Reproductive stage',
                 hintText: 'Select reproductive stage',
