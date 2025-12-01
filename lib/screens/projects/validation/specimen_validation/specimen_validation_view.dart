@@ -4,7 +4,7 @@ import 'package:nahpu/screens/projects/taxonomy/specimen_list.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/layout.dart'; // Added for CommonScrollbar
+import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -33,7 +33,6 @@ class SpecimenValidationView extends ConsumerStatefulWidget {
 
 class SpecimenValidationViewState
     extends ConsumerState<SpecimenValidationView> {
-  bool _isInitialLoad = true;
   final ScrollController _speciesScrollController = ScrollController();
 
   @override
@@ -44,93 +43,93 @@ class SpecimenValidationViewState
 
   @override
   Widget build(BuildContext context) {
-    final validationState = ref.watch(dataValidationProvider);
-    final notifier = ref.read(dataValidationProvider.notifier);
+    final asyncValidationState = ref.watch(dataValidationProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Specimen Validation'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Card(
-                      child: Column(
-                        children: [
-                          // Options Section
-                          CheckboxListTile(
-                            title: const Text('Detect statistical outliers'),
-                            value: validationState.detectOutliers,
-                            onChanged: (value) =>
-                                notifier.setDetectOutliers(value ?? false),
+      body: asyncValidationState.when(
+        loading: () => const CommonProgressIndicator(),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (validationState) {
+          final notifier = ref.read(dataValidationProvider.notifier);
+          return Column(
+            children: [
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Card(
+                          child: Column(
+                            children: [
+                              CheckboxListTile(
+                                title: const Text('Detect statistical outliers'),
+                                value: validationState.detectOutliers,
+                                onChanged: (value) =>
+                                    notifier.setDetectOutliers(value ?? false),
+                              ),
+                              CheckboxListTile(
+                                title:
+                                    const Text('Find missing mandatory fields'),
+                                value: validationState.findMissingFields,
+                                onChanged: (value) => notifier
+                                    .setFindMissingFields(value ?? false),
+                              ),
+                              const Divider(),
+                              _buildSpeciesSelection(ref, validationState),
+                              const Divider(),
+                              _buildFieldSelection(notifier, validationState),
+                              const Divider(),
+                              _buildSortSelection(notifier, validationState),
+                            ],
                           ),
-                          CheckboxListTile(
-                            title: const Text('Find missing mandatory fields'),
-                            value: validationState.findMissingFields,
-                            onChanged: (value) =>
-                                notifier.setFindMissingFields(value ?? false),
-                          ),
-                          const Divider(),
-                          // Species Selection
-                          _buildSpeciesSelection(ref, validationState),
-                          const Divider(),
-                          // Field Selection
-                          _buildFieldSelection(notifier, validationState),
-                          const Divider(),
-                          // Sort Options
-                          _buildSortSelection(notifier, validationState),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                    if (validationState.results != null)
+                      _buildResultsList(validationState.results!),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 80),
+                    ),
+                  ],
                 ),
-                // Results List
-                if (validationState.results != null)
-                  _buildResultsList(validationState.results!),
-
-                // Add some bottom padding so the last item isn't hidden by the footer
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 80),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          Theme.of(context).colorScheme.shadow.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          // Fixed Action Footer
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.shadow.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ProgressButton(
+                        label: validationState.results == null
+                            ? 'Run Validation'
+                            : 'Re-run',
+                        icon: Icons.analytics_outlined,
+                        isRunning: validationState.isLoading,
+                        onPressed: _isValidToRun(validationState)
+                            ? () => notifier.validate()
+                            : null,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ProgressButton(
-                    label: validationState.results == null
-                        ? 'Run Validation'
-                        : 'Re-run',
-                    icon: Icons.analytics_outlined,
-                    isRunning: validationState.isLoading,
-                    onPressed: _isValidToRun(validationState)
-                        ? () => notifier.validate()
-                        : null,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -198,21 +197,6 @@ class SpecimenValidationViewState
                 child: Text('No species with enough data (min. 3 specimens).'),
               );
             }
-            // Only auto-select on the very first load of this view instance
-            if (_isInitialLoad) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (validationState.selectedSpecies.isEmpty &&
-                    validationState.results == null) {
-                  notifier.setSpeciesSelection(data.map((e) => e.id).toList());
-                }
-                // Ensure we don't run this logic again if the user deselects everything
-                if (mounted) {
-                  setState(() {
-                    _isInitialLoad = false;
-                  });
-                }
-              });
-            }
 
             final isAllSelected =
                 validationState.selectedSpecies.length == data.length;
@@ -276,10 +260,9 @@ class SpecimenValidationViewState
   Widget _buildFieldSelection(
       DataValidationNotifier notifier, DataValidationState state) {
     final groupedFields = MandatoryFieldService.groupedFields;
-    
-    // Calculate valid selected fields (intersection of state and currently valid fields)
     final allValidFields = MandatoryFieldService.allSpecimenFields.toSet();
-    final selectedCount = state.selectedFields.intersection(allValidFields).length;
+    final selectedCount =
+        state.selectedFields.intersection(allValidFields).length;
 
     return ExpansionTile(
       title: const Text('Select Fields'),
@@ -356,13 +339,5 @@ class SpecimenValidationViewState
   IconData _getLeadingIcon(String? taxonGroup) {
     CatalogFmt fmt = matchTaxonGroupToCatFmt(taxonGroup);
     return matchCatFmtToIcon(fmt, false);
-  }
-
-  Future<String> _getPersonnelName(String? uuid, WidgetRef ref) async {
-    // Small helper to keep list tile clean
-    if (uuid == null) return '';
-    // Note: For performance in long lists, consider fetching this data in the validation service
-    // and adding it to ValidationResult, similar to speciesName.
-    return uuid;
   }
 }
