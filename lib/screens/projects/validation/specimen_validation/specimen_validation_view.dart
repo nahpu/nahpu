@@ -65,38 +65,51 @@ class SpecimenValidationViewState
                         child: Card(
                           child: Column(
                             children: [
+                              // Options Section
                               CheckboxListTile(
-                                title: const Text('Detect statistical outliers'),
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                title:
+                                    const Text('Detect statistical outliers'),
                                 value: validationState.detectOutliers,
                                 onChanged: (value) =>
                                     notifier.setDetectOutliers(value ?? false),
                               ),
                               CheckboxListTile(
-                                title:
-                                    const Text('Find missing mandatory fields'),
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                title: const Text(
+                                    'Find missing mandatory fields'),
                                 value: validationState.findMissingFields,
                                 onChanged: (value) => notifier
                                     .setFindMissingFields(value ?? false),
                               ),
                               const Divider(),
+                              // Species Selection
                               _buildSpeciesSelection(ref, validationState),
                               const Divider(),
+                              // Field Selection
                               _buildFieldSelection(notifier, validationState),
                               const Divider(),
+                              // Sort Options
                               _buildSortSelection(notifier, validationState),
                             ],
                           ),
                         ),
                       ),
                     ),
+                    // Results List
                     if (validationState.results != null)
                       _buildResultsList(validationState.results!),
+
+                    // Add some bottom padding so the last item isn't hidden by the footer
                     const SliverToBoxAdapter(
                       child: SizedBox(height: 80),
                     ),
                   ],
                 ),
               ),
+              // Fixed Action Footer
               Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
@@ -205,22 +218,18 @@ class SpecimenValidationViewState
               title: const Text('Select Species'),
               subtitle: Text(
                   '${validationState.selectedSpecies.length} of ${data.length} selected'),
+              leading: Checkbox(
+                value: isAllSelected,
+                onChanged: (_) {
+                  if (isAllSelected) {
+                    notifier.setSpeciesSelection([]);
+                  } else {
+                    notifier
+                        .setSpeciesSelection(data.map((e) => e.id).toList());
+                  }
+                },
+              ),
               children: [
-                ListTile(
-                  title: Text(isAllSelected ? 'Deselect All' : 'Select All'),
-                  trailing: Icon(isAllSelected
-                      ? Icons.check_box
-                      : Icons.check_box_outline_blank),
-                  onTap: () {
-                    if (isAllSelected) {
-                      notifier.setSpeciesSelection([]);
-                    } else {
-                      notifier
-                          .setSpeciesSelection(data.map((e) => e.id).toList());
-                    }
-                  },
-                ),
-                const Divider(),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 300),
                   child: CommonScrollbar(
@@ -231,6 +240,7 @@ class SpecimenValidationViewState
                       itemCount: data.length,
                       itemBuilder: (context, index) {
                         return CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
                           title: Text(getSpeciesName(data[index])),
                           value: validationState.selectedSpecies
                               .contains(data[index].id),
@@ -263,10 +273,16 @@ class SpecimenValidationViewState
     final allValidFields = MandatoryFieldService.allSpecimenFields.toSet();
     final selectedCount =
         state.selectedFields.intersection(allValidFields).length;
+    final isAllSelected = selectedCount == allValidFields.length;
 
     return ExpansionTile(
       title: const Text('Select Fields'),
       subtitle: Text('$selectedCount fields selected'),
+      leading: Checkbox(
+        value: isAllSelected,
+        onChanged: (value) => notifier.toggleFieldGroup(
+            allValidFields.toList(), value ?? false),
+      ),
       children: groupedFields.keys.map((group) {
         final fields = groupedFields[group]!;
         final allSelected =
@@ -282,6 +298,7 @@ class SpecimenValidationViewState
           children: fields.map((field) {
             final label = MandatoryFieldService.fieldLabels[field] ?? field;
             return CheckboxListTile(
+              controlAffinity: ListTileControlAffinity.leading,
               title: Text(label),
               value: state.selectedFields.contains(field),
               onChanged: (_) => notifier.toggleField(field),
