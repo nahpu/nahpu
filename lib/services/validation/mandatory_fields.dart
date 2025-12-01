@@ -1,6 +1,5 @@
 // Centralized definition of mandatory fields for data validation.
 class MandatoryFieldService {
-
   // Maps internal field names to human-readable labels
   static const Map<String, String> fieldLabels = {
     'sex': 'Sex',
@@ -10,6 +9,14 @@ class MandatoryFieldService {
     'hindFootLength': 'Hind Foot Length',
     'earLength': 'Ear Length',
     'weight': 'Weight',
+    'forearm': 'Forearm Length',
+    'testisLength': 'Testis Length',
+    'testisWidth': 'Testis Width',
+    'wingspan': 'Wingspan',
+    'bursaLength': 'Bursa Length',
+    'bursaWidth': 'Bursa Width',
+    'ovaryLength': 'Ovary Length',
+    'ovaryWidth': 'Ovary Width',
     'catalogerID': 'Cataloger',
     'fieldNumber': 'Field Number',
     'speciesID': 'Species',
@@ -31,14 +38,14 @@ class MandatoryFieldService {
     'tailLength',
     'hindFootLength',
     'earLength',
-    'weight'
+    'weight',
   ];
 
   // Bird Specific Fields for outlier detection and null/empty checks
   static const List<String> avianMeasurements = [
-    'sex', 
-    'weight', 
-    'wingspan'
+    'sex',
+    'weight',
+    'wingspan',
   ];
 
   // Shared Specimen Fields for null/empty checks
@@ -61,4 +68,19 @@ class MandatoryFieldService {
     'stateProvince',
     'locality'
   ];
+
+  // Helper to get all relevant specimen fields for UI selection
+  static List<String> get allSpecimenFields => <String>{
+        ...specimenGeneral,
+        ...specimenCapture,
+        ...mammalDropdowns,
+        ...mammalMeasurements,
+        ...avianMeasurements,
+      }.toList(); // Remove duplicates if any
+
+  static Map<String, List<String>> get groupedFields => {
+        'General': [...specimenGeneral, ...specimenCapture],
+        'Mammals': [...mammalDropdowns, ...mammalMeasurements],
+        'Birds': [...avianMeasurements],
+      };
 }

@@ -166,7 +166,7 @@ const String nahpuTempDir = 'NahpuTemp';
 class AppServices {
   const AppServices({required this.ref});
 
-  final WidgetRef ref;
+  final dynamic ref;
 
   Database get dbAccess => ref.read(databaseProvider);
 

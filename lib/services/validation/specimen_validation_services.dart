@@ -1,6 +1,7 @@
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/validation/mammal_validation.dart';
 import 'package:nahpu/services/validation/bird_validation.dart';
 import 'package:nahpu/services/validation/models.dart';
@@ -12,11 +13,16 @@ class SpecimenValidationServices extends AppServices {
     List<int> taxonIds, {
     required bool detectOutliers,
     required bool findMissingFields,
+    required List<String> fieldsToCheck,
   }) async {
     final validationResults = <String, ValidationResult>{};
 
     // 1. Validate selected taxa
     for (final taxonId in taxonIds) {
+      // Optimization: Fetch taxonomy name ONCE per group
+      final taxon = await TaxonomyServices(ref: ref).getTaxonById(taxonId);
+      final speciesName = '${taxon.genus} ${taxon.specificEpithet}';
+
       final specimens =
           await SpecimenServices(ref: ref).getSpecimensByTaxonId(taxonId);
       if (specimens.isEmpty) {
@@ -24,16 +30,18 @@ class SpecimenValidationServices extends AppServices {
       }
       await _validateGroup(
         specimens,
+        speciesName,
         validationResults,
         detectOutliers,
         findMissingFields,
+        fieldsToCheck,
       );
     }
 
     // 2. Validate specimens with null speciesID (not associated with any taxon yet)
     final nullSpeciesSpecimens =
         await SpecimenServices(ref: ref).getSpecimensWithNullSpecies();
-    
+
     if (nullSpeciesSpecimens.isNotEmpty) {
       // Group them by taxon group (e.g. 'General Mammals', 'Birds') to apply the correct validator.
       final Map<String, List<SpecimenData>> byGroup = {};
@@ -45,9 +53,11 @@ class SpecimenValidationServices extends AppServices {
       for (var entry in byGroup.entries) {
         await _validateGroup(
           entry.value,
+          "Unknown Species", // Use placeholder name
           validationResults,
           detectOutliers,
           findMissingFields,
+          fieldsToCheck,
         );
       }
     }
@@ -57,12 +67,14 @@ class SpecimenValidationServices extends AppServices {
 
   Future<void> _validateGroup(
     List<SpecimenData> specimens,
+    String speciesName,
     Map<String, ValidationResult> validationResults,
     bool detectOutliers,
     bool findMissingFields,
+    List<String> fieldsToCheck,
   ) async {
     if (specimens.isEmpty) return;
-    
+
     final taxonGroup = specimens.first.taxonGroup;
 
     if (taxonGroup == 'General Mammals' || taxonGroup == 'Bats') {
@@ -71,6 +83,8 @@ class SpecimenValidationServices extends AppServices {
         specimens: specimens,
         detectOutliers: detectOutliers,
         findMissingFields: findMissingFields,
+        fieldsToCheck: fieldsToCheck,
+        speciesName: speciesName,
       );
       final results = await validator.validate();
       _mergeResults(validationResults, results);
@@ -80,13 +94,12 @@ class SpecimenValidationServices extends AppServices {
         specimens: specimens,
         detectOutliers: detectOutliers,
         findMissingFields: findMissingFields,
+        fieldsToCheck: fieldsToCheck,
+        speciesName: speciesName,
       );
       final results = await validator.validate();
       _mergeResults(validationResults, results);
     }
-    // Note: If taxonGroup is unknown or null, we currently skip specific validation.
-    // You could add a generic validator here that only checks shared fields (cataloger, prep date, etc.)
-    // if desired.
   }
 
   void _mergeResults(Map<String, ValidationResult> source,

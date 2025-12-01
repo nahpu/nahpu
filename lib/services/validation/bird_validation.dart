@@ -5,18 +5,21 @@ import 'package:nahpu/services/validation/mandatory_fields.dart';
 import 'package:nahpu/services/validation/models.dart';
 import 'package:nahpu/services/validation/validation_utils.dart';
 
-
 class BirdValidation extends AppServices {
   const BirdValidation({
     required super.ref,
     required this.specimens,
     required this.detectOutliers,
     required this.findMissingFields,
+    required this.fieldsToCheck,
+    required this.speciesName,
   });
 
   final List<SpecimenData> specimens;
   final bool detectOutliers;
   final bool findMissingFields;
+  final List<String> fieldsToCheck;
+  final String speciesName;
 
   Future<List<ValidationResult>> validate() async {
     final results = <ValidationResult>[];
@@ -44,6 +47,8 @@ class BirdValidation extends AppServices {
     final fields = _getAvianQuantitativeFields();
 
     for (var field in fields.keys) {
+      if (!fieldsToCheck.contains(field)) continue;
+
       final values =
           measurements.map((m) => fields[field]!(m)).whereType<num>().toList();
       if (values.length < 3) continue;
@@ -62,7 +67,8 @@ class BirdValidation extends AppServices {
           outlierResults.add(
             ValidationResult(
               specimen: specimen,
-              issues: ['Outlier: $field'],
+              speciesName: speciesName,
+              issues: ['Outlier: ${MandatoryFieldService.fieldLabels[field]}'],
             ),
           );
         }
@@ -79,6 +85,8 @@ class BirdValidation extends AppServices {
     final qualitativeFields = _getAvianQualitativeFields();
 
     for (var fieldName in qualitativeFields.keys) {
+      if (!fieldsToCheck.contains(fieldName)) continue;
+
       final values = <String>[];
       for (int i = 0; i < specimens.length; i++) {
         final value = qualitativeFields[fieldName]!(measurements[i]);
@@ -100,7 +108,10 @@ class BirdValidation extends AppServices {
             outlierResults.add(
               ValidationResult(
                 specimen: specimens[i],
-                issues: ['Outlier: $fieldName'],
+                speciesName: speciesName,
+                issues: [
+                  'Outlier: ${MandatoryFieldService.fieldLabels[fieldName]}'
+                ],
               ),
             );
           }
@@ -119,26 +130,33 @@ class BirdValidation extends AppServices {
       final issues = <String>[];
 
       // Check fields from SpecimenData
+      List<String> generalFields = [
+        ...MandatoryFieldService.specimenGeneral,
+        ...MandatoryFieldService.specimenCapture
+      ].where((f) => fieldsToCheck.contains(f)).toList();
+
       issues.addAll(ValidationUtils.checkMissingFields(
         specimen.toJson(),
-        [
-          ...MandatoryFieldService.specimenGeneral,
-          ...MandatoryFieldService.specimenCapture
-        ],
+        generalFields,
       ));
 
-      // Note: Avian specific mandatory fields can be defined in MandatoryFieldService
-      // For now, retaining the specific checks using the utility with manual list
+      // Check fields from AvianMeasurementData
+      List<String> measurementFields = [
+        ...MandatoryFieldService.avianMeasurements
+      ].where((f) => fieldsToCheck.contains(f)).toList();
+
       issues.addAll(ValidationUtils.checkMissingFields(
         measurement.toJson(),
-        [
-          ...MandatoryFieldService.avianMeasurements
-        ],
+        measurementFields,
       ));
 
       if (issues.isNotEmpty) {
         missingFieldsResults.add(
-          ValidationResult(specimen: specimen, issues: issues),
+          ValidationResult(
+            specimen: specimen,
+            speciesName: speciesName,
+            issues: issues,
+          ),
         );
       }
     }
@@ -157,31 +175,25 @@ class BirdValidation extends AppServices {
     }
   }
 
+  // Keys must match MandatoryFieldService.fieldLabels
   Map<String, num? Function(AvianMeasurementData)>
       _getAvianQuantitativeFields() {
     return {
-      'Weight': (m) => m.weight,
-      'Wingspan': (m) => m.wingspan,
-      'Bursa Length': (m) => m.bursaLength,
-      'Bursa Width': (m) => m.bursaWidth,
-      'Testis Length': (m) => m.testisLength,
-      'Testis Width': (m) => m.testisWidth,
-      'Ovary Length': (m) => m.ovaryLength,
-      'Ovary Width': (m) => m.ovaryWidth,
+      'weight': (m) => m.weight,
+      'wingspan': (m) => m.wingspan,
+      'bursaLength': (m) => m.bursaLength,
+      'bursaWidth': (m) => m.bursaWidth,
+      'testisLength': (m) => m.testisLength,
+      'testisWidth': (m) => m.testisWidth,
+      'ovaryLength': (m) => m.ovaryLength,
+      'ovaryWidth': (m) => m.ovaryWidth,
     };
   }
 
   Map<String, String? Function(AvianMeasurementData)>
       _getAvianQualitativeFields() {
     return {
-      'Sex': (m) => m.sex?.toString(),
-      'Brood Patch': (m) => m.broodPatch?.toString(),
-      'Fat': (m) => m.fat?.toString(),
-      'Body Molt': (m) => m.bodyMolt?.toString(),
-      'Iris Color': (m) => m.irisColor,
-      'Bill Color': (m) => m.billColor,
-      'Foot Color': (m) => m.footColor,
-      'Tarsus Color': (m) => m.tarsusColor,
+      'sex': (m) => m.sex?.toString(),
     };
   }
 }

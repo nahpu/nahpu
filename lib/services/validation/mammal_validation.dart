@@ -11,11 +11,15 @@ class MammalValidation extends AppServices {
     required this.specimens,
     required this.detectOutliers,
     required this.findMissingFields,
+    required this.fieldsToCheck,
+    required this.speciesName,
   });
 
   final List<SpecimenData> specimens;
   final bool detectOutliers;
   final bool findMissingFields;
+  final List<String> fieldsToCheck;
+  final String speciesName;
 
   Future<List<ValidationResult>> validate() async {
     final results = <ValidationResult>[];
@@ -42,6 +46,9 @@ class MammalValidation extends AppServices {
     final fields = _getMammalQuantitativeFields();
 
     for (var field in fields.keys) {
+      // Only check if user selected this field
+      if (!fieldsToCheck.contains(field)) continue;
+
       final values =
           measurements.map((m) => fields[field]!(m)).whereType<num>().toList();
       if (values.length < 3) continue;
@@ -60,7 +67,8 @@ class MammalValidation extends AppServices {
           outlierResults.add(
             ValidationResult(
               specimen: specimen,
-              issues: ['Outlier: $field'],
+              speciesName: speciesName,
+              issues: ['Outlier: ${MandatoryFieldService.fieldLabels[field]}'],
             ),
           );
         }
@@ -78,26 +86,35 @@ class MammalValidation extends AppServices {
       final issues = <String>[];
 
       // Check fields from SpecimenData
+      // Filter mandatory fields by user selection
+      List<String> generalFields = [
+        ...MandatoryFieldService.specimenGeneral,
+        ...MandatoryFieldService.specimenCapture
+      ].where((f) => fieldsToCheck.contains(f)).toList();
+
       issues.addAll(ValidationUtils.checkMissingFields(
         specimen.toJson(),
-        [
-          ...MandatoryFieldService.specimenGeneral,
-          ...MandatoryFieldService.specimenCapture
-        ],
+        generalFields,
       ));
 
       // Check fields from MammalMeasurementData
+      List<String> measurementFields = [
+        ...MandatoryFieldService.mammalDropdowns,
+        ...MandatoryFieldService.mammalMeasurements
+      ].where((f) => fieldsToCheck.contains(f)).toList();
+
       issues.addAll(ValidationUtils.checkMissingFields(
         measurement.toJson(),
-        [
-          ...MandatoryFieldService.mammalDropdowns,
-          ...MandatoryFieldService.mammalMeasurements
-        ],
+        measurementFields,
       ));
 
       if (issues.isNotEmpty) {
         missingFieldsResults.add(
-          ValidationResult(specimen: specimen, issues: issues),
+          ValidationResult(
+            specimen: specimen,
+            speciesName: speciesName,
+            issues: issues,
+          ),
         );
       }
     }
@@ -116,17 +133,18 @@ class MammalValidation extends AppServices {
     }
   }
 
+  // Map keys must match the keys in MandatoryFieldService.fieldLabels
   Map<String, num? Function(MammalMeasurementData)>
       _getMammalQuantitativeFields() {
     return {
-      'Total Length': (m) => m.totalLength,
-      'Tail Length': (m) => m.tailLength,
-      'Hind Foot': (m) => m.hindFootLength,
-      'Ear': (m) => m.earLength,
-      'Weight': (m) => m.weight,
-      'Forearm': (m) => m.forearm,
-      'Testis Length': (m) => m.testisLength,
-      'Testis Width': (m) => m.testisWidth,
+      'totalLength': (m) => m.totalLength,
+      'tailLength': (m) => m.tailLength,
+      'hindFootLength': (m) => m.hindFootLength,
+      'earLength': (m) => m.earLength,
+      'weight': (m) => m.weight,
+      'forearm': (m) => m.forearm,
+      'testisLength': (m) => m.testisLength,
+      'testisWidth': (m) => m.testisWidth,
     };
   }
 }
