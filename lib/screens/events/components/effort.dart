@@ -61,7 +61,7 @@ class AddEffortButton extends StatelessWidget {
   }
 }
 
-class CollEffortList extends ConsumerWidget {
+class CollEffortList extends ConsumerStatefulWidget {
   const CollEffortList({
     super.key,
     required this.collEventId,
@@ -70,37 +70,143 @@ class CollEffortList extends ConsumerWidget {
   final int collEventId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final collEffort = ref.watch(collEffortByEventProvider(collEventId));
+  CollEffortListState createState() => CollEffortListState();
+}
+
+class CollEffortListState extends ConsumerState<CollEffortList> {
+  bool _isSelecting = false;
+  Set<String> _selectedMethods = {};
+  // Set<String> _usedItems = [];
+
+  @override
+  Widget build(BuildContext context) {
+    final collEffort = ref.watch(collEffortByEventProvider(widget.collEventId));
     ScrollController scrollController = ScrollController();
-    return collEffort.when(
-      data: (data) {
-        return data.isEmpty
-            ? EmptyEffort(collEventId: collEventId)
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: CommonScrollbar(
-                      scrollController: scrollController,
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        controller: scrollController,
-                        itemCount: data.length,
-                        itemBuilder: (context, index) {
-                          return CollEffortTile(collEffort: data[index]);
-                        },
+    return Column(
+      children: [
+        Row(children: [
+          Visibility(
+            visible: _isSelecting,
+            child: TextButton(
+              onPressed: _selectedMethods.isEmpty
+                  ? null
+                  : () {
+                      setState(() {
+                        _selectedMethods.clear();
+                      });
+                    },
+              child: const Text('Clear'),
+            ),
+          ),
+          Visibility(
+              visible: _isSelecting,
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedMethods = collEffort.asData?.value
+                            .map((item) => item.method ?? '')
+                            .toSet() ??
+                        {};
+                  });
+                },
+                child: const Text('Select all'),
+              )),
+          const Spacer(),
+          TextButton(
+            onPressed: () async {
+              setState(() {
+                _isSelecting = !_isSelecting;
+                _selectedMethods.clear();
+              });
+            },
+            child: Text(_isSelecting ? 'Done' : 'Select'),
+          ),
+        ]),
+        collEffort.when(
+          data: (data) {
+            return data.isEmpty
+                ? EmptyEffort(collEventId: widget.collEventId)
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: CommonScrollbar(
+                          scrollController: scrollController,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            controller: scrollController,
+                            itemCount: data.length,
+                            itemBuilder: (context, index) {
+                              final effort = data[index];
+                              return ListTile(
+                                  leading: _isSelecting
+                                      ? Checkbox(
+                                          value: _selectedMethods
+                                              .contains(effort.method ?? ''),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              if (value == true) {
+                                                _selectedMethods
+                                                    .add(effort.method ?? '');
+                                              } else {
+                                                _selectedMethods.remove(
+                                                    effort.method ?? '');
+                                              }
+                                            });
+                                          },
+                                        )
+                                      : null,
+                                  title: CollEffortTitle(
+                                    type: effort.method,
+                                    count: effort.count,
+                                  ),
+                                  subtitle: Subtitle(data: effort),
+                                  trailing: IconButton(
+                                      onPressed: () {},
+                                      icon: const Icon(Icons.edit_outlined)));
+                            },
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  AddEffortButton(collEventId: collEventId),
-                ],
-              );
-      },
-      loading: () => const CircularProgressIndicator(),
-      error: (error, stack) => Text(error.toString()),
+                      const SizedBox(height: 8),
+                      Visibility(
+                        visible: !_isSelecting,
+                        child: AddEffortButton(collEventId: widget.collEventId),
+                      ),
+                      Visibility(
+                          visible: _isSelecting && _selectedMethods.isNotEmpty,
+                          child: Column(
+                            children: [
+                              Text('${_selectedMethods.length} selected'),
+                              const SizedBox(height: 8),
+                              IconButton.outlined(
+                                onPressed: () {
+                                  setState(() {
+                                    _isSelecting = false;
+                                    _selectedMethods.clear();
+                                  });
+                                },
+                                style: IconButton.styleFrom(
+                                  side: BorderSide(
+                                      color:
+                                          Theme.of(context).colorScheme.error),
+                                ),
+                                icon: Icon(
+                                  Icons.delete_outline,
+                                  color: Theme.of(context).colorScheme.error,
+                                  size: 28,
+                                ),
+                              )
+                            ],
+                          )),
+                    ],
+                  );
+          },
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stack) => Text(error.toString()),
+        ),
+      ],
     );
   }
 }
@@ -188,24 +294,36 @@ class CollEffortTile extends StatelessWidget {
   const CollEffortTile({
     super.key,
     required this.collEffort,
+    required this.isSelecting,
   });
 
   final CollEffortData collEffort;
+  final bool isSelecting;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: CollEffortTitle(
-        type: collEffort.method,
-        count: collEffort.count,
-      ),
-      subtitle: Subtitle(data: collEffort),
-      trailing: CollEffortMenu(
-        collEventId: collEffort.eventID!,
-        collEffortId: collEffort.id,
-        collToolCtr: CollEffortCtrModel.fromData(collEffort),
-      ),
-    );
+        leading: isSelecting
+            ? Checkbox(
+                value: false,
+                onChanged: (value) {
+                  // Handle checkbox state change
+                },
+              )
+            : null,
+        title: CollEffortTitle(
+          type: collEffort.method,
+          count: collEffort.count,
+        ),
+        subtitle: Subtitle(data: collEffort),
+        trailing:
+            IconButton(onPressed: () {}, icon: const Icon(Icons.edit_outlined))
+        // trailing: CollEffortMenu(
+        //   collEventId: collEffort.eventID!,
+        //   collEffortId: collEffort.id,
+        //   collToolCtr: CollEffortCtrModel.fromData(collEffort),
+        // ),
+        );
   }
 }
 

@@ -137,6 +137,16 @@ class CollEventServices extends AppServices {
     }
   }
 
+  Future<void> deleteMultipleCollEffort(List<int> collEffortIds) async {
+    try {
+      for (int id in collEffortIds) {
+        await CollEffortQuery(dbAccess).deleteCollEffort(id);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> deleteCollEffort(int id) async {
     try {
       await CollEffortQuery(dbAccess).deleteCollEffort(id);
