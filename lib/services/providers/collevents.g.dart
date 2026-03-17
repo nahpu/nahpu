@@ -22,7 +22,7 @@ final collEventEntryProvider = AutoDisposeAsyncNotifierProvider<CollEventEntry,
 );
 
 typedef _$CollEventEntry = AutoDisposeAsyncNotifier<List<CollEventData>>;
-String _$collEventMethodHash() => r'1eac66d117257c626fcf8539e420cb28a467b6f3';
+String _$collEventMethodHash() => r'fde4149d6b0348c5755330da18eb3ef469edde5a';
 
 /// See also [CollEventMethod].
 @ProviderFor(CollEventMethod)
@@ -38,7 +38,7 @@ final collEventMethodProvider =
 );
 
 typedef _$CollEventMethod = AutoDisposeAsyncNotifier<List<String>>;
-String _$collPersonnelRoleHash() => r'28a637ec2aa9214cbf4196535ee302eacf761f29';
+String _$collPersonnelRoleHash() => r'1ba7e7cca3c1328cc1e55c3a8f87f9ebdb73647c';
 
 /// See also [CollPersonnelRole].
 @ProviderFor(CollPersonnelRole)

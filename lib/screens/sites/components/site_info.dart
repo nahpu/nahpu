@@ -6,22 +6,11 @@ import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/site_services.dart';
-
-const List<String> siteTypeList = [
-  'City',
-  'Town',
-  'Hotel',
-  'Village',
-  'Camp',
-  'Trail',
-  'Trapline',
-  'Netline',
-  'Cave',
-  'Other',
-];
+import 'package:nahpu/services/providers/sites.dart';
 
 class SiteInfo extends ConsumerWidget {
   const SiteInfo({
@@ -96,30 +85,42 @@ class SiteInfo extends ConsumerWidget {
               );
             },
           ),
-          DropdownButtonFormField<String?>(
-            initialValue: siteFormCtr.siteTypeCtr,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Site Type',
-              hintText: 'Choose a site type',
-            ),
-            items: siteTypeList
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: CommonDropdownText(text: e),
-                  ),
-                )
-                .toList(),
-            onChanged: (String? value) {
-              if (value != null) {
-                SiteServices(ref: ref).updateSite(
-                  id,
-                  SiteCompanion(siteType: db.Value(value)),
-                );
-              }
-            },
-          ),
+          ref.watch(userDefinedTypeProvider(siteTypePrefKey)).when(
+                data: (data) {
+                  if (siteFormCtr.siteTypeCtr != null &&
+                      !data.contains(siteFormCtr.siteTypeCtr)) {
+                    data.add(siteFormCtr.siteTypeCtr!);
+                  }
+
+                  final items = data
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e,
+                          child: CommonDropdownText(text: e),
+                        ),
+                      )
+                      .toList();
+
+                  return DropdownButtonFormField<String?>(
+                      initialValue: siteFormCtr.siteTypeCtr,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Site Type',
+                        hintText: 'Choose a site type',
+                      ),
+                      items: items,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          SiteServices(ref: ref).updateSite(
+                            id,
+                            SiteCompanion(siteType: db.Value(value)),
+                          );
+                        }
+                      });
+                },
+                loading: () => const CommonProgressIndicator(),
+                error: (e, __) => Text(e.toString()),
+              )
         ],
       ),
     );

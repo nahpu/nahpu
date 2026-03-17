@@ -11,6 +11,7 @@ import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:path/path.dart';
 
@@ -129,6 +130,46 @@ class SiteServices extends AppServices {
   void invalidateSite() {
     ref.invalidate(siteEntryProvider);
   }
+
+  Future<List<String>> getDistinctTypes(String prefKey) async {
+    switch (prefKey) {
+      case siteTypePrefKey:
+        return await SiteQuery(dbAccess).getDistinctSiteTypes();
+      case habitatTypePrefKey:
+        return await SiteQuery(dbAccess).getDistinctHabitatTypes();
+      default:
+        return [];
+    }
+  }
+
+  Future<void> getAllTypes(String prefKey) async {
+    List<String> data = await getDistinctTypes(prefKey);
+    final notifier = ref.read(userDefinedTypeProvider(prefKey).notifier);
+    List<String> siteTypes = data.isEmpty ? defaultSiteTypes : data;
+    notifier.replaceAll(siteTypes);
+    _invalidateTypes(prefKey);
+  }
+
+  Future<void> addType(String prefKey, String siteType) async {
+    await ref
+        .read(userDefinedTypeProvider(prefKey).notifier)
+        .add(prefKey, siteType);
+    _invalidateTypes(prefKey);
+  }
+
+  Future<void> removeType(String prefKey, String type) async {
+    await ref.read(userDefinedTypeProvider(prefKey).notifier).remove(type);
+    _invalidateTypes(prefKey);
+  }
+
+  Future<void> removeAllTypes(String prefKey) async {
+    await ref.read(userDefinedTypeProvider(prefKey).notifier).clear();
+    _invalidateTypes(prefKey);
+  }
+
+  void _invalidateTypes(String prefKey) {
+    ref.invalidate(userDefinedTypeProvider(prefKey));
+  }
 }
 
 class SiteSearchServices {
@@ -231,36 +272,5 @@ class GeoLocationServices {
     ctr.elevationCtr.text = position.altitude.toInt().toString();
     ctr.uncertaintyCtr.text = position.accuracy.toInt().toString();
     return ctr;
-  }
-}
-
-class HabitatServices extends AppServices {
-  const HabitatServices({required super.ref});
-
-  Future<void> getAllHabitats() async {
-    List<String> data = await SiteQuery(dbAccess).getDistinctHabitatTypes();
-    final notifier = ref.read(habitatTypeProvider.notifier);
-    List<String> habitats = data.isEmpty ? defaultHabitatTypes : data;
-    notifier.replaceAll(habitats);
-    _invalidateHabitats();
-  }
-
-  Future<void> addHabitat(String habitat) async {
-    await ref.read(habitatTypeProvider.notifier).add(habitat);
-    _invalidateHabitats();
-  }
-
-  Future<void> removeHabitat(String habitat) async {
-    await ref.read(habitatTypeProvider.notifier).remove(habitat);
-    _invalidateHabitats();
-  }
-
-  Future<void> removeAllHabitats() async {
-    await ref.read(habitatTypeProvider.notifier).clear();
-    _invalidateHabitats();
-  }
-
-  void _invalidateHabitats() {
-    ref.invalidate(habitatTypeProvider);
   }
 }

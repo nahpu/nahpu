@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kdl/kdl.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -23,11 +24,14 @@ List<({String key, PrefType type, dynamic def})> prefs = [
   (key: treatmentPrefKey, type: PrefType.strList, def: defaultTreatment),
   (key: collMethodPrefKey, type: PrefType.strList, def: defaultCollMethods),
   (key: collRolePrefKey, type: PrefType.strList, def: defaultCollRoles),
+  (key: siteTypePrefKey, type: PrefType.strList, def: defaultSiteTypes),
   (key: habitatTypePrefKey, type: PrefType.strList, def: defaultHabitatTypes),
   (key: specimenTypeFmtPrefKey, type: PrefType.string, def: 'anyCase'),
   (key: treatmentFmtPrefKey, type: PrefType.string, def: 'anyCase'),
   (key: collMethodFmtPrefKey, type: PrefType.string, def: 'anyCase'),
   (key: collRoleFmtPrefKey, type: PrefType.string, def: 'anyCase'),
+  (key: siteTypeFmtPrefKey, type: PrefType.string, def: 'anyCase'),
+  (key: habitatTypeFmtPrefKey, type: PrefType.string, def: 'anyCase'),
   (key: collectorFieldKey, type: PrefType.bool, def: false),
   (key: batFieldsKey, type: PrefType.bool, def: false),
 ];

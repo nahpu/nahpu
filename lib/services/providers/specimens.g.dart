@@ -343,7 +343,7 @@ final specimenTypesProvider =
 );
 
 typedef _$SpecimenTypes = AutoDisposeAsyncNotifier<List<String>>;
-String _$treatmentOptionsHash() => r'b907834aa65670c7e556ca6ac7d1f225e882bb7e';
+String _$treatmentOptionsHash() => r'09e1d4c991cae53564a35a98924b60106c2d8538';
 
 /// See also [TreatmentOptions].
 @ProviderFor(TreatmentOptions)

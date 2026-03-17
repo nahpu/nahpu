@@ -5,6 +5,7 @@ import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/utility_services.dart';
 
 class SiteSelection extends StatefulWidget {
   const SiteSelection({super.key});
@@ -25,18 +26,27 @@ class _SiteSelectionState extends State<SiteSelection> {
           bool isMobile = constraints.maxWidth < 600;
           return CommonSettingList(
             sections: [
-              HabitatFormats(
+              SiteFormats(
                 isMobile: isMobile,
               ),
-              HabitatTypeSettings(),
+              SiteTypeSettings(
+                typePrefKey: siteTypePrefKey,
+                fmtPrefKey: siteTypeFmtPrefKey,
+                typeName: 'site',
+              ),
+              SiteTypeSettings(
+                typePrefKey: habitatTypePrefKey,
+                fmtPrefKey: habitatTypeFmtPrefKey,
+                typeName: 'habitat',
+              ),
             ],
           );
         })));
   }
 }
 
-class HabitatFormats extends ConsumerWidget {
-  const HabitatFormats({super.key, required this.isMobile});
+class SiteFormats extends ConsumerWidget {
+  const SiteFormats({super.key, required this.isMobile});
 
   final bool isMobile;
 
@@ -50,6 +60,10 @@ class HabitatFormats extends ConsumerWidget {
             children: [
               TextCaseFmtDropDown(
                   ref: ref,
+                  label: 'Site types',
+                  textCasePrefString: siteTypeFmtPrefKey),
+              TextCaseFmtDropDown(
+                  ref: ref,
                   label: 'Habitat types',
                   textCasePrefString: habitatTypeFmtPrefKey),
             ],
@@ -58,25 +72,33 @@ class HabitatFormats extends ConsumerWidget {
   }
 }
 
-class HabitatTypeSettings extends ConsumerWidget {
-  const HabitatTypeSettings({super.key});
+class SiteTypeSettings extends ConsumerWidget {
+  const SiteTypeSettings(
+      {super.key,
+      required this.typePrefKey,
+      required this.fmtPrefKey,
+      required this.typeName});
+
+  final String typePrefKey;
+  final String fmtPrefKey;
+  final String typeName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     TextEditingController controller = TextEditingController();
     return SettingChips(
-      title: 'Habitat types',
+      title: '${typeName.toTitleCase()} types',
       controller: controller,
       ref: ref,
-      textCasePrefString: habitatTypeFmtPrefKey,
-      chipList: ref.watch(habitatTypeProvider).when(
+      textCasePrefString: fmtPrefKey,
+      chipList: ref.watch(userDefinedTypeProvider(typePrefKey)).when(
             data: (data) {
               return data.map((e) {
                 return CommonSettingChip(
                   text: e,
                   primaryColor: Theme.of(context).colorScheme.tertiary,
                   onDeleted: () {
-                    HabitatServices(ref: ref).removeHabitat(e);
+                    SiteServices(ref: ref).removeType(typePrefKey, e);
                   },
                 );
               }).toList();
@@ -84,22 +106,24 @@ class HabitatTypeSettings extends ConsumerWidget {
             loading: () => [const CommonProgressIndicator()],
             error: (e, _) => [Text('Error: $e')],
           ),
-      labelText: 'Add habitat type',
-      hintText: 'Enter habitat type',
+      labelText: 'Add $typeName type',
+      hintText: 'Enter $typeName type',
       onPressed: () {
-        HabitatServices(ref: ref).addHabitat(controller.text.trim());
+        SiteServices(ref: ref).addType(typePrefKey, controller.text.trim());
         controller.clear();
       },
-      resetLabel: 'Match database habitat types',
+      resetLabel: 'Match database $typeName types',
       onReset: () {
         showDialog(
             context: context,
             builder: (BuildContext context) {
               return CommonAlertDialog(
-                titleText: 'Match database habitat types?',
+                titleText: 'Match database $typeName types?',
                 descText: 'Matching database types will'
-                    ' delete all unused habitat types',
-                confirmFunction: HabitatServices(ref: ref).getAllHabitats,
+                    ' delete all unused $typeName types',
+                confirmFunction: () {
+                  SiteServices(ref: ref).getAllTypes(typePrefKey);
+                },
               );
             });
       },

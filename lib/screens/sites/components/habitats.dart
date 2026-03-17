@@ -30,7 +30,7 @@ class Habitat extends ConsumerWidget {
         padding: const EdgeInsets.all(5),
         child: Column(
           children: [
-            ref.watch(habitatTypeProvider).when(
+            ref.watch(userDefinedTypeProvider(habitatTypePrefKey)).when(
                   data: (data) {
                     final items = data
                         .map(
@@ -42,9 +42,10 @@ class Habitat extends ConsumerWidget {
                         .toList();
 
                     final current = siteFormCtr.habitatTypeCtr.text;
-                    final initialValue = (current.isNotEmpty && data.contains(current))
-                        ? current
-                        : null;
+                    final initialValue =
+                        (current.isNotEmpty && data.contains(current))
+                            ? current
+                            : null;
 
                     return DropdownButtonFormField<String?>(
                       initialValue: initialValue,

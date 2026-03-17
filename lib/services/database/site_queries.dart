@@ -64,8 +64,18 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
       ..addColumns([site.habitatType])
       ..where(site.habitatType.isNotNull())
       ..groupBy([site.habitatType]);
-    
+
     final result = await query.get();
     return result.map((row) => row.read(site.habitatType)!).toList();
+  }
+
+  Future<List<String>> getDistinctSiteTypes() async {
+    final query = selectOnly(site)
+      ..addColumns([site.siteType])
+      ..where(site.siteType.isNotNull())
+      ..groupBy([site.siteType]);
+
+    final result = await query.get();
+    return result.map((row) => row.read(site.siteType)!).toList();
   }
 }

@@ -22,7 +22,7 @@ final settingProvider = Provider<SharedPreferences>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SettingRef = ProviderRef<SharedPreferences>;
-String _$themeSettingHash() => r'65dc8dedd68a34209f4f3d469ca61b3f9bb06e91';
+String _$themeSettingHash() => r'6c0fd6288d1348a4a74fd96f16a8d7e40821e875';
 
 /// See also [ThemeSetting].
 @ProviderFor(ThemeSetting)

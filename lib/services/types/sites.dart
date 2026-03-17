@@ -1,5 +1,26 @@
 import 'package:flutter/foundation.dart';
 
+const List<String> defaultSiteTypes = [
+  'City',
+  'Town',
+  'Hotel',
+  'Village',
+  'Camp',
+  'Trail',
+  'Trapline',
+  'Netline',
+  'Cave',
+  'Other',
+];
+
+const List<String> defaultHabitatTypes = [
+  'Urban',
+  'Riverbank',
+  'Desert',
+  'Grassland',
+  'Montane Forest'
+];
+
 class CoordinateIcon {
   const CoordinateIcon({required this.coordinateName});
 

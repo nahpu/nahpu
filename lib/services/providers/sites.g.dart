@@ -188,20 +188,150 @@ final siteEntryProvider =
 );
 
 typedef _$SiteEntry = AutoDisposeAsyncNotifier<List<SiteData>>;
-String _$habitatTypeHash() => r'7b113e56bc166d2e66c5482eca4a23385ad62dfc';
+String _$userDefinedTypeHash() => r'8b3fc3e82ce0f93970695c5532b4da397f2ed486';
 
-/// See also [HabitatType].
-@ProviderFor(HabitatType)
-final habitatTypeProvider =
-    AutoDisposeAsyncNotifierProvider<HabitatType, List<String>>.internal(
-  HabitatType.new,
-  name: r'habitatTypeProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$habitatTypeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+abstract class _$UserDefinedType
+    extends BuildlessAutoDisposeAsyncNotifier<List<String>> {
+  late final String prefKey;
 
-typedef _$HabitatType = AutoDisposeAsyncNotifier<List<String>>;
+  FutureOr<List<String>> build(
+    String prefKey,
+  );
+}
+
+/// See also [UserDefinedType].
+@ProviderFor(UserDefinedType)
+const userDefinedTypeProvider = UserDefinedTypeFamily();
+
+/// See also [UserDefinedType].
+class UserDefinedTypeFamily extends Family<AsyncValue<List<String>>> {
+  /// See also [UserDefinedType].
+  const UserDefinedTypeFamily();
+
+  /// See also [UserDefinedType].
+  UserDefinedTypeProvider call(
+    String prefKey,
+  ) {
+    return UserDefinedTypeProvider(
+      prefKey,
+    );
+  }
+
+  @override
+  UserDefinedTypeProvider getProviderOverride(
+    covariant UserDefinedTypeProvider provider,
+  ) {
+    return call(
+      provider.prefKey,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'userDefinedTypeProvider';
+}
+
+/// See also [UserDefinedType].
+class UserDefinedTypeProvider extends AutoDisposeAsyncNotifierProviderImpl<
+    UserDefinedType, List<String>> {
+  /// See also [UserDefinedType].
+  UserDefinedTypeProvider(
+    String prefKey,
+  ) : this._internal(
+          () => UserDefinedType()..prefKey = prefKey,
+          from: userDefinedTypeProvider,
+          name: r'userDefinedTypeProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$userDefinedTypeHash,
+          dependencies: UserDefinedTypeFamily._dependencies,
+          allTransitiveDependencies:
+              UserDefinedTypeFamily._allTransitiveDependencies,
+          prefKey: prefKey,
+        );
+
+  UserDefinedTypeProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.prefKey,
+  }) : super.internal();
+
+  final String prefKey;
+
+  @override
+  FutureOr<List<String>> runNotifierBuild(
+    covariant UserDefinedType notifier,
+  ) {
+    return notifier.build(
+      prefKey,
+    );
+  }
+
+  @override
+  Override overrideWith(UserDefinedType Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: UserDefinedTypeProvider._internal(
+        () => create()..prefKey = prefKey,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        prefKey: prefKey,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeAsyncNotifierProviderElement<UserDefinedType, List<String>>
+      createElement() {
+    return _UserDefinedTypeProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is UserDefinedTypeProvider && other.prefKey == prefKey;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, prefKey.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin UserDefinedTypeRef on AutoDisposeAsyncNotifierProviderRef<List<String>> {
+  /// The parameter `prefKey` of this provider.
+  String get prefKey;
+}
+
+class _UserDefinedTypeProviderElement
+    extends AutoDisposeAsyncNotifierProviderElement<UserDefinedType,
+        List<String>> with UserDefinedTypeRef {
+  _UserDefinedTypeProviderElement(super.provider);
+
+  @override
+  String get prefKey => (origin as UserDefinedTypeProvider).prefKey;
+}
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
