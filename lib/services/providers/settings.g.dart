@@ -37,8 +37,7 @@ final themeSettingProvider =
 );
 
 typedef _$ThemeSetting = AsyncNotifier<ThemeMode>;
-String _$textCaseFmtNotifierHash() =>
-    r'81bb739ee4cbc4ddbbf686b24778fbe0ee24562e';
+String _$userDefinedFieldHash() => r'a2abef79db47f21b2ae7b1ae32595d56e45ebb8a';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -60,6 +59,153 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+abstract class _$UserDefinedField
+    extends BuildlessAutoDisposeAsyncNotifier<List<String>> {
+  late final String prefKey;
+
+  FutureOr<List<String>> build(
+    String prefKey,
+  );
+}
+
+/// See also [UserDefinedField].
+@ProviderFor(UserDefinedField)
+const userDefinedFieldProvider = UserDefinedFieldFamily();
+
+/// See also [UserDefinedField].
+class UserDefinedFieldFamily extends Family<AsyncValue<List<String>>> {
+  /// See also [UserDefinedField].
+  const UserDefinedFieldFamily();
+
+  /// See also [UserDefinedField].
+  UserDefinedFieldProvider call(
+    String prefKey,
+  ) {
+    return UserDefinedFieldProvider(
+      prefKey,
+    );
+  }
+
+  @override
+  UserDefinedFieldProvider getProviderOverride(
+    covariant UserDefinedFieldProvider provider,
+  ) {
+    return call(
+      provider.prefKey,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'userDefinedFieldProvider';
+}
+
+/// See also [UserDefinedField].
+class UserDefinedFieldProvider extends AutoDisposeAsyncNotifierProviderImpl<
+    UserDefinedField, List<String>> {
+  /// See also [UserDefinedField].
+  UserDefinedFieldProvider(
+    String prefKey,
+  ) : this._internal(
+          () => UserDefinedField()..prefKey = prefKey,
+          from: userDefinedFieldProvider,
+          name: r'userDefinedFieldProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$userDefinedFieldHash,
+          dependencies: UserDefinedFieldFamily._dependencies,
+          allTransitiveDependencies:
+              UserDefinedFieldFamily._allTransitiveDependencies,
+          prefKey: prefKey,
+        );
+
+  UserDefinedFieldProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.prefKey,
+  }) : super.internal();
+
+  final String prefKey;
+
+  @override
+  FutureOr<List<String>> runNotifierBuild(
+    covariant UserDefinedField notifier,
+  ) {
+    return notifier.build(
+      prefKey,
+    );
+  }
+
+  @override
+  Override overrideWith(UserDefinedField Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: UserDefinedFieldProvider._internal(
+        () => create()..prefKey = prefKey,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        prefKey: prefKey,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeAsyncNotifierProviderElement<UserDefinedField, List<String>>
+      createElement() {
+    return _UserDefinedFieldProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is UserDefinedFieldProvider && other.prefKey == prefKey;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, prefKey.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin UserDefinedFieldRef on AutoDisposeAsyncNotifierProviderRef<List<String>> {
+  /// The parameter `prefKey` of this provider.
+  String get prefKey;
+}
+
+class _UserDefinedFieldProviderElement
+    extends AutoDisposeAsyncNotifierProviderElement<UserDefinedField,
+        List<String>> with UserDefinedFieldRef {
+  _UserDefinedFieldProviderElement(super.provider);
+
+  @override
+  String get prefKey => (origin as UserDefinedFieldProvider).prefKey;
+}
+
+String _$textCaseFmtNotifierHash() =>
+    r'81bb739ee4cbc4ddbbf686b24778fbe0ee24562e';
 
 abstract class _$TextCaseFmtNotifier
     extends BuildlessAutoDisposeAsyncNotifier<TextCaseFmt> {

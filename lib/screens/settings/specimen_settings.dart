@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/specimen_services.dart';
 
@@ -70,8 +70,16 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
               SpecimenFormats(
                 isMobile: isMobile,
               ),
-              const SpecimenTypeSettings(),
-              const TreatmentOptionSettings(),
+              UserDefinedSettingField(
+                typePrefKey: specimenTypePrefKey,
+                fmtPrefKey: specimenTypeFmtPrefKey,
+                typeName: 'Specimen Type',
+              ),
+              UserDefinedSettingField(
+                typePrefKey: treatmentPrefKey,
+                fmtPrefKey: treatmentFmtPrefKey,
+                typeName: 'Treatment',
+              ),
             ],
           );
         },
@@ -104,122 +112,6 @@ class SpecimenFormats extends ConsumerWidget {
             ],
           ))
     ]);
-  }
-}
-
-class SpecimenTypeSettings extends ConsumerWidget {
-  const SpecimenTypeSettings({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    TextEditingController partController = TextEditingController();
-    return SettingChips(
-      title: 'Specimen part types',
-      controller: partController,
-      ref: ref,
-      textCasePrefString: specimenTypeFmtPrefKey,
-      chipList: ref.watch(specimenTypesProvider).when(
-            data: (data) {
-              return data
-                  .map((e) => CommonSettingChip(
-                        text: e,
-                        primaryColor: Theme.of(context).colorScheme.primary,
-                        onDeleted: () {
-                          SpecimenPartServices(ref: ref).removeType(e);
-                        },
-                      ))
-                  .toList();
-            },
-            loading: () => const [CommonProgressIndicator()],
-            error: (error, stackTrace) {
-              return const [Text('Error loading data')];
-            },
-          ),
-      labelText: 'Add Type',
-      hintText: 'Enter part type',
-      onPressed: () {
-        if (partController.text.isNotEmpty) {
-          SpecimenPartServices(ref: ref).addType(
-            partController.text.trim(),
-          );
-          partController.clear();
-        }
-      },
-      resetLabel: 'Match database types',
-      onReset: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return CommonAlertDialog(
-              titleText: 'Match database types?',
-              descText: 'Matching database types will'
-                  ' delete all unused specimen part types',
-              confirmFunction: SpecimenPartServices(ref: ref).getSpecimenTypes,
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class TreatmentOptionSettings extends ConsumerWidget {
-  const TreatmentOptionSettings({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    TextEditingController treatmentController = TextEditingController();
-    return SettingChips(
-      title: 'Treatments',
-      controller: treatmentController,
-      ref: ref,
-      textCasePrefString: treatmentFmtPrefKey,
-      chipList: ref.watch(treatmentOptionsProvider).when(
-            data: (data) {
-              return data
-                  .map((e) => CommonSettingChip(
-                        text: e,
-                        primaryColor: Theme.of(context).colorScheme.secondary,
-                        onDeleted: () {
-                          SpecimenPartServices(ref: ref).removeTreatment(e);
-                        },
-                      ))
-                  .toList();
-            },
-            loading: () => const [CommonProgressIndicator()],
-            error: (error, stackTrace) {
-              return const [Text('Error loading data')];
-            },
-          ),
-      labelText: 'Add Treatment',
-      hintText: 'Enter treatment',
-      onPressed: () {
-        if (treatmentController.text.isNotEmpty) {
-          SpecimenPartServices(ref: ref).addTreatment(
-            treatmentController.text.trim(),
-          );
-          treatmentController.clear();
-        }
-      },
-      resetLabel: 'Match database treatments',
-      onReset: () {
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return CommonAlertDialog(
-                titleText: 'Match database treatments?',
-                descText: 'Matching database types will'
-                    ' delete all unused treatments',
-                confirmFunction:
-                    SpecimenPartServices(ref: ref).getTreatmentOptions,
-              );
-            });
-      },
-    );
   }
 }
 

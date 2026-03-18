@@ -13,6 +13,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
@@ -708,7 +709,7 @@ class SpecimenTreatmentFields extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(treatmentOptionsProvider).when(
+    return ref.watch(userDefinedFieldProvider(treatmentPrefKey)).when(
           data: (data) {
             return Column(
               children: [
@@ -759,7 +760,7 @@ class SpecimenTypeField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(specimenTypesProvider).when(
+    return ref.watch(userDefinedFieldProvider(specimenTypePrefKey)).when(
           data: (data) {
             return DropdownButtonFormField(
               initialValue: _getValue(),

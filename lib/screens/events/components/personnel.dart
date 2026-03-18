@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/personnel.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -314,7 +315,7 @@ class PersonnelRole extends ConsumerStatefulWidget {
 class PersonnelRoleState extends ConsumerState<PersonnelRole> {
   @override
   Widget build(BuildContext context) {
-    return ref.watch(collPersonnelRoleProvider).when(
+    return ref.watch(UserDefinedFieldProvider(collRolePrefKey)).when(
           data: (data) {
             return DropdownButtonFormField<String>(
               isExpanded: true,

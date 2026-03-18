@@ -4,13 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/providers/personnel.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/providers/sites.dart';
 
 class SiteInfo extends ConsumerWidget {
   const SiteInfo({
@@ -85,7 +85,7 @@ class SiteInfo extends ConsumerWidget {
               );
             },
           ),
-          ref.watch(userDefinedTypeProvider(siteTypePrefKey)).when(
+          ref.watch(userDefinedFieldProvider(siteTypePrefKey)).when(
                 data: (data) {
                   if (siteFormCtr.siteTypeCtr != null &&
                       !data.contains(siteFormCtr.siteTypeCtr)) {

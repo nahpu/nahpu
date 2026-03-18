@@ -7,7 +7,7 @@ import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/settings.dart';
 
 class Habitat extends ConsumerWidget {
   const Habitat(
@@ -30,7 +30,7 @@ class Habitat extends ConsumerWidget {
         padding: const EdgeInsets.all(5),
         child: Column(
           children: [
-            ref.watch(userDefinedTypeProvider(habitatTypePrefKey)).when(
+            ref.watch(userDefinedFieldProvider(habitatTypePrefKey)).when(
                   data: (data) {
                     final items = data
                         .map(

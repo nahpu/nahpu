@@ -6,6 +6,7 @@ import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
@@ -481,7 +482,7 @@ class CollectionMethods extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(collEventMethodProvider).when(
+    return ref.watch(UserDefinedFieldProvider(collMethodPrefKey)).when(
           data: (data) {
             if (kDebugMode) {
               print('Collection Methods: $data');

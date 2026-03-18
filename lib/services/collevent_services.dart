@@ -5,7 +5,6 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/types/collecting.dart';
 
 class CollEventServices extends AppServices {
   const CollEventServices({required super.ref});
@@ -291,68 +290,10 @@ class CollEventSearchServices {
 class CollEvenPersonnelServices extends AppServices {
   const CollEvenPersonnelServices({required super.ref});
 
-  Future<void> getAllRoles() async {
-    List<String> data = await CollPersonnelQuery(dbAccess).getDistinctRoles();
-    final notifier = ref.read(collPersonnelRoleProvider.notifier);
-    List<String> roles = data.isEmpty ? defaultCollRoles : data;
-    notifier.replaceAll(roles);
-    _invalidateCollPersonnel();
-  }
-
   Future<List<int>> searchPersonnel(
       List<String> personnelUuids, String query) async {
     List<CollPersonnelData> data = await CollPersonnelQuery(dbAccess)
         .searchCollectingPersonnel(personnelUuids, query);
     return data.map((e) => e.id).toList();
-  }
-
-  Future<void> addRole(String role) async {
-    await ref.read(collPersonnelRoleProvider.notifier).add(role);
-    _invalidateCollPersonnel();
-  }
-
-  Future<void> removeRole(String role) async {
-    await ref.read(collPersonnelRoleProvider.notifier).remove(role);
-    _invalidateCollPersonnel();
-  }
-
-  Future<void> removeAllRoles() async {
-    await ref.read(collPersonnelRoleProvider.notifier).clear();
-    _invalidateCollPersonnel();
-  }
-
-  void _invalidateCollPersonnel() {
-    ref.invalidate(collPersonnelProvider);
-  }
-}
-
-class CollMethodServices extends AppServices {
-  const CollMethodServices({required super.ref});
-
-  Future<void> getAllMethods() async {
-    List<String> data = await CollEffortQuery(dbAccess).getDistinctMethods();
-    final notifier = ref.read(collEventMethodProvider.notifier);
-    List<String> methods = data.isEmpty ? defaultCollMethods : data;
-    notifier.replaceAll(methods);
-    _invalidateCollEffort();
-  }
-
-  Future<void> addMethod(String method) async {
-    await ref.read(collEventMethodProvider.notifier).add(method);
-    _invalidateCollEffort();
-  }
-
-  Future<void> removeMethod(String method) async {
-    await ref.read(collEventMethodProvider.notifier).remove(method);
-    _invalidateCollEffort();
-  }
-
-  Future<void> removeAllMethods() async {
-    await ref.read(collEventMethodProvider.notifier).clear();
-    _invalidateCollEffort();
-  }
-
-  void _invalidateCollEffort() {
-    ref.invalidate(collEventMethodProvider);
   }
 }
