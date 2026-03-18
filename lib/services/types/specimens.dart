@@ -110,6 +110,8 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
       return CatalogFmt.mammals;
     case 'Herpetofauna':
       return CatalogFmt.herpetofauna;
+    case 'Fossils':
+      return CatalogFmt.fossils;
     default:
       return CatalogFmt.mammals;
   }
