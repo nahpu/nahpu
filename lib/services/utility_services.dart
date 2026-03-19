@@ -31,7 +31,8 @@ class UtilityServices extends AppServices {
   Future<void> getAllOptions(String prefKey) async {
     List<String> data = await getDistinctOptions(prefKey);
     final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
-    List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
+    List<String> options =
+        data.isEmpty ? await getDefaultOptionsList(prefKey) : data;
     notifier.replaceAll(options);
     _invalidateOptions(prefKey);
   }

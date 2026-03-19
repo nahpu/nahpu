@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -86,12 +87,17 @@ class ThemeSetting extends _$ThemeSetting {
   }
 }
 
-List<String> getDefaultOptionsList(String prefKey) {
+Future<List<String>> getDefaultOptionsList(String prefKey) async {
   switch (prefKey) {
     case habitatTypePrefKey:
       return defaultHabitatTypes;
     case siteTypePrefKey:
-      return defaultSiteTypes;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final CatalogFmt catalogFmt =
+          matchTaxonGroupToCatFmt(prefs.getString(catalogFmtPrefKey));
+      return (catalogFmt == CatalogFmt.fossils)
+          ? defaultFossilSiteTypes
+          : defaultSiteTypes;
     case collMethodPrefKey:
       return defaultCollMethods;
     case collRolePrefKey:
@@ -111,7 +117,8 @@ class UserDefinedField extends _$UserDefinedField {
     final prefs = ref.watch(settingProvider);
     final optionList = prefs.getStringList(prefKey);
 
-    List<String> currentOptions = optionList ?? getDefaultOptionsList(prefKey);
+    List<String> currentOptions =
+        optionList ?? await getDefaultOptionsList(prefKey);
 
     if (optionList == null) {
       await prefs.setStringList(prefKey, currentOptions);
