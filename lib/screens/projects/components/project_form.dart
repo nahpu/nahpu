@@ -35,6 +35,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
   final _formKey = GlobalKey<FormState>();
   String? initialProjectName;
   bool _showMore = false;
+  CatalogFmt? _catalogFmt;
 
   @override
   void initState() {
@@ -123,7 +124,10 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                   ),
                 ),
                 !widget.isEditing
-                    ? const TaxonGroupFields()
+                    ? TaxonGroupFields(
+                        onCatalogFmtChanged: (CatalogFmt? value) {
+                        _catalogFmt = value;
+                      })
                     : const SizedBox.shrink(),
                 Visibility(
                   visible: _showMore ||
@@ -277,6 +281,10 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
     );
 
     ProjectServices(ref: ref).createProject(projectData);
+
+    if (_catalogFmt != null) {
+      ref.read(catalogFmtNotifierProvider.notifier).set(_catalogFmt!);
+    }
   }
 
   void _updateProject() {
@@ -419,35 +427,91 @@ class TimeZoneField extends ConsumerWidget {
   }
 }
 
-class TaxonGroupFields extends ConsumerWidget {
-  const TaxonGroupFields({super.key});
+class TaxonGroupFields extends ConsumerStatefulWidget {
+  const TaxonGroupFields({super.key, required this.onCatalogFmtChanged});
+
+  final void Function(CatalogFmt? cFmt) onCatalogFmtChanged;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  TaxonGroupFieldsState createState() => TaxonGroupFieldsState();
+}
+
+class TaxonGroupFieldsState extends ConsumerState<TaxonGroupFields> {
+  ProjectType? _projectType;
+
+  @override
+  Widget build(BuildContext context) {
     return ref.watch(catalogFmtNotifierProvider).when(
-          data: (fmt) => _buildDropdownMenu(fmt, ref),
+          data: (fmt) {
+            // Set project type on initial load based on current catalog fmt
+            _projectType ??= fmt == CatalogFmt.fossils
+                ? ProjectType.fossils
+                : ProjectType.extantTaxa;
+            return _buildDropdownMenu(fmt);
+          },
           loading: () => const CircularProgressIndicator(),
           error: (err, stack) => Text('Error: $err'),
         );
   }
 
-  Widget _buildDropdownMenu(CatalogFmt catalogFmt, WidgetRef ref) {
-    return DropdownButtonFormField(
-      decoration: const InputDecoration(
-        labelText: 'Main Taxon Group',
-        hintText: 'Choose a taxon group',
-      ),
-      items: taxonGroupList
-          .map((taxonGroup) => DropdownMenuItem(
-                value: taxonGroup,
-                child: CommonDropdownText(text: taxonGroup),
-              ))
-          .toList(),
-      initialValue: matchCatFmtToTaxonGroup(catalogFmt),
-      onChanged: (String? newValue) {
-        catalogFmt = matchTaxonGroupToCatFmt(newValue!);
-        ref.read(catalogFmtNotifierProvider.notifier).set(catalogFmt);
-      },
-    );
+  Widget _buildDropdownMenu(CatalogFmt catalogFmt) {
+    return Column(children: [
+      DropdownButtonFormField<ProjectType>(
+          decoration: const InputDecoration(
+            labelText: 'Project type',
+          ),
+          items: [
+            DropdownMenuItem(
+                value: ProjectType.extantTaxa,
+                child: CommonDropdownText(text: 'Extant taxa')),
+            DropdownMenuItem(
+              value: ProjectType.fossils,
+              child: CommonDropdownText(text: 'Fossils'),
+            )
+          ],
+          initialValue: catalogFmt == CatalogFmt.fossils
+              ? ProjectType.fossils
+              : ProjectType.extantTaxa,
+          onChanged: (ProjectType? newValue) {
+            setState(() {
+              _projectType = newValue;
+              widget.onCatalogFmtChanged(
+                  getDefaultCatalogFmt(_projectType!, catalogFmt));
+            });
+          }),
+      _projectType == ProjectType.extantTaxa
+          ? DropdownButtonFormField(
+              decoration: const InputDecoration(
+                labelText: 'Main taxon group',
+                hintText: 'Choose a taxon group',
+              ),
+              items: extantTaxaGroupList
+                  .map((taxonGroup) => DropdownMenuItem(
+                        value: taxonGroup,
+                        child: CommonDropdownText(text: taxonGroup),
+                      ))
+                  .toList(),
+              initialValue: matchCatFmtToTaxonGroup(
+                  getDefaultCatalogFmt(_projectType!, catalogFmt)),
+              onChanged: (String? newValue) {
+                catalogFmt = matchTaxonGroupToCatFmt(newValue!);
+                widget.onCatalogFmtChanged(catalogFmt);
+              },
+            )
+          : const SizedBox.shrink()
+    ]);
+  }
+
+  CatalogFmt getDefaultCatalogFmt(
+      ProjectType projectType, CatalogFmt currCatalogFmt) {
+    if (projectType == ProjectType.fossils) {
+      return CatalogFmt.fossils;
+    } else {
+      if (currCatalogFmt == CatalogFmt.fossils) {
+        return CatalogFmt.mammals;
+      } else {
+        return currCatalogFmt;
+      }
+    }
   }
 }
