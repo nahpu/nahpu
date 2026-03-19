@@ -589,63 +589,6 @@ class SpecimenPartServices extends AppServices {
     SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
     ref.invalidate(partBySpecimenProvider);
   }
-
-  Future<void> getSpecimenTypes() async {
-    final List<String> typeList =
-        await SpecimenPartQuery(dbAccess).getDistinctTypes();
-    final notifier = ref.read(specimenTypesProvider.notifier);
-    List<String> finalList = typeList.isEmpty ? defaultSpecimenType : typeList;
-    notifier.replaceAll(finalList);
-    _invalidateTypes();
-  }
-
-  Future<void> getTreatmentOptions() async {
-    final List<String> treatmentList =
-        await SpecimenPartQuery(dbAccess).getDistinctTreatments();
-    final notifier = ref.read(treatmentOptionsProvider.notifier);
-    List<String> finalList =
-        treatmentList.isEmpty ? defaultTreatment : treatmentList;
-    notifier.replaceAll(finalList);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> addType(String part) async {
-    await ref.read(specimenTypesProvider.notifier).add(part);
-    _invalidateTypes();
-  }
-
-  Future<void> removeType(String specimenType) async {
-    ref.read(specimenTypesProvider.notifier).remove(specimenType);
-    _invalidateTypes();
-  }
-
-  Future<void> clearTypes() async {
-    ref.read(specimenTypesProvider.notifier).clear();
-    _invalidateTypes();
-  }
-
-  Future<void> addTreatment(String treatment) async {
-    await ref.read(treatmentOptionsProvider.notifier).add(treatment);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> removeTreatment(String treatment) async {
-    ref.read(treatmentOptionsProvider.notifier).remove(treatment);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> clearTreatments() async {
-    ref.read(treatmentOptionsProvider.notifier).clear();
-    _invalidateTreatmentOptions();
-  }
-
-  void _invalidateTreatmentOptions() {
-    ref.invalidate(treatmentOptionsProvider);
-  }
-
-  void _invalidateTypes() {
-    ref.invalidate(specimenTypesProvider);
-  }
 }
 
 const String collectorFieldKey = 'isCollectorFieldAlwaysShown';

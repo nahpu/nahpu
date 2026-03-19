@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/pickers.dart';
+import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/screens/settings/common.dart';
+import 'package:nahpu/services/providers/settings.dart';
 
 class CommonDateField extends ConsumerStatefulWidget {
   const CommonDateField({
@@ -504,5 +508,65 @@ class DropDownMenuItems {
       List<DropdownMenuItem<int?>> list) {
     list.insert(0, chooseOneListItem);
     return list;
+  }
+}
+
+class UserDefinedSettingField extends ConsumerWidget {
+  const UserDefinedSettingField(
+      {super.key,
+      required this.typePrefKey,
+      required this.fmtPrefKey,
+      required this.typeName});
+
+  final String typePrefKey;
+  final String fmtPrefKey;
+  final String typeName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    TextEditingController controller = TextEditingController();
+    return SettingChips(
+      title: '${typeName.toTitleCase()}s',
+      controller: controller,
+      ref: ref,
+      textCasePrefString: fmtPrefKey,
+      chipList: ref.watch(userDefinedFieldProvider(typePrefKey)).when(
+            data: (data) {
+              return data.map((e) {
+                return CommonSettingChip(
+                  text: e,
+                  primaryColor: Theme.of(context).colorScheme.tertiary,
+                  onDeleted: () {
+                    UtilityServices(ref: ref).removeOption(typePrefKey, e);
+                  },
+                );
+              }).toList();
+            },
+            loading: () => [const CommonProgressIndicator()],
+            error: (e, _) => [Text('Error: $e')],
+          ),
+      labelText: 'Add ${typeName.toLowerCase()}',
+      hintText: 'Enter ${typeName.toLowerCase()}',
+      onPressed: () {
+        UtilityServices(ref: ref)
+            .addOption(typePrefKey, controller.text.trim());
+        controller.clear();
+      },
+      resetLabel: 'Match database ${typeName.toLowerCase()}s',
+      onReset: () {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return CommonAlertDialog(
+                titleText: 'Match database ${typeName.toLowerCase()}s?',
+                descText: 'Matching database types will'
+                    ' delete all unused ${typeName.toLowerCase()}s',
+                confirmFunction: () {
+                  UtilityServices(ref: ref).getAllOptions(typePrefKey);
+                },
+              );
+            });
+      },
+    );
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:geolocator/geolocator.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
@@ -231,36 +230,5 @@ class GeoLocationServices {
     ctr.elevationCtr.text = position.altitude.toInt().toString();
     ctr.uncertaintyCtr.text = position.accuracy.toInt().toString();
     return ctr;
-  }
-}
-
-class HabitatServices extends AppServices {
-  const HabitatServices({required super.ref});
-
-  Future<void> getAllHabitats() async {
-    List<String> data = await SiteQuery(dbAccess).getDistinctHabitatTypes();
-    final notifier = ref.read(habitatTypeProvider.notifier);
-    List<String> habitats = data.isEmpty ? defaultHabitatTypes : data;
-    notifier.replaceAll(habitats);
-    _invalidateHabitats();
-  }
-
-  Future<void> addHabitat(String habitat) async {
-    await ref.read(habitatTypeProvider.notifier).add(habitat);
-    _invalidateHabitats();
-  }
-
-  Future<void> removeHabitat(String habitat) async {
-    await ref.read(habitatTypeProvider.notifier).remove(habitat);
-    _invalidateHabitats();
-  }
-
-  Future<void> removeAllHabitats() async {
-    await ref.read(habitatTypeProvider.notifier).clear();
-    _invalidateHabitats();
-  }
-
-  void _invalidateHabitats() {
-    ref.invalidate(habitatTypeProvider);
   }
 }
