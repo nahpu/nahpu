@@ -2,13 +2,13 @@
 
 pub struct RecordWriter {
     /// JSON string containing the records to be exported.
-    json_content: String,
+    pub json_content: String,
     /// The path to the output file where the records will be written.
-    output_path: String,
+    pub output_path: String,
     /// The column names to be included in the export.
-    column_names: Vec<String>,
+    pub column_names: Vec<String>,
     /// Export format, e.g., "csv", "json", "excel".
-    export_format: String,
+    pub export_format: String,
 }
 
 impl RecordWriter {
