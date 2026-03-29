@@ -24,17 +24,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String tissueIDPrefixKey = 'tissueIDPrefix';
 const String tissueIDNumberKey = 'tissueIDNumber';
+const String projectFieldIDNumberKey = 'projectFieldIdNumber';
 
 class SpecimenServices extends AppServices {
   const SpecimenServices({required super.ref});
 
   Future<String> createSpecimen() async {
-    CatalogFmt catalogFmt = await ref.watch(catalogFmtNotifierProvider.future);
+    final CatalogFmt catalogFmt =
+        await ref.watch(catalogFmtNotifierProvider.future);
     final String specimenUuid = uuid;
+    final FieldIdMode fieldIdMode =
+        await ref.watch(fieldIdModeNotifierProvider.future);
+    String? currentProjectNumber;
+
+    if (fieldIdMode == FieldIdMode.project) {
+      currentProjectNumber =
+          await ProjectFieldIdServices(ref: ref).getNewNumber();
+    }
+
     await SpecimenQuery(dbAccess).createSpecimen(SpecimenCompanion(
       uuid: db.Value(specimenUuid),
       projectUuid: db.Value(currentProjectUuid),
       taxonGroup: db.Value(matchCatFmtToTaxonGroup(catalogFmt)),
+      projectFieldNumber: db.Value(int.tryParse(currentProjectNumber ?? '')),
     ));
 
     switch (catalogFmt) {
@@ -50,6 +62,7 @@ class SpecimenServices extends AppServices {
         break;
     }
     invalidateSpecimenList();
+
     return specimenUuid;
   }
 
@@ -517,6 +530,35 @@ class SpecimenSearchServices {
     final person = await CollPersonnelQuery(db)
         .searchCollectingPersonnel(matchedPersons, query);
     return person.map((e) => e.id).toList();
+  }
+}
+
+class ProjectFieldIdServices extends AppServices {
+  const ProjectFieldIdServices({required super.ref});
+
+  SharedPreferences get _prefs => ref.read(settingProvider);
+
+  Future<String> getNewNumber() async {
+    int? number = _getSettingNumber();
+    String numberString = getNumberString();
+    await incrementNumber(number ?? 0);
+    return numberString;
+  }
+
+  String getNumberString() {
+    return _getSettingNumber() == null ? '1' : _getSettingNumber().toString();
+  }
+
+  Future<void> incrementNumber(int number) async {
+    await setNumber((number + 1).toString());
+  }
+
+  Future<void> setNumber(String number) async {
+    await _prefs.setInt(projectFieldIDNumberKey, int.tryParse(number) ?? 1);
+  }
+
+  int? _getSettingNumber() {
+    return _prefs.getInt(projectFieldIDNumberKey);
   }
 }
 

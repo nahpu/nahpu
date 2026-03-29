@@ -82,7 +82,7 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(8, 0, 4, 8),
                         child: Text(
-                          'If enabled, fields specific to bats will always ber '
+                          'If enabled, fields specific to bats are always '
                           'shown in the mammal measurement fields. '
                           'You can also choose to toggle the visibility of '
                           'bat-specific fields for each specimen record '

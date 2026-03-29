@@ -134,6 +134,7 @@ class PersonnelServices extends AppServices {
   void invalidatePersonnel() {
     ref.invalidate(projectPersonnelProvider);
     ref.invalidate(allPersonnelProvider);
+    ref.invalidate(personnelNameProvider);
   }
 }
 

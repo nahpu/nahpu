@@ -13,6 +13,7 @@ enum PrefType {
   string,
   bool,
   strList,
+  int,
 }
 
 List<({String key, PrefType type, dynamic def})> prefs = [
@@ -32,6 +33,10 @@ List<({String key, PrefType type, dynamic def})> prefs = [
   (key: habitatTypeFmtPrefKey, type: PrefType.string, def: 'anyCase'),
   (key: collectorFieldKey, type: PrefType.bool, def: false),
   (key: batFieldsKey, type: PrefType.bool, def: false),
+  (key: tissueIDPrefixKey, type: PrefType.string, def: null),
+  (key: tissueIDNumberKey, type: PrefType.int, def: null),
+  (key: fieldIdModePrefKey, type: PrefType.string, def: 'personnel'),
+  (key: projectFieldIDNumberKey, type: PrefType.int, def: null),
 ];
 
 class SharedPref {
@@ -73,6 +78,9 @@ class SharedPref {
         case PrefType.bool:
           value = prefs.getBool(key);
           break;
+        case PrefType.int:
+          value = prefs.getInt(key);
+          break;
         case PrefType.strList:
           value = prefs.getStringList(key);
           break;
@@ -91,6 +99,9 @@ class SharedPref {
         case PrefType.bool:
           prefs.setBool(key, value as bool);
           break;
+        case PrefType.int:
+          prefs.setInt(key, value as int);
+          break;
         case PrefType.strList:
           prefs.setStringList(key, value.cast<String>());
           break;
@@ -103,10 +114,13 @@ class SharedPref {
 
     switch (type) {
       case PrefType.string:
-        args = [KdlString(value ?? defaultValue)];
+        args = [KdlString(value ?? defaultValue.toString())];
         break;
       case PrefType.bool:
-        args = [KdlBool(value ?? defaultValue)];
+        args = [KdlBool((value ?? defaultValue))];
+        break;
+      case PrefType.int:
+        args = [KdlInt((value ?? defaultValue))];
         break;
       case PrefType.strList:
         args = kdlStrList(value ?? defaultValue);
@@ -134,7 +148,9 @@ class KdlServices {
 
     KdlDocument kdl = KdlDocument();
     for (SharedPref sp in sPList) {
-      kdl.nodes.add(sp.createKDLNode());
+      if (sp.value != null || sp.defaultValue != null) {
+        kdl.nodes.add(sp.createKDLNode());
+      }
     }
 
     File kdlFile = File(filePath);

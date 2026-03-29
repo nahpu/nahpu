@@ -351,5 +351,23 @@ class _TextCaseFmtNotifierProviderElement
   @override
   String get prefKey => (origin as TextCaseFmtNotifierProvider).prefKey;
 }
+
+String _$fieldIdModeNotifierHash() =>
+    r'44633d34a84e547c1bc1c207a68227c11b491e35';
+
+/// See also [FieldIdModeNotifier].
+@ProviderFor(FieldIdModeNotifier)
+final fieldIdModeNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<FieldIdModeNotifier, FieldIdMode>.internal(
+  FieldIdModeNotifier.new,
+  name: r'fieldIdModeNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$fieldIdModeNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$FieldIdModeNotifier = AutoDisposeAsyncNotifier<FieldIdMode>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/utility_services.dart';
 
 class SpecimenSelection extends ConsumerStatefulWidget {
   const SpecimenSelection({super.key});
@@ -63,7 +66,9 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                   )
                 ],
               ),
-              // Only show for Mammals taxon
+              FieldIDFields(
+                isMobile: isMobile,
+              ),
               TissueIDFields(
                 isMobile: isMobile,
               ),
@@ -112,6 +117,114 @@ class SpecimenFormats extends ConsumerWidget {
             ],
           ))
     ]);
+  }
+}
+
+class FieldIDFields extends ConsumerWidget {
+  const FieldIDFields({super.key, required this.isMobile});
+
+  final bool isMobile;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fieldIdModeNotifier = ref.watch(fieldIdModeNotifierProvider);
+
+    return CommonSettingSection(
+      title: 'Field ID',
+      children: [
+        Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+            child: AdaptiveLayout(
+              useHorizontalLayout: !isMobile,
+              children: [
+                FieldIdModeDropDown(ref: ref),
+                fieldIdModeNotifier.when(
+                  data: (mode) => Visibility(
+                      visible: mode == FieldIdMode.project,
+                      child: ProjectFieldId()),
+                  loading: () => const SizedBox.shrink(),
+                  error: (e, s) => const Text('Error'),
+                )
+              ],
+            )),
+      ],
+    );
+  }
+}
+
+class FieldIdModeDropDown extends StatelessWidget {
+  const FieldIdModeDropDown({
+    super.key,
+    required this.ref,
+  });
+
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    return ref.watch(fieldIdModeNotifierProvider).when(
+          data: (mode) => DropdownButtonFormField<FieldIdMode>(
+              initialValue: mode,
+              decoration: InputDecoration(
+                labelText: 'ID mode',
+              ),
+              items: FieldIdMode.values
+                  .map((e) => DropdownMenuItem<FieldIdMode>(
+                      value: e,
+                      child: CommonDropdownText(text: e.name.toTitleCase())))
+                  .toList(),
+              onChanged: (FieldIdMode? selectedMode) {
+                if (selectedMode != null) {
+                  ref
+                      .read(fieldIdModeNotifierProvider.notifier)
+                      .set(selectedMode);
+                }
+              }),
+          loading: () => const CommonProgressIndicator(),
+          error: (e, s) => const Text('Error'),
+        );
+  }
+}
+
+class ProjectFieldId extends ConsumerStatefulWidget {
+  const ProjectFieldId({
+    super.key,
+  });
+
+  @override
+  ProjectFieldIdState createState() => ProjectFieldIdState();
+}
+
+class ProjectFieldIdState extends ConsumerState<ProjectFieldId> {
+  late TextEditingController projectFieldIdCtr;
+
+  @override
+  void initState() {
+    projectFieldIdCtr = TextEditingController(text: _getNumber());
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 480),
+      child: TextField(
+        controller: projectFieldIdCtr,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Project number',
+          hintText: 'Enter the initial starting number',
+        ),
+        textInputAction: TextInputAction.done,
+        onChanged: (String? value) async {
+          await ProjectFieldIdServices(ref: ref).setNumber(value ?? '1');
+        },
+      ),
+    );
+  }
+
+  String _getNumber() {
+    return ProjectFieldIdServices(ref: ref).getNumberString();
   }
 }
 
@@ -206,7 +319,7 @@ class TissueNumFieldState extends ConsumerState<TissueNumField> {
         controller: tissueNumCtr,
         keyboardType: TextInputType.number,
         decoration: const InputDecoration(
-          labelText: 'Tissue no.',
+          labelText: 'Tissue number',
           hintText: 'Enter the initial starting number',
         ),
         textInputAction: TextInputAction.done,

@@ -25,6 +25,8 @@ enum SpecimenSearchOption {
   prepType
 }
 
+enum FieldIdMode { personnel, project }
+
 const List<String> specimenSexList = [
   'Male',
   'Female',

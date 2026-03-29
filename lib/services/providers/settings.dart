@@ -23,6 +23,7 @@ const String specimenTypePrefKey = 'specimenTypes';
 const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
+const String fieldIdModePrefKey = 'fieldIdMode';
 
 @Riverpod(keepAlive: true)
 SharedPreferences setting(Ref ref) {
@@ -220,6 +221,43 @@ class TextCaseFmtNotifier extends _$TextCaseFmtNotifier {
 
       await prefs.setString(prefKey, fmt.name);
       return fmt;
+    });
+  }
+}
+
+@riverpod
+class FieldIdModeNotifier extends _$FieldIdModeNotifier {
+  Future<FieldIdMode> _fetchSettings() async {
+    final prefs = ref.watch(settingProvider);
+    final fieldIdModeString = prefs.getString(fieldIdModePrefKey);
+
+    FieldIdMode fieldIdMode = FieldIdMode.values
+        .byName(fieldIdModeString ?? FieldIdMode.personnel.name);
+
+    if (fieldIdModeString == null) {
+      await prefs.setString(fieldIdModePrefKey, fieldIdMode.name);
+    }
+
+    return fieldIdMode;
+  }
+
+  @override
+  FutureOr<FieldIdMode> build() async {
+    return await _fetchSettings();
+  }
+
+  Future<void> set(FieldIdMode mode) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final prefs = ref.watch(settingProvider);
+      final fieldIdModeString = prefs.getString(fieldIdModePrefKey);
+      final setFieldIdMode = FieldIdMode.values
+          .byName(fieldIdModeString ?? FieldIdMode.personnel.name);
+
+      if (setFieldIdMode == mode) return mode;
+
+      await prefs.setString(fieldIdModePrefKey, mode.name);
+      return mode;
     });
   }
 }

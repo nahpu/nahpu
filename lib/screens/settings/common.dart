@@ -241,7 +241,7 @@ class SettingChips extends StatelessWidget {
       title: title,
       children: [
         Padding(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
             child: Wrap(
               spacing: 10,
               runSpacing: 10,

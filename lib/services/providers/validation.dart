@@ -23,7 +23,9 @@ abstract class ProjectForm with _$ProjectForm {
         existingProject: ProjectFormField(errMsg: null, isValid: false),
       );
 
-  bool get isValid => projectName.isValid && existingProject.isValid;
+  bool get isValid {
+    return projectName.isValid && existingProject.isValid;
+  }
 }
 
 @freezed
@@ -45,11 +47,16 @@ class ProjectFormValidator extends _$ProjectFormValidator {
     return _fetch();
   }
 
+  Future<void> validateOnCreate(String? projectName) async {
+    await validateProjectName(projectName);
+    await checkProjectNameExists(projectName);
+  }
+
   Future<void> validateOnEditing(
-      String? initialProjectName, String? value) async {
-    await validateProjectName(value);
-    if (initialProjectName != value) {
-      await checkProjectNameExists(value);
+      String? initialProjectName, String? projectName) async {
+    await validateProjectName(projectName);
+    if (initialProjectName != projectName) {
+      await checkProjectNameExists(projectName);
     } else {
       state = const AsyncValue.loading();
       state = await AsyncValue.guard(() async {
@@ -139,8 +146,9 @@ abstract class PersonnelForm with _$PersonnelForm {
         collNum: PersonnelFormField(errMsg: null, isValid: false),
       );
 
-  bool get isValidCataloger =>
-      name.isValid && initial.isValid && collNum.isValid && email.isValid;
+  bool get isValidCataloger {
+    return name.isValid && email.isValid && initial.isValid && collNum.isValid;
+  }
 
   bool get isValidOther => name.isValid && email.isValid;
 }
@@ -167,8 +175,9 @@ class PersonnelFormValidator extends _$PersonnelFormValidator {
   Future<void> validateAll(PersonnelFormCtrModel formCtr) async {
     await validateName(formCtr.nameCtr.text);
     await validateEmail(formCtr.emailCtr.text);
-    await validateInitial(formCtr.initialCtr.text);
-    await validateCollNum(formCtr.collectorNumCtr.text);
+    await validateInitial(formCtr.initialCtr.text, formCtr.isRegisterField);
+    await validateCollNum(
+        formCtr.collectorNumCtr.text, formCtr.isRegisterField);
   }
 
   Future<void> validateName(String? value) async {
@@ -220,9 +229,14 @@ class PersonnelFormValidator extends _$PersonnelFormValidator {
     });
   }
 
-  Future<void> validateInitial(String? value) async {
+  Future<void> validateInitial(String? value, bool isRegister) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
+      if (!isRegister) {
+        return state.value!
+            .copyWith(initial: PersonnelFormField(errMsg: null, isValid: true));
+      }
+
       if (value == null || value.isEmpty || state.value == null) {
         return state.value!.copyWith(
             initial: PersonnelFormField(errMsg: null, isValid: false));
@@ -245,9 +259,14 @@ class PersonnelFormValidator extends _$PersonnelFormValidator {
     });
   }
 
-  Future<void> validateCollNum(String? value) async {
+  Future<void> validateCollNum(String? value, bool isRegister) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
+      if (!isRegister) {
+        return state.value!
+            .copyWith(collNum: PersonnelFormField(errMsg: null, isValid: true));
+      }
+
       if (value == null || value.isEmpty || state.value == null) {
         return state.value!.copyWith(
             collNum: PersonnelFormField(errMsg: null, isValid: false));
