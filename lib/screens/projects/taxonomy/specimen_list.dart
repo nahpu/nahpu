@@ -17,9 +17,8 @@ import 'package:nahpu/services/utility_services.dart';
 class SpecimenListPage extends ConsumerStatefulWidget {
   const SpecimenListPage({
     super.key,
-    required this.specimenData,
   });
-  final List<SpecimenData> specimenData;
+
   @override
   SpecimenListPageState createState() => SpecimenListPageState();
 }
@@ -46,96 +45,100 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Specimen Records'),
-      ),
-      body: SafeArea(
-          child: ScrollableConstrainedLayout(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CommonSearchBar(
-              controller: _searchController,
-              focusNode: _focus,
-              hintText: 'Search specimens',
-              trailing: [
-                _searchController.text.isNotEmpty
-                    ? IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _searchController.clear();
-                            ref.invalidate(specimenEntryProvider);
-                          });
-                        },
-                        icon: const Icon(Icons.clear_rounded))
-                    : const SizedBox.shrink(),
-                IconButton(
-                    onPressed: () {
+    return ref.watch(specimenEntryProvider).when(
+          data: (specimenData) => Scaffold(
+            appBar: AppBar(
+              title: const Text('Specimen Records'),
+            ),
+            body: SafeArea(
+                child: ScrollableConstrainedLayout(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CommonSearchBar(
+                    controller: _searchController,
+                    focusNode: _focus,
+                    hintText: 'Search specimens',
+                    trailing: [
+                      _searchController.text.isNotEmpty
+                          ? IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  ref.invalidate(specimenEntryProvider);
+                                });
+                              },
+                              icon: const Icon(Icons.clear_rounded))
+                          : const SizedBox.shrink(),
+                      IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _isSearchOptionVisible = !_isSearchOptionVisible;
+                            });
+                          },
+                          icon: const Icon(Icons.tune_rounded)),
+                    ],
+                    onChanged: (String query) async {
+                      _filteredSpecimenData = await SpecimenSearchServices(
+                        db: ref.read(databaseProvider),
+                        specimenEntries: specimenData,
+                        searchOption:
+                            SpecimenSearchOption.values[_selectedSearchValue],
+                      ).search(query.toLowerCase());
                       setState(() {
-                        _isSearchOptionVisible = !_isSearchOptionVisible;
+                        if (_searchController.text.isNotEmpty) {
+                          _isSearching = true;
+                        } else {
+                          _isSearching = false;
+                        }
                       });
                     },
-                    icon: const Icon(Icons.tune_rounded)),
-              ],
-              onChanged: (String query) async {
-                _filteredSpecimenData = await SpecimenSearchServices(
-                  db: ref.read(databaseProvider),
-                  specimenEntries: widget.specimenData,
-                  searchOption:
-                      SpecimenSearchOption.values[_selectedSearchValue],
-                ).search(query.toLowerCase());
-                setState(() {
-                  if (_searchController.text.isNotEmpty) {
-                    _isSearching = true;
-                  } else {
-                    _isSearching = false;
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: 4),
-            Visibility(
-                visible: _isSearchOptionVisible,
-                child: SpecimenSearchChips(
-                  selectedValue: _selectedSearchValue,
-                  onSelected: (int index) {
-                    setState(() {
-                      _selectedSearchValue = index;
-                    });
-                  },
-                )),
-            const SizedBox(height: 8),
-            widget.specimenData.isEmpty
-                ? const Text('No specimens found')
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        specimenCount,
-                        style: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      SpecimenList(
-                        data: _isSearching
-                            ? _filteredSpecimenData
-                            : widget.specimenData,
-                        additionalHeight: _isSearchOptionVisible ? 0 : 86,
-                      ),
-                    ],
                   ),
-          ],
-        ),
-      )),
-    );
+                  const SizedBox(height: 4),
+                  Visibility(
+                      visible: _isSearchOptionVisible,
+                      child: SpecimenSearchChips(
+                        selectedValue: _selectedSearchValue,
+                        onSelected: (int index) {
+                          setState(() {
+                            _selectedSearchValue = index;
+                          });
+                        },
+                      )),
+                  const SizedBox(height: 8),
+                  specimenData.isEmpty
+                      ? const Text('No specimens found')
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              specimenCount(specimenData),
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            SpecimenList(
+                              data: _isSearching
+                                  ? _filteredSpecimenData
+                                  : specimenData,
+                              additionalHeight: _isSearchOptionVisible ? 0 : 86,
+                            ),
+                          ],
+                        ),
+                ],
+              ),
+            )),
+          ),
+          loading: () => const CommonProgressIndicator(),
+          error: (error, stack) => Text('Error: $error'),
+        );
   }
 
-  String get specimenCount {
+  String specimenCount(List<SpecimenData> data) {
     if (_isSearching) {
       int length = _filteredSpecimenData.length;
-      String specimenCount = widget.specimenData.length > 1
-          ? '${widget.specimenData.length} specimens'
-          : '${widget.specimenData.length} specimen';
+      String specimenCount = data.length > 1
+          ? '${data.length} specimens'
+          : '${data.length} specimen';
       if (length == 0) {
         return 'No specimens found';
       } else if (length == 1) {
@@ -144,7 +147,7 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
         return 'Found: $length of $specimenCount';
       }
     } else {
-      return 'Specimen counts: ${widget.specimenData.length}';
+      return 'Specimen counts: ${data.length}';
     }
   }
 }
@@ -187,7 +190,7 @@ class SpecimenList extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                         builder: (context) => SpecimenFormView(
-                              specimenData: data[index],
+                              specimenUuid: data[index].uuid,
                             )),
                   );
                 },

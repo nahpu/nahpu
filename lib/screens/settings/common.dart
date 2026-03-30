@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/fields.dart';
 
 class CommonSettingList extends StatelessWidget {
   const CommonSettingList({
@@ -106,7 +110,7 @@ class CommonSettingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
         child: ListTile(
           minVerticalPadding: 0,
           title: Text(title,
@@ -171,11 +175,17 @@ class SwitchSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 16)),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             Switch(
               value: value,
               onChanged: onChanged,
@@ -204,6 +214,8 @@ class SettingChips extends StatelessWidget {
     super.key,
     required this.title,
     required this.controller,
+    required this.ref,
+    required this.textCasePrefString,
     required this.labelText,
     required this.chipList,
     required this.hintText,
@@ -213,11 +225,13 @@ class SettingChips extends StatelessWidget {
   });
 
   final String title;
-  final String labelText;
-  final String hintText;
-  final List<Widget> chipList;
-  final VoidCallback onPressed;
   final TextEditingController controller;
+  final WidgetRef ref;
+  final String textCasePrefString;
+  final String labelText;
+  final List<Widget> chipList;
+  final String hintText;
+  final VoidCallback onPressed;
   final String resetLabel;
   final VoidCallback onReset;
 
@@ -227,7 +241,7 @@ class SettingChips extends StatelessWidget {
       title: title,
       children: [
         Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
             child: Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -241,28 +255,15 @@ class SettingChips extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 270),
-              child: TextField(
-                controller: controller,
-                decoration: InputDecoration(
+                constraints: const BoxConstraints(maxWidth: 270),
+                child: AsyncTextField(
+                  controller: controller,
                   labelText: labelText,
                   hintText: hintText,
-                ),
-                onChanged: (String value) {
-                  if (value.isNotEmpty) {
-                    controller.value = TextEditingValue(
-                      text: value.toSentenceCase(),
-                      selection: controller.selection,
-                    );
-                  }
-                },
-                onSubmitted: (String? value) {
-                  if (value != null && value.isNotEmpty) {
-                    onPressed();
-                  }
-                },
-              ),
-            ),
+                  onPressed: onPressed,
+                  ref: ref,
+                  textCasePrefString: textCasePrefString,
+                )),
             IconButton(
               iconSize: 25,
               color: Theme.of(context).colorScheme.onSurface,
@@ -285,6 +286,91 @@ class SettingChips extends StatelessWidget {
         )
       ],
     );
+  }
+}
+
+class AsyncTextField extends StatelessWidget {
+  const AsyncTextField({
+    super.key,
+    required this.controller,
+    required this.labelText,
+    required this.hintText,
+    required this.onPressed,
+    required this.ref,
+    required this.textCasePrefString,
+  });
+
+  final TextEditingController controller;
+  final String labelText;
+  final String hintText;
+  final VoidCallback onPressed;
+  final WidgetRef ref;
+  final String textCasePrefString;
+
+  @override
+  Widget build(BuildContext context) {
+    return ref.watch(textCaseFmtNotifierProvider(textCasePrefString)).when(
+          data: (fmt) => TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: labelText,
+              hintText: hintText,
+            ),
+            onChanged: (String value) {
+              if (value.isNotEmpty) {
+                controller.value = TextEditingValue(
+                  text: value.toTextCaseFmt(fmt),
+                  selection: controller.selection,
+                );
+              }
+            },
+            onSubmitted: (String? value) {
+              if (value != null && value.isNotEmpty) {
+                onPressed();
+              }
+            },
+          ),
+          loading: () => CommonProgressIndicator(),
+          error: (e, s) => Text('Error'),
+        );
+  }
+}
+
+class TextCaseFmtDropDown extends StatelessWidget {
+  const TextCaseFmtDropDown({
+    super.key,
+    required this.ref,
+    required this.label,
+    required this.textCasePrefString,
+  });
+
+  final WidgetRef ref;
+  final String label;
+  final String textCasePrefString;
+
+  @override
+  Widget build(BuildContext context) {
+    return ref.watch(textCaseFmtNotifierProvider(textCasePrefString)).when(
+          data: (fmt) => DropdownButtonFormField<TextCaseFmt>(
+              initialValue: fmt,
+              decoration: InputDecoration(
+                labelText: label,
+              ),
+              items: textCaseFmtMap.entries
+                  .map((e) => DropdownMenuItem<TextCaseFmt>(
+                      value: e.key, child: CommonDropdownText(text: e.value)))
+                  .toList(),
+              onChanged: (TextCaseFmt? selectedFmt) {
+                if (selectedFmt != null) {
+                  ref
+                      .read(textCaseFmtNotifierProvider(textCasePrefString)
+                          .notifier)
+                      .set(textCasePrefString, selectedFmt);
+                }
+              }),
+          loading: () => const CommonProgressIndicator(),
+          error: (e, s) => const Text('Error'),
+        );
   }
 }
 

@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:timezone/timezone.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/project_services.dart';
@@ -65,20 +66,8 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(25),
                     ],
-                    onChanged: (value) async {
-                      if (widget.isEditing) {
-                        ref
-                            .watch(projectFormValidatorProvider.notifier)
-                            .validateOnEditing(initialProjectName,
-                                widget.projectCtr.projectNameCtr.text);
-                      } else {
-                        await ref
-                            .watch(projectFormValidatorProvider.notifier)
-                            .validateProjectName(value);
-                        await ref
-                            .watch(projectFormValidatorProvider.notifier)
-                            .checkProjectNameExists(value);
-                      }
+                    onChanged: (_) async {
+                      _validateAll();
                     },
                     errorText: validator.when(
                       data: (data) {
@@ -107,7 +96,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                   maxLines: 2,
                   maxLength: 120,
                   onChanged: (_) {
-                    _validateEditing();
+                    _validateAll();
                   },
                 ),
                 Visibility(
@@ -117,7 +106,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     labelText: 'Principal Investigator',
                     hintText: 'Enter PI name of the project (optional)',
                     onChanged: (_) {
-                      _validateEditing();
+                      _validateAll();
                     },
                   ),
                 ),
@@ -132,10 +121,19 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     labelText: 'Location',
                     hintText: 'Enter location of the project (optional)',
                     onChanged: (_) {
-                      _validateEditing();
+                      _validateAll();
                     },
                   ),
                 ),
+                Visibility(
+                    visible: _showMore ||
+                        widget.projectCtr.timeZoneCtr.text.isNotEmpty,
+                    child: TimeZoneField(
+                      projectCtr: widget.projectCtr,
+                      onChanged: (_) {
+                        _validateAll();
+                      },
+                    )),
                 Visibility(
                   visible: _showMore ||
                       widget.projectCtr.startDateCtr.text.isNotEmpty,
@@ -147,13 +145,11 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     ),
                     onTap: () async {
                       DateTime? selectedDate = await _showDate(
-                        context,
-                      );
+                          context, widget.projectCtr.startDateCtr.dateTime);
                       if (selectedDate != null) {
-                        widget.projectCtr.startDateCtr.text =
-                            DateFormat.yMMMd().format(selectedDate);
+                        widget.projectCtr.startDateCtr.dateTime = selectedDate;
                       }
-                      _validateEditing();
+                      _validateAll();
                     },
                   ),
                 ),
@@ -168,13 +164,11 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     ),
                     onTap: () async {
                       DateTime? selectedDate = await _showDate(
-                        context,
-                      );
+                          context, widget.projectCtr.endDateCtr.dateTime);
                       if (selectedDate != null) {
-                        widget.projectCtr.endDateCtr.text =
-                            DateFormat.yMMMd().format(selectedDate);
+                        widget.projectCtr.endDateCtr.dateTime = selectedDate;
                       }
-                      _validateEditing();
+                      _validateAll();
                     },
                   ),
                 ),
@@ -223,10 +217,14 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
     );
   }
 
-  Future<void> _validateEditing() async {
+  Future<void> _validateAll() async {
     if (widget.isEditing) {
       ref.watch(projectFormValidatorProvider.notifier).validateOnEditing(
           initialProjectName, widget.projectCtr.projectNameCtr.text);
+    } else {
+      ref
+          .watch(projectFormValidatorProvider.notifier)
+          .validateOnCreate(widget.projectCtr.projectNameCtr.text);
     }
   }
 
@@ -235,6 +233,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
         widget.projectCtr.descriptionCtr.text.isNotEmpty &&
         widget.projectCtr.pICtr.text.isNotEmpty &&
         widget.projectCtr.locationCtr.text.isNotEmpty &&
+        widget.projectCtr.timeZoneCtr.text.isNotEmpty &&
         widget.projectCtr.startDateCtr.text.isNotEmpty &&
         widget.projectCtr.endDateCtr.text.isNotEmpty;
   }
@@ -247,10 +246,10 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
     });
   }
 
-  Future<DateTime?> _showDate(BuildContext context) {
+  Future<DateTime?> _showDate(BuildContext context, DateTime? initialDate) {
     return showDatePicker(
         context: context,
-        initialDate: DateTime.now(),
+        initialDate: initialDate ?? DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime(2030)); // Prevent user from selecting future dates
   }
@@ -262,8 +261,9 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
       description: db.Value(widget.projectCtr.descriptionCtr.text),
       principalInvestigator: db.Value(widget.projectCtr.pICtr.text),
       location: db.Value(widget.projectCtr.locationCtr.text),
-      startDate: db.Value(widget.projectCtr.startDateCtr.text),
-      endDate: db.Value(widget.projectCtr.endDateCtr.text),
+      timeZone: db.Value(widget.projectCtr.timeZoneCtr.text),
+      startDate: db.Value(widget.projectCtr.startDateCtr.date),
+      endDate: db.Value(widget.projectCtr.endDateCtr.date),
       created: db.Value(getSystemDateTime()),
       lastAccessed: db.Value(getSystemDateTime()),
     );
@@ -277,9 +277,10 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
       description: db.Value(widget.projectCtr.descriptionCtr.text),
       principalInvestigator: db.Value(widget.projectCtr.pICtr.text),
       location: db.Value(widget.projectCtr.locationCtr.text),
-      startDate: db.Value(widget.projectCtr.startDateCtr.text),
-      endDate: db.Value(widget.projectCtr.endDateCtr.text),
-      created: db.Value(getSystemDateTime()),
+      timeZone: db.Value(widget.projectCtr.timeZoneCtr.text),
+      startDate: db.Value(widget.projectCtr.startDateCtr.date),
+      endDate: db.Value(widget.projectCtr.endDateCtr.date),
+      created: db.Value(widget.projectCtr.createdCtr),
       lastAccessed: db.Value(getSystemDateTime()),
     );
 
@@ -291,6 +292,22 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
       context,
       MaterialPageRoute(builder: (context) => const Dashboard()),
     );
+  }
+}
+
+extension LocationDropdownText on Location {
+  String toText() {
+    if (name == 'UTC') return '(UTC) Coordinated Universal Time';
+
+    final utcOffset = (currentTimeZone.offset / 3.6e6);
+    final plusMinus = utcOffset >= 0 ? '+' : '-';
+    final utcOffsetHours = utcOffset.toInt();
+    final utcOffsetMinutes = ((utcOffset % 1.0) * 60).toInt();
+
+    final paddedHour = utcOffsetHours.abs().toString().padLeft(2, '0');
+    final paddedMinutes = utcOffsetMinutes.toString().padLeft(2, '0');
+
+    return '(UTC$plusMinus$paddedHour:$paddedMinutes) $name';
   }
 }
 
@@ -334,6 +351,63 @@ class ProjectFormField extends StatelessWidget {
       onSaved: onSaved,
       onChanged: onChanged,
     );
+  }
+}
+
+class TimeZoneField extends ConsumerWidget {
+  const TimeZoneField({
+    super.key,
+    required this.projectCtr,
+    required this.onChanged,
+  });
+
+  final ProjectFormCtrModel projectCtr;
+  final Null Function(String?)? onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DropdownButtonFormField<String>(
+      initialValue: projectCtr.timeZoneCtr.text,
+      decoration: const InputDecoration(
+          labelText: 'Timezone', hintText: 'Choose a timezone'),
+      items: _timeZoneDropdown(),
+      onChanged: (String? value) {
+        if (value != null) {
+          projectCtr.timeZoneCtr.text = value;
+        }
+        onChanged!(value);
+      },
+    );
+  }
+
+  List<DropdownMenuItem<String>> _timeZoneDropdown() {
+    final locations = timeZoneDatabase.locations.values.toList();
+    if (kDebugMode) {
+      print(locations.map((e) => e.name).toList().where((e) => e == '').length);
+    }
+
+    // Sort locations by UTC offset, then name
+    locations.sort((a, b) {
+      int offsetCompare =
+          a.currentTimeZone.offset.compareTo(b.currentTimeZone.offset);
+      if (offsetCompare != 0) {
+        return offsetCompare;
+      }
+      return a.name.compareTo(b.name);
+    });
+
+    final locationItems = locations
+        .map((e) => DropdownMenuItem<String>(
+            value: e.name,
+            child: CommonDropdownText(text: LocationDropdownText(e).toText())))
+        .toList();
+
+    final chooseOneItem = DropdownMenuItem(
+        value: '', child: HintDropdownText(text: 'Choose a timezone'));
+
+    locationItems.insert(0, chooseOneItem);
+
+    return locationItems;
   }
 }
 

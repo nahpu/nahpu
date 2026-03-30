@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/projects/personnel/new_personnel.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
@@ -9,6 +8,7 @@ import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/screens/projects/personnel/personnel.dart';
 
 class ManagePersonnel extends ConsumerStatefulWidget {
   const ManagePersonnel({super.key});
@@ -132,6 +132,7 @@ class PersonnelListView extends ConsumerStatefulWidget {
 class PersonnelListViewState extends ConsumerState<PersonnelListView> {
   final ScrollController _scrollController = ScrollController();
   final List<String> _selectedPersonnel = [];
+  List<String> _allPersonnel = [];
   List<String> _allowedPersonnel = [];
   List<String> _listedInProjectPersonnel = [];
   bool _isSelecting = false;
@@ -152,61 +153,30 @@ class PersonnelListViewState extends ConsumerState<PersonnelListView> {
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
-        Row(
-          children: [
-            Visibility(
-              visible: _isSelecting,
-              child: TextButton(
-                onPressed: _selectedPersonnel.isEmpty
-                    ? null
-                    : () {
-                        setState(() {
-                          _selectedPersonnel.clear();
-                        });
-                      },
-                child: const Text('Clear'),
-              ),
-            ),
-            Visibility(
-              visible: _isSelecting,
-              child: TextButton(
-                onPressed: widget.personnelList.length ==
-                        _listedInProjectPersonnel.length
-                    // _selectedPersonnel.length == _allowedPersonnel.length
-                    ? null
-                    : () {
-                        setState(() {
-                          _selectedPersonnel.clear();
-                          _selectedPersonnel.addAll(_allowedPersonnel);
-                        });
-                      },
-                child: const Text('Select all'),
-              ),
-            ),
-            const Spacer(),
-            Visibility(
-              visible: _isSelecting,
-              child: TextButton(
-                onPressed: () async {
-                  await _showActionOptions();
+        SelectItemsInterface(
+          isSelecting: _isSelecting,
+          onClearPressed: _selectedPersonnel.isEmpty
+              ? null
+              : () {
+                  setState(() {
+                    _selectedPersonnel.clear();
+                  });
                 },
-                child: const Text('Actions'),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                _listedInProjectPersonnel =
-                    await _getListedPersonnelInProject();
-                _allowedPersonnel = _getAllowedPersonnel();
-
-                setState(() {
-                  _isSelecting = !_isSelecting;
-                  _selectedPersonnel.clear();
-                });
-              },
-              child: Text(_isSelecting ? 'Cancel' : 'Select'),
-            ),
-          ],
+          onSelectAllPressed: () {
+            setState(() {
+              _selectedPersonnel.clear();
+              _selectedPersonnel.addAll(_allPersonnel);
+            });
+          },
+          onSelectPressed: () async {
+            _listedInProjectPersonnel = await _getListedPersonnelInProject();
+            _allowedPersonnel = _getAllowedPersonnel();
+            _allPersonnel = _getAllPersonnel();
+            setState(() {
+              _isSelecting = !_isSelecting;
+              _selectedPersonnel.clear();
+            });
+          },
         ),
         Expanded(
             child: CommonScrollbar(
@@ -234,126 +204,52 @@ class PersonnelListViewState extends ConsumerState<PersonnelListView> {
                         },
                       );
                     }))),
+        const SizedBox(height: 8),
+        _isSelecting
+            ? DeleteItemsButton(
+                selectedItems: _selectedPersonnel,
+                itemName: 'personnel',
+                onPressedFunction: () async {
+                  await _deletePersonnel();
+                  setState(() {
+                    _selectedPersonnel.clear();
+                  });
+                })
+            : const SizedBox.shrink(),
       ],
     );
   }
 
-  Future<void> _showActionOptions() async {
-    if (systemPlatform == PlatformType.mobile) {
-      await showModalBottomSheet(
-          context: context,
-          showDragHandle: true,
-          builder: (context) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: Icon(
-                      Icons.delete_outlined,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    title: Text('Delete personnel',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.error)),
-                    onTap: widget.personnelList.length ==
-                            _listedInProjectPersonnel.length
-                        ? null
-                        : () {
-                            Navigator.pop(context);
-                            showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text('Delete personnel'),
-                                    content: const Text(
-                                        'Are you sure you want to delete the selected personnel?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () async {
-                                          await _deletePersonnel();
-                                        },
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  );
-                                });
-                          },
-                  ),
-                ],
-              ),
-            );
-          });
-    } else {
-      await showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Actions'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    title: const Text('Delete personnel'),
-                    onTap: widget.personnelList.length ==
-                            _listedInProjectPersonnel.length
-                        ? null
-                        : () {
-                            Navigator.pop(context);
-                            showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text('Delete personnel'),
-                                    content: const Text(
-                                        'Are you sure you want to delete the selected personnel?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () async {
-                                          await _deletePersonnel();
-                                        },
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  );
-                                });
-                          },
-                  ),
-                ],
-              ),
-            );
-          });
-    }
-  }
-
   Future<void> _deletePersonnel() async {
     try {
+      List<String> personnelToDelete = _selectedPersonnel
+          .toSet()
+          .intersection(_allowedPersonnel.toSet())
+          .toList();
+
       await PersonnelServices(ref: ref)
-          .deletePersonnelFromList(_selectedPersonnel);
+          .deletePersonnelFromList(personnelToDelete);
       setState(() {
         _isSelecting = false;
       });
       if (context.mounted) {
         _pop();
       }
+      _showSuccess(personnelToDelete.length, _selectedPersonnel.length);
     } catch (e) {
       if (context.mounted) {
         _showError(e.toString());
       }
     }
+  }
+
+  List<String> _getAllPersonnel() {
+    final List<String> allPersonnel = [];
+    for (final personnel in widget.personnelList) {
+      allPersonnel.add(personnel.uuid);
+    }
+
+    return allPersonnel;
   }
 
   List<String> _getAllowedPersonnel() {
@@ -378,6 +274,23 @@ class PersonnelListViewState extends ConsumerState<PersonnelListView> {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
   }
+
+  void _showSuccess(int deleted, int selected) {
+    String message = '$deleted personnel deleted.';
+
+    if (deleted < selected) {
+      message = '''
+        $message
+        ${selected - deleted} personnel could not be deleted because they are assigned to a project.
+      ''';
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 10),
+      ),
+    );
+  }
 }
 
 class SelectPersonnelTile extends StatelessWidget {
@@ -400,24 +313,40 @@ class SelectPersonnelTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
         title: Text(data.name ?? ''),
-        subtitle: Text(data.role ?? ''),
+        subtitle: PersonnelSubtitle(
+          role: data.role,
+          affiliation: data.affiliation,
+          currentFieldNumber: data.currentFieldNumber,
+        ),
         leading: isSelecting
-            ? ListCheckBox(
-                isDisabled: listedPersonnel.contains(data.uuid),
-                value: selectedPersonnel.contains(data.uuid),
-                onChanged: onChanged,
-              )
+            ? Row(mainAxisSize: MainAxisSize.min, children: [
+                ListCheckBox(
+                  isDisabled: false,
+                  value: selectedPersonnel.contains(data.uuid),
+                  onChanged: onChanged,
+                ),
+                Visibility(
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    visible: listedPersonnel.contains(data.uuid),
+                    child: Tooltip(
+                        message: 'Personnel is currently assigned to a project',
+                        child: Icon(Icons.book))),
+              ])
             : const SizedBox.shrink(),
-        trailing: IconButton(
-          icon: const Icon(Icons.edit_outlined),
-          onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => EditPersonnelForm(
-                          personnelData: data,
-                        )));
-          },
-        ));
+        trailing: !isSelecting
+            ? IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditPersonnelForm(
+                                personnelData: data,
+                              )));
+                },
+              )
+            : SizedBox.shrink());
   }
 }

@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:nahpu/screens/export/components/columns.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/services/export/specimen_part_records.dart';
+import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/export/coll_event_writer.dart';
@@ -32,7 +34,8 @@ class ExportFormState extends ConsumerState<ExportForm> {
   bool _hasSaved = false;
   late File _savePath;
   bool _isRunning = false;
-  bool _isInaccurateInBrackets = true;
+  bool _inaccurateInBrackets = true;
+  bool _selectColumns = false;
 
   @override
   void initState() {
@@ -123,11 +126,11 @@ class ExportFormState extends ConsumerState<ExportForm> {
           Visibility(
             visible: _isMammalSpecimenRecord(),
             child: SwitchField(
-                value: _isInaccurateInBrackets,
+                value: _inaccurateInBrackets,
                 label: 'Inaccurate in brackets',
                 onPressed: (bool value) {
                   setState(() {
-                    _isInaccurateInBrackets = value;
+                    _inaccurateInBrackets = value;
                     _hasSaved = false;
                   });
                 }),
@@ -172,6 +175,43 @@ class ExportFormState extends ConsumerState<ExportForm> {
                 _hasSaved = false;
               });
             },
+          ),
+          const SizedBox(height: 12),
+          SwitchField(
+            value: _selectColumns,
+            label: 'Select columns to include',
+            onPressed: (bool value) {
+              setState(() {
+                _selectColumns = value;
+                _hasSaved = false;
+              });
+            },
+          ),
+          Visibility(
+            visible: _selectColumns,
+            child: FutureBuilder<List<String>>(
+              future: SpecimenServices(ref: ref).getColumnNames(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (snapshot.hasData) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Columns included in export:'),
+                      SizedBox(
+                        height: 200,
+                        child: ColumnList(columnNames: snapshot.data!),
+                      ),
+                    ],
+                  );
+                } else {
+                  return const Text('No columns found');
+                }
+              },
+            ),
           ),
           const SizedBox(height: 24),
           Wrap(
@@ -232,20 +272,28 @@ class ExportFormState extends ConsumerState<ExportForm> {
   }
 
   void _matchTaxonToRecordType() {
-    if (_taxonRecordType == TaxonRecordType.birds) {
-      _specimenRecordType = SpecimenRecordType.birds;
-    } else {
-      switch (_mammalRecordType) {
-        case MammalRecordType.excludeBats:
-          _specimenRecordType = SpecimenRecordType.generalMammals;
-          break;
-        case MammalRecordType.onlyBats:
-          _specimenRecordType = SpecimenRecordType.bats;
-          break;
-        default:
-          _specimenRecordType = SpecimenRecordType.allMammals;
-          break;
-      }
+    switch (_taxonRecordType) {
+      case TaxonRecordType.mammals:
+        switch (_mammalRecordType) {
+          case MammalRecordType.excludeBats:
+            _specimenRecordType = SpecimenRecordType.generalMammals;
+            break;
+          case MammalRecordType.onlyBats:
+            _specimenRecordType = SpecimenRecordType.bats;
+            break;
+          default:
+            _specimenRecordType = SpecimenRecordType.allMammals;
+            break;
+        }
+        break;
+      case TaxonRecordType.birds:
+        _specimenRecordType = SpecimenRecordType.birds;
+        break;
+      case TaxonRecordType.herps:
+        _specimenRecordType = SpecimenRecordType.herpetofauna;
+        break;
+      default:
+        break;
     }
   }
 
@@ -344,7 +392,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
         await SpecimenRecordWriter(
           ref: ref,
           recordType: _specimenRecordType,
-          isInaccurateInBrackets: _isInaccurateInBrackets,
+          isInaccurateInBrackets: _inaccurateInBrackets,
         ).writeRecordDelimited(file, isCsv);
         break;
       case ExportRecordType.specimenParts:

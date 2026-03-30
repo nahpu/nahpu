@@ -77,7 +77,13 @@ class PersonnelServices extends AppServices {
     return await PersonnelQuery(dbAccess).getAllPersonnel();
   }
 
-  Future<void> deleteProjectPersonnel(String personnelUuid) async {
+  Future<List<PersonnelData>> getPersonnelByProjectUuid(
+      String projectUuid) async {
+    return await PersonnelQuery(dbAccess)
+        .getPersonnelByProjectUuid(projectUuid);
+  }
+
+  Future<(bool, String)> personnelUsedBy(String personnelUuid) async {
     bool isUsedInPersonnel = await PersonnelQuery(dbAccess)
         .isPersonnelUsedBySpecimenRecords(
             projectUuid: currentProjectUuid, personnelUuid: personnelUuid);
@@ -89,6 +95,16 @@ class PersonnelServices extends AppServices {
       recordType = isUsedInPersonnel && isUsedInCollEvent
           ? 'specimen and collection event'
           : recordType;
+      return (true, recordType);
+    }
+
+    return (false, '');
+  }
+
+  Future<void> deleteProjectPersonnel(String personnelUuid) async {
+    var (inUse, recordType) = await personnelUsedBy(personnelUuid);
+
+    if (inUse) {
       throw Exception(
           'Failed to delete! Personnel is being used in the $recordType records.');
     } else {
@@ -118,6 +134,7 @@ class PersonnelServices extends AppServices {
   void invalidatePersonnel() {
     ref.invalidate(projectPersonnelProvider);
     ref.invalidate(allPersonnelProvider);
+    ref.invalidate(personnelNameProvider);
   }
 }
 
@@ -133,9 +150,6 @@ const List<String> availableMammalAvatar = [
   'handika_crocidura.png',
   'handika_dasypus.png',
   'handika_haeromys.png',
-];
-
-const List<String> availableBatAvatar = [
   'handika_rhinolophus.png',
   'hnadika_rousettus.png',
 ];
@@ -149,10 +163,10 @@ class PersonnelImageService {
     switch (catalogFmt) {
       case CatalogFmt.birds:
         return _getBirdAvatar();
-      case CatalogFmt.generalMammals:
+      case CatalogFmt.mammals:
         return _getMammalAvatar();
-      case CatalogFmt.bats:
-        return _getBatAvatar();
+      case CatalogFmt.herpetofauna:
+        return _getMammalAvatar();
     }
   }
 
@@ -164,11 +178,6 @@ class PersonnelImageService {
   String _getMammalAvatar() {
     final index = random.nextInt(availableMammalAvatar.length);
     return '$avatarPath${availableMammalAvatar[index]}';
-  }
-
-  String _getBatAvatar() {
-    final index = random.nextInt(availableBatAvatar.length);
-    return '$avatarPath${availableBatAvatar[index]}';
   }
 }
 

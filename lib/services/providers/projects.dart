@@ -22,6 +22,14 @@ final projectInfoProvider =
   return await projectInfo;
 });
 
+final currProjInfoProvider =
+    FutureProvider.autoDispose<db.ProjectData>((ref) async {
+  final projectUuid = ref.read(projectUuidProvider);
+  final currProjectInfo =
+      ProjectQuery(ref.read(databaseProvider)).getProjectByUuid(projectUuid);
+  return await currProjectInfo;
+});
+
 @Riverpod(keepAlive: true)
 class ProjectUuid extends _$ProjectUuid {
   @override

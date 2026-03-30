@@ -5,6 +5,7 @@ enum NahpuFileFormat { tabulated, image, pdf, database, other }
 const Map<String, NahpuFileFormat> formatByExtension = {
   'csv': NahpuFileFormat.tabulated,
   'tsv': NahpuFileFormat.tabulated,
+  'xlsx': NahpuFileFormat.tabulated,
   'jpg': NahpuFileFormat.image,
   'jpeg': NahpuFileFormat.image,
   'png': NahpuFileFormat.image,
@@ -14,12 +15,6 @@ const Map<String, NahpuFileFormat> formatByExtension = {
   'sqlite3': NahpuFileFormat.database,
   'db': NahpuFileFormat.database,
 };
-
-const XTypeGroup csvFmt = XTypeGroup(
-  label: 'CSV UTF-8 (Comma-delimited) (.csv)',
-  extensions: ['csv'],
-  uniformTypeIdentifiers: ['public.comma-separated-values-text'],
-);
 
 const XTypeGroup dbFmt = XTypeGroup(
   label: 'Database (.sqlite3)',

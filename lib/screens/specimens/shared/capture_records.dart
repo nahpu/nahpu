@@ -116,8 +116,8 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
   }
 
   bool get _isCollectorFieldVisible {
-    bool isCollectorFieldAlwaysShown =
-        SpecimenSettingServices(ref: ref).isCollectorFieldAlwaysShown();
+    bool isCollectorFieldAlwaysShown = SpecimenSettingServices(ref: ref)
+        .getSpecimenSettingField(collectorFieldKey);
     return widget.specimenCtr.collPersonnelCtr != null ||
         _showMore ||
         isCollectorFieldAlwaysShown;
@@ -486,19 +486,28 @@ class CaptureDate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-        labelText: 'Capture date',
-        hintText: 'Enter date',
-        controller: specimenCtr.captureDateCtr,
-        initialDate: DateTime.now(),
-        lastDate: DateTime.now(),
-        onTap: () {
-          SpecimenServices(ref: ref).updateSpecimen(
-            specimenUuid,
-            SpecimenCompanion(
-              captureDate: db.Value(specimenCtr.captureDateCtr.text),
-            ),
-          );
-        });
+      labelText: 'Capture date',
+      hintText: 'Enter date',
+      controller: specimenCtr.captureDateCtr,
+      initialDate: DateTime.now(),
+      lastDate: DateTime.now(),
+      onTap: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+            captureDate: db.Value(specimenCtr.captureDateCtr.date),
+          ),
+        );
+      },
+      onClear: () {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(
+            captureDate: db.Value(null),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -579,6 +588,7 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
               labelText: 'Capture time',
               hintText: 'Enter time',
             ),
+            initialValue: widget.specimenCtr.relativeCaptureTimeCtr.text,
             items: relativeTimeList
                 .map(
                   (e) => DropdownMenuItem(
@@ -589,12 +599,12 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
                 .toList(),
             onChanged: (String? newValue) {
               setState(() {
-                widget.specimenCtr.captureTimeCtr.text = newValue ?? '';
+                widget.specimenCtr.relativeCaptureTimeCtr.text = newValue ?? '';
                 SpecimenServices(ref: ref).updateSpecimen(
                   widget.specimenUuid,
                   SpecimenCompanion(
-                    captureTime:
-                        db.Value(widget.specimenCtr.captureTimeCtr.text),
+                    relativeCaptureTime: db.Value(
+                        widget.specimenCtr.relativeCaptureTimeCtr.text),
                   ),
                 );
               });
@@ -609,11 +619,14 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
               SpecimenServices(ref: ref).updateSpecimen(
                 widget.specimenUuid,
                 SpecimenCompanion(
-                  captureTime: db.Value(widget.specimenCtr.captureTimeCtr.text),
+                  captureTime: db.Value(widget.specimenCtr.captureTimeCtr.time),
                 ),
               );
             },
-          );
+            onClear: () {
+              SpecimenServices(ref: ref).updateSpecimen(widget.specimenUuid,
+                  SpecimenCompanion(captureTime: db.Value(null)));
+            });
   }
 }
 

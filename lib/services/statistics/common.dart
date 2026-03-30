@@ -74,15 +74,17 @@ class StatLabelServices {
   String _getTaxonFirstThreeLetters() {
     try {
       List<String> splitAtSpace = value.split(' ');
-      if (splitAtSpace.length > 1) {
+      if (splitAtSpace.length > 1 && splitAtSpace[1].isNotEmpty) {
         String genus = splitAtSpace[0].substring(0, 1);
-        String species = splitAtSpace[1].substring(0, 3);
+         String species = splitAtSpace[1].length > 3
+            ? splitAtSpace[1].substring(0, 3)
+            : splitAtSpace[1];
         return '$genus. $species';
       } else {
-        return value.substring(0, 5);
+        return value.length > 5 ? value.substring(0, 5) : value;
       }
     } catch (e) {
-      return value.substring(0, 5);
+      return value.length > 5 ? value.substring(0, 5) : value;
     }
   }
 }

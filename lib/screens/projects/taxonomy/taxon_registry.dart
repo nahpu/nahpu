@@ -10,7 +10,6 @@ import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/projects/taxonomy/specimen_list.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/statistics/captures.dart';
 
 class TaxonRegistryViewer extends ConsumerStatefulWidget {
@@ -228,15 +227,10 @@ class RecordedTaxaViewState extends ConsumerState<RecordedTaxaView> {
               ? const SizedBox.shrink()
               : TextButton(
                   onPressed: () async {
-                    final data =
-                        await SpecimenServices(ref: ref).getAllSpecimens();
                     if (context.mounted) {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => SpecimenListPage(
-                            specimenData: data,
-                          ),
-                        ),
+                            builder: (context) => SpecimenListPage()),
                       );
                     }
                   },
@@ -380,7 +374,11 @@ class TaxonRegistryInfoContent extends StatelessWidget {
               ' You can add new taxa or import taxa from a file.',
         ),
         InfoContent(
-          content: 'For file input, input only UTF-8 encoded CSV files.',
+          content: 'For file input, preferred formats are .xlsx, .csv, and '
+              '.tsv. Delimiter follows extension (.csv = comma, .tsv = tab). '
+              'For other file types, NAHPU makes a best-effort parsing '
+              'attempt using auto detection and manual override options. '
+              'Best support is for .xlsx.',
         ),
         InfoContent(
           header: 'Term definitions',

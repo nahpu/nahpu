@@ -6,6 +6,7 @@ import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
 import 'package:nahpu/screens/settings/catalog_format.dart';
 import 'package:nahpu/screens/settings/collevent_settings.dart';
+import 'package:nahpu/screens/settings/site_settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/db_settings.dart';
 import 'package:nahpu/screens/shared/common.dart';
@@ -60,8 +61,20 @@ class CatalogSettings extends StatelessWidget {
       title: 'Catalogs',
       isDivided: true,
       children: [
-        CatalogFmtSection(selectedFmt: matchCatFmtToTaxonGroup(catalogFmt)),
+        CatalogFmtSection(selectedFmt: catalogFmt),
         const CollEventSection(),
+        CommonSettingTile(
+          title: 'Sites',
+          icon: Icons.place_outlined,
+          label: 'Edit habitat types and site metadata',
+          isNavigation: true,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SiteSelection(),
+            ),
+          ),
+        ),
         SpecimenSection(catalogFmt: catalogFmt),
       ],
     );
@@ -122,7 +135,7 @@ class DatabaseSettingSections extends StatelessWidget {
 class CatalogFmtSection extends StatelessWidget {
   const CatalogFmtSection({super.key, required this.selectedFmt});
 
-  final String selectedFmt;
+  final CatalogFmt selectedFmt;
 
   @override
   Widget build(BuildContext context) {
@@ -130,14 +143,12 @@ class CatalogFmtSection extends StatelessWidget {
         isNavigation: true,
         icon: MdiIcons.fileCabinet,
         title: 'Format',
-        value: selectedFmt,
+        value: matchCatFmtToTaxonGroup(selectedFmt),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CatalogFmtSelection(
-                selectedFmt: selectedFmt,
-              ),
+              builder: (context) => CatalogFmtSelection(),
             ),
           );
         });

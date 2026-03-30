@@ -6,8 +6,16 @@ enum PdfExportType { narrative, specimen }
 enum ExportFmt { csv, tsv }
 
 const List<String> supportedTaxonClass = [
-  'Aves',
   'Mammalia',
+  'Aves',
+  'Reptilia',
+  'Amphibia',
+  // Bony fishes
+  'Osteichthyes',
+  // Cartilaginous fishes
+  'Chondrichthyes',
+  // Jawless fishes
+  'Agnatha',
 ];
 
 const Map<PdfExportType, String> pdfExport = {
@@ -62,16 +70,19 @@ enum SpecimenRecordType {
   generalMammals,
   bats,
   allMammals,
+  herpetofauna,
 }
 
 enum TaxonRecordType {
   birds,
   mammals,
+  herps,
 }
 
 const List<String> taxonRecordTypeList = [
   'Birds',
   'Mammals',
+  'Herpetofauna',
 ];
 
 enum MammalRecordType {
@@ -216,6 +227,14 @@ const avianMeasurementExportList = [
   // Notes
   'specimenRemark',
   'habitatRemark',
+];
+
+const herpMeasurementExportList = [
+  'sex',
+  'age',
+  'weight',
+  'svl',
+  'remark',
 ];
 
 const narrativeExportList = [

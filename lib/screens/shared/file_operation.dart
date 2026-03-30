@@ -161,6 +161,7 @@ class SelectFileField extends StatelessWidget {
     required this.width,
     required this.maxWidth,
     this.supportedFormat,
+    this.formatLabel = 'Supported formats',
   });
 
   final XFile? filePath;
@@ -168,6 +169,7 @@ class SelectFileField extends StatelessWidget {
   final VoidCallback onCleared;
   final bool isLoading;
   final String? supportedFormat;
+  final String formatLabel;
   final double width;
   final double maxWidth;
 
@@ -206,7 +208,7 @@ class SelectFileField extends StatelessWidget {
                       : const SizedBox.shrink(),
                   supportedFormat != null
                       ? Text(
-                          'Supported formats:\n$supportedFormat',
+                          '$formatLabel:\n$supportedFormat',
                           style: Theme.of(context).textTheme.bodySmall,
                           textAlign: TextAlign.center,
                           overflow: TextOverflow.ellipsis,

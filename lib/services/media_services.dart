@@ -158,11 +158,27 @@ class MediaFinder extends AppServices {
     return mediaPaths;
   }
 
+  Future<List<File>> getAllPersonnelMediaByProject() async {
+    List<PersonnelData> personnelList =
+        await PersonnelServices(ref: ref).getPersonnelByProjectUuid(currentProjectUuid);
+    final List<File> mediaPaths = [];
+    for (final personnel in personnelList) {
+      if (personnel.photoPath != null &&
+          !personnel.photoPath!.startsWith(avatarPath)) {
+        final mediaPath = await getPathForPersonnel(
+            personnel.photoPath!, MediaCategory.personnel);
+        _checkPath(mediaPath);
+        mediaPaths.add(mediaPath);
+      }
+    }
+    return mediaPaths;
+  }  
+
   Future<List<File>> getAllMediaFileByProject() async {
     final List<MediaData> mediaData =
         await MediaServices(ref: ref).getAllMediaByProject();
     final mediaPaths = await _getAllPathForMedia(mediaData);
-    final personnelPaths = await getAllPersonnelMedia();
+    final personnelPaths = await getAllPersonnelMediaByProject();
     return mediaPaths + personnelPaths;
   }
 

@@ -3,30 +3,86 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/utility_services.dart';
 
+class DateEditingController extends TextEditingController {
+  DateTime? _dateTime;
+  String? _date;
+
+  DateEditingController({String? date})
+      : _date = date,
+        _dateTime = dateStdToDateTime(date),
+        super(text: dateStdToDateDisplay(date));
+
+  String? get date => _date;
+  DateTime? get dateTime => _dateTime;
+
+  set dateTime(DateTime? newDate) {
+    _dateTime = newDate;
+    _date = dateTimeToDateStd(newDate);
+    text = dateTimeToDateDisplay(_dateTime);
+  }
+
+  set date(String? newDate) {
+    _date = newDate;
+    _dateTime = dateStdToDateTime(newDate);
+    text = dateTimeToDateDisplay(_dateTime);
+  }
+}
+
+class TimeEditingController extends TextEditingController {
+  TimeOfDay? _timeOfDay;
+  String? _time;
+
+  TimeEditingController({String? time})
+      : _time = time,
+        _timeOfDay = timeStdToTimeOfDay(time),
+        super(text: timeStdToTimeDisplay(time));
+
+  String? get time => _time;
+  TimeOfDay? get timeOfDay => _timeOfDay;
+
+  set timeOfDay(TimeOfDay? newTime) {
+    _timeOfDay = newTime;
+    _time = timeOfDayToTimeStd(newTime);
+    text = timeOfDayToTimeDisplay(_timeOfDay);
+  }
+
+  set time(String? newTime) {
+    _time = newTime;
+    _timeOfDay = timeStdToTimeOfDay(newTime);
+    text = timeOfDayToTimeDisplay(_timeOfDay);
+  }
+}
+
 class ProjectFormCtrModel {
   ProjectFormCtrModel({
     required this.projectNameCtr,
     required this.descriptionCtr,
     required this.pICtr,
     required this.locationCtr,
+    required this.timeZoneCtr,
     required this.startDateCtr,
     required this.endDateCtr,
+    required this.createdCtr,
   });
 
   TextEditingController projectNameCtr;
   TextEditingController descriptionCtr;
   TextEditingController pICtr;
   TextEditingController locationCtr;
-  TextEditingController startDateCtr;
-  TextEditingController endDateCtr;
+  TextEditingController timeZoneCtr;
+  DateEditingController startDateCtr;
+  DateEditingController endDateCtr;
+  String? createdCtr;
 
   factory ProjectFormCtrModel.empty() => ProjectFormCtrModel(
         projectNameCtr: TextEditingController(),
         descriptionCtr: TextEditingController(),
         pICtr: TextEditingController(),
         locationCtr: TextEditingController(),
-        startDateCtr: TextEditingController(),
-        endDateCtr: TextEditingController(),
+        timeZoneCtr: TextEditingController(),
+        startDateCtr: DateEditingController(),
+        endDateCtr: DateEditingController(),
+        createdCtr: null,
       );
 
   factory ProjectFormCtrModel.fromData(ProjectData? data) =>
@@ -35,8 +91,10 @@ class ProjectFormCtrModel {
         descriptionCtr: TextEditingController(text: data?.description ?? ''),
         pICtr: TextEditingController(text: data?.principalInvestigator ?? ''),
         locationCtr: TextEditingController(text: data?.location ?? ''),
-        startDateCtr: TextEditingController(text: data?.startDate ?? ''),
-        endDateCtr: TextEditingController(text: data?.endDate ?? ''),
+        timeZoneCtr: TextEditingController(text: data?.timeZone),
+        startDateCtr: DateEditingController(date: data?.startDate),
+        endDateCtr: DateEditingController(date: data?.endDate),
+        createdCtr: data?.created,
       );
 
   void updateData(ProjectData data) {
@@ -44,8 +102,10 @@ class ProjectFormCtrModel {
     descriptionCtr.text = data.description ?? '';
     pICtr.text = data.principalInvestigator ?? '';
     locationCtr.text = data.location ?? '';
-    startDateCtr.text = data.startDate ?? '';
-    endDateCtr.text = data.endDate ?? '';
+    timeZoneCtr.text = data.timeZone ?? '';
+    startDateCtr.date = data.startDate ?? '';
+    endDateCtr.date = data.endDate ?? '';
+    createdCtr = data.created ?? '';
   }
 
   void dispose() {
@@ -53,6 +113,7 @@ class ProjectFormCtrModel {
     descriptionCtr.dispose();
     pICtr.dispose();
     locationCtr.dispose();
+    timeZoneCtr.dispose();
     startDateCtr.dispose();
     endDateCtr.dispose();
   }
@@ -145,20 +206,20 @@ class CollEventFormCtrModel {
 
   int? siteIDCtr;
   TextEditingController idSuffixCtr;
-  TextEditingController startDateCtr;
-  TextEditingController endDateCtr;
-  TextEditingController startTimeCtr;
-  TextEditingController endTimeCtr;
+  DateEditingController startDateCtr;
+  DateEditingController endDateCtr;
+  TimeEditingController startTimeCtr;
+  TimeEditingController endTimeCtr;
   String? primaryCollMethodCtr;
   TextEditingController noteCtr;
 
   factory CollEventFormCtrModel.empty() => CollEventFormCtrModel(
         siteIDCtr: null,
         idSuffixCtr: TextEditingController(),
-        startDateCtr: TextEditingController(),
-        endDateCtr: TextEditingController(),
-        startTimeCtr: TextEditingController(),
-        endTimeCtr: TextEditingController(),
+        startDateCtr: DateEditingController(),
+        endDateCtr: DateEditingController(),
+        startTimeCtr: TimeEditingController(),
+        endTimeCtr: TimeEditingController(),
         primaryCollMethodCtr: null,
         noteCtr: TextEditingController(),
       );
@@ -167,10 +228,10 @@ class CollEventFormCtrModel {
       CollEventFormCtrModel(
         siteIDCtr: collEvent.siteID,
         idSuffixCtr: TextEditingController(text: collEvent.idSuffix),
-        startDateCtr: TextEditingController(text: collEvent.startDate),
-        endDateCtr: TextEditingController(text: collEvent.endDate),
-        startTimeCtr: TextEditingController(text: collEvent.startTime),
-        endTimeCtr: TextEditingController(text: collEvent.endTime),
+        startDateCtr: DateEditingController(date: collEvent.startDate),
+        endDateCtr: DateEditingController(date: collEvent.endDate),
+        startTimeCtr: TimeEditingController(time: collEvent.startTime),
+        endTimeCtr: TimeEditingController(time: collEvent.endTime),
         primaryCollMethodCtr: collEvent.primaryCollMethod,
         noteCtr: TextEditingController(text: collEvent.collMethodNotes),
       );
@@ -188,20 +249,27 @@ class CollEventFormCtrModel {
 class NarrativeFormCtrModel {
   NarrativeFormCtrModel({
     required this.dateCtr,
+    required this.timeCtr,
     required this.siteCtr,
+    required this.writerCtr,
     required this.narrativeCtr,
   });
-  TextEditingController dateCtr;
+  DateEditingController dateCtr;
+  TimeEditingController timeCtr;
   int? siteCtr;
+  String? writerCtr;
   TextEditingController narrativeCtr;
 
   factory NarrativeFormCtrModel.empty() => NarrativeFormCtrModel(
-      dateCtr: TextEditingController(),
+      dateCtr: DateEditingController(),
+      timeCtr: TimeEditingController(),
       siteCtr: null,
+      writerCtr: null,
       narrativeCtr: TextEditingController());
 
   void dispose() {
     dateCtr.dispose();
+    timeCtr.dispose();
     narrativeCtr.dispose();
   }
 }
@@ -213,7 +281,8 @@ class SpecimenFormCtrModel {
     required this.idMethodCtr,
     required this.catalogerCtr,
     required this.museumIDCtr,
-    required this.fieldNumberCtr,
+    required this.persFieldNumberCtr,
+    required this.projFieldNumberCtr,
     required this.collEventIDCtr,
     required this.multipleCollectorCtr,
     required this.collPersonnelCtr,
@@ -224,9 +293,11 @@ class SpecimenFormCtrModel {
     required this.conditionCtr,
     required this.prepDateCtr,
     required this.prepTimeCtr,
+    required this.collDateCtr,
     required this.collTimeCtr,
     required this.captureDateCtr,
     required this.captureTimeCtr,
+    required this.relativeCaptureTimeCtr,
     required this.trapTypeCtr,
     required this.methodIDCtr,
   });
@@ -244,12 +315,15 @@ class SpecimenFormCtrModel {
   int? coordinateCtr;
   TextEditingController idMethodCtr;
   TextEditingController museumIDCtr;
-  TextEditingController fieldNumberCtr;
-  TextEditingController prepDateCtr;
-  TextEditingController prepTimeCtr;
-  TextEditingController collTimeCtr;
-  TextEditingController captureDateCtr;
-  TextEditingController captureTimeCtr;
+  TextEditingController persFieldNumberCtr;
+  TextEditingController projFieldNumberCtr;
+  DateEditingController prepDateCtr;
+  TimeEditingController prepTimeCtr;
+  DateEditingController collDateCtr;
+  TimeEditingController collTimeCtr;
+  DateEditingController captureDateCtr;
+  TimeEditingController captureTimeCtr;
+  TextEditingController relativeCaptureTimeCtr;
   TextEditingController trapTypeCtr;
   TextEditingController methodIDCtr;
 
@@ -263,16 +337,19 @@ class SpecimenFormCtrModel {
         relativeTimeCtr: null,
         collMethodCtr: null,
         coordinateCtr: null,
-        fieldNumberCtr: TextEditingController(),
+        persFieldNumberCtr: TextEditingController(),
+        projFieldNumberCtr: TextEditingController(),
         speciesCtr: null,
         idConfidenceCtr: null,
         idMethodCtr: TextEditingController(),
         museumIDCtr: TextEditingController(),
-        prepDateCtr: TextEditingController(),
-        prepTimeCtr: TextEditingController(),
-        collTimeCtr: TextEditingController(),
-        captureDateCtr: TextEditingController(),
-        captureTimeCtr: TextEditingController(),
+        prepDateCtr: DateEditingController(),
+        prepTimeCtr: TimeEditingController(),
+        collDateCtr: DateEditingController(),
+        collTimeCtr: TimeEditingController(),
+        captureDateCtr: DateEditingController(),
+        captureTimeCtr: TimeEditingController(),
+        relativeCaptureTimeCtr: TextEditingController(),
         trapTypeCtr: TextEditingController(),
         methodIDCtr: TextEditingController(),
       );
@@ -291,14 +368,19 @@ class SpecimenFormCtrModel {
         idConfidenceCtr: specimen.iDConfidence,
         idMethodCtr: TextEditingController(text: specimen.iDMethod ?? ''),
         museumIDCtr: TextEditingController(text: specimen.museumID ?? ''),
-        fieldNumberCtr:
+        persFieldNumberCtr:
             TextEditingController(text: specimen.fieldNumber?.toString() ?? ''),
+        projFieldNumberCtr: TextEditingController(
+            text: specimen.projectFieldNumber?.toString() ?? ''),
         speciesCtr: specimen.speciesID,
-        prepDateCtr: TextEditingController(text: specimen.prepDate),
-        prepTimeCtr: TextEditingController(text: specimen.prepTime),
-        collTimeCtr: TextEditingController(text: specimen.collectionTime),
-        captureDateCtr: TextEditingController(text: specimen.captureDate),
-        captureTimeCtr: TextEditingController(text: specimen.captureTime),
+        prepDateCtr: DateEditingController(date: specimen.prepDate),
+        prepTimeCtr: TimeEditingController(time: specimen.prepTime),
+        collDateCtr: DateEditingController(date: specimen.collectionDate),
+        collTimeCtr: TimeEditingController(time: specimen.collectionTime),
+        captureDateCtr: DateEditingController(date: specimen.captureDate),
+        captureTimeCtr: TimeEditingController(time: specimen.captureTime),
+        relativeCaptureTimeCtr:
+            TextEditingController(text: specimen.relativeCaptureTime),
         trapTypeCtr: TextEditingController(text: specimen.trapType),
         methodIDCtr: TextEditingController(text: specimen.methodID ?? ''),
         // ..selection =
@@ -308,9 +390,11 @@ class SpecimenFormCtrModel {
   void dispose() {
     museumIDCtr.dispose();
     idMethodCtr.dispose();
-    fieldNumberCtr.dispose();
+    persFieldNumberCtr.dispose();
+    projFieldNumberCtr.dispose();
     prepDateCtr.dispose();
     prepTimeCtr.dispose();
+    collDateCtr.dispose();
     collTimeCtr.dispose();
     captureDateCtr.dispose();
     captureTimeCtr.dispose();
@@ -320,11 +404,19 @@ class SpecimenFormCtrModel {
 
 class MammalMeasurementCtrModel {
   MammalMeasurementCtrModel({
+    required this.showBatFieldsCtr,
     required this.totalLengthCtr,
     required this.tailLengthCtr,
     required this.hindFootCtr,
     required this.earCtr,
     required this.forearmCtr,
+    required this.tibiaCtr,
+    required this.showEchoFieldsCtr,
+    required this.echolocationCtr,
+    required this.frequencyMaxCtr,
+    required this.frequencyMinCtr,
+    required this.frequencyAtMaxEnergyCtr,
+    required this.durationCtr,
     required this.weightCtr,
     required this.accuracyCtr,
     required this.sexCtr,
@@ -348,11 +440,19 @@ class MammalMeasurementCtrModel {
     required this.remarksCtr,
   });
 
+  bool? showBatFieldsCtr;
   TextEditingController totalLengthCtr;
   TextEditingController tailLengthCtr;
   TextEditingController hindFootCtr;
   TextEditingController earCtr;
   TextEditingController forearmCtr;
+  TextEditingController tibiaCtr;
+  bool? showEchoFieldsCtr;
+  int? echolocationCtr;
+  TextEditingController frequencyMaxCtr;
+  TextEditingController frequencyMinCtr;
+  TextEditingController frequencyAtMaxEnergyCtr;
+  TextEditingController durationCtr;
   TextEditingController weightCtr;
   String? accuracyCtr;
   int? sexCtr;
@@ -376,11 +476,19 @@ class MammalMeasurementCtrModel {
   TextEditingController remarksCtr;
 
   factory MammalMeasurementCtrModel.empty() => MammalMeasurementCtrModel(
+      showBatFieldsCtr: null,
       totalLengthCtr: TextEditingController(),
       tailLengthCtr: TextEditingController(),
       hindFootCtr: TextEditingController(),
       earCtr: TextEditingController(),
       forearmCtr: TextEditingController(),
+      tibiaCtr: TextEditingController(),
+      showEchoFieldsCtr: null,
+      echolocationCtr: null,
+      frequencyMaxCtr: TextEditingController(),
+      frequencyMinCtr: TextEditingController(),
+      frequencyAtMaxEnergyCtr: TextEditingController(),
+      durationCtr: TextEditingController(),
       weightCtr: TextEditingController(),
       accuracyCtr: null,
       sexCtr: null,
@@ -405,6 +513,7 @@ class MammalMeasurementCtrModel {
 
   factory MammalMeasurementCtrModel.fromData(MammalMeasurementData data) =>
       MammalMeasurementCtrModel(
+        showBatFieldsCtr: data.showBatFields == 1,
         totalLengthCtr:
             TextEditingController(text: data.totalLength?.truncateZero() ?? ''),
         tailLengthCtr:
@@ -415,6 +524,17 @@ class MammalMeasurementCtrModel {
             TextEditingController(text: data.earLength?.truncateZero() ?? ''),
         forearmCtr:
             TextEditingController(text: data.forearm?.truncateZero() ?? ''),
+        tibiaCtr: TextEditingController(text: data.tibia?.truncateZero() ?? ''),
+        showEchoFieldsCtr: data.showEchoFields == 1,
+        echolocationCtr: data.echolocation,
+        frequencyMaxCtr: TextEditingController(
+            text: data.frequencyMax?.truncateZero() ?? ''),
+        frequencyMinCtr: TextEditingController(
+            text: data.frequencyMin?.truncateZero() ?? ''),
+        frequencyAtMaxEnergyCtr: TextEditingController(
+            text: data.frequencyAtMaxEnergy?.truncateZero() ?? ''),
+        durationCtr:
+            TextEditingController(text: data.duration?.truncateZero() ?? ''),
         weightCtr:
             TextEditingController(text: data.weight?.truncateZero() ?? ''),
         accuracyCtr: data.accuracy?.toString(),
@@ -658,6 +778,46 @@ class AvianMeasurementCtrModel {
   }
 }
 
+class HerpMeasurementCtrModel {
+  HerpMeasurementCtrModel({
+    required this.sexCtr,
+    required this.ageCtr,
+    required this.weightCtr,
+    required this.svlCtr,
+    required this.remarkCtr,
+  });
+
+  int? sexCtr;
+  int? ageCtr;
+  TextEditingController weightCtr;
+  TextEditingController svlCtr;
+  TextEditingController remarkCtr;
+
+  factory HerpMeasurementCtrModel.empty() => HerpMeasurementCtrModel(
+        sexCtr: null,
+        ageCtr: null,
+        weightCtr: TextEditingController(),
+        svlCtr: TextEditingController(),
+        remarkCtr: TextEditingController(),
+      );
+
+  factory HerpMeasurementCtrModel.fromData(HerpMeasurementData data) =>
+      HerpMeasurementCtrModel(
+        sexCtr: data.sex,
+        ageCtr: data.age,
+        weightCtr:
+            TextEditingController(text: data.weight?.truncateZero() ?? ''),
+        svlCtr: TextEditingController(text: data.svl?.truncateZero() ?? ''),
+        remarkCtr: TextEditingController(text: data.remark ?? ''),
+      );
+
+  void dispose() {
+    weightCtr.dispose();
+    svlCtr.dispose();
+    remarkCtr.dispose();
+  }
+}
+
 class PartFormCtrModel {
   PartFormCtrModel({
     required this.tissueIdCtr,
@@ -682,8 +842,8 @@ class PartFormCtrModel {
   TextEditingController countCtr;
   TextEditingController treatmentCtr;
   TextEditingController additionalTreatmentCtr;
-  TextEditingController dateTakenCtr;
-  TextEditingController timeTakenCtr;
+  DateEditingController dateTakenCtr;
+  TimeEditingController timeTakenCtr;
   TextEditingController pmiCtr;
   TextEditingController museumPermanentCtr;
   TextEditingController museumLoanCtr;
@@ -697,8 +857,8 @@ class PartFormCtrModel {
         countCtr: TextEditingController(),
         treatmentCtr: TextEditingController(),
         additionalTreatmentCtr: TextEditingController(),
-        dateTakenCtr: TextEditingController(),
-        timeTakenCtr: TextEditingController(),
+        dateTakenCtr: DateEditingController(),
+        timeTakenCtr: TimeEditingController(),
         pmiCtr: TextEditingController(),
         museumPermanentCtr: TextEditingController(),
         museumLoanCtr: TextEditingController(),
@@ -714,8 +874,8 @@ class PartFormCtrModel {
         treatmentCtr: TextEditingController(text: data.treatment ?? ''),
         additionalTreatmentCtr:
             TextEditingController(text: data.additionalTreatment ?? ''),
-        dateTakenCtr: TextEditingController(text: data.dateTaken ?? ''),
-        timeTakenCtr: TextEditingController(text: data.timeTaken ?? ''),
+        dateTakenCtr: DateEditingController(date: data.dateTaken ?? ''),
+        timeTakenCtr: TimeEditingController(time: data.timeTaken ?? ''),
         pmiCtr: TextEditingController(text: data.pmi ?? ''),
         museumPermanentCtr:
             TextEditingController(text: data.museumPermanent ?? ''),
@@ -750,6 +910,7 @@ class PersonnelFormCtrModel {
     required this.collectorNumCtr,
     required this.photoPathCtr,
     required this.noteCtr,
+    required this.isRegisterField,
   });
 
   TextEditingController nameCtr;
@@ -761,17 +922,20 @@ class PersonnelFormCtrModel {
   TextEditingController phoneCtr;
   TextEditingController photoPathCtr;
   TextEditingController noteCtr;
+  bool isRegisterField;
 
   factory PersonnelFormCtrModel.empty() => PersonnelFormCtrModel(
-      nameCtr: TextEditingController(),
-      initialCtr: TextEditingController(),
-      emailCtr: TextEditingController(),
-      phoneCtr: TextEditingController(),
-      affiliationCtr: TextEditingController(),
-      roleCtr: null,
-      collectorNumCtr: TextEditingController(),
-      photoPathCtr: TextEditingController(),
-      noteCtr: TextEditingController());
+        nameCtr: TextEditingController(),
+        initialCtr: TextEditingController(),
+        emailCtr: TextEditingController(),
+        phoneCtr: TextEditingController(),
+        affiliationCtr: TextEditingController(),
+        roleCtr: null,
+        collectorNumCtr: TextEditingController(),
+        photoPathCtr: TextEditingController(),
+        noteCtr: TextEditingController(),
+        isRegisterField: true,
+      );
 
   factory PersonnelFormCtrModel.fromData(PersonnelData personnel) =>
       PersonnelFormCtrModel(
@@ -785,6 +949,7 @@ class PersonnelFormCtrModel {
             text: personnel.currentFieldNumber?.toString() ?? ''),
         photoPathCtr: TextEditingController(text: personnel.photoPath),
         noteCtr: TextEditingController(text: personnel.notes),
+        isRegisterField: personnel.isRegisterField,
       );
 
   void dispose() {
@@ -1157,14 +1322,14 @@ class AssociatedDataCtr {
   final TextEditingController nameCtr;
   String? typeCtr;
   final TextEditingController descriptionCtr;
-  final TextEditingController dateCtr;
+  final DateEditingController dateCtr;
   final TextEditingController urlCtr;
 
   factory AssociatedDataCtr.empty() => AssociatedDataCtr(
         nameCtr: TextEditingController(),
         typeCtr: null,
         descriptionCtr: TextEditingController(),
-        dateCtr: TextEditingController(),
+        dateCtr: DateEditingController(),
         urlCtr: TextEditingController(),
       );
 
@@ -1173,7 +1338,7 @@ class AssociatedDataCtr {
         nameCtr: TextEditingController(text: data.name ?? ''),
         typeCtr: data.type,
         descriptionCtr: TextEditingController(text: data.description ?? ''),
-        dateCtr: TextEditingController(text: data.date ?? ''),
+        dateCtr: DateEditingController(date: data.date ?? ''),
         urlCtr: TextEditingController(text: data.url ?? ''),
       );
 

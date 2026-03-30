@@ -4,7 +4,7 @@ const List<String> defaultCollMethods = [
   'Pitfall',
 ];
 
-const List<String> defaultCollPersonnelRoles = [
+const List<String> defaultCollRoles = [
   'Leader',
   'Helper',
 ];

@@ -199,9 +199,26 @@ class NarrativePages extends StatelessWidget {
 
   NarrativeFormCtrModel _updateController(
       List<NarrativeData> narrativeEntries, int index) {
+    // Prefer the separate `time` column if present; otherwise try
+    // to parse a time from the existing date string for backwards
+    // compatibility with old data.
+    String? timeStd = narrativeEntries[index].time;
+    if ((timeStd == null || timeStd.isEmpty) && narrativeEntries[index].date != null) {
+      final storedDate = narrativeEntries[index].date!;
+      final parsed = DateTime.tryParse(storedDate);
+      if (parsed != null) {
+        final hh = parsed.hour.toString().padLeft(2, '0');
+        final mm = parsed.minute.toString().padLeft(2, '0');
+        final ss = parsed.second.toString().padLeft(2, '0');
+        timeStd = '$hh:$mm:$ss';
+      }
+    }
+
     return NarrativeFormCtrModel(
-      dateCtr: TextEditingController(text: narrativeEntries[index].date),
+      dateCtr: DateEditingController(date: narrativeEntries[index].date),
+      timeCtr: TimeEditingController(time: timeStd),
       siteCtr: narrativeEntries[index].siteID,
+      writerCtr: narrativeEntries[index].writerId,
       narrativeCtr:
           TextEditingController(text: narrativeEntries[index].narrative),
     );

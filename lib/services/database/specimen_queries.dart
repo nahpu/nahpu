@@ -26,6 +26,12 @@ class SpecimenQuery extends DatabaseAccessor<Database>
         .get();
   }
 
+  Future<List<String>> getColumnNames() async {
+    List<String> columnNames =
+        db.specimen.$columns.map((e) => e.$name).toList();
+    return columnNames;
+  }
+
   Future<List<String>> getAllSpecimenUuids(String projectUuid) {
     return (select(specimen, distinct: true)
           ..where((t) => t.projectUuid.equals(projectUuid)))
@@ -205,6 +211,34 @@ class AvianSpecimenQuery extends DatabaseAccessor<Database>
   }
 }
 
+class HerpSpecimenQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  HerpSpecimenQuery(super.db);
+
+  Future<int> createHerpMeasurements(HerpMeasurementCompanion form) =>
+      into(herpMeasurement).insert(form);
+
+  Future updateHerpMeasurements(
+      String specimenUuid, HerpMeasurementCompanion entry) {
+    return (update(herpMeasurement)
+          ..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .write(entry);
+  }
+
+  Future<HerpMeasurementData> getHerpMeasurementByUuid(
+      String specimenUuid) async {
+    return await (select(herpMeasurement)
+          ..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .getSingle();
+  }
+
+  Future<void> deleteHerpMeasurements(String specimenUuid) {
+    return (delete(herpMeasurement)
+          ..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .go();
+  }
+}
+
 class SpecimenPartQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   SpecimenPartQuery(super.db);
@@ -293,6 +327,10 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
 
   Future<void> deleteSpecimenPart(int partId) {
     return (delete(specimenPart)..where((t) => t.id.equals(partId))).go();
+  }
+
+  Future<void> deleteSpecimenPartsFromList(List<int> partIds) {
+    return (delete(specimenPart)..where((t) => t.id.isIn(partIds))).go();
   }
 
   Future<void> deleteAllSpecimenParts(String specimenUuid) {

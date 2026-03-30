@@ -75,4 +75,13 @@ class NarrativeQuery extends DatabaseAccessor<Database>
     return (delete(narrative)..where((t) => t.projectUuid.equals(projectUuid)))
         .go();
   }
+
+  /// Update only the writerId for a narrative using Drift's update API.
+  Future<void> updateNarrativeWriter(int id, String? writerUuid) {
+    return (update(narrative)..where((t) => t.id.equals(id))).write(
+      NarrativeCompanion(
+        writerId: writerUuid == null ? const Value.absent() : Value(writerUuid),
+      ),
+    );
+  }
 }

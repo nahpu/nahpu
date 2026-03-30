@@ -6,7 +6,8 @@ import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
-import 'package:nahpu/services/types/mammals.dart';
+import 'package:nahpu/services/types/mammals.dart' as mammal_type;
+import 'package:nahpu/services/types/herps.dart' as herp_type;
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -243,21 +244,22 @@ class SpecimenPdfWriter extends PdfServices {
       String specimenUuid, String taxonGroup) async {
     CatalogFmt group = matchTaxonGroupToCatFmt(taxonGroup);
     switch (group) {
-      case CatalogFmt.generalMammals:
-        return _getMammalMeasurements(specimenUuid, false);
-      case CatalogFmt.bats:
-        return _getMammalMeasurements(specimenUuid, true);
+      case CatalogFmt.mammals:
+        return _getMammalMeasurements(specimenUuid, taxonGroup);
       case CatalogFmt.birds:
         return _getAvianMeasurements(specimenUuid);
+      case CatalogFmt.herpetofauna:
+        return _getHerpMeasurements(specimenUuid);
     }
   }
 
   Future<pw.Widget> _getMammalMeasurements(
-      String specimenUuid, bool isBat) async {
+      String specimenUuid, String taxonGroup) async {
     MammalMeasurementData measurements =
         await SpecimenServices(ref: ref).getMammalMeasurementData(specimenUuid);
-    String specimenAge =
-        measurements.age != null ? specimenAgeList[measurements.age!] : '';
+    String specimenAge = measurements.age != null
+        ? mammal_type.specimenAgeList[measurements.age!]
+        : '';
     SpecimenSex? sexEnum = getSpecimenSex(measurements.sex);
     String specimenSex =
         measurements.sex != null ? specimenSexList[measurements.sex!] : '';
@@ -280,7 +282,7 @@ class SpecimenPdfWriter extends PdfServices {
                   'Hind foot length: ${measurements.hindFootLength?.truncateZero() ?? '?'} mm'),
               textContent(
                   'Ear length: ${measurements.earLength?.truncateZero() ?? '?'} mm'),
-              isBat
+              taxonGroup == "Bats"
                   ? textContent(
                       'Forearm length: ${measurements.forearm?.truncateZero() ?? '?'} mm')
                   : pw.SizedBox.shrink(),
@@ -318,7 +320,7 @@ class SpecimenPdfWriter extends PdfServices {
 
   pw.Widget _generateMaleMammalData(MammalMeasurementData records) {
     String testisPos = records.testisPosition != null
-        ? testisPositionList[records.testisPosition!]
+        ? mammal_type.testisPositionList[records.testisPosition!]
         : '';
     String testisLength = records.testisLength != null
         ? '${records.testisLength?.truncateZero()} mm'
@@ -339,10 +341,10 @@ class SpecimenPdfWriter extends PdfServices {
 
   pw.Widget _generateFemaleMammalData(MammalMeasurementData records) {
     String vaginaOpening = records.vaginaOpening != null
-        ? vaginaOpeningList[records.vaginaOpening!]
+        ? mammal_type.vaginaOpeningList[records.vaginaOpening!]
         : '';
     String mammaeCondition = records.mammaeCondition != null
-        ? mammaeConditionList[records.mammaeCondition!]
+        ? mammal_type.mammaeConditionList[records.mammaeCondition!]
         : '';
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -382,6 +384,40 @@ class SpecimenPdfWriter extends PdfServices {
               pw.SizedBox(height: 10),
               textContent('Weight: ${measurements.weight ?? '?'} grams'),
               textContent('Wingspan: ${measurements.wingspan ?? '?'} mm'),
+            ],
+          )
+        ],
+      ),
+    ]);
+  }
+
+  Future<pw.Widget> _getHerpMeasurements(String specimenUuid) async {
+    HerpMeasurementData measurements =
+        await SpecimenServices(ref: ref).getHerpMeasurementData(specimenUuid);
+    String specimenAge = measurements.age != null
+        ? herp_type.specimenAgeList[measurements.age!]
+        : '';
+    String specimenSex =
+        measurements.sex != null ? specimenSexList[measurements.sex!] : '';
+    return pw.Column(children: [
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.start,
+        children: [
+          pw.Column(
+            mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              titleText('Measurements'),
+              pw.SizedBox(height: 10),
+              textContent('Sex: $specimenSex'),
+              textContent('Age: $specimenAge'),
+              pw.SizedBox(height: 6),
+              textContent(
+                  'Weight: ${measurements.weight?.truncateZero() ?? '?'} grams'),
+              textContent('SVL: ${measurements.svl?.truncateZero() ?? '?'} cm'),
+              pw.SizedBox(height: 6),
+              textContent('Remark:'),
+              textContent(measurements.remark ?? ''),
             ],
           )
         ],

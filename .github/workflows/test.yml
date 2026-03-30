@@ -1,6 +1,11 @@
 name: Nahpu-Tests
 
-on: push
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+      - dev
 
 jobs:
   check:

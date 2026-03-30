@@ -41,6 +41,13 @@ class Project extends Table with TableInfo<Project, ProjectData> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _timeZoneMeta =
+      const VerificationMeta('timeZone');
+  late final GeneratedColumn<String> timeZone = GeneratedColumn<String>(
+      'timeZone', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   static const VerificationMeta _startDateMeta =
       const VerificationMeta('startDate');
   late final GeneratedColumn<String> startDate = GeneratedColumn<String>(
@@ -76,6 +83,7 @@ class Project extends Table with TableInfo<Project, ProjectData> {
         description,
         principalInvestigator,
         location,
+        timeZone,
         startDate,
         endDate,
         created,
@@ -119,6 +127,10 @@ class Project extends Table with TableInfo<Project, ProjectData> {
       context.handle(_locationMeta,
           location.isAcceptableOrUnknown(data['location']!, _locationMeta));
     }
+    if (data.containsKey('timeZone')) {
+      context.handle(_timeZoneMeta,
+          timeZone.isAcceptableOrUnknown(data['timeZone']!, _timeZoneMeta));
+    }
     if (data.containsKey('startDate')) {
       context.handle(_startDateMeta,
           startDate.isAcceptableOrUnknown(data['startDate']!, _startDateMeta));
@@ -156,6 +168,8 @@ class Project extends Table with TableInfo<Project, ProjectData> {
           DriftSqlType.string, data['${effectivePrefix}principalInvestigator']),
       location: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}location']),
+      timeZone: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}timeZone']),
       startDate: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}startDate']),
       endDate: attachedDatabase.typeMapping
@@ -182,6 +196,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   final String? description;
   final String? principalInvestigator;
   final String? location;
+  final String? timeZone;
   final String? startDate;
   final String? endDate;
   final String? created;
@@ -192,6 +207,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       this.description,
       this.principalInvestigator,
       this.location,
+      this.timeZone,
       this.startDate,
       this.endDate,
       this.created,
@@ -209,6 +225,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     }
     if (!nullToAbsent || location != null) {
       map['location'] = Variable<String>(location);
+    }
+    if (!nullToAbsent || timeZone != null) {
+      map['timeZone'] = Variable<String>(timeZone);
     }
     if (!nullToAbsent || startDate != null) {
       map['startDate'] = Variable<String>(startDate);
@@ -238,6 +257,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       location: location == null && nullToAbsent
           ? const Value.absent()
           : Value(location),
+      timeZone: timeZone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(timeZone),
       startDate: startDate == null && nullToAbsent
           ? const Value.absent()
           : Value(startDate),
@@ -263,6 +285,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       principalInvestigator:
           serializer.fromJson<String?>(json['principalInvestigator']),
       location: serializer.fromJson<String?>(json['location']),
+      timeZone: serializer.fromJson<String?>(json['timeZone']),
       startDate: serializer.fromJson<String?>(json['startDate']),
       endDate: serializer.fromJson<String?>(json['endDate']),
       created: serializer.fromJson<String?>(json['created']),
@@ -279,6 +302,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       'principalInvestigator':
           serializer.toJson<String?>(principalInvestigator),
       'location': serializer.toJson<String?>(location),
+      'timeZone': serializer.toJson<String?>(timeZone),
       'startDate': serializer.toJson<String?>(startDate),
       'endDate': serializer.toJson<String?>(endDate),
       'created': serializer.toJson<String?>(created),
@@ -292,6 +316,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
           Value<String?> description = const Value.absent(),
           Value<String?> principalInvestigator = const Value.absent(),
           Value<String?> location = const Value.absent(),
+          Value<String?> timeZone = const Value.absent(),
           Value<String?> startDate = const Value.absent(),
           Value<String?> endDate = const Value.absent(),
           Value<String?> created = const Value.absent(),
@@ -304,6 +329,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
             ? principalInvestigator.value
             : this.principalInvestigator,
         location: location.present ? location.value : this.location,
+        timeZone: timeZone.present ? timeZone.value : this.timeZone,
         startDate: startDate.present ? startDate.value : this.startDate,
         endDate: endDate.present ? endDate.value : this.endDate,
         created: created.present ? created.value : this.created,
@@ -320,6 +346,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
           ? data.principalInvestigator.value
           : this.principalInvestigator,
       location: data.location.present ? data.location.value : this.location,
+      timeZone: data.timeZone.present ? data.timeZone.value : this.timeZone,
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
       created: data.created.present ? data.created.value : this.created,
@@ -337,6 +364,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
           ..write('description: $description, ')
           ..write('principalInvestigator: $principalInvestigator, ')
           ..write('location: $location, ')
+          ..write('timeZone: $timeZone, ')
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('created: $created, ')
@@ -352,6 +380,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       description,
       principalInvestigator,
       location,
+      timeZone,
       startDate,
       endDate,
       created,
@@ -365,6 +394,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
           other.description == this.description &&
           other.principalInvestigator == this.principalInvestigator &&
           other.location == this.location &&
+          other.timeZone == this.timeZone &&
           other.startDate == this.startDate &&
           other.endDate == this.endDate &&
           other.created == this.created &&
@@ -377,6 +407,7 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   final Value<String?> description;
   final Value<String?> principalInvestigator;
   final Value<String?> location;
+  final Value<String?> timeZone;
   final Value<String?> startDate;
   final Value<String?> endDate;
   final Value<String?> created;
@@ -388,6 +419,7 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
     this.description = const Value.absent(),
     this.principalInvestigator = const Value.absent(),
     this.location = const Value.absent(),
+    this.timeZone = const Value.absent(),
     this.startDate = const Value.absent(),
     this.endDate = const Value.absent(),
     this.created = const Value.absent(),
@@ -400,6 +432,7 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
     this.description = const Value.absent(),
     this.principalInvestigator = const Value.absent(),
     this.location = const Value.absent(),
+    this.timeZone = const Value.absent(),
     this.startDate = const Value.absent(),
     this.endDate = const Value.absent(),
     this.created = const Value.absent(),
@@ -413,6 +446,7 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
     Expression<String>? description,
     Expression<String>? principalInvestigator,
     Expression<String>? location,
+    Expression<String>? timeZone,
     Expression<String>? startDate,
     Expression<String>? endDate,
     Expression<String>? created,
@@ -426,6 +460,7 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
       if (principalInvestigator != null)
         'principalInvestigator': principalInvestigator,
       if (location != null) 'location': location,
+      if (timeZone != null) 'timeZone': timeZone,
       if (startDate != null) 'startDate': startDate,
       if (endDate != null) 'endDate': endDate,
       if (created != null) 'created': created,
@@ -440,6 +475,7 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
       Value<String?>? description,
       Value<String?>? principalInvestigator,
       Value<String?>? location,
+      Value<String?>? timeZone,
       Value<String?>? startDate,
       Value<String?>? endDate,
       Value<String?>? created,
@@ -452,6 +488,7 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
       principalInvestigator:
           principalInvestigator ?? this.principalInvestigator,
       location: location ?? this.location,
+      timeZone: timeZone ?? this.timeZone,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       created: created ?? this.created,
@@ -479,6 +516,9 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
     if (location.present) {
       map['location'] = Variable<String>(location.value);
     }
+    if (timeZone.present) {
+      map['timeZone'] = Variable<String>(timeZone.value);
+    }
     if (startDate.present) {
       map['startDate'] = Variable<String>(startDate.value);
     }
@@ -505,6 +545,7 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
           ..write('description: $description, ')
           ..write('principalInvestigator: $principalInvestigator, ')
           ..write('location: $location, ')
+          ..write('timeZone: $timeZone, ')
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('created: $created, ')
@@ -584,6 +625,14 @@ class Personnel extends Table with TableInfo<Personnel, PersonnelData> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _isRegisterFieldMeta =
+      const VerificationMeta('isRegisterField');
+  late final GeneratedColumn<bool> isRegisterField = GeneratedColumn<bool>(
+      'isRegisterField', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 1',
+      defaultValue: const CustomExpression('1'));
   @override
   List<GeneratedColumn> get $columns => [
         uuid,
@@ -595,7 +644,8 @@ class Personnel extends Table with TableInfo<Personnel, PersonnelData> {
         role,
         currentFieldNumber,
         notes,
-        photoPath
+        photoPath,
+        isRegisterField
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -653,6 +703,12 @@ class Personnel extends Table with TableInfo<Personnel, PersonnelData> {
       context.handle(_photoPathMeta,
           photoPath.isAcceptableOrUnknown(data['photoPath']!, _photoPathMeta));
     }
+    if (data.containsKey('isRegisterField')) {
+      context.handle(
+          _isRegisterFieldMeta,
+          isRegisterField.isAcceptableOrUnknown(
+              data['isRegisterField']!, _isRegisterFieldMeta));
+    }
     return context;
   }
 
@@ -682,6 +738,8 @@ class Personnel extends Table with TableInfo<Personnel, PersonnelData> {
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
       photoPath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}photoPath']),
+      isRegisterField: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}isRegisterField'])!,
     );
   }
 
@@ -707,6 +765,7 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
   /// the next input for field number
   final String? notes;
   final String? photoPath;
+  final bool isRegisterField;
   const PersonnelData(
       {required this.uuid,
       this.name,
@@ -717,7 +776,8 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
       this.role,
       this.currentFieldNumber,
       this.notes,
-      this.photoPath});
+      this.photoPath,
+      required this.isRegisterField});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -749,6 +809,7 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
     if (!nullToAbsent || photoPath != null) {
       map['photoPath'] = Variable<String>(photoPath);
     }
+    map['isRegisterField'] = Variable<bool>(isRegisterField);
     return map;
   }
 
@@ -775,6 +836,7 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
       photoPath: photoPath == null && nullToAbsent
           ? const Value.absent()
           : Value(photoPath),
+      isRegisterField: Value(isRegisterField),
     );
   }
 
@@ -792,6 +854,7 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
       currentFieldNumber: serializer.fromJson<int?>(json['currentFieldNumber']),
       notes: serializer.fromJson<String?>(json['notes']),
       photoPath: serializer.fromJson<String?>(json['photoPath']),
+      isRegisterField: serializer.fromJson<bool>(json['isRegisterField']),
     );
   }
   @override
@@ -808,6 +871,7 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
       'currentFieldNumber': serializer.toJson<int?>(currentFieldNumber),
       'notes': serializer.toJson<String?>(notes),
       'photoPath': serializer.toJson<String?>(photoPath),
+      'isRegisterField': serializer.toJson<bool>(isRegisterField),
     };
   }
 
@@ -821,7 +885,8 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
           Value<String?> role = const Value.absent(),
           Value<int?> currentFieldNumber = const Value.absent(),
           Value<String?> notes = const Value.absent(),
-          Value<String?> photoPath = const Value.absent()}) =>
+          Value<String?> photoPath = const Value.absent(),
+          bool? isRegisterField}) =>
       PersonnelData(
         uuid: uuid ?? this.uuid,
         name: name.present ? name.value : this.name,
@@ -835,6 +900,7 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
             : this.currentFieldNumber,
         notes: notes.present ? notes.value : this.notes,
         photoPath: photoPath.present ? photoPath.value : this.photoPath,
+        isRegisterField: isRegisterField ?? this.isRegisterField,
       );
   PersonnelData copyWithCompanion(PersonnelCompanion data) {
     return PersonnelData(
@@ -851,6 +917,9 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
           : this.currentFieldNumber,
       notes: data.notes.present ? data.notes.value : this.notes,
       photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
+      isRegisterField: data.isRegisterField.present
+          ? data.isRegisterField.value
+          : this.isRegisterField,
     );
   }
 
@@ -866,14 +935,15 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
           ..write('role: $role, ')
           ..write('currentFieldNumber: $currentFieldNumber, ')
           ..write('notes: $notes, ')
-          ..write('photoPath: $photoPath')
+          ..write('photoPath: $photoPath, ')
+          ..write('isRegisterField: $isRegisterField')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(uuid, name, initial, email, phone,
-      affiliation, role, currentFieldNumber, notes, photoPath);
+      affiliation, role, currentFieldNumber, notes, photoPath, isRegisterField);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -887,7 +957,8 @@ class PersonnelData extends DataClass implements Insertable<PersonnelData> {
           other.role == this.role &&
           other.currentFieldNumber == this.currentFieldNumber &&
           other.notes == this.notes &&
-          other.photoPath == this.photoPath);
+          other.photoPath == this.photoPath &&
+          other.isRegisterField == this.isRegisterField);
 }
 
 class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
@@ -901,6 +972,7 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
   final Value<int?> currentFieldNumber;
   final Value<String?> notes;
   final Value<String?> photoPath;
+  final Value<bool> isRegisterField;
   final Value<int> rowid;
   const PersonnelCompanion({
     this.uuid = const Value.absent(),
@@ -913,6 +985,7 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
     this.currentFieldNumber = const Value.absent(),
     this.notes = const Value.absent(),
     this.photoPath = const Value.absent(),
+    this.isRegisterField = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PersonnelCompanion.insert({
@@ -926,6 +999,7 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
     this.currentFieldNumber = const Value.absent(),
     this.notes = const Value.absent(),
     this.photoPath = const Value.absent(),
+    this.isRegisterField = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : uuid = Value(uuid);
   static Insertable<PersonnelData> custom({
@@ -939,6 +1013,7 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
     Expression<int>? currentFieldNumber,
     Expression<String>? notes,
     Expression<String>? photoPath,
+    Expression<bool>? isRegisterField,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -952,6 +1027,7 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
       if (currentFieldNumber != null) 'currentFieldNumber': currentFieldNumber,
       if (notes != null) 'notes': notes,
       if (photoPath != null) 'photoPath': photoPath,
+      if (isRegisterField != null) 'isRegisterField': isRegisterField,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -967,6 +1043,7 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
       Value<int?>? currentFieldNumber,
       Value<String?>? notes,
       Value<String?>? photoPath,
+      Value<bool>? isRegisterField,
       Value<int>? rowid}) {
     return PersonnelCompanion(
       uuid: uuid ?? this.uuid,
@@ -979,6 +1056,7 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
       currentFieldNumber: currentFieldNumber ?? this.currentFieldNumber,
       notes: notes ?? this.notes,
       photoPath: photoPath ?? this.photoPath,
+      isRegisterField: isRegisterField ?? this.isRegisterField,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1016,6 +1094,9 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
     if (photoPath.present) {
       map['photoPath'] = Variable<String>(photoPath.value);
     }
+    if (isRegisterField.present) {
+      map['isRegisterField'] = Variable<bool>(isRegisterField.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1035,6 +1116,7 @@ class PersonnelCompanion extends UpdateCompanion<PersonnelData> {
           ..write('currentFieldNumber: $currentFieldNumber, ')
           ..write('notes: $notes, ')
           ..write('photoPath: $photoPath, ')
+          ..write('isRegisterField: $isRegisterField, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4830,10 +4912,23 @@ class Narrative extends Table with TableInfo<Narrative, NarrativeData> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _timeMeta = const VerificationMeta('time');
+  late final GeneratedColumn<String> time = GeneratedColumn<String>(
+      'time', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   static const VerificationMeta _siteIDMeta = const VerificationMeta('siteID');
   late final GeneratedColumn<int> siteID = GeneratedColumn<int>(
       'siteID', aliasedName, true,
       type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _writerIdMeta =
+      const VerificationMeta('writerId');
+  late final GeneratedColumn<String> writerId = GeneratedColumn<String>(
+      'writerId', aliasedName, true,
+      type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
   static const VerificationMeta _narrativeMeta =
@@ -4852,7 +4947,7 @@ class Narrative extends Table with TableInfo<Narrative, NarrativeData> {
       $customConstraints: 'REFERENCES media(primaryId)');
   @override
   List<GeneratedColumn> get $columns =>
-      [id, projectUuid, date, siteID, narrative, mediaID];
+      [id, projectUuid, date, time, siteID, writerId, narrative, mediaID];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4876,9 +4971,17 @@ class Narrative extends Table with TableInfo<Narrative, NarrativeData> {
       context.handle(
           _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
     }
+    if (data.containsKey('time')) {
+      context.handle(
+          _timeMeta, time.isAcceptableOrUnknown(data['time']!, _timeMeta));
+    }
     if (data.containsKey('siteID')) {
       context.handle(_siteIDMeta,
           siteID.isAcceptableOrUnknown(data['siteID']!, _siteIDMeta));
+    }
+    if (data.containsKey('writerId')) {
+      context.handle(_writerIdMeta,
+          writerId.isAcceptableOrUnknown(data['writerId']!, _writerIdMeta));
     }
     if (data.containsKey('narrative')) {
       context.handle(_narrativeMeta,
@@ -4903,8 +5006,12 @@ class Narrative extends Table with TableInfo<Narrative, NarrativeData> {
           .read(DriftSqlType.string, data['${effectivePrefix}projectUuid']),
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}date']),
+      time: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}time']),
       siteID: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}siteID']),
+      writerId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}writerId']),
       narrative: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}narrative']),
       mediaID: attachedDatabase.typeMapping
@@ -4930,14 +5037,20 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
   final int id;
   final String? projectUuid;
   final String? date;
+  final String? time;
+
+  /// Add this new column
   final int? siteID;
+  final String? writerId;
   final String? narrative;
   final int? mediaID;
   const NarrativeData(
       {required this.id,
       this.projectUuid,
       this.date,
+      this.time,
       this.siteID,
+      this.writerId,
       this.narrative,
       this.mediaID});
   @override
@@ -4950,8 +5063,14 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
     if (!nullToAbsent || date != null) {
       map['date'] = Variable<String>(date);
     }
+    if (!nullToAbsent || time != null) {
+      map['time'] = Variable<String>(time);
+    }
     if (!nullToAbsent || siteID != null) {
       map['siteID'] = Variable<int>(siteID);
+    }
+    if (!nullToAbsent || writerId != null) {
+      map['writerId'] = Variable<String>(writerId);
     }
     if (!nullToAbsent || narrative != null) {
       map['narrative'] = Variable<String>(narrative);
@@ -4969,8 +5088,12 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
           ? const Value.absent()
           : Value(projectUuid),
       date: date == null && nullToAbsent ? const Value.absent() : Value(date),
+      time: time == null && nullToAbsent ? const Value.absent() : Value(time),
       siteID:
           siteID == null && nullToAbsent ? const Value.absent() : Value(siteID),
+      writerId: writerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(writerId),
       narrative: narrative == null && nullToAbsent
           ? const Value.absent()
           : Value(narrative),
@@ -4987,7 +5110,9 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
       id: serializer.fromJson<int>(json['id']),
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
       date: serializer.fromJson<String?>(json['date']),
+      time: serializer.fromJson<String?>(json['time']),
       siteID: serializer.fromJson<int?>(json['siteID']),
+      writerId: serializer.fromJson<String?>(json['writerId']),
       narrative: serializer.fromJson<String?>(json['narrative']),
       mediaID: serializer.fromJson<int?>(json['mediaID']),
     );
@@ -4999,7 +5124,9 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
       'id': serializer.toJson<int>(id),
       'projectUuid': serializer.toJson<String?>(projectUuid),
       'date': serializer.toJson<String?>(date),
+      'time': serializer.toJson<String?>(time),
       'siteID': serializer.toJson<int?>(siteID),
+      'writerId': serializer.toJson<String?>(writerId),
       'narrative': serializer.toJson<String?>(narrative),
       'mediaID': serializer.toJson<int?>(mediaID),
     };
@@ -5009,14 +5136,18 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
           {int? id,
           Value<String?> projectUuid = const Value.absent(),
           Value<String?> date = const Value.absent(),
+          Value<String?> time = const Value.absent(),
           Value<int?> siteID = const Value.absent(),
+          Value<String?> writerId = const Value.absent(),
           Value<String?> narrative = const Value.absent(),
           Value<int?> mediaID = const Value.absent()}) =>
       NarrativeData(
         id: id ?? this.id,
         projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
         date: date.present ? date.value : this.date,
+        time: time.present ? time.value : this.time,
         siteID: siteID.present ? siteID.value : this.siteID,
+        writerId: writerId.present ? writerId.value : this.writerId,
         narrative: narrative.present ? narrative.value : this.narrative,
         mediaID: mediaID.present ? mediaID.value : this.mediaID,
       );
@@ -5026,7 +5157,9 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
       projectUuid:
           data.projectUuid.present ? data.projectUuid.value : this.projectUuid,
       date: data.date.present ? data.date.value : this.date,
+      time: data.time.present ? data.time.value : this.time,
       siteID: data.siteID.present ? data.siteID.value : this.siteID,
+      writerId: data.writerId.present ? data.writerId.value : this.writerId,
       narrative: data.narrative.present ? data.narrative.value : this.narrative,
       mediaID: data.mediaID.present ? data.mediaID.value : this.mediaID,
     );
@@ -5038,7 +5171,9 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
           ..write('id: $id, ')
           ..write('projectUuid: $projectUuid, ')
           ..write('date: $date, ')
+          ..write('time: $time, ')
           ..write('siteID: $siteID, ')
+          ..write('writerId: $writerId, ')
           ..write('narrative: $narrative, ')
           ..write('mediaID: $mediaID')
           ..write(')'))
@@ -5046,8 +5181,8 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, projectUuid, date, siteID, narrative, mediaID);
+  int get hashCode => Object.hash(
+      id, projectUuid, date, time, siteID, writerId, narrative, mediaID);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5055,7 +5190,9 @@ class NarrativeData extends DataClass implements Insertable<NarrativeData> {
           other.id == this.id &&
           other.projectUuid == this.projectUuid &&
           other.date == this.date &&
+          other.time == this.time &&
           other.siteID == this.siteID &&
+          other.writerId == this.writerId &&
           other.narrative == this.narrative &&
           other.mediaID == this.mediaID);
 }
@@ -5064,14 +5201,18 @@ class NarrativeCompanion extends UpdateCompanion<NarrativeData> {
   final Value<int> id;
   final Value<String?> projectUuid;
   final Value<String?> date;
+  final Value<String?> time;
   final Value<int?> siteID;
+  final Value<String?> writerId;
   final Value<String?> narrative;
   final Value<int?> mediaID;
   const NarrativeCompanion({
     this.id = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.date = const Value.absent(),
+    this.time = const Value.absent(),
     this.siteID = const Value.absent(),
+    this.writerId = const Value.absent(),
     this.narrative = const Value.absent(),
     this.mediaID = const Value.absent(),
   });
@@ -5079,7 +5220,9 @@ class NarrativeCompanion extends UpdateCompanion<NarrativeData> {
     this.id = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.date = const Value.absent(),
+    this.time = const Value.absent(),
     this.siteID = const Value.absent(),
+    this.writerId = const Value.absent(),
     this.narrative = const Value.absent(),
     this.mediaID = const Value.absent(),
   });
@@ -5087,7 +5230,9 @@ class NarrativeCompanion extends UpdateCompanion<NarrativeData> {
     Expression<int>? id,
     Expression<String>? projectUuid,
     Expression<String>? date,
+    Expression<String>? time,
     Expression<int>? siteID,
+    Expression<String>? writerId,
     Expression<String>? narrative,
     Expression<int>? mediaID,
   }) {
@@ -5095,7 +5240,9 @@ class NarrativeCompanion extends UpdateCompanion<NarrativeData> {
       if (id != null) 'id': id,
       if (projectUuid != null) 'projectUuid': projectUuid,
       if (date != null) 'date': date,
+      if (time != null) 'time': time,
       if (siteID != null) 'siteID': siteID,
+      if (writerId != null) 'writerId': writerId,
       if (narrative != null) 'narrative': narrative,
       if (mediaID != null) 'mediaID': mediaID,
     });
@@ -5105,14 +5252,18 @@ class NarrativeCompanion extends UpdateCompanion<NarrativeData> {
       {Value<int>? id,
       Value<String?>? projectUuid,
       Value<String?>? date,
+      Value<String?>? time,
       Value<int?>? siteID,
+      Value<String?>? writerId,
       Value<String?>? narrative,
       Value<int?>? mediaID}) {
     return NarrativeCompanion(
       id: id ?? this.id,
       projectUuid: projectUuid ?? this.projectUuid,
       date: date ?? this.date,
+      time: time ?? this.time,
       siteID: siteID ?? this.siteID,
+      writerId: writerId ?? this.writerId,
       narrative: narrative ?? this.narrative,
       mediaID: mediaID ?? this.mediaID,
     );
@@ -5130,8 +5281,14 @@ class NarrativeCompanion extends UpdateCompanion<NarrativeData> {
     if (date.present) {
       map['date'] = Variable<String>(date.value);
     }
+    if (time.present) {
+      map['time'] = Variable<String>(time.value);
+    }
     if (siteID.present) {
       map['siteID'] = Variable<int>(siteID.value);
+    }
+    if (writerId.present) {
+      map['writerId'] = Variable<String>(writerId.value);
     }
     if (narrative.present) {
       map['narrative'] = Variable<String>(narrative.value);
@@ -5148,7 +5305,9 @@ class NarrativeCompanion extends UpdateCompanion<NarrativeData> {
           ..write('id: $id, ')
           ..write('projectUuid: $projectUuid, ')
           ..write('date: $date, ')
+          ..write('time: $time, ')
           ..write('siteID: $siteID, ')
+          ..write('writerId: $writerId, ')
           ..write('narrative: $narrative, ')
           ..write('mediaID: $mediaID')
           ..write(')'))
@@ -6358,6 +6517,13 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _collectionDateMeta =
+      const VerificationMeta('collectionDate');
+  late final GeneratedColumn<String> collectionDate = GeneratedColumn<String>(
+      'collectionDate', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   static const VerificationMeta _collectionTimeMeta =
       const VerificationMeta('collectionTime');
   late final GeneratedColumn<String> collectionTime = GeneratedColumn<String>(
@@ -6386,6 +6552,13 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _relativeCaptureTimeMeta =
+      const VerificationMeta('relativeCaptureTime');
+  late final GeneratedColumn<String> relativeCaptureTime =
+      GeneratedColumn<String>('relativeCaptureTime', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: '');
   static const VerificationMeta _trapTypeMeta =
       const VerificationMeta('trapType');
   late final GeneratedColumn<String> trapType = GeneratedColumn<String>(
@@ -6418,6 +6591,13 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
       const VerificationMeta('fieldNumber');
   late final GeneratedColumn<int> fieldNumber = GeneratedColumn<int>(
       'fieldNumber', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _projectFieldNumberMeta =
+      const VerificationMeta('projectFieldNumber');
+  late final GeneratedColumn<int> projectFieldNumber = GeneratedColumn<int>(
+      'projectFieldNumber', aliasedName, true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       $customConstraints: '');
@@ -6474,15 +6654,18 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
         condition,
         prepDate,
         prepTime,
+        collectionDate,
         collectionTime,
         captureDate,
         isRelativeTime,
         captureTime,
+        relativeCaptureTime,
         trapType,
         methodID,
         coordinateID,
         catalogerID,
         fieldNumber,
+        projectFieldNumber,
         collEventID,
         isMultipleCollector,
         collPersonnelID,
@@ -6544,6 +6727,12 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
       context.handle(_prepTimeMeta,
           prepTime.isAcceptableOrUnknown(data['prepTime']!, _prepTimeMeta));
     }
+    if (data.containsKey('collectionDate')) {
+      context.handle(
+          _collectionDateMeta,
+          collectionDate.isAcceptableOrUnknown(
+              data['collectionDate']!, _collectionDateMeta));
+    }
     if (data.containsKey('collectionTime')) {
       context.handle(
           _collectionTimeMeta,
@@ -6567,6 +6756,12 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
           _captureTimeMeta,
           captureTime.isAcceptableOrUnknown(
               data['captureTime']!, _captureTimeMeta));
+    }
+    if (data.containsKey('relativeCaptureTime')) {
+      context.handle(
+          _relativeCaptureTimeMeta,
+          relativeCaptureTime.isAcceptableOrUnknown(
+              data['relativeCaptureTime']!, _relativeCaptureTimeMeta));
     }
     if (data.containsKey('trapType')) {
       context.handle(_trapTypeMeta,
@@ -6593,6 +6788,12 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
           _fieldNumberMeta,
           fieldNumber.isAcceptableOrUnknown(
               data['fieldNumber']!, _fieldNumberMeta));
+    }
+    if (data.containsKey('projectFieldNumber')) {
+      context.handle(
+          _projectFieldNumberMeta,
+          projectFieldNumber.isAcceptableOrUnknown(
+              data['projectFieldNumber']!, _projectFieldNumberMeta));
     }
     if (data.containsKey('collEventID')) {
       context.handle(
@@ -6655,6 +6856,8 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
           .read(DriftSqlType.string, data['${effectivePrefix}prepDate']),
       prepTime: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}prepTime']),
+      collectionDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}collectionDate']),
       collectionTime: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}collectionTime']),
       captureDate: attachedDatabase.typeMapping
@@ -6663,6 +6866,8 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
           .read(DriftSqlType.int, data['${effectivePrefix}isRelativeTime']),
       captureTime: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}captureTime']),
+      relativeCaptureTime: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}relativeCaptureTime']),
       trapType: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}trapType']),
       methodID: attachedDatabase.typeMapping
@@ -6673,6 +6878,8 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
           .read(DriftSqlType.string, data['${effectivePrefix}catalogerID']),
       fieldNumber: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}fieldNumber']),
+      projectFieldNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}projectFieldNumber']),
       collEventID: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}collEventID']),
       isMultipleCollector: attachedDatabase.typeMapping.read(
@@ -6718,12 +6925,14 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
   final String? condition;
   final String? prepDate;
   final String? prepTime;
+  final String? collectionDate;
   final String? collectionTime;
 
   /// v4 update
   final String? captureDate;
   final int? isRelativeTime;
   final String? captureTime;
+  final String? relativeCaptureTime;
   final String? trapType;
   final String? methodID;
 
@@ -6731,6 +6940,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
   final int? coordinateID;
   final String? catalogerID;
   final int? fieldNumber;
+  final int? projectFieldNumber;
   final int? collEventID;
   final int? isMultipleCollector;
   final int? collPersonnelID;
@@ -6747,15 +6957,18 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       this.condition,
       this.prepDate,
       this.prepTime,
+      this.collectionDate,
       this.collectionTime,
       this.captureDate,
       this.isRelativeTime,
       this.captureTime,
+      this.relativeCaptureTime,
       this.trapType,
       this.methodID,
       this.coordinateID,
       this.catalogerID,
       this.fieldNumber,
+      this.projectFieldNumber,
       this.collEventID,
       this.isMultipleCollector,
       this.collPersonnelID,
@@ -6790,6 +7003,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     if (!nullToAbsent || prepTime != null) {
       map['prepTime'] = Variable<String>(prepTime);
     }
+    if (!nullToAbsent || collectionDate != null) {
+      map['collectionDate'] = Variable<String>(collectionDate);
+    }
     if (!nullToAbsent || collectionTime != null) {
       map['collectionTime'] = Variable<String>(collectionTime);
     }
@@ -6801,6 +7017,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     }
     if (!nullToAbsent || captureTime != null) {
       map['captureTime'] = Variable<String>(captureTime);
+    }
+    if (!nullToAbsent || relativeCaptureTime != null) {
+      map['relativeCaptureTime'] = Variable<String>(relativeCaptureTime);
     }
     if (!nullToAbsent || trapType != null) {
       map['trapType'] = Variable<String>(trapType);
@@ -6816,6 +7035,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     }
     if (!nullToAbsent || fieldNumber != null) {
       map['fieldNumber'] = Variable<int>(fieldNumber);
+    }
+    if (!nullToAbsent || projectFieldNumber != null) {
+      map['projectFieldNumber'] = Variable<int>(projectFieldNumber);
     }
     if (!nullToAbsent || collEventID != null) {
       map['collEventID'] = Variable<int>(collEventID);
@@ -6865,6 +7087,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       prepTime: prepTime == null && nullToAbsent
           ? const Value.absent()
           : Value(prepTime),
+      collectionDate: collectionDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(collectionDate),
       collectionTime: collectionTime == null && nullToAbsent
           ? const Value.absent()
           : Value(collectionTime),
@@ -6877,6 +7102,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       captureTime: captureTime == null && nullToAbsent
           ? const Value.absent()
           : Value(captureTime),
+      relativeCaptureTime: relativeCaptureTime == null && nullToAbsent
+          ? const Value.absent()
+          : Value(relativeCaptureTime),
       trapType: trapType == null && nullToAbsent
           ? const Value.absent()
           : Value(trapType),
@@ -6892,6 +7120,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       fieldNumber: fieldNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(fieldNumber),
+      projectFieldNumber: projectFieldNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(projectFieldNumber),
       collEventID: collEventID == null && nullToAbsent
           ? const Value.absent()
           : Value(collEventID),
@@ -6926,15 +7157,19 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       condition: serializer.fromJson<String?>(json['condition']),
       prepDate: serializer.fromJson<String?>(json['prepDate']),
       prepTime: serializer.fromJson<String?>(json['prepTime']),
+      collectionDate: serializer.fromJson<String?>(json['collectionDate']),
       collectionTime: serializer.fromJson<String?>(json['collectionTime']),
       captureDate: serializer.fromJson<String?>(json['captureDate']),
       isRelativeTime: serializer.fromJson<int?>(json['isRelativeTime']),
       captureTime: serializer.fromJson<String?>(json['captureTime']),
+      relativeCaptureTime:
+          serializer.fromJson<String?>(json['relativeCaptureTime']),
       trapType: serializer.fromJson<String?>(json['trapType']),
       methodID: serializer.fromJson<String?>(json['methodID']),
       coordinateID: serializer.fromJson<int?>(json['coordinateID']),
       catalogerID: serializer.fromJson<String?>(json['catalogerID']),
       fieldNumber: serializer.fromJson<int?>(json['fieldNumber']),
+      projectFieldNumber: serializer.fromJson<int?>(json['projectFieldNumber']),
       collEventID: serializer.fromJson<int?>(json['collEventID']),
       isMultipleCollector:
           serializer.fromJson<int?>(json['isMultipleCollector']),
@@ -6957,15 +7192,18 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       'condition': serializer.toJson<String?>(condition),
       'prepDate': serializer.toJson<String?>(prepDate),
       'prepTime': serializer.toJson<String?>(prepTime),
+      'collectionDate': serializer.toJson<String?>(collectionDate),
       'collectionTime': serializer.toJson<String?>(collectionTime),
       'captureDate': serializer.toJson<String?>(captureDate),
       'isRelativeTime': serializer.toJson<int?>(isRelativeTime),
       'captureTime': serializer.toJson<String?>(captureTime),
+      'relativeCaptureTime': serializer.toJson<String?>(relativeCaptureTime),
       'trapType': serializer.toJson<String?>(trapType),
       'methodID': serializer.toJson<String?>(methodID),
       'coordinateID': serializer.toJson<int?>(coordinateID),
       'catalogerID': serializer.toJson<String?>(catalogerID),
       'fieldNumber': serializer.toJson<int?>(fieldNumber),
+      'projectFieldNumber': serializer.toJson<int?>(projectFieldNumber),
       'collEventID': serializer.toJson<int?>(collEventID),
       'isMultipleCollector': serializer.toJson<int?>(isMultipleCollector),
       'collPersonnelID': serializer.toJson<int?>(collPersonnelID),
@@ -6985,15 +7223,18 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           Value<String?> condition = const Value.absent(),
           Value<String?> prepDate = const Value.absent(),
           Value<String?> prepTime = const Value.absent(),
+          Value<String?> collectionDate = const Value.absent(),
           Value<String?> collectionTime = const Value.absent(),
           Value<String?> captureDate = const Value.absent(),
           Value<int?> isRelativeTime = const Value.absent(),
           Value<String?> captureTime = const Value.absent(),
+          Value<String?> relativeCaptureTime = const Value.absent(),
           Value<String?> trapType = const Value.absent(),
           Value<String?> methodID = const Value.absent(),
           Value<int?> coordinateID = const Value.absent(),
           Value<String?> catalogerID = const Value.absent(),
           Value<int?> fieldNumber = const Value.absent(),
+          Value<int?> projectFieldNumber = const Value.absent(),
           Value<int?> collEventID = const Value.absent(),
           Value<int?> isMultipleCollector = const Value.absent(),
           Value<int?> collPersonnelID = const Value.absent(),
@@ -7011,18 +7252,26 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
         condition: condition.present ? condition.value : this.condition,
         prepDate: prepDate.present ? prepDate.value : this.prepDate,
         prepTime: prepTime.present ? prepTime.value : this.prepTime,
+        collectionDate:
+            collectionDate.present ? collectionDate.value : this.collectionDate,
         collectionTime:
             collectionTime.present ? collectionTime.value : this.collectionTime,
         captureDate: captureDate.present ? captureDate.value : this.captureDate,
         isRelativeTime:
             isRelativeTime.present ? isRelativeTime.value : this.isRelativeTime,
         captureTime: captureTime.present ? captureTime.value : this.captureTime,
+        relativeCaptureTime: relativeCaptureTime.present
+            ? relativeCaptureTime.value
+            : this.relativeCaptureTime,
         trapType: trapType.present ? trapType.value : this.trapType,
         methodID: methodID.present ? methodID.value : this.methodID,
         coordinateID:
             coordinateID.present ? coordinateID.value : this.coordinateID,
         catalogerID: catalogerID.present ? catalogerID.value : this.catalogerID,
         fieldNumber: fieldNumber.present ? fieldNumber.value : this.fieldNumber,
+        projectFieldNumber: projectFieldNumber.present
+            ? projectFieldNumber.value
+            : this.projectFieldNumber,
         collEventID: collEventID.present ? collEventID.value : this.collEventID,
         isMultipleCollector: isMultipleCollector.present
             ? isMultipleCollector.value
@@ -7051,6 +7300,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       condition: data.condition.present ? data.condition.value : this.condition,
       prepDate: data.prepDate.present ? data.prepDate.value : this.prepDate,
       prepTime: data.prepTime.present ? data.prepTime.value : this.prepTime,
+      collectionDate: data.collectionDate.present
+          ? data.collectionDate.value
+          : this.collectionDate,
       collectionTime: data.collectionTime.present
           ? data.collectionTime.value
           : this.collectionTime,
@@ -7061,6 +7313,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           : this.isRelativeTime,
       captureTime:
           data.captureTime.present ? data.captureTime.value : this.captureTime,
+      relativeCaptureTime: data.relativeCaptureTime.present
+          ? data.relativeCaptureTime.value
+          : this.relativeCaptureTime,
       trapType: data.trapType.present ? data.trapType.value : this.trapType,
       methodID: data.methodID.present ? data.methodID.value : this.methodID,
       coordinateID: data.coordinateID.present
@@ -7070,6 +7325,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           data.catalogerID.present ? data.catalogerID.value : this.catalogerID,
       fieldNumber:
           data.fieldNumber.present ? data.fieldNumber.value : this.fieldNumber,
+      projectFieldNumber: data.projectFieldNumber.present
+          ? data.projectFieldNumber.value
+          : this.projectFieldNumber,
       collEventID:
           data.collEventID.present ? data.collEventID.value : this.collEventID,
       isMultipleCollector: data.isMultipleCollector.present
@@ -7100,15 +7358,18 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           ..write('condition: $condition, ')
           ..write('prepDate: $prepDate, ')
           ..write('prepTime: $prepTime, ')
+          ..write('collectionDate: $collectionDate, ')
           ..write('collectionTime: $collectionTime, ')
           ..write('captureDate: $captureDate, ')
           ..write('isRelativeTime: $isRelativeTime, ')
           ..write('captureTime: $captureTime, ')
+          ..write('relativeCaptureTime: $relativeCaptureTime, ')
           ..write('trapType: $trapType, ')
           ..write('methodID: $methodID, ')
           ..write('coordinateID: $coordinateID, ')
           ..write('catalogerID: $catalogerID, ')
           ..write('fieldNumber: $fieldNumber, ')
+          ..write('projectFieldNumber: $projectFieldNumber, ')
           ..write('collEventID: $collEventID, ')
           ..write('isMultipleCollector: $isMultipleCollector, ')
           ..write('collPersonnelID: $collPersonnelID, ')
@@ -7130,15 +7391,18 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
         condition,
         prepDate,
         prepTime,
+        collectionDate,
         collectionTime,
         captureDate,
         isRelativeTime,
         captureTime,
+        relativeCaptureTime,
         trapType,
         methodID,
         coordinateID,
         catalogerID,
         fieldNumber,
+        projectFieldNumber,
         collEventID,
         isMultipleCollector,
         collPersonnelID,
@@ -7159,15 +7423,18 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           other.condition == this.condition &&
           other.prepDate == this.prepDate &&
           other.prepTime == this.prepTime &&
+          other.collectionDate == this.collectionDate &&
           other.collectionTime == this.collectionTime &&
           other.captureDate == this.captureDate &&
           other.isRelativeTime == this.isRelativeTime &&
           other.captureTime == this.captureTime &&
+          other.relativeCaptureTime == this.relativeCaptureTime &&
           other.trapType == this.trapType &&
           other.methodID == this.methodID &&
           other.coordinateID == this.coordinateID &&
           other.catalogerID == this.catalogerID &&
           other.fieldNumber == this.fieldNumber &&
+          other.projectFieldNumber == this.projectFieldNumber &&
           other.collEventID == this.collEventID &&
           other.isMultipleCollector == this.isMultipleCollector &&
           other.collPersonnelID == this.collPersonnelID &&
@@ -7186,15 +7453,18 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
   final Value<String?> condition;
   final Value<String?> prepDate;
   final Value<String?> prepTime;
+  final Value<String?> collectionDate;
   final Value<String?> collectionTime;
   final Value<String?> captureDate;
   final Value<int?> isRelativeTime;
   final Value<String?> captureTime;
+  final Value<String?> relativeCaptureTime;
   final Value<String?> trapType;
   final Value<String?> methodID;
   final Value<int?> coordinateID;
   final Value<String?> catalogerID;
   final Value<int?> fieldNumber;
+  final Value<int?> projectFieldNumber;
   final Value<int?> collEventID;
   final Value<int?> isMultipleCollector;
   final Value<int?> collPersonnelID;
@@ -7212,15 +7482,18 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     this.condition = const Value.absent(),
     this.prepDate = const Value.absent(),
     this.prepTime = const Value.absent(),
+    this.collectionDate = const Value.absent(),
     this.collectionTime = const Value.absent(),
     this.captureDate = const Value.absent(),
     this.isRelativeTime = const Value.absent(),
     this.captureTime = const Value.absent(),
+    this.relativeCaptureTime = const Value.absent(),
     this.trapType = const Value.absent(),
     this.methodID = const Value.absent(),
     this.coordinateID = const Value.absent(),
     this.catalogerID = const Value.absent(),
     this.fieldNumber = const Value.absent(),
+    this.projectFieldNumber = const Value.absent(),
     this.collEventID = const Value.absent(),
     this.isMultipleCollector = const Value.absent(),
     this.collPersonnelID = const Value.absent(),
@@ -7239,15 +7512,18 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     this.condition = const Value.absent(),
     this.prepDate = const Value.absent(),
     this.prepTime = const Value.absent(),
+    this.collectionDate = const Value.absent(),
     this.collectionTime = const Value.absent(),
     this.captureDate = const Value.absent(),
     this.isRelativeTime = const Value.absent(),
     this.captureTime = const Value.absent(),
+    this.relativeCaptureTime = const Value.absent(),
     this.trapType = const Value.absent(),
     this.methodID = const Value.absent(),
     this.coordinateID = const Value.absent(),
     this.catalogerID = const Value.absent(),
     this.fieldNumber = const Value.absent(),
+    this.projectFieldNumber = const Value.absent(),
     this.collEventID = const Value.absent(),
     this.isMultipleCollector = const Value.absent(),
     this.collPersonnelID = const Value.absent(),
@@ -7266,15 +7542,18 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     Expression<String>? condition,
     Expression<String>? prepDate,
     Expression<String>? prepTime,
+    Expression<String>? collectionDate,
     Expression<String>? collectionTime,
     Expression<String>? captureDate,
     Expression<int>? isRelativeTime,
     Expression<String>? captureTime,
+    Expression<String>? relativeCaptureTime,
     Expression<String>? trapType,
     Expression<String>? methodID,
     Expression<int>? coordinateID,
     Expression<String>? catalogerID,
     Expression<int>? fieldNumber,
+    Expression<int>? projectFieldNumber,
     Expression<int>? collEventID,
     Expression<int>? isMultipleCollector,
     Expression<int>? collPersonnelID,
@@ -7293,15 +7572,19 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       if (condition != null) 'condition': condition,
       if (prepDate != null) 'prepDate': prepDate,
       if (prepTime != null) 'prepTime': prepTime,
+      if (collectionDate != null) 'collectionDate': collectionDate,
       if (collectionTime != null) 'collectionTime': collectionTime,
       if (captureDate != null) 'captureDate': captureDate,
       if (isRelativeTime != null) 'isRelativeTime': isRelativeTime,
       if (captureTime != null) 'captureTime': captureTime,
+      if (relativeCaptureTime != null)
+        'relativeCaptureTime': relativeCaptureTime,
       if (trapType != null) 'trapType': trapType,
       if (methodID != null) 'methodID': methodID,
       if (coordinateID != null) 'coordinateID': coordinateID,
       if (catalogerID != null) 'catalogerID': catalogerID,
       if (fieldNumber != null) 'fieldNumber': fieldNumber,
+      if (projectFieldNumber != null) 'projectFieldNumber': projectFieldNumber,
       if (collEventID != null) 'collEventID': collEventID,
       if (isMultipleCollector != null)
         'isMultipleCollector': isMultipleCollector,
@@ -7323,15 +7606,18 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       Value<String?>? condition,
       Value<String?>? prepDate,
       Value<String?>? prepTime,
+      Value<String?>? collectionDate,
       Value<String?>? collectionTime,
       Value<String?>? captureDate,
       Value<int?>? isRelativeTime,
       Value<String?>? captureTime,
+      Value<String?>? relativeCaptureTime,
       Value<String?>? trapType,
       Value<String?>? methodID,
       Value<int?>? coordinateID,
       Value<String?>? catalogerID,
       Value<int?>? fieldNumber,
+      Value<int?>? projectFieldNumber,
       Value<int?>? collEventID,
       Value<int?>? isMultipleCollector,
       Value<int?>? collPersonnelID,
@@ -7349,15 +7635,18 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       condition: condition ?? this.condition,
       prepDate: prepDate ?? this.prepDate,
       prepTime: prepTime ?? this.prepTime,
+      collectionDate: collectionDate ?? this.collectionDate,
       collectionTime: collectionTime ?? this.collectionTime,
       captureDate: captureDate ?? this.captureDate,
       isRelativeTime: isRelativeTime ?? this.isRelativeTime,
       captureTime: captureTime ?? this.captureTime,
+      relativeCaptureTime: relativeCaptureTime ?? this.relativeCaptureTime,
       trapType: trapType ?? this.trapType,
       methodID: methodID ?? this.methodID,
       coordinateID: coordinateID ?? this.coordinateID,
       catalogerID: catalogerID ?? this.catalogerID,
       fieldNumber: fieldNumber ?? this.fieldNumber,
+      projectFieldNumber: projectFieldNumber ?? this.projectFieldNumber,
       collEventID: collEventID ?? this.collEventID,
       isMultipleCollector: isMultipleCollector ?? this.isMultipleCollector,
       collPersonnelID: collPersonnelID ?? this.collPersonnelID,
@@ -7398,6 +7687,9 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     if (prepTime.present) {
       map['prepTime'] = Variable<String>(prepTime.value);
     }
+    if (collectionDate.present) {
+      map['collectionDate'] = Variable<String>(collectionDate.value);
+    }
     if (collectionTime.present) {
       map['collectionTime'] = Variable<String>(collectionTime.value);
     }
@@ -7409,6 +7701,9 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     }
     if (captureTime.present) {
       map['captureTime'] = Variable<String>(captureTime.value);
+    }
+    if (relativeCaptureTime.present) {
+      map['relativeCaptureTime'] = Variable<String>(relativeCaptureTime.value);
     }
     if (trapType.present) {
       map['trapType'] = Variable<String>(trapType.value);
@@ -7424,6 +7719,9 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     }
     if (fieldNumber.present) {
       map['fieldNumber'] = Variable<int>(fieldNumber.value);
+    }
+    if (projectFieldNumber.present) {
+      map['projectFieldNumber'] = Variable<int>(projectFieldNumber.value);
     }
     if (collEventID.present) {
       map['collEventID'] = Variable<int>(collEventID.value);
@@ -7461,15 +7759,18 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
           ..write('condition: $condition, ')
           ..write('prepDate: $prepDate, ')
           ..write('prepTime: $prepTime, ')
+          ..write('collectionDate: $collectionDate, ')
           ..write('collectionTime: $collectionTime, ')
           ..write('captureDate: $captureDate, ')
           ..write('isRelativeTime: $isRelativeTime, ')
           ..write('captureTime: $captureTime, ')
+          ..write('relativeCaptureTime: $relativeCaptureTime, ')
           ..write('trapType: $trapType, ')
           ..write('methodID: $methodID, ')
           ..write('coordinateID: $coordinateID, ')
           ..write('catalogerID: $catalogerID, ')
           ..write('fieldNumber: $fieldNumber, ')
+          ..write('projectFieldNumber: $projectFieldNumber, ')
           ..write('collEventID: $collEventID, ')
           ..write('isMultipleCollector: $isMultipleCollector, ')
           ..write('collPersonnelID: $collPersonnelID, ')
@@ -8318,6 +8619,13 @@ class MammalMeasurement extends Table
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
+  static const VerificationMeta _showBatFieldsMeta =
+      const VerificationMeta('showBatFields');
+  late final GeneratedColumn<int> showBatFields = GeneratedColumn<int>(
+      'showBatFields', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   static const VerificationMeta _totalLengthMeta =
       const VerificationMeta('totalLength');
   late final GeneratedColumn<double> totalLength = GeneratedColumn<double>(
@@ -8350,6 +8658,54 @@ class MammalMeasurement extends Table
       const VerificationMeta('forearm');
   late final GeneratedColumn<double> forearm = GeneratedColumn<double>(
       'forearm', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _tibiaMeta = const VerificationMeta('tibia');
+  late final GeneratedColumn<double> tibia = GeneratedColumn<double>(
+      'tibia', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _showEchoFieldsMeta =
+      const VerificationMeta('showEchoFields');
+  late final GeneratedColumn<int> showEchoFields = GeneratedColumn<int>(
+      'showEchoFields', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _echolocationMeta =
+      const VerificationMeta('echolocation');
+  late final GeneratedColumn<int> echolocation = GeneratedColumn<int>(
+      'echolocation', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _frequencyMaxMeta =
+      const VerificationMeta('frequencyMax');
+  late final GeneratedColumn<double> frequencyMax = GeneratedColumn<double>(
+      'frequencyMax', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _frequencyMinMeta =
+      const VerificationMeta('frequencyMin');
+  late final GeneratedColumn<double> frequencyMin = GeneratedColumn<double>(
+      'frequencyMin', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _frequencyAtMaxEnergyMeta =
+      const VerificationMeta('frequencyAtMaxEnergy');
+  late final GeneratedColumn<double> frequencyAtMaxEnergy =
+      GeneratedColumn<double>('frequencyAtMaxEnergy', aliasedName, true,
+          type: DriftSqlType.double,
+          requiredDuringInsert: false,
+          $customConstraints: '');
+  static const VerificationMeta _durationMeta =
+      const VerificationMeta('duration');
+  late final GeneratedColumn<double> duration = GeneratedColumn<double>(
+      'duration', aliasedName, true,
       type: DriftSqlType.double,
       requiredDuringInsert: false,
       $customConstraints: '');
@@ -8506,11 +8862,19 @@ class MammalMeasurement extends Table
   @override
   List<GeneratedColumn> get $columns => [
         specimenUuid,
+        showBatFields,
         totalLength,
         tailLength,
         hindFootLength,
         earLength,
         forearm,
+        tibia,
+        showEchoFields,
+        echolocation,
+        frequencyMax,
+        frequencyMin,
+        frequencyAtMaxEnergy,
+        duration,
         weight,
         accuracy,
         accuracySpecify,
@@ -8553,6 +8917,12 @@ class MammalMeasurement extends Table
     } else if (isInserting) {
       context.missing(_specimenUuidMeta);
     }
+    if (data.containsKey('showBatFields')) {
+      context.handle(
+          _showBatFieldsMeta,
+          showBatFields.isAcceptableOrUnknown(
+              data['showBatFields']!, _showBatFieldsMeta));
+    }
     if (data.containsKey('totalLength')) {
       context.handle(
           _totalLengthMeta,
@@ -8578,6 +8948,44 @@ class MammalMeasurement extends Table
     if (data.containsKey('forearm')) {
       context.handle(_forearmMeta,
           forearm.isAcceptableOrUnknown(data['forearm']!, _forearmMeta));
+    }
+    if (data.containsKey('tibia')) {
+      context.handle(
+          _tibiaMeta, tibia.isAcceptableOrUnknown(data['tibia']!, _tibiaMeta));
+    }
+    if (data.containsKey('showEchoFields')) {
+      context.handle(
+          _showEchoFieldsMeta,
+          showEchoFields.isAcceptableOrUnknown(
+              data['showEchoFields']!, _showEchoFieldsMeta));
+    }
+    if (data.containsKey('echolocation')) {
+      context.handle(
+          _echolocationMeta,
+          echolocation.isAcceptableOrUnknown(
+              data['echolocation']!, _echolocationMeta));
+    }
+    if (data.containsKey('frequencyMax')) {
+      context.handle(
+          _frequencyMaxMeta,
+          frequencyMax.isAcceptableOrUnknown(
+              data['frequencyMax']!, _frequencyMaxMeta));
+    }
+    if (data.containsKey('frequencyMin')) {
+      context.handle(
+          _frequencyMinMeta,
+          frequencyMin.isAcceptableOrUnknown(
+              data['frequencyMin']!, _frequencyMinMeta));
+    }
+    if (data.containsKey('frequencyAtMaxEnergy')) {
+      context.handle(
+          _frequencyAtMaxEnergyMeta,
+          frequencyAtMaxEnergy.isAcceptableOrUnknown(
+              data['frequencyAtMaxEnergy']!, _frequencyAtMaxEnergyMeta));
+    }
+    if (data.containsKey('duration')) {
+      context.handle(_durationMeta,
+          duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
     }
     if (data.containsKey('weight')) {
       context.handle(_weightMeta,
@@ -8710,6 +9118,8 @@ class MammalMeasurement extends Table
     return MammalMeasurementData(
       specimenUuid: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}specimenUuid'])!,
+      showBatFields: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}showBatFields']),
       totalLength: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}totalLength']),
       tailLength: attachedDatabase.typeMapping
@@ -8720,6 +9130,20 @@ class MammalMeasurement extends Table
           .read(DriftSqlType.double, data['${effectivePrefix}earLength']),
       forearm: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}forearm']),
+      tibia: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}tibia']),
+      showEchoFields: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}showEchoFields']),
+      echolocation: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}echolocation']),
+      frequencyMax: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}frequencyMax']),
+      frequencyMin: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}frequencyMin']),
+      frequencyAtMaxEnergy: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}frequencyAtMaxEnergy']),
+      duration: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}duration']),
       weight: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}weight']),
       accuracy: attachedDatabase.typeMapping
@@ -8782,11 +9206,19 @@ class MammalMeasurement extends Table
 class MammalMeasurementData extends DataClass
     implements Insertable<MammalMeasurementData> {
   final String specimenUuid;
+  final int? showBatFields;
   final double? totalLength;
   final double? tailLength;
   final double? hindFootLength;
   final double? earLength;
   final double? forearm;
+  final double? tibia;
+  final int? showEchoFields;
+  final int? echolocation;
+  final double? frequencyMax;
+  final double? frequencyMin;
+  final double? frequencyAtMaxEnergy;
+  final double? duration;
   final double? weight;
   final String? accuracy;
   final String? accuracySpecify;
@@ -8813,11 +9245,19 @@ class MammalMeasurementData extends DataClass
   final String? remark;
   const MammalMeasurementData(
       {required this.specimenUuid,
+      this.showBatFields,
       this.totalLength,
       this.tailLength,
       this.hindFootLength,
       this.earLength,
       this.forearm,
+      this.tibia,
+      this.showEchoFields,
+      this.echolocation,
+      this.frequencyMax,
+      this.frequencyMin,
+      this.frequencyAtMaxEnergy,
+      this.duration,
       this.weight,
       this.accuracy,
       this.accuracySpecify,
@@ -8844,6 +9284,9 @@ class MammalMeasurementData extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['specimenUuid'] = Variable<String>(specimenUuid);
+    if (!nullToAbsent || showBatFields != null) {
+      map['showBatFields'] = Variable<int>(showBatFields);
+    }
     if (!nullToAbsent || totalLength != null) {
       map['totalLength'] = Variable<double>(totalLength);
     }
@@ -8858,6 +9301,27 @@ class MammalMeasurementData extends DataClass
     }
     if (!nullToAbsent || forearm != null) {
       map['forearm'] = Variable<double>(forearm);
+    }
+    if (!nullToAbsent || tibia != null) {
+      map['tibia'] = Variable<double>(tibia);
+    }
+    if (!nullToAbsent || showEchoFields != null) {
+      map['showEchoFields'] = Variable<int>(showEchoFields);
+    }
+    if (!nullToAbsent || echolocation != null) {
+      map['echolocation'] = Variable<int>(echolocation);
+    }
+    if (!nullToAbsent || frequencyMax != null) {
+      map['frequencyMax'] = Variable<double>(frequencyMax);
+    }
+    if (!nullToAbsent || frequencyMin != null) {
+      map['frequencyMin'] = Variable<double>(frequencyMin);
+    }
+    if (!nullToAbsent || frequencyAtMaxEnergy != null) {
+      map['frequencyAtMaxEnergy'] = Variable<double>(frequencyAtMaxEnergy);
+    }
+    if (!nullToAbsent || duration != null) {
+      map['duration'] = Variable<double>(duration);
     }
     if (!nullToAbsent || weight != null) {
       map['weight'] = Variable<double>(weight);
@@ -8931,6 +9395,9 @@ class MammalMeasurementData extends DataClass
   MammalMeasurementCompanion toCompanion(bool nullToAbsent) {
     return MammalMeasurementCompanion(
       specimenUuid: Value(specimenUuid),
+      showBatFields: showBatFields == null && nullToAbsent
+          ? const Value.absent()
+          : Value(showBatFields),
       totalLength: totalLength == null && nullToAbsent
           ? const Value.absent()
           : Value(totalLength),
@@ -8946,6 +9413,26 @@ class MammalMeasurementData extends DataClass
       forearm: forearm == null && nullToAbsent
           ? const Value.absent()
           : Value(forearm),
+      tibia:
+          tibia == null && nullToAbsent ? const Value.absent() : Value(tibia),
+      showEchoFields: showEchoFields == null && nullToAbsent
+          ? const Value.absent()
+          : Value(showEchoFields),
+      echolocation: echolocation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(echolocation),
+      frequencyMax: frequencyMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(frequencyMax),
+      frequencyMin: frequencyMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(frequencyMin),
+      frequencyAtMaxEnergy: frequencyAtMaxEnergy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(frequencyAtMaxEnergy),
+      duration: duration == null && nullToAbsent
+          ? const Value.absent()
+          : Value(duration),
       weight:
           weight == null && nullToAbsent ? const Value.absent() : Value(weight),
       accuracy: accuracy == null && nullToAbsent
@@ -9014,11 +9501,20 @@ class MammalMeasurementData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MammalMeasurementData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
+      showBatFields: serializer.fromJson<int?>(json['showBatFields']),
       totalLength: serializer.fromJson<double?>(json['totalLength']),
       tailLength: serializer.fromJson<double?>(json['tailLength']),
       hindFootLength: serializer.fromJson<double?>(json['hindFootLength']),
       earLength: serializer.fromJson<double?>(json['earLength']),
       forearm: serializer.fromJson<double?>(json['forearm']),
+      tibia: serializer.fromJson<double?>(json['tibia']),
+      showEchoFields: serializer.fromJson<int?>(json['showEchoFields']),
+      echolocation: serializer.fromJson<int?>(json['echolocation']),
+      frequencyMax: serializer.fromJson<double?>(json['frequencyMax']),
+      frequencyMin: serializer.fromJson<double?>(json['frequencyMin']),
+      frequencyAtMaxEnergy:
+          serializer.fromJson<double?>(json['frequencyAtMaxEnergy']),
+      duration: serializer.fromJson<double?>(json['duration']),
       weight: serializer.fromJson<double?>(json['weight']),
       accuracy: serializer.fromJson<String?>(json['accuracy']),
       accuracySpecify: serializer.fromJson<String?>(json['accuracySpecify']),
@@ -9053,11 +9549,19 @@ class MammalMeasurementData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'specimenUuid': serializer.toJson<String>(specimenUuid),
+      'showBatFields': serializer.toJson<int?>(showBatFields),
       'totalLength': serializer.toJson<double?>(totalLength),
       'tailLength': serializer.toJson<double?>(tailLength),
       'hindFootLength': serializer.toJson<double?>(hindFootLength),
       'earLength': serializer.toJson<double?>(earLength),
       'forearm': serializer.toJson<double?>(forearm),
+      'tibia': serializer.toJson<double?>(tibia),
+      'showEchoFields': serializer.toJson<int?>(showEchoFields),
+      'echolocation': serializer.toJson<int?>(echolocation),
+      'frequencyMax': serializer.toJson<double?>(frequencyMax),
+      'frequencyMin': serializer.toJson<double?>(frequencyMin),
+      'frequencyAtMaxEnergy': serializer.toJson<double?>(frequencyAtMaxEnergy),
+      'duration': serializer.toJson<double?>(duration),
       'weight': serializer.toJson<double?>(weight),
       'accuracy': serializer.toJson<String?>(accuracy),
       'accuracySpecify': serializer.toJson<String?>(accuracySpecify),
@@ -9085,11 +9589,19 @@ class MammalMeasurementData extends DataClass
 
   MammalMeasurementData copyWith(
           {String? specimenUuid,
+          Value<int?> showBatFields = const Value.absent(),
           Value<double?> totalLength = const Value.absent(),
           Value<double?> tailLength = const Value.absent(),
           Value<double?> hindFootLength = const Value.absent(),
           Value<double?> earLength = const Value.absent(),
           Value<double?> forearm = const Value.absent(),
+          Value<double?> tibia = const Value.absent(),
+          Value<int?> showEchoFields = const Value.absent(),
+          Value<int?> echolocation = const Value.absent(),
+          Value<double?> frequencyMax = const Value.absent(),
+          Value<double?> frequencyMin = const Value.absent(),
+          Value<double?> frequencyAtMaxEnergy = const Value.absent(),
+          Value<double?> duration = const Value.absent(),
           Value<double?> weight = const Value.absent(),
           Value<String?> accuracy = const Value.absent(),
           Value<String?> accuracySpecify = const Value.absent(),
@@ -9114,12 +9626,27 @@ class MammalMeasurementData extends DataClass
           Value<String?> remark = const Value.absent()}) =>
       MammalMeasurementData(
         specimenUuid: specimenUuid ?? this.specimenUuid,
+        showBatFields:
+            showBatFields.present ? showBatFields.value : this.showBatFields,
         totalLength: totalLength.present ? totalLength.value : this.totalLength,
         tailLength: tailLength.present ? tailLength.value : this.tailLength,
         hindFootLength:
             hindFootLength.present ? hindFootLength.value : this.hindFootLength,
         earLength: earLength.present ? earLength.value : this.earLength,
         forearm: forearm.present ? forearm.value : this.forearm,
+        tibia: tibia.present ? tibia.value : this.tibia,
+        showEchoFields:
+            showEchoFields.present ? showEchoFields.value : this.showEchoFields,
+        echolocation:
+            echolocation.present ? echolocation.value : this.echolocation,
+        frequencyMax:
+            frequencyMax.present ? frequencyMax.value : this.frequencyMax,
+        frequencyMin:
+            frequencyMin.present ? frequencyMin.value : this.frequencyMin,
+        frequencyAtMaxEnergy: frequencyAtMaxEnergy.present
+            ? frequencyAtMaxEnergy.value
+            : this.frequencyAtMaxEnergy,
+        duration: duration.present ? duration.value : this.duration,
         weight: weight.present ? weight.value : this.weight,
         accuracy: accuracy.present ? accuracy.value : this.accuracy,
         accuracySpecify: accuracySpecify.present
@@ -9174,6 +9701,9 @@ class MammalMeasurementData extends DataClass
       specimenUuid: data.specimenUuid.present
           ? data.specimenUuid.value
           : this.specimenUuid,
+      showBatFields: data.showBatFields.present
+          ? data.showBatFields.value
+          : this.showBatFields,
       totalLength:
           data.totalLength.present ? data.totalLength.value : this.totalLength,
       tailLength:
@@ -9183,6 +9713,23 @@ class MammalMeasurementData extends DataClass
           : this.hindFootLength,
       earLength: data.earLength.present ? data.earLength.value : this.earLength,
       forearm: data.forearm.present ? data.forearm.value : this.forearm,
+      tibia: data.tibia.present ? data.tibia.value : this.tibia,
+      showEchoFields: data.showEchoFields.present
+          ? data.showEchoFields.value
+          : this.showEchoFields,
+      echolocation: data.echolocation.present
+          ? data.echolocation.value
+          : this.echolocation,
+      frequencyMax: data.frequencyMax.present
+          ? data.frequencyMax.value
+          : this.frequencyMax,
+      frequencyMin: data.frequencyMin.present
+          ? data.frequencyMin.value
+          : this.frequencyMin,
+      frequencyAtMaxEnergy: data.frequencyAtMaxEnergy.present
+          ? data.frequencyAtMaxEnergy.value
+          : this.frequencyAtMaxEnergy,
+      duration: data.duration.present ? data.duration.value : this.duration,
       weight: data.weight.present ? data.weight.value : this.weight,
       accuracy: data.accuracy.present ? data.accuracy.value : this.accuracy,
       accuracySpecify: data.accuracySpecify.present
@@ -9243,11 +9790,19 @@ class MammalMeasurementData extends DataClass
   String toString() {
     return (StringBuffer('MammalMeasurementData(')
           ..write('specimenUuid: $specimenUuid, ')
+          ..write('showBatFields: $showBatFields, ')
           ..write('totalLength: $totalLength, ')
           ..write('tailLength: $tailLength, ')
           ..write('hindFootLength: $hindFootLength, ')
           ..write('earLength: $earLength, ')
           ..write('forearm: $forearm, ')
+          ..write('tibia: $tibia, ')
+          ..write('showEchoFields: $showEchoFields, ')
+          ..write('echolocation: $echolocation, ')
+          ..write('frequencyMax: $frequencyMax, ')
+          ..write('frequencyMin: $frequencyMin, ')
+          ..write('frequencyAtMaxEnergy: $frequencyAtMaxEnergy, ')
+          ..write('duration: $duration, ')
           ..write('weight: $weight, ')
           ..write('accuracy: $accuracy, ')
           ..write('accuracySpecify: $accuracySpecify, ')
@@ -9277,11 +9832,19 @@ class MammalMeasurementData extends DataClass
   @override
   int get hashCode => Object.hashAll([
         specimenUuid,
+        showBatFields,
         totalLength,
         tailLength,
         hindFootLength,
         earLength,
         forearm,
+        tibia,
+        showEchoFields,
+        echolocation,
+        frequencyMax,
+        frequencyMin,
+        frequencyAtMaxEnergy,
+        duration,
         weight,
         accuracy,
         accuracySpecify,
@@ -9310,11 +9873,19 @@ class MammalMeasurementData extends DataClass
       identical(this, other) ||
       (other is MammalMeasurementData &&
           other.specimenUuid == this.specimenUuid &&
+          other.showBatFields == this.showBatFields &&
           other.totalLength == this.totalLength &&
           other.tailLength == this.tailLength &&
           other.hindFootLength == this.hindFootLength &&
           other.earLength == this.earLength &&
           other.forearm == this.forearm &&
+          other.tibia == this.tibia &&
+          other.showEchoFields == this.showEchoFields &&
+          other.echolocation == this.echolocation &&
+          other.frequencyMax == this.frequencyMax &&
+          other.frequencyMin == this.frequencyMin &&
+          other.frequencyAtMaxEnergy == this.frequencyAtMaxEnergy &&
+          other.duration == this.duration &&
           other.weight == this.weight &&
           other.accuracy == this.accuracy &&
           other.accuracySpecify == this.accuracySpecify &&
@@ -9342,11 +9913,19 @@ class MammalMeasurementData extends DataClass
 class MammalMeasurementCompanion
     extends UpdateCompanion<MammalMeasurementData> {
   final Value<String> specimenUuid;
+  final Value<int?> showBatFields;
   final Value<double?> totalLength;
   final Value<double?> tailLength;
   final Value<double?> hindFootLength;
   final Value<double?> earLength;
   final Value<double?> forearm;
+  final Value<double?> tibia;
+  final Value<int?> showEchoFields;
+  final Value<int?> echolocation;
+  final Value<double?> frequencyMax;
+  final Value<double?> frequencyMin;
+  final Value<double?> frequencyAtMaxEnergy;
+  final Value<double?> duration;
   final Value<double?> weight;
   final Value<String?> accuracy;
   final Value<String?> accuracySpecify;
@@ -9372,11 +9951,19 @@ class MammalMeasurementCompanion
   final Value<int> rowid;
   const MammalMeasurementCompanion({
     this.specimenUuid = const Value.absent(),
+    this.showBatFields = const Value.absent(),
     this.totalLength = const Value.absent(),
     this.tailLength = const Value.absent(),
     this.hindFootLength = const Value.absent(),
     this.earLength = const Value.absent(),
     this.forearm = const Value.absent(),
+    this.tibia = const Value.absent(),
+    this.showEchoFields = const Value.absent(),
+    this.echolocation = const Value.absent(),
+    this.frequencyMax = const Value.absent(),
+    this.frequencyMin = const Value.absent(),
+    this.frequencyAtMaxEnergy = const Value.absent(),
+    this.duration = const Value.absent(),
     this.weight = const Value.absent(),
     this.accuracy = const Value.absent(),
     this.accuracySpecify = const Value.absent(),
@@ -9403,11 +9990,19 @@ class MammalMeasurementCompanion
   });
   MammalMeasurementCompanion.insert({
     required String specimenUuid,
+    this.showBatFields = const Value.absent(),
     this.totalLength = const Value.absent(),
     this.tailLength = const Value.absent(),
     this.hindFootLength = const Value.absent(),
     this.earLength = const Value.absent(),
     this.forearm = const Value.absent(),
+    this.tibia = const Value.absent(),
+    this.showEchoFields = const Value.absent(),
+    this.echolocation = const Value.absent(),
+    this.frequencyMax = const Value.absent(),
+    this.frequencyMin = const Value.absent(),
+    this.frequencyAtMaxEnergy = const Value.absent(),
+    this.duration = const Value.absent(),
     this.weight = const Value.absent(),
     this.accuracy = const Value.absent(),
     this.accuracySpecify = const Value.absent(),
@@ -9434,11 +10029,19 @@ class MammalMeasurementCompanion
   }) : specimenUuid = Value(specimenUuid);
   static Insertable<MammalMeasurementData> custom({
     Expression<String>? specimenUuid,
+    Expression<int>? showBatFields,
     Expression<double>? totalLength,
     Expression<double>? tailLength,
     Expression<double>? hindFootLength,
     Expression<double>? earLength,
     Expression<double>? forearm,
+    Expression<double>? tibia,
+    Expression<int>? showEchoFields,
+    Expression<int>? echolocation,
+    Expression<double>? frequencyMax,
+    Expression<double>? frequencyMin,
+    Expression<double>? frequencyAtMaxEnergy,
+    Expression<double>? duration,
     Expression<double>? weight,
     Expression<String>? accuracy,
     Expression<String>? accuracySpecify,
@@ -9465,11 +10068,20 @@ class MammalMeasurementCompanion
   }) {
     return RawValuesInsertable({
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
+      if (showBatFields != null) 'showBatFields': showBatFields,
       if (totalLength != null) 'totalLength': totalLength,
       if (tailLength != null) 'tailLength': tailLength,
       if (hindFootLength != null) 'hindFootLength': hindFootLength,
       if (earLength != null) 'earLength': earLength,
       if (forearm != null) 'forearm': forearm,
+      if (tibia != null) 'tibia': tibia,
+      if (showEchoFields != null) 'showEchoFields': showEchoFields,
+      if (echolocation != null) 'echolocation': echolocation,
+      if (frequencyMax != null) 'frequencyMax': frequencyMax,
+      if (frequencyMin != null) 'frequencyMin': frequencyMin,
+      if (frequencyAtMaxEnergy != null)
+        'frequencyAtMaxEnergy': frequencyAtMaxEnergy,
+      if (duration != null) 'duration': duration,
       if (weight != null) 'weight': weight,
       if (accuracy != null) 'accuracy': accuracy,
       if (accuracySpecify != null) 'accuracySpecify': accuracySpecify,
@@ -9503,11 +10115,19 @@ class MammalMeasurementCompanion
 
   MammalMeasurementCompanion copyWith(
       {Value<String>? specimenUuid,
+      Value<int?>? showBatFields,
       Value<double?>? totalLength,
       Value<double?>? tailLength,
       Value<double?>? hindFootLength,
       Value<double?>? earLength,
       Value<double?>? forearm,
+      Value<double?>? tibia,
+      Value<int?>? showEchoFields,
+      Value<int?>? echolocation,
+      Value<double?>? frequencyMax,
+      Value<double?>? frequencyMin,
+      Value<double?>? frequencyAtMaxEnergy,
+      Value<double?>? duration,
       Value<double?>? weight,
       Value<String?>? accuracy,
       Value<String?>? accuracySpecify,
@@ -9533,11 +10153,19 @@ class MammalMeasurementCompanion
       Value<int>? rowid}) {
     return MammalMeasurementCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
+      showBatFields: showBatFields ?? this.showBatFields,
       totalLength: totalLength ?? this.totalLength,
       tailLength: tailLength ?? this.tailLength,
       hindFootLength: hindFootLength ?? this.hindFootLength,
       earLength: earLength ?? this.earLength,
       forearm: forearm ?? this.forearm,
+      tibia: tibia ?? this.tibia,
+      showEchoFields: showEchoFields ?? this.showEchoFields,
+      echolocation: echolocation ?? this.echolocation,
+      frequencyMax: frequencyMax ?? this.frequencyMax,
+      frequencyMin: frequencyMin ?? this.frequencyMin,
+      frequencyAtMaxEnergy: frequencyAtMaxEnergy ?? this.frequencyAtMaxEnergy,
+      duration: duration ?? this.duration,
       weight: weight ?? this.weight,
       accuracy: accuracy ?? this.accuracy,
       accuracySpecify: accuracySpecify ?? this.accuracySpecify,
@@ -9570,6 +10198,9 @@ class MammalMeasurementCompanion
     if (specimenUuid.present) {
       map['specimenUuid'] = Variable<String>(specimenUuid.value);
     }
+    if (showBatFields.present) {
+      map['showBatFields'] = Variable<int>(showBatFields.value);
+    }
     if (totalLength.present) {
       map['totalLength'] = Variable<double>(totalLength.value);
     }
@@ -9584,6 +10215,28 @@ class MammalMeasurementCompanion
     }
     if (forearm.present) {
       map['forearm'] = Variable<double>(forearm.value);
+    }
+    if (tibia.present) {
+      map['tibia'] = Variable<double>(tibia.value);
+    }
+    if (showEchoFields.present) {
+      map['showEchoFields'] = Variable<int>(showEchoFields.value);
+    }
+    if (echolocation.present) {
+      map['echolocation'] = Variable<int>(echolocation.value);
+    }
+    if (frequencyMax.present) {
+      map['frequencyMax'] = Variable<double>(frequencyMax.value);
+    }
+    if (frequencyMin.present) {
+      map['frequencyMin'] = Variable<double>(frequencyMin.value);
+    }
+    if (frequencyAtMaxEnergy.present) {
+      map['frequencyAtMaxEnergy'] =
+          Variable<double>(frequencyAtMaxEnergy.value);
+    }
+    if (duration.present) {
+      map['duration'] = Variable<double>(duration.value);
     }
     if (weight.present) {
       map['weight'] = Variable<double>(weight.value);
@@ -9661,11 +10314,19 @@ class MammalMeasurementCompanion
   String toString() {
     return (StringBuffer('MammalMeasurementCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
+          ..write('showBatFields: $showBatFields, ')
           ..write('totalLength: $totalLength, ')
           ..write('tailLength: $tailLength, ')
           ..write('hindFootLength: $hindFootLength, ')
           ..write('earLength: $earLength, ')
           ..write('forearm: $forearm, ')
+          ..write('tibia: $tibia, ')
+          ..write('showEchoFields: $showEchoFields, ')
+          ..write('echolocation: $echolocation, ')
+          ..write('frequencyMax: $frequencyMax, ')
+          ..write('frequencyMin: $frequencyMin, ')
+          ..write('frequencyAtMaxEnergy: $frequencyAtMaxEnergy, ')
+          ..write('duration: $duration, ')
           ..write('weight: $weight, ')
           ..write('accuracy: $accuracy, ')
           ..write('accuracySpecify: $accuracySpecify, ')
@@ -11527,6 +12188,364 @@ class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
   }
 }
 
+class HerpMeasurement extends Table
+    with TableInfo<HerpMeasurement, HerpMeasurementData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  HerpMeasurement(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _specimenUuidMeta =
+      const VerificationMeta('specimenUuid');
+  late final GeneratedColumn<String> specimenUuid = GeneratedColumn<String>(
+      'specimenUuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _sexMeta = const VerificationMeta('sex');
+  late final GeneratedColumn<int> sex = GeneratedColumn<int>(
+      'sex', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _ageMeta = const VerificationMeta('age');
+  late final GeneratedColumn<int> age = GeneratedColumn<int>(
+      'age', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _weightMeta = const VerificationMeta('weight');
+  late final GeneratedColumn<double> weight = GeneratedColumn<double>(
+      'weight', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _svlMeta = const VerificationMeta('svl');
+  late final GeneratedColumn<double> svl = GeneratedColumn<double>(
+      'svl', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+      'remark', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  @override
+  List<GeneratedColumn> get $columns =>
+      [specimenUuid, sex, age, weight, svl, remark];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'herpMeasurement';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<HerpMeasurementData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('specimenUuid')) {
+      context.handle(
+          _specimenUuidMeta,
+          specimenUuid.isAcceptableOrUnknown(
+              data['specimenUuid']!, _specimenUuidMeta));
+    } else if (isInserting) {
+      context.missing(_specimenUuidMeta);
+    }
+    if (data.containsKey('sex')) {
+      context.handle(
+          _sexMeta, sex.isAcceptableOrUnknown(data['sex']!, _sexMeta));
+    }
+    if (data.containsKey('age')) {
+      context.handle(
+          _ageMeta, age.isAcceptableOrUnknown(data['age']!, _ageMeta));
+    }
+    if (data.containsKey('weight')) {
+      context.handle(_weightMeta,
+          weight.isAcceptableOrUnknown(data['weight']!, _weightMeta));
+    }
+    if (data.containsKey('svl')) {
+      context.handle(
+          _svlMeta, svl.isAcceptableOrUnknown(data['svl']!, _svlMeta));
+    }
+    if (data.containsKey('remark')) {
+      context.handle(_remarkMeta,
+          remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  HerpMeasurementData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HerpMeasurementData(
+      specimenUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specimenUuid'])!,
+      sex: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sex']),
+      age: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}age']),
+      weight: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}weight']),
+      svl: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}svl']),
+      remark: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}remark']),
+    );
+  }
+
+  @override
+  HerpMeasurement createAlias(String alias) {
+    return HerpMeasurement(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints =>
+      const ['FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class HerpMeasurementData extends DataClass
+    implements Insertable<HerpMeasurementData> {
+  final String specimenUuid;
+  final int? sex;
+  final int? age;
+  final double? weight;
+  final double? svl;
+  final String? remark;
+  const HerpMeasurementData(
+      {required this.specimenUuid,
+      this.sex,
+      this.age,
+      this.weight,
+      this.svl,
+      this.remark});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['specimenUuid'] = Variable<String>(specimenUuid);
+    if (!nullToAbsent || sex != null) {
+      map['sex'] = Variable<int>(sex);
+    }
+    if (!nullToAbsent || age != null) {
+      map['age'] = Variable<int>(age);
+    }
+    if (!nullToAbsent || weight != null) {
+      map['weight'] = Variable<double>(weight);
+    }
+    if (!nullToAbsent || svl != null) {
+      map['svl'] = Variable<double>(svl);
+    }
+    if (!nullToAbsent || remark != null) {
+      map['remark'] = Variable<String>(remark);
+    }
+    return map;
+  }
+
+  HerpMeasurementCompanion toCompanion(bool nullToAbsent) {
+    return HerpMeasurementCompanion(
+      specimenUuid: Value(specimenUuid),
+      sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      age: age == null && nullToAbsent ? const Value.absent() : Value(age),
+      weight:
+          weight == null && nullToAbsent ? const Value.absent() : Value(weight),
+      svl: svl == null && nullToAbsent ? const Value.absent() : Value(svl),
+      remark:
+          remark == null && nullToAbsent ? const Value.absent() : Value(remark),
+    );
+  }
+
+  factory HerpMeasurementData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HerpMeasurementData(
+      specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
+      sex: serializer.fromJson<int?>(json['sex']),
+      age: serializer.fromJson<int?>(json['age']),
+      weight: serializer.fromJson<double?>(json['weight']),
+      svl: serializer.fromJson<double?>(json['svl']),
+      remark: serializer.fromJson<String?>(json['remark']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'specimenUuid': serializer.toJson<String>(specimenUuid),
+      'sex': serializer.toJson<int?>(sex),
+      'age': serializer.toJson<int?>(age),
+      'weight': serializer.toJson<double?>(weight),
+      'svl': serializer.toJson<double?>(svl),
+      'remark': serializer.toJson<String?>(remark),
+    };
+  }
+
+  HerpMeasurementData copyWith(
+          {String? specimenUuid,
+          Value<int?> sex = const Value.absent(),
+          Value<int?> age = const Value.absent(),
+          Value<double?> weight = const Value.absent(),
+          Value<double?> svl = const Value.absent(),
+          Value<String?> remark = const Value.absent()}) =>
+      HerpMeasurementData(
+        specimenUuid: specimenUuid ?? this.specimenUuid,
+        sex: sex.present ? sex.value : this.sex,
+        age: age.present ? age.value : this.age,
+        weight: weight.present ? weight.value : this.weight,
+        svl: svl.present ? svl.value : this.svl,
+        remark: remark.present ? remark.value : this.remark,
+      );
+  HerpMeasurementData copyWithCompanion(HerpMeasurementCompanion data) {
+    return HerpMeasurementData(
+      specimenUuid: data.specimenUuid.present
+          ? data.specimenUuid.value
+          : this.specimenUuid,
+      sex: data.sex.present ? data.sex.value : this.sex,
+      age: data.age.present ? data.age.value : this.age,
+      weight: data.weight.present ? data.weight.value : this.weight,
+      svl: data.svl.present ? data.svl.value : this.svl,
+      remark: data.remark.present ? data.remark.value : this.remark,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HerpMeasurementData(')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('sex: $sex, ')
+          ..write('age: $age, ')
+          ..write('weight: $weight, ')
+          ..write('svl: $svl, ')
+          ..write('remark: $remark')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(specimenUuid, sex, age, weight, svl, remark);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HerpMeasurementData &&
+          other.specimenUuid == this.specimenUuid &&
+          other.sex == this.sex &&
+          other.age == this.age &&
+          other.weight == this.weight &&
+          other.svl == this.svl &&
+          other.remark == this.remark);
+}
+
+class HerpMeasurementCompanion extends UpdateCompanion<HerpMeasurementData> {
+  final Value<String> specimenUuid;
+  final Value<int?> sex;
+  final Value<int?> age;
+  final Value<double?> weight;
+  final Value<double?> svl;
+  final Value<String?> remark;
+  final Value<int> rowid;
+  const HerpMeasurementCompanion({
+    this.specimenUuid = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.age = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.svl = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HerpMeasurementCompanion.insert({
+    required String specimenUuid,
+    this.sex = const Value.absent(),
+    this.age = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.svl = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : specimenUuid = Value(specimenUuid);
+  static Insertable<HerpMeasurementData> custom({
+    Expression<String>? specimenUuid,
+    Expression<int>? sex,
+    Expression<int>? age,
+    Expression<double>? weight,
+    Expression<double>? svl,
+    Expression<String>? remark,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (specimenUuid != null) 'specimenUuid': specimenUuid,
+      if (sex != null) 'sex': sex,
+      if (age != null) 'age': age,
+      if (weight != null) 'weight': weight,
+      if (svl != null) 'svl': svl,
+      if (remark != null) 'remark': remark,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HerpMeasurementCompanion copyWith(
+      {Value<String>? specimenUuid,
+      Value<int?>? sex,
+      Value<int?>? age,
+      Value<double?>? weight,
+      Value<double?>? svl,
+      Value<String?>? remark,
+      Value<int>? rowid}) {
+    return HerpMeasurementCompanion(
+      specimenUuid: specimenUuid ?? this.specimenUuid,
+      sex: sex ?? this.sex,
+      age: age ?? this.age,
+      weight: weight ?? this.weight,
+      svl: svl ?? this.svl,
+      remark: remark ?? this.remark,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (specimenUuid.present) {
+      map['specimenUuid'] = Variable<String>(specimenUuid.value);
+    }
+    if (sex.present) {
+      map['sex'] = Variable<int>(sex.value);
+    }
+    if (age.present) {
+      map['age'] = Variable<int>(age.value);
+    }
+    if (weight.present) {
+      map['weight'] = Variable<double>(weight.value);
+    }
+    if (svl.present) {
+      map['svl'] = Variable<double>(svl.value);
+    }
+    if (remark.present) {
+      map['remark'] = Variable<String>(remark.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HerpMeasurementCompanion(')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('sex: $sex, ')
+          ..write('age: $age, ')
+          ..write('weight: $weight, ')
+          ..write('svl: $svl, ')
+          ..write('remark: $remark, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class SpecimenPart extends Table
     with TableInfo<SpecimenPart, SpecimenPartData> {
   @override
@@ -12303,6 +13322,7 @@ abstract class _$Database extends GeneratedDatabase {
   late final PersonnelList personnelList = PersonnelList(this);
   late final MammalMeasurement mammalMeasurement = MammalMeasurement(this);
   late final AvianMeasurement avianMeasurement = AvianMeasurement(this);
+  late final HerpMeasurement herpMeasurement = HerpMeasurement(this);
   late final SpecimenPart specimenPart = SpecimenPart(this);
   Selectable<ListProjectResult> listProject() {
     return customSelect('SELECT uuid, name, created, lastAccessed FROM project',
@@ -12341,6 +13361,7 @@ abstract class _$Database extends GeneratedDatabase {
         personnelList,
         mammalMeasurement,
         avianMeasurement,
+        herpMeasurement,
         specimenPart
       ];
 }
@@ -12351,6 +13372,7 @@ typedef $ProjectCreateCompanionBuilder = ProjectCompanion Function({
   Value<String?> description,
   Value<String?> principalInvestigator,
   Value<String?> location,
+  Value<String?> timeZone,
   Value<String?> startDate,
   Value<String?> endDate,
   Value<String?> created,
@@ -12363,6 +13385,7 @@ typedef $ProjectUpdateCompanionBuilder = ProjectCompanion Function({
   Value<String?> description,
   Value<String?> principalInvestigator,
   Value<String?> location,
+  Value<String?> timeZone,
   Value<String?> startDate,
   Value<String?> endDate,
   Value<String?> created,
@@ -12393,6 +13416,9 @@ class $ProjectFilterComposer extends Composer<_$Database, Project> {
 
   ColumnFilters<String> get location => $composableBuilder(
       column: $table.location, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get timeZone => $composableBuilder(
+      column: $table.timeZone, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get startDate => $composableBuilder(
       column: $table.startDate, builder: (column) => ColumnFilters(column));
@@ -12431,6 +13457,9 @@ class $ProjectOrderingComposer extends Composer<_$Database, Project> {
   ColumnOrderings<String> get location => $composableBuilder(
       column: $table.location, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get timeZone => $composableBuilder(
+      column: $table.timeZone, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get startDate => $composableBuilder(
       column: $table.startDate, builder: (column) => ColumnOrderings(column));
 
@@ -12467,6 +13496,9 @@ class $ProjectAnnotationComposer extends Composer<_$Database, Project> {
 
   GeneratedColumn<String> get location =>
       $composableBuilder(column: $table.location, builder: (column) => column);
+
+  GeneratedColumn<String> get timeZone =>
+      $composableBuilder(column: $table.timeZone, builder: (column) => column);
 
   GeneratedColumn<String> get startDate =>
       $composableBuilder(column: $table.startDate, builder: (column) => column);
@@ -12509,6 +13541,7 @@ class $ProjectTableManager extends RootTableManager<
             Value<String?> description = const Value.absent(),
             Value<String?> principalInvestigator = const Value.absent(),
             Value<String?> location = const Value.absent(),
+            Value<String?> timeZone = const Value.absent(),
             Value<String?> startDate = const Value.absent(),
             Value<String?> endDate = const Value.absent(),
             Value<String?> created = const Value.absent(),
@@ -12521,6 +13554,7 @@ class $ProjectTableManager extends RootTableManager<
             description: description,
             principalInvestigator: principalInvestigator,
             location: location,
+            timeZone: timeZone,
             startDate: startDate,
             endDate: endDate,
             created: created,
@@ -12533,6 +13567,7 @@ class $ProjectTableManager extends RootTableManager<
             Value<String?> description = const Value.absent(),
             Value<String?> principalInvestigator = const Value.absent(),
             Value<String?> location = const Value.absent(),
+            Value<String?> timeZone = const Value.absent(),
             Value<String?> startDate = const Value.absent(),
             Value<String?> endDate = const Value.absent(),
             Value<String?> created = const Value.absent(),
@@ -12545,6 +13580,7 @@ class $ProjectTableManager extends RootTableManager<
             description: description,
             principalInvestigator: principalInvestigator,
             location: location,
+            timeZone: timeZone,
             startDate: startDate,
             endDate: endDate,
             created: created,
@@ -12581,6 +13617,7 @@ typedef $PersonnelCreateCompanionBuilder = PersonnelCompanion Function({
   Value<int?> currentFieldNumber,
   Value<String?> notes,
   Value<String?> photoPath,
+  Value<bool> isRegisterField,
   Value<int> rowid,
 });
 typedef $PersonnelUpdateCompanionBuilder = PersonnelCompanion Function({
@@ -12594,6 +13631,7 @@ typedef $PersonnelUpdateCompanionBuilder = PersonnelCompanion Function({
   Value<int?> currentFieldNumber,
   Value<String?> notes,
   Value<String?> photoPath,
+  Value<bool> isRegisterField,
   Value<int> rowid,
 });
 
@@ -12656,6 +13694,10 @@ class $PersonnelFilterComposer extends Composer<_$Database, Personnel> {
   ColumnFilters<String> get photoPath => $composableBuilder(
       column: $table.photoPath, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<bool> get isRegisterField => $composableBuilder(
+      column: $table.isRegisterField,
+      builder: (column) => ColumnFilters(column));
+
   Expression<bool> specimenRefs(
       Expression<bool> Function($SpecimenFilterComposer f) f) {
     final $SpecimenFilterComposer composer = $composerBuilder(
@@ -12716,6 +13758,10 @@ class $PersonnelOrderingComposer extends Composer<_$Database, Personnel> {
 
   ColumnOrderings<String> get photoPath => $composableBuilder(
       column: $table.photoPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isRegisterField => $composableBuilder(
+      column: $table.isRegisterField,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $PersonnelAnnotationComposer extends Composer<_$Database, Personnel> {
@@ -12755,6 +13801,9 @@ class $PersonnelAnnotationComposer extends Composer<_$Database, Personnel> {
 
   GeneratedColumn<String> get photoPath =>
       $composableBuilder(column: $table.photoPath, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRegisterField => $composableBuilder(
+      column: $table.isRegisterField, builder: (column) => column);
 
   Expression<T> specimenRefs<T extends Object>(
       Expression<T> Function($SpecimenAnnotationComposer a) f) {
@@ -12811,6 +13860,7 @@ class $PersonnelTableManager extends RootTableManager<
             Value<int?> currentFieldNumber = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<String?> photoPath = const Value.absent(),
+            Value<bool> isRegisterField = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               PersonnelCompanion(
@@ -12824,6 +13874,7 @@ class $PersonnelTableManager extends RootTableManager<
             currentFieldNumber: currentFieldNumber,
             notes: notes,
             photoPath: photoPath,
+            isRegisterField: isRegisterField,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -12837,6 +13888,7 @@ class $PersonnelTableManager extends RootTableManager<
             Value<int?> currentFieldNumber = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<String?> photoPath = const Value.absent(),
+            Value<bool> isRegisterField = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               PersonnelCompanion.insert(
@@ -12850,6 +13902,7 @@ class $PersonnelTableManager extends RootTableManager<
             currentFieldNumber: currentFieldNumber,
             notes: notes,
             photoPath: photoPath,
+            isRegisterField: isRegisterField,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -14827,7 +15880,9 @@ typedef $NarrativeCreateCompanionBuilder = NarrativeCompanion Function({
   Value<int> id,
   Value<String?> projectUuid,
   Value<String?> date,
+  Value<String?> time,
   Value<int?> siteID,
+  Value<String?> writerId,
   Value<String?> narrative,
   Value<int?> mediaID,
 });
@@ -14835,7 +15890,9 @@ typedef $NarrativeUpdateCompanionBuilder = NarrativeCompanion Function({
   Value<int> id,
   Value<String?> projectUuid,
   Value<String?> date,
+  Value<String?> time,
   Value<int?> siteID,
+  Value<String?> writerId,
   Value<String?> narrative,
   Value<int?> mediaID,
 });
@@ -14876,8 +15933,14 @@ class $NarrativeFilterComposer extends Composer<_$Database, Narrative> {
   ColumnFilters<String> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get time => $composableBuilder(
+      column: $table.time, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<int> get siteID => $composableBuilder(
       column: $table.siteID, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get writerId => $composableBuilder(
+      column: $table.writerId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get narrative => $composableBuilder(
       column: $table.narrative, builder: (column) => ColumnFilters(column));
@@ -14920,8 +15983,14 @@ class $NarrativeOrderingComposer extends Composer<_$Database, Narrative> {
   ColumnOrderings<String> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get time => $composableBuilder(
+      column: $table.time, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get siteID => $composableBuilder(
       column: $table.siteID, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get writerId => $composableBuilder(
+      column: $table.writerId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get narrative => $composableBuilder(
       column: $table.narrative, builder: (column) => ColumnOrderings(column));
@@ -14964,8 +16033,14 @@ class $NarrativeAnnotationComposer extends Composer<_$Database, Narrative> {
   GeneratedColumn<String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
+  GeneratedColumn<String> get time =>
+      $composableBuilder(column: $table.time, builder: (column) => column);
+
   GeneratedColumn<int> get siteID =>
       $composableBuilder(column: $table.siteID, builder: (column) => column);
+
+  GeneratedColumn<String> get writerId =>
+      $composableBuilder(column: $table.writerId, builder: (column) => column);
 
   GeneratedColumn<String> get narrative =>
       $composableBuilder(column: $table.narrative, builder: (column) => column);
@@ -15017,7 +16092,9 @@ class $NarrativeTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String?> projectUuid = const Value.absent(),
             Value<String?> date = const Value.absent(),
+            Value<String?> time = const Value.absent(),
             Value<int?> siteID = const Value.absent(),
+            Value<String?> writerId = const Value.absent(),
             Value<String?> narrative = const Value.absent(),
             Value<int?> mediaID = const Value.absent(),
           }) =>
@@ -15025,7 +16102,9 @@ class $NarrativeTableManager extends RootTableManager<
             id: id,
             projectUuid: projectUuid,
             date: date,
+            time: time,
             siteID: siteID,
+            writerId: writerId,
             narrative: narrative,
             mediaID: mediaID,
           ),
@@ -15033,7 +16112,9 @@ class $NarrativeTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String?> projectUuid = const Value.absent(),
             Value<String?> date = const Value.absent(),
+            Value<String?> time = const Value.absent(),
             Value<int?> siteID = const Value.absent(),
+            Value<String?> writerId = const Value.absent(),
             Value<String?> narrative = const Value.absent(),
             Value<int?> mediaID = const Value.absent(),
           }) =>
@@ -15041,7 +16122,9 @@ class $NarrativeTableManager extends RootTableManager<
             id: id,
             projectUuid: projectUuid,
             date: date,
+            time: time,
             siteID: siteID,
+            writerId: writerId,
             narrative: narrative,
             mediaID: mediaID,
           ),
@@ -15650,15 +16733,18 @@ typedef $SpecimenCreateCompanionBuilder = SpecimenCompanion Function({
   Value<String?> condition,
   Value<String?> prepDate,
   Value<String?> prepTime,
+  Value<String?> collectionDate,
   Value<String?> collectionTime,
   Value<String?> captureDate,
   Value<int?> isRelativeTime,
   Value<String?> captureTime,
+  Value<String?> relativeCaptureTime,
   Value<String?> trapType,
   Value<String?> methodID,
   Value<int?> coordinateID,
   Value<String?> catalogerID,
   Value<int?> fieldNumber,
+  Value<int?> projectFieldNumber,
   Value<int?> collEventID,
   Value<int?> isMultipleCollector,
   Value<int?> collPersonnelID,
@@ -15677,15 +16763,18 @@ typedef $SpecimenUpdateCompanionBuilder = SpecimenCompanion Function({
   Value<String?> condition,
   Value<String?> prepDate,
   Value<String?> prepTime,
+  Value<String?> collectionDate,
   Value<String?> collectionTime,
   Value<String?> captureDate,
   Value<int?> isRelativeTime,
   Value<String?> captureTime,
+  Value<String?> relativeCaptureTime,
   Value<String?> trapType,
   Value<String?> methodID,
   Value<int?> coordinateID,
   Value<String?> catalogerID,
   Value<int?> fieldNumber,
+  Value<int?> projectFieldNumber,
   Value<int?> collEventID,
   Value<int?> isMultipleCollector,
   Value<int?> collPersonnelID,
@@ -15750,6 +16839,10 @@ class $SpecimenFilterComposer extends Composer<_$Database, Specimen> {
   ColumnFilters<String> get prepTime => $composableBuilder(
       column: $table.prepTime, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get collectionDate => $composableBuilder(
+      column: $table.collectionDate,
+      builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get collectionTime => $composableBuilder(
       column: $table.collectionTime,
       builder: (column) => ColumnFilters(column));
@@ -15763,6 +16856,10 @@ class $SpecimenFilterComposer extends Composer<_$Database, Specimen> {
 
   ColumnFilters<String> get captureTime => $composableBuilder(
       column: $table.captureTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get relativeCaptureTime => $composableBuilder(
+      column: $table.relativeCaptureTime,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get trapType => $composableBuilder(
       column: $table.trapType, builder: (column) => ColumnFilters(column));
@@ -15778,6 +16875,10 @@ class $SpecimenFilterComposer extends Composer<_$Database, Specimen> {
 
   ColumnFilters<int> get fieldNumber => $composableBuilder(
       column: $table.fieldNumber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get projectFieldNumber => $composableBuilder(
+      column: $table.projectFieldNumber,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get collEventID => $composableBuilder(
       column: $table.collEventID, builder: (column) => ColumnFilters(column));
@@ -15853,6 +16954,10 @@ class $SpecimenOrderingComposer extends Composer<_$Database, Specimen> {
   ColumnOrderings<String> get prepTime => $composableBuilder(
       column: $table.prepTime, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get collectionDate => $composableBuilder(
+      column: $table.collectionDate,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get collectionTime => $composableBuilder(
       column: $table.collectionTime,
       builder: (column) => ColumnOrderings(column));
@@ -15866,6 +16971,10 @@ class $SpecimenOrderingComposer extends Composer<_$Database, Specimen> {
 
   ColumnOrderings<String> get captureTime => $composableBuilder(
       column: $table.captureTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get relativeCaptureTime => $composableBuilder(
+      column: $table.relativeCaptureTime,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get trapType => $composableBuilder(
       column: $table.trapType, builder: (column) => ColumnOrderings(column));
@@ -15882,6 +16991,10 @@ class $SpecimenOrderingComposer extends Composer<_$Database, Specimen> {
 
   ColumnOrderings<int> get fieldNumber => $composableBuilder(
       column: $table.fieldNumber, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get projectFieldNumber => $composableBuilder(
+      column: $table.projectFieldNumber,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get collEventID => $composableBuilder(
       column: $table.collEventID, builder: (column) => ColumnOrderings(column));
@@ -15957,6 +17070,9 @@ class $SpecimenAnnotationComposer extends Composer<_$Database, Specimen> {
   GeneratedColumn<String> get prepTime =>
       $composableBuilder(column: $table.prepTime, builder: (column) => column);
 
+  GeneratedColumn<String> get collectionDate => $composableBuilder(
+      column: $table.collectionDate, builder: (column) => column);
+
   GeneratedColumn<String> get collectionTime => $composableBuilder(
       column: $table.collectionTime, builder: (column) => column);
 
@@ -15968,6 +17084,9 @@ class $SpecimenAnnotationComposer extends Composer<_$Database, Specimen> {
 
   GeneratedColumn<String> get captureTime => $composableBuilder(
       column: $table.captureTime, builder: (column) => column);
+
+  GeneratedColumn<String> get relativeCaptureTime => $composableBuilder(
+      column: $table.relativeCaptureTime, builder: (column) => column);
 
   GeneratedColumn<String> get trapType =>
       $composableBuilder(column: $table.trapType, builder: (column) => column);
@@ -15983,6 +17102,9 @@ class $SpecimenAnnotationComposer extends Composer<_$Database, Specimen> {
 
   GeneratedColumn<int> get fieldNumber => $composableBuilder(
       column: $table.fieldNumber, builder: (column) => column);
+
+  GeneratedColumn<int> get projectFieldNumber => $composableBuilder(
+      column: $table.projectFieldNumber, builder: (column) => column);
 
   GeneratedColumn<int> get collEventID => $composableBuilder(
       column: $table.collEventID, builder: (column) => column);
@@ -16052,15 +17174,18 @@ class $SpecimenTableManager extends RootTableManager<
             Value<String?> condition = const Value.absent(),
             Value<String?> prepDate = const Value.absent(),
             Value<String?> prepTime = const Value.absent(),
+            Value<String?> collectionDate = const Value.absent(),
             Value<String?> collectionTime = const Value.absent(),
             Value<String?> captureDate = const Value.absent(),
             Value<int?> isRelativeTime = const Value.absent(),
             Value<String?> captureTime = const Value.absent(),
+            Value<String?> relativeCaptureTime = const Value.absent(),
             Value<String?> trapType = const Value.absent(),
             Value<String?> methodID = const Value.absent(),
             Value<int?> coordinateID = const Value.absent(),
             Value<String?> catalogerID = const Value.absent(),
             Value<int?> fieldNumber = const Value.absent(),
+            Value<int?> projectFieldNumber = const Value.absent(),
             Value<int?> collEventID = const Value.absent(),
             Value<int?> isMultipleCollector = const Value.absent(),
             Value<int?> collPersonnelID = const Value.absent(),
@@ -16079,15 +17204,18 @@ class $SpecimenTableManager extends RootTableManager<
             condition: condition,
             prepDate: prepDate,
             prepTime: prepTime,
+            collectionDate: collectionDate,
             collectionTime: collectionTime,
             captureDate: captureDate,
             isRelativeTime: isRelativeTime,
             captureTime: captureTime,
+            relativeCaptureTime: relativeCaptureTime,
             trapType: trapType,
             methodID: methodID,
             coordinateID: coordinateID,
             catalogerID: catalogerID,
             fieldNumber: fieldNumber,
+            projectFieldNumber: projectFieldNumber,
             collEventID: collEventID,
             isMultipleCollector: isMultipleCollector,
             collPersonnelID: collPersonnelID,
@@ -16106,15 +17234,18 @@ class $SpecimenTableManager extends RootTableManager<
             Value<String?> condition = const Value.absent(),
             Value<String?> prepDate = const Value.absent(),
             Value<String?> prepTime = const Value.absent(),
+            Value<String?> collectionDate = const Value.absent(),
             Value<String?> collectionTime = const Value.absent(),
             Value<String?> captureDate = const Value.absent(),
             Value<int?> isRelativeTime = const Value.absent(),
             Value<String?> captureTime = const Value.absent(),
+            Value<String?> relativeCaptureTime = const Value.absent(),
             Value<String?> trapType = const Value.absent(),
             Value<String?> methodID = const Value.absent(),
             Value<int?> coordinateID = const Value.absent(),
             Value<String?> catalogerID = const Value.absent(),
             Value<int?> fieldNumber = const Value.absent(),
+            Value<int?> projectFieldNumber = const Value.absent(),
             Value<int?> collEventID = const Value.absent(),
             Value<int?> isMultipleCollector = const Value.absent(),
             Value<int?> collPersonnelID = const Value.absent(),
@@ -16133,15 +17264,18 @@ class $SpecimenTableManager extends RootTableManager<
             condition: condition,
             prepDate: prepDate,
             prepTime: prepTime,
+            collectionDate: collectionDate,
             collectionTime: collectionTime,
             captureDate: captureDate,
             isRelativeTime: isRelativeTime,
             captureTime: captureTime,
+            relativeCaptureTime: relativeCaptureTime,
             trapType: trapType,
             methodID: methodID,
             coordinateID: coordinateID,
             catalogerID: catalogerID,
             fieldNumber: fieldNumber,
+            projectFieldNumber: projectFieldNumber,
             collEventID: collEventID,
             isMultipleCollector: isMultipleCollector,
             collPersonnelID: collPersonnelID,
@@ -16656,11 +17790,19 @@ typedef $PersonnelListProcessedTableManager = ProcessedTableManager<
 typedef $MammalMeasurementCreateCompanionBuilder = MammalMeasurementCompanion
     Function({
   required String specimenUuid,
+  Value<int?> showBatFields,
   Value<double?> totalLength,
   Value<double?> tailLength,
   Value<double?> hindFootLength,
   Value<double?> earLength,
   Value<double?> forearm,
+  Value<double?> tibia,
+  Value<int?> showEchoFields,
+  Value<int?> echolocation,
+  Value<double?> frequencyMax,
+  Value<double?> frequencyMin,
+  Value<double?> frequencyAtMaxEnergy,
+  Value<double?> duration,
   Value<double?> weight,
   Value<String?> accuracy,
   Value<String?> accuracySpecify,
@@ -16688,11 +17830,19 @@ typedef $MammalMeasurementCreateCompanionBuilder = MammalMeasurementCompanion
 typedef $MammalMeasurementUpdateCompanionBuilder = MammalMeasurementCompanion
     Function({
   Value<String> specimenUuid,
+  Value<int?> showBatFields,
   Value<double?> totalLength,
   Value<double?> tailLength,
   Value<double?> hindFootLength,
   Value<double?> earLength,
   Value<double?> forearm,
+  Value<double?> tibia,
+  Value<int?> showEchoFields,
+  Value<int?> echolocation,
+  Value<double?> frequencyMax,
+  Value<double?> frequencyMin,
+  Value<double?> frequencyAtMaxEnergy,
+  Value<double?> duration,
   Value<double?> weight,
   Value<String?> accuracy,
   Value<String?> accuracySpecify,
@@ -16730,6 +17880,9 @@ class $MammalMeasurementFilterComposer
   ColumnFilters<String> get specimenUuid => $composableBuilder(
       column: $table.specimenUuid, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<int> get showBatFields => $composableBuilder(
+      column: $table.showBatFields, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<double> get totalLength => $composableBuilder(
       column: $table.totalLength, builder: (column) => ColumnFilters(column));
 
@@ -16745,6 +17898,29 @@ class $MammalMeasurementFilterComposer
 
   ColumnFilters<double> get forearm => $composableBuilder(
       column: $table.forearm, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get tibia => $composableBuilder(
+      column: $table.tibia, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get showEchoFields => $composableBuilder(
+      column: $table.showEchoFields,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get echolocation => $composableBuilder(
+      column: $table.echolocation, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get frequencyMax => $composableBuilder(
+      column: $table.frequencyMax, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get frequencyMin => $composableBuilder(
+      column: $table.frequencyMin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get frequencyAtMaxEnergy => $composableBuilder(
+      column: $table.frequencyAtMaxEnergy,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get duration => $composableBuilder(
+      column: $table.duration, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get weight => $composableBuilder(
       column: $table.weight, builder: (column) => ColumnFilters(column));
@@ -16839,6 +18015,10 @@ class $MammalMeasurementOrderingComposer
       column: $table.specimenUuid,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get showBatFields => $composableBuilder(
+      column: $table.showBatFields,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<double> get totalLength => $composableBuilder(
       column: $table.totalLength, builder: (column) => ColumnOrderings(column));
 
@@ -16854,6 +18034,32 @@ class $MammalMeasurementOrderingComposer
 
   ColumnOrderings<double> get forearm => $composableBuilder(
       column: $table.forearm, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get tibia => $composableBuilder(
+      column: $table.tibia, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get showEchoFields => $composableBuilder(
+      column: $table.showEchoFields,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get echolocation => $composableBuilder(
+      column: $table.echolocation,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get frequencyMax => $composableBuilder(
+      column: $table.frequencyMax,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get frequencyMin => $composableBuilder(
+      column: $table.frequencyMin,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get frequencyAtMaxEnergy => $composableBuilder(
+      column: $table.frequencyAtMaxEnergy,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get duration => $composableBuilder(
+      column: $table.duration, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<double> get weight => $composableBuilder(
       column: $table.weight, builder: (column) => ColumnOrderings(column));
@@ -16949,6 +18155,9 @@ class $MammalMeasurementAnnotationComposer
   GeneratedColumn<String> get specimenUuid => $composableBuilder(
       column: $table.specimenUuid, builder: (column) => column);
 
+  GeneratedColumn<int> get showBatFields => $composableBuilder(
+      column: $table.showBatFields, builder: (column) => column);
+
   GeneratedColumn<double> get totalLength => $composableBuilder(
       column: $table.totalLength, builder: (column) => column);
 
@@ -16963,6 +18172,27 @@ class $MammalMeasurementAnnotationComposer
 
   GeneratedColumn<double> get forearm =>
       $composableBuilder(column: $table.forearm, builder: (column) => column);
+
+  GeneratedColumn<double> get tibia =>
+      $composableBuilder(column: $table.tibia, builder: (column) => column);
+
+  GeneratedColumn<int> get showEchoFields => $composableBuilder(
+      column: $table.showEchoFields, builder: (column) => column);
+
+  GeneratedColumn<int> get echolocation => $composableBuilder(
+      column: $table.echolocation, builder: (column) => column);
+
+  GeneratedColumn<double> get frequencyMax => $composableBuilder(
+      column: $table.frequencyMax, builder: (column) => column);
+
+  GeneratedColumn<double> get frequencyMin => $composableBuilder(
+      column: $table.frequencyMin, builder: (column) => column);
+
+  GeneratedColumn<double> get frequencyAtMaxEnergy => $composableBuilder(
+      column: $table.frequencyAtMaxEnergy, builder: (column) => column);
+
+  GeneratedColumn<double> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => column);
 
   GeneratedColumn<double> get weight =>
       $composableBuilder(column: $table.weight, builder: (column) => column);
@@ -17058,11 +18288,19 @@ class $MammalMeasurementTableManager extends RootTableManager<
               $MammalMeasurementAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> specimenUuid = const Value.absent(),
+            Value<int?> showBatFields = const Value.absent(),
             Value<double?> totalLength = const Value.absent(),
             Value<double?> tailLength = const Value.absent(),
             Value<double?> hindFootLength = const Value.absent(),
             Value<double?> earLength = const Value.absent(),
             Value<double?> forearm = const Value.absent(),
+            Value<double?> tibia = const Value.absent(),
+            Value<int?> showEchoFields = const Value.absent(),
+            Value<int?> echolocation = const Value.absent(),
+            Value<double?> frequencyMax = const Value.absent(),
+            Value<double?> frequencyMin = const Value.absent(),
+            Value<double?> frequencyAtMaxEnergy = const Value.absent(),
+            Value<double?> duration = const Value.absent(),
             Value<double?> weight = const Value.absent(),
             Value<String?> accuracy = const Value.absent(),
             Value<String?> accuracySpecify = const Value.absent(),
@@ -17089,11 +18327,19 @@ class $MammalMeasurementTableManager extends RootTableManager<
           }) =>
               MammalMeasurementCompanion(
             specimenUuid: specimenUuid,
+            showBatFields: showBatFields,
             totalLength: totalLength,
             tailLength: tailLength,
             hindFootLength: hindFootLength,
             earLength: earLength,
             forearm: forearm,
+            tibia: tibia,
+            showEchoFields: showEchoFields,
+            echolocation: echolocation,
+            frequencyMax: frequencyMax,
+            frequencyMin: frequencyMin,
+            frequencyAtMaxEnergy: frequencyAtMaxEnergy,
+            duration: duration,
             weight: weight,
             accuracy: accuracy,
             accuracySpecify: accuracySpecify,
@@ -17120,11 +18366,19 @@ class $MammalMeasurementTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String specimenUuid,
+            Value<int?> showBatFields = const Value.absent(),
             Value<double?> totalLength = const Value.absent(),
             Value<double?> tailLength = const Value.absent(),
             Value<double?> hindFootLength = const Value.absent(),
             Value<double?> earLength = const Value.absent(),
             Value<double?> forearm = const Value.absent(),
+            Value<double?> tibia = const Value.absent(),
+            Value<int?> showEchoFields = const Value.absent(),
+            Value<int?> echolocation = const Value.absent(),
+            Value<double?> frequencyMax = const Value.absent(),
+            Value<double?> frequencyMin = const Value.absent(),
+            Value<double?> frequencyAtMaxEnergy = const Value.absent(),
+            Value<double?> duration = const Value.absent(),
             Value<double?> weight = const Value.absent(),
             Value<String?> accuracy = const Value.absent(),
             Value<String?> accuracySpecify = const Value.absent(),
@@ -17151,11 +18405,19 @@ class $MammalMeasurementTableManager extends RootTableManager<
           }) =>
               MammalMeasurementCompanion.insert(
             specimenUuid: specimenUuid,
+            showBatFields: showBatFields,
             totalLength: totalLength,
             tailLength: tailLength,
             hindFootLength: hindFootLength,
             earLength: earLength,
             forearm: forearm,
+            tibia: tibia,
+            showEchoFields: showEchoFields,
+            echolocation: echolocation,
+            frequencyMax: frequencyMax,
+            frequencyMin: frequencyMin,
+            frequencyAtMaxEnergy: frequencyAtMaxEnergy,
+            duration: duration,
             weight: weight,
             accuracy: accuracy,
             accuracySpecify: accuracySpecify,
@@ -17903,6 +19165,195 @@ typedef $AvianMeasurementProcessedTableManager = ProcessedTableManager<
     ),
     AvianMeasurementData,
     PrefetchHooks Function()>;
+typedef $HerpMeasurementCreateCompanionBuilder = HerpMeasurementCompanion
+    Function({
+  required String specimenUuid,
+  Value<int?> sex,
+  Value<int?> age,
+  Value<double?> weight,
+  Value<double?> svl,
+  Value<String?> remark,
+  Value<int> rowid,
+});
+typedef $HerpMeasurementUpdateCompanionBuilder = HerpMeasurementCompanion
+    Function({
+  Value<String> specimenUuid,
+  Value<int?> sex,
+  Value<int?> age,
+  Value<double?> weight,
+  Value<double?> svl,
+  Value<String?> remark,
+  Value<int> rowid,
+});
+
+class $HerpMeasurementFilterComposer
+    extends Composer<_$Database, HerpMeasurement> {
+  $HerpMeasurementFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get specimenUuid => $composableBuilder(
+      column: $table.specimenUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sex => $composableBuilder(
+      column: $table.sex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get age => $composableBuilder(
+      column: $table.age, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get weight => $composableBuilder(
+      column: $table.weight, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get svl => $composableBuilder(
+      column: $table.svl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remark => $composableBuilder(
+      column: $table.remark, builder: (column) => ColumnFilters(column));
+}
+
+class $HerpMeasurementOrderingComposer
+    extends Composer<_$Database, HerpMeasurement> {
+  $HerpMeasurementOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get specimenUuid => $composableBuilder(
+      column: $table.specimenUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sex => $composableBuilder(
+      column: $table.sex, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get age => $composableBuilder(
+      column: $table.age, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get weight => $composableBuilder(
+      column: $table.weight, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get svl => $composableBuilder(
+      column: $table.svl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get remark => $composableBuilder(
+      column: $table.remark, builder: (column) => ColumnOrderings(column));
+}
+
+class $HerpMeasurementAnnotationComposer
+    extends Composer<_$Database, HerpMeasurement> {
+  $HerpMeasurementAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get specimenUuid => $composableBuilder(
+      column: $table.specimenUuid, builder: (column) => column);
+
+  GeneratedColumn<int> get sex =>
+      $composableBuilder(column: $table.sex, builder: (column) => column);
+
+  GeneratedColumn<int> get age =>
+      $composableBuilder(column: $table.age, builder: (column) => column);
+
+  GeneratedColumn<double> get weight =>
+      $composableBuilder(column: $table.weight, builder: (column) => column);
+
+  GeneratedColumn<double> get svl =>
+      $composableBuilder(column: $table.svl, builder: (column) => column);
+
+  GeneratedColumn<String> get remark =>
+      $composableBuilder(column: $table.remark, builder: (column) => column);
+}
+
+class $HerpMeasurementTableManager extends RootTableManager<
+    _$Database,
+    HerpMeasurement,
+    HerpMeasurementData,
+    $HerpMeasurementFilterComposer,
+    $HerpMeasurementOrderingComposer,
+    $HerpMeasurementAnnotationComposer,
+    $HerpMeasurementCreateCompanionBuilder,
+    $HerpMeasurementUpdateCompanionBuilder,
+    (
+      HerpMeasurementData,
+      BaseReferences<_$Database, HerpMeasurement, HerpMeasurementData>
+    ),
+    HerpMeasurementData,
+    PrefetchHooks Function()> {
+  $HerpMeasurementTableManager(_$Database db, HerpMeasurement table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $HerpMeasurementFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $HerpMeasurementOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $HerpMeasurementAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> specimenUuid = const Value.absent(),
+            Value<int?> sex = const Value.absent(),
+            Value<int?> age = const Value.absent(),
+            Value<double?> weight = const Value.absent(),
+            Value<double?> svl = const Value.absent(),
+            Value<String?> remark = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              HerpMeasurementCompanion(
+            specimenUuid: specimenUuid,
+            sex: sex,
+            age: age,
+            weight: weight,
+            svl: svl,
+            remark: remark,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String specimenUuid,
+            Value<int?> sex = const Value.absent(),
+            Value<int?> age = const Value.absent(),
+            Value<double?> weight = const Value.absent(),
+            Value<double?> svl = const Value.absent(),
+            Value<String?> remark = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              HerpMeasurementCompanion.insert(
+            specimenUuid: specimenUuid,
+            sex: sex,
+            age: age,
+            weight: weight,
+            svl: svl,
+            remark: remark,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $HerpMeasurementProcessedTableManager = ProcessedTableManager<
+    _$Database,
+    HerpMeasurement,
+    HerpMeasurementData,
+    $HerpMeasurementFilterComposer,
+    $HerpMeasurementOrderingComposer,
+    $HerpMeasurementAnnotationComposer,
+    $HerpMeasurementCreateCompanionBuilder,
+    $HerpMeasurementUpdateCompanionBuilder,
+    (
+      HerpMeasurementData,
+      BaseReferences<_$Database, HerpMeasurement, HerpMeasurementData>
+    ),
+    HerpMeasurementData,
+    PrefetchHooks Function()>;
 typedef $SpecimenPartCreateCompanionBuilder = SpecimenPartCompanion Function({
   Value<int?> id,
   Value<String?> specimenUuid,
@@ -18259,6 +19710,8 @@ class $DatabaseManager {
       $MammalMeasurementTableManager(_db, _db.mammalMeasurement);
   $AvianMeasurementTableManager get avianMeasurement =>
       $AvianMeasurementTableManager(_db, _db.avianMeasurement);
+  $HerpMeasurementTableManager get herpMeasurement =>
+      $HerpMeasurementTableManager(_db, _db.herpMeasurement);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db, _db.specimenPart);
 }

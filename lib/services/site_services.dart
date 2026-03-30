@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:geolocator/geolocator.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
@@ -184,6 +183,10 @@ class CoordinateServices extends AppServices {
 
   Future<void> deleteCoordinate(int coordinateId) async {
     await CoordinateQuery(dbAccess).deleteCoordinate(coordinateId);
+  }
+
+  Future<void> deleteCoordinatesFromList(List<int> coordinatesList) async {
+    await CoordinateQuery(dbAccess).deleteCoordinates(coordinatesList);
   }
 }
 

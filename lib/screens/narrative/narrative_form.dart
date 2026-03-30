@@ -32,6 +32,23 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
 
   @override
   void dispose() {
+    // Persist date and time (if any) before disposing controllers so that
+    // unsaved changes are not lost when the user navigates away.
+    try {
+      String? dateStd = widget.narrativeCtr.dateCtr.date;
+      String? timeStd = widget.narrativeCtr.timeCtr.time;
+
+      NarrativeServices(ref: ref).updateNarrative(
+        widget.narrativeId,
+        NarrativeCompanion(
+          date: db.Value(dateStd),
+          time: db.Value(timeStd),
+        ),
+      );
+    } catch (e) {
+      // Best-effort: don't crash on dispose if update fails.
+    }
+
     widget.narrativeCtr.dispose();
     super.dispose();
   }
@@ -46,17 +63,37 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
             FormCard(
               isPrimary: true,
               isWithTitle: false,
-              child: AdaptiveLayout(
-                useHorizontalLayout: useHorizontalLayout,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  DateForm(
-                    narrativeId: widget.narrativeId,
-                    narrativeCtr: widget.narrativeCtr,
+                  AdaptiveLayout(
+                    useHorizontalLayout: useHorizontalLayout,
+                    children: [
+                      DateForm(
+                        narrativeId: widget.narrativeId,
+                        narrativeCtr: widget.narrativeCtr,
+                      ),
+                      // Time field to the right of Date
+                      TimeForm(
+                        narrativeId: widget.narrativeId,
+                        narrativeCtr: widget.narrativeCtr,
+                      ),
+                    ],
                   ),
-                  SiteForm(
-                    narrativeId: widget.narrativeId,
-                    narrativeCtr: widget.narrativeCtr,
+                  AdaptiveLayout(
+                    useHorizontalLayout: useHorizontalLayout,
+                    children: [
+                      SiteForm(
+                        narrativeId: widget.narrativeId,
+                        narrativeCtr: widget.narrativeCtr,
+                      ),
+                      WriterForm(
+                        narrativeId: widget.narrativeId,
+                        narrativeCtr: widget.narrativeCtr,
+                      ),
+                    ],
                   ),
+                  SiteNameField(siteId: widget.narrativeCtr.siteCtr),
                 ],
               ),
             ),

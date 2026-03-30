@@ -153,47 +153,34 @@ class TaxonListViewState extends ConsumerState<TaxonListView> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(children: [
-          Visibility(
-            visible: _isSelecting,
-            child: TextButton(
-              onPressed: _selectedTaxon.isEmpty
+        SelectItemsInterface(
+          isSelecting: _isSelecting,
+          onClearPressed: _selectedTaxon.isEmpty
+              ? null
+              : () {
+                  setState(() {
+                    _selectedTaxon.clear();
+                  });
+                },
+          onSelectAllPressed:
+              _selectedTaxon.length == widget.taxonList.length ||
+                      _selectedTaxon.length == _allowedTaxa.length
                   ? null
                   : () {
                       setState(() {
                         _selectedTaxon.clear();
+                        _selectedTaxon.addAll(_allowedTaxa);
                       });
                     },
-              child: const Text('Clear'),
-            ),
-          ),
-          Visibility(
-              visible: _isSelecting,
-              child: TextButton(
-                onPressed: _selectedTaxon.length == widget.taxonList.length ||
-                        _selectedTaxon.length == _allowedTaxa.length
-                    ? null
-                    : () {
-                        setState(() {
-                          _selectedTaxon.clear();
-                          _selectedTaxon.addAll(_allowedTaxa);
-                        });
-                      },
-                child: const Text('Select all'),
-              )),
-          const Spacer(),
-          TextButton(
-            onPressed: () async {
-              _usedTaxon = await _getUsedTaxa();
-              _allowedTaxa = _getAllowedTaxa();
-              setState(() {
-                _isSelecting = !_isSelecting;
-                _selectedTaxon.clear();
-              });
-            },
-            child: Text(_isSelecting ? 'Cancel' : 'Select'),
-          ),
-        ]),
+          onSelectPressed: () async {
+            _usedTaxon = await _getUsedTaxa();
+            _allowedTaxa = _getAllowedTaxa();
+            setState(() {
+              _isSelecting = !_isSelecting;
+              _selectedTaxon.clear();
+            });
+          },
+        ),
         Expanded(
           child: CommonScrollbar(
             scrollController: _scrollController,
@@ -230,20 +217,22 @@ class TaxonListViewState extends ConsumerState<TaxonListView> {
                           },
                         )
                       : null,
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => EditTaxon(
-                            taxonId: widget.taxonList[index].id,
-                            ctr: TaxonRegistryCtrModel.fromData(
-                                widget.taxonList[index]),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                  trailing: !_isSelecting
+                      ? IconButton(
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => EditTaxon(
+                                  taxonId: widget.taxonList[index].id,
+                                  ctr: TaxonRegistryCtrModel.fromData(
+                                      widget.taxonList[index]),
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : SizedBox.shrink(),
                 );
               },
             ),
@@ -251,9 +240,10 @@ class TaxonListViewState extends ConsumerState<TaxonListView> {
         ),
         const SizedBox(height: 8),
         _isSelecting
-            ? DeleteTaxonButton(
-                selectedTaxon: _selectedTaxon,
-                onPressed: () async {
+            ? DeleteItemsButton(
+                selectedItems: _selectedTaxon,
+                itemName: _selectedTaxon.length == 1 ? 'taxon' : 'taxa',
+                onPressedFunction: () async {
                   await _deleteTaxon();
                   setState(() {
                     _selectedTaxon.clear();
@@ -284,68 +274,5 @@ class TaxonListViewState extends ConsumerState<TaxonListView> {
 
   Future<void> _deleteTaxon() async {
     await TaxonomyServices(ref: ref).deleteTaxonFromList(_selectedTaxon);
-  }
-}
-
-class DeleteTaxonButton extends StatelessWidget {
-  const DeleteTaxonButton({
-    super.key,
-    required this.selectedTaxon,
-    required this.onPressed,
-  });
-
-  final List<int> selectedTaxon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        IconButton(
-          color: Theme.of(context).colorScheme.error,
-          onPressed: selectedTaxon.isEmpty
-              ? null
-              : () {
-                  showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('Delete taxon'),
-                          content: const Text(
-                              'Are you sure you want to delete the selected taxon?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: onPressed,
-                              child: Text('Delete',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.error,
-                                  )),
-                            ),
-                          ],
-                        );
-                      });
-                },
-          icon: const Icon(Icons.delete_outline),
-        ),
-        Visibility(
-            visible: selectedTaxon.isNotEmpty,
-            child: Text('Delete ${_taxonCount()}',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                )))
-      ],
-    );
-  }
-
-  String _taxonCount() {
-    return selectedTaxon.length == 1
-        ? '1 taxon'
-        : '${selectedTaxon.length} taxa';
   }
 }

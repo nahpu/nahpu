@@ -116,3 +116,19 @@ MeasurementAccuracy matchAccuracy(String? accuracy) {
       return MeasurementAccuracy.accurate;
   }
 }
+
+enum Echolocation { fm, cf, qcf, none }
+
+const List<String> echolocationList = [
+  'FM',
+  'CF',
+  'QCF',
+  'None',
+];
+
+Echolocation? getEcholocation(int? echolocation) {
+  if (echolocation != null) {
+    return Echolocation.values[echolocation];
+  }
+  return null;
+}

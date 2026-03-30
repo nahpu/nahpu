@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:nahpu/services/types/export.dart';
 
-enum CatalogFmt { generalMammals, birds, bats }
+enum CatalogFmt { mammals, birds, herpetofauna }
 
 // Database read through index.
 // and stored as integer.
@@ -22,6 +22,8 @@ enum SpecimenSearchOption {
   taxa,
   prepType
 }
+
+enum FieldIdMode { personnel, project }
 
 const List<String> specimenSexList = [
   'Male',
@@ -56,7 +58,7 @@ const List<String> defaultSpecimenType = [
   'Kidney',
 ];
 
-const List<String> defaultSpecimenTreatment = [
+const List<String> defaultTreatment = [
   'None',
   'ETOH',
   'Formalin',
@@ -97,8 +99,8 @@ const List<String> idConfidenceList = [
 
 const List<String> taxonGroupList = [
   'Birds',
-  'General Mammals',
-  'Bats',
+  'Mammals',
+  'Herpetofauna',
 ];
 
 CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
@@ -106,11 +108,12 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
     case 'Birds':
       return CatalogFmt.birds;
     case 'General Mammals':
-      return CatalogFmt.generalMammals;
-    case 'Bats':
-      return CatalogFmt.bats;
+    case 'Mammals':
+      return CatalogFmt.mammals;
+    case 'Herpetofauna':
+      return CatalogFmt.herpetofauna;
     default:
-      return CatalogFmt.generalMammals;
+      return CatalogFmt.mammals;
   }
 }
 
@@ -118,10 +121,10 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
       return SpecimenRecordType.birds;
-    case CatalogFmt.generalMammals:
+    case CatalogFmt.mammals:
       return SpecimenRecordType.generalMammals;
-    case CatalogFmt.bats:
-      return SpecimenRecordType.bats;
+    case CatalogFmt.herpetofauna:
+      return SpecimenRecordType.herpetofauna;
   }
 }
 
@@ -133,6 +136,8 @@ String matchRecordTypeToTaxonGroup(SpecimenRecordType recordType) {
       return 'General Mammals';
     case SpecimenRecordType.bats:
       return 'Bats';
+    case SpecimenRecordType.herpetofauna:
+      return 'Herpetofauna';
     default:
       throw Exception('Invalid record type');
   }
@@ -143,9 +148,12 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
     case 'Birds':
       return SpecimenRecordType.birds;
     case 'General Mammals':
+    case 'Mammals':
       return SpecimenRecordType.generalMammals;
     case 'Bats':
       return SpecimenRecordType.bats;
+    case 'Herpetofauna':
+      return SpecimenRecordType.herpetofauna;
     default:
       return SpecimenRecordType.generalMammals;
   }
@@ -155,10 +163,10 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
       return 'Birds';
-    case CatalogFmt.generalMammals:
-      return 'General Mammals';
-    case CatalogFmt.bats:
-      return 'Bats';
+    case CatalogFmt.mammals:
+      return 'Mammals';
+    case CatalogFmt.herpetofauna:
+      return 'Herpetofauna';
   }
 }
 
@@ -166,10 +174,10 @@ IconData matchCatFmtToPartIcon(CatalogFmt catalogFmt) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
       return MdiIcons.owl;
-    case CatalogFmt.generalMammals:
+    case CatalogFmt.mammals:
       return MdiIcons.pawOutline;
-    case CatalogFmt.bats:
-      return MdiIcons.pawOutline;
+    case CatalogFmt.herpetofauna:
+      return MdiIcons.snake;
   }
 }
 
@@ -177,10 +185,10 @@ IconData matchCatFmtToIcon(CatalogFmt catalogFmt, bool isSelected) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
       return MdiIcons.owl;
-    case CatalogFmt.generalMammals:
+    case CatalogFmt.mammals:
       return isSelected ? MdiIcons.paw : MdiIcons.pawOutline;
-    case CatalogFmt.bats:
-      return MdiIcons.bat;
+    case CatalogFmt.herpetofauna:
+      return MdiIcons.snake;
   }
 }
 
@@ -204,12 +212,12 @@ const Map<String, String> partIconPath = {
 
 String matchCatalogFmtToIconPath(CatalogFmt fmt) {
   switch (fmt) {
-    case CatalogFmt.generalMammals:
+    case CatalogFmt.mammals:
       return 'assets/icons/mouse.svg';
-    case CatalogFmt.bats:
-      return 'assets/icons/bat.svg';
     case CatalogFmt.birds:
       return 'assets/icons/bird.svg';
+    case CatalogFmt.herpetofauna:
+      return 'assets/icons/snake.svg';
   }
 }
 

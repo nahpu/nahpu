@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/personnel.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -26,6 +27,9 @@ class EventPersonnel extends ConsumerStatefulWidget {
 
 class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
   final ScrollController scrollController = ScrollController();
+  bool _isSelecting = false;
+  final List<int> _selectedCollPers = [];
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +55,28 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
                           ? EmptyPersonnel(onPressed: _addPersonnel)
                           : Column(
                               children: [
+                                SelectItemsInterface(
+                                    isSelecting: _isSelecting,
+                                    onClearPressed: _selectedCollPers.isEmpty
+                                        ? null
+                                        : () {
+                                            setState(() {
+                                              _selectedCollPers.clear();
+                                            });
+                                          },
+                                    onSelectAllPressed: () {
+                                      setState(() {
+                                        _selectedCollPers.clear();
+                                        _selectedCollPers.addAll(
+                                            data.map((e) => e.id).toList());
+                                      });
+                                    },
+                                    onSelectPressed: () {
+                                      setState(() {
+                                        _isSelecting = !_isSelecting;
+                                        _selectedCollPers.clear();
+                                      });
+                                    }),
                                 Flexible(
                                   child: CommonScrollbar(
                                     scrollController: scrollController,
@@ -61,6 +87,20 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
                                           .map(
                                             (person) => EventPersonnelField(
                                               eventID: widget.eventID,
+                                              isSelecting: _isSelecting,
+                                              selectedCollPers:
+                                                  _selectedCollPers,
+                                              onChanged: (bool? value) {
+                                                setState(() {
+                                                  if (value == true) {
+                                                    _selectedCollPers
+                                                        .add(person.id);
+                                                  } else {
+                                                    _selectedCollPers
+                                                        .remove(person.id);
+                                                  }
+                                                });
+                                              },
                                               controller:
                                                   _addPersonnelCtr(person),
                                             ),
@@ -70,9 +110,27 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                AddPersonnelButton(
-                                  onPressed: _addPersonnel,
-                                ),
+                                !_isSelecting
+                                    ? AddPersonnelButton(
+                                        onPressed: _addPersonnel,
+                                      )
+                                    : DeleteItemsButton(
+                                        selectedItems: _selectedCollPers,
+                                        itemName: 'personnel',
+                                        onPressedFunction: () async {
+                                          await _deletePersonnel();
+                                          setState(() {
+                                            _selectedCollPers.clear();
+                                          });
+                                        },
+                                        customIconButtonText:
+                                            'Remove ${_selectedCollPers.length} personnel from event',
+                                        customDialogHeader:
+                                            'Remove event personnel',
+                                        customDialogText:
+                                            'Are you sure you want to remove the selected personnel from this event?',
+                                        customDialogButtonText: 'Remove',
+                                      ),
                               ],
                             );
                     },
@@ -99,6 +157,35 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
     final EventPersonnelCtrModel newPersonnel =
         EventPersonnelCtrModel.fromData(form);
     return newPersonnel;
+  }
+
+  Future<void> _deletePersonnel() async {
+    try {
+      await CollEventServices(ref: ref)
+          .deleteCollPersonnelFromList(_selectedCollPers);
+      ref.invalidate(collPersonnelProvider);
+      setState(() {
+        _isSelecting = false;
+      });
+      if (context.mounted) {
+        _pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showError(e.toString());
+      }
+    }
+  }
+
+  void _pop() {
+    Navigator.pop(context);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 10),
+    ));
   }
 }
 
@@ -139,10 +226,16 @@ class EventPersonnelField extends ConsumerStatefulWidget {
   const EventPersonnelField({
     super.key,
     required this.eventID,
+    required this.isSelecting,
+    required this.selectedCollPers,
+    required this.onChanged,
     required this.controller,
   });
 
   final int eventID;
+  final bool isSelecting;
+  final List<int> selectedCollPers;
+  final void Function(bool?) onChanged;
   final EventPersonnelCtrModel controller;
 
   @override
@@ -155,6 +248,12 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
     return CommonPadding(
         child: Row(
       children: [
+        widget.isSelecting
+            ? ListCheckBox(
+                isDisabled: false,
+                value: widget.selectedCollPers.contains(widget.controller.id!),
+                onChanged: widget.onChanged)
+            : const SizedBox.shrink(),
         Expanded(
           child: DropdownButtonFormField<String>(
             initialValue: widget.controller.nameIDCtr,
@@ -177,7 +276,6 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
                 ),
             onChanged: (value) {
               widget.controller.nameIDCtr = value ?? '';
-
               CollEventServices(ref: ref).updateCollPersonnel(
                 widget.controller.id!,
                 CollPersonnelCompanion(
@@ -195,47 +293,8 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
             controller: widget.controller,
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () {
-            _deletePersonnel();
-          },
-        ),
       ],
     ));
-  }
-
-  void _deletePersonnel() {
-    showDeleteAlertOnMenu(
-      context: context,
-      title: 'Delete collecting personnel?',
-      deletePrompt: 'You will delete this personnel from the event',
-      onDelete: () async {
-        try {
-          await CollEventServices(ref: ref)
-              .deleteCollPersonnel(widget.controller.id!);
-          if (context.mounted) {
-            _pop();
-          }
-        } catch (e) {
-          if (context.mounted) {
-            _showError(e.toString());
-          }
-        }
-      },
-    );
-  }
-
-  void _showError(String errors) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errors),
-      ),
-    );
-  }
-
-  void _pop() {
-    Navigator.pop(context);
   }
 }
 
@@ -256,7 +315,7 @@ class PersonnelRole extends ConsumerStatefulWidget {
 class PersonnelRoleState extends ConsumerState<PersonnelRole> {
   @override
   Widget build(BuildContext context) {
-    return ref.watch(collPersonnelRoleProvider).when(
+    return ref.watch(UserDefinedFieldProvider(collRolePrefKey)).when(
           data: (data) {
             return DropdownButtonFormField<String>(
               isExpanded: true,

@@ -97,6 +97,10 @@ class CollEffortQuery extends DatabaseAccessor<Database>
     return (delete(collEffort)..where((t) => t.id.equals(id))).go();
   }
 
+  Future<void> deleteCollEffortsFromList(List<int> ids) {
+    return (delete(collEffort)..where((t) => t.id.isIn(ids))).go();
+  }
+
   Future<void> deleteCollEffortByEventId(int eventId) {
     return (delete(collEffort)..where((t) => t.eventID.equals(eventId))).go();
   }
@@ -151,6 +155,10 @@ class CollPersonnelQuery extends DatabaseAccessor<Database>
 
   Future<void> deleteCollPersonnel(int personnelId) {
     return (delete(collPersonnel)..where((t) => t.id.equals(personnelId))).go();
+  }
+
+  Future<void> deleteCollPersonnelFromList(List<int> personnelIds) {
+    return (delete(collPersonnel)..where((t) => t.id.isIn(personnelIds))).go();
   }
 
   Future<void> deleteAllEventPersonnel(int eventId) {

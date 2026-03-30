@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/screens/specimens/avian/main_forms.dart';
-import 'package:nahpu/screens/specimens/mammalian/main_forms.dart';
+import 'package:nahpu/screens/specimens/shared/main_forms.dart';
 
 class SpecimenForm extends ConsumerStatefulWidget {
   const SpecimenForm(
@@ -34,18 +33,10 @@ class SpecimenFormState extends ConsumerState<SpecimenForm> {
 
   @override
   Widget build(BuildContext context) {
-    switch (widget.catalogFmt) {
-      case CatalogFmt.birds:
-        return BirdForms(
-            specimenUuid: widget.specimenUuid, specimenCtr: widget.specimenCtr);
-      case CatalogFmt.generalMammals:
-        return MammalForms(
-            specimenUuid: widget.specimenUuid, specimenCtr: widget.specimenCtr);
-      case CatalogFmt.bats:
-        return MammalForms(
-            specimenUuid: widget.specimenUuid,
-            specimenCtr: widget.specimenCtr,
-            isBats: true);
-    }
+    return MainForms(
+      catalogFmt: widget.catalogFmt,
+      specimenUuid: widget.specimenUuid, 
+      specimenCtr: widget.specimenCtr
+    );
   }
 }

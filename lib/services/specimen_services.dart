@@ -24,31 +24,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String tissueIDPrefixKey = 'tissueIDPrefix';
 const String tissueIDNumberKey = 'tissueIDNumber';
+const String projectFieldIDNumberKey = 'projectFieldIdNumber';
 
 class SpecimenServices extends AppServices {
   const SpecimenServices({required super.ref});
 
   Future<String> createSpecimen() async {
-    CatalogFmt catalogFmt = await ref.watch(catalogFmtNotifierProvider.future);
+    final CatalogFmt catalogFmt =
+        await ref.watch(catalogFmtNotifierProvider.future);
     final String specimenUuid = uuid;
+    final FieldIdMode fieldIdMode =
+        await ref.watch(fieldIdModeNotifierProvider.future);
+    String? currentProjectNumber;
+
+    if (fieldIdMode == FieldIdMode.project) {
+      currentProjectNumber =
+          await ProjectFieldIdServices(ref: ref).getNewNumber();
+    }
+
     await SpecimenQuery(dbAccess).createSpecimen(SpecimenCompanion(
       uuid: db.Value(specimenUuid),
       projectUuid: db.Value(currentProjectUuid),
       taxonGroup: db.Value(matchCatFmtToTaxonGroup(catalogFmt)),
+      projectFieldNumber: db.Value(int.tryParse(currentProjectNumber ?? '')),
     ));
 
     switch (catalogFmt) {
       case CatalogFmt.birds:
         _createBirdSpecimen(specimenUuid);
         break;
-      case CatalogFmt.bats:
+      case CatalogFmt.mammals:
         _createMammalSpecimen(specimenUuid);
         break;
-      case CatalogFmt.generalMammals:
-        _createMammalSpecimen(specimenUuid);
+      case CatalogFmt.herpetofauna:
+        _createHerpSpecimen(specimenUuid);
         break;
     }
     invalidateSpecimenList();
+
     return specimenUuid;
   }
 
@@ -99,6 +112,10 @@ class SpecimenServices extends AppServices {
 
   Future<List<String>> getRecordedGroupList() async {
     return SpecimenQuery(dbAccess).getUniqueTaxonGroup(currentProjectUuid);
+  }
+
+  Future<List<String>> getColumnNames() async {
+    return SpecimenQuery(dbAccess).getColumnNames();
   }
 
   Future<void> createSpecimenMediaFromList(
@@ -229,6 +246,20 @@ class SpecimenServices extends AppServices {
         .updateMammalMeasurements(specimenUuid, entries);
   }
 
+  void _createHerpSpecimen(String specimenUuid) {
+    HerpSpecimenQuery(dbAccess).createHerpMeasurements(
+        HerpMeasurementCompanion(specimenUuid: db.Value(specimenUuid)));
+  }
+
+  Future<HerpMeasurementData> getHerpMeasurementData(String specimenUuid) {
+    return HerpSpecimenQuery(dbAccess).getHerpMeasurementByUuid(specimenUuid);
+  }
+
+  void updateHerpMeasurement(
+      String specimenUuid, HerpMeasurementCompanion entries) {
+    HerpSpecimenQuery(dbAccess).updateHerpMeasurements(specimenUuid, entries);
+  }
+
   void _createBirdSpecimen(String specimenUuid) {
     AvianSpecimenQuery(dbAccess).createAvianMeasurements(
         AvianMeasurementCompanion(specimenUuid: db.Value(specimenUuid)));
@@ -273,6 +304,10 @@ class SpecimenServices extends AppServices {
     await MammalSpecimenQuery(dbAccess).deleteMammalMeasurements(specimenUuid);
   }
 
+  Future<void> deleteHerpMeasurements(String specimenUuid) async {
+    await HerpSpecimenQuery(dbAccess).deleteHerpMeasurements(specimenUuid);
+  }
+
   Future<void> deleteSpecimen(
       String specimenUuid, CatalogFmt catalogFmt) async {
     await deleteAllSpecimenParts(specimenUuid);
@@ -280,11 +315,11 @@ class SpecimenServices extends AppServices {
       case CatalogFmt.birds:
         await deleteAvianMeasurements(specimenUuid);
         break;
-      case CatalogFmt.bats:
+      case CatalogFmt.mammals:
         await deleteMammalMeasurements(specimenUuid);
         break;
-      case CatalogFmt.generalMammals:
-        await deleteMammalMeasurements(specimenUuid);
+      case CatalogFmt.herpetofauna:
+        await deleteHerpMeasurements(specimenUuid);
         break;
     }
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimenUuid);
@@ -302,11 +337,11 @@ class SpecimenServices extends AppServices {
         case CatalogFmt.birds:
           await deleteAvianMeasurements(specimen.uuid);
           break;
-        case CatalogFmt.bats:
+        case CatalogFmt.mammals:
           await deleteMammalMeasurements(specimen.uuid);
           break;
-        case CatalogFmt.generalMammals:
-          await deleteMammalMeasurements(specimen.uuid);
+        case CatalogFmt.herpetofauna:
+          await deleteHerpMeasurements(specimen.uuid);
           break;
       }
     }
@@ -318,8 +353,13 @@ class SpecimenServices extends AppServices {
     await SpecimenPartQuery(dbAccess).deleteAllSpecimenParts(specimenUuid);
   }
 
-  void deleteSpecimenPart(int partId) {
-    SpecimenPartQuery(dbAccess).deleteSpecimenPart(partId);
+  Future<void> deleteSpecimenPart(int partId) async {
+    await SpecimenPartQuery(dbAccess).deleteSpecimenPart(partId);
+    ref.invalidate(partBySpecimenProvider);
+  }
+
+  Future<void> deleteSpecimenPartsFromList(List<int> partIds) async {
+    await SpecimenPartQuery(dbAccess).deleteSpecimenPartsFromList(partIds);
     ref.invalidate(partBySpecimenProvider);
   }
 
@@ -490,6 +530,35 @@ class SpecimenSearchServices {
   }
 }
 
+class ProjectFieldIdServices extends AppServices {
+  const ProjectFieldIdServices({required super.ref});
+
+  SharedPreferences get _prefs => ref.read(settingProvider);
+
+  Future<String> getNewNumber() async {
+    int? number = _getSettingNumber();
+    String numberString = getNumberString();
+    await incrementNumber(number ?? 0);
+    return numberString;
+  }
+
+  String getNumberString() {
+    return _getSettingNumber() == null ? '1' : _getSettingNumber().toString();
+  }
+
+  Future<void> incrementNumber(int number) async {
+    await setNumber((number + 1).toString());
+  }
+
+  Future<void> setNumber(String number) async {
+    await _prefs.setInt(projectFieldIDNumberKey, int.tryParse(number) ?? 1);
+  }
+
+  int? _getSettingNumber() {
+    return _prefs.getInt(projectFieldIDNumberKey);
+  }
+}
+
 class TissueIdServices extends AppServices {
   const TissueIdServices({required super.ref});
 
@@ -559,66 +628,10 @@ class SpecimenPartServices extends AppServices {
     SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
     ref.invalidate(partBySpecimenProvider);
   }
-
-  Future<void> getSpecimenTypes() async {
-    final List<String> typeList =
-        await SpecimenPartQuery(dbAccess).getDistinctTypes();
-    final notifier = ref.read(specimenTypesProvider.notifier);
-    List<String> finalList = typeList.isEmpty ? defaultSpecimenType : typeList;
-    notifier.replaceAll(finalList);
-    _invalidateTypes();
-  }
-
-  Future<void> getTreatmentOptions() async {
-    final List<String> treatmentList =
-        await SpecimenPartQuery(dbAccess).getDistinctTreatments();
-    final notifier = ref.read(treatmentOptionsProvider.notifier);
-    List<String> finalList =
-        treatmentList.isEmpty ? defaultSpecimenTreatment : treatmentList;
-    notifier.replaceAll(finalList);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> addType(String part) async {
-    await ref.read(specimenTypesProvider.notifier).add(part);
-    _invalidateTypes();
-  }
-
-  Future<void> removeType(String specimenType) async {
-    ref.read(specimenTypesProvider.notifier).remove(specimenType);
-    _invalidateTypes();
-  }
-
-  Future<void> clearTypes() async {
-    ref.read(specimenTypesProvider.notifier).clear();
-    _invalidateTypes();
-  }
-
-  Future<void> addTreatment(String treatment) async {
-    await ref.read(treatmentOptionsProvider.notifier).add(treatment);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> removeTreatment(String treatment) async {
-    ref.read(treatmentOptionsProvider.notifier).remove(treatment);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> clearTreatments() async {
-    ref.read(treatmentOptionsProvider.notifier).clear();
-    _invalidateTreatmentOptions();
-  }
-
-  void _invalidateTreatmentOptions() {
-    ref.invalidate(treatmentOptionsProvider);
-  }
-
-  void _invalidateTypes() {
-    ref.invalidate(specimenTypesProvider);
-  }
 }
 
 const String collectorFieldKey = 'isCollectorFieldAlwaysShown';
+const String batFieldsKey = 'isBatFieldsAlwaysShown';
 
 class SpecimenSettingServices {
   SpecimenSettingServices({required this.ref});
@@ -627,12 +640,12 @@ class SpecimenSettingServices {
 
   SharedPreferences get _prefs => ref.read(settingProvider);
 
-  Future<void> setCollectorFieldAlwaysShown(bool value) async {
-    await _prefs.setBool(collectorFieldKey, value);
+  Future<void> setSpecimenSettingField(String key, bool value) async {
+    await _prefs.setBool(key, value);
   }
 
-  bool isCollectorFieldAlwaysShown() {
-    return _prefs.getBool(collectorFieldKey) ?? false;
+  bool getSpecimenSettingField(String key) {
+    return _prefs.getBool(key) ?? false;
   }
 }
 
@@ -690,15 +703,25 @@ class MammalMeasurementServices {
   final String totalLengthText;
   final String tailLengthText;
 
-  ({String headAndBodyText, String percentTailText})? getHBandTailPercentage() {
+  ({String headAndBodyText, String percentTailText, String errorText})?
+      getHBandTailPercentage() {
     double? totalLength =
         totalLengthText.isNotEmpty ? double.tryParse(totalLengthText) : null;
     double? tailLength =
         tailLengthText.isNotEmpty ? double.tryParse(tailLengthText) : null;
     if (totalLength == null || tailLength == null || totalLength < 1) {
       return null;
+    }
+
+    double? headBodyLength = totalLength - tailLength;
+    if (headBodyLength <= 0) {
+      return (
+        headAndBodyText: '',
+        percentTailText: '',
+        errorText:
+            'Total length should not be less than or equal to tail length.',
+      );
     } else {
-      double headBodyLength = (totalLength - tailLength);
       String headAndBodyText = headBodyLength.truncateZeroFixed(1);
       String tailHeadBodyPercent =
           (tailLength / headBodyLength * 100).truncateZeroFixed(1);
@@ -706,7 +729,8 @@ class MammalMeasurementServices {
 
       return (
         headAndBodyText: headAndBodyText,
-        percentTailText: percentTailText
+        percentTailText: percentTailText,
+        errorText: '',
       );
     }
   }

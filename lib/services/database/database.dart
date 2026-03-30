@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/database/migration_utilities.dart';
 import 'package:path/path.dart' as p;
 
 part 'database.g.dart';
@@ -22,13 +23,17 @@ part 'database.g.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 5;
+const int kSchemaVersion = 7;
 
 @DriftDatabase(
   include: {'tables.drift'},
 )
 class Database extends _$Database {
   Database() : super(_openConnection());
+
+  Database.forTesting(DatabaseConnection super.connection);
+
+  Database.forMigrationTesting(super.e);
 
   @override
   int get schemaVersion => kSchemaVersion;
@@ -58,9 +63,76 @@ class Database extends _$Database {
       if (from < 5) {
         await _migrateFromVersion4(m);
       }
+
+      if (from < 6) {
+        await _migrateFromVersion5(m);
+      }
+
+      if (from < 7) {
+        await _migrateFromVersion6(m);
+      }
     }, beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     });
+  }
+
+  Future<void> _migrateFromVersion6(Migrator m) async {
+    // v6: add writerId to narrative table. Best-effort: ignore if already present.
+    try {
+      await m.addColumn(narrative, narrative.writerId);
+    } catch (e) {
+      // ignore failures during migration; some older DBs may not need this
+      if (kDebugMode) {
+        print('Migration v7: failed to add narrative.writerId: $e');
+      }
+    }
+    // Add time column to narrative table. Best-effort: ignore if already present.
+    try {
+      await m.addColumn(narrative, narrative.time);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Migration v7: failed to add narrative.time: $e');
+      }
+    }
+
+    // Timezones
+    await m.addColumn(project, project.timeZone);
+
+    // Herpetofauna measurements
+    await m.createTable(herpMeasurement);
+
+    // Boolean for showing bat-specific measurements
+    await m.addColumn(mammalMeasurement, mammalMeasurement.showBatFields);
+    await setShowBatFieldsBoolean(m);
+
+    // New bat measurements
+    await m.addColumn(mammalMeasurement, mammalMeasurement.tibia);
+    await m.addColumn(mammalMeasurement, mammalMeasurement.showEchoFields);
+    await m.addColumn(mammalMeasurement, mammalMeasurement.echolocation);
+    await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMax);
+    await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMin);
+    await m.addColumn(
+        mammalMeasurement, mammalMeasurement.frequencyAtMaxEnergy);
+    await m.addColumn(mammalMeasurement, mammalMeasurement.duration);
+
+    // Enhanced specimen ID options
+    await m.addColumn(personnel, personnel.isRegisterField);
+    await m.addColumn(specimen, specimen.projectFieldNumber);
+  }
+
+  Future<void> _migrateFromVersion5(Migrator m) async {
+    // New specimen record columns
+    await m.addColumn(specimen, specimen.collectionDate);
+    await m.addColumn(specimen, specimen.relativeCaptureTime);
+
+    // Migrate specimen relative capture times to new column
+    await moveRelativeCaptureTimes(m);
+
+    // Date and time format changes
+    await migrateProjectDateTimeFormat(m);
+    await migrateSpecimenDateTimeFormat(m);
+    await migrateNarrativeDateTimeFormat(m);
+    await migrateCollEventDateTimeFormat(m);
   }
 
   Future<void> _migrateFromVersion4(Migrator m) async {
@@ -69,6 +141,7 @@ class Database extends _$Database {
     // Specimen record tables
     await m.addColumn(specimen, specimen.iDConfidence);
     await m.addColumn(specimen, specimen.iDMethod);
+
     await m.addColumn(specimenPart, specimenPart.personnelId);
     await m.addColumn(specimenPart, specimenPart.pmi);
 
@@ -84,14 +157,13 @@ class Database extends _$Database {
     await m.addColumn(associatedData, associatedData.specimenUuid);
     await m.renameColumn(associatedData, 'secondaryId', associatedData.name);
     await m.renameColumn(associatedData, 'fileId', associatedData.url);
+
     // Remove secondaryIdRef
-    await m.alterTable(TableMigration(associatedData));
+    await alterTableHelper(m, associatedData);
 
     // Sites
-    await m.alterTable(TableMigration(coordinate));
-    await m.alterTable(TableMigration(coordinate, columnTransformer: {
-      coordinate.elevationInMeter: coordinate.elevationInMeter.cast<double>(),
-    }));
+    await alterTableHelper(m, coordinate);
+    await castColumnsIntToReal(m, coordinate, ['elevationInMeter']);
   }
 
   Future<void> _migrateFromVersion3(Migrator m) async {
@@ -112,9 +184,10 @@ class Database extends _$Database {
 
     await m.deleteTable('fileMetadata');
     await m.deleteTable('personnelPhoto');
+
     // delete column from media table and personnel tables
-    await m.alterTable(TableMigration(personnel));
-    await m.alterTable(TableMigration(media));
+    await alterTableHelper(m, personnel);
+    await alterTableHelper(m, media);
   }
 
   Future<void> _migrateV3only(Migrator m) async {
@@ -139,27 +212,7 @@ class Database extends _$Database {
     await m.deleteTable('bird_measurement');
     await m.createTable(avianMeasurement);
 
-    _castMammalType(m);
-  }
-
-  Future<void> _castMammalType(Migrator m) async {
-    await m.alterTable(TableMigration(mammalMeasurement, columnTransformer: {
-      mammalMeasurement.totalLength:
-          mammalMeasurement.totalLength.cast<double>(),
-      mammalMeasurement.tailLength: mammalMeasurement.tailLength.cast<double>(),
-      mammalMeasurement.hindFootLength:
-          mammalMeasurement.hindFootLength.cast<double>(),
-      mammalMeasurement.earLength: mammalMeasurement.earLength.cast<double>(),
-      mammalMeasurement.forearm: mammalMeasurement.forearm.cast<double>(),
-      mammalMeasurement.testisLength:
-          mammalMeasurement.testisLength.cast<double>(),
-      mammalMeasurement.testisWidth:
-          mammalMeasurement.testisWidth.cast<double>(),
-    }));
-  }
-
-  Future<void> addColumnToTable(String tableName, String columnName) async {
-    await customStatement('ALTER TABLE $tableName ADD COLUMN $columnName');
+    await castMammalType(m);
   }
 
   Future<void> exportInto(File file) async {

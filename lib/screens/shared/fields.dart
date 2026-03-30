@@ -1,9 +1,14 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/screens/shared/pickers.dart';
+import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/screens/settings/common.dart';
+import 'package:nahpu/services/providers/settings.dart';
 
-class CommonDateField extends StatelessWidget {
+class CommonDateField extends ConsumerStatefulWidget {
   const CommonDateField({
     super.key,
     required this.controller,
@@ -12,33 +17,53 @@ class CommonDateField extends StatelessWidget {
     required this.initialDate,
     required this.lastDate,
     required this.onTap,
+    required this.onClear,
   });
 
-  final TextEditingController controller;
+  final DateEditingController controller;
   final String labelText;
   final String hintText;
   final DateTime initialDate;
   final DateTime lastDate;
   final VoidCallback onTap;
+  final VoidCallback onClear;
 
+  @override
+  CommonDateFieldState createState() => CommonDateFieldState();
+}
+
+class CommonDateFieldState extends ConsumerState<CommonDateField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
       decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
+        labelText: widget.labelText,
+        hintText: widget.hintText,
       ),
-      controller: controller,
+      controller: widget.controller,
       onTap: () async {
-        final selectedDate = await showDatePicker(
+        final result = await showCustomDatePicker(
             context: context,
-            initialDate: initialDate,
+            initialDate: widget.controller.dateTime ?? widget.initialDate,
             firstDate: DateTime(2000),
-            lastDate: lastDate);
+            lastDate: widget.lastDate);
 
-        if (selectedDate != null) {
-          controller.text = DateFormat.yMMMd().format(selectedDate);
-          onTap();
+        final returnType = result?.$2 ?? DialogReturnType.cancel;
+        final selectedDate = result?.$1;
+
+        switch (returnType) {
+          case DialogReturnType.confirm: // OK pressed
+            if (selectedDate != null && mounted) {
+              widget.controller.dateTime = selectedDate;
+              widget.onTap();
+            }
+          case DialogReturnType.clear: // Clear pressed
+            if (selectedDate == null && mounted) {
+              widget.controller.dateTime = null;
+              widget.onClear();
+            }
+          case DialogReturnType.cancel: // Cancel pressed or widget closed
+          // No action needed
         }
       },
     );
@@ -53,19 +78,40 @@ class CommonTimeField extends ConsumerStatefulWidget {
     required this.hintText,
     required this.initialTime,
     required this.onTap,
+    required this.onClear,
   });
 
-  final TextEditingController controller;
+  final TimeEditingController controller;
   final String labelText;
   final String hintText;
   final TimeOfDay initialTime;
   final VoidCallback onTap;
+  final VoidCallback onClear;
 
   @override
   CommonTimeFieldState createState() => CommonTimeFieldState();
 }
 
 class CommonTimeFieldState extends ConsumerState<CommonTimeField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onTimeChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onTimeChanged);
+    super.dispose();
+  }
+
+  void _onTimeChanged() {
+    // Call onTap whenever the time value changes
+    if (widget.controller.time != null) {
+      widget.onTap();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextField(
@@ -75,30 +121,30 @@ class CommonTimeFieldState extends ConsumerState<CommonTimeField> {
       ),
       controller: widget.controller,
       onTap: () async {
-        final time = await _showTimePicker(
+        final result = await showCustomTimePicker(
           context: context,
-          initialTime: widget.initialTime,
+          initialTime: widget.controller.timeOfDay ?? widget.initialTime,
         );
-        if (time != null && mounted) {
-          widget.controller.text = _formatTimeOfDay(time);
-          widget.onTap();
+
+        final returnType = result?.$2 ?? DialogReturnType.cancel;
+        final selectedTime = result?.$1;
+
+        switch (returnType) {
+          case DialogReturnType.confirm: // OK pressed
+            if (selectedTime != null && mounted) {
+              widget.controller.timeOfDay = selectedTime;
+              widget.onTap();
+            }
+          case DialogReturnType.clear: // Clear pressed
+            if (selectedTime == null && mounted) {
+              widget.controller.timeOfDay = null;
+              widget.onClear();
+            }
+          case DialogReturnType.cancel: // Cancel pressed or widget closed
+          // No action needed
         }
       },
     );
-  }
-
-  Future<TimeOfDay?> _showTimePicker({
-    required BuildContext context,
-    required TimeOfDay initialTime,
-  }) {
-    return showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
-  }
-
-  String _formatTimeOfDay(TimeOfDay time) {
-    return time.format(context);
   }
 }
 
@@ -182,6 +228,32 @@ class CommonDropdownText extends StatelessWidget {
   }
 }
 
+class HintDropdownText extends StatelessWidget {
+  const HintDropdownText({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    // attempts to copy the default hint text styling
+    final hintStyle = Theme.of(context)
+        .inputDecorationTheme
+        .hintStyle
+        ?.copyWith(
+            color: Theme.of(context)
+                .inputDecorationTheme
+                .hintStyle
+                ?.color
+                ?.withValues(alpha: 0.6));
+
+    return Text(
+      text,
+      style: hintStyle,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
 class CommonNumField extends ConsumerWidget {
   const CommonNumField({
     super.key,
@@ -193,6 +265,7 @@ class CommonNumField extends ConsumerWidget {
     required this.isLastField,
     this.isDouble = false,
     this.isSigned = false,
+    this.errorText,
   });
 
   final String labelText;
@@ -203,6 +276,7 @@ class CommonNumField extends ConsumerWidget {
   final bool isDouble;
   final bool enabled;
   final bool isSigned;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -212,10 +286,13 @@ class CommonNumField extends ConsumerWidget {
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
+        errorText: errorText,
+        errorMaxLines: 3,
       ),
-      inputFormatters: isDouble
-          ? [FilteringTextInputFormatter.allow(RegExp(r"[0-9.-]"))]
-          : [FilteringTextInputFormatter.digitsOnly],
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(
+            '${isSigned ? r'^-?' : ''}${r'\d*'}${isDouble ? r'\.?\d*' : ''}'))
+      ],
       keyboardType:
           TextInputType.numberWithOptions(decimal: isDouble, signed: isSigned),
       onChanged: onChanged,
@@ -259,23 +336,27 @@ class CommonTextField extends StatelessWidget {
       ),
       keyboardType: keyboardType,
       onChanged: onChanged,
-      textInputAction:
-          isLastField ? TextInputAction.done : TextInputAction.next,
+      textInputAction: keyboardType == TextInputType.multiline
+          ? TextInputAction.newline
+          : isLastField
+              ? TextInputAction.done
+              : TextInputAction.next,
     );
   }
 }
 
 class SwitchField extends StatelessWidget {
-  const SwitchField({
-    super.key,
-    required this.label,
-    required this.value,
-    required this.onPressed,
-  });
+  const SwitchField(
+      {super.key,
+      required this.label,
+      required this.value,
+      required this.onPressed,
+      this.disabled});
 
   final String label;
   final bool value;
   final void Function(bool) onPressed;
+  final bool? disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -285,7 +366,7 @@ class SwitchField extends StatelessWidget {
         Text(label),
         Switch(
           value: value,
-          onChanged: onPressed,
+          onChanged: (disabled ?? false) ? null : onPressed,
         ),
       ],
     );
@@ -407,6 +488,85 @@ class AutoCompleteText extends StatelessWidget {
       onFieldSubmitted: onFieldSubmitted,
       keyboardType: TextInputType.text,
       textInputAction: TextInputAction.done,
+    );
+  }
+}
+
+class DropDownMenuItems {
+  static DropdownMenuItem<int?> chooseOneListItem = DropdownMenuItem(
+      value: null, child: HintDropdownText(text: 'Choose one'));
+
+  static List<DropdownMenuItem<int?>> booleanDropDownItems() {
+    return [
+      chooseOneListItem,
+      DropdownMenuItem(value: 1, child: CommonDropdownText(text: 'Yes')),
+      DropdownMenuItem(value: 0, child: CommonDropdownText(text: 'No'))
+    ];
+  }
+
+  static List<DropdownMenuItem<int?>> addChooseOneToList(
+      List<DropdownMenuItem<int?>> list) {
+    list.insert(0, chooseOneListItem);
+    return list;
+  }
+}
+
+class UserDefinedSettingField extends ConsumerWidget {
+  const UserDefinedSettingField(
+      {super.key,
+      required this.typePrefKey,
+      required this.fmtPrefKey,
+      required this.typeName});
+
+  final String typePrefKey;
+  final String fmtPrefKey;
+  final String typeName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    TextEditingController controller = TextEditingController();
+    return SettingChips(
+      title: '${typeName.toTitleCase()}s',
+      controller: controller,
+      ref: ref,
+      textCasePrefString: fmtPrefKey,
+      chipList: ref.watch(userDefinedFieldProvider(typePrefKey)).when(
+            data: (data) {
+              return data.map((e) {
+                return CommonSettingChip(
+                  text: e,
+                  primaryColor: Theme.of(context).colorScheme.tertiary,
+                  onDeleted: () {
+                    UtilityServices(ref: ref).removeOption(typePrefKey, e);
+                  },
+                );
+              }).toList();
+            },
+            loading: () => [const CommonProgressIndicator()],
+            error: (e, _) => [Text('Error: $e')],
+          ),
+      labelText: 'Add ${typeName.toLowerCase()}',
+      hintText: 'Enter ${typeName.toLowerCase()}',
+      onPressed: () {
+        UtilityServices(ref: ref)
+            .addOption(typePrefKey, controller.text.trim());
+        controller.clear();
+      },
+      resetLabel: 'Match database ${typeName.toLowerCase()}s',
+      onReset: () {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return CommonAlertDialog(
+                titleText: 'Match database ${typeName.toLowerCase()}s?',
+                descText: 'Matching database types will'
+                    ' delete all unused ${typeName.toLowerCase()}s',
+                confirmFunction: () {
+                  UtilityServices(ref: ref).getAllOptions(typePrefKey);
+                },
+              );
+            });
+      },
     );
   }
 }

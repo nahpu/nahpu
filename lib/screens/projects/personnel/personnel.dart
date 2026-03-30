@@ -49,6 +49,8 @@ class PersonnelList extends ConsumerStatefulWidget {
 
 class PersonnelListState extends ConsumerState<PersonnelList> {
   final ScrollController _scrollController = ScrollController();
+  bool _isSelecting = false;
+  final List<String> _selectedPersonnel = [];
 
   @override
   void dispose() {
@@ -66,6 +68,29 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  SelectItemsInterface(
+                    isSelecting: _isSelecting,
+                    onClearPressed: _selectedPersonnel.isEmpty
+                        ? null
+                        : () {
+                            setState(() {
+                              _selectedPersonnel.clear();
+                            });
+                          },
+                    onSelectAllPressed: () {
+                      setState(() {
+                        _selectedPersonnel.clear();
+                        _selectedPersonnel
+                            .addAll(data.map((e) => e.uuid).toList());
+                      });
+                    },
+                    onSelectPressed: () {
+                      setState(() {
+                        _isSelecting = !_isSelecting;
+                        _selectedPersonnel.clear();
+                      });
+                    },
+                  ),
                   Flexible(
                     child: CommonScrollbar(
                       scrollController: _scrollController,
@@ -76,8 +101,27 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
                         itemBuilder: (context, index) {
                           return PersonnelListTile(
                             personnelData: data[index],
-                            trailing: PersonnelMenu(
-                              data: data[index],
+                            isSelecting: _isSelecting,
+                            selectedPersonnel: _selectedPersonnel,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  _selectedPersonnel.add(data[index].uuid);
+                                } else {
+                                  _selectedPersonnel.remove(data[index].uuid);
+                                }
+                              });
+                            },
+                            trailing: IconButton(
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => EditPersonnelForm(
+                                              personnelData: data[index],
+                                            )));
+                              },
                             ),
                           );
                         },
@@ -85,12 +129,71 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const AddPersonnelButton(),
+                  !_isSelecting
+                      ? const AddPersonnelButton()
+                      : DeleteItemsButton(
+                          selectedItems: _selectedPersonnel,
+                          itemName: "personnel",
+                          onPressedFunction: () async {
+                            await _deletePersonnel();
+                            setState(() {
+                              _selectedPersonnel.clear();
+                            });
+                          },
+                          customIconButtonText:
+                              'Remove ${_selectedPersonnel.length} personnel from project',
+                          customDialogHeader: 'Remove personnel',
+                          customDialogText:
+                              'Are you sure you want to remove the selected personnel from the project?',
+                          customDialogButtonText: 'Remove',
+                        )
                 ],
               );
       },
       loading: () => const CommonProgressIndicator(),
       error: (error, stack) => Text(error.toString()),
+    );
+  }
+
+  Future<void> _deletePersonnel() async {
+    int numberPersonnelDeleted = 0;
+    for (String personnelUuid in _selectedPersonnel) {
+      try {
+        await PersonnelServices(ref: ref).deleteProjectPersonnel(personnelUuid);
+        numberPersonnelDeleted++;
+      } catch (e) {
+        if (e.toString().contains('Personnel is being used') ||
+            e.toString().contains('SqliteException(787)')) {
+          continue;
+        } else {
+          // Something went wrong. Discontinue deleting.
+          _showError(e.toString());
+          break;
+        }
+      }
+    }
+
+    if (context.mounted) {
+      _pop();
+    }
+
+    if (numberPersonnelDeleted < _selectedPersonnel.length) {
+      _showError('${_selectedPersonnel.length - numberPersonnelDeleted} '
+          'personnel could not be removed as they are being '
+          'used by project records.');
+    }
+  }
+
+  void _pop() {
+    Navigator.pop(context);
+  }
+
+  void _showError(String errors) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(errors),
+        duration: const Duration(seconds: 10),
+      ),
     );
   }
 }
@@ -156,10 +259,16 @@ class PersonnelListTile extends StatefulWidget {
   const PersonnelListTile({
     super.key,
     required this.personnelData,
+    required this.isSelecting,
+    required this.selectedPersonnel,
+    required this.onChanged,
     required this.trailing,
   });
 
   final PersonnelData personnelData;
+  final bool isSelecting;
+  final List<String> selectedPersonnel;
+  final void Function(bool?) onChanged;
   final Widget trailing;
 
   @override
@@ -183,23 +292,31 @@ class _PersonnelListTileState extends State<PersonnelListTile> {
 
   @override
   Widget build(BuildContext context) {
+    final personnelData = widget.personnelData;
     return ListTile(
-      leading: SizedBox(
-          height: avatarSize.toDouble(),
-          width: avatarSize.toDouble(),
-          child: AvatarViewer(
-            avatarCtr: _personnelPhotoCtr,
-          )),
+      leading: Row(mainAxisSize: MainAxisSize.min, children: [
+        !widget.isSelecting
+            ? SizedBox(
+                height: avatarSize.toDouble(),
+                width: avatarSize.toDouble(),
+                child: AvatarViewer(
+                  avatarCtr: _personnelPhotoCtr,
+                ))
+            : ListCheckBox(
+                isDisabled: false,
+                value: widget.selectedPersonnel.contains(personnelData.uuid),
+                onChanged: widget.onChanged),
+      ]),
       title: Text(
-        _getTitle(widget.personnelData.name, widget.personnelData.initial),
+        _getTitle(personnelData.name, personnelData.initial),
         style: Theme.of(context).textTheme.titleMedium,
       ),
       subtitle: PersonnelSubtitle(
-        role: widget.personnelData.role,
-        affiliation: widget.personnelData.affiliation,
-        currentFieldNumber: widget.personnelData.currentFieldNumber,
+        role: personnelData.role,
+        affiliation: personnelData.affiliation,
+        currentFieldNumber: personnelData.currentFieldNumber,
       ),
-      trailing: widget.trailing,
+      trailing: !widget.isSelecting ? widget.trailing : SizedBox.shrink(),
     );
   }
 
@@ -232,25 +349,29 @@ class PersonnelSubtitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return RichText(
         text: TextSpan(children: [
-      role != null
+      (role != null && role != '')
           ? TextSpan(children: [
               const WidgetSpan(
-                  child: TileIcon(icon: Icons.account_circle_outlined),
+                  child: Tooltip(
+                      message: 'Role',
+                      child: TileIcon(icon: Icons.account_circle_outlined)),
                   alignment: PlaceholderAlignment.middle),
               TextSpan(
-                text: '$role ',
+                text: ' $role ',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ])
           : const TextSpan(),
-      affiliation != null
+      (affiliation != null && affiliation != '')
           ? TextSpan(
               children: [
                 const WidgetSpan(
-                    child: TileIcon(icon: Icons.business_rounded),
+                    child: Tooltip(
+                        message: 'Affiliation',
+                        child: TileIcon(icon: Icons.business_rounded)),
                     alignment: PlaceholderAlignment.middle),
                 TextSpan(
-                  text: '$affiliation ',
+                  text: ' $affiliation ',
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ],
@@ -261,104 +382,17 @@ class PersonnelSubtitle extends StatelessWidget {
           : TextSpan(
               children: [
                 WidgetSpan(
-                    child: TileIcon(icon: MdiIcons.counter),
+                    child: Tooltip(
+                        message: 'Current Field Number',
+                        child: TileIcon(icon: MdiIcons.counter)),
                     alignment: PlaceholderAlignment.middle),
                 TextSpan(
-                  text: '$currentFieldNumber',
+                  text: ' $currentFieldNumber',
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ],
             ),
     ]));
-  }
-}
-
-class PersonnelMenu extends ConsumerStatefulWidget {
-  const PersonnelMenu({super.key, required this.data});
-
-  final PersonnelData data;
-
-  @override
-  PersonnelMenuState createState() => PersonnelMenuState();
-}
-
-class PersonnelMenuState extends ConsumerState<PersonnelMenu> {
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<PersonnelMenuAction>(
-      icon: const Icon(Icons.more_vert_rounded),
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: PersonnelMenuAction.edit,
-          child: ListTile(
-            leading: const Icon(Icons.edit_outlined),
-            title: const Text('Edit'),
-            onTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => EditPersonnelForm(
-                    personnelData: widget.data,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-            value: PersonnelMenuAction.delete,
-            child: ListTile(
-              leading: Icon(Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error),
-              title: Text(
-                'Delete',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-              onTap: () {
-                _deletePersonnel();
-                Navigator.of(context).pop();
-              },
-            )),
-      ],
-    );
-  }
-
-  void _deletePersonnel() {
-    showDeleteAlertOnMenu(
-      context: context,
-      title: 'Delete personnel?',
-      deletePrompt: 'You will delete the personnel for this project.'
-          ' The record will still be available in the database.',
-      onDelete: () async {
-        try {
-          await PersonnelServices(ref: ref)
-              .deleteProjectPersonnel(widget.data.uuid);
-          if (context.mounted) {
-            _pop();
-          }
-        } catch (e) {
-          _showError(e.toString());
-        }
-      },
-    );
-  }
-
-  void _pop() {
-    Navigator.pop(context);
-  }
-
-  void _showError(String errors) {
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          errors.contains('SqliteException(787)')
-              ? 'Cannot delete personnel. Being used by other records.'
-              : errors.toString(),
-        ),
-      ),
-    );
   }
 }
 

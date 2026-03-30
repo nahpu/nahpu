@@ -16,12 +16,10 @@ class MammalMeasurementForms extends ConsumerStatefulWidget {
     super.key,
     required this.useHorizontalLayout,
     required this.specimenUuid,
-    required this.isBats,
   });
 
   final bool useHorizontalLayout;
   final String specimenUuid;
-  final bool isBats;
 
   @override
   MammalMeasurementFormsState createState() => MammalMeasurementFormsState();
@@ -32,6 +30,8 @@ class MammalMeasurementFormsState
   MammalMeasurementCtrModel ctr = MammalMeasurementCtrModel.empty();
   TextEditingController headBodyLengthCtr = TextEditingController();
   TextEditingController tailHeadBodyPercentCtr = TextEditingController();
+  // String? _hblErrorText;
+  bool _showBatFields = false;
 
   @override
   void initState() {
@@ -62,18 +62,17 @@ class MammalMeasurementFormsState
               hintText: 'Enter TTL',
               isLastField: false,
               isDouble: true,
+              // errorText: _hblErrorText,
               onChanged: (String? value) {
-                if (value != null && value.isNotEmpty) {
-                  setState(() {
-                    _getHBTailPercent();
-                    SpecimenServices(ref: ref).updateMammalMeasurement(
-                      widget.specimenUuid,
-                      MammalMeasurementCompanion(
-                        totalLength: db.Value(double.tryParse(value) ?? 0),
-                      ),
-                    );
-                  });
-                }
+                setState(() {
+                  _getHBTailPercent();
+                  SpecimenServices(ref: ref).updateMammalMeasurement(
+                    widget.specimenUuid,
+                    MammalMeasurementCompanion(
+                      totalLength: db.Value(double.tryParse(value ?? '') ?? 0),
+                    ),
+                  );
+                });
               },
             ),
             CommonNumField(
@@ -82,18 +81,17 @@ class MammalMeasurementFormsState
               hintText: 'Enter TL',
               isDouble: true,
               isLastField: false,
+              // errorText: _hblErrorText,
               onChanged: (String? value) {
-                if (value != null && value.isNotEmpty) {
-                  setState(() {
-                    _getHBTailPercent();
-                    SpecimenServices(ref: ref).updateMammalMeasurement(
-                      widget.specimenUuid,
-                      MammalMeasurementCompanion(
-                        tailLength: db.Value(double.tryParse(value)),
-                      ),
-                    );
-                  });
-                }
+                setState(() {
+                  _getHBTailPercent();
+                  SpecimenServices(ref: ref).updateMammalMeasurement(
+                    widget.specimenUuid,
+                    MammalMeasurementCompanion(
+                      tailLength: db.Value(double.tryParse(value ?? '') ?? 0),
+                    ),
+                  );
+                });
               },
             ),
           ],
@@ -192,29 +190,34 @@ class MammalMeasurementFormsState
                   }
                 },
               ),
-              Visibility(
-                visible: widget.isBats,
-                child: CommonNumField(
-                  controller: ctr.forearmCtr,
-                  labelText: 'Forearm Length (mm)',
-                  hintText: 'Enter FL length',
-                  isLastField: true,
-                  isDouble: true,
-                  onChanged: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      setState(() {
-                        SpecimenServices(ref: ref).updateMammalMeasurement(
-                          widget.specimenUuid,
-                          MammalMeasurementCompanion(
-                            forearm: db.Value(double.tryParse(value)),
-                          ),
-                        );
-                      });
-                    }
-                  },
-                ),
-              ),
             ]),
+        AdaptiveLayout(
+            useHorizontalLayout: widget.useHorizontalLayout,
+            children: [
+              SwitchField(
+                  label: 'Show bat fields',
+                  value: _showBatFields,
+                  // Disable the button when bat fields are
+                  // always shown based on app-wide setting
+                  disabled: isBatFieldsAlwaysShown,
+                  onPressed: (value) {
+                    setState(() {
+                      _showBatFields = value;
+                      SpecimenServices(ref: ref).updateMammalMeasurement(
+                        widget.specimenUuid,
+                        MammalMeasurementCompanion(
+                          showBatFields: db.Value(value ? 1 : 0),
+                        ),
+                      );
+                    });
+                  }),
+            ]),
+        Visibility(
+            visible: _showBatFields,
+            child: BatForm(
+                useHorizontalLayout: widget.useHorizontalLayout,
+                ctr: ctr,
+                specimenUuid: widget.specimenUuid)),
         Padding(
           padding: const EdgeInsets.all(5),
           child: DropdownButtonFormField(
@@ -345,6 +348,11 @@ class MammalMeasurementFormsState
     );
   }
 
+  bool get isBatFieldsAlwaysShown {
+    return SpecimenSettingServices(ref: ref)
+        .getSpecimenSettingField(batFieldsKey);
+  }
+
   Future<void> _updateCtr(String specimenUuid) async {
     MammalMeasurementData data =
         await SpecimenServices(ref: ref).getMammalMeasurementData(specimenUuid);
@@ -352,6 +360,8 @@ class MammalMeasurementFormsState
     setState(() {
       ctr = MammalMeasurementCtrModel.fromData(data);
       _getHBTailPercent();
+      _showBatFields =
+          isBatFieldsAlwaysShown || (ctr.showBatFieldsCtr ?? false);
     });
   }
 
@@ -361,11 +371,15 @@ class MammalMeasurementFormsState
       tailLengthText: ctr.tailLengthCtr.text,
     );
 
-    ({String headAndBodyText, String percentTailText})? results =
-        service.getHBandTailPercentage();
+    ({
+      String headAndBodyText,
+      String percentTailText,
+      String errorText
+    })? results = service.getHBandTailPercentage();
 
     headBodyLengthCtr.text = results?.headAndBodyText ?? '';
     tailHeadBodyPercentCtr.text = results?.percentTailText ?? '';
+    // _hblErrorText = results?.errorText ?? '';
   }
 }
 
@@ -975,6 +989,213 @@ class PlacentalScarForm extends ConsumerWidget {
           }
         },
       ),
+    ]);
+  }
+}
+
+class BatForm extends ConsumerStatefulWidget {
+  const BatForm({
+    super.key,
+    required this.useHorizontalLayout,
+    required this.ctr,
+    required this.specimenUuid,
+  });
+
+  final bool useHorizontalLayout;
+  final String specimenUuid;
+  final MammalMeasurementCtrModel ctr;
+
+  @override
+  BatFormState createState() => BatFormState();
+}
+
+class BatFormState extends ConsumerState<BatForm> {
+  bool _echolocate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _echolocate = widget.ctr.showEchoFieldsCtr ?? false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            CommonNumField(
+                controller: widget.ctr.forearmCtr,
+                labelText: 'Forearm Length (mm)',
+                hintText: 'Enter FL length',
+                isLastField: false,
+                isDouble: true,
+                onChanged: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    SpecimenServices(ref: ref).updateMammalMeasurement(
+                      widget.specimenUuid,
+                      MammalMeasurementCompanion(
+                        forearm: db.Value(double.tryParse(value)),
+                      ),
+                    );
+                  }
+                }),
+            CommonNumField(
+                controller: widget.ctr.tibiaCtr,
+                labelText: 'Tibia Length (mm)',
+                hintText: 'Enter tibia length',
+                isLastField: false,
+                isDouble: true,
+                onChanged: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    SpecimenServices(ref: ref).updateMammalMeasurement(
+                      widget.specimenUuid,
+                      MammalMeasurementCompanion(
+                        tibia: db.Value(double.tryParse(value)),
+                      ),
+                    );
+                  }
+                })
+          ]),
+      AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            SwitchField(
+                label: 'Echolocate?',
+                value: _echolocate,
+                onPressed: (value) {
+                  setState(() {
+                    _echolocate = value;
+                    SpecimenServices(ref: ref).updateMammalMeasurement(
+                      widget.specimenUuid,
+                      MammalMeasurementCompanion(
+                        showEchoFields: db.Value(value ? 1 : 0),
+                      ),
+                    );
+                  });
+                }),
+          ]),
+      Visibility(
+          visible: _echolocate,
+          child: EcholocateForm(
+              useHorizontalLayout: widget.useHorizontalLayout,
+              ctr: widget.ctr,
+              specimenUuid: widget.specimenUuid))
+    ]);
+  }
+}
+
+class EcholocateForm extends ConsumerWidget {
+  const EcholocateForm({
+    super.key,
+    required this.useHorizontalLayout,
+    required this.ctr,
+    required this.specimenUuid,
+  });
+
+  final bool useHorizontalLayout;
+  final String specimenUuid;
+  final MammalMeasurementCtrModel ctr;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(children: [
+      AdaptiveLayout(useHorizontalLayout: useHorizontalLayout, children: [
+        DropdownButtonFormField<Echolocation>(
+            initialValue: getEcholocation(ctr.echolocationCtr),
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Echolocation',
+              hintText: 'Select echolocation type',
+            ),
+            items: echolocationList
+                .map((e) => DropdownMenuItem(
+                      value: Echolocation.values[echolocationList.indexOf(e)],
+                      child: CommonDropdownText(text: e),
+                    ))
+                .toList(),
+            onChanged: (Echolocation? newValue) {
+              if (newValue != null) {
+                ctr.echolocationCtr = newValue.index;
+                SpecimenServices(ref: ref).updateMammalMeasurement(
+                  specimenUuid,
+                  MammalMeasurementCompanion(
+                    echolocation: db.Value(
+                      newValue.index,
+                    ),
+                  ),
+                );
+              }
+            })
+      ]),
+      AdaptiveLayout(useHorizontalLayout: useHorizontalLayout, children: [
+        CommonNumField(
+            controller: ctr.frequencyMaxCtr,
+            labelText: 'Frequency Max (kHz)',
+            hintText: 'Enter maximum echolocate frequency',
+            isLastField: false,
+            isDouble: true,
+            onChanged: (value) {
+              if (value != null && value.isNotEmpty) {
+                SpecimenServices(ref: ref).updateMammalMeasurement(
+                  specimenUuid,
+                  MammalMeasurementCompanion(
+                    frequencyMax: db.Value(double.tryParse(value)),
+                  ),
+                );
+              }
+            }),
+        CommonNumField(
+            controller: ctr.frequencyMinCtr,
+            labelText: 'Frequency Min (kHz)',
+            hintText: 'Enter minimum echolocate frequency',
+            isLastField: false,
+            isDouble: true,
+            onChanged: (value) {
+              if (value != null && value.isNotEmpty) {
+                SpecimenServices(ref: ref).updateMammalMeasurement(
+                  specimenUuid,
+                  MammalMeasurementCompanion(
+                    frequencyMin: db.Value(double.tryParse(value)),
+                  ),
+                );
+              }
+            }),
+      ]),
+      AdaptiveLayout(useHorizontalLayout: useHorizontalLayout, children: [
+        CommonNumField(
+            controller: ctr.frequencyAtMaxEnergyCtr,
+            labelText: 'Frequency At Max Energy (kHz)',
+            hintText: 'Enter echolocate frequency at max energy',
+            isLastField: false,
+            isDouble: true,
+            onChanged: (value) {
+              if (value != null && value.isNotEmpty) {
+                SpecimenServices(ref: ref).updateMammalMeasurement(
+                  specimenUuid,
+                  MammalMeasurementCompanion(
+                    frequencyAtMaxEnergy: db.Value(double.tryParse(value)),
+                  ),
+                );
+              }
+            }),
+        CommonNumField(
+            controller: ctr.durationCtr,
+            labelText: 'Duration (seconds)',
+            hintText: 'Enter echolocation duration',
+            isLastField: false,
+            isDouble: true,
+            onChanged: (value) {
+              if (value != null && value.isNotEmpty) {
+                SpecimenServices(ref: ref).updateMammalMeasurement(
+                  specimenUuid,
+                  MammalMeasurementCompanion(
+                    duration: db.Value(double.tryParse(value)),
+                  ),
+                );
+              }
+            }),
+      ])
     ]);
   }
 }

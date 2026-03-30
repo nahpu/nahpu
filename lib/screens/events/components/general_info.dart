@@ -95,17 +95,20 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
                   initialDate: _getInitialStartDate(),
                   lastDate: DateTime.now(),
                   onTap: () {
-                    setState(
-                      () {
-                        // _getEventID();
-                        CollEventServices(ref: ref).updateCollEvent(
-                          widget.collEventId,
-                          CollEventCompanion(
-                            startDate:
-                                db.Value(widget.collEventCtr.startDateCtr.text),
-                          ),
-                        );
-                      },
+                    CollEventServices(ref: ref).updateCollEvent(
+                      widget.collEventId,
+                      CollEventCompanion(
+                        startDate:
+                            db.Value(widget.collEventCtr.startDateCtr.date),
+                      ),
+                    );
+                  },
+                  onClear: () {
+                    CollEventServices(ref: ref).updateCollEvent(
+                      widget.collEventId,
+                      CollEventCompanion(
+                        startDate: db.Value(null),
+                      ),
                     );
                   }),
               EndDateField(
@@ -128,12 +131,11 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
     return ref.read(catalogFmtNotifierProvider).when(
       data: (catalogFmt) {
         switch (catalogFmt) {
-          case CatalogFmt.birds:
+          case CatalogFmt.mammals:
+            return DateTime.now().subtract(const Duration(days: 1));
+          default:
+            // Birds, herpetofauna
             return DateTime.now();
-          case CatalogFmt.generalMammals:
-            return DateTime.now().subtract(const Duration(days: 1));
-          case CatalogFmt.bats:
-            return DateTime.now().subtract(const Duration(days: 1));
         }
       },
       loading: () {
@@ -159,20 +161,27 @@ class EndDateField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-      labelText: 'End Date',
-      hintText: 'Enter date',
-      controller: collEventCtr.endDateCtr,
-      initialDate: DateTime.now(),
-      lastDate: DateTime.now(),
-      onTap: () {
-        CollEventServices(ref: ref).updateCollEvent(
-          collEventId,
-          CollEventCompanion(
-            endDate: db.Value(collEventCtr.endDateCtr.text),
-          ),
-        );
-      },
-    );
+        labelText: 'End Date',
+        hintText: 'Enter date',
+        controller: collEventCtr.endDateCtr,
+        initialDate: DateTime.now(),
+        lastDate: DateTime.now(),
+        onTap: () {
+          CollEventServices(ref: ref).updateCollEvent(
+            collEventId,
+            CollEventCompanion(
+              endDate: db.Value(collEventCtr.endDateCtr.date),
+            ),
+          );
+        },
+        onClear: () {
+          CollEventServices(ref: ref).updateCollEvent(
+            collEventId,
+            CollEventCompanion(
+              endDate: db.Value(null),
+            ),
+          );
+        });
   }
 }
 
@@ -319,33 +328,39 @@ class EventTimeField extends ConsumerWidget {
       useHorizontalLayout: useHorizontalLayout,
       children: [
         CommonTimeField(
-          labelText: 'Start time',
-          hintText: 'Enter date',
-          controller: collEventCtr.startTimeCtr,
-          initialTime: _getInitialTime(ref),
-          onTap: () {
-            CollEventServices(ref: ref).updateCollEvent(
-              collEventId,
-              CollEventCompanion(
-                startTime: db.Value(collEventCtr.startTimeCtr.text),
-              ),
-            );
-          },
-        ),
+            labelText: 'Start Time',
+            hintText: 'Enter time',
+            controller: collEventCtr.startTimeCtr,
+            initialTime: _getInitialTime(ref),
+            onTap: () {
+              CollEventServices(ref: ref).updateCollEvent(
+                collEventId,
+                CollEventCompanion(
+                  startTime: db.Value(collEventCtr.startTimeCtr.time),
+                ),
+              );
+            },
+            onClear: () {
+              CollEventServices(ref: ref).updateCollEvent(
+                  collEventId, CollEventCompanion(startTime: db.Value(null)));
+            }),
         CommonTimeField(
-          labelText: 'End time',
-          hintText: 'Enter date',
-          controller: collEventCtr.endTimeCtr,
-          initialTime: _getInitialTime(ref),
-          onTap: () {
-            CollEventServices(ref: ref).updateCollEvent(
-              collEventId,
-              CollEventCompanion(
-                endTime: db.Value(collEventCtr.endTimeCtr.text),
-              ),
-            );
-          },
-        ),
+            labelText: 'End Time',
+            hintText: 'Enter time',
+            controller: collEventCtr.endTimeCtr,
+            initialTime: _getInitialTime(ref),
+            onTap: () {
+              CollEventServices(ref: ref).updateCollEvent(
+                collEventId,
+                CollEventCompanion(
+                  endTime: db.Value(collEventCtr.endTimeCtr.time),
+                ),
+              );
+            },
+            onClear: () {
+              CollEventServices(ref: ref).updateCollEvent(
+                  collEventId, CollEventCompanion(endTime: db.Value(null)));
+            }),
       ],
     );
   }
@@ -354,11 +369,10 @@ class EventTimeField extends ConsumerWidget {
     return ref.read(catalogFmtNotifierProvider).when(
           data: (catalogFmt) {
             switch (catalogFmt) {
-              case CatalogFmt.birds:
-                return TimeOfDay.now();
-              case CatalogFmt.generalMammals:
+              case CatalogFmt.mammals:
                 return const TimeOfDay(hour: 7, minute: 0);
-              case CatalogFmt.bats:
+              default:
+                // Birds, bats, herpetofauna
                 return TimeOfDay.now();
             }
           },

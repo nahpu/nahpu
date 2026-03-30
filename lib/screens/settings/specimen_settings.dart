@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/screens/settings/common.dart';
+import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/utility_services.dart';
 
 class SpecimenSelection extends ConsumerStatefulWidget {
   const SpecimenSelection({super.key});
@@ -18,14 +21,16 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
 
   @override
   void initState() {
-    _isAlwaysShownCollectorField =
-        SpecimenSettingServices(ref: ref).isCollectorFieldAlwaysShown();
+    _isAlwaysShownCollectorField = SpecimenSettingServices(ref: ref)
+        .getSpecimenSettingField(collectorFieldKey);
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final services = SpecimenSettingServices(ref: ref);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Specimen Settings'),
@@ -42,7 +47,8 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                     value: _isAlwaysShownCollectorField,
                     onChanged: (bool value) async {
                       try {
-                        await services.setCollectorFieldAlwaysShown(value);
+                        await services.setSpecimenSettingField(
+                            collectorFieldKey, value);
                         setState(() {
                           _isAlwaysShownCollectorField = value;
                         });
@@ -60,11 +66,25 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                   )
                 ],
               ),
+              FieldIDFields(
+                isMobile: isMobile,
+              ),
               TissueIDFields(
                 isMobile: isMobile,
               ),
-              const SpecimenTypeSettings(),
-              const TreatmentOptionSettings(),
+              SpecimenFormats(
+                isMobile: isMobile,
+              ),
+              UserDefinedSettingField(
+                typePrefKey: specimenTypePrefKey,
+                fmtPrefKey: specimenTypeFmtPrefKey,
+                typeName: 'Specimen Type',
+              ),
+              UserDefinedSettingField(
+                typePrefKey: treatmentPrefKey,
+                fmtPrefKey: treatmentFmtPrefKey,
+                typeName: 'Treatment',
+              ),
             ],
           );
         },
@@ -73,91 +93,138 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
   }
 }
 
-class SpecimenTypeSettings extends ConsumerWidget {
-  const SpecimenTypeSettings({
-    super.key,
-  });
+class SpecimenFormats extends ConsumerWidget {
+  const SpecimenFormats({super.key, required this.isMobile});
+
+  final bool isMobile;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    TextEditingController partController = TextEditingController();
-    return SettingChips(
-      title: 'Specimen part types',
-      controller: partController,
-      chipList: ref.watch(specimenTypesProvider).when(
-            data: (data) {
-              return data
-                  .map((e) => CommonSettingChip(
-                        text: e,
-                        primaryColor: Theme.of(context).colorScheme.primary,
-                        onDeleted: () {
-                          SpecimenPartServices(ref: ref).removeType(e);
-                        },
-                      ))
-                  .toList();
-            },
-            loading: () => const [CommonProgressIndicator()],
-            error: (error, stackTrace) {
-              return const [Text('Error loading data')];
-            },
-          ),
-      labelText: 'Add Type',
-      hintText: 'Enter part type',
-      onPressed: () {
-        if (partController.text.isNotEmpty) {
-          SpecimenPartServices(ref: ref).addType(
-            partController.text.trim(),
-          );
-          partController.clear();
-        }
-      },
-      resetLabel: 'Match database types',
-      onReset: () => SpecimenPartServices(ref: ref).getSpecimenTypes(),
+    return CommonSettingSection(title: 'Formats', children: [
+      Padding(
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+          child: AdaptiveLayout(
+            useHorizontalLayout: !isMobile,
+            children: [
+              TextCaseFmtDropDown(
+                  ref: ref,
+                  label: 'Specimen part types',
+                  textCasePrefString: specimenTypeFmtPrefKey),
+              TextCaseFmtDropDown(
+                  ref: ref,
+                  label: 'Treatment types',
+                  textCasePrefString: treatmentFmtPrefKey),
+            ],
+          ))
+    ]);
+  }
+}
+
+class FieldIDFields extends ConsumerWidget {
+  const FieldIDFields({super.key, required this.isMobile});
+
+  final bool isMobile;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fieldIdModeNotifier = ref.watch(fieldIdModeNotifierProvider);
+
+    return CommonSettingSection(
+      title: 'Field ID',
+      children: [
+        Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+            child: AdaptiveLayout(
+              useHorizontalLayout: !isMobile,
+              children: [
+                FieldIdModeDropDown(ref: ref),
+                fieldIdModeNotifier.when(
+                  data: (mode) => Visibility(
+                      visible: mode == FieldIdMode.project,
+                      child: ProjectFieldId()),
+                  loading: () => const SizedBox.shrink(),
+                  error: (e, s) => const Text('Error'),
+                )
+              ],
+            )),
+      ],
     );
   }
 }
 
-class TreatmentOptionSettings extends ConsumerWidget {
-  const TreatmentOptionSettings({
+class FieldIdModeDropDown extends StatelessWidget {
+  const FieldIdModeDropDown({
+    super.key,
+    required this.ref,
+  });
+
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    return ref.watch(fieldIdModeNotifierProvider).when(
+          data: (mode) => DropdownButtonFormField<FieldIdMode>(
+              initialValue: mode,
+              decoration: InputDecoration(
+                labelText: 'ID mode',
+              ),
+              items: FieldIdMode.values
+                  .map((e) => DropdownMenuItem<FieldIdMode>(
+                      value: e,
+                      child: CommonDropdownText(text: e.name.toTitleCase())))
+                  .toList(),
+              onChanged: (FieldIdMode? selectedMode) {
+                if (selectedMode != null) {
+                  ref
+                      .read(fieldIdModeNotifierProvider.notifier)
+                      .set(selectedMode);
+                }
+              }),
+          loading: () => const CommonProgressIndicator(),
+          error: (e, s) => const Text('Error'),
+        );
+  }
+}
+
+class ProjectFieldId extends ConsumerStatefulWidget {
+  const ProjectFieldId({
     super.key,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    TextEditingController treatmentController = TextEditingController();
-    return SettingChips(
-      title: 'Treatments',
-      controller: treatmentController,
-      chipList: ref.watch(treatmentOptionsProvider).when(
-            data: (data) {
-              return data
-                  .map((e) => CommonSettingChip(
-                        text: e,
-                        primaryColor: Theme.of(context).colorScheme.secondary,
-                        onDeleted: () {
-                          SpecimenPartServices(ref: ref).removeTreatment(e);
-                        },
-                      ))
-                  .toList();
-            },
-            loading: () => const [CommonProgressIndicator()],
-            error: (error, stackTrace) {
-              return const [Text('Error loading data')];
-            },
-          ),
-      labelText: 'Add Treatment',
-      hintText: 'Enter treatment',
-      onPressed: () {
-        if (treatmentController.text.isNotEmpty) {
-          SpecimenPartServices(ref: ref).addTreatment(
-            treatmentController.text.trim(),
-          );
-          treatmentController.clear();
-        }
-      },
-      resetLabel: 'Match database treatments',
-      onReset: () => SpecimenPartServices(ref: ref).getTreatmentOptions(),
+  ProjectFieldIdState createState() => ProjectFieldIdState();
+}
+
+class ProjectFieldIdState extends ConsumerState<ProjectFieldId> {
+  late TextEditingController projectFieldIdCtr;
+
+  @override
+  void initState() {
+    projectFieldIdCtr = TextEditingController(text: _getNumber());
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 480),
+      child: TextField(
+        controller: projectFieldIdCtr,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Project number',
+          hintText: 'Enter the initial starting number',
+        ),
+        textInputAction: TextInputAction.done,
+        onChanged: (String? value) async {
+          await ProjectFieldIdServices(ref: ref).setNumber(value ?? '1');
+        },
+      ),
     );
+  }
+
+  String _getNumber() {
+    return ProjectFieldIdServices(ref: ref).getNumberString();
   }
 }
 
@@ -172,7 +239,7 @@ class TissueIDFields extends ConsumerWidget {
       title: 'Tissue ID',
       children: [
         Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
             child: AdaptiveLayout(
               useHorizontalLayout: !isMobile,
               children: const [
@@ -206,7 +273,7 @@ class TissuePrefixFieldState extends ConsumerState<TissuePrefixField> {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 320),
+      constraints: const BoxConstraints(maxWidth: 480),
       child: TextField(
           controller: prefixCtr,
           decoration: const InputDecoration(
@@ -247,12 +314,12 @@ class TissueNumFieldState extends ConsumerState<TissueNumField> {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 320),
+      constraints: const BoxConstraints(maxWidth: 480),
       child: TextField(
         controller: tissueNumCtr,
         keyboardType: TextInputType.number,
         decoration: const InputDecoration(
-          labelText: 'Tissue no.',
+          labelText: 'Tissue number',
           hintText: 'Enter the initial starting number',
         ),
         textInputAction: TextInputAction.done,

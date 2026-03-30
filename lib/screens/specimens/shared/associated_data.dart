@@ -144,7 +144,7 @@ class AssociateDataItem extends StatelessWidget {
 
   String get _subtitle {
     final type = data.type ?? '';
-    final date = _getText(data.date);
+    final date = _getText(dateStdToDateDisplay(data.date));
     return '$type$date';
   }
 
@@ -330,6 +330,7 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
             initialDate: DateTime.now(),
             lastDate: DateTime.now(),
             onTap: () {},
+            onClear: () {},
           ),
           Visibility(
             visible: widget.ctr.typeCtr == 'Link',
@@ -476,7 +477,7 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
       specimenUuid: db.Value(widget.specimenUuid),
       name: db.Value(widget.ctr.nameCtr.text),
       type: db.Value(widget.ctr.typeCtr),
-      date: db.Value(widget.ctr.dateCtr.text),
+      date: db.Value(widget.ctr.dateCtr.date),
       description: db.Value(widget.ctr.descriptionCtr.text),
       url: db.Value(widget.ctr.urlCtr.text),
     );

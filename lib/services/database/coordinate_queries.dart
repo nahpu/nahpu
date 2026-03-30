@@ -37,6 +37,10 @@ class CoordinateQuery extends DatabaseAccessor<Database>
     return (delete(coordinate)..where((t) => t.id.equals(id))).go();
   }
 
+  Future<void> deleteCoordinates(List<int> ids) {
+    return (delete(coordinate)..where((t) => t.id.isIn(ids))).go();
+  }
+
   Future<void> deleteAllCoordinates() {
     return delete(coordinate).go();
   }

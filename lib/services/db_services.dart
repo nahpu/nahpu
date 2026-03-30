@@ -1,8 +1,7 @@
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/utility_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String newDbPref = 'isNewDb';
@@ -17,10 +16,13 @@ class DbServices extends AppServices {
   }
 
   Future<void> syncSettingWithDb() async {
-    SpecimenPartServices(ref: ref).getSpecimenTypes();
-    SpecimenPartServices(ref: ref).getTreatmentOptions();
-    CollMethodServices(ref: ref).getAllMethods();
-    CollEvenPersonnelServices(ref: ref).getAllRoles();
+    UtilityServices utilityServices = UtilityServices(ref: ref);
+    utilityServices.getAllOptions(siteTypePrefKey);
+    utilityServices.getAllOptions(habitatTypePrefKey);
+    utilityServices.getAllOptions(collMethodPrefKey);
+    utilityServices.getAllOptions(collRolePrefKey);
+    utilityServices.getAllOptions(specimenTypePrefKey);
+    utilityServices.getAllOptions(treatmentPrefKey);
     _inValidateSettings();
   }
 

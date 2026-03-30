@@ -122,7 +122,7 @@ class AddCoordinateButtonState extends ConsumerState<AddCoordinateButton> {
   }
 }
 
-class CoordinateList extends ConsumerWidget {
+class CoordinateList extends ConsumerStatefulWidget {
   const CoordinateList({
     super.key,
     required this.sideId,
@@ -131,15 +131,48 @@ class CoordinateList extends ConsumerWidget {
   final int sideId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final coordinates = ref.watch(coordinateBySiteProvider(sideId));
+  CoordinateListState createState() => CoordinateListState();
+}
+
+class CoordinateListState extends ConsumerState<CoordinateList> {
+  bool _isSelecting = false;
+  final List<int> _selectedCoordinates = [];
+
+  @override
+  Widget build(BuildContext context) {
+    final coordinates = ref.watch(coordinateBySiteProvider(widget.sideId));
     ScrollController scrollController = ScrollController();
     return coordinates.when(
       data: (data) {
         return data.isEmpty
-            ? EmptyCoordinateList(siteId: sideId)
+            ? EmptyCoordinateList(siteId: widget.sideId)
             : Column(
                 children: [
+                  SelectItemsInterface(
+                    isSelecting: _isSelecting,
+                    onClearPressed: _selectedCoordinates.isEmpty
+                        ? null
+                        : () {
+                            setState(() {
+                              _selectedCoordinates.clear();
+                            });
+                          },
+                    onSelectAllPressed: () {
+                      setState(() {
+                        _selectedCoordinates.clear();
+                        _selectedCoordinates.addAll(data
+                            .where((e) => e.id != null)
+                            .map((e) => e.id!)
+                            .toList());
+                      });
+                    },
+                    onSelectPressed: () {
+                      setState(() {
+                        _isSelecting = !_isSelecting;
+                        _selectedCoordinates.clear();
+                      });
+                    },
+                  ),
                   Flexible(
                     child: CommonScrollbar(
                         scrollController: scrollController,
@@ -150,30 +183,95 @@ class CoordinateList extends ConsumerWidget {
                           itemBuilder: (context, index) {
                             return ListTile(
                               dense: true,
-                              leading: CoordinateTileIcon(
-                                  name: data[index].nameId ?? 'unknown'),
+                              leading: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    !_isSelecting
+                                        ? CoordinateTileIcon(
+                                            name:
+                                                data[index].nameId ?? 'unknown')
+                                        : ListCheckBox(
+                                            isDisabled: false,
+                                            value: _selectedCoordinates
+                                                .contains(data[index].id),
+                                            onChanged: (bool? value) {
+                                              setState(() {
+                                                if (data[index].id != null) {
+                                                  if (value == true) {
+                                                    _selectedCoordinates
+                                                        .add(data[index].id!);
+                                                  } else {
+                                                    _selectedCoordinates
+                                                        .remove(data[index].id);
+                                                  }
+                                                }
+                                              });
+                                            },
+                                          ),
+                                  ]),
                               title: CoordinateTitle(
                                   coordinateId: data[index].nameId),
                               subtitle:
                                   CoordinateSubtitle(coordinate: data[index]),
-                              trailing: CoordinateMenu(
-                                coordinateId: data[index].id!,
-                                siteId: data[index].siteID!,
-                                coordCtr:
-                                    CoordinateCtrModel.fromData(data[index]),
-                              ),
+                              trailing: !_isSelecting
+                                  ? CoordinateMenu(
+                                      coordinateId: data[index].id!,
+                                      siteId: data[index].siteID!,
+                                      coordCtr: CoordinateCtrModel.fromData(
+                                          data[index]),
+                                    )
+                                  : SizedBox.shrink(),
                             );
                           },
                         )),
                   ),
                   const SizedBox(height: 8),
-                  AddCoordinateButton(siteId: sideId),
+                  !_isSelecting
+                      ? AddCoordinateButton(siteId: widget.sideId)
+                      : DeleteItemsButton(
+                          selectedItems: _selectedCoordinates,
+                          itemName: 'coordinates',
+                          onPressedFunction: () async {
+                            await _deleteCoodinates();
+                            setState(() {
+                              _selectedCoordinates.clear();
+                            });
+                          }),
                 ],
               );
       },
       loading: () => const CommonProgressIndicator(),
       error: (error, stack) => Text(error.toString()),
     );
+  }
+
+  Future<void> _deleteCoodinates() async {
+    try {
+      CoordinateServices(ref: ref)
+          .deleteCoordinatesFromList(_selectedCoordinates);
+      ref.invalidate(coordinateBySiteProvider);
+      setState(() {
+        _isSelecting = false;
+      });
+      if (context.mounted) {
+        _pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showError(e.toString());
+      }
+    }
+  }
+
+  void _pop() {
+    Navigator.pop(context);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 10),
+    ));
   }
 }
 
