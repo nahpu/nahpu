@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/shared/qr.dart';
-import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
+// import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
@@ -40,7 +40,7 @@ class PartDataForm extends ConsumerStatefulWidget {
 class PartDataFormState extends ConsumerState<PartDataForm>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final int _length = 3;
+  final int _length = 2;
 
   @override
   void initState() {
@@ -69,9 +69,9 @@ class PartDataFormState extends ConsumerState<PartDataForm>
           Tab(
             icon: Icon(matchCatFmtToPartIcon(widget.catalogFmt)),
           ),
-          Tab(
-            icon: Icon(MdiIcons.bugOutline),
-          ),
+          // Tab(
+          //   icon: Icon(MdiIcons.bugOutline),
+          // ),
           Tab(
             icon: Icon(MdiIcons.databaseOutline),
           )
@@ -81,10 +81,10 @@ class PartDataFormState extends ConsumerState<PartDataForm>
             specimenUuid: widget.specimenUuid,
             catalogFmt: widget.catalogFmt,
           ),
-          ParasiteForms(
-            specimenUuid: widget.specimenUuid,
-            catalogFmt: widget.catalogFmt,
-          ),
+          // ParasiteForms(
+          //   specimenUuid: widget.specimenUuid,
+          //   catalogFmt: widget.catalogFmt,
+          // ),
           AssociatedDataViewer(specimenUuid: widget.specimenUuid),
         ],
       ),

@@ -765,6 +765,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 name = "rust_lib_nahpu"
 version = "0.1.0"
 dependencies = [
+ "bzip2",
  "flutter_rust_bridge",
  "nahpu_api",
 ]
