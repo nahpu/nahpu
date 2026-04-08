@@ -9,6 +9,7 @@ New to v7:
 2. Add herpetofauna measurement table
 3. Add showBatFields boolean field to mammalMeasurment table
 4. Add additional bat measurement fields
+5. Add personnel and project fields for enhanced specimen IDs
 
 New to v6:
 1. Add collectionDate to the specimen table
@@ -191,7 +192,8 @@ CREATE TABLE personnel (
     role TEXT,
     currentFieldNumber INT, -- the next input for field number
     notes TEXT,
-    photoPath TEXT
+    photoPath TEXT,
+    isRegisterField BOOLEAN NOT NULL DEFAULT 1 
 );
 
 CREATE TABLE taxonomy (
@@ -233,6 +235,7 @@ CREATE TABLE specimen (
     coordinateID INT,
     catalogerID TEXT,
     fieldNumber INT,
+    projectFieldNumber INT,
     collEventID INT,
     isMultipleCollector INT,
     collPersonnelID INT,
@@ -337,7 +340,6 @@ CREATE TABLE herpMeasurement (
     weight REAL,
     svl REAL,
     remark TEXT,
-
     FOREIGN KEY(specimenUuid) REFERENCES specimen(uuid)
 );
 

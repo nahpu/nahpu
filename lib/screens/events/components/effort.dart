@@ -6,6 +6,7 @@ import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
@@ -61,7 +62,7 @@ class AddEffortButton extends StatelessWidget {
   }
 }
 
-class CollEffortList extends ConsumerWidget {
+class CollEffortList extends ConsumerStatefulWidget {
   const CollEffortList({
     super.key,
     required this.collEventId,
@@ -70,17 +71,47 @@ class CollEffortList extends ConsumerWidget {
   final int collEventId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final collEffort = ref.watch(collEffortByEventProvider(collEventId));
+  CollEffortListState createState() => CollEffortListState();
+}
+
+class CollEffortListState extends ConsumerState<CollEffortList> {
+  bool _isSelecting = false;
+  final List<int> _selectedCollEfforts = [];
+
+  @override
+  Widget build(BuildContext context) {
+    final collEffort = ref.watch(collEffortByEventProvider(widget.collEventId));
     ScrollController scrollController = ScrollController();
     return collEffort.when(
       data: (data) {
         return data.isEmpty
-            ? EmptyEffort(collEventId: collEventId)
+            ? EmptyEffort(collEventId: widget.collEventId)
             : Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  SelectItemsInterface(
+                      isSelecting: _isSelecting,
+                      onClearPressed: _selectedCollEfforts.isEmpty
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedCollEfforts.clear();
+                              });
+                            },
+                      onSelectAllPressed: () {
+                        setState(() {
+                          _selectedCollEfforts.clear();
+                          _selectedCollEfforts
+                              .addAll(data.map((e) => e.id).toList());
+                        });
+                      },
+                      onSelectPressed: () {
+                        setState(() {
+                          _isSelecting = !_isSelecting;
+                          _selectedCollEfforts.clear();
+                        });
+                      }),
                   Flexible(
                     child: CommonScrollbar(
                       scrollController: scrollController,
@@ -89,19 +120,73 @@ class CollEffortList extends ConsumerWidget {
                         controller: scrollController,
                         itemCount: data.length,
                         itemBuilder: (context, index) {
-                          return CollEffortTile(collEffort: data[index]);
+                          return CollEffortTile(
+                            collEffort: data[index],
+                            isSelecting: _isSelecting,
+                            selectedCollEfforts: _selectedCollEfforts,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  _selectedCollEfforts.add(data[index].id);
+                                } else {
+                                  _selectedCollEfforts.remove(data[index].id);
+                                }
+                              });
+                            },
+                          );
                         },
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  AddEffortButton(collEventId: collEventId),
+                  !_isSelecting
+                      ? AddEffortButton(collEventId: widget.collEventId)
+                      : DeleteItemsButton(
+                          selectedItems: _selectedCollEfforts,
+                          itemName: _selectedCollEfforts.length == 1
+                              ? 'effort'
+                              : 'efforts',
+                          onPressedFunction: () async {
+                            await _deleteCollEfforts();
+                            setState(() {
+                              _selectedCollEfforts.clear();
+                            });
+                          }),
                 ],
               );
       },
       loading: () => const CircularProgressIndicator(),
       error: (error, stack) => Text(error.toString()),
     );
+  }
+
+  Future<void> _deleteCollEfforts() async {
+    try {
+      await CollEventServices(ref: ref)
+          .deleteCollEffortFromList(_selectedCollEfforts);
+      ref.invalidate(collEffortByEventProvider);
+      setState(() {
+        _isSelecting = false;
+      });
+      if (context.mounted) {
+        _pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showError(e.toString());
+      }
+    }
+  }
+
+  void _pop() {
+    Navigator.pop(context);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 10),
+    ));
   }
 }
 
@@ -188,9 +273,15 @@ class CollEffortTile extends StatelessWidget {
   const CollEffortTile({
     super.key,
     required this.collEffort,
+    required this.isSelecting,
+    required this.selectedCollEfforts,
+    required this.onChanged,
   });
 
   final CollEffortData collEffort;
+  final bool isSelecting;
+  final List<int> selectedCollEfforts;
+  final void Function(bool?) onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -200,11 +291,28 @@ class CollEffortTile extends StatelessWidget {
         count: collEffort.count,
       ),
       subtitle: Subtitle(data: collEffort),
-      trailing: CollEffortMenu(
-        collEventId: collEffort.eventID!,
-        collEffortId: collEffort.id,
-        collToolCtr: CollEffortCtrModel.fromData(collEffort),
-      ),
+      leading: isSelecting
+          ? ListCheckBox(
+              isDisabled: false,
+              value: selectedCollEfforts.contains(collEffort.id),
+              onChanged: onChanged)
+          : const SizedBox.shrink(),
+      trailing: !isSelecting
+          ? IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditCollEffort(
+                        collEffortId: collEffort.id,
+                        collEventId: collEffort.eventID!,
+                        collToolCtr: CollEffortCtrModel.fromData(collEffort),
+                      ),
+                    ));
+              },
+            )
+          : SizedBox.shrink(),
     );
   }
 }
@@ -260,76 +368,6 @@ class Subtitle extends StatelessWidget {
       return 'N/A';
     } else {
       return data.size!;
-    }
-  }
-}
-
-class CollEffortMenu extends ConsumerStatefulWidget {
-  const CollEffortMenu({
-    super.key,
-    required this.collEventId,
-    required this.collEffortId,
-    required this.collToolCtr,
-  });
-
-  final int collEventId;
-  final int collEffortId;
-  final CollEffortCtrModel collToolCtr;
-
-  @override
-  CollEffortMenuState createState() => CollEffortMenuState();
-}
-
-class CollEffortMenuState extends ConsumerState<CollEffortMenu> {
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<EffortPopUpMenuItems>(
-      icon: const Icon(Icons.more_vert),
-      onSelected: _onSelected,
-      itemBuilder: (context) => <PopupMenuEntry<EffortPopUpMenuItems>>[
-        const PopupMenuItem(
-          value: EffortPopUpMenuItems.edit,
-          child: ListTile(
-            leading: Icon(Icons.edit_outlined),
-            title: Text('Edit'),
-          ),
-        ),
-        const PopupMenuDivider(
-          height: 10,
-        ),
-        PopupMenuItem(
-          value: EffortPopUpMenuItems.delete,
-          child: ListTile(
-            leading: Icon(Icons.delete_outline,
-                color: Theme.of(context).colorScheme.error),
-            title: Text('Delete',
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _onSelected(EffortPopUpMenuItems item) {
-    switch (item) {
-      case EffortPopUpMenuItems.edit:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => EditCollEffort(
-              collEffortId: widget.collEffortId,
-              collEventId: widget.collEventId,
-              collToolCtr: widget.collToolCtr,
-            ),
-          ),
-        );
-        break;
-      case EffortPopUpMenuItems.delete:
-        CollEventServices(ref: ref).deleteCollEffort(
-          widget.collEffortId,
-        );
-        ref.invalidate(collEffortByEventProvider);
-        break;
     }
   }
 }
@@ -444,7 +482,7 @@ class CollectionMethods extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(collEventMethodProvider).when(
+    return ref.watch(UserDefinedFieldProvider(collMethodPrefKey)).when(
           data: (data) {
             if (kDebugMode) {
               print('Collection Methods: $data');

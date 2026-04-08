@@ -6,20 +6,57 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:intl/intl.dart';
 
+Future<void> castColumnsIntToReal(
+    Migrator m, dynamic table, List<String> colsToCast) async {
+  final db = m.database as Database;
+
+  final List<String> columnNames =
+      table.$columns.map((column) => column.name).toList().cast<String>();
+
+  final columnNamesCasted = columnNames.map((column) {
+    return (colsToCast.contains(column)) ? 'CAST($column AS REAL)' : column;
+  }).toList();
+
+  await db.customStatement(
+      'ALTER TABLE ${table.actualTableName} RENAME TO tmp_${table.actualTableName}');
+  await m.createTable(table);
+  await db.customStatement('''
+        INSERT INTO ${table.actualTableName} (${columnNames.join(', ')})
+        SELECT ${columnNamesCasted.join(', ')} FROM tmp_${table.actualTableName}
+      ''');
+  await db.customStatement('DROP TABLE tmp_${table.actualTableName}');
+}
+
+// Primarily used to drop columns
+Future<void> alterTableHelper(Migrator m, dynamic table) async {
+  final db = m.database as Database;
+
+  final List<String> columnNames =
+      table.$columns.map((column) => column.name).toList().cast<String>();
+
+  await db.customStatement(
+      'ALTER TABLE ${table.actualTableName} RENAME TO tmp_${table.actualTableName}');
+  await m.createTable(table);
+  await db.customStatement('''
+        INSERT INTO ${table.actualTableName} (${columnNames.join(', ')})
+        SELECT ${columnNames.join(', ')} FROM tmp_${table.actualTableName}
+      ''');
+  await db.customStatement('DROP TABLE tmp_${table.actualTableName}');
+}
+
 Future<void> castMammalType(Migrator m) async {
   final mammalMeasurement = (m.database as Database).mammalMeasurement;
+  final columnsToUpdate = [
+    'totalLength',
+    'tailLength',
+    'hindFootLength',
+    'earLength',
+    'forearm',
+    'testisLength',
+    'testisWidth'
+  ];
 
-  await m.alterTable(TableMigration(mammalMeasurement, columnTransformer: {
-    mammalMeasurement.totalLength: mammalMeasurement.totalLength.cast<double>(),
-    mammalMeasurement.tailLength: mammalMeasurement.tailLength.cast<double>(),
-    mammalMeasurement.hindFootLength:
-        mammalMeasurement.hindFootLength.cast<double>(),
-    mammalMeasurement.earLength: mammalMeasurement.earLength.cast<double>(),
-    mammalMeasurement.forearm: mammalMeasurement.forearm.cast<double>(),
-    mammalMeasurement.testisLength:
-        mammalMeasurement.testisLength.cast<double>(),
-    mammalMeasurement.testisWidth: mammalMeasurement.testisWidth.cast<double>(),
-  }));
+  await castColumnsIntToReal(m, mammalMeasurement, columnsToUpdate);
 }
 
 String convertDateString(String inputDateString) {

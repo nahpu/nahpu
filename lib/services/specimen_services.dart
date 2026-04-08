@@ -24,17 +24,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String tissueIDPrefixKey = 'tissueIDPrefix';
 const String tissueIDNumberKey = 'tissueIDNumber';
+const String projectFieldIDNumberKey = 'projectFieldIdNumber';
 
 class SpecimenServices extends AppServices {
   const SpecimenServices({required super.ref});
 
   Future<String> createSpecimen() async {
-    CatalogFmt catalogFmt = await ref.watch(catalogFmtNotifierProvider.future);
+    final CatalogFmt catalogFmt =
+        await ref.watch(catalogFmtNotifierProvider.future);
     final String specimenUuid = uuid;
+    final FieldIdMode fieldIdMode =
+        await ref.watch(fieldIdModeNotifierProvider.future);
+    String? currentProjectNumber;
+
+    if (fieldIdMode == FieldIdMode.project) {
+      currentProjectNumber =
+          await ProjectFieldIdServices(ref: ref).getNewNumber();
+    }
+
     await SpecimenQuery(dbAccess).createSpecimen(SpecimenCompanion(
       uuid: db.Value(specimenUuid),
       projectUuid: db.Value(currentProjectUuid),
       taxonGroup: db.Value(matchCatFmtToTaxonGroup(catalogFmt)),
+      projectFieldNumber: db.Value(int.tryParse(currentProjectNumber ?? '')),
     ));
 
     switch (catalogFmt) {
@@ -49,6 +61,7 @@ class SpecimenServices extends AppServices {
         break;
     }
     invalidateSpecimenList();
+
     return specimenUuid;
   }
 
@@ -99,6 +112,10 @@ class SpecimenServices extends AppServices {
 
   Future<List<String>> getRecordedGroupList() async {
     return SpecimenQuery(dbAccess).getUniqueTaxonGroup(currentProjectUuid);
+  }
+
+  Future<List<String>> getColumnNames() async {
+    return SpecimenQuery(dbAccess).getColumnNames();
   }
 
   Future<void> createSpecimenMediaFromList(
@@ -336,8 +353,13 @@ class SpecimenServices extends AppServices {
     await SpecimenPartQuery(dbAccess).deleteAllSpecimenParts(specimenUuid);
   }
 
-  void deleteSpecimenPart(int partId) {
-    SpecimenPartQuery(dbAccess).deleteSpecimenPart(partId);
+  Future<void> deleteSpecimenPart(int partId) async {
+    await SpecimenPartQuery(dbAccess).deleteSpecimenPart(partId);
+    ref.invalidate(partBySpecimenProvider);
+  }
+
+  Future<void> deleteSpecimenPartsFromList(List<int> partIds) async {
+    await SpecimenPartQuery(dbAccess).deleteSpecimenPartsFromList(partIds);
     ref.invalidate(partBySpecimenProvider);
   }
 
@@ -508,6 +530,35 @@ class SpecimenSearchServices {
   }
 }
 
+class ProjectFieldIdServices extends AppServices {
+  const ProjectFieldIdServices({required super.ref});
+
+  SharedPreferences get _prefs => ref.read(settingProvider);
+
+  Future<String> getNewNumber() async {
+    int? number = _getSettingNumber();
+    String numberString = getNumberString();
+    await incrementNumber(number ?? 0);
+    return numberString;
+  }
+
+  String getNumberString() {
+    return _getSettingNumber() == null ? '1' : _getSettingNumber().toString();
+  }
+
+  Future<void> incrementNumber(int number) async {
+    await setNumber((number + 1).toString());
+  }
+
+  Future<void> setNumber(String number) async {
+    await _prefs.setInt(projectFieldIDNumberKey, int.tryParse(number) ?? 1);
+  }
+
+  int? _getSettingNumber() {
+    return _prefs.getInt(projectFieldIDNumberKey);
+  }
+}
+
 class TissueIdServices extends AppServices {
   const TissueIdServices({required super.ref});
 
@@ -576,63 +627,6 @@ class SpecimenPartServices extends AppServices {
       int partId, SpecimenPartCompanion form) async {
     SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
     ref.invalidate(partBySpecimenProvider);
-  }
-
-  Future<void> getSpecimenTypes() async {
-    final List<String> typeList =
-        await SpecimenPartQuery(dbAccess).getDistinctTypes();
-    final notifier = ref.read(specimenTypesProvider.notifier);
-    List<String> finalList = typeList.isEmpty ? defaultSpecimenType : typeList;
-    notifier.replaceAll(finalList);
-    _invalidateTypes();
-  }
-
-  Future<void> getTreatmentOptions() async {
-    final List<String> treatmentList =
-        await SpecimenPartQuery(dbAccess).getDistinctTreatments();
-    final notifier = ref.read(treatmentOptionsProvider.notifier);
-    List<String> finalList =
-        treatmentList.isEmpty ? defaultSpecimenTreatment : treatmentList;
-    notifier.replaceAll(finalList);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> addType(String part) async {
-    await ref.read(specimenTypesProvider.notifier).add(part);
-    _invalidateTypes();
-  }
-
-  Future<void> removeType(String specimenType) async {
-    ref.read(specimenTypesProvider.notifier).remove(specimenType);
-    _invalidateTypes();
-  }
-
-  Future<void> clearTypes() async {
-    ref.read(specimenTypesProvider.notifier).clear();
-    _invalidateTypes();
-  }
-
-  Future<void> addTreatment(String treatment) async {
-    await ref.read(treatmentOptionsProvider.notifier).add(treatment);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> removeTreatment(String treatment) async {
-    ref.read(treatmentOptionsProvider.notifier).remove(treatment);
-    _invalidateTreatmentOptions();
-  }
-
-  Future<void> clearTreatments() async {
-    ref.read(treatmentOptionsProvider.notifier).clear();
-    _invalidateTreatmentOptions();
-  }
-
-  void _invalidateTreatmentOptions() {
-    ref.invalidate(treatmentOptionsProvider);
-  }
-
-  void _invalidateTypes() {
-    ref.invalidate(specimenTypesProvider);
   }
 }
 

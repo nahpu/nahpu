@@ -110,7 +110,7 @@ class CommonSettingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
         child: ListTile(
           minVerticalPadding: 0,
           title: Text(title,
@@ -175,11 +175,17 @@ class SwitchSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 16)),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             Switch(
               value: value,
               onChanged: onChanged,
@@ -235,7 +241,7 @@ class SettingChips extends StatelessWidget {
       title: title,
       children: [
         Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
             child: Wrap(
               spacing: 10,
               runSpacing: 10,

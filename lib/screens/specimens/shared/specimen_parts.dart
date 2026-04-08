@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/shared/qr.dart';
+// import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
@@ -12,6 +13,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
@@ -67,6 +69,9 @@ class PartDataFormState extends ConsumerState<PartDataForm>
           Tab(
             icon: Icon(matchCatFmtToPartIcon(widget.catalogFmt)),
           ),
+          // Tab(
+          //   icon: Icon(MdiIcons.bugOutline),
+          // ),
           Tab(
             icon: Icon(MdiIcons.databaseOutline),
           )
@@ -76,6 +81,10 @@ class PartDataFormState extends ConsumerState<PartDataForm>
             specimenUuid: widget.specimenUuid,
             catalogFmt: widget.catalogFmt,
           ),
+          // ParasiteForms(
+          //   specimenUuid: widget.specimenUuid,
+          //   catalogFmt: widget.catalogFmt,
+          // ),
           AssociatedDataViewer(specimenUuid: widget.specimenUuid),
         ],
       ),
@@ -131,6 +140,8 @@ class PartList extends ConsumerStatefulWidget {
 
 class PartListState extends ConsumerState<PartList> {
   final ScrollController _scrollController = ScrollController();
+  bool _isSelecting = false;
+  final List<int> _selectedparts = [];
 
   @override
   void dispose() {
@@ -148,6 +159,30 @@ class PartListState extends ConsumerState<PartList> {
             ? EmptyPart(specimenUuid: widget.specimenUuid)
             : Column(
                 children: [
+                  SelectItemsInterface(
+                      isSelecting: _isSelecting,
+                      onClearPressed: _selectedparts.isEmpty
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedparts.clear();
+                              });
+                            },
+                      onSelectAllPressed: () {
+                        setState(() {
+                          _selectedparts.clear();
+                          _selectedparts.addAll(data
+                              .where((e) => e.id != null)
+                              .map((e) => e.id!)
+                              .toList());
+                        });
+                      },
+                      onSelectPressed: () {
+                        setState(() {
+                          _isSelecting = !_isSelecting;
+                          _selectedparts.clear();
+                        });
+                      }),
                   Flexible(
                     child: CommonScrollbar(
                       scrollController: _scrollController,
@@ -158,10 +193,28 @@ class PartListState extends ConsumerState<PartList> {
                         itemBuilder: (context, index) {
                           final part = data[index];
                           return ListTile(
-                            leading: PartIcon(
-                              partType: part.type ?? 'unknown',
-                              catalogFmt: widget.catalogFmt,
-                            ),
+                            leading:
+                                Row(mainAxisSize: MainAxisSize.min, children: [
+                              !_isSelecting
+                                  ? PartIcon(
+                                      partType: part.type ?? 'unknown',
+                                      catalogFmt: widget.catalogFmt,
+                                    )
+                                  : ListCheckBox(
+                                      isDisabled: false,
+                                      value: _selectedparts.contains(part.id),
+                                      onChanged: (bool? value) {
+                                        if (part.id != null) {
+                                          setState(() {
+                                            if (value == true) {
+                                              _selectedparts.add(part.id!);
+                                            } else {
+                                              _selectedparts.remove(part.id);
+                                            }
+                                          });
+                                        }
+                                      }),
+                            ]),
                             title: PartTitle(
                               partType: part.type,
                               partCount: part.count.toString(),
@@ -169,33 +222,75 @@ class PartListState extends ConsumerState<PartList> {
                               preparator: part.personnelId,
                             ),
                             subtitle: PartSubTitle(part: part),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.edit_outlined),
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => EditPart(
-                                      specimenUuid: widget.specimenUuid,
-                                      specimenPartId: part.id,
-                                      partCtr: PartFormCtrModel.fromData(part),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
+                            trailing: !_isSelecting
+                                ? IconButton(
+                                    icon: const Icon(Icons.edit_outlined),
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => EditPart(
+                                            specimenUuid: widget.specimenUuid,
+                                            specimenPartId: part.id,
+                                            partCtr:
+                                                PartFormCtrModel.fromData(part),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : SizedBox.shrink(),
                           );
                         },
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  AddPartButton(specimenUuid: widget.specimenUuid),
+                  !_isSelecting
+                      ? AddPartButton(specimenUuid: widget.specimenUuid)
+                      : DeleteItemsButton(
+                          selectedItems: _selectedparts,
+                          itemName:
+                              'specimen ${_selectedparts.length == 1 ? 'part' : 'parts'}',
+                          onPressedFunction: () async {
+                            await _deleteParts();
+                            setState(() {
+                              _selectedparts.clear();
+                            });
+                          }),
                 ],
               );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, stack) => Text('Error: $err'),
     );
+  }
+
+  Future<void> _deleteParts() async {
+    try {
+      await SpecimenServices(ref: ref)
+          .deleteSpecimenPartsFromList(_selectedparts);
+      setState(() {
+        _isSelecting = false;
+      });
+      if (context.mounted) {
+        _pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showError(e.toString());
+      }
+    }
+  }
+
+  void _pop() {
+    Navigator.pop(context);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 10),
+    ));
   }
 }
 
@@ -614,7 +709,7 @@ class SpecimenTreatmentFields extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(treatmentOptionsProvider).when(
+    return ref.watch(userDefinedFieldProvider(treatmentPrefKey)).when(
           data: (data) {
             return Column(
               children: [
@@ -665,7 +760,7 @@ class SpecimenTypeField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(specimenTypesProvider).when(
+    return ref.watch(userDefinedFieldProvider(specimenTypePrefKey)).when(
           data: (data) {
             return DropdownButtonFormField(
               initialValue: _getValue(),

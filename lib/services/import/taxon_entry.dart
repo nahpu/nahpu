@@ -22,25 +22,28 @@ class CsvData {
   }
 
   void parseTaxonEntryFromList(List<List<dynamic>> parsedCsv) {
-    header = parsedCsv[0].cast<String>();
+    header = parsedCsv[0].map((e) => e.toString().trim()).toList();
+    if (header.isNotEmpty) {
+      header[0] = header[0].replaceFirst('\uFEFF', '');
+    }
     _mapHeader();
     for (var row in parsedCsv.sublist(1)) {
       List<String> rowData = [];
       for (var value in row) {
-        // Cast all the values to string
-        rowData.add(value.toString());
+        rowData.add(value.toString().trim());
       }
       data.add(rowData);
     }
   }
 
   void _mapHeader() {
-    for (String value in header) {
+    for (int i = 0; i < header.length; i++) {
+      String value = header[i];
       TaxonEntryHeader headerKey =
           knownTaxonHeader[value.toLowerCase().replaceAll(' ', '')] ??
               TaxonEntryHeader.ignore;
 
-      headerMap[header.indexOf(value)] = headerKey;
+      headerMap[i] = headerKey;
     }
   }
 }
@@ -91,8 +94,8 @@ class TaxonParser {
 
   TaxonEntryData _parseData(List<String> values) {
     TaxonEntryData taxonEntryCsv = TaxonEntryData.empty();
-    for (String value in values) {
-      int index = values.indexOf(value);
+    for (int index = 0; index < values.length; index++) {
+      String value = values[index];
       TaxonEntryHeader header = headerMap[index] ?? TaxonEntryHeader.ignore;
       switch (header) {
         case TaxonEntryHeader.taxonClass:

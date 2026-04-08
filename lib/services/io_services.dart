@@ -56,23 +56,6 @@ class FilePickerServices {
     return null;
   }
 
-  Future<XFile?> selectFile(List<XTypeGroup> allowedExtension) async {
-    if (Platform.isAndroid) {
-      return _openFileAndroid();
-    } else {
-      return await openFile(acceptedTypeGroups: allowedExtension);
-    }
-  }
-
-  // Pick file to fix android import issues.
-  Future<XFile?> _openFileAndroid() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      return XFile(result.files.single.path!);
-    }
-    return null;
-  }
-
   Future<List<XFile>> pickMultiFiles(List<XTypeGroup> allowedExtension) async {
     return await openFiles(acceptedTypeGroups: allowedExtension);
   }

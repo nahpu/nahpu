@@ -7,7 +7,7 @@ import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/settings.dart';
 
 class Habitat extends ConsumerWidget {
   const Habitat(
@@ -30,7 +30,7 @@ class Habitat extends ConsumerWidget {
         padding: const EdgeInsets.all(5),
         child: Column(
           children: [
-            ref.watch(habitatTypeProvider).when(
+            ref.watch(userDefinedFieldProvider(habitatTypePrefKey)).when(
                   data: (data) {
                     final items = data
                         .map(
@@ -42,9 +42,10 @@ class Habitat extends ConsumerWidget {
                         .toList();
 
                     final current = siteFormCtr.habitatTypeCtr.text;
-                    final initialValue = (current.isNotEmpty && data.contains(current))
-                        ? current
-                        : null;
+                    final initialValue =
+                        (current.isNotEmpty && data.contains(current))
+                            ? current
+                            : null;
 
                     return DropdownButtonFormField<String?>(
                       initialValue: initialValue,

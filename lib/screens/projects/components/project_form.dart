@@ -66,20 +66,8 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(25),
                     ],
-                    onChanged: (value) async {
-                      if (widget.isEditing) {
-                        ref
-                            .watch(projectFormValidatorProvider.notifier)
-                            .validateOnEditing(initialProjectName,
-                                widget.projectCtr.projectNameCtr.text);
-                      } else {
-                        await ref
-                            .watch(projectFormValidatorProvider.notifier)
-                            .validateProjectName(value);
-                        await ref
-                            .watch(projectFormValidatorProvider.notifier)
-                            .checkProjectNameExists(value);
-                      }
+                    onChanged: (_) async {
+                      _validateAll();
                     },
                     errorText: validator.when(
                       data: (data) {
@@ -108,7 +96,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                   maxLines: 2,
                   maxLength: 120,
                   onChanged: (_) {
-                    _validateEditing();
+                    _validateAll();
                   },
                 ),
                 Visibility(
@@ -118,7 +106,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     labelText: 'Principal Investigator',
                     hintText: 'Enter PI name of the project (optional)',
                     onChanged: (_) {
-                      _validateEditing();
+                      _validateAll();
                     },
                   ),
                 ),
@@ -133,7 +121,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     labelText: 'Location',
                     hintText: 'Enter location of the project (optional)',
                     onChanged: (_) {
-                      _validateEditing();
+                      _validateAll();
                     },
                   ),
                 ),
@@ -143,7 +131,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     child: TimeZoneField(
                       projectCtr: widget.projectCtr,
                       onChanged: (_) {
-                        _validateEditing();
+                        _validateAll();
                       },
                     )),
                 Visibility(
@@ -161,7 +149,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                       if (selectedDate != null) {
                         widget.projectCtr.startDateCtr.dateTime = selectedDate;
                       }
-                      _validateEditing();
+                      _validateAll();
                     },
                   ),
                 ),
@@ -180,7 +168,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                       if (selectedDate != null) {
                         widget.projectCtr.endDateCtr.dateTime = selectedDate;
                       }
-                      _validateEditing();
+                      _validateAll();
                     },
                   ),
                 ),
@@ -229,10 +217,14 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
     );
   }
 
-  Future<void> _validateEditing() async {
+  Future<void> _validateAll() async {
     if (widget.isEditing) {
       ref.watch(projectFormValidatorProvider.notifier).validateOnEditing(
           initialProjectName, widget.projectCtr.projectNameCtr.text);
+    } else {
+      ref
+          .watch(projectFormValidatorProvider.notifier)
+          .validateOnCreate(widget.projectCtr.projectNameCtr.text);
     }
   }
 

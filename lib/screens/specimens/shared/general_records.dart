@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/projects/personnel/new_personnel.dart';
 import 'package:nahpu/services/providers/personnel.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/material.dart';
@@ -78,18 +80,17 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
             specimenUuid: widget.specimenUuid,
           ),
           AdaptiveLayout(
-            useHorizontalLayout: widget.useHorizontalLayout,
-            children: [
-              SpecimenCollectionDateField(
-                specimenCtr: widget.specimenCtr,
-                specimenUuid: widget.specimenUuid,
-              ),  
-              SpecimenCollectionTimeField(
-                specimenCtr: widget.specimenCtr,
-                specimenUuid: widget.specimenUuid,
-              ),
-            ]
-          ),      
+              useHorizontalLayout: widget.useHorizontalLayout,
+              children: [
+                SpecimenCollectionDateField(
+                  specimenCtr: widget.specimenCtr,
+                  specimenUuid: widget.specimenUuid,
+                ),
+                SpecimenCollectionTimeField(
+                  specimenCtr: widget.specimenCtr,
+                  specimenUuid: widget.specimenUuid,
+                ),
+              ]),
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
@@ -231,30 +232,26 @@ class SpecimenCollectionDateField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-      controller: specimenCtr.collDateCtr,
-      labelText: 'Collection date',
-      hintText: 'Enter date',
-      initialDate: DateTime.now(),
-      lastDate: DateTime.now(),
-      onTap: () {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(
-            collectionDate: db.Value(
+        controller: specimenCtr.collDateCtr,
+        labelText: 'Collection date',
+        hintText: 'Enter date',
+        initialDate: DateTime.now(),
+        lastDate: DateTime.now(),
+        onTap: () {
+          SpecimenServices(ref: ref).updateSpecimen(
+            specimenUuid,
+            SpecimenCompanion(
+                collectionDate: db.Value(
               specimenCtr.collDateCtr.date,
-            )
-          ),
-        );
-      },
-      onClear: () {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(
-            collectionDate: db.Value(null)
-          ),
-        );
-      }
-    );
+            )),
+          );
+        },
+        onClear: () {
+          SpecimenServices(ref: ref).updateSpecimen(
+            specimenUuid,
+            SpecimenCompanion(collectionDate: db.Value(null)),
+          );
+        });
   }
 }
 
@@ -271,28 +268,23 @@ class SpecimenCollectionTimeField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTimeField(
-      controller: specimenCtr.collTimeCtr,
-      labelText: 'Collection time',
-      hintText: 'Enter time',
-      initialTime: TimeOfDay.now(),
-      onTap: () {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(
-              collectionTime: db.Value(
-            specimenCtr.collTimeCtr.time,
-          )),
-        );
-      },
-      onClear: () {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(
-              collectionTime: db.Value(null)
-          )
-        );
-      }
-    );
+        controller: specimenCtr.collTimeCtr,
+        labelText: 'Collection time',
+        hintText: 'Enter time',
+        initialTime: TimeOfDay.now(),
+        onTap: () {
+          SpecimenServices(ref: ref).updateSpecimen(
+            specimenUuid,
+            SpecimenCompanion(
+                collectionTime: db.Value(
+              specimenCtr.collTimeCtr.time,
+            )),
+          );
+        },
+        onClear: () {
+          SpecimenServices(ref: ref).updateSpecimen(
+              specimenUuid, SpecimenCompanion(collectionTime: db.Value(null)));
+        });
   }
 }
 
@@ -308,28 +300,26 @@ class SpecimenConditionField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     return CommonPadding(
-      child: DropdownButtonFormField(
-        initialValue: specimenCtr.conditionCtr,
-        onChanged: (String? value) {
-          SpecimenServices(ref: ref).updateSpecimen(
-            specimenUuid,
-            SpecimenCompanion(condition: db.Value(value)),
-          );
-        },
-        decoration: const InputDecoration(
-          labelText: 'Condition',
-          hintText: 'Choose a condition',
-        ),
-        items: conditionList
-            .map((String condition) => DropdownMenuItem(
-                  value: condition,
-                  child: CommonDropdownText(text: condition),
-                ))
-            .toList(),
-      )
-    );
+        child: DropdownButtonFormField(
+      initialValue: specimenCtr.conditionCtr,
+      onChanged: (String? value) {
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(condition: db.Value(value)),
+        );
+      },
+      decoration: const InputDecoration(
+        labelText: 'Condition',
+        hintText: 'Choose a condition',
+      ),
+      items: conditionList
+          .map((String condition) => DropdownMenuItem(
+                value: condition,
+                child: CommonDropdownText(text: condition),
+              ))
+          .toList(),
+    ));
   }
 }
 
@@ -346,28 +336,25 @@ class PrepDateField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-      controller: specimenCtr.prepDateCtr,
-      labelText: 'Prep. date',
-      hintText: 'Enter date',
-      initialDate: DateTime.now(),
-      lastDate: DateTime.now(),
-      onTap: () {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(
-            prepDate: db.Value(specimenCtr.prepDateCtr.date),
-          ),
-        );
-      },
-      onClear: () {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(
-            prepDate: db.Value(null)
-          ),
-        );
-      }      
-    );
+        controller: specimenCtr.prepDateCtr,
+        labelText: 'Prep. date',
+        hintText: 'Enter date',
+        initialDate: DateTime.now(),
+        lastDate: DateTime.now(),
+        onTap: () {
+          SpecimenServices(ref: ref).updateSpecimen(
+            specimenUuid,
+            SpecimenCompanion(
+              prepDate: db.Value(specimenCtr.prepDateCtr.date),
+            ),
+          );
+        },
+        onClear: () {
+          SpecimenServices(ref: ref).updateSpecimen(
+            specimenUuid,
+            SpecimenCompanion(prepDate: db.Value(null)),
+          );
+        });
   }
 }
 
@@ -384,27 +371,22 @@ class PrepTimeField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTimeField(
-      controller: specimenCtr.prepTimeCtr,
-      labelText: 'Prep. time',
-      hintText: 'Enter time',
-      initialTime: TimeOfDay.now(),
-      onTap: () {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(
-            prepTime: db.Value(specimenCtr.prepTimeCtr.time),
-          ),
-        );
-      },
-      onClear: () {
-        SpecimenServices(ref: ref).updateSpecimen(
-          specimenUuid,
-          SpecimenCompanion(
-              prepTime: db.Value(null)
-          )
-        );
-      }
-    );
+        controller: specimenCtr.prepTimeCtr,
+        labelText: 'Prep. time',
+        hintText: 'Enter time',
+        initialTime: TimeOfDay.now(),
+        onTap: () {
+          SpecimenServices(ref: ref).updateSpecimen(
+            specimenUuid,
+            SpecimenCompanion(
+              prepTime: db.Value(specimenCtr.prepTimeCtr.time),
+            ),
+          );
+        },
+        onClear: () {
+          SpecimenServices(ref: ref).updateSpecimen(
+              specimenUuid, SpecimenCompanion(prepTime: db.Value(null)));
+        });
   }
 }
 
@@ -432,71 +414,40 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
     return CommonPadding(
       child: Column(
         children: [
-          widget.specimenCtr.catalogerCtr != null
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: IdTile(
-                    specimenUuid: widget.specimenUuid,
-                    specimenCtr: widget.specimenCtr,
-                    catalogerUuid: widget.specimenCtr.catalogerCtr!,
-                    showMore: widget.showMore,
-                  ))
-              : const SizedBox.shrink(),
+          IdTile(
+              specimenUuid: widget.specimenUuid,
+              specimenCtr: widget.specimenCtr,
+              catalogerUuid: widget.specimenCtr.catalogerCtr ?? '',
+              showMore: widget.showMore),
           DropdownButtonFormField<String>(
-            initialValue: widget.specimenCtr.catalogerCtr,
-            decoration: const InputDecoration(
-              labelText: 'Cataloger',
-              hintText: 'Choose a person with field number',
-            ),
-            items: ref.watch(projectPersonnelProvider).when(
-                  data: (data) => data
-                      .where((element) => element.role == 'Cataloger')
-                      .map((e) => DropdownMenuItem(
-                            value: e.uuid,
-                            child: CommonDropdownText(text: e.name ?? ''),
-                          ))
-                      .toList(),
-                  loading: () => const [],
-                  error: (e, s) => const [],
-                ),
-            onChanged: (String? uuid) async {
-              if (uuid != null) {
-                int fieldNumber = await _getCurrentCollectorNumber(uuid);
-                setState(() {
-                  bool hasSelected = _selectedPersonnel.contains(uuid);
-                  int currentFieldNumber =
-                      hasSelected ? fieldNumber - 1 : fieldNumber;
-                  widget.specimenCtr.catalogerCtr = uuid;
-                  widget.specimenCtr.preparatorCtr = uuid;
-                  widget.specimenCtr.fieldNumberCtr.text =
-                      currentFieldNumber.toString();
-
-                  if (!hasSelected) {
-                    PersonnelServices(ref: ref).updatePersonnelEntry(
-                        uuid,
-                        PersonnelCompanion(
-                            currentFieldNumber: db.Value(fieldNumber + 1)));
-                    _selectedPersonnel.add(uuid);
-                  }
-                  SpecimenServices(ref: ref).updateSpecimen(
-                    widget.specimenUuid,
-                    SpecimenCompanion(
-                      catalogerID: db.Value(uuid),
-                      fieldNumber: db.Value(
-                        currentFieldNumber,
-                      ),
-                      preparatorID: db.Value(uuid),
-                    ),
-                  );
-                });
-              }
-            },
-          ),
+              initialValue: widget.specimenCtr.catalogerCtr,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Cataloger',
+                hintText: 'Choose a cataloger',
+                hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
+              ),
+              items: ref.watch(projectPersonnelProvider).when(
+                    data: (data) => data
+                        .where((element) => element.role == 'Cataloger')
+                        .map((e) => DropdownMenuItem(
+                              value: e.uuid,
+                              child: CommonDropdownText(text: e.name ?? ''),
+                            ))
+                        .toList(),
+                    loading: () => const [],
+                    error: (e, s) => const [],
+                  ),
+              onChanged: (String? personnelUuid) async {
+                _setPersonalFieldNumber(personnelUuid);
+              }),
           DropdownButtonFormField<String>(
             initialValue: widget.specimenCtr.preparatorCtr,
+            isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Preparator',
               hintText: 'Choose a preparator (default is cataloger)',
+              hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
             ),
             items: ref.watch(projectPersonnelProvider).when(
                   data: (data) => data
@@ -523,12 +474,43 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
     );
   }
 
-  Future<int> _getCurrentCollectorNumber(String personnelUuid) async {
-    int fieldNumber = await SpecimenServices(ref: ref).getSpecimenFieldNumber(
-      personnelUuid,
-    );
+  Future<void> _setPersonalFieldNumber(String? personnelUuid) async {
+    if (personnelUuid != null) {
+      final personnelData =
+          await PersonnelServices(ref: ref).getPersonnelByUuid(personnelUuid);
+      int personalFieldNumber =
+          await SpecimenServices(ref: ref).getSpecimenFieldNumber(
+        personnelUuid,
+      );
+      setState(() {
+        bool hasSelected = _selectedPersonnel.contains(personnelUuid);
+        int? currentFieldNumber = personnelData.isRegisterField
+            ? (hasSelected ? personalFieldNumber - 1 : personalFieldNumber)
+            : null;
+        widget.specimenCtr.catalogerCtr = personnelUuid;
+        widget.specimenCtr.preparatorCtr = personnelUuid;
+        widget.specimenCtr.persFieldNumberCtr.text =
+            currentFieldNumber.toString();
 
-    return fieldNumber;
+        if (!hasSelected) {
+          PersonnelServices(ref: ref).updatePersonnelEntry(
+              personnelUuid,
+              PersonnelCompanion(
+                  currentFieldNumber: db.Value(personalFieldNumber + 1)));
+          _selectedPersonnel.add(personnelUuid);
+        }
+        SpecimenServices(ref: ref).updateSpecimen(
+          widget.specimenUuid,
+          SpecimenCompanion(
+            catalogerID: db.Value(personnelUuid),
+            fieldNumber: db.Value(
+              currentFieldNumber,
+            ),
+            preparatorID: db.Value(personnelUuid),
+          ),
+        );
+      });
+    }
   }
 }
 
@@ -548,44 +530,97 @@ class IdTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CommonIDForm(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
-            child: Visibility(
-              visible: showMore || specimenCtr.museumIDCtr.text.isNotEmpty,
-              child: CommonTextField(
-                controller: specimenCtr.museumIDCtr,
-                labelText: 'Museum ID',
-                hintText: 'Enter museum ID (if applicable)',
-                isLastField: true,
-                onChanged: (String? value) {
-                  if (value != null) {
-                    SpecimenServices(ref: ref).updateSpecimenSkipInvalidation(
-                      specimenUuid,
-                      SpecimenCompanion(
-                        museumID: db.Value(value),
+    final fieldIdModeProvider = ref.watch(fieldIdModeNotifierProvider);
+
+    return fieldIdModeProvider.when(
+        data: (fieldIdMode) {
+          final showIdArea = (fieldIdMode == FieldIdMode.project) ||
+              (fieldIdMode == FieldIdMode.personnel && catalogerUuid != '') ||
+              showMore ||
+              specimenCtr.museumIDCtr.text.isNotEmpty;
+
+          return Visibility(
+            visible: showIdArea,
+            child: CommonIDForm(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+                    child: Visibility(
+                      visible:
+                          showMore || specimenCtr.museumIDCtr.text.isNotEmpty,
+                      child: CommonTextField(
+                        controller: specimenCtr.museumIDCtr,
+                        labelText: 'Museum ID',
+                        hintText: 'Enter museum ID (if applicable)',
+                        isLastField: true,
+                        onChanged: (String? value) {
+                          if (value != null) {
+                            SpecimenServices(ref: ref)
+                                .updateSpecimenSkipInvalidation(
+                              specimenUuid,
+                              SpecimenCompanion(
+                                museumID: db.Value(value),
+                              ),
+                            );
+                          }
+                        },
                       ),
-                    );
-                  }
-                },
+                    ),
+                  ),
+                  SpecimenIdTile(
+                    specimenUuid: specimenUuid,
+                    specimenCtr: specimenCtr,
+                    catalogerUuid: catalogerUuid,
+                    fieldIdMode: fieldIdMode,
+                  ),
+                ],
               ),
             ),
-          ),
-          SpecimenIdTile(
-            specimenUuid: specimenUuid,
-            specimenCtr: specimenCtr,
-            catalogerUuid: catalogerUuid,
-          ),
-        ],
-      ),
-    );
+          );
+        },
+        loading: () => const Text('Loading...'),
+        error: (error, stack) => Text('Error: $error'));
   }
 }
 
 class SpecimenIdTile extends ConsumerWidget {
-  const SpecimenIdTile({
+  const SpecimenIdTile(
+      {super.key,
+      required this.specimenUuid,
+      required this.specimenCtr,
+      required this.catalogerUuid,
+      required this.fieldIdMode});
+
+  final SpecimenFormCtrModel specimenCtr;
+  final String specimenUuid;
+  final String catalogerUuid;
+  final FieldIdMode fieldIdMode;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showPersonnelFieldId =
+        fieldIdMode == FieldIdMode.personnel && catalogerUuid != '';
+    final showProjectFieldId = fieldIdMode == FieldIdMode.project;
+
+    if (showPersonnelFieldId) {
+      return PersonnelFieldId(
+          specimenCtr: specimenCtr,
+          specimenUuid: specimenUuid,
+          catalogerUuid: catalogerUuid);
+    } else if (showProjectFieldId) {
+      return ProjectFieldId(
+        specimenCtr: specimenCtr,
+        specimenUuid: specimenUuid,
+      );
+    } else {
+      return SizedBox.shrink();
+    }
+  }
+}
+
+class PersonnelFieldId extends ConsumerWidget {
+  const PersonnelFieldId({
     super.key,
     required this.specimenUuid,
     required this.specimenCtr,
@@ -598,75 +633,169 @@ class SpecimenIdTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final initial = ref.watch(personnelInitialProvider(catalogerUuid));
-    return ListTile(
-      title: initial.when(
-        data: (initial) => Text(
-          'Field ID: $initial${specimenCtr.fieldNumberCtr.text}',
-        ),
-        loading: () => const Text('Loading...'),
-        error: (error, stack) => Text('Error: $error'),
-      ),
-      trailing: Visibility(
-        visible: specimenCtr.fieldNumberCtr.text.isNotEmpty,
-        child: IconButton(
-          icon: Icon(
-            Icons.edit_outlined,
-            color: Theme.of(context).disabledColor,
-          ),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: const Text('Edit field number'),
-                  content: TextField(
-                    controller: specimenCtr.fieldNumberCtr,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Field number',
-                      hintText: 'Enter field number',
+    return ref.watch(personnelNameProvider(catalogerUuid)).when(
+        data: (personnelInfo) => ListTile(
+              title: Text(_fieldIdString(
+                  personnelInfo, specimenCtr.persFieldNumberCtr.text)),
+              trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                Visibility(
+                  visible: !personnelInfo.isRegisterField,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.person,
                     ),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => EditPersonnelForm(
+                                    personnelData: personnelInfo,
+                                  )));
+                    },
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Cancel'),
+                ),
+                Visibility(
+                  visible: personnelInfo.isRegisterField,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      color: Theme.of(context).disabledColor,
                     ),
-                    TextButton(
-                      onPressed: () async {
-                        int fieldNumber =
-                            int.parse(specimenCtr.fieldNumberCtr.text);
-                        int nextFieldNumber = fieldNumber + 1;
-                        await PersonnelServices(ref: ref).updatePersonnelEntry(
-                            catalogerUuid,
-                            PersonnelCompanion(
-                                currentFieldNumber: db.Value(nextFieldNumber)));
-                        await SpecimenServices(ref: ref).updateSpecimen(
-                          specimenUuid,
-                          SpecimenCompanion(
-                            fieldNumber: db.Value(
-                              fieldNumber,
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('Edit field number'),
+                            content: TextField(
+                              controller: specimenCtr.persFieldNumberCtr,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Field number',
+                                hintText: 'Enter field number',
+                              ),
                             ),
-                          ),
-                        );
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  int fieldNumber = int.parse(
+                                      specimenCtr.persFieldNumberCtr.text);
+                                  int nextFieldNumber = fieldNumber + 1;
+                                  await PersonnelServices(ref: ref)
+                                      .updatePersonnelEntry(
+                                          catalogerUuid,
+                                          PersonnelCompanion(
+                                              currentFieldNumber:
+                                                  db.Value(nextFieldNumber)));
+                                  await SpecimenServices(ref: ref)
+                                      .updateSpecimen(
+                                    specimenUuid,
+                                    SpecimenCompanion(
+                                      fieldNumber: db.Value(
+                                        fieldNumber,
+                                      ),
+                                    ),
+                                  );
 
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: const Text('Save'),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                  }
+                                },
+                                child: const Text('Save'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                )
+              ]),
+            ),
+        loading: () => const Text('Loading...'),
+        error: (error, stack) => Text('Error: $error'));
+  }
+
+  String _fieldIdString(PersonnelData personnelInfo, String currentFieldNum) {
+    if (personnelInfo.isRegisterField) {
+      return 'Field ID: ${personnelInfo.initial}$currentFieldNum';
+    } else {
+      return 'Field ID: (cataloger not setup for field numbers)';
+    }
+  }
+}
+
+class ProjectFieldId extends ConsumerWidget {
+  const ProjectFieldId({
+    super.key,
+    required this.specimenUuid,
+    required this.specimenCtr,
+  });
+
+  final SpecimenFormCtrModel specimenCtr;
+  final String specimenUuid;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListTile(
+        title: Text('Field ID: ${specimenCtr.projFieldNumberCtr.text}'),
+        trailing: IconButton(
+            icon: Icon(
+              Icons.edit_outlined,
+              color: Theme.of(context).disabledColor,
+            ),
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Edit field number'),
+                      content: TextField(
+                        controller: specimenCtr.projFieldNumberCtr,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Field number',
+                          hintText: 'Enter field number',
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            int fieldNumber =
+                                int.parse(specimenCtr.projFieldNumberCtr.text);
+                            await ProjectFieldIdServices(ref: ref)
+                                .setNumber((fieldNumber + 1).toString());
+                            await SpecimenServices(ref: ref).updateSpecimen(
+                              specimenUuid,
+                              SpecimenCompanion(
+                                projectFieldNumber: db.Value(
+                                  fieldNumber,
+                                ),
+                              ),
+                            );
+
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: const Text('Save'),
+                        ),
+                      ],
+                    );
+                  });
+            }));
   }
 }
 
@@ -698,16 +827,15 @@ class CollRecordInfoContent extends StatelessWidget {
             ' You can add a taxon in the taxon registry section in the project dashboard.',
       ),
       InfoContent(
-        header: 'Condition field',
-        content: 'The condition field is a qualitative measure of the freshness'
-            ' of the specimen at time of prep.'
-            ' Condition can depend on factors including time since death,' 
-            ' temperature, sun exposure (especially for salvage specimens), etc.'
-            ' If the collection time (i.e., time of death) and prep times are known,'
-            ' these can also be added for a more quantitative'
-            ' measure of condition at time of prep.'
-            
-      ),
+          header: 'Condition field',
+          content:
+              'The condition field is a qualitative measure of the freshness'
+              ' of the specimen at time of prep.'
+              ' Condition can depend on factors including time since death,'
+              ' temperature, sun exposure (especially for salvage specimens), etc.'
+              ' If the collection time (i.e., time of death) and prep times are known,'
+              ' these can also be added for a more quantitative'
+              ' measure of condition at time of prep.'),
     ]);
   }
 }

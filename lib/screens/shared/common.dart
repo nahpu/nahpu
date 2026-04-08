@@ -72,12 +72,11 @@ class CommonLineDivider extends StatelessWidget {
 }
 
 class CommonAlertDialog extends StatelessWidget {
-  const CommonAlertDialog({
-    super.key,
-    required this.titleText,
-    this.descText,
-    required this.confirmFunction
-  });
+  const CommonAlertDialog(
+      {super.key,
+      required this.titleText,
+      this.descText,
+      required this.confirmFunction});
 
   final String titleText;
   final String? descText;
@@ -87,26 +86,25 @@ class CommonAlertDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(titleText),
-      content: descText == null ? null: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 350),
-        child:
-          Text(descText!)),
+      content: descText == null
+          ? null
+          : ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 350),
+              child: Text(descText!)),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          }, 
-          child: const Text('Cancel')
-        ),
-        TextButton(
-          onPressed: () {
-            confirmFunction();
-            if (context.mounted) {
+            onPressed: () {
               Navigator.pop(context);
-            }
-          }, 
-          child: const Text('OK')
-        )
+            },
+            child: const Text('Cancel')),
+        TextButton(
+            onPressed: () {
+              confirmFunction();
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('OK'))
       ],
     );
   }
@@ -128,5 +126,45 @@ class TileSvgIcon extends StatelessWidget {
         BlendMode.srcIn,
       ),
     );
+  }
+}
+
+class SelectItemsInterface extends StatelessWidget {
+  const SelectItemsInterface({
+    super.key,
+    required this.isSelecting,
+    required this.onClearPressed,
+    required this.onSelectAllPressed,
+    required this.onSelectPressed,
+  });
+
+  final bool isSelecting;
+  final VoidCallback? onClearPressed;
+  final VoidCallback? onSelectAllPressed;
+  final VoidCallback? onSelectPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Visibility(
+        visible: isSelecting,
+        child: TextButton(
+          onPressed: onClearPressed,
+          child: const Text('Clear'),
+        ),
+      ),
+      Visibility(
+        visible: isSelecting,
+        child: TextButton(
+          onPressed: onSelectAllPressed,
+          child: const Text('Select all'),
+        ),
+      ),
+      const Spacer(),
+      TextButton(
+        onPressed: onSelectPressed,
+        child: Text(isSelecting ? 'Done' : 'Select'),
+      )
+    ]);
   }
 }

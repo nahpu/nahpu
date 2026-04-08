@@ -1,0 +1,3 @@
+Taxon import notes for field team
+Collected by multiple users in different years
+Needs manual delimiter input before import

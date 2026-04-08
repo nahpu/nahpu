@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/features.dart';
+import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -35,6 +36,68 @@ class SiteForm extends ConsumerWidget {
           NarrativeCompanion(siteID: db.Value(value)),
         );
       },
+    );
+  }
+}
+
+class SiteNameField extends ConsumerWidget {
+  const SiteNameField({
+    super.key,
+    required this.siteId,
+  });
+
+  final int? siteId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    List<SiteData> siteData = [];
+    final siteEntry = ref.watch(siteEntryProvider);
+    siteEntry.whenData(
+      (data) => siteData = data,
+    );
+
+    if (siteId == null) {
+      return const SizedBox.shrink();
+    }
+    
+    // We cannot use firstWhereOrNull because it is not available in Iterable
+    // by default on older Dart SDKs and we don't want to add a dependency
+    // if not needed. Using standard where + isEmpty check.
+    final selectedSiteIterable = siteData.where((e) => e.id == siteId);
+    if (selectedSiteIterable.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    final site = selectedSiteIterable.first;
+    
+    final List<String?> localityList = [
+      site.country,
+      site.stateProvince,
+      site.county,
+      site.municipality,
+      site.locality,
+    ];
+
+    // Filter out null or empty strings
+    final String siteName = localityList
+        .where((e) => e != null && e.isNotEmpty)
+        .join(', ');
+
+    if (siteName.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return CommonPadding(
+      child: TextField(
+        controller: TextEditingController(text: siteName),
+        enabled: true,
+        readOnly: true,
+        maxLines: null,
+        decoration: const InputDecoration(
+          labelText: 'Site Name',
+          hintText: 'Broad locality',
+        ),
+      ),
     );
   }
 }

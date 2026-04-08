@@ -6,8 +6,16 @@ enum PdfExportType { narrative, specimen }
 enum ExportFmt { csv, tsv }
 
 const List<String> supportedTaxonClass = [
-  'Aves',
   'Mammalia',
+  'Aves',
+  'Reptilia',
+  'Amphibia',
+  // Bony fishes
+  'Osteichthyes',
+  // Cartilaginous fishes
+  'Chondrichthyes',
+  // Jawless fishes
+  'Agnatha',
 ];
 
 const Map<PdfExportType, String> pdfExport = {

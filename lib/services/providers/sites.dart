@@ -6,23 +6,10 @@ import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/utility_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'sites.g.dart';
-
-const String habitatTypePrefKey = 'habitatTypes';
-const String habitatTypeFmtPrefKey = 'habitatTypeFmt';
-
-const List<String> defaultHabitatTypes = [
-  'Urban',
-  'Riverbank',
-  'Desert',
-  'Grassland'
-  'Montane Forest'
- ];
 
 @riverpod
 class SiteEntry extends _$SiteEntry {
@@ -100,76 +87,4 @@ Future<List<SiteData>> siteInEvent(Ref ref) async {
     }
   }
   return siteDataList;
-}
-
-@riverpod
-class HabitatType extends _$HabitatType {
-  Future<List<String>> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final habitatList = prefs.getStringList(habitatTypePrefKey);
-
-    List<String> currentHabitats = habitatList ?? defaultHabitatTypes;
-
-    if (habitatList == null) {
-      await prefs.setStringList(habitatTypePrefKey, currentHabitats);
-    }
-
-    return currentHabitats;
-  }
-
-  @override
-  FutureOr<List<String>> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> add(String newHabitat) async {
-    if (newHabitat.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final habitatList = prefs.getStringList(habitatTypePrefKey);
-      if (habitatList != null && isListContains(habitatList, newHabitat)) {
-        return habitatList;
-      }
-      // Add new habitat to list or create new list if null
-      // and then add a new habitat to the list
-      List<String> newList = [...habitatList ?? [], newHabitat];
-      await prefs.setStringList(habitatTypePrefKey, newList);
-      return newList;
-    });
-  }
-
-  Future<void> replaceAll(List<String> newHabitats) async {
-    if (newHabitats.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.setStringList(habitatTypePrefKey, newHabitats);
-      return newHabitats;
-    });
-  }
-
-  Future<void> remove(String habitat) async {
-    if (habitat.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final habitatList = prefs.getStringList(habitatTypePrefKey);
-      if (habitatList == null || habitatList.isEmpty) return [];
-
-      // Remove habitat from list
-      List<String> newList = [...habitatList]..remove(habitat);
-      await prefs.setStringList(habitatTypePrefKey, newList);
-      return newList;
-    });
-  }
-
-  Future<void> clear() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.remove(habitatTypePrefKey);
-      return [];
-    });
-  }
 }

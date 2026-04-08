@@ -1,5 +1,60 @@
+import 'package:nahpu/services/database/collevent_queries.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/io_services.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/database/site_queries.dart';
+
+class UtilityServices extends AppServices {
+  const UtilityServices({required super.ref});
+
+  Future<List<String>> getDistinctOptions(String prefKey) async {
+    switch (prefKey) {
+      case siteTypePrefKey:
+        return await SiteQuery(dbAccess).getDistinctSiteTypes();
+      case habitatTypePrefKey:
+        return await SiteQuery(dbAccess).getDistinctHabitatTypes();
+      case collMethodPrefKey:
+        return await CollEffortQuery(dbAccess).getDistinctMethods();
+      case collRolePrefKey:
+        return await CollPersonnelQuery(dbAccess).getDistinctRoles();
+      case specimenTypePrefKey:
+        return await SpecimenPartQuery(dbAccess).getDistinctTypes();
+      case treatmentPrefKey:
+        return await SpecimenPartQuery(dbAccess).getDistinctTreatments();
+      default:
+        return [];
+    }
+  }
+
+  Future<void> getAllOptions(String prefKey) async {
+    List<String> data = await getDistinctOptions(prefKey);
+    final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
+    List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
+    notifier.replaceAll(options);
+    _invalidateOptions(prefKey);
+  }
+
+  Future<void> addOption(String prefKey, String option) async {
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).add(option);
+    _invalidateOptions(prefKey);
+  }
+
+  Future<void> removeOption(String prefKey, String option) async {
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).remove(option);
+    _invalidateOptions(prefKey);
+  }
+
+  Future<void> removeAllOptions(String prefKey) async {
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).clear();
+    _invalidateOptions(prefKey);
+  }
+
+  void _invalidateOptions(String prefKey) {
+    ref.invalidate(userDefinedFieldProvider(prefKey));
+  }
+}
 
 String get listTileSeparator => " · ";
 

@@ -2,7 +2,6 @@ import 'package:nahpu/services/personnel_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/personnel.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
 import 'package:nahpu/screens/projects/personnel/avatars.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
@@ -156,43 +155,62 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                   },
           ),
           Visibility(
-            visible: widget.ctr.roleCtr == 'Cataloger',
-            child: Column(
-              children: [
-                PersonnelInitialField(
-                  ctr: widget.ctr,
-                  onChanged: (value) {
-                    widget.ctr.initialCtr.value = TextEditingValue(
-                      text: value.toUpperCase(),
-                      selection: widget.ctr.initialCtr.selection,
-                    );
+              visible: widget.ctr.roleCtr == 'Cataloger',
+              child: Column(children: [
+                SwitchListTile(
+                  title: const Text('Register personal field number'),
+                  subtitle: Text(
+                      'Initials and cataloger number will be used to generate specimen field ID.',
+                      style: Theme.of(context).textTheme.labelSmall),
+                  value: widget.ctr.isRegisterField,
+                  onChanged: (bool value) {
+                    setState(() {
+                      widget.ctr.isRegisterField = value;
+                    });
                     if (widget.isEditing) {
                       _validateEditing();
                     } else {
                       ref
                           .watch(personnelFormValidatorProvider.notifier)
-                          .validateInitial(value);
+                          .validateAll(widget.ctr);
                     }
                   },
                 ),
-                CatalogerNumberField(
-                  ctr: widget.ctr,
-                  onChanged: (value) {
-                    if (widget.isEditing) {
-                      _validateEditing();
-                    } else {
-                      ref
-                          .watch(personnelFormValidatorProvider.notifier)
-                          .validateCollNum(value);
-                    }
-                  },
-                ),
-                Text(
-                    'Initial and cataloger number will be used to generate Field ID.',
-                    style: Theme.of(context).textTheme.labelSmall),
-              ],
-            ),
-          ),
+                Visibility(
+                    visible: widget.ctr.isRegisterField,
+                    child: Column(children: [
+                      PersonnelInitialField(
+                        ctr: widget.ctr,
+                        onChanged: (value) {
+                          widget.ctr.initialCtr.value = TextEditingValue(
+                            text: value.toUpperCase(),
+                            selection: widget.ctr.initialCtr.selection,
+                          );
+                          if (widget.isEditing) {
+                            _validateEditing();
+                          } else {
+                            ref
+                                .watch(personnelFormValidatorProvider.notifier)
+                                .validateInitial(widget.ctr.initialCtr.text,
+                                    widget.ctr.isRegisterField);
+                          }
+                        },
+                      ),
+                      CatalogerNumberField(
+                        ctr: widget.ctr,
+                        onChanged: (value) {
+                          if (widget.isEditing) {
+                            _validateEditing();
+                          } else {
+                            ref
+                                .watch(personnelFormValidatorProvider.notifier)
+                                .validateCollNum(
+                                    value, widget.ctr.isRegisterField);
+                          }
+                        },
+                      ),
+                    ]))
+              ])),
           Visibility(
             visible: _isShowMore || widget.ctr.noteCtr.text.isNotEmpty,
             child: TextField(
@@ -219,33 +237,39 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
           const SizedBox(
             height: 16,
           ),
-          Wrap(
-            spacing: 16,
-            children: [
-              SecondaryButton(
-                text: 'Cancel',
-                onPressed: () {
+          FormButtonWithDelete(
+            isEditing: widget.isEditing,
+            onDeleted: () async {
+              try {
+                await _deletePersonnel();
+                ref.invalidate(projectPersonnelProvider);
+                ref.invalidate(personnelFormValidatorProvider);
+                ref.invalidate(personnelNameProvider);
+                if (context.mounted) {
                   Navigator.of(context).pop();
-                },
-              ),
-              FormElevButton(
-                label: widget.isEditing ? 'Update' : 'Add',
-                icon: widget.isEditing ? Icons.check : Icons.add,
-                enabled: _validateForm(),
-                onPressed: () async {
-                  widget.isEditing ? _updatePersonnel() : _addPersonnel();
-                  ref.invalidate(projectPersonnelProvider);
-                  ref.invalidate(personnelFormValidatorProvider);
-                  if (context.mounted) {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const Dashboard(),
-                      ),
-                    );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Cannot delete personnel.'
+                          ' They are assigned to a project.'),
+                    ),
+                  );
+                }
+              }
+            },
+            onSubmitted: _validateForm()
+                ? () async {
+                    widget.isEditing
+                        ? _updatePersonnel()
+                        : await _addPersonnel();
+                    PersonnelServices(ref: ref).invalidatePersonnel();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
                   }
-                },
-              ),
-            ],
+                : null,
           ),
         ],
       ),
@@ -296,6 +320,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
         email: db.Value(widget.ctr.emailCtr.text),
         phone: db.Value(widget.ctr.phoneCtr.text),
         role: db.Value(widget.ctr.roleCtr),
+        isRegisterField: db.Value(widget.ctr.isRegisterField),
         currentFieldNumber: db.Value(
           _getCollectorNumber(),
         ),
@@ -317,6 +342,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
         email: db.Value(widget.ctr.emailCtr.text),
         phone: db.Value(widget.ctr.phoneCtr.text),
         role: db.Value(widget.ctr.roleCtr),
+        isRegisterField: db.Value(widget.ctr.isRegisterField),
         currentFieldNumber: db.Value(
           _getCollectorNumber(),
         ),
@@ -328,6 +354,10 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
       personnelUuid: db.Value(widget.personnelUuid),
       projectUuid: db.Value(projectUuid),
     ));
+  }
+
+  Future<void> _deletePersonnel() async {
+    await PersonnelServices(ref: ref).deletePersonnel(widget.personnelUuid);
   }
 
   int _getCollectorNumber() {
@@ -414,7 +444,7 @@ class CatalogerNumberField extends ConsumerWidget {
       enabled: ctr.roleCtr == 'Cataloger',
       controller: ctr.collectorNumCtr,
       decoration: InputDecoration(
-          labelText: 'Cataloger Number*',
+          labelText: 'Cataloger number*',
           hintText: '1234',
           errorText: ref.watch(personnelFormValidatorProvider).when(
                 data: (data) => data.collNum.errMsg,

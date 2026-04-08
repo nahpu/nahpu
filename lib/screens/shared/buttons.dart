@@ -54,12 +54,19 @@ class ProgressButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDisabled = isRunning || onPressed == null;
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-        backgroundColor: isRunning
-            ? Theme.of(context).disabledColor
+        foregroundColor: isDisabled
+            ? Theme.of(context).colorScheme.onSurface.withAlpha(160)
+            : Theme.of(context).colorScheme.onPrimaryContainer,
+        backgroundColor: isDisabled
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
             : Theme.of(context).colorScheme.primaryContainer,
+        disabledForegroundColor:
+            Theme.of(context).colorScheme.onSurface.withAlpha(160),
+        disabledBackgroundColor:
+            Theme.of(context).colorScheme.surfaceContainerHighest,
         elevation: 0,
       ),
       icon: isRunning
@@ -132,7 +139,7 @@ class FormButtonWithDelete extends StatelessWidget {
 
   final bool isEditing;
   final VoidCallback onDeleted;
-  final VoidCallback onSubmitted;
+  final VoidCallback? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +256,7 @@ class FormButton extends StatelessWidget {
   });
 
   final bool isEditing;
-  final VoidCallback onSubmitted;
+  final VoidCallback? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -424,5 +431,74 @@ class ListCheckBox extends StatelessWidget {
         ),
         value: value,
         onChanged: isDisabled ? null : onChanged);
+  }
+}
+
+class DeleteItemsButton extends StatelessWidget {
+  const DeleteItemsButton({
+    super.key,
+    required this.selectedItems,
+    required this.itemName,
+    required this.onPressedFunction,
+    this.customIconButtonText,
+    this.customDialogHeader,
+    this.customDialogText,
+    this.customDialogButtonText,
+  });
+
+  final List<dynamic> selectedItems;
+  final String itemName;
+  final VoidCallback? onPressedFunction;
+  final String? customIconButtonText;
+  final String? customDialogHeader;
+  final String? customDialogText;
+  final String? customDialogButtonText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Visibility(
+            visible: selectedItems.isNotEmpty,
+            child: Text(
+                customIconButtonText ??
+                    'Delete ${selectedItems.length} $itemName',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                ))),
+        IconButton(
+          color: Theme.of(context).colorScheme.error,
+          onPressed: selectedItems.isEmpty
+              ? null
+              : () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text(customDialogHeader ?? 'Delete $itemName'),
+                          content: Text(customDialogText ??
+                              'Are you sure you want to delete the selected $itemName?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: onPressedFunction,
+                              child: Text(customDialogButtonText ?? 'Delete',
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                  )),
+                            ),
+                          ],
+                        );
+                      });
+                },
+          icon: const Icon(Icons.delete_outline),
+        ),
+      ],
+    );
   }
 }

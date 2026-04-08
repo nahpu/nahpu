@@ -60,7 +60,7 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                     children: [
                       SwitchSettings(
                         value: _isBatFieldsAlwaysShown,
-                        label: 'Always show bat measurement fields',
+                        label: 'Always show bat fields',
                         onChanged: (bool value) async {
                           try {
                             await services.setSpecimenSettingField(
@@ -78,7 +78,19 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                             }
                           }
                         },
-                      )
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 0, 4, 8),
+                        child: Text(
+                          'If enabled, fields specific to bats are always '
+                          'shown in the mammal measurement fields. '
+                          'You can also choose to toggle the visibility of '
+                          'bat-specific fields for each specimen record '
+                          'in the specimen record screen.',
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        ),
+                      ),
                     ],
                   ),
                 ),

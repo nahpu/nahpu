@@ -374,7 +374,11 @@ class TaxonRegistryInfoContent extends StatelessWidget {
               ' You can add new taxa or import taxa from a file.',
         ),
         InfoContent(
-          content: 'For file input, input only UTF-8 encoded CSV files.',
+          content: 'For file input, preferred formats are .xlsx, .csv, and '
+              '.tsv. Delimiter follows extension (.csv = comma, .tsv = tab). '
+              'For other file types, NAHPU makes a best-effort parsing '
+              'attempt using auto detection and manual override options. '
+              'Best support is for .xlsx.',
         ),
         InfoContent(
           header: 'Term definitions',

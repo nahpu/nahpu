@@ -98,7 +98,7 @@ Here are some common issues and their solutions:
 
 ## Rust API
 
-Rust bindings live in rust/. That directory must contain only Flutter-facing bridge code layered on the [NAHPU Core API](https://github.com/nahpu/nahpu_api). Review that API first to understand available models and functions.
+Rust bindings live in `rust/`. The directory must contain only Flutter-facing bridge code layered on the [NAHPU Core API](https://github.com/nahpu/nahpu_api). Review that API first to understand available models and functions.
 
 Include only:
 
@@ -106,7 +106,7 @@ Include only:
 - Glue: type conversions, error/result mapping, async helpers
 - Minimal (de)serialization required for the bridge
 
-Do not add core business logic, domain models, or substantial algorithms here. Contribute those to the NAHPU Core API repository, then update/regenerate the bindings in this project. This separation keeps codebases clean and enables reuse of core logic in other integrations (e.g., Python, R).
+Do not add core business logic, domain models, or substantial algorithms here. Contribute those to the [NAHPU Core API repository](https://github.com/nahpu/nahpu_api), then update/regenerate the bindings in this project. This separation keeps codebases clean and enables reuse of core logic in other integrations (e.g., Python, R).
 
 ## Submitting Contributions
 
@@ -117,6 +117,6 @@ We use the fork-and-pull-request workflow.
 3. Create a **new branch** for your changes.
 4. **Make your changes** and commit them with clear messages.
 5. **Push** your changes to your fork.
-6. Open a **pull request** from your fork to the main Nahpu repository.
+6. Open a **pull request** from your fork to the `dev` branch of the Nahpu repository.
 
 We appreciate contributions of all kinds, including bug fixes, new features, and documentation improvements.

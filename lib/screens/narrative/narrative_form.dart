@@ -93,6 +93,7 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
                       ),
                     ],
                   ),
+                  SiteNameField(siteId: widget.narrativeCtr.siteCtr),
                 ],
               ),
             ),

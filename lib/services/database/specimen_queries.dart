@@ -26,6 +26,12 @@ class SpecimenQuery extends DatabaseAccessor<Database>
         .get();
   }
 
+  Future<List<String>> getColumnNames() async {
+    List<String> columnNames =
+        db.specimen.$columns.map((e) => e.$name).toList();
+    return columnNames;
+  }
+
   Future<List<String>> getAllSpecimenUuids(String projectUuid) {
     return (select(specimen, distinct: true)
           ..where((t) => t.projectUuid.equals(projectUuid)))
@@ -321,6 +327,10 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
 
   Future<void> deleteSpecimenPart(int partId) {
     return (delete(specimenPart)..where((t) => t.id.equals(partId))).go();
+  }
+
+  Future<void> deleteSpecimenPartsFromList(List<int> partIds) {
+    return (delete(specimenPart)..where((t) => t.id.isIn(partIds))).go();
   }
 
   Future<void> deleteAllSpecimenParts(String specimenUuid) {

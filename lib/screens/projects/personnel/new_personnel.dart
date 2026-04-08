@@ -51,17 +51,6 @@ class EditPersonnelForm extends ConsumerWidget {
   }
 
   PersonnelFormCtrModel _getController(PersonnelData personnelData) {
-    return PersonnelFormCtrModel(
-      nameCtr: TextEditingController(text: personnelData.name),
-      initialCtr: TextEditingController(text: personnelData.initial),
-      phoneCtr: TextEditingController(text: personnelData.phone),
-      affiliationCtr: TextEditingController(text: personnelData.affiliation),
-      emailCtr: TextEditingController(text: personnelData.email),
-      roleCtr: personnelData.role,
-      collectorNumCtr:
-          TextEditingController(text: '${personnelData.currentFieldNumber}'),
-      photoPathCtr: TextEditingController(text: personnelData.photoPath),
-      noteCtr: TextEditingController(text: ''),
-    );
+    return PersonnelFormCtrModel.fromData(personnelData);
   }
 }

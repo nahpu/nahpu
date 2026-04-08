@@ -26,6 +26,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   bool _hasSaved = false;
   bool _isRunning = false;
   bool _isWithProjectData = false;
+  bool _isWithAppSettings = false;
   late File _savePath;
 
   @override
@@ -77,6 +78,14 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
               onPressed: (value) {
                 setState(() {
                   _isWithProjectData = !_isWithProjectData;
+                });
+              }),
+          SwitchField(
+              label: 'Include app settings',
+              value: _isWithAppSettings,
+              onPressed: (value) {
+                setState(() {
+                  _isWithAppSettings = !_isWithAppSettings;
                 });
               }),
           FileNameField(
@@ -138,7 +147,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   }
 
   String _getDbIconPath() {
-    if (_isWithProjectData) {
+    if (_isWithProjectData || _isWithAppSettings) {
       return 'assets/icons/zip.svg';
     } else {
       return 'assets/icons/sqlite.svg';
@@ -152,10 +161,8 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
         fileStem: _fileStem,
         ext: _dbExtension,
       ).getSavePath();
-      final currentSavePath =
-          await DbExport(ref: ref, filePath: _savePath).write(
-        _isWithProjectData,
-      );
+      final currentSavePath = await DbExport(ref: ref, filePath: _savePath)
+          .write(_isWithProjectData, _isWithAppSettings);
       setState(() {
         _hasSaved = true;
         _savePath = currentSavePath;

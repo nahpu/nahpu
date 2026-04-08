@@ -10,35 +10,56 @@ import 'package:nahpu/src/rust/api/archive.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:nahpu/services/database/database.dart';
 import 'package:path/path.dart' as p;
+import 'package:nahpu/services/kdl_services.dart';
 
 /// Export the database into a file
 /// If [isWithProjectData] is true, the project data will be included
-/// and the file will be zipped.
+/// If [isWithAppSettings] is true, the app settings will be included
+/// If either are true, the file will be zipped.
 /// Otherwise, the database file will be exported as a sqlite3 file.
 class DbExport extends AppServices {
   const DbExport({required super.ref, required this.filePath});
 
   final File filePath;
 
-  Future<File> write(bool isWithProjectData) async {
+  Future<File> write(bool isWithProjectData, bool isWithAppSettings) async {
     final nahpuDir = await nahpuDocumentDir;
-    final dbPath = await _writeSqlite(nahpuDir, isWithProjectData);
+    final dbPath =
+        await _writeSqlite(nahpuDir, isWithProjectData, isWithAppSettings);
+    File? settingsFile;
 
-    if (isWithProjectData) {
+    if (isWithProjectData || isWithAppSettings) {
       String archivePath = p.setExtension(filePath.path, '.zip');
-      List<String> allAppFiles = await _collectAppFiles(nahpuDir);
+      List<String> allAppFiles = [];
+
+      if (isWithProjectData) {
+        allAppFiles = await _collectAppFiles(nahpuDir);
+      }
+
+      if (isWithAppSettings) {
+        String settingsPath = p.join(nahpuDir.path, 'settings.kdl');
+        settingsFile = await KdlServices().write(settingsPath);
+        allAppFiles.add(settingsFile.path);
+      }
+
       allAppFiles.add(dbPath.path);
       if (kDebugMode) print('Archiving files: ${allAppFiles.length}');
       await _archiveFiles(nahpuDir, allAppFiles, archivePath);
+
+      // Delete the newly created KDL app settings file, if it was created
+      settingsFile?.deleteSync();
+
       // Delete the newly created database file
       dbPath.deleteSync();
+
       return File(archivePath);
     }
     return filePath;
   }
 
-  Future<File> _writeSqlite(Directory nahpuDir, bool withProjectData) async {
-    if (withProjectData) {
+  Future<File> _writeSqlite(
+      Directory nahpuDir, bool withProjectData, bool isWithAppSettings) async {
+    if (withProjectData || isWithAppSettings) {
       final fileName = p.basename(filePath.path);
       final outputPath = File(p.join(nahpuDir.path, fileName));
       await dbAccess.exportInto(outputPath);
@@ -74,7 +95,8 @@ class DbExport extends AppServices {
 /// Write the database into a file
 /// and replace the current database with a new one.
 /// If [backup] is true, the current database will be backed up.
-/// If [isArchived] is true, the backup file is zipped.
+/// If [isArchived] is true, the backup file is zipped and may contain
+/// either project data or app settings
 class DbWriter extends AppServices {
   const DbWriter({required super.ref, required this.filePath});
 
@@ -118,6 +140,15 @@ class DbWriter extends AppServices {
     // Remove all .db files if exist in the zip file
     if (files.any((file) => file.path.endsWith('.db'))) {
       files.removeWhere((file) => file.path.endsWith('.db'));
+    }
+
+    // Process app settings file
+    if (files.any((file) => file.path.endsWith('.kdl'))) {
+      FileSystemEntity settingsFileEntity =
+          files.firstWhere((file) => file.path.endsWith('.kdl'));
+      File settingsFile = File(settingsFileEntity.path);
+      KdlServices().readAndUpdateSettings(settingsFile.path);
+      files.remove(settingsFile);
     }
 
     for (var file in files) {

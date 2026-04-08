@@ -30,7 +30,7 @@ class MammalMeasurementFormsState
   MammalMeasurementCtrModel ctr = MammalMeasurementCtrModel.empty();
   TextEditingController headBodyLengthCtr = TextEditingController();
   TextEditingController tailHeadBodyPercentCtr = TextEditingController();
-  String? _hblErrorText;
+  // String? _hblErrorText;
   bool _showBatFields = false;
 
   @override
@@ -62,7 +62,7 @@ class MammalMeasurementFormsState
               hintText: 'Enter TTL',
               isLastField: false,
               isDouble: true,
-              errorText: _hblErrorText,
+              // errorText: _hblErrorText,
               onChanged: (String? value) {
                 setState(() {
                   _getHBTailPercent();
@@ -81,7 +81,7 @@ class MammalMeasurementFormsState
               hintText: 'Enter TL',
               isDouble: true,
               isLastField: false,
-              errorText: _hblErrorText,
+              // errorText: _hblErrorText,
               onChanged: (String? value) {
                 setState(() {
                   _getHBTailPercent();
@@ -379,7 +379,7 @@ class MammalMeasurementFormsState
 
     headBodyLengthCtr.text = results?.headAndBodyText ?? '';
     tailHeadBodyPercentCtr.text = results?.percentTailText ?? '';
-    _hblErrorText = results?.errorText ?? '';
+    // _hblErrorText = results?.errorText ?? '';
   }
 }
 

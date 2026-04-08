@@ -23,6 +23,8 @@ enum SpecimenSearchOption {
   prepType
 }
 
+enum FieldIdMode { personnel, project }
+
 const List<String> specimenSexList = [
   'Male',
   'Female',
@@ -56,7 +58,7 @@ const List<String> defaultSpecimenType = [
   'Kidney',
 ];
 
-const List<String> defaultSpecimenTreatment = [
+const List<String> defaultTreatment = [
   'None',
   'ETOH',
   'Formalin',
@@ -97,8 +99,7 @@ const List<String> idConfidenceList = [
 
 const List<String> taxonGroupList = [
   'Birds',
-  'General Mammals',
-  'Bats',
+  'Mammals',
   'Herpetofauna',
 ];
 
@@ -107,7 +108,6 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
     case 'Birds':
       return CatalogFmt.birds;
     case 'General Mammals':
-      return CatalogFmt.mammals;
     case 'Mammals':
       return CatalogFmt.mammals;
     case 'Herpetofauna':
@@ -148,6 +148,7 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
     case 'Birds':
       return SpecimenRecordType.birds;
     case 'General Mammals':
+    case 'Mammals':
       return SpecimenRecordType.generalMammals;
     case 'Bats':
       return SpecimenRecordType.bats;
@@ -163,7 +164,7 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
     case CatalogFmt.birds:
       return 'Birds';
     case CatalogFmt.mammals:
-      return 'General Mammals';
+      return 'Mammals';
     case CatalogFmt.herpetofauna:
       return 'Herpetofauna';
   }

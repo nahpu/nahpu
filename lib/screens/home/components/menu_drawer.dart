@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/export/export_db.dart';
+import 'package:nahpu/screens/export/export_settings.dart';
 import 'package:nahpu/screens/home/components/learning_resources.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
@@ -50,6 +51,17 @@ class HomeMenuDrawer extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ExportDbForm()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.settings_backup_restore),
+          title: const Text('Backup app settings'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ExportSettingsForm()),
             );
           },
         ),
