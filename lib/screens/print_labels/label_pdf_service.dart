@@ -592,7 +592,7 @@ Future<Map<String, String>> fieldValuesForSpecimen(
       final tax = await TaxonomyQuery(db).getTaxonById(s.speciesID!);
       genus = tax.genus ?? '';
       specificEpithet = tax.specificEpithet ?? '';
-      species = '${genus} ${specificEpithet}'.trim();
+      species = '$genus $specificEpithet'.trim();
       put('taxonClass', tax.taxonClass);
       put('taxonOrder', tax.taxonOrder);
       put('taxonFamily', tax.taxonFamily);

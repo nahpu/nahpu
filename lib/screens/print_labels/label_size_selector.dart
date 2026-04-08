@@ -236,6 +236,8 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
       return PopupMenuButton<String>(
         tooltip: 'Label size',
         padding: EdgeInsets.zero,
+        itemBuilder: (ctx) => menuItems,
+        onSelected: onMenuSelected,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           child: Row(
@@ -250,13 +252,13 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
             ],
           ),
         ),
-        itemBuilder: (ctx) => menuItems,
-        onSelected: onMenuSelected,
       );
     }
 
     return PopupMenuButton<String>(
       tooltip: 'Label size',
+      itemBuilder: (ctx) => menuItems,
+      onSelected: onMenuSelected,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
@@ -267,8 +269,6 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
           ],
         ),
       ),
-      itemBuilder: (ctx) => menuItems,
-      onSelected: onMenuSelected,
     );
   }
 }

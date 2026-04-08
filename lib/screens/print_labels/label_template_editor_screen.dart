@@ -72,7 +72,7 @@ class _LabelTemplateEditorScreenState
   late double _labelHeightMm;
 
   /// Currently selected element for the properties panel.
-  /// Format: 'builtin:<componentId>', 'custom:<page>:<ct_id>', or 'image:<page>:<img_id>'.
+  /// Format: `builtin:<componentId>`, `custom:<page>:<ct_id>`, or `image:<page>:<img_id>`.
   String? _selectedElement;
 
   /// Custom text key (`custom:1:ct_0`) when typing on the canvas; null = preview only.

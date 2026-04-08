@@ -229,10 +229,11 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
                             IconButton.filledTonal(
                               onPressed: () => _bumpWidth(-_widthStep),
                               style: IconButton.styleFrom(
-                                minimumSize: const Size(44, 44),
+                                minimumSize: const Size(40, 40),
                                 padding: const EdgeInsets.all(8),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              iconSize: 22,
+                              iconSize: 20,
                               icon: const Icon(Icons.remove),
                               tooltip: 'Decrease',
                             ),
@@ -263,7 +264,7 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
                                     isDense: true,
                                     contentPadding: EdgeInsets.symmetric(
                                       horizontal: 8,
-                                      vertical: 8,
+                                      vertical: 6,
                                     ),
                                     border: OutlineInputBorder(),
                                   ),
@@ -275,10 +276,11 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
                             IconButton.filledTonal(
                               onPressed: () => _bumpWidth(_widthStep),
                               style: IconButton.styleFrom(
-                                minimumSize: const Size(44, 44),
+                                minimumSize: const Size(40, 40),
                                 padding: const EdgeInsets.all(8),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              iconSize: 22,
+                              iconSize: 20,
                               icon: const Icon(Icons.add),
                               tooltip: 'Increase',
                             ),
