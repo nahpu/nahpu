@@ -5,8 +5,10 @@ import 'package:nahpu/services/platform_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/print_labels/label_settings.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/screens/print_labels/label_settings.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:nahpu/screens/settings/app_settings_import.dart';
 
 class ApplicationSettings extends ConsumerWidget {
   const ApplicationSettings({super.key});
@@ -47,7 +49,18 @@ class ApplicationSettings extends ConsumerWidget {
             ),
           ),
         ),
-        const DataUsage()
+        const DataUsage(),
+        CommonSettingTile(
+          isNavigation: true,
+          icon: MdiIcons.cogSyncOutline,
+          title: 'Replace app settings',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AppSettingsImport(),
+            ),
+          ),
+        ),
       ],
     );
   }
