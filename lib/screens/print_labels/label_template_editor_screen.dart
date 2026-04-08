@@ -2497,9 +2497,9 @@ class _DraggableImageChipState extends State<_DraggableImageChip> {
     final pivotX = padL + w / 2;
     final pivotY = padT + h / 2;
     final rot = Matrix4.identity()
-      ..translate(pivotX, pivotY)
+      ..translateByDouble(pivotX, pivotY, 0, 1)
       ..rotateZ(rad)
-      ..translate(-pivotX, -pivotY);
+      ..translateByDouble(-pivotX, -pivotY, 0, 1);
 
     return Positioned(
       left: left - padL,
