@@ -5,6 +5,7 @@ import 'package:nahpu/services/platform_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/print_labels/label_settings.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
 class ApplicationSettings extends ConsumerWidget {
@@ -33,6 +34,18 @@ class ApplicationSettings extends ConsumerWidget {
           ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stackTrace) => const Text('Error'),
+        ),
+        CommonSettingTile(
+          isNavigation: true,
+          icon: Icons.label_outline,
+          title: 'Labels',
+          label: 'Template editor and print settings',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (context) => const LabelSettingsScreen(),
+            ),
+          ),
         ),
         const DataUsage()
       ],

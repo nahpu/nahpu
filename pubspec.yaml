@@ -69,6 +69,8 @@ dependencies:
     path: rust_builder
   open_file_manager: ^2.0.1
   timezone: ^0.10.1
+  google_fonts: ^6.2.1
+  flutter_colorpicker: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -119,6 +121,7 @@ flutter:
     - assets/images/
     - assets/avatars/
     - assets/icons/
+    - assets/fonts/google/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
