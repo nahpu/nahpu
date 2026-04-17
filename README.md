@@ -44,3 +44,7 @@ Please read our [CONTRIBUTING.md](CONTRIBUTING.md) file for details on how to ge
 ## License
 
 Nahpu is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+## Acknowledgments
+
+NAHPU is a collaborative project among museum and computer scientists. Many thanks to the following people for their contributions and feedback: [Darwin Morales-Martínez](https://scholar.google.com/citations?user=PJhU5VcAAAAJ&hl=es), Diego J. Elias, [Spenser J. Babb-Biernacki](https://scholar.google.com/citations?user=8hl2znQAAAAJ&hl=en), [Jessie L. Williamson](https://www.jessiewilliamson.com/home), [Jocelyn P Colella](https://jpcolella.weebly.com/), [Nicholas A. Mason](https://mason-lab.org/), Katrina Derieg, Ellie Dripps, Alivia Hartz, Eleanor Hoeger, Gabriella Linsalata, Lazaro Lopez, John Mewherter, Fritz Pichardo Marcano, Heidi Stevens, Marisa Surovy, Rose Wilhoyt, Litsa Wooten, and Lucas H. DeCicco. Funding for this project was provided by the National Science Foundation ([DEB-1754393](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1754393)) and the Alfred L. Gardner and Mark S. Hafner Mammalogy Fund. Various other funding sources may have supported this project through the work of the contributors. [Human-Augmented Analytics Group](https://sites.gatech.edu/human-augmented-analytics-group/) at the Georgia Institute of Technology provided logistical support for collaboration and development.
