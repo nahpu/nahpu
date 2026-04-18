@@ -89,6 +89,9 @@ class _LabelTemplateEditorScreenState
 
   bool _fieldsPanelExpanded = false;
 
+  /// Non-null while a custom text box is in canvas inline edit; inserts at caret.
+  void Function(String)? _inlineCustomTextPaste;
+
   bool _labelBorderPanelOpen = false;
   int _labelBorderPanelSession = 0;
 
@@ -315,11 +318,15 @@ class _LabelTemplateEditorScreenState
   // --- Custom text helpers ---
 
   void _addCustomText(bool page1) {
+    _addCustomTextWithLabel(page1, 'Text');
+  }
+
+  void _addCustomTextWithLabel(bool page1, String text) {
     final id = 'ct_$_customIdCounter';
     _customIdCounter++;
     final element = CustomTextElement(
       id: id,
-      text: 'Text',
+      text: text,
       xMm: 5,
       yMm: 5,
     );
@@ -1804,10 +1811,13 @@ class _LabelTemplateEditorScreenState
               ),
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onTap: () => _deferSetState(() {
-                  _selectedElement = null;
-                  _inlineCanvasCustomKey = null;
-                }),
+                onTap: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  _deferSetState(() {
+                    _selectedElement = null;
+                    _inlineCanvasCustomKey = null;
+                  });
+                },
                 child: Container(
                   width: scrollW,
                   height: scrollH,
@@ -2021,8 +2031,11 @@ class _LabelTemplateEditorScreenState
                                       );
                                     }
                                     _inlineCanvasCustomKey = null;
+                                    _inlineCustomTextPaste = null;
                                   });
                                 },
+                                onInlineTextInsertBinding: (fn) =>
+                                    _deferSetState(() => _inlineCustomTextPaste = fn),
                                 onTap: () {
                                   final k =
                                       'custom:${page1 ? '1' : '2'}:${ct.id}';
@@ -2192,11 +2205,12 @@ class _LabelTemplateEditorScreenState
     required double width,
   }) {
     final rowLabels = _fieldPanelRowLabels(fieldIds);
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: SizedBox(
-        width: width,
-        child: Column(
+    return TextFieldTapRegion(
+      child: Material(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        child: SizedBox(
+          width: width,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
@@ -2224,6 +2238,14 @@ class _LabelTemplateEditorScreenState
                     visualDensity: VisualDensity.compact,
                     horizontalTitleGap: 8,
                     contentPadding: const EdgeInsets.fromLTRB(16, 2, 5, 2),
+                    onTap: () {
+                      final paste = _inlineCustomTextPaste;
+                      if (paste != null) {
+                        paste(label);
+                      } else {
+                        _addCustomTextWithLabel(_isPage1, label);
+                      }
+                    },
                     title: Text(
                       label,
                       style: fieldStyle,
@@ -2237,6 +2259,7 @@ class _LabelTemplateEditorScreenState
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -3009,6 +3032,7 @@ class _DraggableChip extends StatefulWidget {
     this.isSelected = false,
     this.isInlineEditing = false,
     this.onInlineEditingComplete,
+    this.onInlineTextInsertBinding,
     this.onTap,
     this.onSelect,
   });
@@ -3038,6 +3062,9 @@ class _DraggableChip extends StatefulWidget {
 
   /// Called once when inline editing ends (focus lost or Enter); updates template text.
   final ValueChanged<String>? onInlineEditingComplete;
+
+  /// Active while inline editing: non-null inserts at caret; null when edit ends.
+  final ValueChanged<void Function(String)?>? onInlineTextInsertBinding;
   final VoidCallback? onTap;
 
   /// When pan wins over tap (slight movement), [onTap] may not run; parent uses
@@ -3209,12 +3236,36 @@ class _DraggableChipState extends State<_DraggableChip> {
     _inlineCtrl = TextEditingController(text: widget.actualText);
     _inlineFocus = FocusNode();
     _inlineFocus!.addListener(_onInlineFocusChange);
+    widget.onInlineTextInsertBinding?.call(_pasteIntoInlineField);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !widget.isInlineEditing) return;
       _inlineFocus?.requestFocus();
       final t = _inlineCtrl?.text ?? '';
       _inlineCtrl?.selection = TextSelection.collapsed(offset: t.length);
     });
+  }
+
+  void _pasteIntoInlineField(String insertion) {
+    final c = _inlineCtrl;
+    if (c == null || !widget.isInlineEditing) return;
+    final text = c.text;
+    final sel = c.selection;
+    var start = sel.isValid ? sel.start : text.length;
+    var end = sel.isValid ? sel.end : text.length;
+    if (start < 0 || start > text.length) start = text.length;
+    if (end < 0 || end > text.length) end = text.length;
+    if (start > end) {
+      final t = start;
+      start = end;
+      end = t;
+    }
+    final newText = text.replaceRange(start, end, insertion);
+    final newOffset = start + insertion.length;
+    c.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newOffset),
+    );
+    _inlineFocus?.requestFocus();
   }
 
   @override
@@ -3258,6 +3309,7 @@ class _DraggableChipState extends State<_DraggableChip> {
     if (widget.isInlineEditing && !oldWidget.isInlineEditing) {
       _startInlineEditing();
     } else if (!widget.isInlineEditing && oldWidget.isInlineEditing) {
+      widget.onInlineTextInsertBinding?.call(null);
       if (!_inlineEditCommitted) {
         _commitInlineToParent();
       }
@@ -3288,6 +3340,9 @@ class _DraggableChipState extends State<_DraggableChip> {
 
   @override
   void dispose() {
+    if (widget.isInlineEditing) {
+      widget.onInlineTextInsertBinding?.call(null);
+    }
     _inlineFocus?.removeListener(_onInlineFocusChange);
     _inlineFocus?.dispose();
     _inlineCtrl?.dispose();
