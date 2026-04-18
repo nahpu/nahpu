@@ -71,6 +71,9 @@ dependencies:
   open_file_manager: ^2.0.1
   timezone: ^0.10.1
   kdl: ^2.0.2
+  flutter_native_html_to_pdf: ^2.0.0
+  google_fonts: ^6.2.1
+  flutter_colorpicker: ^1.1.0
 
 dev_dependencies:
   flutter_test:
