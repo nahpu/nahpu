@@ -150,7 +150,8 @@ class CollEventServices extends AppServices {
 
   Future<void> deleteAllCollEvents(String projectUuid) async {
     try {
-      List<CollEventData> collEvents = await getAllCollEvents();
+      List<CollEventData> collEvents =
+          await CollEventQuery(dbAccess).getAllCollEvents(projectUuid);
       for (CollEventData collEvent in collEvents) {
         await WeatherDataQuery(dbAccess).deleteWeatherData(collEvent.id);
         await CollPersonnelQuery(dbAccess)

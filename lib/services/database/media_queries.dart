@@ -42,4 +42,23 @@ class MediaDbQuery extends DatabaseAccessor<Database> with _$MediaDbQueryMixin {
   Future<void> deleteMedia(int id) {
     return (delete(media)..where((t) => t.primaryId.equals(id))).go();
   }
+
+  Future<void> deleteMediaByProject(String projectUuid) {
+    return (delete(media)..where((t) => t.projectUuid.equals(projectUuid)))
+        .go();
+  }
+
+  Future<bool> isMediaReferencedByTaxonomy(int mediaId) async {
+    final taxonomyRow = await (select(taxonomy)
+          ..where((t) => t.mediaId.equals(mediaId))
+          ..limit(1))
+        .getSingleOrNull();
+    return taxonomyRow != null;
+  }
+
+  Future<void> detachMediaFromProject(int mediaId) {
+    return (update(media)..where((t) => t.primaryId.equals(mediaId))).write(
+      const MediaCompanion(projectUuid: Value(null)),
+    );
+  }
 }

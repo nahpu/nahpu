@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/specimen_services.dart';
 
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {
@@ -186,6 +187,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
   }
 
   void _deleteAllSpecimens() {
+    final projectUuid = ref.read(projectUuidProvider);
     showDeleteAlertOnMenu(
         context: context,
         title: 'Delete all specimens?',
@@ -193,7 +195,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
             ', measurements, and specimen parts',
         onDelete: () async {
           try {
-            await SpecimenServices(ref: ref).deleteAllSpecimens();
+            await SpecimenServices(ref: ref).deleteAllSpecimens(projectUuid);
             if (context.mounted) {
               _pop();
             }
