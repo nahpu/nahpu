@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/sites/site_view.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
@@ -165,13 +166,14 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
   }
 
   void _deleteAllSites() {
+    final projectUuid = ref.read(projectUuidProvider);
     showDeleteAlertOnMenu(
         context: context,
         title: 'Delete all sites?',
         deletePrompt: 'You will delete all site records',
         onDelete: () async {
           try {
-            await SiteServices(ref: ref).deleteAllSites();
+            await SiteServices(ref: ref).deleteAllSites(projectUuid);
             if (context.mounted) {
               _popMenu();
             }
