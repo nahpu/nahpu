@@ -32,7 +32,7 @@ class UtilityServices extends AppServices {
     List<String> data = await getDistinctOptions(prefKey);
     final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
     List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
-    notifier.replaceAll(options);
+    await notifier.replaceAll(options);
     _invalidateOptions(prefKey);
   }
 
