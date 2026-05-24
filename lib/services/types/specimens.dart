@@ -193,7 +193,7 @@ IconData matchCatFmtToIcon(CatalogFmt catalogFmt, bool isSelected) {
 }
 
 const Map<String, String> partIconPath = {
-  'cecum': 'assets/icons/microbial-culture.svg',
+  'cecum': 'assets/icons/cecum.svg',
   'feather': 'assets/icons/feather.svg',
   'feces': 'assets/icons/poo.svg',
   'liver': 'assets/icons/liver.svg',
