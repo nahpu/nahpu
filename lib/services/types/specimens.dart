@@ -205,11 +205,11 @@ const Map<String, String> partIconPath = {
 String matchCatalogFmtToIconPath(CatalogFmt fmt) {
   switch (fmt) {
     case CatalogFmt.mammals:
-      return 'assets/icons/mouse.svg';
+      return 'assets/icons/mouse_outlined.svg';
     case CatalogFmt.birds:
-      return 'assets/icons/bird.svg';
+      return 'assets/icons/bird_outlined.svg';
     case CatalogFmt.herpetofauna:
-      return 'assets/icons/snake.svg';
+      return 'assets/icons/amphibian_outlined.svg';
   }
 }
 
