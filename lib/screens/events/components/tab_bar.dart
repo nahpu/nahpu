@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/events/components/personnel.dart';
 import 'package:nahpu/screens/events/components/weather_data.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class CollEventTabBar extends StatefulWidget {
   const CollEventTabBar({
@@ -49,7 +48,7 @@ class _CollEventTabBarState extends State<CollEventTabBar>
           const Tab(
             icon: Icon(Icons.groups_2_outlined),
           ),
-          Tab(icon: Icon(MdiIcons.weatherPartlyCloudy)),
+          Tab(icon: Icon(Icons.wb_cloudy_outlined)),
         ],
         children: [
           EventPersonnel(eventID: widget.eventID),

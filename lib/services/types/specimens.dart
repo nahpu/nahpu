@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+
+import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'nahpu_icons.dart';
 
 enum CatalogFmt { mammals, birds, herpetofauna }
 
@@ -170,30 +171,21 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
   }
 }
 
-IconData matchCatFmtToPartIcon(CatalogFmt catalogFmt) {
+IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
-      return MdiIcons.owl;
+      return isFilledIcon ? NahpuIcons.birdFilled : NahpuIcons.birdOutlined;
     case CatalogFmt.mammals:
-      return MdiIcons.pawOutline;
+      return isFilledIcon ? NahpuIcons.ratFilled : NahpuIcons.ratOutlined;
     case CatalogFmt.herpetofauna:
-      return MdiIcons.snake;
-  }
-}
-
-IconData matchCatFmtToIcon(CatalogFmt catalogFmt, bool isSelected) {
-  switch (catalogFmt) {
-    case CatalogFmt.birds:
-      return MdiIcons.owl;
-    case CatalogFmt.mammals:
-      return isSelected ? MdiIcons.paw : MdiIcons.pawOutline;
-    case CatalogFmt.herpetofauna:
-      return MdiIcons.snake;
+      return isFilledIcon
+          ? NahpuIcons.amphibianFilled
+          : NahpuIcons.amphibianOutlined;
   }
 }
 
 const Map<String, String> partIconPath = {
-  'cecum': 'assets/icons/microbial-culture.svg',
+  'cecum': 'assets/icons/cecum.svg',
   'feather': 'assets/icons/feather.svg',
   'feces': 'assets/icons/poo.svg',
   'liver': 'assets/icons/liver.svg',
@@ -213,11 +205,11 @@ const Map<String, String> partIconPath = {
 String matchCatalogFmtToIconPath(CatalogFmt fmt) {
   switch (fmt) {
     case CatalogFmt.mammals:
-      return 'assets/icons/mouse.svg';
+      return 'assets/icons/mouse_outlined.svg';
     case CatalogFmt.birds:
-      return 'assets/icons/bird.svg';
+      return 'assets/icons/bird_outlined.svg';
     case CatalogFmt.herpetofauna:
-      return 'assets/icons/snake.svg';
+      return 'assets/icons/amphibian_outlined.svg';
   }
 }
 
