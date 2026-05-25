@@ -137,6 +137,9 @@ flutter:
     - family: "Merriweather"
       fonts:
         - asset: assets/fonts/Merriweather-Regular.ttf
+    - family: "NahpuIcons"
+      fonts:
+        - asset: assets/fonts/nahpu_font.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro
