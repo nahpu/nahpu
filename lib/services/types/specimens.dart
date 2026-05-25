@@ -171,25 +171,14 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
   }
 }
 
-IconData matchCatFmtToPartIcon(CatalogFmt catalogFmt) {
+IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
-      return NahpuIcons.birdOutlined;
+      return isFilledIcon ? NahpuIcons.birdFilled : NahpuIcons.birdOutlined;
     case CatalogFmt.mammals:
-      return NahpuIcons.ratOutlined;
+      return isFilledIcon ? NahpuIcons.ratFilled : NahpuIcons.ratOutlined;
     case CatalogFmt.herpetofauna:
-      return NahpuIcons.amphibianOutlined;
-  }
-}
-
-IconData matchCatFmtToIcon(CatalogFmt catalogFmt, bool isSelected) {
-  switch (catalogFmt) {
-    case CatalogFmt.birds:
-      return isSelected ? NahpuIcons.birdFilled : NahpuIcons.birdOutlined;
-    case CatalogFmt.mammals:
-      return isSelected ? NahpuIcons.ratFilled : NahpuIcons.ratOutlined;
-    case CatalogFmt.herpetofauna:
-      return isSelected
+      return isFilledIcon
           ? NahpuIcons.amphibianFilled
           : NahpuIcons.amphibianOutlined;
   }

@@ -163,7 +163,7 @@ class SpecimenSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonSettingTile(
         isNavigation: true,
-        icon: matchCatFmtToIcon(catalogFmt, false),
+        icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
         title: 'Specimens',
         label: 'Tissue ID, specimen type, treatments, and more',
         onTap: () {

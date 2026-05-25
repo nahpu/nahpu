@@ -66,13 +66,14 @@ class PartDataFormState extends ConsumerState<PartDataForm>
         height: 502,
         tabs: [
           Tab(
-            icon: Icon(matchCatFmtToPartIcon(widget.catalogFmt)),
+            icon:
+                Icon(matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true)),
           ),
           // Tab(
           //   icon: Icon(MdiIcons.bugOutline),
           // ),
           Tab(
-            icon: Icon(Icons.storage_outlined),
+            icon: Icon(Icons.storage_rounded),
           )
         ],
         children: [

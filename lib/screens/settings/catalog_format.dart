@@ -43,7 +43,7 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                           matchCatFmtToTaxonGroup(catalogFmt);
                       return CommonSettingTile(
                           title: catalogFmtStr,
-                          leading: Icon(matchCatFmtToPartIcon(catalogFmt)),
+                          leading: Icon(matchCatFmtToIcon(catalogFmt)),
                           trailing: selectedFmt == catalogFmt
                               ? const Icon(Icons.check)
                               : null,

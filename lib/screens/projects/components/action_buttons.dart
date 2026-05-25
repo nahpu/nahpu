@@ -41,7 +41,8 @@ class ActionButtons extends ConsumerWidget {
         ),
         SpeedDialChild(
           child: ref.watch(catalogFmtNotifierProvider).when(
-                data: (catalogFmt) => Icon(matchCatFmtToIcon(catalogFmt, false)),
+                data: (catalogFmt) =>
+                    Icon(matchCatFmtToIcon(catalogFmt, isFilledIcon: true)),
                 loading: () => const CircularProgressIndicator(),
                 error: (e, s) => Icon(
                   Icons.error_outline,

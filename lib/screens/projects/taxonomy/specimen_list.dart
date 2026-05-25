@@ -202,7 +202,7 @@ class SpecimenList extends StatelessWidget {
 
   Icon _getLeadingIcon(String? taxonGroup) {
     CatalogFmt fmt = matchTaxonGroupToCatFmt(taxonGroup);
-    return Icon(matchCatFmtToIcon(fmt, false));
+    return Icon(matchCatFmtToIcon(fmt, isFilledIcon: false));
   }
 }
 

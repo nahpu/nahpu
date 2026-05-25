@@ -434,7 +434,7 @@ class SpecimenIcons extends ConsumerWidget {
     return Icon(
       ref.watch(catalogFmtNotifierProvider).when(
           data: (catalogFmt) {
-            return matchCatFmtToIcon(catalogFmt, isSelected);
+            return matchCatFmtToIcon(catalogFmt, isFilledIcon: isSelected);
           },
           loading: () => Icons.circle_outlined,
           error: (e, s) => Icons.error_outline),
