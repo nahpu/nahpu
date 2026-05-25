@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'nahpu_icons.dart';
 
 enum CatalogFmt { mammals, birds, herpetofauna }
 
@@ -173,22 +174,24 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
 IconData matchCatFmtToPartIcon(CatalogFmt catalogFmt) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
-      return Icons.pets;
+      return NahpuIcons.birdOutlined;
     case CatalogFmt.mammals:
-      return Icons.pets;
+      return NahpuIcons.ratOutlined;
     case CatalogFmt.herpetofauna:
-      return Icons.pets;
+      return NahpuIcons.amphibianOutlined;
   }
 }
 
 IconData matchCatFmtToIcon(CatalogFmt catalogFmt, bool isSelected) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
-      return Icons.pets;
+      return isSelected ? NahpuIcons.birdFilled : NahpuIcons.birdOutlined;
     case CatalogFmt.mammals:
-      return Icons.pets;
+      return isSelected ? NahpuIcons.ratFilled : NahpuIcons.ratOutlined;
     case CatalogFmt.herpetofauna:
-      return Icons.pets;
+      return isSelected
+          ? NahpuIcons.amphibianFilled
+          : NahpuIcons.amphibianOutlined;
   }
 }
 
