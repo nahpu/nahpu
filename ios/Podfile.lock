@@ -1,7 +1,5 @@
 PODS:
   - Flutter (1.0.0)
-  - open_file_manager (0.1.1):
-    - Flutter
   - printing (1.0.0):
     - Flutter
   - rust_lib_nahpu (0.0.1):
@@ -9,15 +7,12 @@ PODS:
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - open_file_manager (from `.symlinks/plugins/open_file_manager/ios`)
   - printing (from `.symlinks/plugins/printing/ios`)
   - rust_lib_nahpu (from `.symlinks/plugins/rust_lib_nahpu/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
-  open_file_manager:
-    :path: ".symlinks/plugins/open_file_manager/ios"
   printing:
     :path: ".symlinks/plugins/printing/ios"
   rust_lib_nahpu:
@@ -25,7 +20,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  open_file_manager: e18b9214242fd5085928c4e00be3addef2e76419
   printing: 54ff03f28fe9ba3aa93358afb80a8595a071dd07
   rust_lib_nahpu: 0bbd60141d65c60ffc60b017838a7c0b30f35e9e
 
