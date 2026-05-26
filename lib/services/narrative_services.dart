@@ -77,9 +77,6 @@ class NarrativeServices extends AppServices {
           print('Failed to update narrative entry: $e');
         }
       }
-    } finally {
-      // Refresh narrative provider so UI reflects persisted change
-      ref.invalidate(narrativeEntryProvider);
     }
   }
 
