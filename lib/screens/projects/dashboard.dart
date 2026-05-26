@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/projects/components/action_buttons.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
-import 'package:nahpu/screens/projects/components/misc_forms.dart';
 import 'package:nahpu/screens/projects/components/overview.dart';
 import 'package:nahpu/screens/projects/personnel/personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
@@ -32,7 +32,6 @@ class DashboardState extends ConsumerState<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final projectUuid = ref.watch(projectUuidProvider);
     return FalseWillPop(
       child: Scaffold(
         appBar: AppBar(
@@ -48,44 +47,8 @@ class DashboardState extends ConsumerState<Dashboard> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    AdaptiveMainLayout(
-                      useHorizontalLayout: useHorizontalLayout,
-                      height: topDashboardHeight,
-                      children: [
-                        Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            ProjectOverview(
-                              projectUuid: projectUuid,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Tooltip(
-                                message: 'Edit project',
-                                child: IconButton(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (context) => EditProject(
-                                                projectUuid: projectUuid)));
-                                  },
-                                  icon: Icon(
-                                    Icons.edit_outlined,
-                                    color: Theme.of(context).disabledColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const PersonnelViewer(),
-                      ],
-                    ),
-                    AdaptiveMainLayout(
-                      useHorizontalLayout: useHorizontalLayout,
-                      height: bottomDashboardHeight,
-                      children: const [TaxonRegistryViewer(), MiscForm()],
-                    )
+                    TopPanel(useHorizontalLayout: useHorizontalLayout),
+                    BottomPanel(useHorizontalLayout: useHorizontalLayout)
                   ],
                 ),
               ),
@@ -94,6 +57,66 @@ class DashboardState extends ConsumerState<Dashboard> {
         ),
         bottomNavigationBar: const ProjectBottomNavbar(),
       ),
+    );
+  }
+}
+
+class TopPanel extends ConsumerWidget {
+  const TopPanel({super.key, required this.useHorizontalLayout});
+
+  final bool useHorizontalLayout;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final projectUuid = ref.watch(projectUuidProvider);
+    return AdaptiveMainLayout(
+      useHorizontalLayout: useHorizontalLayout,
+      height: topDashboardHeight,
+      children: [
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            ProjectOverview(
+              projectUuid: projectUuid,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Tooltip(
+                message: 'Edit project',
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              EditProject(projectUuid: projectUuid)),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.edit_outlined,
+                    color: Theme.of(context).disabledColor,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const PersonnelViewer(),
+      ],
+    );
+  }
+}
+
+class BottomPanel extends StatelessWidget {
+  const BottomPanel({super.key, required this.useHorizontalLayout});
+
+  final bool useHorizontalLayout;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveMainLayout(
+      useHorizontalLayout: useHorizontalLayout,
+      height: bottomDashboardHeight,
+      children: const [TaxonRegistryViewer(), StatisticViewer()],
     );
   }
 }

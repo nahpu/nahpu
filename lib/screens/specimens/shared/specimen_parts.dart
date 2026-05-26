@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/shared/qr.dart';
 // import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
@@ -67,13 +66,14 @@ class PartDataFormState extends ConsumerState<PartDataForm>
         height: 502,
         tabs: [
           Tab(
-            icon: Icon(matchCatFmtToPartIcon(widget.catalogFmt)),
+            icon:
+                Icon(matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true)),
           ),
           // Tab(
           //   icon: Icon(MdiIcons.bugOutline),
           // ),
           Tab(
-            icon: Icon(MdiIcons.databaseOutline),
+            icon: Icon(Icons.storage_rounded),
           )
         ],
         children: [
@@ -439,7 +439,7 @@ class BarcodeText extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       text: TextSpan(children: [
         WidgetSpan(
-            child: TileIcon(icon: MdiIcons.barcode),
+            child: TileIcon(icon: Icons.abc),
             alignment: PlaceholderAlignment.middle),
         const TextSpan(text: ' '),
         TextSpan(

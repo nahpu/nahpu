@@ -2,7 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/projects/dashboard.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
@@ -29,63 +30,57 @@ class StatisticViewerState extends ConsumerState<StatisticViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return CommonPadding(
+    return FormCard(
+      title: 'Statistics',
+      mainAxisAlignment: MainAxisAlignment.start,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 360, maxWidth: 460),
         child: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              StatisticDropdown(
-                selectedGraph: _selectedGraph,
-                isLarge: _isLarge,
-                onChanged: (GraphType? newValue) {
-                  setState(() {
-                    _selectedGraph = newValue!;
-                  });
-                },
-                graphOptions: dashboardGraphOptions,
-              ),
-              Tooltip(
-                message: 'Open fullscreen',
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.fullscreen,
-                  ),
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      _openFullscreen(),
-                    );
-                  },
-                ),
-              )
-            ],
-          ),
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            StatisticDropdown(
+              selectedGraph: _selectedGraph,
+              isLarge: _isLarge,
+              onChanged: (GraphType? newValue) {
+                setState(() {
+                  _selectedGraph = newValue!;
+                });
+              },
+              graphOptions: dashboardGraphOptions,
+            ),
+            Expanded(
+                child: FutureBuilder(
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return CountBarChart(
+                    graphType: _selectedGraph,
+                    dataPoints: snapshot.data!,
+                    isFullScreen: false,
+                  );
+                } else {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
+              future: _getData(ref),
+            )),
+            const SizedBox(height: 16),
+            PrimaryButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  _openFullscreen(),
+                );
+              },
+              label: 'View all',
+              icon: Icons.fullscreen,
+            ),
+          ],
         ),
-        Expanded(
-            child: FutureBuilder(
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return CountBarChart(
-                graphType: _selectedGraph,
-                dataPoints: snapshot.data!,
-                isFullScreen: false,
-              );
-            } else {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
-          future: _getData(ref),
-        )),
-      ],
-    ));
+      ),
+    );
   }
 
   Future<DataPoints> _getData(WidgetRef ref) async {
@@ -398,7 +393,7 @@ class CountBarChart extends ConsumerWidget {
               )
             : Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 42, left: 16, right: 16),
+                  padding: const EdgeInsets.only(top: 4, left: 8, right: 8),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: SizedBox(

@@ -92,7 +92,8 @@ class CommonSettingTile extends StatelessWidget {
     super.key,
     required this.title,
     this.label,
-    required this.icon,
+    this.icon,
+    this.leading,
     this.value,
     required this.onTap,
     this.trailing,
@@ -101,7 +102,8 @@ class CommonSettingTile extends StatelessWidget {
 
   final String title;
   final String? label;
-  final IconData icon;
+  final IconData? icon;
+  final Widget? leading;
   final VoidCallback? onTap;
   final String? value;
   final Widget? trailing;
@@ -128,10 +130,10 @@ class CommonSettingTile extends StatelessWidget {
                   ),
                 )
               : null,
-          leading: Icon(
+          leading: leading ?? (icon != null ? Icon(
             icon,
             color: Theme.of(context).colorScheme.primary,
-          ),
+          ) : null),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,

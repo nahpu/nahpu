@@ -43,8 +43,9 @@ class NarrativeServices extends AppServices {
         try {
           // Check whether the 'time' column already exists to avoid duplicate
           // ALTER TABLE statements from concurrent callers.
-          final List<db.QueryRow> rows =
-              await dbAccess.customSelect("PRAGMA table_info('narrative')").get();
+          final List<db.QueryRow> rows = await dbAccess
+              .customSelect("PRAGMA table_info('narrative')")
+              .get();
           bool hasTime = false;
           for (final row in rows) {
             try {
@@ -59,7 +60,8 @@ class NarrativeServices extends AppServices {
           }
 
           if (!hasTime) {
-            await dbAccess.customStatement('ALTER TABLE narrative ADD COLUMN time TEXT');
+            await dbAccess
+                .customStatement('ALTER TABLE narrative ADD COLUMN time TEXT');
           }
 
           await NarrativeQuery(dbAccess).updateNarrativeEntry(id, entries);
@@ -75,17 +77,12 @@ class NarrativeServices extends AppServices {
           print('Failed to update narrative entry: $e');
         }
       }
-    } finally {
-      // Refresh narrative provider so UI reflects persisted change
-      ref.invalidate(narrativeEntryProvider);
     }
   }
 
   /// Update the writer for a narrative.
   Future<void> updateNarrativeWriter(int id, String? writerUuid) async {
     await NarrativeQuery(dbAccess).updateNarrativeWriter(id, writerUuid);
-    // Refresh narrative provider so UI reflects persisted change
-    ref.invalidate(narrativeEntryProvider);
   }
 
   Future<void> createNarrativeMediaFromList(
@@ -139,7 +136,7 @@ class NarrativeServices extends AppServices {
     for (NarrativeData narrative in narratives) {
       await deleteAllNarrativeMedia(narrative.id);
     }
-    NarrativeQuery(dbAccess).deleteAllNarrative(projectUuid);
+    await NarrativeQuery(dbAccess).deleteAllNarrative(projectUuid);
     invalidateNarrative();
   }
 

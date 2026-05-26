@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
@@ -118,7 +117,7 @@ class DatabaseSettingSections extends StatelessWidget {
             })),
         CommonSettingTile(
           isNavigation: true,
-          icon: MdiIcons.databaseOutline,
+          icon: Icons.storage_outlined,
           title: 'Replace database',
           onTap: () => Navigator.push(
             context,
@@ -141,7 +140,7 @@ class CatalogFmtSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonSettingTile(
         isNavigation: true,
-        icon: MdiIcons.fileCabinet,
+        icon: Icons.archive_outlined,
         title: 'Format',
         value: matchCatFmtToTaxonGroup(selectedFmt),
         onTap: () {
@@ -164,7 +163,7 @@ class SpecimenSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonSettingTile(
         isNavigation: true,
-        icon: matchCatFmtToIcon(catalogFmt, false),
+        icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
         title: 'Specimens',
         label: 'Tissue ID, specimen type, treatments, and more',
         onTap: () {

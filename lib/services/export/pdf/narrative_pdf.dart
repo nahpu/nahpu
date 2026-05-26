@@ -16,11 +16,15 @@ class NarrativePdfWriter extends PdfServices {
     List<NarrativeData> narrativeList =
         await NarrativeServices(ref: ref).getAllNarrative();
 
+    if (narrativeList.isEmpty) {
+      throw Exception('No narrative records to export.');
+    }
+
     for (var narrative in narrativeList) {
       await generateNarrativePage(pdf, narrative);
     }
 
-    writePdf(pdf);
+    await writePdf(pdf);
   }
 
   Future<void> generateNarrativePage(

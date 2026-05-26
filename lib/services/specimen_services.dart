@@ -327,10 +327,13 @@ class SpecimenServices extends AppServices {
     invalidateSpecimenList();
   }
 
-  Future<void> deleteAllSpecimens() async {
-    List<SpecimenData> specimenList = await getSpecimenList();
+  Future<void> deleteAllSpecimens(String projectUuid) async {
+    List<SpecimenData> specimenList =
+        await SpecimenQuery(dbAccess).getAllSpecimens(projectUuid);
     for (var specimen in specimenList) {
       await deleteAllSpecimenParts(specimen.uuid);
+      await AssociatedDataQuery(dbAccess)
+          .deleteAllAssociatedData(specimen.uuid);
       await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimen.uuid);
       CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(specimen.taxonGroup);
       switch (catalogFmt) {
@@ -345,7 +348,7 @@ class SpecimenServices extends AppServices {
           break;
       }
     }
-    await SpecimenQuery(dbAccess).deleteAllSpecimens(currentProjectUuid);
+    await SpecimenQuery(dbAccess).deleteAllSpecimens(projectUuid);
     invalidateSpecimenList();
   }
 

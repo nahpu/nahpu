@@ -110,15 +110,15 @@ class SiteServices extends AppServices {
     invalidateSite();
   }
 
-  Future<void> deleteAllSites() async {
+  Future<void> deleteAllSites(String projectUuid) async {
     try {
-      List<SiteData> sites = await getAllSites();
+      List<SiteData> sites = await SiteQuery(dbAccess).getAllSites(projectUuid);
 
       for (SiteData site in sites) {
         await CoordinateServices(ref: ref).deleteCoordinateBySiteID(site.id);
         await SiteQuery(dbAccess).deleteAllSiteMedias(site.id);
       }
-      await SiteQuery(dbAccess).deleteAllSites(currentProjectUuid);
+      await SiteQuery(dbAccess).deleteAllSites(projectUuid);
       invalidateSite();
     } catch (e) {
       rethrow;

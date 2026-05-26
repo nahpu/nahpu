@@ -307,15 +307,10 @@ class GridProjectCard extends StatelessWidget {
               onTap: onPressed,
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
                   color: Theme.of(context)
                       .colorScheme
                       .surfaceContainerHighest
                       .withAlpha(80),
-                  // color: Theme.of(context)
-                  //     .colorScheme
-                  //     .primaryContainer
-                  //     .withAlpha(120),
                   border: Border.all(
                     color: Theme.of(context).dividerColor.withAlpha(40),
                     width: 1.5,
@@ -399,7 +394,7 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
 }
 
 class ProjectIcon extends StatelessWidget {
-  const ProjectIcon({super.key, required this.color, this.size = 32});
+  const ProjectIcon({super.key, required this.color, this.size = 40});
 
   final Color color;
   final double size;
@@ -407,7 +402,7 @@ class ProjectIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SvgPicture.asset(
-      'assets/icons/project.svg',
+      'assets/icons/catalog.svg',
       height: size,
       colorFilter: ColorFilter.mode(
         color,
