@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/narrative/components/media.dart';
@@ -113,12 +112,13 @@ class NarrativeText extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonPadding(
-      child: CommonTextField(
+      child: TextField(
+        decoration: InputDecoration(
+          labelText: 'Narrative',
+          hintText: 'Enter narrative',
+        ),
         controller: narrativeCtr.narrativeCtr,
         maxLines: 20,
-        labelText: 'Narrative',
-        hintText: 'Enter narrative',
-        isLastField: true,
         onChanged: (String? value) {
           if (value != null) {
             NarrativeServices(ref: ref).updateNarrative(

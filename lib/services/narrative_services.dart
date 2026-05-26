@@ -83,8 +83,6 @@ class NarrativeServices extends AppServices {
   /// Update the writer for a narrative.
   Future<void> updateNarrativeWriter(int id, String? writerUuid) async {
     await NarrativeQuery(dbAccess).updateNarrativeWriter(id, writerUuid);
-    // Refresh narrative provider so UI reflects persisted change
-    ref.invalidate(narrativeEntryProvider);
   }
 
   Future<void> createNarrativeMediaFromList(
