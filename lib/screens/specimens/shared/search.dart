@@ -134,7 +134,6 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
             pageNav: _pageNav,
           ),
         ),
-        bottomNavigationBar: const ProjectBottomNavbar(),
       ),
     );
   }

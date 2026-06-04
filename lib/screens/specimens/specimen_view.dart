@@ -122,7 +122,6 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
           pageNav: _pageNav,
         ),
       ),
-      bottomNavigationBar: const ProjectBottomNavbar(),
     ));
   }
 

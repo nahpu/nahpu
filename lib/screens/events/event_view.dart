@@ -148,7 +148,6 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
           pageNav: _pageNav,
         ),
       ),
-      bottomNavigationBar: const ProjectBottomNavbar(),
     ));
   }
 

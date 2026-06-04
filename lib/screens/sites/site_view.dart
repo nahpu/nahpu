@@ -148,7 +148,6 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
           child: PageNavButton(
             pageNav: _pageNav,
           )),
-      bottomNavigationBar: const ProjectBottomNavbar(),
     ));
   }
 

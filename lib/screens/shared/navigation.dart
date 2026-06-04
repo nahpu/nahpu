@@ -7,12 +7,7 @@ import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/screens/narrative/narrative_view.dart';
-import 'package:nahpu/screens/events/event_view.dart';
 import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/screens/sites/site_view.dart';
-import 'package:nahpu/screens/specimens/specimen_view.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
 
 class ProjectBottomNavbar extends ConsumerStatefulWidget {
   const ProjectBottomNavbar({super.key});
@@ -34,7 +29,6 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
           Theme.of(context).colorScheme.secondary, 0.1),
       indicatorColor: Theme.of(context).colorScheme.secondaryContainer,
       elevation: 10,
-      animationDuration: const Duration(seconds: 3),
       selectedIndex: selectedIndex,
       destinations: const [
         NavigationDestination(
@@ -79,48 +73,29 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
     );
   }
 
+  /// Refreshes the data shown by the destination tab (and any data it depends
+  /// on). Because [ProjectShell] keeps every screen alive in an [IndexedStack],
+  /// their auto-dispose providers never lose their listeners, so this explicit
+  /// invalidation is the only thing that re-fetches data on a tab switch.
   void _onItemTapped(int index) {
     switch (index) {
       case 0:
         _invalidateAll();
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const Dashboard(),
-          ),
-        );
-
         break;
       case 1:
         ref.invalidate(siteEntryProvider);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SiteViewer()),
-        );
         break;
       case 2:
         ref.invalidate(siteEntryProvider);
         ref.invalidate(collEventEntryProvider);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CollEventViewer()),
-        );
         break;
       case 3:
         ref.invalidate(collEventEntryProvider);
         ref.invalidate(specimenEntryProvider);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SpecimenViewer()),
-        );
         break;
       case 4:
         ref.invalidate(siteEntryProvider);
         ref.invalidate(narrativeEntryProvider);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const NarrativeViewer()),
-        );
         break;
     }
   }

@@ -150,7 +150,6 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
           pageNav: _pageNav,
         ),
       ),
-      bottomNavigationBar: const ProjectBottomNavbar(),
     ));
   }
 
