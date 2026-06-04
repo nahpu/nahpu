@@ -1,7 +1,7 @@
-import 'package:nahpu/screens/narrative/narrative_view.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +16,8 @@ enum MenuSelection {
 
 Future<void> createNewNarrative(BuildContext context, WidgetRef ref) {
   return NarrativeServices(ref: ref).createNewNarrative().then((_) {
-    if (context.mounted) {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const NarrativeViewer()));
-    }
+    // NarrativeViewer stays mounted in ProjectShell; refresh it in place.
+    ref.invalidate(narrativeEntryProvider);
   });
 }
 
@@ -114,9 +112,11 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
           try {
             await NarrativeServices(ref: ref)
                 .deleteNarrative(widget.narrativeId!);
-            if (context.mounted) {
-              _navigateToNarrative();
+            // Close the delete dialog and refresh the list in place.
+            if (mounted) {
+              Navigator.of(context).pop();
             }
+            ref.invalidate(narrativeEntryProvider);
           } catch (e) {
             if (context.mounted) {
               _showError(e.toString());
@@ -125,12 +125,6 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
         }
       },
     );
-  }
-
-  void _navigateToNarrative() {
-    Navigator.of(context).pop();
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (_) => const NarrativeViewer()));
   }
 
   void _showError(String errors) {

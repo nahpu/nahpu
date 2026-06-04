@@ -3,17 +3,14 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/specimen_services.dart';
 
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {
   await SpecimenServices(ref: ref).createSpecimen();
-  if (context.mounted) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const SpecimenViewer()),
-    );
-  }
+  // SpecimenViewer stays mounted in ProjectShell; refresh it in place.
+  ref.invalidate(specimenEntryProvider);
 }
 
 class NewSpecimensTextButton extends ConsumerStatefulWidget {
@@ -130,20 +127,12 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
     try {
       await SpecimenServices(ref: ref)
           .createSpecimenDuplicatePart(widget.specimenUuid!);
-      if (context.mounted) {
-        _navigateToSpecimenViewer();
-      }
+      ref.invalidate(specimenEntryProvider);
     } catch (e) {
       if (context.mounted) {
         _showError('Error duplicating part: $e');
       }
     }
-  }
-
-  void _navigateToSpecimenViewer() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const SpecimenViewer()),
-    );
   }
 
   void _showError(String message) {
@@ -170,8 +159,8 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
             );
             if (context.mounted) {
               _pop();
-              _navigateToSpecimenViewer();
             }
+            ref.invalidate(specimenEntryProvider);
           } catch (e) {
             if (context.mounted) {
               _showError('Error deleting specimen: $e');

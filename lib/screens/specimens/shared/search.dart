@@ -103,14 +103,11 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
             ),
             TextButton(
                 onPressed: () {
-                  setState(() {
-                    _searchController.clear();
-                    ref.invalidate(specimenEntryProvider);
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SpecimenViewer()));
-                  });
+                  _searchController.clear();
+                  ref.invalidate(specimenEntryProvider);
+                  // Return to the SpecimenViewer that is still mounted in the
+                  // ProjectShell underneath this search screen.
+                  Navigator.pop(context);
                 },
                 child: const Text('Cancel')),
           ],
