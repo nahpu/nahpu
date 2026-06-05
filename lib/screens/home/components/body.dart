@@ -212,10 +212,7 @@ class ProjectViewState extends ConsumerState<ProjectView> {
       // Always open a project on the Dashboard tab.
       ref.read(projectNavbarIndexProvider.notifier).state = 0;
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ProjectShell()),
-      );
+      Navigator.push(context, ProjectShell.route());
     };
   }
 }

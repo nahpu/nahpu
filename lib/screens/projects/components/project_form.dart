@@ -11,8 +11,9 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
+import 'package:nahpu/screens/shared/project_shell.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/validation.dart';
 
 class ProjectForm extends ConsumerStatefulWidget {
@@ -288,10 +289,14 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
   }
 
   Future<void> _goToDashboard() async {
-    await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const Dashboard()),
-    );
+    ref.read(projectNavbarIndexProvider.notifier).state = 0;
+    if (widget.isEditing) {
+      // The shell is still below the edit form; return to it in place.
+      ProjectShell.popToShell(context);
+    } else {
+      // A new project has no shell yet; open one for it.
+      await Navigator.pushReplacement(context, ProjectShell.route());
+    }
   }
 }
 

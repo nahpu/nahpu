@@ -33,6 +33,31 @@ class ProjectShell extends ConsumerWidget {
 
   final List<Widget> pages;
 
+  /// Route name used so screens pushed on top of the shell (forms, imports,
+  /// fullscreen views) can return to it with [popToShell] regardless of how
+  /// many routes are stacked above it.
+  static const String routeName = 'project_shell';
+
+  /// The route used to open a project. Always carries [routeName] so
+  /// [popToShell] can find it.
+  static Route<void> route() {
+    return MaterialPageRoute<void>(
+      settings: const RouteSettings(name: routeName),
+      builder: (_) => const ProjectShell(),
+    );
+  }
+
+  /// Pops every route stacked above the shell, returning to it in place.
+  static void popToShell(BuildContext context) {
+    Navigator.of(context).popUntil((route) => route.settings.name == routeName);
+  }
+
+  /// Selects [index] on the shell's navbar and returns to the shell.
+  static void returnToTab(BuildContext context, WidgetRef ref, int index) {
+    ref.read(projectNavbarIndexProvider.notifier).state = index;
+    popToShell(context);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final index = ref.watch(projectNavbarIndexProvider);

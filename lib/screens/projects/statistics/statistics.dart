@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/project_shell.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -154,10 +154,7 @@ class StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
           tooltip: 'Close',
           icon: const Icon(Icons.close_rounded),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              _closeFullscreen(),
-            );
+            ProjectShell.returnToTab(context, ref, 0);
           },
         ),
       ),
@@ -316,20 +313,6 @@ class StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       default:
         return {};
     }
-  }
-
-  Route _closeFullscreen() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          const Dashboard(),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(0.0, 0.0);
-        const end = Offset.zero;
-        final tween = Tween(begin: begin, end: end);
-        final offsetAnimation = animation.drive(tween);
-        return SlideTransition(position: offsetAnimation, child: child);
-      },
-    );
   }
 }
 
