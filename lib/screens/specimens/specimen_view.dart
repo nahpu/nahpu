@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/features.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/screens/specimens/shared/search.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
@@ -46,8 +45,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return FalseWillPop(
-        child: Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: const Text(
           "Specimen Records",
@@ -60,7 +58,9 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
                     final specimenData =
                         await SpecimenServices(ref: ref).getAllSpecimens();
                     if (context.mounted) {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      // Push the search screen on top of the shell; its Cancel
+                      // button pops back to this still-mounted viewer.
+                      Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) =>
                             SpecimenSearchView(specimenData: specimenData),
                       ));
@@ -122,7 +122,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
           pageNav: _pageNav,
         ),
       ),
-    ));
+    );
   }
 
   void _updatePageNav(int value) {

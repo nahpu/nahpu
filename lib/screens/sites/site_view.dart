@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/sites.dart';
@@ -45,8 +44,7 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
   @override
   Widget build(BuildContext context) {
     final siteEntries = ref.watch(siteEntryProvider);
-    return FalseWillPop(
-        child: Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Sites"),
         automaticallyImplyLeading: false,
@@ -91,10 +89,6 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
                       _isSearching = false;
                       _searchController.clear();
                       ref.invalidate(siteEntryProvider);
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => super.widget));
                     });
                   },
                   child: const Text('Cancel')),
@@ -148,7 +142,7 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
           child: PageNavButton(
             pageNav: _pageNav,
           )),
-    ));
+    );
   }
 
   void _updatePageNav(int value) {

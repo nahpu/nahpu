@@ -31,29 +31,27 @@ class DashboardState extends ConsumerState<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return FalseWillPop(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Project Dashboard"),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-        floatingActionButton: const ActionButtons(),
-        drawer: const ProjectMenuDrawer(),
-        body: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints c) {
-            bool useHorizontalLayout = c.maxWidth > 600;
-            return SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    TopPanel(useHorizontalLayout: useHorizontalLayout),
-                    BottomPanel(useHorizontalLayout: useHorizontalLayout)
-                  ],
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Project Dashboard"),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+      floatingActionButton: const ActionButtons(),
+      drawer: const ProjectMenuDrawer(),
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints c) {
+          bool useHorizontalLayout = c.maxWidth > 600;
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TopPanel(useHorizontalLayout: useHorizontalLayout),
+                  BottomPanel(useHorizontalLayout: useHorizontalLayout)
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

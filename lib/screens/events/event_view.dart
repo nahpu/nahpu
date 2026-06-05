@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/navigation_services.dart';
@@ -43,8 +42,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   @override
   Widget build(BuildContext context) {
     final services = CollEventServices(ref: ref);
-    return FalseWillPop(
-        child: Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Events"),
         actions: [
@@ -88,10 +86,6 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
                       _isSearching = false;
                       _searchController.clear();
                       services.invalidateCollEvent();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => super.widget),
-                      );
                     });
                   },
                   child: const Text("Cancel")),
@@ -148,7 +142,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
           pageNav: _pageNav,
         ),
       ),
-    ));
+    );
   }
 
   void _updatePageNav(int value) {

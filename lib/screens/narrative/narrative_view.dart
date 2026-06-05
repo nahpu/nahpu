@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -44,8 +43,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   @override
   Widget build(BuildContext context) {
     final narrativeServices = NarrativeServices(ref: ref);
-    return FalseWillPop(
-        child: Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Narrative"),
         actions: [
@@ -90,10 +88,6 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
                       _isSearching = false;
                       _searchController.clear();
                       narrativeServices.invalidateNarrative();
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => super.widget));
                     });
                   },
                   child: const Text('Cancel')),
@@ -150,7 +144,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
           pageNav: _pageNav,
         ),
       ),
-    ));
+    );
   }
 
   void _updatePageNav(int value) {
@@ -202,7 +196,8 @@ class NarrativePages extends StatelessWidget {
     // to parse a time from the existing date string for backwards
     // compatibility with old data.
     String? timeStd = narrativeEntries[index].time;
-    if ((timeStd == null || timeStd.isEmpty) && narrativeEntries[index].date != null) {
+    if ((timeStd == null || timeStd.isEmpty) &&
+        narrativeEntries[index].date != null) {
       final storedDate = narrativeEntries[index].date!;
       final parsed = DateTime.tryParse(storedDate);
       if (parsed != null) {
