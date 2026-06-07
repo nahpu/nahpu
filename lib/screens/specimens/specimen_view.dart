@@ -45,6 +45,10 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
 
   @override
   Widget build(BuildContext context) {
+    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
+    ref.listen(specimenEntryProvider, (_, next) {
+      next.whenData(_reconcile);
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -80,37 +84,21 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
         child: ref.watch(specimenEntryProvider).when(
               data: (specimenEntry) {
                 if (specimenEntry.isEmpty) {
-                  setState(() {
-                    isVisible = false;
-                    _specimenUuid = null;
-                  });
-
                   return const EmptySpecimen(isButtonVisible: true);
-                } else {
-                  int specimenSize = specimenEntry.length;
-                  setState(() {
-                    if (specimenSize >= 2) {
-                      isVisible = true;
-                    } else {
-                      isVisible = false;
-                    }
-                    _pageNav.pageCounts = specimenSize;
-                    _pageNav.updatePageController();
-                  });
-                  return SpecimenPages(
-                    pageNav: _pageNav,
-                    isNavButtonVisible: isVisible,
-                    specimenEntry: specimenEntry,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _specimenUuid = specimenEntry[index].uuid;
-                        _catalogFmt = matchTaxonGroupToCatFmt(
-                            specimenEntry[index].taxonGroup);
-                        _updatePageNav(index);
-                      });
-                    },
-                  );
                 }
+                return SpecimenPages(
+                  pageNav: _pageNav,
+                  isNavButtonVisible: isVisible,
+                  specimenEntry: specimenEntry,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _specimenUuid = specimenEntry[index].uuid;
+                      _catalogFmt = matchTaxonGroupToCatFmt(
+                          specimenEntry[index].taxonGroup);
+                      _updatePageNav(index);
+                    });
+                  },
+                );
               },
               loading: () => const CommonProgressIndicator(),
               error: (error, stack) => Text(error.toString()),
@@ -123,6 +111,26 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
         ),
       ),
     );
+  }
+
+  void _reconcile(List<SpecimenData> specimenEntry) {
+    if (!mounted) return;
+    final count = specimenEntry.length;
+    final index = _pageNav.clampToCount(count);
+    setState(() {
+      isVisible = count >= 2;
+      if (count == 0) {
+        _specimenUuid = null;
+        _catalogFmt = null;
+      } else if (_specimenUuid != null &&
+          !specimenEntry.any((specimen) => specimen.uuid == _specimenUuid)) {
+        _specimenUuid = specimenEntry[index].uuid;
+        _catalogFmt = matchTaxonGroupToCatFmt(specimenEntry[index].taxonGroup);
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _pageNav.clampController(index);
+    });
   }
 
   void _updatePageNav(int value) {

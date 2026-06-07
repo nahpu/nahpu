@@ -42,6 +42,10 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   @override
   Widget build(BuildContext context) {
     final services = CollEventServices(ref: ref);
+    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
+    ref.listen(collEventEntryProvider, (_, next) {
+      next.whenData(_reconcile);
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text("Events"),
@@ -101,35 +105,19 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
           child: ref.watch(collEventEntryProvider).when(
                 data: (collEventEntries) {
                   if (collEventEntries.isEmpty) {
-                    setState(() {
-                      _isVisible = false;
-                      _collEvenId = null;
-                    });
-
                     return EmptyCollEvent(isButtonVisible: !_isSearching);
-                  } else {
-                    int collEventSize = collEventEntries.length;
-                    setState(() {
-                      if (collEventSize >= 2) {
-                        _isVisible = true;
-                      } else {
-                        _isVisible = false;
-                      }
-                      _pageNav.pageCounts = collEventSize;
-                      _pageNav.updatePageController();
-                    });
-                    return CollEventPages(
-                      collEventEntries: collEventEntries,
-                      pageNav: _pageNav,
-                      isNavButtonVisible: _isVisible,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _collEvenId = collEventEntries[index].id;
-                          _updatePageNav(index);
-                        });
-                      },
-                    );
                   }
+                  return CollEventPages(
+                    collEventEntries: collEventEntries,
+                    pageNav: _pageNav,
+                    isNavButtonVisible: _isVisible,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _collEvenId = collEventEntries[index].id;
+                        _updatePageNav(index);
+                      });
+                    },
+                  );
                 },
                 loading: () => const CommonProgressIndicator(),
                 error: (error, stack) => Text(error.toString()),
@@ -143,6 +131,24 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
         ),
       ),
     );
+  }
+
+  void _reconcile(List<CollEventData> collEventEntries) {
+    if (!mounted) return;
+    final count = collEventEntries.length;
+    final index = _pageNav.clampToCount(count);
+    setState(() {
+      _isVisible = count >= 2;
+      if (count == 0) {
+        _collEvenId = null;
+      } else if (_collEvenId != null &&
+          !collEventEntries.any((event) => event.id == _collEvenId)) {
+        _collEvenId = collEventEntries[index].id;
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _pageNav.clampController(index);
+    });
   }
 
   void _updatePageNav(int value) {

@@ -44,6 +44,12 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
   @override
   Widget build(BuildContext context) {
     final siteEntries = ref.watch(siteEntryProvider);
+    // Reconcile page/selection bookkeeping outside build, so setState is legal
+    // and the always-mounted viewer survives an invalidate without resetting
+    // its scroll position or pointing the menu at a deleted record.
+    ref.listen(siteEntryProvider, (_, next) {
+      next.whenData(_reconcile);
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text("Sites"),
@@ -102,34 +108,19 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
         child: Center(
           child: siteEntries.when(data: (siteEntries) {
             if (siteEntries.isEmpty) {
-              setState(() {
-                _isVisible = false;
-                _siteId = null;
-              });
               return EmptySite(isButtonVisible: !_isSearching);
-            } else {
-              int siteSize = siteEntries.length;
-              setState(() {
-                if (siteSize >= 2) {
-                  _isVisible = true;
-                } else {
-                  _isVisible = false;
-                }
-                _pageNav.pageCounts = siteSize;
-                _pageNav.updatePageController();
-              });
-              return SitePages(
-                siteEntries: siteEntries,
-                pageNav: _pageNav,
-                isNavButtonVisible: _isVisible,
-                onPageChanged: (index) {
-                  setState(() {
-                    _siteId = siteEntries[index].id;
-                    _updatePageNav(index);
-                  });
-                },
-              );
             }
+            return SitePages(
+              siteEntries: siteEntries,
+              pageNav: _pageNav,
+              isNavButtonVisible: _isVisible,
+              onPageChanged: (index) {
+                setState(() {
+                  _siteId = siteEntries[index].id;
+                  _updatePageNav(index);
+                });
+              },
+            );
           }, loading: () {
             return const CommonProgressIndicator();
           }, error: (error, stackTrace) {
@@ -143,6 +134,25 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
             pageNav: _pageNav,
           )),
     );
+  }
+
+  void _reconcile(List<SiteData> siteEntries) {
+    if (!mounted) return;
+    final count = siteEntries.length;
+    final index = _pageNav.clampToCount(count);
+    setState(() {
+      _isVisible = count >= 2;
+      if (count == 0) {
+        _siteId = null;
+      } else if (_siteId != null &&
+          !siteEntries.any((site) => site.id == _siteId)) {
+        // The selected record was deleted; fall back to the clamped page.
+        _siteId = siteEntries[index].id;
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _pageNav.clampController(index);
+    });
   }
 
   void _updatePageNav(int value) {

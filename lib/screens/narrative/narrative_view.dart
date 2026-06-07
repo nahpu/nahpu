@@ -43,6 +43,10 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   @override
   Widget build(BuildContext context) {
     final narrativeServices = NarrativeServices(ref: ref);
+    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
+    ref.listen(narrativeEntryProvider, (_, next) {
+      next.whenData(_reconcile);
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text("Narrative"),
@@ -103,35 +107,19 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
           child: ref.watch(narrativeEntryProvider).when(
                 data: (narrativeEntries) {
                   if (narrativeEntries.isEmpty) {
-                    setState(() {
-                      isVisible = false;
-                      _narrativeId = null;
-                    });
-
                     return EmptyNarrative(isButtonVisible: !_isSearching);
-                  } else {
-                    int narrativeSize = narrativeEntries.length;
-                    setState(() {
-                      if (narrativeSize >= 2) {
-                        isVisible = true;
-                      } else {
-                        isVisible = false;
-                      }
-                      _pageNav.pageCounts = narrativeSize;
-                      _pageNav.updatePageController();
-                    });
-                    return NarrativePages(
-                      narrativeEntries: narrativeEntries,
-                      isNavButtonVisible: isVisible,
-                      pageNav: _pageNav,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _narrativeId = narrativeEntries[index].id;
-                          _updatePageNav(index);
-                        });
-                      },
-                    );
                   }
+                  return NarrativePages(
+                    narrativeEntries: narrativeEntries,
+                    isNavButtonVisible: isVisible,
+                    pageNav: _pageNav,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _narrativeId = narrativeEntries[index].id;
+                        _updatePageNav(index);
+                      });
+                    },
+                  );
                 },
                 loading: () => const CommonProgressIndicator(),
                 error: (error, stack) => Text(error.toString()),
@@ -145,6 +133,24 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
         ),
       ),
     );
+  }
+
+  void _reconcile(List<NarrativeData> narrativeEntries) {
+    if (!mounted) return;
+    final count = narrativeEntries.length;
+    final index = _pageNav.clampToCount(count);
+    setState(() {
+      isVisible = count >= 2;
+      if (count == 0) {
+        _narrativeId = null;
+      } else if (_narrativeId != null &&
+          !narrativeEntries.any((narrative) => narrative.id == _narrativeId)) {
+        _narrativeId = narrativeEntries[index].id;
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _pageNav.clampController(index);
+    });
   }
 
   void _updatePageNav(int value) {

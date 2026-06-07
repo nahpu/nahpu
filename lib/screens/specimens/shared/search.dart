@@ -89,15 +89,17 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
                       SpecimenSearchOption.values[_selectedSearchValue],
                 ).search(query.toLowerCase());
                 setState(() {
-                  if (_filteredSpecimenData.length > 2) {
-                    _isVisible = true;
-                  }
                   if (_searchController.text.isEmpty) {
                     _filteredSpecimenData.clear();
                   }
-                  _pageNav.pageCounts = _filteredSpecimenData.length;
-                  _pageNav.updatePageController();
+                  // Reuse the single PageController (no recreate/leak); clamp
+                  // the page into the new result range and jump to it.
+                  final index =
+                      _pageNav.clampToCount(_filteredSpecimenData.length);
                   _isVisible = query.isNotEmpty;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _pageNav.clampController(index);
+                  });
                 });
               },
             ),
