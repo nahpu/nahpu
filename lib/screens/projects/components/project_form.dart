@@ -288,14 +288,19 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
     ProjectServices(ref: ref).updateProject(widget.projectUuid, projectData);
   }
 
-  Future<void> _goToDashboard() async {
+  void _goToDashboard() {
     ref.read(projectNavbarIndexProvider.notifier).state = 0;
     if (widget.isEditing) {
       // The shell is still below the edit form; return to it in place.
       ProjectShell.popToShell(context);
     } else {
-      // A new project has no shell yet; open one for it.
-      await Navigator.pushReplacement(context, ProjectShell.route());
+      // Creating a project switches projectUuidProvider to the new project
+      // (see ProjectServices.createProject). Clear any screens back to Home,
+      // then open a single shell for it. This works whether the form was
+      // launched from Home or from inside another open project, so a second
+      // shell can never stack on top of an existing one.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).push(ProjectShell.route());
     }
   }
 }
