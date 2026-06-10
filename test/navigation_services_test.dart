@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/navigation_services.dart';
 
@@ -51,6 +52,50 @@ void main() {
       nav.clampToCount(3);
       expect(nav.isFirstPage, isFalse);
       expect(nav.isLastPage, isTrue);
+    });
+  });
+
+  group('PageNavigation.clampController', () {
+    Widget buildPager(PageNavigation nav) {
+      return MaterialApp(
+        home: PageView.builder(
+          controller: nav.pageController,
+          itemCount: 10,
+          itemBuilder: (context, index) => Text('page $index'),
+        ),
+      );
+    }
+
+    testWidgets('jumps a settled viewport to the given index', (tester) async {
+      final nav = PageNavigation.init();
+      await tester.pumpWidget(buildPager(nav));
+      nav.clampController(4);
+      await tester.pumpAndSettle();
+      expect(nav.pageController.page!.round(), 4);
+      nav.dispose();
+    });
+
+    testWidgets('does not cut short an in-flight page animation',
+        (tester) async {
+      final nav = PageNavigation.init();
+      await tester.pumpWidget(buildPager(nav));
+      nav.pageController.jumpToPage(9);
+      await tester.pump();
+
+      nav.pageController.animateToPage(0,
+          duration: kTabScrollDuration, curve: Curves.easeInOut);
+      // A refresh triggered by an intermediate onPageChanged reconciles a few
+      // frames later with the page recorded back then; it must not hijack the
+      // viewport.
+      await tester.pump(kTabScrollDuration ~/ 4);
+      final staleIndex = nav.pageController.page!.round();
+      await tester.pump(kTabScrollDuration ~/ 4);
+      expect(nav.pageController.page!.round(), isNot(staleIndex));
+      nav.clampController(staleIndex);
+
+      await tester.pumpAndSettle();
+      expect(nav.pageController.page!.round(), 0);
+      nav.dispose();
     });
   });
 }
