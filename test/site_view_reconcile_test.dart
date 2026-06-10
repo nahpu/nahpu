@@ -172,7 +172,11 @@ void main() {
 
     // Matches the old per-tab-push behavior: opening a viewer showed the most
     // recent record, not the first. Later refreshes preserve the position.
+    // Assert the real viewport position, not just the counter text — the
+    // counter reads PageNavigation bookkeeping and can lie about the view.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
+    final controller = tester.widget<PageView>(find.byType(PageView)).controller;
+    expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, lastId);
     expect(tester.takeException(), isNull);
 
@@ -197,8 +201,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // The viewer lands on the new record instead of preserving the page, and
-    // the one-shot request is consumed.
+    // the one-shot request is consumed. The viewport itself must move: the
+    // attached PageView keeps its scroll position across a controller swap,
+    // so a counter-only check would pass while the view (and the < > nav
+    // buttons, which navigate relative to the real position) stayed behind.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
+    final controller = tester.widget<PageView>(find.byType(PageView)).controller;
+    expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     expect(
       container.read(pendingRecordJumpProvider(RecordViewer.site)),

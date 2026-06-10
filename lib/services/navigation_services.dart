@@ -76,13 +76,14 @@ class PageNavigation {
 
   /// Replaces [pageController] with a fresh one opened at [index].
   ///
-  /// Used when landing on a specific page of a list that is about to be
-  /// rebuilt (first load, or a create/duplicate that grew the list). A plain
-  /// [clampController] jump can race the rebuild — the data listener runs
-  /// before the [PageView] picks up the larger item count — whereas a
-  /// controller whose `initialPage` is already [index] attaches there
-  /// directly. The previous controller is disposed once the rebuild has
-  /// detached it from its old [PageView].
+  /// Only effective while no [PageView] is attached (first load, or a list
+  /// that was empty): `initialPage` is applied when the [PageView] creates
+  /// its scroll position, so the view opens directly on the target page. An
+  /// already-attached [PageView] re-attaches a swapped-in controller to its
+  /// existing scroll position — `initialPage` is ignored and the viewport
+  /// does not move — so callers must [clampController] from a post-frame
+  /// callback instead. The previous controller is disposed once the rebuild
+  /// has detached it.
   void openControllerAt(int index) {
     final previous = pageController;
     pageController = PageController(initialPage: index);

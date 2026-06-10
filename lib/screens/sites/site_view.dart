@@ -158,9 +158,13 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
         _siteId = siteEntries[index].id;
       }
     });
-    if (landIndex != null) {
+    if (landIndex != null && !_pageNav.pageController.hasClients) {
+      // First attach: a fresh controller opens the PageView directly on the
+      // target page (initialPage only applies to a newly created position).
       _pageNav.openControllerAt(index);
     } else {
+      // Attached PageView: a controller swap would re-attach the existing
+      // scroll position unchanged, so jump after the rebuilt frame instead.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _pageNav.clampController(index);
       });
