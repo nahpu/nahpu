@@ -47,6 +47,9 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
     final narrativeServices = NarrativeServices(ref: ref);
     // Reconcile page/selection bookkeeping outside build (see site_view.dart).
     ref.listen(narrativeEntryProvider, (_, next) {
+      // Skip refresh emissions: an in-progress refresh still carries the
+      // previous list (see site_view.dart).
+      if (next.isLoading) return;
       next.whenData(_reconcile);
     });
     return Scaffold(
@@ -155,13 +158,12 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
         _narrativeId = narrativeEntries[index].id;
       }
     });
-    if (landIndex != null && !_pageNav.pageController.hasClients) {
-      // First attach: a fresh controller opens the PageView directly on the
-      // target page (initialPage only applies to a newly created position).
+    if (landIndex != null) {
+      // The PageView is keyed by the controller, so this rebuilds it with a
+      // fresh scroll position that starts exactly on the target page — a
+      // jump on the live controller would race the refreshed list's layout.
       _pageNav.openControllerAt(index);
     } else {
-      // Attached PageView: a controller swap would re-attach the existing
-      // scroll position unchanged, so jump after the rebuilt frame instead.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _pageNav.clampController(index);
       });
@@ -218,6 +220,9 @@ class NarrativePages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
+      // Keyed by controller identity so openControllerAt lands on its page
+      // via a fresh scroll position (see site_view.dart).
+      key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: narrativeEntries.length,
       itemBuilder: (context, index) {

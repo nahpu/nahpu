@@ -217,4 +217,42 @@ void main() {
 
     await drainOverlayTimer(tester);
   });
+
+  testWidgets('creating from a non-last page lands on the new record',
+      (tester) async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    addTearDown(db.close);
+    for (var i = 0; i < 4; i++) {
+      await seedSite(db);
+    }
+
+    final container = await pumpViewer(tester, db);
+
+    // First load lands on 4 of 4; swipe back into the middle of the list.
+    await tester.fling(find.byType(PageView), const Offset(600, 0), 2000);
+    await tester.pumpAndSettle();
+    await tester.fling(find.byType(PageView), const Offset(600, 0), 2000);
+    await tester.pumpAndSettle();
+    expect(find.text('Page 2 of 4'), findsAtLeastNWidgets(1));
+
+    final newId = await seedSite(db);
+    container
+        .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+        .state = newId;
+    container.invalidate(siteEntryProvider);
+    await tester.pumpAndSettle();
+
+    // Regression guard: a jump on the live controller raced the refreshed
+    // list's layout, clamped to the old last page, and corrupted the page
+    // bookkeeping ("5 of 5" flashing, then stuck one page short). The keyed
+    // controller swap must land the real viewport on the new record.
+    expect(find.text('Page 5 of 5'), findsAtLeastNWidgets(1));
+    final controller =
+        tester.widget<PageView>(find.byType(PageView)).controller;
+    expect(controller?.page, 4.0);
+    expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
+    expect(tester.takeException(), isNull);
+
+    await drainOverlayTimer(tester);
+  });
 }

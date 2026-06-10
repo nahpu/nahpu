@@ -50,6 +50,10 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
     // and the always-mounted viewer survives an invalidate without resetting
     // its scroll position or pointing the menu at a deleted record.
     ref.listen(siteEntryProvider, (_, next) {
+      // Skip refresh emissions: an in-progress refresh still carries the
+      // previous list, and reconciling against it would consume landing
+      // requests with stale data.
+      if (next.isLoading) return;
       next.whenData(_reconcile);
     });
     return Scaffold(
@@ -158,13 +162,12 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
         _siteId = siteEntries[index].id;
       }
     });
-    if (landIndex != null && !_pageNav.pageController.hasClients) {
-      // First attach: a fresh controller opens the PageView directly on the
-      // target page (initialPage only applies to a newly created position).
+    if (landIndex != null) {
+      // The PageView is keyed by the controller, so this rebuilds it with a
+      // fresh scroll position that starts exactly on the target page — a
+      // jump on the live controller would race the refreshed list's layout.
       _pageNav.openControllerAt(index);
     } else {
-      // Attached PageView: a controller swap would re-attach the existing
-      // scroll position unchanged, so jump after the rebuilt frame instead.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _pageNav.clampController(index);
       });
@@ -218,6 +221,10 @@ class SitePages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
+      // Keyed by controller identity: openControllerAt swaps the controller
+      // to land on a page, and the new element's fresh scroll position is
+      // what makes initialPage take effect.
+      key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: siteEntries.length,
       itemBuilder: (context, index) {

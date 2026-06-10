@@ -65,10 +65,25 @@ class PageNavigation {
     return currentPage - 1;
   }
 
+  /// Whether the attached viewport can currently reach [index]. False while
+  /// the [PageView] still has the pre-refresh (smaller) item count laid out.
+  bool _canReach(int index) {
+    final position = pageController.position;
+    if (!position.hasContentDimensions) return false;
+    final pageSize =
+        position.viewportDimension * pageController.viewportFraction;
+    if (pageSize <= 0) return false;
+    // Tolerance absorbs floating-point error in the extent math.
+    return index * pageSize <= position.maxScrollExtent + 0.001;
+  }
+
   /// Jumps the live [PageController] to [index] if it isn't already there.
-  /// Safe to call from a post-frame callback after the list shrinks.
+  /// Safe to call from a post-frame callback after the list shrinks. Never
+  /// jumps to a page the laid-out extent cannot reach — that clamps to the
+  /// old last page and corrupts the bookkeeping via a spurious onPageChanged.
   void clampController(int index) {
     if (pageController.hasClients &&
+        _canReach(index) &&
         (pageController.page?.round() ?? 0) != index) {
       pageController.jumpToPage(index);
     }
@@ -76,17 +91,20 @@ class PageNavigation {
 
   /// Replaces [pageController] with a fresh one opened at [index].
   ///
-  /// Only effective while no [PageView] is attached (first load, or a list
-  /// that was empty): `initialPage` is applied when the [PageView] creates
-  /// its scroll position, so the view opens directly on the target page. An
-  /// already-attached [PageView] re-attaches a swapped-in controller to its
-  /// existing scroll position — `initialPage` is ignored and the viewport
-  /// does not move — so callers must [clampController] from a post-frame
-  /// callback instead. The previous controller is disposed once the rebuild
-  /// has detached it.
+  /// `initialPage` is only applied when a [PageView] creates its scroll
+  /// position, so the viewer's [PageView] must be keyed by the controller
+  /// instance (`ObjectKey(pageNav.pageController)`): the swap then rebuilds
+  /// it as a new element whose fresh position starts exactly on the target
+  /// page, with no `onPageChanged` fired. Jumping the live controller
+  /// instead is unreliable here — a landing is requested by a data listener
+  /// while the refreshed (grown) list may not be laid out yet, and a jump
+  /// against the stale extent clamps to the old last page and corrupts the
+  /// page bookkeeping via a spurious `onPageChanged`. `keepPage: false`
+  /// stops [PageStorage] from restoring the pre-landing page. The previous
+  /// controller is disposed once the rebuild has detached it.
   void openControllerAt(int index) {
     final previous = pageController;
-    pageController = PageController(initialPage: index);
+    pageController = PageController(initialPage: index, keepPage: false);
     _disposeWhenDetached(previous);
   }
 
