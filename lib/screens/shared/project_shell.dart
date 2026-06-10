@@ -9,9 +9,7 @@ import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/providers/projects.dart';
 
-/// The top-level project pages, in the same order as the destinations in
-/// [ProjectBottomNavbar]. The index into this list is driven by
-/// [projectNavbarIndexProvider].
+/// The top-level project pages, in [ProjectBottomNavbar] destination order.
 const List<Widget> defaultProjectPages = [
   Dashboard(),
   SiteViewer(),
@@ -20,26 +18,19 @@ const List<Widget> defaultProjectPages = [
   NarrativeViewer(),
 ];
 
-/// Hosts the five top-level project screens in a single [Scaffold] and swaps
-/// between them in place via an [IndexedStack].
-///
-/// Selecting a tab in [ProjectBottomNavbar] only updates
-/// [projectNavbarIndexProvider]; it no longer pushes a new route, so there is
-/// no page-transition animation and each screen keeps its state across
-/// switches. [pages] is injectable so widget tests can supply lightweight
-/// stand-ins for the real screens.
+/// Hosts the five top-level project screens and swaps between them in place
+/// via an [IndexedStack] driven by [projectNavbarIndexProvider] — no route
+/// push, so screens keep their state across tab switches. [pages] is
+/// injectable so widget tests can supply lightweight stand-ins.
 class ProjectShell extends ConsumerWidget {
   const ProjectShell({super.key, this.pages = defaultProjectPages});
 
   final List<Widget> pages;
 
-  /// Route name used so screens pushed on top of the shell (forms, imports,
-  /// fullscreen views) can return to it with [popToShell] regardless of how
-  /// many routes are stacked above it.
+  /// Lets [popToShell] find the shell under any number of stacked routes.
   static const String routeName = 'project_shell';
 
-  /// The route used to open a project. Always carries [routeName] so
-  /// [popToShell] can find it.
+  /// The route used to open a project; carries [routeName] for [popToShell].
   static Route<void> route() {
     return MaterialPageRoute<void>(
       settings: const RouteSettings(name: routeName),

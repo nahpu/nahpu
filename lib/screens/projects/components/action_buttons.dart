@@ -12,10 +12,8 @@ import 'package:nahpu/services/types/specimens.dart';
 class ActionButtons extends ConsumerWidget {
   const ActionButtons({super.key});
 
-  /// The Dashboard is not the tab that displays the created record, so after
-  /// a successful create switch the shell to the owning tab ([index] into
-  /// [defaultProjectPages]); the pending record jump then lands the viewer on
-  /// the new record.
+  /// Switches the shell to the tab that displays the created record ([index]
+  /// into [defaultProjectPages]); the pending jump then lands the viewer on it.
   void _showTab(WidgetRef ref, int index) {
     ref.read(projectNavbarIndexProvider.notifier).state = index;
   }

@@ -10,8 +10,7 @@ import 'package:nahpu/services/specimen_services.dart';
 
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {
   final newUuid = await SpecimenServices(ref: ref).createSpecimen();
-  // SpecimenViewer stays mounted in ProjectShell; refresh it in place and
-  // land on the new specimen once it appears in the refreshed list.
+  // Refresh the always-mounted viewer in place and land on the new specimen.
   ref.read(pendingRecordJumpProvider(RecordViewer.specimen).notifier).state =
       newUuid;
   ref.invalidate(specimenEntryProvider);

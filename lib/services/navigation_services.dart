@@ -37,16 +37,10 @@ class PageNavigation {
     }
   }
 
-  /// Reconciles the page bookkeeping after the underlying list changes
-  /// (create/delete/search). Updates [pageCounts], clamps [currentPage] into
-  /// the new range, recomputes the first/last flags, and returns the 0-based
-  /// index that should be shown (0 when the list is empty).
-  ///
-  /// This replaces the old `updatePageController()`, which rebuilt the
-  /// [PageController] on every data refresh (leaking controllers and resetting
-  /// the view to the end). The controller created in [PageNavigation.init] now
-  /// lives for the State's lifetime; callers move to the clamped page via
-  /// [clampController] from a post-frame callback instead.
+  /// Reconciles page bookkeeping after the list changes: updates [pageCounts],
+  /// clamps [currentPage], and returns the 0-based index to show (0 when
+  /// empty). Leaves [pageController] alone — callers move to the clamped page
+  /// via [clampController] from a post-frame callback.
   int clampToCount(int count) {
     pageCounts = count;
     if (count == 0) {
@@ -78,9 +72,8 @@ class PageNavigation {
   }
 
   /// Jumps the live [PageController] to [index] if it isn't already there.
-  /// Safe to call from a post-frame callback after the list shrinks. Never
-  /// jumps to a page the laid-out extent cannot reach — that clamps to the
-  /// old last page and corrupts the bookkeeping via a spurious onPageChanged.
+  /// Never jumps past the laid-out extent — that clamps to the old last page
+  /// and corrupts the bookkeeping via a spurious onPageChanged.
   void clampController(int index) {
     if (pageController.hasClients &&
         _canReach(index) &&
@@ -91,17 +84,12 @@ class PageNavigation {
 
   /// Replaces [pageController] with a fresh one opened at [index].
   ///
-  /// `initialPage` is only applied when a [PageView] creates its scroll
-  /// position, so the viewer's [PageView] must be keyed by the controller
-  /// instance (`ObjectKey(pageNav.pageController)`): the swap then rebuilds
-  /// it as a new element whose fresh position starts exactly on the target
-  /// page, with no `onPageChanged` fired. Jumping the live controller
-  /// instead is unreliable here — a landing is requested by a data listener
-  /// while the refreshed (grown) list may not be laid out yet, and a jump
-  /// against the stale extent clamps to the old last page and corrupts the
-  /// page bookkeeping via a spurious `onPageChanged`. `keepPage: false`
-  /// stops [PageStorage] from restoring the pre-landing page. The previous
-  /// controller is disposed once the rebuild has detached it.
+  /// `initialPage` only applies when a [PageView] creates its scroll position,
+  /// so the viewer's [PageView] must be keyed by the controller instance: the
+  /// swap rebuilds it directly on the target page, with no `onPageChanged`.
+  /// A live jump is unreliable here — the refreshed (grown) list may not be
+  /// laid out yet (see [clampController]). `keepPage: false` stops
+  /// [PageStorage] from restoring the pre-landing page.
   void openControllerAt(int index) {
     final previous = pageController;
     pageController = PageController(initialPage: index, keepPage: false);

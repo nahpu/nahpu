@@ -9,8 +9,7 @@ import 'package:nahpu/services/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
   return SiteServices(ref: ref).createNewSite().then((newId) {
-    // SiteViewer stays mounted in ProjectShell, so refresh its list in place
-    // and land on the new site once it appears in the refreshed list.
+    // Refresh the always-mounted viewer in place and land on the new site.
     ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).state =
         newId;
     ref.invalidate(siteEntryProvider);
@@ -147,7 +146,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             try {
               await SiteServices(ref: ref).deleteSite(widget.siteId!);
 
-              // Close the delete dialog and refresh the list in place.
+              // Close the delete dialog.
               if (mounted) {
                 Navigator.pop(context);
               }

@@ -17,8 +17,8 @@ enum MenuSelection {
 
 Future<void> createNewNarrative(BuildContext context, WidgetRef ref) {
   return NarrativeServices(ref: ref).createNewNarrative().then((newId) {
-    // NarrativeViewer stays mounted in ProjectShell; refresh it in place and
-    // land on the new narrative once it appears in the refreshed list.
+    // Refresh the always-mounted viewer in place and land on the new
+    // narrative.
     ref.read(pendingRecordJumpProvider(RecordViewer.narrative).notifier).state =
         newId;
     ref.invalidate(narrativeEntryProvider);
@@ -116,7 +116,7 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
           try {
             await NarrativeServices(ref: ref)
                 .deleteNarrative(widget.narrativeId!);
-            // Close the delete dialog and refresh the list in place.
+            // Close the delete dialog.
             if (mounted) {
               Navigator.of(context).pop();
             }

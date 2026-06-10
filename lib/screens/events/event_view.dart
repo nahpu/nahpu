@@ -46,8 +46,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
     final services = CollEventServices(ref: ref);
     // Reconcile page/selection bookkeeping outside build (see site_view.dart).
     ref.listen(collEventEntryProvider, (_, next) {
-      // Skip refresh emissions: an in-progress refresh still carries the
-      // previous list (see site_view.dart).
+      // Skip refresh emissions (see site_view.dart).
       if (next.isLoading) return;
       next.whenData(_reconcile);
     });
@@ -157,9 +156,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
       }
     });
     if (landIndex != null) {
-      // The PageView is keyed by the controller, so this rebuilds it with a
-      // fresh scroll position that starts exactly on the target page — a
-      // jump on the live controller would race the refreshed list's layout.
+      // Keyed controller swap (see site_view.dart).
       _pageNav.openControllerAt(index);
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -168,9 +165,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
     }
   }
 
-  /// One-shot landing target for this refresh: a just-created record once it
-  /// appears in the list, or the last record on this State's first data load
-  /// (the old push-a-fresh-viewer-per-tab flow always landed at the end).
+  /// One-shot landing target for this refresh (see site_view.dart).
   int? _landingIndex(List<CollEventData> collEventEntries) {
     final firstLoad = !_loadedOnce;
     _loadedOnce = true;
@@ -220,8 +215,7 @@ class CollEventPages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
-      // Keyed by controller identity so openControllerAt lands on its page
-      // via a fresh scroll position (see site_view.dart).
+      // Keyed by controller identity (see site_view.dart).
       key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: collEventEntries.length,

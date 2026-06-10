@@ -12,8 +12,7 @@ Future<void> createNewCollEvents(BuildContext context, WidgetRef ref) {
 
   return services.createNewCollEvents().then(
     (newId) {
-      // CollEventViewer stays mounted in ProjectShell; refresh it in place
-      // and land on the new event once it appears in the refreshed list.
+      // Refresh the always-mounted viewer in place and land on the new event.
       ref
           .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
           .state = newId;
@@ -124,7 +123,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
           try {
             await CollEventServices(ref: ref)
                 .deleteCollEvent(widget.collEventId!);
-            // Close the delete dialog and refresh the list in place.
+            // Close the delete dialog.
             if (mounted) {
               Navigator.of(context).pop();
             }

@@ -5,7 +5,6 @@ void main() {
   group('PageNavigation.clampToCount', () {
     test('first load from a fresh state shows the first page', () {
       final nav = PageNavigation.init();
-      // currentPage starts at 0 (no page selected yet).
       final index = nav.clampToCount(3);
       expect(nav.pageCounts, 3);
       expect(nav.currentPage, 1);
@@ -26,10 +25,10 @@ void main() {
 
     test('shrinking the list clamps currentPage to the new last page', () {
       final nav = PageNavigation.init();
-      nav.currentPage = 5; // was on page 5 of 5
-      final index = nav.clampToCount(3); // list shrank to 3
+      nav.currentPage = 5;
+      final index = nav.clampToCount(3);
       expect(nav.pageCounts, 3);
-      expect(nav.currentPage, 3); // clamped to the new last page
+      expect(nav.currentPage, 3);
       expect(index, 2);
       expect(nav.isFirstPage, isFalse);
       expect(nav.isLastPage, isTrue);

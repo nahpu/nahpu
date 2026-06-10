@@ -49,8 +49,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
   Widget build(BuildContext context) {
     // Reconcile page/selection bookkeeping outside build (see site_view.dart).
     ref.listen(specimenEntryProvider, (_, next) {
-      // Skip refresh emissions: an in-progress refresh still carries the
-      // previous list (see site_view.dart).
+      // Skip refresh emissions (see site_view.dart).
       if (next.isLoading) return;
       next.whenData(_reconcile);
     });
@@ -67,8 +66,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
                     final specimenData =
                         await SpecimenServices(ref: ref).getAllSpecimens();
                     if (context.mounted) {
-                      // Push the search screen on top of the shell; its Cancel
-                      // button pops back to this still-mounted viewer.
+                      // Pushed on top of the shell; Cancel pops back here.
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) =>
                             SpecimenSearchView(specimenData: specimenData),
@@ -139,9 +137,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
       }
     });
     if (landIndex != null) {
-      // The PageView is keyed by the controller, so this rebuilds it with a
-      // fresh scroll position that starts exactly on the target page — a
-      // jump on the live controller would race the refreshed list's layout.
+      // Keyed controller swap (see site_view.dart).
       _pageNav.openControllerAt(index);
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -150,9 +146,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
     }
   }
 
-  /// One-shot landing target for this refresh: a just-created record once it
-  /// appears in the list, or the last record on this State's first data load
-  /// (the old push-a-fresh-viewer-per-tab flow always landed at the end).
+  /// One-shot landing target for this refresh (see site_view.dart).
   int? _landingIndex(List<SpecimenData> specimenEntry) {
     final firstLoad = !_loadedOnce;
     _loadedOnce = true;
@@ -240,8 +234,7 @@ class SpecimenPages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
-      // Keyed by controller identity so openControllerAt lands on its page
-      // via a fresh scroll position (see site_view.dart).
+      // Keyed by controller identity (see site_view.dart).
       key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: specimenEntry.length,

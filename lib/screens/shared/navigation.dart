@@ -73,10 +73,9 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
     );
   }
 
-  /// Refreshes the data shown by the destination tab (and any data it depends
-  /// on). Because [ProjectShell] keeps every screen alive in an [IndexedStack],
-  /// their auto-dispose providers never lose their listeners, so this explicit
-  /// invalidation is the only thing that re-fetches data on a tab switch.
+  /// Re-fetches the destination tab's data. [ProjectShell]'s [IndexedStack]
+  /// keeps every screen's providers alive, so this explicit invalidation is
+  /// the only re-fetch on a tab switch.
   void _onItemTapped(int index) {
     switch (index) {
       case 0:

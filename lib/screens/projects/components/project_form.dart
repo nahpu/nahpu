@@ -294,10 +294,8 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
       // The shell is still below the edit form; return to it in place.
       ProjectShell.popToShell(context);
     } else {
-      // Creating a project switches projectUuidProvider to the new project
-      // (see ProjectServices.createProject). Clear any screens back to Home,
-      // then open a single shell for it. This works whether the form was
-      // launched from Home or from inside another open project, so a second
+      // createProject already pointed projectUuidProvider at the new project.
+      // Pop everything back to Home and open one shell for it, so a second
       // shell can never stack on top of an existing one.
       Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.of(context).push(ProjectShell.route());

@@ -107,8 +107,7 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
                 onPressed: () {
                   _searchController.clear();
                   ref.invalidate(specimenEntryProvider);
-                  // Return to the SpecimenViewer that is still mounted in the
-                  // ProjectShell underneath this search screen.
+                  // Return to the still-mounted viewer below this screen.
                   Navigator.pop(context);
                 },
                 child: const Text('Cancel')),

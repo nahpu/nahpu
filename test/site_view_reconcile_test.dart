@@ -13,14 +13,9 @@ import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/sites.dart';
 
-/// Widget-level regression tests for the in-place refresh hardening from issue
-/// #132 (Fix B/C). They drive the real [SiteViewer] against an in-memory
-/// database — no mocked widgets — so they exercise the same `ref.listen` /
-/// `_reconcile` path the running app uses.
-///
-/// Under the pre-fix code these would fail: the empty branch called
-/// `setState` during build (illegal in a test), and after a delete the page
-/// counter went out of range ("Page 1 of 3" against a 2-item list).
+/// Regression tests for the issue #132 in-place refresh: they drive the real
+/// [SiteViewer] against an in-memory database, exercising the same
+/// `ref.listen`/`_reconcile` path as the running app.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const pathChannel = MethodChannel('plugins.flutter.io/path_provider');
@@ -79,7 +74,6 @@ void main() {
 
     final container = await pumpViewer(tester, db);
 
-    // Three sites; the first load lands on the last record.
     expect(find.byType(SitePages), findsOneWidget);
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
     expect(tester.takeException(), isNull);
@@ -89,7 +83,6 @@ void main() {
     container.invalidate(siteEntryProvider);
     await tester.pumpAndSettle();
 
-    // The counter is reconciled to the shrunk list, not left out of range.
     expect(find.text('Page 2 of 2'), findsAtLeastNWidgets(1));
     expect(find.text('Page 3 of 3'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -108,11 +101,10 @@ void main() {
 
     final container = await pumpViewer(tester, db);
 
-    // The first load lands on the last page (3 of 3).
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
 
-    // Delete the record we're sitting on; currentPage (3) now exceeds the new
-    // count (2) and must be clamped instead of rendering "Page 3 of 2".
+    // Delete the record we're sitting on; currentPage must clamp from 3 to 2
+    // instead of rendering "Page 3 of 2".
     await SiteQuery(db).deleteSite(lastId);
     container.invalidate(siteEntryProvider);
     await tester.pumpAndSettle();
@@ -151,10 +143,8 @@ void main() {
 
     await pumpViewer(tester, db);
 
-    // The menu must target the on-screen record without requiring a swipe:
-    // onPageChanged never fires for the initially shown page, and with a
-    // single record there is no other page to swipe to, so a null id here
-    // would leave Duplicate/Delete and search permanently disabled.
+    // onPageChanged never fires for the initially shown page, so a null id
+    // here would leave Duplicate/Delete and search permanently disabled.
     final menu = tester.widget<SiteMenu>(find.byType(SiteMenu));
     expect(menu.siteId, onlyId);
 
@@ -170,10 +160,9 @@ void main() {
 
     await pumpViewer(tester, db);
 
-    // Matches the old per-tab-push behavior: opening a viewer showed the most
-    // recent record, not the first. Later refreshes preserve the position.
-    // Assert the real viewport position, not just the counter text — the
-    // counter reads PageNavigation bookkeeping and can lie about the view.
+    // Matches the old behavior: a viewer opens on the most recent record.
+    // Assert the real viewport, not just the counter text — the counter reads
+    // bookkeeping and can lie about the view.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
     final controller = tester.widget<PageView>(find.byType(PageView)).controller;
     expect(controller?.page, 2.0);
@@ -200,11 +189,9 @@ void main() {
     container.invalidate(siteEntryProvider);
     await tester.pumpAndSettle();
 
-    // The viewer lands on the new record instead of preserving the page, and
-    // the one-shot request is consumed. The viewport itself must move: the
-    // attached PageView keeps its scroll position across a controller swap,
-    // so a counter-only check would pass while the view (and the < > nav
-    // buttons, which navigate relative to the real position) stayed behind.
+    // Lands on the new record and consumes the one-shot request. Check the
+    // real viewport too — a counter-only check can pass while the view stays
+    // behind.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
     final controller = tester.widget<PageView>(find.byType(PageView)).controller;
     expect(controller?.page, 2.0);
@@ -242,10 +229,9 @@ void main() {
     container.invalidate(siteEntryProvider);
     await tester.pumpAndSettle();
 
-    // Regression guard: a jump on the live controller raced the refreshed
-    // list's layout, clamped to the old last page, and corrupted the page
-    // bookkeeping ("5 of 5" flashing, then stuck one page short). The keyed
-    // controller swap must land the real viewport on the new record.
+    // Regression guard: a live-controller jump raced the refreshed list's
+    // layout and stuck the view one page short. The keyed controller swap
+    // must land the real viewport on the new record.
     expect(find.text('Page 5 of 5'), findsAtLeastNWidgets(1));
     final controller =
         tester.widget<PageView>(find.byType(PageView)).controller;

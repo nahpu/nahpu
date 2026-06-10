@@ -69,8 +69,7 @@ class StatisticViewerState extends ConsumerState<StatisticViewer> {
             const SizedBox(height: 16),
             PrimaryButton(
               onPressed: () {
-                // Push the fullscreen view on top of the shell so its Close
-                // button can pop back to the shell.
+                // Pushed on top of the shell; Close pops back to it.
                 Navigator.push(
                   context,
                   _openFullscreen(),

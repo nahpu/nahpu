@@ -14,10 +14,9 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Regression tests for the Dashboard `+` speed dial (issue #132). Creating a
-/// record from the Dashboard must switch the shell to the tab that shows it —
-/// under the pre-fix code the insert succeeded but the shell stayed on the
-/// Dashboard, so the create looked like a no-op.
+/// Regression tests for the Dashboard `+` speed dial (issue #132): creating a
+/// record must switch the shell to the tab that shows it, not silently insert
+/// behind the Dashboard.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const pathChannel = MethodChannel('plugins.flutter.io/path_provider');
@@ -48,9 +47,8 @@ void main() {
           name: Value('Test project'),
         ));
 
-    // The Dashboard slot carries the real ActionButtons; the Sites slot is the
-    // real SiteViewer so the test can assert the user actually sees the new
-    // record. The remaining tabs are stand-ins.
+    // Dashboard and Sites slots are real (ActionButtons / SiteViewer) so the
+    // test can assert the new record is actually shown; the rest are stand-ins.
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -91,8 +89,6 @@ void main() {
     await tester.tap(find.text('Create site'));
     await tester.pumpAndSettle();
 
-    // The shell switched to the Sites tab and the viewer landed on the
-    // freshly created record — not a silent insert behind the Dashboard.
     expect(container.read(projectNavbarIndexProvider), 1);
     expect(find.text('Page 1 of 1'), findsAtLeastNWidgets(1));
     expect(tester.takeException(), isNull);
