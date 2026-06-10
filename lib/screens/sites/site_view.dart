@@ -144,9 +144,10 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
       _isVisible = count >= 2;
       if (count == 0) {
         _siteId = null;
-      } else if (_siteId != null &&
+      } else if (_siteId == null ||
           !siteEntries.any((site) => site.id == _siteId)) {
-        // The selected record was deleted; fall back to the clamped page.
+        // No selection yet (first load) or the selected record was deleted;
+        // point the menu at the visible page.
         _siteId = siteEntries[index].id;
       }
     });

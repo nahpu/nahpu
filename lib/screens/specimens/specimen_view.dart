@@ -122,7 +122,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
       if (count == 0) {
         _specimenUuid = null;
         _catalogFmt = null;
-      } else if (_specimenUuid != null &&
+      } else if (_specimenUuid == null ||
           !specimenEntry.any((specimen) => specimen.uuid == _specimenUuid)) {
         _specimenUuid = specimenEntry[index].uuid;
         _catalogFmt = matchTaxonGroupToCatFmt(specimenEntry[index].taxonGroup);

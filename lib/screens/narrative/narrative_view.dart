@@ -143,7 +143,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
       isVisible = count >= 2;
       if (count == 0) {
         _narrativeId = null;
-      } else if (_narrativeId != null &&
+      } else if (_narrativeId == null ||
           !narrativeEntries.any((narrative) => narrative.id == _narrativeId)) {
         _narrativeId = narrativeEntries[index].id;
       }

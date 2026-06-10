@@ -141,7 +141,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
       _isVisible = count >= 2;
       if (count == 0) {
         _collEvenId = null;
-      } else if (_collEvenId != null &&
+      } else if (_collEvenId == null ||
           !collEventEntries.any((event) => event.id == _collEvenId)) {
         _collEvenId = collEventEntries[index].id;
       }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/screens/sites/components/menu_bar.dart';
 import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/site_queries.dart';
@@ -141,6 +142,24 @@ void main() {
 
     expect(find.byType(EmptySite), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    await drainOverlayTimer(tester);
+  });
+
+  testWidgets('first load points the menu at the visible record',
+      (tester) async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    addTearDown(db.close);
+    final onlyId = await seedSite(db);
+
+    await pumpViewer(tester, db);
+
+    // The menu must target the on-screen record without requiring a swipe:
+    // onPageChanged never fires for the initially shown page, and with a
+    // single record there is no other page to swipe to, so a null id here
+    // would leave Duplicate/Delete and search permanently disabled.
+    final menu = tester.widget<SiteMenu>(find.byType(SiteMenu));
+    expect(menu.siteId, onlyId);
 
     await drainOverlayTimer(tester);
   });
