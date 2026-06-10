@@ -9,6 +9,7 @@ import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/sites.dart';
 
@@ -78,9 +79,9 @@ void main() {
 
     final container = await pumpViewer(tester, db);
 
-    // Three sites, sitting on the first page.
+    // Three sites; the first load lands on the last record.
     expect(find.byType(SitePages), findsOneWidget);
-    expect(find.text('Page 1 of 3'), findsAtLeastNWidgets(1));
+    expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
     expect(tester.takeException(), isNull);
 
     // Delete the middle site the way the menu bar does: query + invalidate.
@@ -89,8 +90,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // The counter is reconciled to the shrunk list, not left out of range.
-    expect(find.text('Page 1 of 2'), findsAtLeastNWidgets(1));
-    expect(find.text('Page 1 of 3'), findsNothing);
+    expect(find.text('Page 2 of 2'), findsAtLeastNWidgets(1));
+    expect(find.text('Page 3 of 3'), findsNothing);
     expect(tester.takeException(), isNull);
     expect((await SiteQuery(db).getAllSites(projectUuid)).length, 2);
 
@@ -107,11 +108,7 @@ void main() {
 
     final container = await pumpViewer(tester, db);
 
-    // Navigate to the last page (3 of 3).
-    await tester.fling(find.byType(PageView), const Offset(-600, 0), 2000);
-    await tester.pumpAndSettle();
-    await tester.fling(find.byType(PageView), const Offset(-600, 0), 2000);
-    await tester.pumpAndSettle();
+    // The first load lands on the last page (3 of 3).
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
 
     // Delete the record we're sitting on; currentPage (3) now exceeds the new
@@ -160,6 +157,54 @@ void main() {
     // would leave Duplicate/Delete and search permanently disabled.
     final menu = tester.widget<SiteMenu>(find.byType(SiteMenu));
     expect(menu.siteId, onlyId);
+
+    await drainOverlayTimer(tester);
+  });
+
+  testWidgets('first load lands on the last record', (tester) async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    addTearDown(db.close);
+    await seedSite(db);
+    await seedSite(db);
+    final lastId = await seedSite(db);
+
+    await pumpViewer(tester, db);
+
+    // Matches the old per-tab-push behavior: opening a viewer showed the most
+    // recent record, not the first. Later refreshes preserve the position.
+    expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
+    expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, lastId);
+    expect(tester.takeException(), isNull);
+
+    await drainOverlayTimer(tester);
+  });
+
+  testWidgets('creating a site lands on the new record', (tester) async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    addTearDown(db.close);
+    await seedSite(db);
+    await seedSite(db);
+
+    final container = await pumpViewer(tester, db);
+    expect(find.text('Page 2 of 2'), findsAtLeastNWidgets(1));
+
+    // Simulate the menu bar's create flow: insert the record, file the
+    // pending jump under its id, and invalidate the list.
+    final newId = await seedSite(db);
+    container.read(pendingRecordJumpProvider(RecordViewer.site).notifier).state =
+        newId;
+    container.invalidate(siteEntryProvider);
+    await tester.pumpAndSettle();
+
+    // The viewer lands on the new record instead of preserving the page, and
+    // the one-shot request is consumed.
+    expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
+    expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
+    expect(
+      container.read(pendingRecordJumpProvider(RecordViewer.site)),
+      isNull,
+    );
+    expect(tester.takeException(), isNull);
 
     await drainOverlayTimer(tester);
   });

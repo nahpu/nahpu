@@ -74,6 +74,32 @@ class PageNavigation {
     }
   }
 
+  /// Replaces [pageController] with a fresh one opened at [index].
+  ///
+  /// Used when landing on a specific page of a list that is about to be
+  /// rebuilt (first load, or a create/duplicate that grew the list). A plain
+  /// [clampController] jump can race the rebuild — the data listener runs
+  /// before the [PageView] picks up the larger item count — whereas a
+  /// controller whose `initialPage` is already [index] attaches there
+  /// directly. The previous controller is disposed once the rebuild has
+  /// detached it from its old [PageView].
+  void openControllerAt(int index) {
+    final previous = pageController;
+    pageController = PageController(initialPage: index);
+    _disposeWhenDetached(previous);
+  }
+
+  void _disposeWhenDetached(PageController controller) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (controller.hasClients) {
+        // The rebuild that swaps in the new controller hasn't run yet; retry.
+        _disposeWhenDetached(controller);
+      } else {
+        controller.dispose();
+      }
+    });
+  }
+
   void dispose() {
     pageController.dispose();
   }

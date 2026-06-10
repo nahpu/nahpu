@@ -3,6 +3,7 @@ import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,8 +11,12 @@ Future<void> createNewCollEvents(BuildContext context, WidgetRef ref) {
   CollEventServices services = CollEventServices(ref: ref);
 
   return services.createNewCollEvents().then(
-    (_) {
-      // CollEventViewer stays mounted in ProjectShell; refresh it in place.
+    (newId) {
+      // CollEventViewer stays mounted in ProjectShell; refresh it in place
+      // and land on the new event once it appears in the refreshed list.
+      ref
+          .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+          .state = newId;
       ref.invalidate(collEventEntryProvider);
     },
   );
@@ -134,7 +139,13 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
 
   Future<void> _duplicateEvent() async {
     try {
-      await EventDuplicateService(ref: ref).duplicate(widget.collEventId!);
+      final newId =
+          await EventDuplicateService(ref: ref).duplicate(widget.collEventId!);
+      if (newId != null) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+            .state = newId;
+      }
       ref.invalidate(collEventEntryProvider);
     } catch (e) {
       _showError(e.toString());

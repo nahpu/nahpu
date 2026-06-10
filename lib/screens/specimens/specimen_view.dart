@@ -7,6 +7,7 @@ import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/navigation.dart';
@@ -26,6 +27,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
   bool isVisible = false;
   final PageNavigation _pageNav = PageNavigation.init();
   String? _specimenUuid;
+  bool _loadedOnce = false;
   CatalogFmt? _catalogFmt;
   TaxonData taxonomy = TaxonData();
   late FocusNode _focus;
@@ -116,21 +118,54 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
   void _reconcile(List<SpecimenData> specimenEntry) {
     if (!mounted) return;
     final count = specimenEntry.length;
+    final landIndex = _landingIndex(specimenEntry);
+    if (landIndex != null) {
+      _pageNav.currentPage = landIndex + 1;
+    }
     final index = _pageNav.clampToCount(count);
     setState(() {
       isVisible = count >= 2;
       if (count == 0) {
         _specimenUuid = null;
         _catalogFmt = null;
-      } else if (_specimenUuid == null ||
+      } else if (landIndex != null ||
+          _specimenUuid == null ||
           !specimenEntry.any((specimen) => specimen.uuid == _specimenUuid)) {
         _specimenUuid = specimenEntry[index].uuid;
         _catalogFmt = matchTaxonGroupToCatFmt(specimenEntry[index].taxonGroup);
       }
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _pageNav.clampController(index);
-    });
+    if (landIndex != null) {
+      _pageNav.openControllerAt(index);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pageNav.clampController(index);
+      });
+    }
+  }
+
+  /// One-shot landing target for this refresh: a just-created record once it
+  /// appears in the list, or the last record on this State's first data load
+  /// (the old push-a-fresh-viewer-per-tab flow always landed at the end).
+  int? _landingIndex(List<SpecimenData> specimenEntry) {
+    final firstLoad = !_loadedOnce;
+    _loadedOnce = true;
+    final pendingJump =
+        ref.read(pendingRecordJumpProvider(RecordViewer.specimen));
+    if (pendingJump != null) {
+      final target =
+          specimenEntry.indexWhere((specimen) => specimen.uuid == pendingJump);
+      if (target != -1) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
+            .state = null;
+        return target;
+      }
+    }
+    if (firstLoad && specimenEntry.isNotEmpty) {
+      return specimenEntry.length - 1;
+    }
+    return null;
   }
 
   void _updatePageNav(int value) {

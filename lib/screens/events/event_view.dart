@@ -7,6 +7,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/screens/events/event_form.dart';
 import 'package:nahpu/screens/events/components/menu_bar.dart';
 import 'package:nahpu/screens/shared/common.dart';
@@ -24,6 +25,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   final PageNavigation _pageNav = PageNavigation.init();
   final TextEditingController _searchController = TextEditingController();
   int? _collEvenId;
+  bool _loadedOnce = false;
   bool _isSearching = false;
   final FocusNode _focus = FocusNode();
 
@@ -136,19 +138,52 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   void _reconcile(List<CollEventData> collEventEntries) {
     if (!mounted) return;
     final count = collEventEntries.length;
+    final landIndex = _landingIndex(collEventEntries);
+    if (landIndex != null) {
+      _pageNav.currentPage = landIndex + 1;
+    }
     final index = _pageNav.clampToCount(count);
     setState(() {
       _isVisible = count >= 2;
       if (count == 0) {
         _collEvenId = null;
-      } else if (_collEvenId == null ||
+      } else if (landIndex != null ||
+          _collEvenId == null ||
           !collEventEntries.any((event) => event.id == _collEvenId)) {
         _collEvenId = collEventEntries[index].id;
       }
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _pageNav.clampController(index);
-    });
+    if (landIndex != null) {
+      _pageNav.openControllerAt(index);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pageNav.clampController(index);
+      });
+    }
+  }
+
+  /// One-shot landing target for this refresh: a just-created record once it
+  /// appears in the list, or the last record on this State's first data load
+  /// (the old push-a-fresh-viewer-per-tab flow always landed at the end).
+  int? _landingIndex(List<CollEventData> collEventEntries) {
+    final firstLoad = !_loadedOnce;
+    _loadedOnce = true;
+    final pendingJump =
+        ref.read(pendingRecordJumpProvider(RecordViewer.collEvent));
+    if (pendingJump != null) {
+      final target =
+          collEventEntries.indexWhere((event) => event.id == pendingJump);
+      if (target != -1) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+            .state = null;
+        return target;
+      }
+    }
+    if (firstLoad && collEventEntries.isNotEmpty) {
+      return collEventEntries.length - 1;
+    }
+    return null;
   }
 
   void _updatePageNav(int value) {

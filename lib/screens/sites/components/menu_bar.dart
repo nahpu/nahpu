@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
-  return SiteServices(ref: ref).createNewSite().then((_) {
-    // SiteViewer stays mounted in ProjectShell, so refresh its list in place.
+  return SiteServices(ref: ref).createNewSite().then((newId) {
+    // SiteViewer stays mounted in ProjectShell, so refresh its list in place
+    // and land on the new site once it appears in the refreshed list.
+    ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).state =
+        newId;
     ref.invalidate(siteEntryProvider);
   });
 }
@@ -122,7 +126,11 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
 
   Future<void> _duplicateSite() async {
     try {
-      await SiteServices(ref: ref).duplicateSite(widget.siteId!);
+      final newId = await SiteServices(ref: ref).duplicateSite(widget.siteId!);
+      if (newId != null) {
+        ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).state =
+            newId;
+      }
       ref.invalidate(siteEntryProvider);
     } catch (e) {
       _showError(e.toString());

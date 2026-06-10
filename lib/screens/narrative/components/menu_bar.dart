@@ -2,6 +2,7 @@ import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +16,11 @@ enum MenuSelection {
 }
 
 Future<void> createNewNarrative(BuildContext context, WidgetRef ref) {
-  return NarrativeServices(ref: ref).createNewNarrative().then((_) {
-    // NarrativeViewer stays mounted in ProjectShell; refresh it in place.
+  return NarrativeServices(ref: ref).createNewNarrative().then((newId) {
+    // NarrativeViewer stays mounted in ProjectShell; refresh it in place and
+    // land on the new narrative once it appears in the refreshed list.
+    ref.read(pendingRecordJumpProvider(RecordViewer.narrative).notifier).state =
+        newId;
     ref.invalidate(narrativeEntryProvider);
   });
 }

@@ -192,12 +192,13 @@ class EventDuplicateService extends AppServices {
   CollEventServices get collEventServices => CollEventServices(ref: ref);
 
   /// We duplicate most of the data from the origin event
-  Future<void> duplicate(int originEventID) async {
+  /// Returns the new event's id, or null when the origin no longer exists.
+  Future<int?> duplicate(int originEventID) async {
     CollEventData? collEventData =
         await collEventServices.getCollEvent(originEventID);
 
     if (collEventData == null) {
-      return;
+      return null;
     }
     String newStartDate = _incrementDate(collEventData.startDate ?? '') ?? '';
     String newEndDate = _incrementDate(collEventData.endDate ?? '') ?? '';
@@ -217,6 +218,7 @@ class EventDuplicateService extends AppServices {
     await _duplicateCollPersonnel(originEventID, destinationEventId);
     collEventServices.createWeatherData(destinationEventId);
     collEventServices.invalidateCollEvent();
+    return destinationEventId;
   }
 
   Future<void> _duplicateCollEffort(

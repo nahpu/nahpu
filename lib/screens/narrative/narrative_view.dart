@@ -6,6 +6,7 @@ import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/screens/narrative/components/menu_bar.dart';
 import 'package:nahpu/screens/narrative/narrative_form.dart';
 import 'package:nahpu/screens/shared/common.dart';
@@ -24,6 +25,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   final PageNavigation _pageNav = PageNavigation.init();
   final TextEditingController _searchController = TextEditingController();
   int? _narrativeId;
+  bool _loadedOnce = false;
   bool _isSearching = false;
   late FocusNode _focus;
 
@@ -138,19 +140,52 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   void _reconcile(List<NarrativeData> narrativeEntries) {
     if (!mounted) return;
     final count = narrativeEntries.length;
+    final landIndex = _landingIndex(narrativeEntries);
+    if (landIndex != null) {
+      _pageNav.currentPage = landIndex + 1;
+    }
     final index = _pageNav.clampToCount(count);
     setState(() {
       isVisible = count >= 2;
       if (count == 0) {
         _narrativeId = null;
-      } else if (_narrativeId == null ||
+      } else if (landIndex != null ||
+          _narrativeId == null ||
           !narrativeEntries.any((narrative) => narrative.id == _narrativeId)) {
         _narrativeId = narrativeEntries[index].id;
       }
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _pageNav.clampController(index);
-    });
+    if (landIndex != null) {
+      _pageNav.openControllerAt(index);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pageNav.clampController(index);
+      });
+    }
+  }
+
+  /// One-shot landing target for this refresh: a just-created record once it
+  /// appears in the list, or the last record on this State's first data load
+  /// (the old push-a-fresh-viewer-per-tab flow always landed at the end).
+  int? _landingIndex(List<NarrativeData> narrativeEntries) {
+    final firstLoad = !_loadedOnce;
+    _loadedOnce = true;
+    final pendingJump =
+        ref.read(pendingRecordJumpProvider(RecordViewer.narrative));
+    if (pendingJump != null) {
+      final target =
+          narrativeEntries.indexWhere((narrative) => narrative.id == pendingJump);
+      if (target != -1) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.narrative).notifier)
+            .state = null;
+        return target;
+      }
+    }
+    if (firstLoad && narrativeEntries.isNotEmpty) {
+      return narrativeEntries.length - 1;
+    }
+    return null;
   }
 
   void _updatePageNav(int value) {
