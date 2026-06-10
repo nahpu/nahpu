@@ -6,10 +6,19 @@ import 'package:nahpu/screens/sites/components/menu_bar.dart';
 import 'package:nahpu/screens/narrative/components/menu_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/specimens/shared/menu_bar.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 class ActionButtons extends ConsumerWidget {
   const ActionButtons({super.key});
+
+  /// The Dashboard is not the tab that displays the created record, so after
+  /// a successful create switch the shell to the owning tab ([index] into
+  /// [defaultProjectPages]); the pending record jump then lands the viewer on
+  /// the new record.
+  void _showTab(WidgetRef ref, int index) {
+    ref.read(projectNavbarIndexProvider.notifier).state = index;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,6 +37,7 @@ class ActionButtons extends ConsumerWidget {
           label: 'Create site',
           onTap: () async {
             await createNewSite(context, ref);
+            _showTab(ref, 1);
           },
         ),
         SpeedDialChild(
@@ -37,6 +47,7 @@ class ActionButtons extends ConsumerWidget {
           label: 'Create event',
           onTap: () async {
             await createNewCollEvents(context, ref);
+            _showTab(ref, 2);
           },
         ),
         SpeedDialChild(
@@ -53,6 +64,7 @@ class ActionButtons extends ConsumerWidget {
           label: 'Create specimen',
           onTap: () async {
             await createNewSpecimens(context, ref);
+            _showTab(ref, 3);
           },
         ),
         SpeedDialChild(
@@ -62,6 +74,7 @@ class ActionButtons extends ConsumerWidget {
             label: 'Create narrative',
             onTap: () async {
               await createNewNarrative(context, ref);
+              _showTab(ref, 4);
             }),
       ],
     );
