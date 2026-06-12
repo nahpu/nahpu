@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/services/database/database.dart' as db;
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
+import 'package:nahpu/screens/shared/project_shell.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/database/project_queries.dart';
@@ -209,11 +209,10 @@ class ProjectViewState extends ConsumerState<ProjectView> {
   VoidCallback _openProject() {
     return () {
       ProjectServices(ref: ref).updateProjectUuid(widget.project.uuid);
+      // Always open a project on the Dashboard tab.
+      ref.read(projectNavbarIndexProvider.notifier).state = 0;
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const Dashboard()),
-      );
+      Navigator.push(context, ProjectShell.route());
     };
   }
 }

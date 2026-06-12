@@ -75,11 +75,12 @@ class SpecimenServices extends AppServices {
         );
   }
 
-  Future<void> createSpecimenDuplicatePart(String specimenUuid) async {
+  /// Returns the new specimen's uuid, or null when the origin has no parts.
+  Future<String?> createSpecimenDuplicatePart(String specimenUuid) async {
     List<SpecimenPartData> partData =
         await SpecimenPartQuery(dbAccess).getSpecimenParts(specimenUuid);
     if (partData.isEmpty) {
-      return;
+      return null;
     }
     String newSpecimenUuid = await createSpecimen();
 
@@ -96,6 +97,7 @@ class SpecimenServices extends AppServices {
     }
 
     ref.invalidate(partBySpecimenProvider);
+    return newSpecimenUuid;
   }
 
   Future<List<SpecimenData>> getAllSpecimens() async {
