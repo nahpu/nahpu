@@ -5,8 +5,13 @@ on:
     tags:
       - v*
 
+permissions:
+  contents: read
+
 jobs:
   release:
+    permissions:
+      contents: write
     strategy:
       matrix:
         os: ["windows-latest", "ubuntu-latest"]
