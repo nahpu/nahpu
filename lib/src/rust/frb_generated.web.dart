@@ -62,11 +62,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RecordWriter sse_decode_box_autoadd_record_writer(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   ZipExtractor sse_decode_box_autoadd_zip_extractor(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   ZipWriter sse_decode_box_autoadd_zip_writer(SseDeserializer deserializer);
@@ -106,22 +108,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_record_writer(
-      RecordWriter self, SseSerializer serializer);
+    RecordWriter self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_zip_extractor(
-      ZipExtractor self, SseSerializer serializer);
+    ZipExtractor self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_zip_writer(
-      ZipWriter self, SseSerializer serializer);
+    ZipWriter self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer);
+    Uint8List self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);

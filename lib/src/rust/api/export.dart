@@ -27,20 +27,20 @@ class RecordWriter {
   });
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
-  static Future<RecordWriter> newInstance(
-          {required String jsonContent,
-          required String outputPath,
-          required List<String> columnNames,
-          required String exportFormat}) =>
-      RustLib.instance.api.crateApiExportRecordWriterNew(
-          jsonContent: jsonContent,
-          outputPath: outputPath,
-          columnNames: columnNames,
-          exportFormat: exportFormat);
+  static Future<RecordWriter> newInstance({
+    required String jsonContent,
+    required String outputPath,
+    required List<String> columnNames,
+    required String exportFormat,
+  }) => RustLib.instance.api.crateApiExportRecordWriterNew(
+    jsonContent: jsonContent,
+    outputPath: outputPath,
+    columnNames: columnNames,
+    exportFormat: exportFormat,
+  );
 
-  Future<void> write() => RustLib.instance.api.crateApiExportRecordWriterWrite(
-        that: this,
-      );
+  Future<void> write() =>
+      RustLib.instance.api.crateApiExportRecordWriterWrite(that: this);
 
   @override
   int get hashCode =>
