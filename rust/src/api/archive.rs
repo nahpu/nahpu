@@ -1,5 +1,5 @@
 //! Rust FRB Boilerplate to access the archive API
-use nahpu_api::archive;
+use nahpu_archive::archive;
 use std::path::{Path, PathBuf};
 
 pub struct ZipWriter {
