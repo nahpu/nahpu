@@ -10,19 +10,21 @@ class ZipExtractor {
   final String archivePath;
   final String outputDir;
 
-  const ZipExtractor({required this.archivePath, required this.outputDir});
+  const ZipExtractor({
+    required this.archivePath,
+    required this.outputDir,
+  });
 
   Future<void> extract() =>
-      RustLib.instance.api.crateApiArchiveZipExtractorExtract(that: this);
+      RustLib.instance.api.crateApiArchiveZipExtractorExtract(
+        that: this,
+      );
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
-  static Future<ZipExtractor> newInstance({
-    required String archivePath,
-    required String outputDir,
-  }) => RustLib.instance.api.crateApiArchiveZipExtractorNew(
-    archivePath: archivePath,
-    outputDir: outputDir,
-  );
+  static Future<ZipExtractor> newInstance(
+          {required String archivePath, required String outputDir}) =>
+      RustLib.instance.api.crateApiArchiveZipExtractorNew(
+          archivePath: archivePath, outputDir: outputDir);
 
   @override
   int get hashCode => archivePath.hashCode ^ outputDir.hashCode;
@@ -50,18 +52,16 @@ class ZipWriter {
   });
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
-  static Future<ZipWriter> newInstance({
-    required String parentDir,
-    required List<String> files,
-    required String outputPath,
-  }) => RustLib.instance.api.crateApiArchiveZipWriterNew(
-    parentDir: parentDir,
-    files: files,
-    outputPath: outputPath,
-  );
+  static Future<ZipWriter> newInstance(
+          {required String parentDir,
+          required List<String> files,
+          required String outputPath}) =>
+      RustLib.instance.api.crateApiArchiveZipWriterNew(
+          parentDir: parentDir, files: files, outputPath: outputPath);
 
-  Future<void> write() =>
-      RustLib.instance.api.crateApiArchiveZipWriterWrite(that: this);
+  Future<void> write() => RustLib.instance.api.crateApiArchiveZipWriterWrite(
+        that: this,
+      );
 
   @override
   int get hashCode =>

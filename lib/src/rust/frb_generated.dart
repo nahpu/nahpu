@@ -4,6 +4,7 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/archive.dart';
+import 'api/common.dart';
 import 'api/export.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -36,8 +37,12 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   /// Initialize flutter_rust_bridge in mock mode.
   /// No libraries for FFI are loaded.
-  static void initMock({required RustLibApi api}) {
-    instance.initMockImpl(api: api);
+  static void initMock({
+    required RustLibApi api,
+  }) {
+    instance.initMockImpl(
+      api: api,
+    );
   }
 
   /// Dispose flutter_rust_bridge
@@ -67,41 +72,39 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -593972698;
+  int get rustContentHash => -357494723;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
-        stem: 'rust_lib_nahpu',
-        ioDirectory: 'rust/target/release/',
-        webPrefix: 'pkg/',
-        wasmBindgenName: 'wasm_bindgen',
-      );
+    stem: 'rust_lib_nahpu',
+    ioDirectory: 'rust/target/release/',
+    webPrefix: 'pkg/',
+    wasmBindgenName: 'wasm_bindgen',
+  );
 }
 
 abstract class RustLibApi extends BaseApi {
+  Future<String> crateApiCommonCheckRust();
+
   Future<void> crateApiCommonInitApp();
 
-  Future<RecordWriter> crateApiExportRecordWriterNew({
-    required String jsonContent,
-    required String outputPath,
-    required List<String> columnNames,
-    required String exportFormat,
-  });
+  Future<RecordWriter> crateApiExportRecordWriterNew(
+      {required String jsonContent,
+      required String outputPath,
+      required List<String> columnNames,
+      required String exportFormat});
 
   Future<void> crateApiExportRecordWriterWrite({required RecordWriter that});
 
   Future<void> crateApiArchiveZipExtractorExtract({required ZipExtractor that});
 
-  Future<ZipExtractor> crateApiArchiveZipExtractorNew({
-    required String archivePath,
-    required String outputDir,
-  });
+  Future<ZipExtractor> crateApiArchiveZipExtractorNew(
+      {required String archivePath, required String outputDir});
 
-  Future<ZipWriter> crateApiArchiveZipWriterNew({
-    required String parentDir,
-    required List<String> files,
-    required String outputPath,
-  });
+  Future<ZipWriter> crateApiArchiveZipWriterNew(
+      {required String parentDir,
+      required List<String> files,
+      required String outputPath});
 
   Future<void> crateApiArchiveZipWriterWrite({required ZipWriter that});
 }
@@ -115,63 +118,75 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<void> crateApiCommonInitApp() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 1,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiCommonInitAppConstMeta,
-        argValues: [],
-        apiImpl: this,
+  Future<String> crateApiCommonCheckRust() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 1, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiCommonCheckRustConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiCommonInitAppConstMeta =>
-      const TaskConstMeta(debugName: "init_app", argNames: []);
+  TaskConstMeta get kCrateApiCommonCheckRustConstMeta => const TaskConstMeta(
+        debugName: "check_rust",
+        argNames: [],
+      );
 
   @override
-  Future<RecordWriter> crateApiExportRecordWriterNew({
-    required String jsonContent,
-    required String outputPath,
-    required List<String> columnNames,
-    required String exportFormat,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(jsonContent, serializer);
-          sse_encode_String(outputPath, serializer);
-          sse_encode_list_String(columnNames, serializer);
-          sse_encode_String(exportFormat, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 2,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_record_writer,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiExportRecordWriterNewConstMeta,
-        argValues: [jsonContent, outputPath, columnNames, exportFormat],
-        apiImpl: this,
+  Future<void> crateApiCommonInitApp() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 2, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiCommonInitAppConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiCommonInitAppConstMeta => const TaskConstMeta(
+        debugName: "init_app",
+        argNames: [],
+      );
+
+  @override
+  Future<RecordWriter> crateApiExportRecordWriterNew(
+      {required String jsonContent,
+      required String outputPath,
+      required List<String> columnNames,
+      required String exportFormat}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(jsonContent, serializer);
+        sse_encode_String(outputPath, serializer);
+        sse_encode_list_String(columnNames, serializer);
+        sse_encode_String(exportFormat, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 3, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_record_writer,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiExportRecordWriterNewConstMeta,
+      argValues: [jsonContent, outputPath, columnNames, exportFormat],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiExportRecordWriterNewConstMeta =>
@@ -182,57 +197,47 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiExportRecordWriterWrite({required RecordWriter that}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_box_autoadd_record_writer(that, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 3,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiExportRecordWriterWriteConstMeta,
-        argValues: [that],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_box_autoadd_record_writer(that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 4, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiExportRecordWriterWriteConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiExportRecordWriterWriteConstMeta =>
-      const TaskConstMeta(debugName: "record_writer_write", argNames: ["that"]);
+      const TaskConstMeta(
+        debugName: "record_writer_write",
+        argNames: ["that"],
+      );
 
   @override
-  Future<void> crateApiArchiveZipExtractorExtract({
-    required ZipExtractor that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_box_autoadd_zip_extractor(that, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 4,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiArchiveZipExtractorExtractConstMeta,
-        argValues: [that],
-        apiImpl: this,
+  Future<void> crateApiArchiveZipExtractorExtract(
+      {required ZipExtractor that}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_box_autoadd_zip_extractor(that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 5, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiArchiveZipExtractorExtractConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiArchiveZipExtractorExtractConstMeta =>
@@ -242,32 +247,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ZipExtractor> crateApiArchiveZipExtractorNew({
-    required String archivePath,
-    required String outputDir,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(archivePath, serializer);
-          sse_encode_String(outputDir, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 5,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_zip_extractor,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiArchiveZipExtractorNewConstMeta,
-        argValues: [archivePath, outputDir],
-        apiImpl: this,
+  Future<ZipExtractor> crateApiArchiveZipExtractorNew(
+      {required String archivePath, required String outputDir}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(archivePath, serializer);
+        sse_encode_String(outputDir, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 6, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_zip_extractor,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiArchiveZipExtractorNewConstMeta,
+      argValues: [archivePath, outputDir],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiArchiveZipExtractorNewConstMeta =>
@@ -277,34 +274,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ZipWriter> crateApiArchiveZipWriterNew({
-    required String parentDir,
-    required List<String> files,
-    required String outputPath,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(parentDir, serializer);
-          sse_encode_list_String(files, serializer);
-          sse_encode_String(outputPath, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 6,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_zip_writer,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiArchiveZipWriterNewConstMeta,
-        argValues: [parentDir, files, outputPath],
-        apiImpl: this,
+  Future<ZipWriter> crateApiArchiveZipWriterNew(
+      {required String parentDir,
+      required List<String> files,
+      required String outputPath}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(parentDir, serializer);
+        sse_encode_list_String(files, serializer);
+        sse_encode_String(outputPath, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 7, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_zip_writer,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiArchiveZipWriterNewConstMeta,
+      argValues: [parentDir, files, outputPath],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiArchiveZipWriterNewConstMeta =>
@@ -315,31 +305,28 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiArchiveZipWriterWrite({required ZipWriter that}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_box_autoadd_zip_writer(that, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 7,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiArchiveZipWriterWriteConstMeta,
-        argValues: [that],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_box_autoadd_zip_writer(that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 8, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiArchiveZipWriterWriteConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiArchiveZipWriterWriteConstMeta =>
-      const TaskConstMeta(debugName: "zip_writer_write", argNames: ["that"]);
+      const TaskConstMeta(
+        debugName: "zip_writer_write",
+        argNames: ["that"],
+      );
 
   @protected
   String dco_decode_String(dynamic raw) {
@@ -444,16 +431,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   RecordWriter sse_decode_box_autoadd_record_writer(
-    SseDeserializer deserializer,
-  ) {
+      SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_record_writer(deserializer));
   }
 
   @protected
   ZipExtractor sse_decode_box_autoadd_zip_extractor(
-    SseDeserializer deserializer,
-  ) {
+      SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_zip_extractor(deserializer));
   }
@@ -502,11 +487,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_columnNames = sse_decode_list_String(deserializer);
     var var_exportFormat = sse_decode_String(deserializer);
     return RecordWriter(
-      jsonContent: var_jsonContent,
-      outputPath: var_outputPath,
-      columnNames: var_columnNames,
-      exportFormat: var_exportFormat,
-    );
+        jsonContent: var_jsonContent,
+        outputPath: var_outputPath,
+        columnNames: var_columnNames,
+        exportFormat: var_exportFormat);
   }
 
   @protected
@@ -536,11 +520,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_files = sse_decode_list_String(deserializer);
     var var_outputPath = sse_decode_String(deserializer);
     return ZipWriter(
-      parentDir: var_parentDir,
-      altParentDir: var_altParentDir,
-      files: var_files,
-      outputPath: var_outputPath,
-    );
+        parentDir: var_parentDir,
+        altParentDir: var_altParentDir,
+        files: var_files,
+        outputPath: var_outputPath);
   }
 
   @protected
@@ -563,27 +546,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_box_autoadd_record_writer(
-    RecordWriter self,
-    SseSerializer serializer,
-  ) {
+      RecordWriter self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_record_writer(self, serializer);
   }
 
   @protected
   void sse_encode_box_autoadd_zip_extractor(
-    ZipExtractor self,
-    SseSerializer serializer,
-  ) {
+      ZipExtractor self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_zip_extractor(self, serializer);
   }
 
   @protected
   void sse_encode_box_autoadd_zip_writer(
-    ZipWriter self,
-    SseSerializer serializer,
-  ) {
+      ZipWriter self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_zip_writer(self, serializer);
   }
@@ -599,9 +576,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-    Uint8List self,
-    SseSerializer serializer,
-  ) {
+      Uint8List self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
