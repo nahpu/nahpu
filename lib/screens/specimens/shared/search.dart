@@ -89,28 +89,26 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
                       SpecimenSearchOption.values[_selectedSearchValue],
                 ).search(query.toLowerCase());
                 setState(() {
-                  if (_filteredSpecimenData.length > 2) {
-                    _isVisible = true;
-                  }
                   if (_searchController.text.isEmpty) {
                     _filteredSpecimenData.clear();
                   }
-                  _pageNav.pageCounts = _filteredSpecimenData.length;
-                  _pageNav.updatePageController();
+                  // Reuse the single PageController (no recreate/leak); clamp
+                  // the page into the new result range and jump to it.
+                  final index =
+                      _pageNav.clampToCount(_filteredSpecimenData.length);
                   _isVisible = query.isNotEmpty;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _pageNav.clampController(index);
+                  });
                 });
               },
             ),
             TextButton(
                 onPressed: () {
-                  setState(() {
-                    _searchController.clear();
-                    ref.invalidate(specimenEntryProvider);
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SpecimenViewer()));
-                  });
+                  _searchController.clear();
+                  ref.invalidate(specimenEntryProvider);
+                  // Return to the still-mounted viewer below this screen.
+                  Navigator.pop(context);
                 },
                 child: const Text('Cancel')),
           ],
@@ -134,7 +132,6 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
             pageNav: _pageNav,
           ),
         ),
-        bottomNavigationBar: const ProjectBottomNavbar(),
       ),
     );
   }

@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/sites/site_view.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
-  return SiteServices(ref: ref).createNewSite().then((_) {
-    if (context.mounted) {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const SiteViewer()));
-    }
+  return SiteServices(ref: ref).createNewSite().then((newId) {
+    // Refresh the always-mounted viewer in place and land on the new site.
+    ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).state =
+        newId;
+    ref.invalidate(siteEntryProvider);
   });
 }
 
@@ -124,18 +125,15 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
 
   Future<void> _duplicateSite() async {
     try {
-      await SiteServices(ref: ref).duplicateSite(widget.siteId!);
-      if (context.mounted) {
-        _navigateToSiteViewer();
+      final newId = await SiteServices(ref: ref).duplicateSite(widget.siteId!);
+      if (newId != null) {
+        ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).state =
+            newId;
       }
+      ref.invalidate(siteEntryProvider);
     } catch (e) {
       _showError(e.toString());
     }
-  }
-
-  void _navigateToSiteViewer() {
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (_) => const SiteViewer()));
   }
 
   Future<void> _deleteSite() async {
@@ -148,21 +146,16 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             try {
               await SiteServices(ref: ref).deleteSite(widget.siteId!);
 
-              // Trigger page changes to update the view.
-              if (context.mounted) {
-                _navigateToSiteForm();
+              // Close the delete dialog.
+              if (mounted) {
+                Navigator.pop(context);
               }
+              ref.invalidate(siteEntryProvider);
             } catch (e) {
               _showError(e.toString());
             }
           }
         });
-  }
-
-  void _navigateToSiteForm() {
-    Navigator.pop(context);
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (_) => const SiteViewer()));
   }
 
   void _deleteAllSites() {

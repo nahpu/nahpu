@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/features.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/screens/specimens/shared/search.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/navigation.dart';
@@ -27,6 +27,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
   bool isVisible = false;
   final PageNavigation _pageNav = PageNavigation.init();
   String? _specimenUuid;
+  bool _loadedOnce = false;
   CatalogFmt? _catalogFmt;
   TaxonData taxonomy = TaxonData();
   late FocusNode _focus;
@@ -46,8 +47,13 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return FalseWillPop(
-        child: Scaffold(
+    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
+    ref.listen(specimenEntryProvider, (_, next) {
+      // Skip refresh emissions (see site_view.dart).
+      if (next.isLoading) return;
+      next.whenData(_reconcile);
+    });
+    return Scaffold(
       appBar: AppBar(
         title: const Text(
           "Specimen Records",
@@ -60,7 +66,8 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
                     final specimenData =
                         await SpecimenServices(ref: ref).getAllSpecimens();
                     if (context.mounted) {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      // Pushed on top of the shell; Cancel pops back here.
+                      Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) =>
                             SpecimenSearchView(specimenData: specimenData),
                       ));
@@ -80,37 +87,21 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
         child: ref.watch(specimenEntryProvider).when(
               data: (specimenEntry) {
                 if (specimenEntry.isEmpty) {
-                  setState(() {
-                    isVisible = false;
-                    _specimenUuid = null;
-                  });
-
                   return const EmptySpecimen(isButtonVisible: true);
-                } else {
-                  int specimenSize = specimenEntry.length;
-                  setState(() {
-                    if (specimenSize >= 2) {
-                      isVisible = true;
-                    } else {
-                      isVisible = false;
-                    }
-                    _pageNav.pageCounts = specimenSize;
-                    _pageNav.updatePageController();
-                  });
-                  return SpecimenPages(
-                    pageNav: _pageNav,
-                    isNavButtonVisible: isVisible,
-                    specimenEntry: specimenEntry,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _specimenUuid = specimenEntry[index].uuid;
-                        _catalogFmt = matchTaxonGroupToCatFmt(
-                            specimenEntry[index].taxonGroup);
-                        _updatePageNav(index);
-                      });
-                    },
-                  );
                 }
+                return SpecimenPages(
+                  pageNav: _pageNav,
+                  isNavButtonVisible: isVisible,
+                  specimenEntry: specimenEntry,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _specimenUuid = specimenEntry[index].uuid;
+                      _catalogFmt = matchTaxonGroupToCatFmt(
+                          specimenEntry[index].taxonGroup);
+                      _updatePageNav(index);
+                    });
+                  },
+                );
               },
               loading: () => const CommonProgressIndicator(),
               error: (error, stack) => Text(error.toString()),
@@ -122,8 +113,59 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
           pageNav: _pageNav,
         ),
       ),
-      bottomNavigationBar: const ProjectBottomNavbar(),
-    ));
+    );
+  }
+
+  void _reconcile(List<SpecimenData> specimenEntry) {
+    if (!mounted) return;
+    final count = specimenEntry.length;
+    final landIndex = _landingIndex(specimenEntry);
+    if (landIndex != null) {
+      _pageNav.currentPage = landIndex + 1;
+    }
+    final index = _pageNav.clampToCount(count);
+    setState(() {
+      isVisible = count >= 2;
+      if (count == 0) {
+        _specimenUuid = null;
+        _catalogFmt = null;
+      } else if (landIndex != null ||
+          _specimenUuid == null ||
+          !specimenEntry.any((specimen) => specimen.uuid == _specimenUuid)) {
+        _specimenUuid = specimenEntry[index].uuid;
+        _catalogFmt = matchTaxonGroupToCatFmt(specimenEntry[index].taxonGroup);
+      }
+    });
+    if (landIndex != null) {
+      // Keyed controller swap (see site_view.dart).
+      _pageNav.openControllerAt(index);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pageNav.clampController(index);
+      });
+    }
+  }
+
+  /// One-shot landing target for this refresh (see site_view.dart).
+  int? _landingIndex(List<SpecimenData> specimenEntry) {
+    final firstLoad = !_loadedOnce;
+    _loadedOnce = true;
+    final pendingJump =
+        ref.read(pendingRecordJumpProvider(RecordViewer.specimen));
+    if (pendingJump != null) {
+      final target =
+          specimenEntry.indexWhere((specimen) => specimen.uuid == pendingJump);
+      if (target != -1) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
+            .state = null;
+        return target;
+      }
+    }
+    if (firstLoad && specimenEntry.isNotEmpty) {
+      return specimenEntry.length - 1;
+    }
+    return null;
   }
 
   void _updatePageNav(int value) {
@@ -192,6 +234,8 @@ class SpecimenPages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
+      // Keyed by controller identity (see site_view.dart).
+      key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: specimenEntry.length,
       itemBuilder: (context, index) {

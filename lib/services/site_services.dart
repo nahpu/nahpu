@@ -24,12 +24,13 @@ class SiteServices extends AppServices {
     return siteID;
   }
 
-  Future<void> duplicateSite(int originID) async {
+  /// Returns the new site's id, or null when the origin no longer exists.
+  Future<int?> duplicateSite(int originID) async {
     SiteData? siteData = await getSite(originID);
     if (siteData == null) {
-      return;
+      return null;
     }
-    int _ = await SiteQuery(dbAccess).createSite(SiteCompanion(
+    int newSiteId = await SiteQuery(dbAccess).createSite(SiteCompanion(
       projectUuid: db.Value(currentProjectUuid),
       leadStaffId: db.Value(siteData.leadStaffId),
       siteType: db.Value(siteData.siteType),
@@ -44,6 +45,7 @@ class SiteServices extends AppServices {
       habitatDescription: db.Value(siteData.habitatDescription),
     ));
     invalidateSite();
+    return newSiteId;
   }
 
   Future<SiteData?> getSite(int? id) async {
