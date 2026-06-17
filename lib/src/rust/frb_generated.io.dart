@@ -4,7 +4,6 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/archive.dart';
-import 'api/common.dart';
 import 'api/export.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -61,11 +60,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RecordWriter sse_decode_box_autoadd_record_writer(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   ZipExtractor sse_decode_box_autoadd_zip_extractor(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   ZipWriter sse_decode_box_autoadd_zip_writer(SseDeserializer deserializer);
@@ -105,22 +106,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_record_writer(
-      RecordWriter self, SseSerializer serializer);
+    RecordWriter self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_zip_extractor(
-      ZipExtractor self, SseSerializer serializer);
+    ZipExtractor self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_zip_writer(
-      ZipWriter self, SseSerializer serializer);
+    ZipWriter self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer);
+    Uint8List self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
@@ -155,9 +164,9 @@ class RustLibWire implements BaseWire {
 
   /// Holds the symbol lookup function.
   final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-      _lookup;
+  _lookup;
 
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-      : _lookup = dynamicLibrary.lookup;
+    : _lookup = dynamicLibrary.lookup;
 }

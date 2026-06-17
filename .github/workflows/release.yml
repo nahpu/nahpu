@@ -34,17 +34,18 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Build
-        uses: subosito/flutter-action@v2
-      - if: ${{ matrix.os == 'ubuntu-latest' }}
+      - name: Build Linux & Android
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
           sudo apt-get install clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
           flutter build linux --release
-      - if: ${{ matrix.os == 'windows-latest' }}
+          flutter build apk --release
+
+      - name: Build Windows
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
           flutter build windows --release
-          flutter build apk --release
 
       - name: Compress Linux
         if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -63,7 +64,7 @@ jobs:
           mv build\windows\x64\runner\Release\* nahpu
           powershell Compress-Archive -Path nahpu -DestinationPath nahpu.zip
 
-      - name: Upload linux
+      - name: Upload Linux
         if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: svenstaro/upload-release-action@v2
         with:
@@ -72,20 +73,20 @@ jobs:
           asset_name: nahpu-Linux-x86_64.tar.gz
           tag: ${{ github.ref_name }}
 
-      - name: Upload windows
+      - name: Upload Android
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: nahpu-Android.apk
+          tag: ${{ github.ref_name }}
+
+      - name: Upload Windows
         if: ${{ matrix.os == 'windows-latest' }}
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: nahpu.zip
           asset_name: nahpu-Windows-x86_64.zip
-          tag: ${{ github.ref_name }}
-
-      - name: Upload android
-        if: ${{ matrix.os == 'windows-latest' }}
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/app/outputs/flutter-apk/app-release.apk
-          asset_name: nahpu-Android.apk
           tag: ${{ github.ref_name }}
