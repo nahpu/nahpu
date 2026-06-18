@@ -164,7 +164,8 @@ void main() {
     // Assert the real viewport, not just the counter text — the counter reads
     // bookkeeping and can lie about the view.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
-    final controller = tester.widget<PageView>(find.byType(PageView)).controller;
+    final controller =
+        tester.widget<PageView>(find.byType(PageView)).controller;
     expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, lastId);
     expect(tester.takeException(), isNull);
@@ -184,8 +185,9 @@ void main() {
     // Simulate the menu bar's create flow: insert the record, file the
     // pending jump under its id, and invalidate the list.
     final newId = await seedSite(db);
-    container.read(pendingRecordJumpProvider(RecordViewer.site).notifier).state =
-        newId;
+    container
+        .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+        .state = newId;
     container.invalidate(siteEntryProvider);
     await tester.pumpAndSettle();
 
@@ -193,7 +195,8 @@ void main() {
     // real viewport too — a counter-only check can pass while the view stays
     // behind.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
-    final controller = tester.widget<PageView>(find.byType(PageView)).controller;
+    final controller =
+        tester.widget<PageView>(find.byType(PageView)).controller;
     expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     expect(

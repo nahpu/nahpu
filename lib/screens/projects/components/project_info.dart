@@ -35,7 +35,7 @@ class ProjectInfo extends ConsumerWidget {
         ProjectInfoText(
           title: 'Time zone: ',
           text: projectData?.timeZone,
-        ),        
+        ),
         ProjectInfoText(
           title: 'Start date: ',
           text: dateStdToDateDisplay(projectData?.startDate),
