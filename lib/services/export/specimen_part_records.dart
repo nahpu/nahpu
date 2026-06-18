@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/collecting_records.dart';
@@ -6,6 +7,7 @@ import 'package:nahpu/services/export/common.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/src/rust/api/export.dart';
 
 class SpecimenPartWriter extends AppServices {
   const SpecimenPartWriter({
@@ -13,16 +15,13 @@ class SpecimenPartWriter extends AppServices {
   });
 
   Future<void> writeDelimited(File filePath, bool isCsv) async {
-    String delimiter = isCsv ? csvDelimiter : tsvDelimiter;
-    final file = await filePath.create(recursive: true);
-    final writer = file.openWrite();
     List<String> header = [
       ...partExportListDelimited,
       ...collectingRecordExportList,
     ];
-    writer.writeln(header.toDelimitedText(delimiter));
 
     List<String> specimenList = await _getSpecimenList();
+    List<Map<String, dynamic>> jsonList = [];
 
     for (var uuid in specimenList) {
       List<List<String>> parts = await SpecimenPartWriterServices(
@@ -39,11 +38,25 @@ class SpecimenPartWriter extends AppServices {
           ...part,
           ...collectingRecords,
         ];
-        writer.writeln(content.toDelimitedText(delimiter));
+
+        Map<String, dynamic> row = {};
+        for (int i = 0; i < header.length; i++) {
+          row[header[i]] = content[i];
+        }
+        jsonList.add(row);
       }
     }
 
-    writer.close();
+    String jsonContent = jsonEncode(jsonList);
+    String format = isCsv ? 'csv' : 'tsv';
+
+    final writer = RecordWriter(
+      jsonContent: jsonContent,
+      outputPath: filePath.path,
+      columnNames: header,
+      exportFormat: format,
+    );
+    await writer.write();
   }
 
   Future<List<String>> _getSpecimenList() async {

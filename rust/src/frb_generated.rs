@@ -178,10 +178,8 @@ fn wire__crate__api__export__record_writer_write_impl(
             let api_that = <crate::api::export::RecordWriter>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, ()>((move || {
-                    let output_ok = Result::<_, ()>::Ok({
-                        crate::api::export::RecordWriter::write(&api_that);
-                    })?;
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::export::RecordWriter::write(&api_that)?;
                     Ok(output_ok)
                 })())
             }

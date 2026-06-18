@@ -16,7 +16,7 @@ class RecordWriter {
   /// The column names to be included in the export.
   final List<String> columnNames;
 
-  /// Export format, e.g., "csv", "json", "excel".
+  /// Export format, e.g., "csv", "tsv", "excel".
   final String exportFormat;
 
   const RecordWriter({

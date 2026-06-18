@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/common.dart';
@@ -6,6 +7,7 @@ import 'package:nahpu/services/export/media_writer.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/src/rust/api/export.dart';
 
 class SiteWriterServices extends AppServices {
   const SiteWriterServices({
@@ -13,20 +15,33 @@ class SiteWriterServices extends AppServices {
   });
 
   Future<void> writeSiteDelimited(File filePath, bool isCsv) async {
-    String delimiter = isCsv ? csvDelimiter : tsvDelimiter;
-    final file = await filePath.create(recursive: true);
-    final writer = file.openWrite();
     List<String> header = [...siteExportList, 'media'];
-    writer.writeln(header.join(delimiter));
 
     List<SiteData> siteList = await SiteServices(ref: ref).getAllSites();
+    List<Map<String, dynamic>> jsonList = [];
+
     for (var site in siteList) {
       List<String> siteDetails = await getSiteDetails(site.id);
       String mediaDetails = await _getSiteMedia(site.id);
       List<String> content = [...siteDetails, mediaDetails];
 
-      writer.writeln(content.toDelimitedText(delimiter));
+      Map<String, dynamic> row = {};
+      for (int i = 0; i < header.length; i++) {
+        row[header[i]] = content[i];
+      }
+      jsonList.add(row);
     }
+
+    String jsonContent = jsonEncode(jsonList);
+    String format = isCsv ? 'csv' : 'tsv';
+
+    final writer = RecordWriter(
+      jsonContent: jsonContent,
+      outputPath: filePath.path,
+      columnNames: header,
+      exportFormat: format,
+    );
+    await writer.write();
   }
 
   Future<String> _getSiteMedia(int? siteID) async {
