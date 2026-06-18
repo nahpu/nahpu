@@ -25,7 +25,7 @@ class SpecimenRecordWriter {
   final SpecimenRecordType recordType;
   final bool isInaccurateInBrackets;
 
-  Future<void> writeRecordDelimited(File filePath, bool isCsv) async {
+  Future<void> writeRecordDelimited(File filePath, ExportFmt format) async {
     List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
     List<String> header = [
       ...collectingRecordExportList,
@@ -48,13 +48,12 @@ class SpecimenRecordWriter {
     }
 
     String jsonContent = jsonEncode(jsonList);
-    String format = isCsv ? 'csv' : 'tsv';
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
       columnNames: header,
-      exportFormat: format,
+      exportFormat: format.name,
     );
     await writer.write();
   }

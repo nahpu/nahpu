@@ -15,7 +15,7 @@ class CollEventRecordWriter extends AppServices {
     required super.ref,
   });
 
-  Future<void> writeCollEventDelimited(File filePath, bool isCsv) async {
+  Future<void> writeCollEventDelimited(File filePath, ExportFmt format) async {
     List<String> header = [...siteExportList, ...collEventExportList];
     List<CollEventData> collEventList =
         await CollEventServices(ref: ref).getAllCollEvents();
@@ -32,13 +32,12 @@ class CollEventRecordWriter extends AppServices {
     }
 
     String jsonContent = jsonEncode(jsonList);
-    String format = isCsv ? 'csv' : 'tsv';
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
       columnNames: header,
-      exportFormat: format,
+      exportFormat: format.name,
     );
     await writer.write();
   }

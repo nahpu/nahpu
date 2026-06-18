@@ -12,7 +12,7 @@ import 'package:nahpu/src/rust/api/export.dart';
 class NarrativeRecordWriter extends AppServices {
   NarrativeRecordWriter({required super.ref});
 
-  Future<void> writeNarrativeDelimited(File filePath, bool isCsv) async {
+  Future<void> writeNarrativeDelimited(File filePath, ExportFmt format) async {
     List<NarrativeData> narrativeList =
         await NarrativeServices(ref: ref).getAllNarrative();
 
@@ -28,13 +28,12 @@ class NarrativeRecordWriter extends AppServices {
     }
 
     String jsonContent = jsonEncode(jsonList);
-    String format = isCsv ? 'csv' : 'tsv';
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
       columnNames: narrativeExportList,
-      exportFormat: format,
+      exportFormat: format.name,
     );
     await writer.write();
   }

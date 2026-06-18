@@ -22,7 +22,7 @@ class BundleWriter extends AppServices {
   });
 
   final File outputFile;
-  final isCsv = true;
+  final ExportFmt format = ExportFmt.csv;
   final bool isInaccurateInBrackets;
 
   /// Compressed every file in the project directory
@@ -77,13 +77,12 @@ class BundleWriter extends AppServices {
 
   Future<String> _writeNarrativeRecord() async {
     final filePath = await _getNarrativeSavePath();
-    bool isCsv = true;
     if (filePath.existsSync()) {
       await filePath.delete();
     }
     await NarrativeRecordWriter(ref: ref).writeNarrativeDelimited(
       filePath,
-      isCsv,
+      format,
     );
 
     return filePath.path;
@@ -91,13 +90,12 @@ class BundleWriter extends AppServices {
 
   Future<String> _writeSiteRecord() async {
     final filePath = await _getSiteSavePath();
-    bool isCsv = true;
     if (filePath.existsSync()) {
       await filePath.delete();
     }
     await SiteWriterServices(ref: ref).writeSiteDelimited(
       filePath,
-      isCsv,
+      format,
     );
 
     return filePath.path;
@@ -105,12 +103,11 @@ class BundleWriter extends AppServices {
 
   Future<String> _writeCollEventRecord() async {
     final filePath = await _getCollEventSavePath();
-    bool isCsv = true;
     if (filePath.existsSync()) {
       await filePath.delete();
     }
     await CollEventRecordWriter(ref: ref)
-        .writeCollEventDelimited(filePath, isCsv);
+        .writeCollEventDelimited(filePath, format);
 
     return filePath.path;
   }
@@ -124,7 +121,7 @@ class BundleWriter extends AppServices {
         ref: ref,
         recordType: SpecimenRecordType.birds,
         isInaccurateInBrackets: isInaccurateInBrackets,
-      ).writeRecordDelimited(birdDir, isCsv);
+      ).writeRecordDelimited(birdDir, format);
       specimenFiles.add(birdDir.path);
     }
     SpecimenRecordType? mammalRecord = _getMammalRecordType(recordType);
@@ -145,7 +142,7 @@ class BundleWriter extends AppServices {
       ref: ref,
       recordType: mammalRecordType,
       isInaccurateInBrackets: isInaccurateInBrackets,
-    ).writeRecordDelimited(mammalFile, isCsv);
+    ).writeRecordDelimited(mammalFile, format);
     return mammalFile.path;
   }
 

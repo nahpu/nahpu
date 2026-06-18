@@ -14,7 +14,7 @@ class SiteWriterServices extends AppServices {
     required super.ref,
   });
 
-  Future<void> writeSiteDelimited(File filePath, bool isCsv) async {
+  Future<void> writeSiteDelimited(File filePath, ExportFmt format) async {
     List<String> header = [...siteExportList, 'media'];
 
     List<SiteData> siteList = await SiteServices(ref: ref).getAllSites();
@@ -33,13 +33,12 @@ class SiteWriterServices extends AppServices {
     }
 
     String jsonContent = jsonEncode(jsonList);
-    String format = isCsv ? 'csv' : 'tsv';
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
       columnNames: header,
-      exportFormat: format,
+      exportFormat: format.name,
     );
     await writer.write();
   }

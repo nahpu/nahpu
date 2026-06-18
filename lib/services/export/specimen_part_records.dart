@@ -14,7 +14,7 @@ class SpecimenPartWriter extends AppServices {
     required super.ref,
   });
 
-  Future<void> writeDelimited(File filePath, bool isCsv) async {
+  Future<void> writeDelimited(File filePath, ExportFmt format) async {
     List<String> header = [
       ...partExportListDelimited,
       ...collectingRecordExportList,
@@ -48,13 +48,12 @@ class SpecimenPartWriter extends AppServices {
     }
 
     String jsonContent = jsonEncode(jsonList);
-    String format = isCsv ? 'csv' : 'tsv';
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
       columnNames: header,
-      exportFormat: format,
+      exportFormat: format.name,
     );
     await writer.write();
   }
