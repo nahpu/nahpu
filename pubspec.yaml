@@ -116,12 +116,12 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
+  # These assets are bundled with the application.
+  # Do not add assets/web here. They are not used inside the app bundle.
   assets:
     - assets/logo/
     - assets/avatars/
     - assets/icons/
-  #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
