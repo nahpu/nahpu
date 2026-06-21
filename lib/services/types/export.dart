@@ -76,6 +76,7 @@ enum SpecimenRecordType {
   bats,
   allMammals,
   herpetofauna,
+  allTaxa,
 }
 
 enum SpecimenExportFmt {

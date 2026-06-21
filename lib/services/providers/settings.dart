@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -20,6 +21,7 @@ const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
+const String exportPresetPrefKey = 'exportPresets';
 
 final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
@@ -268,3 +270,50 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
     });
   }
 }
+
+final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
+    ExportPresetNotifier, Map<String, Map<String, String>>>(ExportPresetNotifier.new);
+
+class ExportPresetNotifier extends AsyncNotifier<Map<String, Map<String, String>>> {
+  Future<Map<String, Map<String, String>>> _fetchSettings() async {
+    final prefs = ref.watch(settingProvider);
+    final presetString = prefs.getString(exportPresetPrefKey);
+    if (presetString == null) {
+      return {};
+    }
+    try {
+      final decoded = jsonDecode(presetString) as Map<String, dynamic>;
+      return decoded.map((key, value) => MapEntry(key, Map<String, String>.from(value as Map)));
+    } catch (e) {
+      return {};
+    }
+  }
+
+  @override
+  Future<Map<String, Map<String, String>>> build() async {
+    return await _fetchSettings();
+  }
+
+  Future<void> savePreset(String name, Map<String, String> preset) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final current = await _fetchSettings();
+      current[name] = preset;
+      final prefs = ref.watch(settingProvider);
+      await prefs.setString(exportPresetPrefKey, jsonEncode(current));
+      return current;
+    });
+  }
+
+  Future<void> deletePreset(String name) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final current = await _fetchSettings();
+      current.remove(name);
+      final prefs = ref.watch(settingProvider);
+      await prefs.setString(exportPresetPrefKey, jsonEncode(current));
+      return current;
+    });
+  }
+}
+

@@ -36,6 +36,14 @@ List<String> getAvailableExportColumns({
           case SpecimenRecordType.herpetofauna:
             measurementList = herpMeasurementExportList;
             break;
+          case SpecimenRecordType.allTaxa:
+            measurementList = [
+              ...mammalMeasurementExportList,
+              ...avianMeasurementExportList,
+              ...batMeasurementExportList,
+              ...herpMeasurementExportList,
+            ].toSet().toList();
+            break;
         }
       }
       return [

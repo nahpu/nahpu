@@ -21,6 +21,7 @@ import 'package:nahpu/services/export/specimen_part_records.dart';
 import 'package:nahpu/services/export/coll_event_writer.dart';
 import 'package:nahpu/services/export/narrative_writer.dart';
 import 'package:nahpu/services/export/record_writer.dart';
+import 'package:nahpu/services/providers/settings.dart';
 
 class ExportForm extends ConsumerStatefulWidget {
   const ExportForm({super.key});
@@ -49,6 +50,8 @@ class ExportFormState extends ConsumerState<ExportForm> {
 
   List<String> _availableColumns = [];
   List<String>? _selectedColumns;
+  String? _selectedPresetName;
+  Map<String, String>? _selectedPresetMap;
 
   @override
   void initState() {
@@ -137,10 +140,60 @@ class ExportFormState extends ConsumerState<ExportForm> {
   }
 
   List<Widget> _buildFormChildren({required bool isLargeScreen}) {
+    final presets = ref.watch(exportPresetNotifierProvider);
     return [
       FileFormatIcon(path: _matchFileIconPath()),
       const SizedBox(height: 8),
-      RecordOptionsCard(
+      presets.when(
+        data: (data) {
+          if (data.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: DropdownButtonFormField<String?>(
+              initialValue: _selectedPresetName,
+              decoration: const InputDecoration(
+                labelText: 'Use Preset',
+                helperText: 'Select an export preset to apply custom columns',
+              ),
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text('None (Default)'),
+                ),
+                ...data.keys.map((preset) {
+                  return DropdownMenuItem(
+                    value: preset,
+                    child: Text(preset),
+                  );
+                }),
+              ],
+              onChanged: (val) {
+                setState(() {
+                  _selectedPresetName = val;
+                  if (val != null) {
+                    _selectedPresetMap = data[val];
+                    if (_selectedPresetMap != null) {
+                      _selectedColumns = _selectedPresetMap!.keys.toList();
+                      _useFieldNamesOnly = false;
+                      _specimenExportFmt = SpecimenExportFmt.selectFields;
+                    }
+                  } else {
+                    _selectedPresetMap = null;
+                    _selectedColumns = List.from(_availableColumns);
+                  }
+                  _hasSaved = false;
+                });
+              },
+            ),
+          );
+        },
+        loading: () => const SizedBox.shrink(),
+        error: (err, stack) => const SizedBox.shrink(),
+      ),
+      if (_selectedPresetName == null) ...[
+        RecordOptionsCard(
         recordType: _recordType,
         taxonRecordType: _taxonRecordType,
         mammalRecordType: _mammalRecordType,
@@ -233,6 +286,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
           });
         },
       ),
+      ],
       const SizedBox(height: 16),
       FileSettingsCard(
         exportCtr: exportCtr,
@@ -423,6 +477,20 @@ class ExportFormState extends ConsumerState<ExportForm> {
   }
 
   Future<void> _matchRecordTypeToWriter(File file, ExportFmt format) async {
+    if (_selectedPresetName != null) {
+      await SpecimenRecordWriter(
+        ref: ref,
+        recordType: SpecimenRecordType.allTaxa,
+        isInaccurateInBrackets: _inaccurateInBrackets,
+        isAllFields: false,
+        concatenateMultiEntry: _concatenateMultiEntry,
+        useFieldNamesOnly: _useFieldNamesOnly,
+        selectedColumns: _selectedColumns,
+        customColumnNames: _selectedPresetMap,
+      ).writeRecordDelimited(file, format);
+      return;
+    }
+
     switch (_recordType) {
       case ExportRecordType.narrative:
         await NarrativeRecordWriter(
@@ -454,6 +522,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
           concatenateMultiEntry: _concatenateMultiEntry,
           useFieldNamesOnly: _useFieldNamesOnly,
           selectedColumns: _isCustomFields ? _selectedColumns : null,
+          customColumnNames: _selectedPresetMap,
         ).writeRecordDelimited(file, format);
         break;
       case ExportRecordType.specimenParts:

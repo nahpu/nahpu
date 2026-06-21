@@ -23,6 +23,7 @@ class SpecimenRecordWriter {
     this.concatenateMultiEntry = true,
     this.useFieldNamesOnly = false,
     this.selectedColumns,
+    this.customColumnNames,
   });
 
   final WidgetRef ref;
@@ -32,6 +33,7 @@ class SpecimenRecordWriter {
   final bool concatenateMultiEntry;
   final bool useFieldNamesOnly;
   final List<String>? selectedColumns;
+  final Map<String, String>? customColumnNames;
 
   Future<void> writeRecordDelimited(File filePath, ExportFmt format) async {
     List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
@@ -51,7 +53,11 @@ class SpecimenRecordWriter {
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
         if (selectedColumns == null || selectedColumns!.contains(header[i])) {
-          String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
+          String key = customColumnNames?.containsKey(header[i]) == true
+              ? customColumnNames![header[i]]!
+              : useFieldNamesOnly
+                  ? header[i].split('::').last
+                  : header[i];
           row[key] = content[i];
         }
       }
@@ -59,16 +65,18 @@ class SpecimenRecordWriter {
     }
 
     String jsonContent = jsonEncode(jsonList);
-    List<String> filteredHeader = selectedColumns == null 
-        ? header 
+    List<String> filteredHeader = selectedColumns == null
+        ? header
         : header.where((h) => selectedColumns!.contains(h)).toList();
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: useFieldNamesOnly 
-        ? filteredHeader.map((e) => e.split('::').last).toList() 
-        : filteredHeader,
+      columnNames: customColumnNames != null
+          ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
+          : useFieldNamesOnly
+              ? filteredHeader.map((e) => e.split('::').last).toList()
+              : filteredHeader,
       exportFormat: format.name,
       concatenateMultiEntries: concatenateMultiEntry,
     );
@@ -81,7 +89,7 @@ class SpecimenRecordWriter {
     List<String> collSiteDetails = await _getCollEventSiteDetails(
       data.collEventID,
     );
-    List<String> measurement = await _getMeasurement(data.uuid);
+    List<String> measurement = await _getMeasurement(data);
     String media = await _getSpecimenMedia(data.uuid);
 
     List<String> content = [
@@ -112,6 +120,13 @@ class SpecimenRecordWriter {
         return batMeasurementExportList;
       case SpecimenRecordType.herpetofauna:
         return herpMeasurementExportList;
+      case SpecimenRecordType.allTaxa:
+        return [
+          ...mammalMeasurementExportList,
+          ...avianMeasurementExportList,
+          ...batMeasurementExportList,
+          ...herpMeasurementExportList,
+        ].toSet().toList();
     }
   }
 
@@ -120,6 +135,8 @@ class SpecimenRecordWriter {
 
     if (recordType == SpecimenRecordType.allMammals) {
       return await service.getSpecimenListForAllMammals();
+    } else if (recordType == SpecimenRecordType.allTaxa) {
+      return await service.getSpecimenList();
     }
 
     String taxonGroup = matchRecordTypeToTaxonGroup(recordType);
@@ -137,21 +154,52 @@ class SpecimenRecordWriter {
     return await service.getPartListStr(specimenUuid);
   }
 
-  Future<List<String>> _getMeasurement(String specimenUuid) async {
-    bool isBat = recordType == SpecimenRecordType.bats ||
-        recordType == SpecimenRecordType.allMammals;
-    switch (recordType) {
-      case SpecimenRecordType.generalMammals:
-        return await _getMeasurementGeneralMammals(specimenUuid, isBat);
-      case SpecimenRecordType.birds:
-        return await _getMeasurementBirds(specimenUuid);
-      case SpecimenRecordType.bats:
-        return await _getMeasurementGeneralMammals(specimenUuid, isBat);
-      case SpecimenRecordType.allMammals:
-        return await _getMeasurementGeneralMammals(specimenUuid, isBat);
-      case SpecimenRecordType.herpetofauna:
-        return await _getMeasurementHerps(specimenUuid);
+  Future<List<String>> _getMeasurement(SpecimenData data) async {
+    SpecimenRecordType currentType = recordType;
+    if (recordType == SpecimenRecordType.allTaxa) {
+      currentType = matchTaxonGroupToRecordType(data.taxonGroup ?? '');
     }
+
+    List<String> values;
+    List<String> keys;
+
+    switch (currentType) {
+      case SpecimenRecordType.generalMammals:
+      case SpecimenRecordType.allMammals:
+        keys = mammalMeasurementExportList;
+        values = await _getMeasurementGeneralMammals(data.uuid, false);
+        break;
+      case SpecimenRecordType.birds:
+        keys = avianMeasurementExportList;
+        values = await _getMeasurementBirds(data.uuid);
+        break;
+      case SpecimenRecordType.bats:
+        keys = batMeasurementExportList;
+        values = await _getMeasurementGeneralMammals(data.uuid, true);
+        break;
+      case SpecimenRecordType.herpetofauna:
+        keys = herpMeasurementExportList;
+        values = await _getMeasurementHerps(data.uuid);
+        break;
+      case SpecimenRecordType.allTaxa:
+        keys = [];
+        values = [];
+        break;
+    }
+
+    if (recordType != SpecimenRecordType.allTaxa) {
+      return values;
+    }
+
+    List<String> combinedHeader = _getMeasurementHeader();
+    Map<String, String> map = {};
+    for (int i = 0; i < keys.length; i++) {
+      if (i < values.length) {
+        map[keys[i]] = values[i];
+      }
+    }
+
+    return combinedHeader.map((k) => map[k] ?? '').toList();
   }
 
   Future<List<String>> _getMeasurementGeneralMammals(

@@ -37,6 +37,7 @@ List<({String key, PrefType type, dynamic def})> prefs = [
   (key: tissueIDNumberKey, type: PrefType.int, def: null),
   (key: fieldIdModePrefKey, type: PrefType.string, def: 'personnel'),
   (key: projectFieldIDNumberKey, type: PrefType.int, def: null),
+  (key: exportPresetPrefKey, type: PrefType.string, def: "{}"),
 ];
 
 class SharedPref {

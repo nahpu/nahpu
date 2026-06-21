@@ -15,10 +15,12 @@ class CollEventRecordWriter extends AppServices {
     required super.ref,
     this.useFieldNamesOnly = false,
     this.selectedColumns,
+    this.customColumnNames,
   });
 
   final bool useFieldNamesOnly;
   final List<String>? selectedColumns;
+  final Map<String, String>? customColumnNames;
 
   Future<void> writeCollEventDelimited(File filePath, ExportFmt format) async {
     List<String> header = [...siteExportList, ...collEventExportList];
@@ -32,7 +34,9 @@ class CollEventRecordWriter extends AppServices {
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
         if (selectedColumns == null || selectedColumns!.contains(header[i])) {
-          String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
+          String key = customColumnNames?.containsKey(header[i]) == true
+            ? customColumnNames![header[i]]!
+            : useFieldNamesOnly ? header[i].split('::').last : header[i];
           row[key] = eventDetails[i];
         }
       }
@@ -47,9 +51,11 @@ class CollEventRecordWriter extends AppServices {
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: useFieldNamesOnly 
-        ? filteredHeader.map((e) => e.split('::').last).toList() 
-        : filteredHeader,
+      columnNames: customColumnNames != null 
+        ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
+        : useFieldNamesOnly 
+          ? filteredHeader.map((e) => e.split('::').last).toList() 
+          : filteredHeader,
       exportFormat: format.name,
       concatenateMultiEntries: true,
     );
