@@ -46,7 +46,7 @@ class ThemeSetting extends _$ThemeSetting {
   }
 
   @override
-  FutureOr<ThemeMode> build() async {
+  Future<ThemeMode> build() async {
     return await _fetchSetting();
   }
 
@@ -122,7 +122,7 @@ class UserDefinedField extends _$UserDefinedField {
   }
 
   @override
-  FutureOr<List<String>> build(String prefKey) async {
+  Future<List<String>> build(String prefKey) async {
     return await _fetchSettings(prefKey);
   }
 
@@ -198,7 +198,7 @@ class TextCaseFmtNotifier extends _$TextCaseFmtNotifier {
   }
 
   @override
-  FutureOr<TextCaseFmt> build(String prefKey) async {
+  Future<TextCaseFmt> build(String prefKey) async {
     return await _fetchSettings(prefKey);
   }
 
@@ -235,7 +235,7 @@ class FieldIdModeNotifier extends _$FieldIdModeNotifier {
   }
 
   @override
-  FutureOr<FieldIdMode> build() async {
+  Future<FieldIdMode> build() async {
     return await _fetchSettings();
   }
 

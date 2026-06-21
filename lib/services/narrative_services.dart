@@ -109,7 +109,7 @@ class NarrativeServices extends AppServices {
       mediaId: db.Value(mediaId),
     );
     await NarrativeQuery(dbAccess).createNarrativeMedia(entries);
-    ref.invalidate(narrativeMediaProvider);
+    // ref.invalidate(narrativeMediaProvider);
   }
 
   Future<List<NarrativeMediaData>> getNarrativeMedia(int narrativeId) async {

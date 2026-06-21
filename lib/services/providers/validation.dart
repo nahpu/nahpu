@@ -43,7 +43,7 @@ class ProjectFormValidator extends _$ProjectFormValidator {
   }
 
   @override
-  FutureOr<ProjectForm> build() {
+  Future<ProjectForm> build() {
     return _fetch();
   }
 
@@ -168,7 +168,7 @@ class PersonnelFormValidator extends _$PersonnelFormValidator {
   }
 
   @override
-  FutureOr<PersonnelForm> build() {
+  Future<PersonnelForm> build() {
     return _fetch();
   }
 

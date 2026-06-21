@@ -22,7 +22,7 @@ final settingProvider = Provider<SharedPreferences>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SettingRef = ProviderRef<SharedPreferences>;
-String _$themeSettingHash() => r'6c0fd6288d1348a4a74fd96f16a8d7e40821e875';
+String _$themeSettingHash() => r'575f3ecd0eb91e14a53390f7c07fbaad90cb2e7d';
 
 /// See also [ThemeSetting].
 @ProviderFor(ThemeSetting)
@@ -37,7 +37,7 @@ final themeSettingProvider =
 );
 
 typedef _$ThemeSetting = AsyncNotifier<ThemeMode>;
-String _$userDefinedFieldHash() => r'a2abef79db47f21b2ae7b1ae32595d56e45ebb8a';
+String _$userDefinedFieldHash() => r'10f28d4c57bd8a4ee9cfe8127a25ee78b9792456';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -205,7 +205,7 @@ class _UserDefinedFieldProviderElement
 }
 
 String _$textCaseFmtNotifierHash() =>
-    r'81bb739ee4cbc4ddbbf686b24778fbe0ee24562e';
+    r'1e10e466b7612ede486543eb93508bbf7bf87c94';
 
 abstract class _$TextCaseFmtNotifier
     extends BuildlessAutoDisposeAsyncNotifier<TextCaseFmt> {
@@ -353,7 +353,7 @@ class _TextCaseFmtNotifierProviderElement
 }
 
 String _$fieldIdModeNotifierHash() =>
-    r'44633d34a84e547c1bc1c207a68227c11b491e35';
+    r'336960f33c6326c4aae42bad20ae6bbf8a445082';
 
 /// See also [FieldIdModeNotifier].
 @ProviderFor(FieldIdModeNotifier)

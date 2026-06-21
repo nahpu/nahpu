@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -5,12 +6,12 @@ import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+final narrativeEntryProvider =
+    AutoDisposeAsyncNotifierProvider<NarrativeEntry, List<NarrativeData>>(
+  () => NarrativeEntry(),
+);
 
-part 'narrative.g.dart';
-
-@riverpod
-class NarrativeEntry extends _$NarrativeEntry {
+class NarrativeEntry extends AutoDisposeAsyncNotifier<List<NarrativeData>> {
   Future<List<NarrativeData>> _fetchNarrativeEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 
@@ -39,9 +40,8 @@ class NarrativeEntry extends _$NarrativeEntry {
   }
 }
 
-@riverpod
-Future<List<MediaData>> narrativeMedia(Ref ref,
-    {required int narrativeId}) async {
+final narrativeMediaProvider = FutureProvider.family
+    .autoDispose<List<MediaData>, int>((ref, narrativeId) async {
   List<NarrativeMediaData> mediaList =
       await NarrativeQuery(ref.read(databaseProvider))
           .getNarrativeMedia(narrativeId);
@@ -54,4 +54,4 @@ Future<List<MediaData>> narrativeMedia(Ref ref,
     }
   }
   return mediaDataList;
-}
+});

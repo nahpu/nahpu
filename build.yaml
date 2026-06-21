@@ -1,0 +1,4 @@
+global_options:
+  drift_dev:
+    runs_before:
+      - riverpod_generator

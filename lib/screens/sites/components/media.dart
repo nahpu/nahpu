@@ -30,7 +30,7 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
   @override
   Widget build(BuildContext context) {
     MediaCategory mediaCategory = MediaCategory.site;
-    return ref.watch(siteMediaProvider(siteId: widget.siteId)).when(
+    return ref.watch(siteMediaProvider(widget.siteId)).when(
           data: (data) {
             return MediaViewer(
               images: List.from(data),

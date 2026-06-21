@@ -89,7 +89,7 @@ class SiteServices extends AppServices {
       mediaId: db.Value(mediaId),
     );
     await SiteQuery(dbAccess).createSiteMedia(entries);
-    ref.invalidate(siteMediaProvider);
+    // ref.invalidate(siteMediaProvider);
   }
 
   Future<List<SiteMediaData>> getSiteMedia(int siteId) async {

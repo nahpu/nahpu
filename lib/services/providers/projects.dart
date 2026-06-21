@@ -2,7 +2,6 @@
 /// Except for the project form validation provider, which is in the validation.dart file.
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart' as db;
 import 'package:nahpu/services/database/project_queries.dart';
@@ -42,4 +41,12 @@ class ProjectUuid extends _$ProjectUuid {
   }
 }
 
-final projectNavbarIndexProvider = StateProvider.autoDispose<int>((ref) => 0);
+@riverpod
+class ProjectNavbarIndex extends _$ProjectNavbarIndex {
+  @override
+  int build() => 0;
+
+  void updateState(int index) {
+    state = index;
+  }
+}
