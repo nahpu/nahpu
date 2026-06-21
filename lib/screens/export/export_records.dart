@@ -61,173 +61,236 @@ class ExportFormState extends ConsumerState<ExportForm> {
       body: FileOperationPage(
         children: [
           FileFormatIcon(path: _matchFileIconPath()),
-          DropdownButtonFormField<ExportRecordType>(
-            initialValue: _recordType,
-            decoration: const InputDecoration(
-              labelText: 'Record type',
-            ),
-            items: _recordDropdown(),
-            onChanged: (ExportRecordType? value) {
-              if (value != null) {
-                setState(() {
-                  _recordType = value;
-                  _hasSaved = false;
-                });
-              }
-            },
-          ),
-          Visibility(
-            visible: _recordType == ExportRecordType.specimenRecord,
-            child: DropdownButtonFormField<TaxonRecordType?>(
-              initialValue: _taxonRecordType,
-              decoration: const InputDecoration(
-                labelText: 'Taxon group',
+          const SizedBox(height: 8),
+          Card(
+            elevation: 0,
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.4),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Record Options',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<ExportRecordType>(
+                    initialValue: _recordType,
+                    decoration: const InputDecoration(
+                      labelText: 'Record type',
+                    ),
+                    items: _recordDropdown(),
+                    onChanged: (ExportRecordType? value) {
+                      if (value != null) {
+                        setState(() {
+                          _recordType = value;
+                          _hasSaved = false;
+                        });
+                      }
+                    },
+                  ),
+                  Visibility(
+                    visible: _recordType == ExportRecordType.specimenRecord,
+                    child: DropdownButtonFormField<TaxonRecordType?>(
+                      initialValue: _taxonRecordType,
+                      decoration: const InputDecoration(
+                        labelText: 'Taxon group',
+                      ),
+                      items: taxonRecordTypeList
+                          .map((e) => DropdownMenuItem(
+                                value: TaxonRecordType
+                                    .values[taxonRecordTypeList.indexOf(e)],
+                                child: CommonDropdownText(text: e),
+                              ))
+                          .toList(),
+                      onChanged: (TaxonRecordType? value) {
+                        if (value != null) {
+                          setState(() {
+                            _taxonRecordType = value;
+                            _matchTaxonToRecordType();
+                            _hasSaved = false;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  Visibility(
+                    visible: _isMammalSpecimenRecord(),
+                    child: DropdownButtonFormField<MammalRecordType>(
+                      initialValue: _mammalRecordType,
+                      decoration: const InputDecoration(
+                        labelText: 'Mammal group',
+                      ),
+                      items: mammalGroupList
+                          .map((e) => DropdownMenuItem(
+                                value: MammalRecordType
+                                    .values[mammalGroupList.indexOf(e)],
+                                child: CommonDropdownText(text: e),
+                              ))
+                          .toList(),
+                      onChanged: (MammalRecordType? value) {
+                        if (value != null) {
+                          setState(() {
+                            _mammalRecordType = value;
+                            _matchTaxonToRecordType();
+                            _hasSaved = false;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  Visibility(
+                    visible: _isMammalSpecimenRecord(),
+                    child: SwitchField(
+                        value: _inaccurateInBrackets,
+                        label: 'Inaccurate in brackets',
+                        onPressed: (bool value) {
+                          setState(() {
+                            _inaccurateInBrackets = value;
+                            _hasSaved = false;
+                          });
+                        }),
+                  ),
+                ],
               ),
-              items: taxonRecordTypeList
-                  .map((e) => DropdownMenuItem(
-                        value: TaxonRecordType
-                            .values[taxonRecordTypeList.indexOf(e)],
-                        child: CommonDropdownText(text: e),
-                      ))
-                  .toList(),
-              onChanged: (TaxonRecordType? value) {
-                if (value != null) {
-                  setState(() {
-                    _taxonRecordType = value;
-                    _matchTaxonToRecordType();
-                    _hasSaved = false;
-                  });
-                }
-              },
             ),
           ),
-          Visibility(
-            visible: _isMammalSpecimenRecord(),
-            child: DropdownButtonFormField<MammalRecordType>(
-              initialValue: _mammalRecordType,
-              decoration: const InputDecoration(
-                labelText: 'Mammal group',
+          const SizedBox(height: 16),
+          Card(
+            elevation: 0,
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.4),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Format Options',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Visibility(
+                    visible: _recordType == ExportRecordType.specimenRecord,
+                    child: DropdownButtonFormField<SpecimenExportFmt>(
+                      initialValue: _specimenExportFmt,
+                      decoration: const InputDecoration(
+                        labelText: 'Fields',
+                      ),
+                      items: specimenExportFmtList
+                          .map((e) => DropdownMenuItem(
+                                value: SpecimenExportFmt
+                                    .values[specimenExportFmtList.indexOf(e)],
+                                child: CommonDropdownText(text: e),
+                              ))
+                          .toList(),
+                      onChanged: (SpecimenExportFmt? value) {
+                        if (value != null) {
+                          setState(() {
+                            _specimenExportFmt = value;
+                            _hasSaved = false;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  Visibility(
+                    visible: _recordType == ExportRecordType.specimenRecord &&
+                        _specimenExportFmt == SpecimenExportFmt.allFields,
+                    child: SwitchField(
+                      value: _concatenateMultiEntry,
+                      label: 'Concatenate multi-entry records',
+                      onPressed: (bool value) {
+                        setState(() {
+                          _concatenateMultiEntry = value;
+                          _hasSaved = false;
+                        });
+                      },
+                    ),
+                  ),
+                  SwitchField(
+                    value: _useFieldNamesOnly,
+                    label: 'Use field names only for column headers',
+                    onPressed: (bool value) {
+                      setState(() {
+                        _useFieldNamesOnly = value;
+                        _hasSaved = false;
+                      });
+                    },
+                  ),
+                ],
               ),
-              items: mammalGroupList
-                  .map((e) => DropdownMenuItem(
-                        value:
-                            MammalRecordType.values[mammalGroupList.indexOf(e)],
-                        child: CommonDropdownText(text: e),
-                      ))
-                  .toList(),
-              onChanged: (MammalRecordType? value) {
-                if (value != null) {
-                  setState(() {
-                    _mammalRecordType = value;
-                    _matchTaxonToRecordType();
-                    _hasSaved = false;
-                  });
-                }
-              },
             ),
           ),
-          Visibility(
-            visible: _isMammalSpecimenRecord(),
-            child: SwitchField(
-                value: _inaccurateInBrackets,
-                label: 'Inaccurate in brackets',
-                onPressed: (bool value) {
-                  setState(() {
-                    _inaccurateInBrackets = value;
-                    _hasSaved = false;
-                  });
-                }),
-          ),
-          Visibility(
-            visible: _recordType == ExportRecordType.specimenRecord,
-            child: DropdownButtonFormField<SpecimenExportFmt>(
-              initialValue: _specimenExportFmt,
-              decoration: const InputDecoration(
-                labelText: 'Format options',
+          const SizedBox(height: 16),
+          Card(
+            elevation: 0,
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.4),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'File Settings',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<ExportFmt>(
+                    initialValue: exportCtr.exportFmtCtr,
+                    decoration: const InputDecoration(
+                      labelText: 'File format',
+                    ),
+                    items: exportFormats
+                        .map((e) => DropdownMenuItem(
+                              value: ExportFmt.values[exportFormats.indexOf(e)],
+                              child: CommonDropdownText(text: e),
+                            ))
+                        .toList(),
+                    onChanged: (ExportFmt? value) {
+                      if (value != null) {
+                        setState(() {
+                          exportCtr.exportFmtCtr = value;
+                          _hasSaved = false;
+                        });
+                      }
+                    },
+                  ),
+                  FileNameField(
+                    controller: exportCtr,
+                    onChanged: (String? value) {
+                      if (value != null) {
+                        setState(() {
+                          _fileStem = value;
+                          _hasSaved = false;
+                        });
+                      }
+                    },
+                  ),
+                  Visibility(
+                    visible: !Platform.isIOS,
+                    child: SelectDirField(
+                      dirPath: _selectedDir,
+                      onPressed: () async => await _getDir(),
+                      onCanceled: () {
+                        setState(() {
+                          _selectedDir = null;
+                          _hasSaved = false;
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
-              items: specimenExportFmtList
-                  .map((e) => DropdownMenuItem(
-                        value: SpecimenExportFmt
-                            .values[specimenExportFmtList.indexOf(e)],
-                        child: CommonDropdownText(text: e),
-                      ))
-                  .toList(),
-              onChanged: (SpecimenExportFmt? value) {
-                if (value != null) {
-                  setState(() {
-                    _specimenExportFmt = value;
-                    _hasSaved = false;
-                  });
-                }
-              },
-            ),
-          ),
-          Visibility(
-            visible: _recordType == ExportRecordType.specimenRecord &&
-                _specimenExportFmt == SpecimenExportFmt.allFields,
-            child: SwitchField(
-              value: _concatenateMultiEntry,
-              label: 'Concatenate multi-entry records',
-              onPressed: (bool value) {
-                setState(() {
-                  _concatenateMultiEntry = value;
-                  _hasSaved = false;
-                });
-              },
-            ),
-          ),
-          SwitchField(
-            value: _useFieldNamesOnly,
-            label: 'Use field names only for column headers',
-            onPressed: (bool value) {
-              setState(() {
-                _useFieldNamesOnly = value;
-                _hasSaved = false;
-              });
-            },
-          ),
-          DropdownButtonFormField<ExportFmt>(
-            initialValue: exportCtr.exportFmtCtr,
-            decoration: const InputDecoration(
-              labelText: 'Format',
-            ),
-            items: exportFormats
-                .map((e) => DropdownMenuItem(
-                      value: ExportFmt.values[exportFormats.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ))
-                .toList(),
-            onChanged: (ExportFmt? value) {
-              if (value != null) {
-                setState(() {
-                  exportCtr.exportFmtCtr = value;
-                  _hasSaved = false;
-                });
-              }
-            },
-          ),
-          FileNameField(
-            controller: exportCtr,
-            onChanged: (String? value) {
-              if (value != null) {
-                setState(() {
-                  _fileStem = value;
-                  _hasSaved = false;
-                });
-              }
-            },
-          ),
-          Visibility(
-            visible: !Platform.isIOS,
-            child: SelectDirField(
-              dirPath: _selectedDir,
-              onPressed: () async => await _getDir(),
-              onCanceled: () {
-                setState(() {
-                  _selectedDir = null;
-                  _hasSaved = false;
-                });
-              },
             ),
           ),
           const SizedBox(height: 12),
