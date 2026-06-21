@@ -94,16 +94,16 @@ flutter_icons:
   ios: true
   android: true
   remove_alpha_ios: true
-  image_path_ios: "assets/launcher/icon.png"
-  image_path_android: "assets/launcher/icon.png"
-  adaptive_icon_background: "#1b9e77"
-  adaptive_icon_foreground: "assets/launcher/icon_android.png"
+  image_path_ios: "assets/launcher/nahpu-bg.png"
+  image_path_android: "assets/launcher/nahpu-bg.png"
+  adaptive_icon_background: "#f4f1de"
+  adaptive_icon_foreground: "assets/launcher/nahpu-no-bg.png"
   windows:
     generate: true
-    image_path: "assets/launcher/icon_desktop.png"
+    image_path: "assets/launcher/nahpu-light.png"
   macos:
     generate: true
-    image_path: "assets/launcher/icon_desktop.png"
+    image_path: "assets/launcher/nahpu-light.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -116,7 +116,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/
+    - assets/logo/
     - assets/avatars/
     - assets/icons/
   #   - images/a_dot_ham.jpeg
