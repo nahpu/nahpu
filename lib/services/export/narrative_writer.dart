@@ -10,7 +10,12 @@ import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/src/rust/api/export.dart';
 
 class NarrativeRecordWriter extends AppServices {
-  NarrativeRecordWriter({required super.ref});
+  NarrativeRecordWriter({
+    required super.ref,
+    this.useFieldNamesOnly = false,
+  });
+
+  final bool useFieldNamesOnly;
 
   Future<void> writeNarrativeDelimited(File filePath, ExportFmt format) async {
     List<NarrativeData> narrativeList =
@@ -22,7 +27,8 @@ class NarrativeRecordWriter extends AppServices {
       List<String> rowDetails = await getNarrative(narrative);
       Map<String, dynamic> row = {};
       for (int i = 0; i < narrativeExportList.length; i++) {
-        row[narrativeExportList[i]] = rowDetails[i];
+        String key = useFieldNamesOnly ? narrativeExportList[i].split('::').last : narrativeExportList[i];
+        row[key] = rowDetails[i];
       }
       jsonList.add(row);
     }
@@ -32,8 +38,9 @@ class NarrativeRecordWriter extends AppServices {
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: narrativeExportList,
+      columnNames: useFieldNamesOnly ? narrativeExportList.map((e) => e.split('::').last).toList() : narrativeExportList,
       exportFormat: format.name,
+      concatenateMultiEntries: true,
     );
     await writer.write();
   }

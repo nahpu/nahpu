@@ -12,10 +12,13 @@ import 'package:nahpu/src/rust/api/export.dart';
 class SiteWriterServices extends AppServices {
   const SiteWriterServices({
     required super.ref,
+    this.useFieldNamesOnly = false,
   });
 
+  final bool useFieldNamesOnly;
+
   Future<void> writeSiteDelimited(File filePath, ExportFmt format) async {
-    List<String> header = [...siteExportList, 'media'];
+    List<String> header = [...siteExportList, 'media::media'];
 
     List<SiteData> siteList = await SiteServices(ref: ref).getAllSites();
     List<Map<String, dynamic>> jsonList = [];
@@ -27,7 +30,8 @@ class SiteWriterServices extends AppServices {
 
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
-        row[header[i]] = content[i];
+        String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
+        row[key] = content[i];
       }
       jsonList.add(row);
     }
@@ -37,8 +41,9 @@ class SiteWriterServices extends AppServices {
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: header,
+      columnNames: useFieldNamesOnly ? header.map((e) => e.split('::').last).toList() : header,
       exportFormat: format.name,
+      concatenateMultiEntries: true,
     );
     await writer.write();
   }

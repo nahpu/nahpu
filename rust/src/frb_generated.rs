@@ -319,6 +319,7 @@ fn wire__crate__api__export__record_writer_new_impl(
             let api_output_path = <String>::sse_decode(&mut deserializer);
             let api_column_names = <Vec<String>>::sse_decode(&mut deserializer);
             let api_export_format = <String>::sse_decode(&mut deserializer);
+            let api_concatenate_multi_entries = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
@@ -327,6 +328,7 @@ fn wire__crate__api__export__record_writer_new_impl(
                         api_output_path,
                         api_column_names,
                         api_export_format,
+                        api_concatenate_multi_entries,
                     ))?;
                     Ok(output_ok)
                 })())
@@ -524,6 +526,13 @@ impl SseDecode for String {
     }
 }
 
+impl SseDecode for bool {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u8().unwrap() != 0
+    }
+}
+
 impl SseDecode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -588,11 +597,13 @@ impl SseDecode for crate::api::export::RecordWriter {
         let mut var_outputPath = <String>::sse_decode(deserializer);
         let mut var_columnNames = <Vec<String>>::sse_decode(deserializer);
         let mut var_exportFormat = <String>::sse_decode(deserializer);
+        let mut var_concatenateMultiEntries = <bool>::sse_decode(deserializer);
         return crate::api::export::RecordWriter {
             json_content: var_jsonContent,
             output_path: var_outputPath,
             column_names: var_columnNames,
             export_format: var_exportFormat,
+            concatenate_multi_entries: var_concatenateMultiEntries,
         };
     }
 }
@@ -641,13 +652,6 @@ impl SseDecode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_i32::<NativeEndian>().unwrap()
-    }
-}
-
-impl SseDecode for bool {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_u8().unwrap() != 0
     }
 }
 
@@ -733,6 +737,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::export::RecordWriter {
             self.output_path.into_into_dart().into_dart(),
             self.column_names.into_into_dart().into_dart(),
             self.export_format.into_into_dart().into_dart(),
+            self.concatenate_multi_entries.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -800,6 +805,13 @@ impl SseEncode for String {
     }
 }
 
+impl SseEncode for bool {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_u8(self as _).unwrap();
+    }
+}
+
 impl SseEncode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -854,6 +866,7 @@ impl SseEncode for crate::api::export::RecordWriter {
         <String>::sse_encode(self.output_path, serializer);
         <Vec<String>>::sse_encode(self.column_names, serializer);
         <String>::sse_encode(self.export_format, serializer);
+        <bool>::sse_encode(self.concatenate_multi_entries, serializer);
     }
 }
 
@@ -891,13 +904,6 @@ impl SseEncode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
-    }
-}
-
-impl SseEncode for bool {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_u8(self as _).unwrap();
     }
 }
 

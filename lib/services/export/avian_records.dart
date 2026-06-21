@@ -14,40 +14,35 @@ class AvianMeasurements {
   Future<List<String>> getMeasurements() async {
     data =
         await SpecimenServices(ref: ref).getAvianMeasurementData(specimenUuid);
-    List<String> mainMeasurement = _getMainMeasurement();
-    List<String> gonadData = _getGonadData();
-    String broodPatch = _getBroodPatch();
-    String skullOss = _getSkullOss();
-    String bursa = _getBursaLength();
-    String fat = _getFat();
-    String stomachContent = _getStomachContent();
-    List<String> moltData = _getAllMolt();
-    return [
-      ...mainMeasurement,
-      ...gonadData,
-      broodPatch,
-      skullOss,
-      bursa,
-      fat,
-      stomachContent,
-      ...moltData,
-    ];
-  }
 
-  List<String> _getMainMeasurement() {
-    String weight = _getWeight();
-    String wingSpan = _getWingSpan();
-    String irisColor = _getIrisColor();
-    String billColor = _getBillColor();
-    String footColor = _getFootColor();
-    String tarsusColor = _getTarsusColor();
     return [
-      weight,
-      wingSpan,
-      irisColor,
-      billColor,
-      footColor,
-      tarsusColor,
+      data.weight?.toString() ?? '',
+      data.wingspan?.toString() ?? '',
+      data.irisColor ?? '',
+      data.irisHex ?? '',
+      data.billColor ?? '',
+      data.billHex ?? '',
+      data.footColor ?? '',
+      data.footHex ?? '',
+      data.tarsusColor ?? '',
+      data.tarsusHex ?? '',
+      data.sex != null ? specimenSexList[data.sex!] : '',
+      _getBroodPatch(),
+      data.skullOssification?.toString() ?? '',
+      _getHasBursa(),
+      data.bursaWidth?.toString() ?? '',
+      data.bursaLength?.toString() ?? '',
+      _getFat(),
+      data.stomachContent ?? '',
+      ..._getGonadData(), // 12 elements
+      _getWingIsMolt(),
+      data.wingMolt ?? '',
+      _getTailIsMolt(),
+      data.tailMolt ?? '',
+      _getBodyMolt(),
+      data.moltRemark ?? '',
+      data.specimenRemark ?? '',
+      data.habitatRemark ?? '',
     ];
   }
 
@@ -59,14 +54,9 @@ class AvianMeasurements {
     }
   }
 
-  String _getStomachContent() {
-    return data.stomachContent ?? '';
-  }
-
-  String _getSkullOss() {
-    return data.skullOssification != null
-        ? data.skullOssification!.toString()
-        : '';
+  String _getHasBursa() {
+    if (data.hasBursa == null) return '';
+    return data.hasBursa == 1 ? 'Yes' : 'No';
   }
 
   String _getFat() {
@@ -77,88 +67,41 @@ class AvianMeasurements {
     }
   }
 
-  String _getBursaLength() {
-    return data.bursaLength != null ? data.bursaLength!.toString() : '';
-  }
-
-  String _getWeight() {
-    return '${data.weight ?? ''}';
-  }
-
-  String _getWingSpan() {
-    return '${data.wingspan ?? ''}';
-  }
-
-  String _getIrisColor() {
-    return data.irisColor ?? '';
-  }
-
-  String _getBillColor() {
-    return data.billColor ?? '';
-  }
-
-  String _getFootColor() {
-    return data.footColor ?? '';
-  }
-
-  String _getTarsusColor() {
-    return data.tarsusColor ?? '';
-  }
-
   List<String> _getGonadData() {
     SpecimenSex? sexEnum = getSpecimenSex(data.sex);
-    String sex = data.sex != null ? specimenSexList[data.sex!] : '';
-    List<String> emptyMale = List.filled(2, '');
-    List<String> emptyFemale = List.filled(6, '');
+    List<String> emptyMale = List.filled(3, '');
+    List<String> emptyFemale = List.filled(9, '');
+
     switch (sexEnum) {
       case SpecimenSex.male:
-        List<String> maleGonad = _getMaleGonad();
-        return [sex, ...maleGonad, ...emptyFemale];
+        return [..._getMaleGonad(), ...emptyFemale];
       case SpecimenSex.female:
-        List<String> femaleGonad = _getFemaleGonad();
-        return [sex, ...emptyMale, ...femaleGonad];
+        return [...emptyMale, ..._getFemaleGonad()];
       case SpecimenSex.unknown:
-        return [sex, ...emptyMale, ...emptyFemale];
       default:
-        return [sex, ...emptyMale, ...emptyFemale];
+        return [...emptyMale, ...emptyFemale];
     }
   }
 
   List<String> _getMaleGonad() {
-    String testisLength =
-        data.testisLength != null ? '${data.testisLength}' : '';
-    String testisWidth =
-        data.testisWidth != null ? ' x ${data.testisWidth} mm' : '';
-    String testisRemark = data.testisRemark ?? '';
-    String testisSize = '$testisLength$testisWidth';
-    return [testisSize, testisRemark];
+    return [
+      data.testisLength?.toString() ?? '',
+      data.testisWidth?.toString() ?? '',
+      data.testisRemark ?? '',
+    ];
   }
 
   List<String> _getFemaleGonad() {
-    String ovaryLength = data.ovaryLength != null ? '${data.ovaryLength}' : '';
-    String ovaryWidth =
-        data.ovaryWidth != null ? ' x ${data.ovaryWidth} mm' : '';
-    String ovarySize = '$ovaryLength$ovaryWidth';
-    String ovaryAppearance = _getOvaryAppearance();
-    String oviductWidth =
-        data.oviductWidth != null ? '${data.oviductWidth}' : '';
-    String firstOvaSize =
-        data.firstOvaSize != null ? '${data.firstOvaSize}' : '';
-    String secondOvaSize =
-        data.secondOvaSize != null ? '${data.secondOvaSize}' : '';
-    String thirdOvaSize =
-        data.thirdOvaSize != null ? '${data.thirdOvaSize}' : '';
-    String ovaSize = '$firstOvaSize;$secondOvaSize;$thirdOvaSize mm';
-    String oviductAppearance = _getOviductAppearance();
-    String ovaryRemark = data.ovaryRemark ?? '';
-
     return [
-      ovarySize,
-      ovaryAppearance,
-      oviductWidth,
-      ovaSize,
-      oviductAppearance,
-      ovaryRemark
+      data.ovaryLength?.toString() ?? '',
+      data.ovaryWidth?.toString() ?? '',
+      data.oviductWidth?.toString() ?? '',
+      _getOvaryAppearance(),
+      data.firstOvaSize?.toString() ?? '',
+      data.secondOvaSize?.toString() ?? '',
+      data.thirdOvaSize?.toString() ?? '',
+      _getOviductAppearance(),
+      data.ovaryRemark ?? '',
     ];
   }
 
@@ -178,14 +121,6 @@ class AvianMeasurements {
     }
   }
 
-  List<String> _getAllMolt() {
-    List<String> wingMolt = _getWingMolt();
-    List<String> tailMolt = _getTailMolt();
-    String bodyMolt = _getBodyMolt();
-    String moltRemark = data.moltRemark ?? '';
-    return [...wingMolt, ...tailMolt, bodyMolt, moltRemark];
-  }
-
   String _getBodyMolt() {
     if (data.bodyMolt == null) {
       return '';
@@ -194,23 +129,13 @@ class AvianMeasurements {
     }
   }
 
-  List<String> _getWingMolt() {
-    if (data.wingIsMolt == null) {
-      return ['', ''];
-    } else {
-      String wingIsMolt = data.wingIsMolt! == 1 ? 'Yes' : 'No';
-      String wingMolt = data.wingMolt ?? '';
-      return [wingIsMolt, wingMolt];
-    }
+  String _getWingIsMolt() {
+    if (data.wingIsMolt == null) return '';
+    return data.wingIsMolt == 1 ? 'Yes' : 'No';
   }
 
-  List<String> _getTailMolt() {
-    if (data.tailIsMolt == null) {
-      return ['', ''];
-    } else {
-      String tailIsMolt = data.tailIsMolt! == 1 ? 'Yes' : 'No';
-      String tailMolt = data.tailMolt ?? '';
-      return [tailIsMolt, tailMolt];
-    }
+  String _getTailIsMolt() {
+    if (data.tailIsMolt == null) return '';
+    return data.tailIsMolt == 1 ? 'Yes' : 'No';
   }
 }

@@ -13,7 +13,10 @@ import 'package:nahpu/src/rust/api/export.dart';
 class CollEventRecordWriter extends AppServices {
   CollEventRecordWriter({
     required super.ref,
+    this.useFieldNamesOnly = false,
   });
+
+  final bool useFieldNamesOnly;
 
   Future<void> writeCollEventDelimited(File filePath, ExportFmt format) async {
     List<String> header = [...siteExportList, ...collEventExportList];
@@ -26,7 +29,8 @@ class CollEventRecordWriter extends AppServices {
       List<String> eventDetails = await getCOllEventSiteDetails(collEvent.id);
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
-        row[header[i]] = eventDetails[i];
+        String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
+        row[key] = eventDetails[i];
       }
       jsonList.add(row);
     }
@@ -36,8 +40,9 @@ class CollEventRecordWriter extends AppServices {
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: header,
+      columnNames: useFieldNamesOnly ? header.map((e) => e.split('::').last).toList() : header,
       exportFormat: format.name,
+      concatenateMultiEntries: true,
     );
     await writer.write();
   }

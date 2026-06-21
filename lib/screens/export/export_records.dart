@@ -29,6 +29,9 @@ class ExportFormState extends ConsumerState<ExportForm> {
   TaxonRecordType? _taxonRecordType;
   SpecimenRecordType _specimenRecordType = SpecimenRecordType.generalMammals;
   MammalRecordType _mammalRecordType = MammalRecordType.excludeBats;
+  SpecimenExportFmt _specimenExportFmt = SpecimenExportFmt.standard;
+  bool _concatenateMultiEntry = false;
+  bool _useFieldNamesOnly = false;
   String _fileStem = 'export';
   Directory? _selectedDir;
   bool _hasSaved = false;
@@ -134,6 +137,54 @@ class ExportFormState extends ConsumerState<ExportForm> {
                     _hasSaved = false;
                   });
                 }),
+          ),
+          Visibility(
+            visible: _recordType == ExportRecordType.specimenRecord,
+            child: DropdownButtonFormField<SpecimenExportFmt>(
+              initialValue: _specimenExportFmt,
+              decoration: const InputDecoration(
+                labelText: 'Format options',
+              ),
+              items: specimenExportFmtList
+                  .map((e) => DropdownMenuItem(
+                        value: SpecimenExportFmt
+                            .values[specimenExportFmtList.indexOf(e)],
+                        child: CommonDropdownText(text: e),
+                      ))
+                  .toList(),
+              onChanged: (SpecimenExportFmt? value) {
+                if (value != null) {
+                  setState(() {
+                    _specimenExportFmt = value;
+                    _hasSaved = false;
+                  });
+                }
+              },
+            ),
+          ),
+          Visibility(
+            visible: _recordType == ExportRecordType.specimenRecord &&
+                _specimenExportFmt == SpecimenExportFmt.allFields,
+            child: SwitchField(
+              value: _concatenateMultiEntry,
+              label: 'Concatenate multi-entry records',
+              onPressed: (bool value) {
+                setState(() {
+                  _concatenateMultiEntry = value;
+                  _hasSaved = false;
+                });
+              },
+            ),
+          ),
+          SwitchField(
+            value: _useFieldNamesOnly,
+            label: 'Use field names only for column headers',
+            onPressed: (bool value) {
+              setState(() {
+                _useFieldNamesOnly = value;
+                _hasSaved = false;
+              });
+            },
           ),
           DropdownButtonFormField<ExportFmt>(
             initialValue: exportCtr.exportFmtCtr,
@@ -260,6 +311,8 @@ class ExportFormState extends ConsumerState<ExportForm> {
         return 'assets/icons/tsv.svg';
       case ExportFmt.excel:
         return 'assets/icons/csv.svg'; // fallback if no excel.svg
+      case ExportFmt.json:
+        return 'assets/icons/json.svg'; // fallback
     }
   }
 
@@ -316,7 +369,14 @@ class ExportFormState extends ConsumerState<ExportForm> {
   }
 
   Future<void> _writeDelimited(ExportFmt format) async {
-    String ext = format == ExportFmt.excel ? 'xlsx' : format.name;
+    String ext;
+    if (format == ExportFmt.excel) {
+      ext = 'xlsx';
+    } else if (format == ExportFmt.json) {
+      ext = 'json';
+    } else {
+      ext = format.name;
+    }
     try {
       _savePath = await AppIOServices(
         dir: _selectedDir,
@@ -375,15 +435,21 @@ class ExportFormState extends ConsumerState<ExportForm> {
   Future<void> _matchRecordTypeToWriter(File file, ExportFmt format) async {
     switch (_recordType) {
       case ExportRecordType.narrative:
-        await NarrativeRecordWriter(ref: ref)
-            .writeNarrativeDelimited(file, format);
+        await NarrativeRecordWriter(
+          ref: ref,
+          useFieldNamesOnly: _useFieldNamesOnly,
+        ).writeNarrativeDelimited(file, format);
         break;
       case ExportRecordType.site:
-        await SiteWriterServices(ref: ref).writeSiteDelimited(file, format);
+        await SiteWriterServices(
+          ref: ref,
+          useFieldNamesOnly: _useFieldNamesOnly,
+        ).writeSiteDelimited(file, format);
         break;
       case ExportRecordType.collEvent:
         await CollEventRecordWriter(
           ref: ref,
+          useFieldNamesOnly: _useFieldNamesOnly,
         ).writeCollEventDelimited(file, format);
         break;
       case ExportRecordType.specimenRecord:
@@ -391,10 +457,16 @@ class ExportFormState extends ConsumerState<ExportForm> {
           ref: ref,
           recordType: _specimenRecordType,
           isInaccurateInBrackets: _inaccurateInBrackets,
+          isAllFields: _specimenExportFmt == SpecimenExportFmt.allFields,
+          concatenateMultiEntry: _concatenateMultiEntry,
+          useFieldNamesOnly: _useFieldNamesOnly,
         ).writeRecordDelimited(file, format);
         break;
       case ExportRecordType.specimenParts:
-        await SpecimenPartWriter(ref: ref).writeDelimited(
+        await SpecimenPartWriter(
+          ref: ref,
+          useFieldNamesOnly: _useFieldNamesOnly,
+        ).writeDelimited(
           file,
           format,
         );

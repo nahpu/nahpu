@@ -12,7 +12,10 @@ import 'package:nahpu/src/rust/api/export.dart';
 class SpecimenPartWriter extends AppServices {
   const SpecimenPartWriter({
     required super.ref,
+    this.useFieldNamesOnly = false,
   });
+
+  final bool useFieldNamesOnly;
 
   Future<void> writeDelimited(File filePath, ExportFmt format) async {
     List<String> header = [
@@ -41,7 +44,8 @@ class SpecimenPartWriter extends AppServices {
 
         Map<String, dynamic> row = {};
         for (int i = 0; i < header.length; i++) {
-          row[header[i]] = content[i];
+          String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
+          row[key] = content[i];
         }
         jsonList.add(row);
       }
@@ -52,8 +56,9 @@ class SpecimenPartWriter extends AppServices {
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: header,
+      columnNames: useFieldNamesOnly ? header.map((e) => e.split('::').last).toList() : header,
       exportFormat: format.name,
+      concatenateMultiEntries: true,
     );
     await writer.write();
   }

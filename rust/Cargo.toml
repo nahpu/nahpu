@@ -15,3 +15,6 @@ serde_json = "1.0.150"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[patch.crates-io]
+nahpu_db = { path = "../../../Rust/nahpu_api/crates/nahpu_db" }

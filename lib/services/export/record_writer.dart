@@ -19,11 +19,17 @@ class SpecimenRecordWriter {
     required this.ref,
     required this.recordType,
     required this.isInaccurateInBrackets,
+    this.isAllFields = false,
+    this.concatenateMultiEntry = true,
+    this.useFieldNamesOnly = false,
   });
 
   final WidgetRef ref;
   final SpecimenRecordType recordType;
   final bool isInaccurateInBrackets;
+  final bool isAllFields;
+  final bool concatenateMultiEntry;
+  final bool useFieldNamesOnly;
 
   Future<void> writeRecordDelimited(File filePath, ExportFmt format) async {
     List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
@@ -33,7 +39,7 @@ class SpecimenRecordWriter {
       ...collEventExportList,
       ..._getMeasurementHeader(),
       partExportSimple,
-      'media'
+      'media::media'
     ];
 
     List<Map<String, dynamic>> jsonList = [];
@@ -42,7 +48,8 @@ class SpecimenRecordWriter {
       List<String> content = await _getSpecimenDetails(element);
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
-        row[header[i]] = content[i];
+        String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
+        row[key] = content[i];
       }
       jsonList.add(row);
     }
@@ -52,8 +59,9 @@ class SpecimenRecordWriter {
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: header,
+      columnNames: useFieldNamesOnly ? header.map((e) => e.split('::').last).toList() : header,
       exportFormat: format.name,
+      concatenateMultiEntries: concatenateMultiEntry,
     );
     await writer.write();
   }

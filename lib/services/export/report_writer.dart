@@ -99,6 +99,7 @@ class SpeciesListWriter extends AppServices {
       outputPath: filePath.path,
       columnNames: ['Species', 'Count'],
       exportFormat: 'csv',
+      concatenateMultiEntries: true,
     ).write();
   }
 

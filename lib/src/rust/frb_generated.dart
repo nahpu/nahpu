@@ -110,7 +110,8 @@ abstract class RustLibApi extends BaseApi {
       {required String jsonContent,
       required String outputPath,
       required List<String> columnNames,
-      required String exportFormat});
+      required String exportFormat,
+      required bool concatenateMultiEntries});
 
   Future<void> crateApiExportRecordWriterWrite({required RecordWriter that});
 
@@ -322,7 +323,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       {required String jsonContent,
       required String outputPath,
       required List<String> columnNames,
-      required String exportFormat}) {
+      required String exportFormat,
+      required bool concatenateMultiEntries}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -330,6 +332,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(outputPath, serializer);
         sse_encode_list_String(columnNames, serializer);
         sse_encode_String(exportFormat, serializer);
+        sse_encode_bool(concatenateMultiEntries, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 8, port: port_);
       },
@@ -338,7 +341,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: null,
       ),
       constMeta: kCrateApiExportRecordWriterNewConstMeta,
-      argValues: [jsonContent, outputPath, columnNames, exportFormat],
+      argValues: [
+        jsonContent,
+        outputPath,
+        columnNames,
+        exportFormat,
+        concatenateMultiEntries
+      ],
       apiImpl: this,
     ));
   }
@@ -346,7 +355,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiExportRecordWriterNewConstMeta =>
       const TaskConstMeta(
         debugName: "record_writer_new",
-        argNames: ["jsonContent", "outputPath", "columnNames", "exportFormat"],
+        argNames: [
+          "jsonContent",
+          "outputPath",
+          "columnNames",
+          "exportFormat",
+          "concatenateMultiEntries"
+        ],
       );
 
   @override
@@ -489,6 +504,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
   RecordReader dco_decode_box_autoadd_record_reader(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_record_reader(raw);
@@ -551,13 +572,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RecordWriter dco_decode_record_writer(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
     return RecordWriter(
       jsonContent: dco_decode_String(arr[0]),
       outputPath: dco_decode_String(arr[1]),
       columnNames: dco_decode_list_String(arr[2]),
       exportFormat: dco_decode_String(arr[3]),
+      concatenateMultiEntries: dco_decode_bool(arr[4]),
     );
   }
 
@@ -604,6 +626,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_list_prim_u_8_strict(deserializer);
     return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
   }
 
   @protected
@@ -689,11 +717,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_outputPath = sse_decode_String(deserializer);
     var var_columnNames = sse_decode_list_String(deserializer);
     var var_exportFormat = sse_decode_String(deserializer);
+    var var_concatenateMultiEntries = sse_decode_bool(deserializer);
     return RecordWriter(
         jsonContent: var_jsonContent,
         outputPath: var_outputPath,
         columnNames: var_columnNames,
-        exportFormat: var_exportFormat);
+        exportFormat: var_exportFormat,
+        concatenateMultiEntries: var_concatenateMultiEntries);
   }
 
   @protected
@@ -736,15 +766,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8() != 0;
-  }
-
-  @protected
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
   }
 
   @protected
@@ -825,6 +855,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.outputPath, serializer);
     sse_encode_list_String(self.columnNames, serializer);
     sse_encode_String(self.exportFormat, serializer);
+    sse_encode_bool(self.concatenateMultiEntries, serializer);
   }
 
   @protected
@@ -858,11 +889,5 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
-  }
-
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self ? 1 : 0);
   }
 }
