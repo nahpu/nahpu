@@ -49,7 +49,6 @@ dependencies:
   flex_color_scheme: ^8.2.0
   pdf: ^3.8.4
   csv: ^6.0.0
-  excel: ^4.0.6
   image_picker: ^1.0.0
   share_plus: ^11.0.0
   exif: ^3.1.4

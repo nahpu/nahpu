@@ -1122,9 +1122,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_db"
-version = "0.1.2"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7012b02a76cb6cbab97c5f2b93992250c3b6991fba966b3e1b9bbea1ed383eba"
+checksum = "3000cd5222dd70af2808f8bfe59297b3227f9042d7cace3b3b07dcd70f4b9c16"
 dependencies = [
  "calamine",
  "csv",

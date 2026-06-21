@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:csv/csv.dart';
 import 'package:csv/csv_settings_autodetection.dart';
-import 'package:excel/excel.dart' as excel;
+import 'package:nahpu/src/rust/api/import.dart';
 import 'package:path/path.dart' as p;
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -499,20 +499,19 @@ class TaxonFileParser {
     TaxonParseResolution resolution,
   ) async {
     try {
-      final bytes = await inputFile.readAsBytes();
-      final workbook = excel.Excel.decodeBytes(bytes);
+      final reader = RecordReader(filePath: inputFile.path);
+      final sheetNames = await reader.getExcelSheetNames();
 
       List<List<dynamic>>? rows;
-      for (final sheet in workbook.tables.values) {
-        final sheetRows = sheet.rows
-            .map((row) => row.map(_xlsxCellToString).toList())
-            .where(
-                (row) => row.any((value) => value.toString().trim().isNotEmpty))
-            .toList();
-
-        if (sheetRows.isNotEmpty) {
-          rows = sheetRows;
-          break;
+      for (final sheet in sheetNames) {
+        try {
+          final sheetRows = await reader.importExcelRaw(sheetName: sheet);
+          if (sheetRows.isNotEmpty && sheetRows.length > 1) {
+            rows = sheetRows;
+            break;
+          }
+        } catch (_) {
+          continue;
         }
       }
 
@@ -535,32 +534,9 @@ class TaxonFileParser {
       }
       throw TaxonFileParseException(
         'Unable to parse Excel file. Best support is for .xlsx. '
-        'Other Excel formats may fail. Try saving as .xlsx, .csv, or .tsv.',
+        'Other Excel formats may fail. Try saving as .xlsx, .csv, or .tsv. Error: $e',
       );
     }
-  }
-
-  String _xlsxCellToString(dynamic cell) {
-    if (cell == null) {
-      return '';
-    }
-
-    final dynamic value;
-    try {
-      value = cell.value;
-    } catch (_) {
-      return cell.toString().trim();
-    }
-
-    if (value == null) {
-      return '';
-    }
-
-    if (value is excel.TextCellValue) {
-      return (value.value.text ?? '').trim();
-    }
-
-    return value.toString().trim();
   }
 }
 

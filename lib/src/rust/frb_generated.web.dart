@@ -9,6 +9,7 @@
 import 'api/archive.dart';
 import 'api/common.dart';
 import 'api/export.dart';
+import 'api/import.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
@@ -26,6 +27,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  RecordReader dco_decode_box_autoadd_record_reader(dynamic raw);
+
+  @protected
   RecordWriter dco_decode_box_autoadd_record_writer(dynamic raw);
 
   @protected
@@ -38,10 +42,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<List<String>> dco_decode_list_list_String(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  RecordReader dco_decode_record_reader(dynamic raw);
 
   @protected
   RecordWriter dco_decode_record_writer(dynamic raw);
@@ -62,6 +72,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  RecordReader sse_decode_box_autoadd_record_reader(
+      SseDeserializer deserializer);
+
+  @protected
   RecordWriter sse_decode_box_autoadd_record_writer(
       SseDeserializer deserializer);
 
@@ -76,10 +90,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<List<String>> sse_decode_list_list_String(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  RecordReader sse_decode_record_reader(SseDeserializer deserializer);
 
   @protected
   RecordWriter sse_decode_record_writer(SseDeserializer deserializer);
@@ -106,6 +126,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_record_reader(
+      RecordReader self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_record_writer(
       RecordWriter self, SseSerializer serializer);
 
@@ -121,11 +145,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_list_String(
+      List<List<String>> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
       Uint8List self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_reader(RecordReader self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_writer(RecordWriter self, SseSerializer serializer);

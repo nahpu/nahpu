@@ -1,13 +1,16 @@
 import 'dart:io';
-
-import 'package:excel/excel.dart' as excel;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
+import 'package:nahpu/src/rust/frb_generated.dart';
 
 void main() {
   const parser = TaxonFileParser();
   late Directory tempDir;
+
+  setUpAll(() async {
+    await RustLib.init();
+  });
 
   setUp(() {
     tempDir = Directory.systemTemp.createTempSync('nahpu_taxon_import_test_');
@@ -136,32 +139,14 @@ void main() {
   });
 
   test('Unknown extension auto-detects excel bytes', () async {
-    final workbook = excel.Excel.createExcel();
-    final sheet = workbook[workbook.getDefaultSheet()!];
-
-    sheet.appendRow([
-      excel.TextCellValue('Class'),
-      excel.TextCellValue('Order'),
-      excel.TextCellValue('Family'),
-      excel.TextCellValue('Genus'),
-      excel.TextCellValue('Specific epithet'),
-    ]);
-    sheet.appendRow([
-      excel.TextCellValue('Mammalia'),
-      excel.TextCellValue('Rodentia'),
-      excel.TextCellValue('Muridae'),
-      excel.TextCellValue('Bunomys'),
-      excel.TextCellValue('coelestis'),
-    ]);
-
+    final src = File('test/data/taxon_import/speciesList.xlsx');
     final file = File('${tempDir.path}/taxa.unknown');
-    final bytes = workbook.save();
-    await file.writeAsBytes(bytes!);
+    file.writeAsBytesSync(src.readAsBytesSync());
 
     final parsed = (await parser.parseFileDetailed(file)).data;
 
-    expect(parsed.header[0], 'Class');
-    expect(parsed.data.first[3], 'Bunomys');
+    expect(parsed.header.first.toLowerCase(), 'class');
+    expect(parsed.data.first[3], 'Crocidura');
   });
 
   test('Manual override failure includes retry guidance', () async {
@@ -185,32 +170,12 @@ void main() {
   });
 
   test('Parses XLSX', () async {
-    final workbook = excel.Excel.createExcel();
-    final sheet = workbook[workbook.getDefaultSheet()!];
-
-    sheet.appendRow([
-      excel.TextCellValue('Class'),
-      excel.TextCellValue('Order'),
-      excel.TextCellValue('Family'),
-      excel.TextCellValue('Genus'),
-      excel.TextCellValue('Specific epithet'),
-    ]);
-    sheet.appendRow([
-      excel.TextCellValue('Mammalia'),
-      excel.TextCellValue('Rodentia'),
-      excel.TextCellValue('Muridae'),
-      excel.TextCellValue('Bunomys'),
-      excel.TextCellValue('coelestis'),
-    ]);
-
-    final file = File('${tempDir.path}/taxa.xlsx');
-    final bytes = workbook.save();
-    await file.writeAsBytes(bytes!);
+    final file = File('test/data/taxon_import/speciesList.xlsx');
 
     final parsed = (await parser.parseFileDetailed(file)).data;
 
-    expect(parsed.header[0], 'Class');
-    expect(parsed.data.first[3], 'Bunomys');
+    expect(parsed.header.first.toLowerCase(), 'class');
+    expect(parsed.data.first[3], 'Crocidura');
   });
 
   test('Missing required headers still reported by problem finder', () {
@@ -284,27 +249,7 @@ void main() {
   });
 
   test('Detailed parse reports excel parser for xlsx', () async {
-    final workbook = excel.Excel.createExcel();
-    final sheet = workbook[workbook.getDefaultSheet()!];
-
-    sheet.appendRow([
-      excel.TextCellValue('Class'),
-      excel.TextCellValue('Order'),
-      excel.TextCellValue('Family'),
-      excel.TextCellValue('Genus'),
-      excel.TextCellValue('Specific epithet'),
-    ]);
-    sheet.appendRow([
-      excel.TextCellValue('Mammalia'),
-      excel.TextCellValue('Rodentia'),
-      excel.TextCellValue('Muridae'),
-      excel.TextCellValue('Bunomys'),
-      excel.TextCellValue('coelestis'),
-    ]);
-
-    final file = File('${tempDir.path}/taxa.xlsx');
-    final bytes = workbook.save();
-    await file.writeAsBytes(bytes!);
+    final file = File('test/data/taxon_import/speciesList.xlsx');
 
     final parsed = await parser.parseFileDetailed(file);
 
