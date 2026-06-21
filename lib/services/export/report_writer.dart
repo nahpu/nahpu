@@ -9,7 +9,7 @@ import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/src/rust/api/export.dart';
-import 'package:xml/xml.dart';
+
 
 class ReportServices extends AppServices {
   const ReportServices({required super.ref});
@@ -35,8 +35,19 @@ class CoordinateWriter extends AppServices {
 
   Future<void> writeCoordinate(File savePath) async {
     final coordinateList = await _getAllCoordinate();
-    final kml = _buildKml(coordinateList);
-    await savePath.writeAsString(kml.toXmlString(pretty: true));
+    
+    List<Map<String, dynamic>> coordinateDataList = coordinateList.map((c) => {
+      'nameId': c.nameId,
+      'notes': c.notes,
+      'decimalLongitude': c.decimalLongitude,
+      'decimalLatitude': c.decimalLatitude,
+      'elevationInMeter': c.elevationInMeter,
+    }).toList();
+
+    await exportKml(
+      jsonContent: jsonEncode(coordinateDataList),
+      outputPath: savePath.path,
+    );
   }
 
   Future<List<CoordinateData>> _getAllCoordinate() async {
@@ -48,41 +59,6 @@ class CoordinateWriter extends AppServices {
       coordinateList.addAll(data);
     }
     return coordinateList;
-  }
-
-  XmlDocument _buildKml(List<CoordinateData> coordinateList) {
-    final builder = XmlBuilder();
-    builder.processing('xml', 'version="1.0" encoding="UTF-8"');
-    builder.element('kml', nest: () {
-      builder.element('Document', nest: () {
-        builder.element('name', nest: 'NAHPU');
-        builder.element('description', nest: 'NAHPU');
-        builder.element('Style', nest: () {
-          builder.element('LineStyle', nest: () {
-            builder.element('color', nest: 'ff0000ff');
-            builder.element('width', nest: '2');
-          });
-          builder.element('PolyStyle', nest: () {
-            builder.element('color', nest: '7f00ff00');
-          });
-        });
-        for (var coordinate in coordinateList) {
-          builder.element('Placemark', nest: () {
-            builder.element('name', nest: coordinate.nameId);
-            builder.element('description', nest: coordinate.notes);
-            builder.element('styleUrl', nest: '#msn_ylw-pushpin');
-            builder.element('Point', nest: () {
-              builder.element('coordinates',
-                  nest: '${coordinate.decimalLongitude ?? ''}'
-                      ',${coordinate.decimalLatitude ?? ''}'
-                      '${coordinate.elevationInMeter ?? ''}');
-            });
-          });
-        }
-      });
-    });
-
-    return builder.buildDocument();
   }
 }
 

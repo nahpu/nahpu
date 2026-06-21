@@ -49,3 +49,11 @@ impl RecordWriter {
         }
     }
 }
+
+pub fn export_kml(json_content: String, output_path: String) -> Result<(), String> {
+    let data: Vec<nahpu_gis::io::kml::CoordinateData> = serde_json::from_str(&json_content)
+        .map_err(|e| format!("Failed to parse KML JSON: {}", e))?;
+
+    let exporter = nahpu_gis::io::kml::KmlExporter::new(&data);
+    exporter.export_kml(Path::new(&output_path))
+}

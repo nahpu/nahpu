@@ -38,7 +38,8 @@ impl RecordReader {
             let content = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
             let mut rows = Vec::new();
             for line in content.lines() {
-                let string_row: Vec<String> = line.split(delim_str).map(|s| s.to_string()).collect();
+                let string_row: Vec<String> =
+                    line.split(delim_str).map(|s| s.to_string()).collect();
                 if string_row.iter().any(|s| !s.trim().is_empty()) {
                     rows.push(string_row);
                 }
