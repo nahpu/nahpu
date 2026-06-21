@@ -315,7 +315,7 @@ class PersonnelRole extends ConsumerStatefulWidget {
 class PersonnelRoleState extends ConsumerState<PersonnelRole> {
   @override
   Widget build(BuildContext context) {
-    return ref.watch(UserDefinedFieldProvider(collRolePrefKey)).when(
+    return ref.watch(userDefinedFieldProvider(collRolePrefKey)).when(
           data: (data) {
             return DropdownButtonFormField<String>(
               isExpanded: true,

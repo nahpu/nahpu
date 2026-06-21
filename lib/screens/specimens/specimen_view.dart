@@ -157,8 +157,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
           specimenEntry.indexWhere((specimen) => specimen.uuid == pendingJump);
       if (target != -1) {
         ref
-            .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
-            .state = null;
+            .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier).updateState(null);
         return target;
       }
     }

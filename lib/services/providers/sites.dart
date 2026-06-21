@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
@@ -7,12 +8,12 @@ import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+final siteEntryProvider =
+    AsyncNotifierProvider.autoDispose<SiteEntry, List<SiteData>>(
+  SiteEntry.new,
+);
 
-part 'sites.g.dart';
-
-@riverpod
-class SiteEntry extends _$SiteEntry {
+class SiteEntry extends AsyncNotifier<List<SiteData>> {
   Future<List<SiteData>> _fetchSiteEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 
@@ -59,8 +60,8 @@ final coordinateByEventProvider = FutureProvider.family
   }
 });
 
-@riverpod
-Future<List<MediaData>> siteMedia(Ref ref, {required int siteId}) async {
+final siteMediaProvider = FutureProvider.family
+    .autoDispose<List<MediaData>, int>((ref, siteId) async {
   List<SiteMediaData> mediaList =
       await SiteQuery(ref.read(databaseProvider)).getSiteMedia(siteId);
   List<MediaData> mediaDataList = [];
@@ -72,10 +73,10 @@ Future<List<MediaData>> siteMedia(Ref ref, {required int siteId}) async {
     }
   }
   return mediaDataList;
-}
+});
 
-@riverpod
-Future<List<SiteData>> siteInEvent(Ref ref) async {
+final siteInEventProvider =
+    FutureProvider.autoDispose<List<SiteData>>((ref) async {
   List<int?> siteList = await CollEventQuery(ref.read(databaseProvider))
       .getAllDistinctSites(ref.read(projectUuidProvider));
   List<SiteData> siteDataList = [];
@@ -87,4 +88,4 @@ Future<List<SiteData>> siteInEvent(Ref ref) async {
     }
   }
   return siteDataList;
-}
+});

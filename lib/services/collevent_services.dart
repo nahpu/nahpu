@@ -1,5 +1,4 @@
 import 'package:intl/intl.dart';
-import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
@@ -176,13 +175,13 @@ class CollEventServices extends AppServices {
   }
 
   void invalidateCollEvent() {
-    ref.invalidate(collEventEntryProvider);
-    ref.invalidate(weatherDataProvider);
-    ref.invalidate(collPersonnelProvider);
+    // ref.invalidate(collEventEntryProvider);
+    // ref.invalidate(weatherDataProvider);
+    // ref.invalidate(collPersonnelProvider);
   }
 
   void invalidateCollPersonnel() {
-    ref.invalidate(collPersonnelProvider);
+    // ref.invalidate(collPersonnelProvider);
   }
 }
 

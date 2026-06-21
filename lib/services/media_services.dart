@@ -1,9 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:nahpu/services/providers/narrative.dart';
-import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
@@ -109,13 +106,13 @@ class MediaServices extends AppServices {
   void _invalidateMedia(MediaCategory category) {
     switch (category) {
       case MediaCategory.narrative:
-        ref.invalidate(narrativeMediaProvider);
+        // ref.invalidate(narrativeMediaProvider);
         break;
       case MediaCategory.site:
-        ref.invalidate(siteMediaProvider);
+        // ref.invalidate(siteMediaProvider);
         break;
       case MediaCategory.specimen:
-        ref.invalidate(specimenMediaProvider);
+        // ref.invalidate(specimenMediaProvider);
         break;
       default:
         break;

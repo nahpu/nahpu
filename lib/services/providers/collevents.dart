@@ -5,12 +5,14 @@ import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-part 'collevents.g.dart';
+final collEventEntryProvider =
+    AsyncNotifierProvider.autoDispose<CollEventEntry, List<CollEventData>>(
+  CollEventEntry.new,
+);
 
-@riverpod
-class CollEventEntry extends _$CollEventEntry {
+class CollEventEntry extends AsyncNotifier<List<CollEventData>> {
   Future<List<CollEventData>> _fetchCollEventEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 

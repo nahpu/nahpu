@@ -30,7 +30,7 @@ class SpecimenMediaFormState extends ConsumerState<SpecimenMediaForm> {
   Widget build(BuildContext context) {
     MediaCategory mediaCategory = MediaCategory.specimen;
     return ref
-        .watch(specimenMediaProvider(specimenUuid: widget.specimenUuid))
+        .watch(specimenMediaProvider(widget.specimenUuid))
         .when(
           data: (data) {
             return MediaViewer(

@@ -19,8 +19,7 @@ Future<void> createNewNarrative(BuildContext context, WidgetRef ref) {
   return NarrativeServices(ref: ref).createNewNarrative().then((newId) {
     // Refresh the always-mounted viewer in place and land on the new
     // narrative.
-    ref.read(pendingRecordJumpProvider(RecordViewer.narrative).notifier).state =
-        newId;
+    ref.read(pendingRecordJumpProvider(RecordViewer.narrative).notifier).updateState(newId);
     ref.invalidate(narrativeEntryProvider);
   });
 }

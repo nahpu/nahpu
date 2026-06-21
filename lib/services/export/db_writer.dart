@@ -182,7 +182,7 @@ class DbWriter extends AppServices {
       print('Mark new database!');
     }
 
-    newDb.dispose();
+    newDb.close();
   }
 
   Future<String> _findSqlite3InTempDir(List<FileSystemEntity> files) async {

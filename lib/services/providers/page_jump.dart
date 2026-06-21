@@ -16,4 +16,17 @@ enum RecordViewer { site, collEvent, specimen, narrative }
 /// the handoff immune to emission ordering: a refresh that does not contain
 /// the record yet simply leaves the request pending.
 final pendingRecordJumpProvider =
-    StateProvider.family<Object?, RecordViewer>((ref, viewer) => null);
+    NotifierProvider.family<PendingRecordJumpNotifier, Object?, RecordViewer>(
+        PendingRecordJumpNotifier.new);
+
+class PendingRecordJumpNotifier extends Notifier<Object?> {
+  PendingRecordJumpNotifier(this.viewer);
+  final RecordViewer viewer;
+
+  @override
+  Object? build() => null;
+
+  void updateState(Object? newValue) {
+    state = newValue;
+  }
+}
