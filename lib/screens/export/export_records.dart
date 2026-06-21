@@ -35,7 +35,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
   late File _savePath;
   bool _isRunning = false;
   bool _inaccurateInBrackets = true;
-  bool _selectColumns = false;
+  final bool _selectColumns = false;
 
   @override
   void initState() {
@@ -166,27 +166,30 @@ class ExportFormState extends ConsumerState<ExportForm> {
               }
             },
           ),
-          SelectDirField(
-            dirPath: _selectedDir,
-            onPressed: () async => await _getDir(),
-            onCanceled: () {
-              setState(() {
-                _selectedDir = null;
-                _hasSaved = false;
-              });
-            },
+          Visibility(
+            visible: !Platform.isIOS,
+            child: SelectDirField(
+              dirPath: _selectedDir,
+              onPressed: () async => await _getDir(),
+              onCanceled: () {
+                setState(() {
+                  _selectedDir = null;
+                  _hasSaved = false;
+                });
+              },
+            ),
           ),
           const SizedBox(height: 12),
-          SwitchField(
-            value: _selectColumns,
-            label: 'Select columns to include',
-            onPressed: (bool value) {
-              setState(() {
-                _selectColumns = value;
-                _hasSaved = false;
-              });
-            },
-          ),
+          // SwitchField(
+          //   value: _selectColumns,
+          //   label: 'Select columns to include',
+          //   onPressed: (bool value) {
+          //     setState(() {
+          //       _selectColumns = value;
+          //       _hasSaved = false;
+          //     });
+          //   },
+          // ),
           Visibility(
             visible: _selectColumns,
             child: FutureBuilder<List<String>>(

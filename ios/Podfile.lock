@@ -1,182 +1,28 @@
 PODS:
-  - DKImagePickerController/Core (4.3.9):
-    - DKImagePickerController/ImageDataManager
-    - DKImagePickerController/Resource
-  - DKImagePickerController/ImageDataManager (4.3.9)
-  - DKImagePickerController/PhotoGallery (4.3.9):
-    - DKImagePickerController/Core
-    - DKPhotoGallery
-  - DKImagePickerController/Resource (4.3.9)
-  - DKPhotoGallery (0.0.19):
-    - DKPhotoGallery/Core (= 0.0.19)
-    - DKPhotoGallery/Model (= 0.0.19)
-    - DKPhotoGallery/Preview (= 0.0.19)
-    - DKPhotoGallery/Resource (= 0.0.19)
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Core (0.0.19):
-    - DKPhotoGallery/Model
-    - DKPhotoGallery/Preview
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Model (0.0.19):
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Preview (0.0.19):
-    - DKPhotoGallery/Model
-    - DKPhotoGallery/Resource
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Resource (0.0.19):
-    - SDWebImage
-    - SwiftyGif
-  - file_picker (0.0.1):
-    - DKImagePickerController/PhotoGallery
-    - Flutter
-  - file_selector_ios (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
-  - geolocator_apple (1.2.0):
-    - Flutter
-    - FlutterMacOS
-  - image_picker_ios (0.0.1):
-    - Flutter
-  - integration_test (0.0.1):
-    - Flutter
-  - mobile_scanner (7.0.0):
-    - Flutter
-    - FlutterMacOS
-  - open_file_manager (0.1.1):
-    - Flutter
-  - package_info_plus (0.4.5):
-    - Flutter
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - printing (1.0.0):
     - Flutter
   - rust_lib_nahpu (0.0.1):
     - Flutter
-  - SDWebImage (5.21.0):
-    - SDWebImage/Core (= 5.21.0)
-  - SDWebImage/Core (5.21.0)
-  - share_plus (0.0.1):
-    - Flutter
-  - shared_preferences_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
-  - sqlite3 (3.50.4):
-    - sqlite3/common (= 3.50.4)
-  - sqlite3/common (3.50.4)
-  - sqlite3/dbstatvtab (3.50.4):
-    - sqlite3/common
-  - sqlite3/fts5 (3.50.4):
-    - sqlite3/common
-  - sqlite3/math (3.50.4):
-    - sqlite3/common
-  - sqlite3/perf-threadsafe (3.50.4):
-    - sqlite3/common
-  - sqlite3/rtree (3.50.4):
-    - sqlite3/common
-  - sqlite3/session (3.50.4):
-    - sqlite3/common
-  - sqlite3_flutter_libs (0.0.1):
-    - Flutter
-    - FlutterMacOS
-    - sqlite3 (~> 3.50.4)
-    - sqlite3/dbstatvtab
-    - sqlite3/fts5
-    - sqlite3/math
-    - sqlite3/perf-threadsafe
-    - sqlite3/rtree
-    - sqlite3/session
-  - SwiftyGif (5.4.5)
-  - url_launcher_ios (0.0.1):
-    - Flutter
 
 DEPENDENCIES:
-  - file_picker (from `.symlinks/plugins/file_picker/ios`)
-  - file_selector_ios (from `.symlinks/plugins/file_selector_ios/ios`)
   - Flutter (from `Flutter`)
-  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
-  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
-  - integration_test (from `.symlinks/plugins/integration_test/ios`)
-  - mobile_scanner (from `.symlinks/plugins/mobile_scanner/darwin`)
-  - open_file_manager (from `.symlinks/plugins/open_file_manager/ios`)
-  - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - printing (from `.symlinks/plugins/printing/ios`)
   - rust_lib_nahpu (from `.symlinks/plugins/rust_lib_nahpu/ios`)
-  - share_plus (from `.symlinks/plugins/share_plus/ios`)
-  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
-  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
-
-SPEC REPOS:
-  trunk:
-    - DKImagePickerController
-    - DKPhotoGallery
-    - SDWebImage
-    - sqlite3
-    - SwiftyGif
 
 EXTERNAL SOURCES:
-  file_picker:
-    :path: ".symlinks/plugins/file_picker/ios"
-  file_selector_ios:
-    :path: ".symlinks/plugins/file_selector_ios/ios"
   Flutter:
     :path: Flutter
-  geolocator_apple:
-    :path: ".symlinks/plugins/geolocator_apple/darwin"
-  image_picker_ios:
-    :path: ".symlinks/plugins/image_picker_ios/ios"
-  integration_test:
-    :path: ".symlinks/plugins/integration_test/ios"
-  mobile_scanner:
-    :path: ".symlinks/plugins/mobile_scanner/darwin"
-  open_file_manager:
-    :path: ".symlinks/plugins/open_file_manager/ios"
-  package_info_plus:
-    :path: ".symlinks/plugins/package_info_plus/ios"
-  path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   printing:
     :path: ".symlinks/plugins/printing/ios"
   rust_lib_nahpu:
     :path: ".symlinks/plugins/rust_lib_nahpu/ios"
-  share_plus:
-    :path: ".symlinks/plugins/share_plus/ios"
-  shared_preferences_foundation:
-    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
-  sqlite3_flutter_libs:
-    :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
-  url_launcher_ios:
-    :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
-  DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
-  DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
-  file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
-  file_selector_ios: 80c12e90ad3f2045ed6819d03742f1a4c5ec3f93
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
-  image_picker_ios: 4f2f91b01abdb52842a8e277617df877e40f905b
-  integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
-  mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
-  open_file_manager: 1917fdd1bae7afc9236da9bd1a4b0c8cb5b81d0c
-  package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
-  path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
-  printing: 233e1b73bd1f4a05615548e9b5a324c98588640b
-  rust_lib_nahpu: 35a4dea94e9b6450113f8ec70ee90a2b211416fe
-  SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868
-  share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
-  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
-  sqlite3: 73513155ec6979715d3904ef53a8d68892d4032b
-  sqlite3_flutter_libs: 86f82662868ee26ff3451f73cac9c5fc2a1f57fa
-  SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
-  url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa
+  printing: 54ff03f28fe9ba3aa93358afb80a8595a071dd07
+  rust_lib_nahpu: 0bbd60141d65c60ffc60b017838a7c0b30f35e9e
 
-PODFILE CHECKSUM: 4f1c12611da7338d21589c0b2ecd6bd20b109694
+PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
 
 COCOAPODS: 1.16.2

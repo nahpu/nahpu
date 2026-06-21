@@ -32,23 +32,6 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
 
   @override
   void dispose() {
-    // Persist date and time (if any) before disposing controllers so that
-    // unsaved changes are not lost when the user navigates away.
-    try {
-      String? dateStd = widget.narrativeCtr.dateCtr.date;
-      String? timeStd = widget.narrativeCtr.timeCtr.time;
-
-      NarrativeServices(ref: ref).updateNarrative(
-        widget.narrativeId,
-        NarrativeCompanion(
-          date: db.Value(dateStd),
-          time: db.Value(timeStd),
-        ),
-      );
-    } catch (e) {
-      // Best-effort: don't crash on dispose if update fails.
-    }
-
     widget.narrativeCtr.dispose();
     super.dispose();
   }
@@ -100,22 +83,9 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
             FormCard(
               isPrimary: false,
               isWithTitle: false,
-              child: CommonPadding(
-                child: TextField(
-                  scrollPhysics: const ScrollPhysics(),
-                  controller: widget.narrativeCtr.narrativeCtr,
-                  maxLines: 20,
-                  decoration: const InputDecoration(
-                    labelText: 'Narrative',
-                    hintText: 'Enter narrative',
-                  ),
-                  onChanged: (value) {
-                    NarrativeServices(ref: ref).updateNarrative(
-                      widget.narrativeId,
-                      NarrativeCompanion(narrative: db.Value(value)),
-                    );
-                  },
-                ),
+              child: NarrativeText(
+                narrativeCtr: widget.narrativeCtr,
+                narrativeId: widget.narrativeId,
               ),
             ),
             NarrativeMediaForm(
@@ -125,6 +95,39 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
           ],
         );
       },
+    );
+  }
+}
+
+class NarrativeText extends ConsumerWidget {
+  const NarrativeText({
+    super.key,
+    required this.narrativeCtr,
+    required this.narrativeId,
+  });
+
+  final NarrativeFormCtrModel narrativeCtr;
+  final int narrativeId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CommonPadding(
+      child: TextField(
+        decoration: InputDecoration(
+          labelText: 'Narrative',
+          hintText: 'Enter narrative',
+        ),
+        controller: narrativeCtr.narrativeCtr,
+        maxLines: 20,
+        onChanged: (String? value) {
+          if (value != null) {
+            NarrativeServices(ref: ref).updateNarrative(
+              narrativeId,
+              NarrativeCompanion(narrative: db.Value(value)),
+            );
+          }
+        },
+      ),
     );
   }
 }

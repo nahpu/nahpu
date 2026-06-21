@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/layout.dart';
@@ -13,6 +12,7 @@ import 'package:nahpu/screens/shared/file_operation.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/screens/shared/project_shell.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
@@ -691,11 +691,7 @@ class ImportRecords extends StatelessWidget {
             child: IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => const Dashboard(),
-                    ),
-                  );
+                  ProjectShell.popToShell(context);
                 })),
       ),
       body: SafeArea(

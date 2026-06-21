@@ -20,7 +20,7 @@ class PdfServices extends AppServices {
   final pdf = pw.Document();
 
   Future<void> writePdf(pw.Document pdf) async {
-    filePath.writeAsBytes(await pdf.save());
+    await filePath.writeAsBytes(await pdf.save());
   }
 
   Future<void> generateProjectPage() async {

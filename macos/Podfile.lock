@@ -1,125 +1,27 @@
 PODS:
-  - dynamic_color (0.0.2):
-    - FlutterMacOS
-  - file_picker (0.0.1):
-    - FlutterMacOS
-  - file_selector_macos (0.0.1):
-    - FlutterMacOS
   - FlutterMacOS (1.0.0)
-  - geolocator_apple (1.2.0):
-    - Flutter
-    - FlutterMacOS
-  - mobile_scanner (7.0.0):
-    - Flutter
-    - FlutterMacOS
-  - package_info_plus (0.0.1):
-    - FlutterMacOS
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - printing (1.0.0):
     - FlutterMacOS
   - rust_lib_nahpu (0.0.1):
     - FlutterMacOS
-  - share_plus (0.0.1):
-    - FlutterMacOS
-  - shared_preferences_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
-  - sqlite3 (3.50.4):
-    - sqlite3/common (= 3.50.4)
-  - sqlite3/common (3.50.4)
-  - sqlite3/dbstatvtab (3.50.4):
-    - sqlite3/common
-  - sqlite3/fts5 (3.50.4):
-    - sqlite3/common
-  - sqlite3/math (3.50.4):
-    - sqlite3/common
-  - sqlite3/perf-threadsafe (3.50.4):
-    - sqlite3/common
-  - sqlite3/rtree (3.50.4):
-    - sqlite3/common
-  - sqlite3/session (3.50.4):
-    - sqlite3/common
-  - sqlite3_flutter_libs (0.0.1):
-    - Flutter
-    - FlutterMacOS
-    - sqlite3 (~> 3.50.4)
-    - sqlite3/dbstatvtab
-    - sqlite3/fts5
-    - sqlite3/math
-    - sqlite3/perf-threadsafe
-    - sqlite3/rtree
-    - sqlite3/session
-  - url_launcher_macos (0.0.1):
-    - FlutterMacOS
 
 DEPENDENCIES:
-  - dynamic_color (from `Flutter/ephemeral/.symlinks/plugins/dynamic_color/macos`)
-  - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
-  - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - geolocator_apple (from `Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin`)
-  - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin`)
-  - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
-  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - printing (from `Flutter/ephemeral/.symlinks/plugins/printing/macos`)
   - rust_lib_nahpu (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_nahpu/macos`)
-  - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
-  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin`)
-  - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
-
-SPEC REPOS:
-  trunk:
-    - sqlite3
 
 EXTERNAL SOURCES:
-  dynamic_color:
-    :path: Flutter/ephemeral/.symlinks/plugins/dynamic_color/macos
-  file_picker:
-    :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
-  file_selector_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
-  geolocator_apple:
-    :path: Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin
-  mobile_scanner:
-    :path: Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin
-  package_info_plus:
-    :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
-  path_provider_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   printing:
     :path: Flutter/ephemeral/.symlinks/plugins/printing/macos
   rust_lib_nahpu:
     :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_nahpu/macos
-  share_plus:
-    :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
-  shared_preferences_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
-  sqlite3_flutter_libs:
-    :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin
-  url_launcher_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  dynamic_color: 5fdff3953fb3457311091863f72914fc76ea3209
-  file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
-  file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
-  mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
-  package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
-  path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
-  printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
-  rust_lib_nahpu: 7e26303c31064c5787df1cc8d380a88d171ef80a
-  share_plus: 1fa619de8392a4398bfaf176d441853922614e89
-  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
-  sqlite3: 73513155ec6979715d3904ef53a8d68892d4032b
-  sqlite3_flutter_libs: 86f82662868ee26ff3451f73cac9c5fc2a1f57fa
-  url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
+  printing: c4cf83c78fd684f9bc318e6aadc18972aa48f617
+  rust_lib_nahpu: 86cb02663d5a57f3ec07ac93813d0f232e8efb9f
 
 PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
 
