@@ -90,11 +90,13 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
-flutter_icons:
+flutter_launcher_icons:
   ios: true
   android: true
-  remove_alpha_ios: true
-  image_path_ios: "assets/launcher/nahpu-bg.png"
+  image_path_ios: "assets/launcher/ios/iosNahpuIcon-iOS-Default-1024x1024@1x.png"
+  image_path_ios_dark_transparent: "assets/launcher/ios/iosNahpuIcon-iOS-Dark-1024x1024@1x.png"
+  image_path_ios_tinted_grayscale: "assets/launcher/ios/iosNahpuIcon-iOS-TintedDark-1024x1024@1x.png"
+  desaturate_tinted_to_grayscale_ios: true
   image_path_android: "assets/launcher/nahpu-bg.png"
   adaptive_icon_background: "#f4f1de"
   adaptive_icon_foreground: "assets/launcher/nahpu-no-bg.png"
@@ -103,7 +105,7 @@ flutter_icons:
     image_path: "assets/launcher/nahpu-light.png"
   macos:
     generate: true
-    image_path: "assets/launcher/nahpu-light.png"
+    image_path: "assets/launcher/ios/iosNahpuIcon-iOS-Default-1024x1024@1x.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
