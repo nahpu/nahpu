@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:csv/csv.dart';
-import 'package:csv/csv_settings_autodetection.dart';
 import 'package:nahpu/src/rust/api/import.dart';
 import 'package:path/path.dart' as p;
 import 'package:nahpu/services/providers/taxa.dart';
@@ -275,16 +274,9 @@ class TaxonFileParser {
   Future<List<List<dynamic>>> _readDelimitedRows(
       File inputFile, String delimiter) async {
     final reader = inputFile.openRead();
-    final eolDetector = FirstOccurrenceSettingsDetector(
-      fieldDelimiters: [delimiter],
-      eols: const ['\r\n', '\n'],
-    );
     return await reader
         .transform(utf8.decoder)
-        .transform(CsvToListConverter(
-          csvSettingsDetector: eolDetector,
-          shouldParseNumbers: false,
-        ))
+        .transform(Csv(fieldDelimiter: delimiter, dynamicTyping: false).decoder)
         .toList();
   }
 

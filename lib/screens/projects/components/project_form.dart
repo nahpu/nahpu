@@ -307,7 +307,7 @@ extension LocationDropdownText on Location {
   String toText() {
     if (name == 'UTC') return '(UTC) Coordinated Universal Time';
 
-    final utcOffset = (currentTimeZone.offset / 3.6e6);
+    final utcOffset = (currentTimeZone.offset.inMilliseconds / 3.6e6);
     final plusMinus = utcOffset >= 0 ? '+' : '-';
     final utcOffsetHours = utcOffset.toInt();
     final utcOffsetMinutes = ((utcOffset % 1.0) * 60).toInt();
