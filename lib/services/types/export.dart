@@ -35,11 +35,14 @@ const Map<DbExportFmt, String> dbExportFmt = {
   DbExportFmt.sqlite3: 'Database (.sqlite3)',
 };
 
-enum ReportFmt { csv, kml }
+enum ReportFmt { csv, kml, geojson, topojson, shp }
 
 const List<String> reportFmtList = [
   'Comma-separated (.csv)',
   'Keyhole Markup Language (.kml)',
+  'GeoJSON (.geojson)',
+  'TopoJSON (.topojson)',
+  'Shapefile (.zip)',
 ];
 
 enum ReportType { speciesCount, mediaData, coordinate }

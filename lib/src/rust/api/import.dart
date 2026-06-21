@@ -18,6 +18,10 @@ class RecordReader {
         that: this,
       );
 
+  Future<List<List<String>>> importDelimitedRaw({required String delimiter}) =>
+      RustLib.instance.api.crateApiImportRecordReaderImportDelimitedRaw(
+          that: this, delimiter: delimiter);
+
   Future<List<List<String>>> importExcelRaw({required String sheetName}) =>
       RustLib.instance.api.crateApiImportRecordReaderImportExcelRaw(
           that: this, sheetName: sheetName);

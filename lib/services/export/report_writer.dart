@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:nahpu/services/database/database.dart';
@@ -7,12 +8,13 @@ import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:xml/xml.dart';
+import 'package:nahpu/src/rust/api/export.dart';
+
 
 class ReportServices extends AppServices {
   const ReportServices({required super.ref});
 
-  Future<void> writeReport(File savePath, ReportType reportType) async {
+  Future<void> writeReport(File savePath, ReportType reportType, ReportFmt reportFmt) async {
     switch (reportType) {
       case ReportType.speciesCount:
         await SpeciesListWriter(ref: ref).writeSpeciesListCompact(savePath);
@@ -22,7 +24,7 @@ class ReportServices extends AppServices {
             .writeAllMediaDelimited(savePath, true);
         break;
       case ReportType.coordinate:
-        await CoordinateWriter(ref: ref).writeCoordinate(savePath);
+        await CoordinateWriter(ref: ref).writeCoordinate(savePath, reportFmt);
         break;
     }
   }
@@ -31,10 +33,39 @@ class ReportServices extends AppServices {
 class CoordinateWriter extends AppServices {
   const CoordinateWriter({required super.ref});
 
-  Future<void> writeCoordinate(File savePath) async {
+  Future<void> writeCoordinate(File savePath, ReportFmt reportFmt) async {
     final coordinateList = await _getAllCoordinate();
-    final kml = _buildKml(coordinateList);
-    await savePath.writeAsString(kml.toXmlString(pretty: true));
+    
+    List<Map<String, dynamic>> coordinateDataList = coordinateList.map((c) => {
+      'nameId': c.nameId,
+      'notes': c.notes,
+      'decimalLongitude': c.decimalLongitude,
+      'decimalLatitude': c.decimalLatitude,
+      'elevationInMeter': c.elevationInMeter,
+    }).toList();
+
+    String formatStr = 'kml';
+    switch (reportFmt) {
+      case ReportFmt.geojson:
+        formatStr = 'geojson';
+        break;
+      case ReportFmt.topojson:
+        formatStr = 'topojson';
+        break;
+      case ReportFmt.shp:
+        formatStr = 'shp';
+        break;
+      case ReportFmt.csv:
+      case ReportFmt.kml:
+        formatStr = 'kml';
+        break;
+    }
+
+    await exportCoordinates(
+      jsonContent: jsonEncode(coordinateDataList),
+      outputPath: savePath.path,
+      exportFormat: formatStr,
+    );
   }
 
   Future<List<CoordinateData>> _getAllCoordinate() async {
@@ -47,41 +78,6 @@ class CoordinateWriter extends AppServices {
     }
     return coordinateList;
   }
-
-  XmlDocument _buildKml(List<CoordinateData> coordinateList) {
-    final builder = XmlBuilder();
-    builder.processing('xml', 'version="1.0" encoding="UTF-8"');
-    builder.element('kml', nest: () {
-      builder.element('Document', nest: () {
-        builder.element('name', nest: 'NAHPU');
-        builder.element('description', nest: 'NAHPU');
-        builder.element('Style', nest: () {
-          builder.element('LineStyle', nest: () {
-            builder.element('color', nest: 'ff0000ff');
-            builder.element('width', nest: '2');
-          });
-          builder.element('PolyStyle', nest: () {
-            builder.element('color', nest: '7f00ff00');
-          });
-        });
-        for (var coordinate in coordinateList) {
-          builder.element('Placemark', nest: () {
-            builder.element('name', nest: coordinate.nameId);
-            builder.element('description', nest: coordinate.notes);
-            builder.element('styleUrl', nest: '#msn_ylw-pushpin');
-            builder.element('Point', nest: () {
-              builder.element('coordinates',
-                  nest: '${coordinate.decimalLongitude ?? ''}'
-                      ',${coordinate.decimalLatitude ?? ''}'
-                      '${coordinate.elevationInMeter ?? ''}');
-            });
-          });
-        }
-      });
-    });
-
-    return builder.buildDocument();
-  }
 }
 
 class SpeciesListWriter extends AppServices {
@@ -90,13 +86,20 @@ class SpeciesListWriter extends AppServices {
   Future<void> writeSpeciesListCompact(File filePath) async {
     final speciesListMap = await countSpeciesList();
 
-    IOSink writer = filePath.openWrite();
-    String header = 'Species,Count';
-    writer.writeln(header);
+    List<Map<String, dynamic>> speciesDataList = [];
     for (var element in speciesListMap.entries) {
-      String line = '${element.key},${element.value}';
-      writer.writeln(line);
+      speciesDataList.add({
+        'Species': element.key,
+        'Count': element.value,
+      });
     }
+
+    await RecordWriter(
+      jsonContent: jsonEncode(speciesDataList),
+      outputPath: filePath.path,
+      columnNames: ['Species', 'Count'],
+      exportFormat: 'csv',
+    ).write();
   }
 
   Future<Map<String, int>> countSpeciesList() async {

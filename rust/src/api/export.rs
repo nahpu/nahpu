@@ -49,3 +49,34 @@ impl RecordWriter {
         }
     }
 }
+
+pub fn export_coordinates(
+    json_content: String,
+    output_path: String,
+    export_format: String,
+) -> Result<(), String> {
+    let data: Vec<nahpu_gis::types::CoordinateData> = serde_json::from_str(&json_content)
+        .map_err(|e| format!("Failed to parse Coordinate JSON: {}", e))?;
+
+    let path = Path::new(&output_path);
+
+    match export_format.as_str() {
+        "kml" => {
+            let exporter = nahpu_gis::io::kml::KmlExporter::new(&data);
+            exporter.export_kml(path)
+        }
+        "geojson" => {
+            let exporter = nahpu_gis::io::geojson::GeoJsonExporter::new(&data);
+            exporter.export_geojson(path)
+        }
+        "topojson" => {
+            let exporter = nahpu_gis::io::topojson::TopoJsonExporter::new(&data);
+            exporter.export_topojson(path)
+        }
+        "shp" => {
+            let exporter = nahpu_gis::io::shp::ShapefileExporter::new(&data);
+            exporter.export_shp(path)
+        }
+        _ => Err(format!("Unsupported export format: {}", export_format)),
+    }
+}

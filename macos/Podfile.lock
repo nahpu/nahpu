@@ -1,26 +1,20 @@
 PODS:
   - FlutterMacOS (1.0.0)
-  - printing (1.0.0):
-    - FlutterMacOS
   - rust_lib_nahpu (0.0.1):
     - FlutterMacOS
 
 DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - printing (from `Flutter/ephemeral/.symlinks/plugins/printing/macos`)
   - rust_lib_nahpu (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_nahpu/macos`)
 
 EXTERNAL SOURCES:
   FlutterMacOS:
     :path: Flutter/ephemeral
-  printing:
-    :path: Flutter/ephemeral/.symlinks/plugins/printing/macos
   rust_lib_nahpu:
     :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_nahpu/macos
 
 SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  printing: c4cf83c78fd684f9bc318e6aadc18972aa48f617
   rust_lib_nahpu: 86cb02663d5a57f3ec07ac93813d0f232e8efb9f
 
 PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009

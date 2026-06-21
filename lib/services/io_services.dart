@@ -36,7 +36,7 @@ class FilePickerServices {
 
   Future<Directory?> selectDir() async {
     final result = Platform.isIOS
-        ? await FilePicker.platform.getDirectoryPath()
+        ? await FilePicker.getDirectoryPath()
         : await getDirectoryPath();
     if (result != null) {
       if (kDebugMode) {
@@ -48,7 +48,7 @@ class FilePickerServices {
   }
 
   Future<XFile?> selectAnyFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.pickFiles();
 
     if (result != null) {
       return XFile(result.files.single.path!);
