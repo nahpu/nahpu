@@ -130,10 +130,13 @@ class CommonSettingTile extends StatelessWidget {
                   ),
                 )
               : null,
-          leading: leading ?? (icon != null ? Icon(
-            icon,
-            color: Theme.of(context).colorScheme.primary,
-          ) : null),
+          leading: leading ??
+              (icon != null
+                  ? Icon(
+                      icon,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,

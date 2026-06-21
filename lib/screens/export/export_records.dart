@@ -258,6 +258,8 @@ class ExportFormState extends ConsumerState<ExportForm> {
         return 'assets/icons/csv.svg';
       case ExportFmt.tsv:
         return 'assets/icons/tsv.svg';
+      case ExportFmt.excel:
+        return 'assets/icons/csv.svg'; // fallback if no excel.svg
     }
   }
 
@@ -310,25 +312,18 @@ class ExportFormState extends ConsumerState<ExportForm> {
   }
 
   Future<void> _exportFile() async {
-    switch (exportCtr.exportFmtCtr) {
-      case ExportFmt.csv:
-        await _writeDelimited(true);
-        break;
-      case ExportFmt.tsv:
-        await _writeDelimited(false);
-        break;
-    }
+    await _writeDelimited(exportCtr.exportFmtCtr);
   }
 
-  Future<void> _writeDelimited(bool isCsv) async {
-    String ext = isCsv ? 'csv' : 'tsv';
+  Future<void> _writeDelimited(ExportFmt format) async {
+    String ext = format == ExportFmt.excel ? 'xlsx' : format.name;
     try {
       _savePath = await AppIOServices(
         dir: _selectedDir,
         fileStem: _fileStem,
         ext: ext,
       ).getSavePath();
-      await _matchRecordTypeToWriter(_savePath, isCsv);
+      await _matchRecordTypeToWriter(_savePath, format);
       setState(() {
         _hasSaved = true;
       });
@@ -377,31 +372,31 @@ class ExportFormState extends ConsumerState<ExportForm> {
     }
   }
 
-  Future<void> _matchRecordTypeToWriter(File file, bool isCsv) async {
+  Future<void> _matchRecordTypeToWriter(File file, ExportFmt format) async {
     switch (_recordType) {
       case ExportRecordType.narrative:
         await NarrativeRecordWriter(ref: ref)
-            .writeNarrativeDelimited(file, isCsv);
+            .writeNarrativeDelimited(file, format);
         break;
       case ExportRecordType.site:
-        await SiteWriterServices(ref: ref).writeSiteDelimited(file, isCsv);
+        await SiteWriterServices(ref: ref).writeSiteDelimited(file, format);
         break;
       case ExportRecordType.collEvent:
         await CollEventRecordWriter(
           ref: ref,
-        ).writeCollEventDelimited(file, isCsv);
+        ).writeCollEventDelimited(file, format);
         break;
       case ExportRecordType.specimenRecord:
         await SpecimenRecordWriter(
           ref: ref,
           recordType: _specimenRecordType,
           isInaccurateInBrackets: _inaccurateInBrackets,
-        ).writeRecordDelimited(file, isCsv);
+        ).writeRecordDelimited(file, format);
         break;
       case ExportRecordType.specimenParts:
         await SpecimenPartWriter(ref: ref).writeDelimited(
           file,
-          isCsv,
+          format,
         );
         break;
       default:

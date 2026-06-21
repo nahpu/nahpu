@@ -3,7 +3,7 @@ import 'package:pdf/widgets.dart';
 
 enum PdfExportType { narrative, specimen }
 
-enum ExportFmt { csv, tsv }
+enum ExportFmt { csv, tsv, excel }
 
 const List<String> supportedTaxonClass = [
   'Mammalia',
@@ -26,6 +26,7 @@ const Map<PdfExportType, String> pdfExport = {
 const List<String> exportFormats = [
   'Comma-separated (.csv)',
   'Tab-separated (.tsv)',
+  'Excel (.xlsx)',
 ];
 
 enum DbExportFmt { sqlite3 }

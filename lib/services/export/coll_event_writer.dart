@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -7,28 +8,38 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/common.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/export/site_writer.dart';
+import 'package:nahpu/src/rust/api/export.dart';
 
 class CollEventRecordWriter extends AppServices {
   CollEventRecordWriter({
     required super.ref,
   });
 
-  Future<void> writeCollEventDelimited(File filePath, bool isCsv) async {
-    String delimiter = isCsv ? csvDelimiter : tsvDelimiter;
-    final file = await filePath.create(recursive: true);
-    final writer = file.openWrite();
+  Future<void> writeCollEventDelimited(File filePath, ExportFmt format) async {
     List<String> header = [...siteExportList, ...collEventExportList];
-    writer.writeln(header.join(delimiter));
     List<CollEventData> collEventList =
         await CollEventServices(ref: ref).getAllCollEvents();
 
+    List<Map<String, dynamic>> jsonList = [];
+
     for (var collEvent in collEventList) {
       List<String> eventDetails = await getCOllEventSiteDetails(collEvent.id);
-      String content = eventDetails.toDelimitedText(delimiter);
-      writer.writeln(content);
+      Map<String, dynamic> row = {};
+      for (int i = 0; i < header.length; i++) {
+        row[header[i]] = eventDetails[i];
+      }
+      jsonList.add(row);
     }
 
-    await writer.close();
+    String jsonContent = jsonEncode(jsonList);
+
+    final writer = RecordWriter(
+      jsonContent: jsonContent,
+      outputPath: filePath.path,
+      columnNames: header,
+      exportFormat: format.name,
+    );
+    await writer.write();
   }
 
   Future<List<String>> getCOllEventSiteDetails(int? collEventId) async {

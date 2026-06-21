@@ -101,16 +101,16 @@ class ProjectServices extends AppServices {
             () => CollEventServices(ref: ref).deleteAllCollEvents(projectUuid));
         await _runDeletionPhase('narrative entries',
             () => NarrativeServices(ref: ref).deleteAllNarrative(projectUuid));
-        await _runDeletionPhase(
-            'site records', () => SiteServices(ref: ref).deleteAllSites(projectUuid));
+        await _runDeletionPhase('site records',
+            () => SiteServices(ref: ref).deleteAllSites(projectUuid));
         await _runDeletionPhase(
             'project personnel links',
             () => PersonnelQuery(dbAccess)
                 .deleteAllProjectPersonnel(projectUuid: projectUuid));
         await _runDeletionPhase(
             'project media', () => _cleanupProjectMedia(projectUuid));
-        await _runDeletionPhase(
-            'project record', () => ProjectQuery(dbAccess).deleteProject(projectUuid));
+        await _runDeletionPhase('project record',
+            () => ProjectQuery(dbAccess).deleteProject(projectUuid));
       });
     } catch (e) {
       final phase =
@@ -173,7 +173,8 @@ class ProjectServices extends AppServices {
       parts.add(_formatCount(narrativeCount, 'narrative entry'));
     }
 
-    final siteCount = (await SiteQuery(dbAccess).getAllSites(projectUuid)).length;
+    final siteCount =
+        (await SiteQuery(dbAccess).getAllSites(projectUuid)).length;
     if (siteCount > 0) {
       parts.add(_formatCount(siteCount, 'site record'));
     }

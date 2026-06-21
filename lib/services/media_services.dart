@@ -159,8 +159,8 @@ class MediaFinder extends AppServices {
   }
 
   Future<List<File>> getAllPersonnelMediaByProject() async {
-    List<PersonnelData> personnelList =
-        await PersonnelServices(ref: ref).getPersonnelByProjectUuid(currentProjectUuid);
+    List<PersonnelData> personnelList = await PersonnelServices(ref: ref)
+        .getPersonnelByProjectUuid(currentProjectUuid);
     final List<File> mediaPaths = [];
     for (final personnel in personnelList) {
       if (personnel.photoPath != null &&
@@ -172,7 +172,7 @@ class MediaFinder extends AppServices {
       }
     }
     return mediaPaths;
-  }  
+  }
 
   Future<List<File>> getAllMediaFileByProject() async {
     final List<MediaData> mediaData =
