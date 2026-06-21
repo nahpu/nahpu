@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
+import 'package:nahpu/screens/shared/project_shell.dart';
 
 class ProjectBackButton extends ConsumerWidget {
   const ProjectBackButton({super.key});
@@ -9,12 +8,7 @@ class ProjectBackButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return BackButton(
-      onPressed: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return const Dashboard();
-        }));
-        ref.read(projectNavbarIndexProvider.notifier).state = 0;
-      },
+      onPressed: () => ProjectShell.returnToTab(context, ref, 0),
     );
   }
 }

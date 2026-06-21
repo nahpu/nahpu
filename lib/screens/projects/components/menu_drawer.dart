@@ -146,34 +146,44 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
           onTap: () async {
+            final confirmationCode = projectUuid.length >= 5
+                ? projectUuid.substring(0, 5)
+                : projectUuid;
             return showDeleteAlertOnMenu(
                 context: context,
                 title: 'Delete project?',
-                deletePrompt: 'You will delete the project and all its data',
+                deletePrompt:
+                    'You will delete this project and its related data. This cannot be undone.',
+                requiredConfirmationText: confirmationCode,
                 onDelete: () async {
                   try {
-                    await ProjectServices(ref: ref).deleteProject(projectUuid);
+                    final message = await ProjectServices(ref: ref)
+                        .deleteProjectAndData(projectUuid);
                     if (context.mounted) {
+                      Navigator.pop(context);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => const Home()),
                       );
+                      if (message != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(message)),
+                        );
+                      }
                     }
                   } catch (e) {
                     if (context.mounted) {
                       Navigator.pop(context);
+                      final errorMessage = e is ProjectDeletionFailure
+                          ? e.toUserMessage()
+                          : e.toString();
                       showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
                                 title: const Text(
                                   'Error',
                                 ),
-                                content: Text(
-                                  e.toString().contains('FOREIGN KEY')
-                                      ? 'Cannot delete project with records.\n'
-                                          'Delete all records first'
-                                      : e.toString(),
-                                ),
+                                content: Text(errorMessage),
                               ));
                     }
                   }

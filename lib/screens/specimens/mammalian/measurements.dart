@@ -411,7 +411,7 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
           const CommonDivider(),
           Text('Testes', style: Theme.of(context).textTheme.titleLarge),
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(6),
             child: DropdownButtonFormField<TestisPosition>(
               initialValue: getTestisPosition(widget.ctr.testisPosCtr),
               decoration: const InputDecoration(
@@ -587,6 +587,7 @@ class OvaryOpeningField extends ConsumerWidget {
         Visibility(
           visible: specimenSex == SpecimenSex.female,
           child: DropdownButtonFormField<VaginaOpening>(
+            isExpanded: true,
             initialValue: _getVaginaOpening(),
             decoration: const InputDecoration(
               labelText: 'Vagina opening',

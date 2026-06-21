@@ -2,12 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/file_operation.dart';
 import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
@@ -127,6 +130,8 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   }
 
   void _navigate(File? backupPath) {
+    ref.invalidate(databaseProvider);
+    ref.invalidate(projectListProvider);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => DBReplacedPage(
@@ -290,21 +295,17 @@ class DBReplacedPage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.done,
-                  color: Colors.green,
-                  size: 50,
-                ),
+                FileFormatIcon(path: 'assets/icons/database.svg'),
                 Text(
                   'Success 🎉',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 Text(
                   'Database has been replaced!',
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 dbBackupPath == null
                     ? const SizedBox.shrink()
                     : Text('Backup file path:',
@@ -320,10 +321,14 @@ class DBReplacedPage extends StatelessWidget {
                         ),
                       ),
                 const SizedBox(height: 18),
-                Text(
-                  'Close the app and reopen it to see the changes!',
-                  style: Theme.of(context).textTheme.titleMedium,
-                )
+                PrimaryButton(
+                  label: 'Back to Home',
+                  icon: Icons.arrow_back,
+                  onPressed: () {
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => Home()));
+                  },
+                ),
               ],
             ),
           ),

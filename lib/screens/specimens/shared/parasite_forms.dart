@@ -20,9 +20,9 @@ class ParasiteForms extends StatelessWidget {
         SizedBox(
           height: 450,
           child: Text(
-            'Specimen UUID: $specimenUuid\n'
+            // 'Specimen UUID: $specimenUuid\n'
             'Catalog Format: ${matchCatFmtToTaxonGroup(catalogFmt)}\n\n'
-            'This is where the parasite records form will be.',
+            'Work in progress...',
           ),
         )
       ],

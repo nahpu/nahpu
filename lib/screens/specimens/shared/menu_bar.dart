@@ -3,16 +3,17 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/specimens/specimen_view.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/specimen_services.dart';
 
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {
-  await SpecimenServices(ref: ref).createSpecimen();
-  if (context.mounted) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const SpecimenViewer()),
-    );
-  }
+  final newUuid = await SpecimenServices(ref: ref).createSpecimen();
+  // Refresh the always-mounted viewer in place and land on the new specimen.
+  ref.read(pendingRecordJumpProvider(RecordViewer.specimen).notifier).state =
+      newUuid;
+  ref.invalidate(specimenEntryProvider);
 }
 
 class NewSpecimensTextButton extends ConsumerStatefulWidget {
@@ -127,22 +128,19 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
 
   Future<void> _duplicatePart() async {
     try {
-      await SpecimenServices(ref: ref)
+      final newUuid = await SpecimenServices(ref: ref)
           .createSpecimenDuplicatePart(widget.specimenUuid!);
-      if (context.mounted) {
-        _navigateToSpecimenViewer();
+      if (newUuid != null) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
+            .state = newUuid;
       }
+      ref.invalidate(specimenEntryProvider);
     } catch (e) {
       if (context.mounted) {
         _showError('Error duplicating part: $e');
       }
     }
-  }
-
-  void _navigateToSpecimenViewer() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const SpecimenViewer()),
-    );
   }
 
   void _showError(String message) {
@@ -169,8 +167,8 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
             );
             if (context.mounted) {
               _pop();
-              _navigateToSpecimenViewer();
             }
+            ref.invalidate(specimenEntryProvider);
           } catch (e) {
             if (context.mounted) {
               _showError('Error deleting specimen: $e');
@@ -186,6 +184,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
   }
 
   void _deleteAllSpecimens() {
+    final projectUuid = ref.read(projectUuidProvider);
     showDeleteAlertOnMenu(
         context: context,
         title: 'Delete all specimens?',
@@ -193,7 +192,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
             ', measurements, and specimen parts',
         onDelete: () async {
           try {
-            await SpecimenServices(ref: ref).deleteAllSpecimens();
+            await SpecimenServices(ref: ref).deleteAllSpecimens(projectUuid);
             if (context.mounted) {
               _pop();
             }

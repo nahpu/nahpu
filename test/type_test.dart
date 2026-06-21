@@ -6,7 +6,7 @@ void main() {
     CatalogFmt catalogFmt = CatalogFmt.mammals;
     String part = 'skull';
     String icon = SpecimenPartIcon(catalogFmt: catalogFmt, part: part).match();
-    expect(icon, 'assets/icons/mouse.svg');
+    expect(icon, 'assets/icons/mouse_outlined.svg');
   });
 
   test('Match tissue icon path', () {

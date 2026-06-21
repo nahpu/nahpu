@@ -1,4 +1,3 @@
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/projects/personnel/add_personnel.dart';
@@ -384,7 +383,7 @@ class PersonnelSubtitle extends StatelessWidget {
                 WidgetSpan(
                     child: Tooltip(
                         message: 'Current Field Number',
-                        child: TileIcon(icon: MdiIcons.counter)),
+                        child: TileIcon(icon: Icons.numbers_outlined)),
                     alignment: PlaceholderAlignment.middle),
                 TextSpan(
                   text: ' $currentFieldNumber',

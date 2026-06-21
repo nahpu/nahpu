@@ -23,11 +23,11 @@ class SpecimenPdfWriter extends PdfServices {
   Future<void> generatePdf() async {
     List<SpecimenData> specimenList =
         await SpecimenServices(ref: ref).getSpecimenList();
-    generateProjectPage();
+    await generateProjectPage();
     for (var specimen in specimenList) {
       await _generateSpecimenPage(specimen);
     }
-    writePdf(pdf);
+    await writePdf(pdf);
   }
 
   Future<void> _generateSpecimenPage(SpecimenData data) async {

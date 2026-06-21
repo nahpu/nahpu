@@ -17,13 +17,13 @@ class DbServices extends AppServices {
 
   Future<void> syncSettingWithDb() async {
     UtilityServices utilityServices = UtilityServices(ref: ref);
-    utilityServices.getAllOptions(siteTypePrefKey);
-    utilityServices.getAllOptions(habitatTypePrefKey);
-    utilityServices.getAllOptions(collMethodPrefKey);
-    utilityServices.getAllOptions(collRolePrefKey);
-    utilityServices.getAllOptions(specimenTypePrefKey);
-    utilityServices.getAllOptions(treatmentPrefKey);
-    _inValidateSettings();
+    await utilityServices.getAllOptions(siteTypePrefKey);
+    await utilityServices.getAllOptions(habitatTypePrefKey);
+    await utilityServices.getAllOptions(collMethodPrefKey);
+    await utilityServices.getAllOptions(collRolePrefKey);
+    await utilityServices.getAllOptions(specimenTypePrefKey);
+    await utilityServices.getAllOptions(treatmentPrefKey);
+    await _inValidateSettings();
   }
 
   Future<void> deleteDatabase() async {

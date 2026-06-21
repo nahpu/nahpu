@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/navigation.dart';
@@ -26,6 +26,7 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
   final PageNavigation _pageNav = PageNavigation.init();
   final TextEditingController _searchController = TextEditingController();
   int? _siteId;
+  bool _loadedOnce = false;
   bool _isSearching = false;
   late FocusNode _focus;
 
@@ -45,8 +46,15 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
   @override
   Widget build(BuildContext context) {
     final siteEntries = ref.watch(siteEntryProvider);
-    return FalseWillPop(
-        child: Scaffold(
+    // Reconcile page/selection bookkeeping outside build, so setState is
+    // legal and the always-mounted viewer survives an invalidate.
+    ref.listen(siteEntryProvider, (_, next) {
+      // An in-progress refresh still carries the previous list; reconciling
+      // against it would consume landing requests with stale data.
+      if (next.isLoading) return;
+      next.whenData(_reconcile);
+    });
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Sites"),
         automaticallyImplyLeading: false,
@@ -91,10 +99,6 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
                       _isSearching = false;
                       _searchController.clear();
                       ref.invalidate(siteEntryProvider);
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => super.widget));
                     });
                   },
                   child: const Text('Cancel')),
@@ -108,34 +112,19 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
         child: Center(
           child: siteEntries.when(data: (siteEntries) {
             if (siteEntries.isEmpty) {
-              setState(() {
-                _isVisible = false;
-                _siteId = null;
-              });
               return EmptySite(isButtonVisible: !_isSearching);
-            } else {
-              int siteSize = siteEntries.length;
-              setState(() {
-                if (siteSize >= 2) {
-                  _isVisible = true;
-                } else {
-                  _isVisible = false;
-                }
-                _pageNav.pageCounts = siteSize;
-                _pageNav.updatePageController();
-              });
-              return SitePages(
-                siteEntries: siteEntries,
-                pageNav: _pageNav,
-                isNavButtonVisible: _isVisible,
-                onPageChanged: (index) {
-                  setState(() {
-                    _siteId = siteEntries[index].id;
-                    _updatePageNav(index);
-                  });
-                },
-              );
             }
+            return SitePages(
+              siteEntries: siteEntries,
+              pageNav: _pageNav,
+              isNavButtonVisible: _isVisible,
+              onPageChanged: (index) {
+                setState(() {
+                  _siteId = siteEntries[index].id;
+                  _updatePageNav(index);
+                });
+              },
+            );
           }, loading: () {
             return const CommonProgressIndicator();
           }, error: (error, stackTrace) {
@@ -148,8 +137,58 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
           child: PageNavButton(
             pageNav: _pageNav,
           )),
-      bottomNavigationBar: const ProjectBottomNavbar(),
-    ));
+    );
+  }
+
+  void _reconcile(List<SiteData> siteEntries) {
+    if (!mounted) return;
+    final count = siteEntries.length;
+    final landIndex = _landingIndex(siteEntries);
+    if (landIndex != null) {
+      _pageNav.currentPage = landIndex + 1;
+    }
+    final index = _pageNav.clampToCount(count);
+    setState(() {
+      _isVisible = count >= 2;
+      if (count == 0) {
+        _siteId = null;
+      } else if (landIndex != null ||
+          _siteId == null ||
+          !siteEntries.any((site) => site.id == _siteId)) {
+        // Landed on a one-shot target, no selection yet, or the selected
+        // record was deleted; point the menu at the visible page.
+        _siteId = siteEntries[index].id;
+      }
+    });
+    if (landIndex != null) {
+      // Keyed controller swap; a jump on the live controller would race the
+      // refreshed list's layout (see openControllerAt).
+      _pageNav.openControllerAt(index);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pageNav.clampController(index);
+      });
+    }
+  }
+
+  /// One-shot landing target for this refresh: a just-created record, or the
+  /// last record on first load (matching the old land-at-the-end behavior).
+  int? _landingIndex(List<SiteData> siteEntries) {
+    final firstLoad = !_loadedOnce;
+    _loadedOnce = true;
+    final pendingJump = ref.read(pendingRecordJumpProvider(RecordViewer.site));
+    if (pendingJump != null) {
+      final target = siteEntries.indexWhere((site) => site.id == pendingJump);
+      if (target != -1) {
+        ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).state =
+            null;
+        return target;
+      }
+    }
+    if (firstLoad && siteEntries.isNotEmpty) {
+      return siteEntries.length - 1;
+    }
+    return null;
   }
 
   void _updatePageNav(int value) {
@@ -178,6 +217,8 @@ class SitePages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
+      // Keyed by controller identity so openControllerAt's swap takes effect.
+      key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: siteEntries.length,
       itemBuilder: (context, index) {

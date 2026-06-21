@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/personnel.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/project_shell.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/layout.dart';
@@ -197,11 +197,7 @@ class AddPersonnelSelectionState extends ConsumerState<AddPersonnelSelection> {
                         await _addSelectedPersonnelToProject();
                         ref.invalidate(projectPersonnelProvider);
                         if (context.mounted) {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => const Dashboard(),
-                            ),
-                          );
+                          ProjectShell.returnToTab(context, ref, 0);
                         }
                       } catch (e) {
                         if (context.mounted) {
