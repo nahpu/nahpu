@@ -13,9 +13,11 @@ class SiteWriterServices extends AppServices {
   const SiteWriterServices({
     required super.ref,
     this.useFieldNamesOnly = false,
+    this.selectedColumns,
   });
 
   final bool useFieldNamesOnly;
+  final List<String>? selectedColumns;
 
   Future<void> writeSiteDelimited(File filePath, ExportFmt format) async {
     List<String> header = [...siteExportList, 'media::media'];
@@ -30,18 +32,25 @@ class SiteWriterServices extends AppServices {
 
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
-        String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
-        row[key] = content[i];
+        if (selectedColumns == null || selectedColumns!.contains(header[i])) {
+          String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
+          row[key] = content[i];
+        }
       }
       jsonList.add(row);
     }
 
     String jsonContent = jsonEncode(jsonList);
+    List<String> filteredHeader = selectedColumns == null
+        ? header
+        : header.where((h) => selectedColumns!.contains(h)).toList();
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: useFieldNamesOnly ? header.map((e) => e.split('::').last).toList() : header,
+      columnNames: useFieldNamesOnly 
+        ? filteredHeader.map((e) => e.split('::').last).toList() 
+        : filteredHeader,
       exportFormat: format.name,
       concatenateMultiEntries: true,
     );

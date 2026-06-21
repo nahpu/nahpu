@@ -81,11 +81,13 @@ enum SpecimenRecordType {
 enum SpecimenExportFmt {
   standard,
   allFields,
+  selectFields,
 }
 
 const List<String> specimenExportFmtList = [
   'Standard',
   'All fields',
+  'Custom fields',
 ];
 
 

@@ -22,6 +22,7 @@ class SpecimenRecordWriter {
     this.isAllFields = false,
     this.concatenateMultiEntry = true,
     this.useFieldNamesOnly = false,
+    this.selectedColumns,
   });
 
   final WidgetRef ref;
@@ -30,6 +31,7 @@ class SpecimenRecordWriter {
   final bool isAllFields;
   final bool concatenateMultiEntry;
   final bool useFieldNamesOnly;
+  final List<String>? selectedColumns;
 
   Future<void> writeRecordDelimited(File filePath, ExportFmt format) async {
     List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
@@ -48,18 +50,25 @@ class SpecimenRecordWriter {
       List<String> content = await _getSpecimenDetails(element);
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
-        String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
-        row[key] = content[i];
+        if (selectedColumns == null || selectedColumns!.contains(header[i])) {
+          String key = useFieldNamesOnly ? header[i].split('::').last : header[i];
+          row[key] = content[i];
+        }
       }
       jsonList.add(row);
     }
 
     String jsonContent = jsonEncode(jsonList);
+    List<String> filteredHeader = selectedColumns == null 
+        ? header 
+        : header.where((h) => selectedColumns!.contains(h)).toList();
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: useFieldNamesOnly ? header.map((e) => e.split('::').last).toList() : header,
+      columnNames: useFieldNamesOnly 
+        ? filteredHeader.map((e) => e.split('::').last).toList() 
+        : filteredHeader,
       exportFormat: format.name,
       concatenateMultiEntries: concatenateMultiEntry,
     );
