@@ -9,11 +9,11 @@ import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 final siteEntryProvider =
-    AutoDisposeAsyncNotifierProvider<SiteEntry, List<SiteData>>(
-  () => SiteEntry(),
+    AsyncNotifierProvider.autoDispose<SiteEntry, List<SiteData>>(
+  SiteEntry.new,
 );
 
-class SiteEntry extends AutoDisposeAsyncNotifier<List<SiteData>> {
+class SiteEntry extends AsyncNotifier<List<SiteData>> {
   Future<List<SiteData>> _fetchSiteEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 

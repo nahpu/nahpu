@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -6,14 +7,14 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'specimens.g.dart';
 
 const String catalogFmtPrefKey = 'catalogFmt';
 
-@riverpod
-class CatalogFmtNotifier extends _$CatalogFmtNotifier {
+final catalogFmtNotifierProvider =
+    AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(
+        CatalogFmtNotifier.new);
+
+class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
   Future<CatalogFmt> _fetchSetting() async {
     final prefs = ref.watch(settingProvider);
     final savedFmt = prefs.getString(catalogFmtPrefKey);
@@ -47,11 +48,11 @@ class CatalogFmtNotifier extends _$CatalogFmtNotifier {
 }
 
 final specimenEntryProvider =
-    AutoDisposeAsyncNotifierProvider<SpecimenEntry, List<SpecimenData>>(
-  () => SpecimenEntry(),
+    AsyncNotifierProvider.autoDispose<SpecimenEntry, List<SpecimenData>>(
+  SpecimenEntry.new,
 );
 
-class SpecimenEntry extends AutoDisposeAsyncNotifier<List<SpecimenData>> {
+class SpecimenEntry extends AsyncNotifier<List<SpecimenData>> {
   Future<List<SpecimenData>> _fetchSpecimenEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 

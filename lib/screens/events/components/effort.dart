@@ -482,7 +482,7 @@ class CollectionMethods extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(UserDefinedFieldProvider(collMethodPrefKey)).when(
+    return ref.watch(userDefinedFieldProvider(collMethodPrefKey)).when(
           data: (data) {
             if (kDebugMode) {
               print('Collection Methods: $data');

@@ -8,11 +8,11 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final collEventEntryProvider =
-    AutoDisposeAsyncNotifierProvider<CollEventEntry, List<CollEventData>>(
-  () => CollEventEntry(),
+    AsyncNotifierProvider.autoDispose<CollEventEntry, List<CollEventData>>(
+  CollEventEntry.new,
 );
 
-class CollEventEntry extends AutoDisposeAsyncNotifier<List<CollEventData>> {
+class CollEventEntry extends AsyncNotifier<List<CollEventData>> {
   Future<List<CollEventData>> _fetchCollEventEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 

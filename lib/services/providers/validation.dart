@@ -1,12 +1,11 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/utility_services.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'validation.g.dart';
 part 'validation.freezed.dart';
 
 @freezed
@@ -36,8 +35,11 @@ abstract class ProjectFormField with _$ProjectFormField {
   }) = _ProjectFormField;
 }
 
-@riverpod
-class ProjectFormValidator extends _$ProjectFormValidator {
+final projectFormValidatorProvider =
+    AsyncNotifierProvider.autoDispose<ProjectFormValidator, ProjectForm>(
+        ProjectFormValidator.new);
+
+class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
   Future<ProjectForm> _fetch() {
     return Future.value(ProjectForm.empty());
   }
@@ -161,8 +163,11 @@ abstract class PersonnelFormField with _$PersonnelFormField {
   }) = _PersonnelFormField;
 }
 
-@riverpod
-class PersonnelFormValidator extends _$PersonnelFormValidator {
+final personnelFormValidatorProvider =
+    AsyncNotifierProvider.autoDispose<PersonnelFormValidator, PersonnelForm>(
+        PersonnelFormValidator.new);
+
+class PersonnelFormValidator extends AsyncNotifier<PersonnelForm> {
   Future<PersonnelForm> _fetch() {
     return Future.value(PersonnelForm.empty());
   }

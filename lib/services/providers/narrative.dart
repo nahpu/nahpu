@@ -7,11 +7,11 @@ import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 final narrativeEntryProvider =
-    AutoDisposeAsyncNotifierProvider<NarrativeEntry, List<NarrativeData>>(
-  () => NarrativeEntry(),
+    AsyncNotifierProvider.autoDispose<NarrativeEntry, List<NarrativeData>>(
+  NarrativeEntry.new,
 );
 
-class NarrativeEntry extends AutoDisposeAsyncNotifier<List<NarrativeData>> {
+class NarrativeEntry extends AsyncNotifier<List<NarrativeData>> {
   Future<List<NarrativeData>> _fetchNarrativeEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 
