@@ -1113,8 +1113,6 @@ dependencies = [
 [[package]]
 name = "nahpu_archive"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37bee3ca56f6f2dff792a4c2f14292fe9837d17067f8c52f7cb1924b92753631"
 dependencies = [
  "flate2",
  "zip 8.6.0",
@@ -1123,8 +1121,6 @@ dependencies = [
 [[package]]
 name = "nahpu_db"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3000cd5222dd70af2808f8bfe59297b3227f9042d7cace3b3b07dcd70f4b9c16"
 dependencies = [
  "calamine",
  "csv",

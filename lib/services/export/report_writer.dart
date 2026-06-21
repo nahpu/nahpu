@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:nahpu/services/database/database.dart';
@@ -7,6 +8,7 @@ import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/src/rust/api/export.dart';
 import 'package:xml/xml.dart';
 
 class ReportServices extends AppServices {
@@ -90,13 +92,20 @@ class SpeciesListWriter extends AppServices {
   Future<void> writeSpeciesListCompact(File filePath) async {
     final speciesListMap = await countSpeciesList();
 
-    IOSink writer = filePath.openWrite();
-    String header = 'Species,Count';
-    writer.writeln(header);
+    List<Map<String, dynamic>> speciesDataList = [];
     for (var element in speciesListMap.entries) {
-      String line = '${element.key},${element.value}';
-      writer.writeln(line);
+      speciesDataList.add({
+        'Species': element.key,
+        'Count': element.value,
+      });
     }
+
+    await RecordWriter(
+      jsonContent: jsonEncode(speciesDataList),
+      outputPath: filePath.path,
+      columnNames: ['Species', 'Count'],
+      exportFormat: 'csv',
+    ).write();
   }
 
   Future<Map<String, int>> countSpeciesList() async {

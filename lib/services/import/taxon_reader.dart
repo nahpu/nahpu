@@ -2,7 +2,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:csv/csv.dart';
 import 'package:nahpu/src/rust/api/import.dart';
 import 'package:path/path.dart' as p;
 import 'package:nahpu/services/providers/taxa.dart';
@@ -273,11 +272,8 @@ class TaxonFileParser {
 
   Future<List<List<dynamic>>> _readDelimitedRows(
       File inputFile, String delimiter) async {
-    final reader = inputFile.openRead();
-    return await reader
-        .transform(utf8.decoder)
-        .transform(Csv(fieldDelimiter: delimiter, dynamicTyping: false).decoder)
-        .toList();
+    return await RecordReader(filePath: inputFile.path)
+        .importDelimitedRaw(delimiter: delimiter);
   }
 
   Future<_DelimiterGuess?> _guessDelimiter(File inputFile) async {
