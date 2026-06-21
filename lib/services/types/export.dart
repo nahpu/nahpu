@@ -41,7 +41,7 @@ const List<String> reportFmtList = [
   'Comma-separated (.csv)',
   'Keyhole Markup Language (.kml)',
   'GeoJSON (.geojson)',
-  'TopoJSON (.json)',
+  'TopoJSON (.topojson)',
   'Shapefile (.zip)',
 ];
 

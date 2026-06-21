@@ -183,7 +183,7 @@ class ReportFormState extends ConsumerState<ReportForm> {
             ext = 'geojson';
             break;
           case ReportFmt.topojson:
-            ext = 'json';
+            ext = 'topojson';
             break;
           case ReportFmt.shp:
             ext = 'zip';

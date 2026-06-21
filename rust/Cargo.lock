@@ -1293,6 +1293,8 @@ dependencies = [
 [[package]]
 name = "nahpu_archive"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37bee3ca56f6f2dff792a4c2f14292fe9837d17067f8c52f7cb1924b92753631"
 dependencies = [
  "flate2",
  "zip 8.6.0",
@@ -1300,7 +1302,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_db"
-version = "0.2.0"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69cf946ab3b667b90308434cf98ba667b632ade5ffaac0b8cb8f2e0d241d33a3"
 dependencies = [
  "calamine",
  "csv",
@@ -1314,7 +1318,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_gis"
-version = "0.1.0"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8537ff6095ee391f997f142a43aab681964d3f0693c1dd813604e36216ce2b53"
 dependencies = [
  "dbase",
  "geojson",
