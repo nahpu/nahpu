@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/home/components/menu_drawer.dart';
 import 'package:nahpu/screens/home/components/body.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
@@ -22,8 +23,8 @@ class HomeState extends ConsumerState<Home> {
         child: Scaffold(
       appBar: AppBar(
         title: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Image.asset(
-            'assets/images/logo_small.png',
+          SvgPicture.asset(
+            'assets/logo/nahpu-nobg.svg',
             fit: BoxFit.contain,
             height: 32,
             width: 32,
