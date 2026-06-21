@@ -14,7 +14,7 @@ import 'package:nahpu/src/rust/api/export.dart';
 class ReportServices extends AppServices {
   const ReportServices({required super.ref});
 
-  Future<void> writeReport(File savePath, ReportType reportType) async {
+  Future<void> writeReport(File savePath, ReportType reportType, ReportFmt reportFmt) async {
     switch (reportType) {
       case ReportType.speciesCount:
         await SpeciesListWriter(ref: ref).writeSpeciesListCompact(savePath);
@@ -24,7 +24,7 @@ class ReportServices extends AppServices {
             .writeAllMediaDelimited(savePath, true);
         break;
       case ReportType.coordinate:
-        await CoordinateWriter(ref: ref).writeCoordinate(savePath);
+        await CoordinateWriter(ref: ref).writeCoordinate(savePath, reportFmt);
         break;
     }
   }
@@ -33,7 +33,7 @@ class ReportServices extends AppServices {
 class CoordinateWriter extends AppServices {
   const CoordinateWriter({required super.ref});
 
-  Future<void> writeCoordinate(File savePath) async {
+  Future<void> writeCoordinate(File savePath, ReportFmt reportFmt) async {
     final coordinateList = await _getAllCoordinate();
     
     List<Map<String, dynamic>> coordinateDataList = coordinateList.map((c) => {
@@ -44,9 +44,27 @@ class CoordinateWriter extends AppServices {
       'elevationInMeter': c.elevationInMeter,
     }).toList();
 
-    await exportKml(
+    String formatStr = 'kml';
+    switch (reportFmt) {
+      case ReportFmt.geojson:
+        formatStr = 'geojson';
+        break;
+      case ReportFmt.topojson:
+        formatStr = 'topojson';
+        break;
+      case ReportFmt.shp:
+        formatStr = 'shp';
+        break;
+      case ReportFmt.csv:
+      case ReportFmt.kml:
+        formatStr = 'kml';
+        break;
+    }
+
+    await exportCoordinates(
       jsonContent: jsonEncode(coordinateDataList),
       outputPath: savePath.path,
+      exportFormat: formatStr,
     );
   }
 

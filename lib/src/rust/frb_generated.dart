@@ -73,7 +73,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 197309706;
+  int get rustContentHash => -378400975;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -87,8 +87,10 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 abstract class RustLibApi extends BaseApi {
   Future<String> crateApiCommonCheckRust();
 
-  Future<void> crateApiExportExportKml(
-      {required String jsonContent, required String outputPath});
+  Future<void> crateApiExportExportCoordinates(
+      {required String jsonContent,
+      required String outputPath,
+      required String exportFormat});
 
   Future<void> crateApiCommonInitApp();
 
@@ -157,13 +159,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiExportExportKml(
-      {required String jsonContent, required String outputPath}) {
+  Future<void> crateApiExportExportCoordinates(
+      {required String jsonContent,
+      required String outputPath,
+      required String exportFormat}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(jsonContent, serializer);
         sse_encode_String(outputPath, serializer);
+        sse_encode_String(exportFormat, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 2, port: port_);
       },
@@ -171,15 +176,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeSuccessData: sse_decode_unit,
         decodeErrorData: sse_decode_String,
       ),
-      constMeta: kCrateApiExportExportKmlConstMeta,
-      argValues: [jsonContent, outputPath],
+      constMeta: kCrateApiExportExportCoordinatesConstMeta,
+      argValues: [jsonContent, outputPath, exportFormat],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiExportExportKmlConstMeta => const TaskConstMeta(
-        debugName: "export_kml",
-        argNames: ["jsonContent", "outputPath"],
+  TaskConstMeta get kCrateApiExportExportCoordinatesConstMeta =>
+      const TaskConstMeta(
+        debugName: "export_coordinates",
+        argNames: ["jsonContent", "outputPath", "exportFormat"],
       );
 
   @override

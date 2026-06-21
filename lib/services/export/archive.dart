@@ -71,7 +71,7 @@ class BundleWriter extends AppServices {
     }
 
     await ReportServices(ref: ref)
-        .writeReport(filePath, ReportType.speciesCount);
+        .writeReport(filePath, ReportType.speciesCount, ReportFmt.csv);
     return filePath.path;
   }
 

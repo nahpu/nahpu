@@ -6,10 +6,14 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<void> exportKml(
-        {required String jsonContent, required String outputPath}) =>
-    RustLib.instance.api.crateApiExportExportKml(
-        jsonContent: jsonContent, outputPath: outputPath);
+Future<void> exportCoordinates(
+        {required String jsonContent,
+        required String outputPath,
+        required String exportFormat}) =>
+    RustLib.instance.api.crateApiExportExportCoordinates(
+        jsonContent: jsonContent,
+        outputPath: outputPath,
+        exportFormat: exportFormat);
 
 class RecordWriter {
   /// JSON string containing the records to be exported.
