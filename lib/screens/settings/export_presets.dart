@@ -47,7 +47,18 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _buildListColumn()),
+                Expanded(
+                  child: PresetListColumn(
+                    selectedPresetName: _selectedPresetName,
+                    onPresetSelected: (name, map) {
+                      setState(() {
+                        _selectedPresetName = name;
+                        _selectedPresetMap = map;
+                      });
+                    },
+                    tabController: _tabController,
+                  ),
+                ),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -57,7 +68,10 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
                         ),
                       ),
                     ),
-                    child: _buildEditColumn(),
+                    child: PresetEditColumn(
+                      selectedPresetName: _selectedPresetName,
+                      selectedPresetMap: _selectedPresetMap,
+                    ),
                   ),
                 ),
               ],
@@ -75,8 +89,20 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildListColumn(),
-                      _buildEditColumn(),
+                      PresetListColumn(
+                        selectedPresetName: _selectedPresetName,
+                        onPresetSelected: (name, map) {
+                          setState(() {
+                            _selectedPresetName = name;
+                            _selectedPresetMap = map;
+                          });
+                        },
+                        tabController: _tabController,
+                      ),
+                      PresetEditColumn(
+                        selectedPresetName: _selectedPresetName,
+                        selectedPresetMap: _selectedPresetMap,
+                      ),
                     ],
                   ),
                 ),
@@ -84,8 +110,27 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
             ),
     );
   }
+}
 
-  Widget _buildListColumn() {
+class PresetListColumn extends ConsumerStatefulWidget {
+  const PresetListColumn({
+    super.key,
+    required this.selectedPresetName,
+    required this.onPresetSelected,
+    required this.tabController,
+  });
+
+  final String? selectedPresetName;
+  final void Function(String?, Map<String, String>?) onPresetSelected;
+  final TabController tabController;
+
+  @override
+  ConsumerState<PresetListColumn> createState() => _PresetListColumnState();
+}
+
+class _PresetListColumnState extends ConsumerState<PresetListColumn> {
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         Padding(
@@ -151,34 +196,34 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
                     itemBuilder: (context, index) {
                       final name = presets.keys.elementAt(index);
                       final preset = presets[name]!;
-                      final isSelected = _selectedPresetName == name;
-                      return ListTile(
-                        selected: isSelected,
-                        selectedTileColor: Theme.of(context).colorScheme.primaryContainer.withAlpha(80),
-                        title: Text(name),
-                        subtitle: Text('${preset.length} fields selected'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.qr_code),
-                              tooltip: 'Show QR Code',
-                              onPressed: () => _showQRCode(name, preset),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              tooltip: 'Delete',
-                              onPressed: () => _deletePreset(name),
-                            ),
-                          ],
+                      final isSelected = widget.selectedPresetName == name;
+                      return Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          selected: isSelected,
+                          selectedTileColor: Theme.of(context).colorScheme.primaryContainer.withAlpha(80),
+                          title: Text(name),
+                          subtitle: Text('${preset.length} fields selected'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.qr_code),
+                                tooltip: 'Show QR Code',
+                                onPressed: () => _showQRCode(name, preset),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Delete',
+                                onPressed: () => _deletePreset(name),
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            widget.onPresetSelected(name, preset);
+                            widget.tabController.animateTo(1);
+                          },
                         ),
-                        onTap: () {
-                          setState(() {
-                            _selectedPresetName = name;
-                            _selectedPresetMap = preset;
-                          });
-                          _tabController.animateTo(1);
-                        },
                       );
                     },
                   );
@@ -188,27 +233,6 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
               ),
         ),
       ],
-    );
-  }
-
-  Widget _buildEditColumn() {
-    if (_selectedPresetName == null || _selectedPresetMap == null) {
-      return const Center(
-        child: Text('Select a preset to edit'),
-      );
-    }
-    return ref.watch(exportPresetNotifierProvider).when(
-      data: (presets) {
-        if (!presets.containsKey(_selectedPresetName!)) {
-          return const Center(child: Text('Preset not found'));
-        }
-        return ExportPresetEditForm(
-          presetName: _selectedPresetName!,
-          initialPreset: presets[_selectedPresetName!]!,
-        );
-      },
-      loading: () => const CommonProgressIndicator(),
-      error: (e, s) => const Center(child: Text('Error loading preset')),
     );
   }
 
@@ -229,11 +253,8 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
         builder: (context) => const NewPresetDialog(),
       );
       if (newName != null) {
-        setState(() {
-          _selectedPresetName = newName;
-          _selectedPresetMap = {};
-        });
-        _tabController.animateTo(1);
+        widget.onPresetSelected(newName, {});
+        widget.tabController.animateTo(1);
       }
     }
   }
@@ -262,11 +283,8 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
 
     if (confirm == true) {
       await ref.read(exportPresetNotifierProvider.notifier).deletePreset(name);
-      if (_selectedPresetName == name) {
-        setState(() {
-          _selectedPresetName = null;
-          _selectedPresetMap = null;
-        });
+      if (widget.selectedPresetName == name) {
+        widget.onPresetSelected(null, null);
       }
     }
   }
@@ -407,6 +425,39 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
         );
       }
     }
+  }
+}
+
+class PresetEditColumn extends ConsumerWidget {
+  const PresetEditColumn({
+    super.key,
+    required this.selectedPresetName,
+    required this.selectedPresetMap,
+  });
+
+  final String? selectedPresetName;
+  final Map<String, String>? selectedPresetMap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (selectedPresetName == null || selectedPresetMap == null) {
+      return const Center(
+        child: Text('Select a preset to edit'),
+      );
+    }
+    return ref.watch(exportPresetNotifierProvider).when(
+      data: (presets) {
+        if (!presets.containsKey(selectedPresetName!)) {
+          return const Center(child: Text('Preset not found'));
+        }
+        return ExportPresetEditForm(
+          presetName: selectedPresetName!,
+          initialPreset: presets[selectedPresetName!]!,
+        );
+      },
+      loading: () => const CommonProgressIndicator(),
+      error: (e, s) => const Center(child: Text('Error loading preset')),
+    );
   }
 }
 

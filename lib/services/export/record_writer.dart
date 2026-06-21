@@ -121,12 +121,12 @@ class SpecimenRecordWriter {
       case SpecimenRecordType.herpetofauna:
         return herpMeasurementExportList;
       case SpecimenRecordType.allTaxa:
-        return [
+        return <String>{
           ...mammalMeasurementExportList,
           ...avianMeasurementExportList,
           ...batMeasurementExportList,
           ...herpMeasurementExportList,
-        ].toSet().toList();
+        }.toList();
     }
   }
 

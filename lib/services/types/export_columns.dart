@@ -37,12 +37,12 @@ List<String> getAvailableExportColumns({
             measurementList = herpMeasurementExportList;
             break;
           case SpecimenRecordType.allTaxa:
-            measurementList = [
+            measurementList = <String>{
               ...mammalMeasurementExportList,
               ...avianMeasurementExportList,
               ...batMeasurementExportList,
               ...herpMeasurementExportList,
-            ].toSet().toList();
+            }.toSet().toList();
             break;
         }
       }
