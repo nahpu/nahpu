@@ -67,7 +67,12 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Taxon Group:'),
+              const Flexible(
+                child: Text(
+                  'Taxon Group:',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               DropdownButton<SpecimenRecordType>(
                 value: _selectedTaxon,
                 items: taxonGroupDropdownMap.entries.map((entry) {
@@ -92,7 +97,12 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Apply naming convention to selected:'),
+              const Flexible(
+                child: Text(
+                  'Apply naming convention:',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               DropdownButton<String>(
                 value: 'table::fieldName',
                 items: const [
