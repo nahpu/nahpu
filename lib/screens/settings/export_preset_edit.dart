@@ -38,60 +38,6 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     }
   }
 
-  Map<String, List<String>> _getAllGroups() {
-    Map<String, List<String>> groups = {
-      'Collecting Record': collectingRecordExportList,
-      'Site': siteExportList,
-      'Collection Event': collEventExportList,
-      'Specimen Part': [...partExportListDelimited, partExportSimple],
-      'Media': allMediaExportList,
-      'Narrative': narrativeExportList,
-    };
-
-    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
-        _selectedTaxon == SpecimenRecordType.generalMammals) {
-      groups['Mammal Measurements'] = mammalMeasurementExportList;
-    }
-    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
-        _selectedTaxon == SpecimenRecordType.bats) {
-      groups['Bat Measurements'] = batMeasurementExportList;
-    }
-    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
-        _selectedTaxon == SpecimenRecordType.birds) {
-      groups['Avian Measurements'] = avianMeasurementExportList;
-    }
-    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
-        _selectedTaxon == SpecimenRecordType.herpetofauna) {
-      groups['Herpetofauna Measurements'] = herpMeasurementExportList;
-    }
-
-    return groups;
-  }
-
-  void _applyNamingConvention(String type) {
-    setState(() {
-      for (final key in _currentPreset.keys) {
-        if (type == 'table::fieldName') {
-          _currentPreset[key] = key;
-        } else if (type == 'fieldName') {
-          _currentPreset[key] = key.split('::').last;
-        }
-      }
-    });
-  }
-
-  void _save() async {
-    await ref.read(exportPresetNotifierProvider.notifier).savePreset(
-          widget.presetName,
-          _currentPreset,
-        );
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preset saved')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final groups = _getAllGroups();
@@ -180,66 +126,121 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
             children: [
               ...groupKeys.map((table) {
                 List<String> columns = groups[table]!;
-                return Container(
-                  clipBehavior: Clip.hardEdge,
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                  decoration: BoxDecoration(
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Material(
+                    // clipBehavior: Clip.hardEdge,
                     borderRadius: BorderRadius.circular(16.0),
                     color: Theme.of(context)
                         .colorScheme
                         .surfaceContainerHighest
                         .withValues(alpha: 0.4),
-                  ),
-                  child: ExpansionTile(
-                    title: Text(
-                      table.toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    child: ExpansionTile(
+                      shape: const Border(),
+                      title: Text(
+                        table.toUpperCase(),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      initiallyExpanded: true,
+                      children: columns.map((col) {
+                        final isSelected = _currentPreset.containsKey(col);
+                        return ListTile(
+                          leading: Checkbox(
+                            value: isSelected,
+                            onChanged: (bool? val) {
+                              setState(() {
+                                if (val == true) {
+                                  _currentPreset[col] = col;
+                                } else {
+                                  _currentPreset.remove(col);
+                                }
+                              });
+                            },
+                          ),
+                          title: Text(col.split('::').last),
+                          subtitle: isSelected
+                              ? TextFormField(
+                                  initialValue: _currentPreset[col],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Custom Name',
+                                    isDense: true,
+                                  ),
+                                  onChanged: (val) {
+                                    _currentPreset[col] = val;
+                                  },
+                                )
+                              : null,
+                        );
+                      }).toList(),
                     ),
-                    initiallyExpanded: false,
-                    children: columns.map((col) {
-                      final isSelected = _currentPreset.containsKey(col);
-                      return ListTile(
-                        leading: Checkbox(
-                          value: isSelected,
-                          onChanged: (bool? val) {
-                            setState(() {
-                              if (val == true) {
-                                _currentPreset[col] = col;
-                              } else {
-                                _currentPreset.remove(col);
-                              }
-                            });
-                          },
-                        ),
-                        title: Text(col.split('::').last),
-                        subtitle: isSelected
-                            ? TextFormField(
-                                initialValue: _currentPreset[col],
-                                decoration: const InputDecoration(
-                                  labelText: 'Custom Name',
-                                  isDense: true,
-                                ),
-                                onChanged: (val) {
-                                  _currentPreset[col] = val;
-                                },
-                              )
-                            : null,
-                      );
-                    }).toList(),
                   ),
                 );
               }),
-              const SizedBox(height: 16),
-              PrimaryButton(
-                label: 'Save',
-                icon: Icons.save,
-                onPressed: _save,
-              ),
-              const SizedBox(height: 16),
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        PrimaryButton(
+          label: 'Save',
+          icon: Icons.save,
+          onPressed: _save,
+        ),
+        const SizedBox(height: 16),
       ],
     );
+  }
+
+  Map<String, List<String>> _getAllGroups() {
+    Map<String, List<String>> groups = {
+      'Collecting Record': collectingRecordExportList,
+      'Site': siteExportList,
+      'Collection Event': collEventExportList,
+      'Specimen Part': [...partExportListDelimited, partExportSimple],
+      'Media': allMediaExportList,
+      'Narrative': narrativeExportList,
+    };
+
+    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
+        _selectedTaxon == SpecimenRecordType.generalMammals) {
+      groups['Mammal Measurements'] = mammalMeasurementExportList;
+    }
+    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
+        _selectedTaxon == SpecimenRecordType.bats) {
+      groups['Bat Measurements'] = batMeasurementExportList;
+    }
+    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
+        _selectedTaxon == SpecimenRecordType.birds) {
+      groups['Avian Measurements'] = avianMeasurementExportList;
+    }
+    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
+        _selectedTaxon == SpecimenRecordType.herpetofauna) {
+      groups['Herpetofauna Measurements'] = herpMeasurementExportList;
+    }
+
+    return groups;
+  }
+
+  void _applyNamingConvention(String type) {
+    setState(() {
+      for (final key in _currentPreset.keys) {
+        if (type == 'table::fieldName') {
+          _currentPreset[key] = key;
+        } else if (type == 'fieldName') {
+          _currentPreset[key] = key.split('::').last;
+        }
+      }
+    });
+  }
+
+  void _save() async {
+    await ref.read(exportPresetNotifierProvider.notifier).savePreset(
+          widget.presetName,
+          _currentPreset,
+        );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preset saved')),
+      );
+    }
   }
 }

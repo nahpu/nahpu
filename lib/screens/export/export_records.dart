@@ -106,25 +106,25 @@ class ExportFormState extends ConsumerState<ExportForm> {
                 horizontal: 16,
                 vertical: 16,
               ),
-              child: Container(
+              child: Material(
                 clipBehavior: Clip.hardEdge,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.0),
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.4),
-                ),
-                child: ColumnSelectionList(
-                  availableColumns: _availableColumns,
-                  selectedColumns: _selectedColumns ?? _availableColumns,
-                  onSelectionChanged: (selected) {
-                    setState(() {
-                      _selectedColumns = selected;
-                      _hasSaved = false;
-                    });
-                  },
+                borderRadius: BorderRadius.circular(16.0),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.4),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: ColumnSelectionList(
+                    availableColumns: _availableColumns,
+                    selectedColumns: _selectedColumns ?? _availableColumns,
+                    onSelectionChanged: (selected) {
+                      setState(() {
+                        _selectedColumns = selected;
+                        _hasSaved = false;
+                      });
+                    },
+                  ),
                 ),
               ),
             ),

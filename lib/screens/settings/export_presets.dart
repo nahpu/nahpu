@@ -18,7 +18,8 @@ class ExportPresetsScreen extends ConsumerStatefulWidget {
   ExportPresetsScreenState createState() => ExportPresetsScreenState();
 }
 
-class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with SingleTickerProviderStateMixin {
+class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
+    with SingleTickerProviderStateMixin {
   String? _selectedPresetName;
   Map<String, String>? _selectedPresetMap;
   late TabController _tabController;
@@ -44,37 +45,43 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen> with S
         title: const Text('Export Presets'),
       ),
       body: isLargeScreen
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: PresetListColumn(
-                    selectedPresetName: _selectedPresetName,
-                    onPresetSelected: (name, map) {
-                      setState(() {
-                        _selectedPresetName = name;
-                        _selectedPresetMap = map;
-                      });
-                    },
-                    tabController: _tabController,
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: PresetListColumn(
+                      selectedPresetName: _selectedPresetName,
+                      onPresetSelected: (name, map) {
+                        setState(() {
+                          _selectedPresetName = name;
+                          _selectedPresetMap = map;
+                        });
+                      },
+                      tabController: _tabController,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        left: BorderSide(
-                          color: Theme.of(context).dividerColor,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Material(
+                      clipBehavior: Clip.hardEdge,
+                      borderRadius: BorderRadius.circular(16.0),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.4),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: PresetEditColumn(
+                          selectedPresetName: _selectedPresetName,
+                          selectedPresetMap: _selectedPresetMap,
                         ),
                       ),
                     ),
-                    child: PresetEditColumn(
-                      selectedPresetName: _selectedPresetName,
-                      selectedPresetMap: _selectedPresetMap,
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             )
           : Column(
               children: [
@@ -131,77 +138,87 @@ class PresetListColumn extends ConsumerStatefulWidget {
 class _PresetListColumnState extends ConsumerState<PresetListColumn> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  PrimaryButton(
-                    label: 'Create',
-                    icon: Icons.add,
-                    onPressed: _addNewPreset,
-                  ),
-                  SecondaryButton(
-                    text: 'Scan QR',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ScannerScreen(
-                            onDetect: (barcode) {
-                              final String? rawValue = barcode.barcodes.first.rawValue;
-                              if (rawValue != null) {
-                                _importPresetFromQR(rawValue);
-                              }
-                            },
+    return Material(
+      clipBehavior: Clip.hardEdge,
+      borderRadius: BorderRadius.circular(16.0),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    PrimaryButton(
+                      label: 'Create',
+                      icon: Icons.add,
+                      onPressed: _addNewPreset,
+                    ),
+                    SecondaryButton(
+                      text: 'Scan QR',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScannerScreen(
+                              onDetect: (barcode) {
+                                final String? rawValue =
+                                    barcode.barcodes.first.rawValue;
+                                if (rawValue != null) {
+                                  _importPresetFromQR(rawValue);
+                                }
+                              },
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  TextButton.icon(
-                    icon: const Icon(Icons.file_download_outlined),
-                    label: const Text('Import'),
-                    onPressed: _importPresetsFile,
-                  ),
-                  TextButton.icon(
-                    icon: const Icon(Icons.file_upload_outlined),
-                    label: const Text('Export'),
-                    onPressed: _exportPresetsFile,
-                  ),
-                ],
-              ),
-            ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton.icon(
+                      icon: const Icon(Icons.file_download_outlined),
+                      label: const Text('Import'),
+                      onPressed: _importPresetsFile,
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.file_upload_outlined),
+                      label: const Text('Export'),
+                      onPressed: _exportPresetsFile,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        const Divider(),
-        Expanded(
-          child: ref.watch(exportPresetNotifierProvider).when(
-                data: (presets) {
-                  if (presets.isEmpty) {
-                    return const Center(child: Text('No presets found.'));
-                  }
-                  return ListView.builder(
-                    itemCount: presets.length,
-                    itemBuilder: (context, index) {
-                      final name = presets.keys.elementAt(index);
-                      final preset = presets[name]!;
-                      final isSelected = widget.selectedPresetName == name;
-                      return Material(
-                        color: Colors.transparent,
-                        child: ListTile(
+          const Divider(),
+          Expanded(
+            child: ref.watch(exportPresetNotifierProvider).when(
+                  data: (presets) {
+                    if (presets.isEmpty) {
+                      return const Center(child: Text('No presets found.'));
+                    }
+                    return ListView.builder(
+                      itemCount: presets.length,
+                      itemBuilder: (context, index) {
+                        final name = presets.keys.elementAt(index);
+                        final preset = presets[name]!;
+                        final isSelected = widget.selectedPresetName == name;
+                        return ListTile(
                           selected: isSelected,
-                          selectedTileColor: Theme.of(context).colorScheme.primaryContainer.withAlpha(80),
+                          selectedTileColor: Theme.of(context)
+                              .colorScheme
+                              .primaryContainer
+                              .withAlpha(80),
+                          tileColor: Colors.transparent,
                           title: Text(name),
                           subtitle: Text('${preset.length} fields selected'),
                           trailing: Row(
@@ -223,16 +240,16 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                             widget.onPresetSelected(name, preset);
                             widget.tabController.animateTo(1);
                           },
-                        ),
-                      );
-                    },
-                  );
-                },
-                loading: () => const CommonProgressIndicator(),
-                error: (e, s) => Center(child: Text('Error: $e')),
-              ),
-        ),
-      ],
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const CommonProgressIndicator(),
+                  error: (e, s) => Center(child: Text('Error: $e')),
+                ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -317,15 +334,19 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
   void _importPresetFromQR(String rawValue) async {
     try {
       final decoded = jsonDecode(rawValue) as Map<String, dynamic>;
-      if (decoded.containsKey('nahpu_export_preset') && decoded.containsKey('data')) {
+      if (decoded.containsKey('nahpu_export_preset') &&
+          decoded.containsKey('data')) {
         String name = decoded['nahpu_export_preset'] as String;
         final data = Map<String, String>.from(decoded['data'] as Map);
-        
-        final currentPresets = await ref.read(exportPresetNotifierProvider.future);
+
+        final currentPresets =
+            await ref.read(exportPresetNotifierProvider.future);
         if (currentPresets.length >= 20) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Maximum of 20 presets reached. Cannot import.')),
+              const SnackBar(
+                  content:
+                      Text('Maximum of 20 presets reached. Cannot import.')),
             );
           }
           return;
@@ -338,7 +359,9 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
           i++;
         }
 
-        await ref.read(exportPresetNotifierProvider.notifier).savePreset(finalName, data);
+        await ref
+            .read(exportPresetNotifierProvider.notifier)
+            .savePreset(finalName, data);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Imported preset "$finalName"')),
@@ -362,35 +385,36 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
       try {
         final content = await File(file.path).readAsString();
         final decoded = jsonDecode(content) as Map<String, dynamic>;
-        
+
         final notifier = ref.read(exportPresetNotifierProvider.notifier);
-        
+
         int importedCount = 0;
         for (final entry in decoded.entries) {
-           final currentPresetsLatest = await ref.read(exportPresetNotifierProvider.future);
-           if (currentPresetsLatest.length >= 20) break;
+          final currentPresetsLatest =
+              await ref.read(exportPresetNotifierProvider.future);
+          if (currentPresetsLatest.length >= 20) break;
 
-           final data = Map<String, String>.from(entry.value as Map);
-           
-           String finalName = entry.key;
-           int i = 1;
-           while (currentPresetsLatest.containsKey(finalName)) {
-             finalName = '${entry.key}_$i';
-             i++;
-           }
-           await notifier.savePreset(finalName, data);
-           importedCount++;
+          final data = Map<String, String>.from(entry.value as Map);
+
+          String finalName = entry.key;
+          int i = 1;
+          while (currentPresetsLatest.containsKey(finalName)) {
+            finalName = '${entry.key}_$i';
+            i++;
+          }
+          await notifier.savePreset(finalName, data);
+          importedCount++;
         }
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text('Imported $importedCount presets')),
-           );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Imported $importedCount presets')),
+          );
         }
       } catch (e) {
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text('Failed to import presets: $e')),
-           );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to import presets: $e')),
+          );
         }
       }
     }
@@ -398,7 +422,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
 
   void _exportPresetsFile() async {
     try {
-      final currentPresets = await ref.read(exportPresetNotifierProvider.future);
+      final currentPresets =
+          await ref.read(exportPresetNotifierProvider.future);
       if (currentPresets.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -446,18 +471,18 @@ class PresetEditColumn extends ConsumerWidget {
       );
     }
     return ref.watch(exportPresetNotifierProvider).when(
-      data: (presets) {
-        if (!presets.containsKey(selectedPresetName!)) {
-          return const Center(child: Text('Preset not found'));
-        }
-        return ExportPresetEditForm(
-          presetName: selectedPresetName!,
-          initialPreset: presets[selectedPresetName!]!,
+          data: (presets) {
+            if (!presets.containsKey(selectedPresetName!)) {
+              return const Center(child: Text('Preset not found'));
+            }
+            return ExportPresetEditForm(
+              presetName: selectedPresetName!,
+              initialPreset: presets[selectedPresetName!]!,
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (e, s) => const Center(child: Text('Error loading preset')),
         );
-      },
-      loading: () => const CommonProgressIndicator(),
-      error: (e, s) => const Center(child: Text('Error loading preset')),
-    );
   }
 }
 
@@ -522,14 +547,17 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
             _validate(_nameController.text);
             if (_errorText == null && _nameController.text.isNotEmpty) {
               final name = _nameController.text;
-              final currentPresets = await ref.read(exportPresetNotifierProvider.future);
+              final currentPresets =
+                  await ref.read(exportPresetNotifierProvider.future);
               if (currentPresets.containsKey(name)) {
                 setState(() {
                   _errorText = 'A preset with this name already exists';
                 });
                 return;
               }
-              await ref.read(exportPresetNotifierProvider.notifier).savePreset(name, {});
+              await ref
+                  .read(exportPresetNotifierProvider.notifier)
+                  .savePreset(name, {});
               if (context.mounted) {
                 Navigator.pop(context, name);
               }
