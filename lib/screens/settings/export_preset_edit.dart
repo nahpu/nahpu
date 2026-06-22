@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
+
+const Map<SpecimenRecordType, String> TaxonGroupDropdownMap = {
+  SpecimenRecordType.allTaxa: 'All taxa',
+  SpecimenRecordType.birds: 'Birds',
+  SpecimenRecordType.bats: 'Bats',
+  SpecimenRecordType.generalMammals: 'General mammals',
+  SpecimenRecordType.herpetofauna: 'Herpetofauna',
+};
 
 class ExportPresetEditForm extends ConsumerStatefulWidget {
   const ExportPresetEditForm({
@@ -52,6 +61,7 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
+        const CommonLineDivider(),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
@@ -60,28 +70,12 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
               const Text('Taxon Group:'),
               DropdownButton<SpecimenRecordType>(
                 value: _selectedTaxon,
-                items: const [
-                  DropdownMenuItem(
-                    value: SpecimenRecordType.allTaxa,
-                    child: Text('All Taxa'),
-                  ),
-                  DropdownMenuItem(
-                    value: SpecimenRecordType.generalMammals,
-                    child: Text('Mammals'),
-                  ),
-                  DropdownMenuItem(
-                    value: SpecimenRecordType.birds,
-                    child: Text('Birds'),
-                  ),
-                  DropdownMenuItem(
-                    value: SpecimenRecordType.bats,
-                    child: Text('Bats'),
-                  ),
-                  DropdownMenuItem(
-                    value: SpecimenRecordType.herpetofauna,
-                    child: Text('Herpetofauna'),
-                  ),
-                ],
+                items: TaxonGroupDropdownMap.entries.map((entry) {
+                  return DropdownMenuItem(
+                    value: entry.key,
+                    child: Text(entry.value),
+                  );
+                }).toList(),
                 onChanged: (val) {
                   if (val != null) {
                     setState(() {
@@ -129,19 +123,18 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Material(
-                    // clipBehavior: Clip.hardEdge,
                     borderRadius: BorderRadius.circular(16.0),
                     color: Theme.of(context)
                         .colorScheme
                         .surfaceContainerHighest
-                        .withValues(alpha: 0.4),
+                        .withValues(alpha: 0.8),
                     child: ExpansionTile(
                       shape: const Border(),
                       title: Text(
                         table.toUpperCase(),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      initiallyExpanded: true,
+                      initiallyExpanded: false,
                       children: columns.map((col) {
                         final isSelected = _currentPreset.containsKey(col);
                         return ListTile(

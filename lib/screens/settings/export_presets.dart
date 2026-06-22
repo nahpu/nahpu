@@ -149,57 +149,12 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    PrimaryButton(
-                      label: 'Create',
-                      icon: Icons.add,
-                      onPressed: _addNewPreset,
-                    ),
-                    SecondaryButton(
-                      text: 'Scan QR',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ScannerScreen(
-                              onDetect: (barcode) {
-                                final String? rawValue =
-                                    barcode.barcodes.first.rawValue;
-                                if (rawValue != null) {
-                                  _importPresetFromQR(rawValue);
-                                }
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton.icon(
-                      icon: const Icon(Icons.file_download_outlined),
-                      label: const Text('Import'),
-                      onPressed: _importPresetsFile,
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.file_upload_outlined),
-                      label: const Text('Export'),
-                      onPressed: _exportPresetsFile,
-                    ),
-                  ],
-                ),
-              ],
+            child: Text(
+              'Select Presets',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
-          const Divider(),
+          const CommonLineDivider(),
           Expanded(
             child: ref.watch(exportPresetNotifierProvider).when(
                   data: (presets) {
@@ -212,34 +167,43 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                         final name = presets.keys.elementAt(index);
                         final preset = presets[name]!;
                         final isSelected = widget.selectedPresetName == name;
-                        return ListTile(
-                          selected: isSelected,
-                          selectedTileColor: Theme.of(context)
-                              .colorScheme
-                              .primaryContainer
-                              .withAlpha(80),
-                          tileColor: Colors.transparent,
-                          title: Text(name),
-                          subtitle: Text('${preset.length} fields selected'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.qr_code),
-                                tooltip: 'Show QR Code',
-                                onPressed: () => _showQRCode(name, preset),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 4, horizontal: 8),
+                          child: Material(
+                            borderRadius: BorderRadius.circular(16.0),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.8),
+                            child: ListTile(
+                              leading: isSelected
+                                  ? const Icon(Icons.radio_button_checked)
+                                  : const Icon(Icons.radio_button_unchecked),
+                              title: Text(name),
+                              subtitle:
+                                  Text('${preset.length} fields selected'),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.qr_code),
+                                    tooltip: 'Show QR Code',
+                                    onPressed: () => _showQRCode(name, preset),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline),
+                                    tooltip: 'Delete',
+                                    onPressed: () => _deletePreset(name),
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline),
-                                tooltip: 'Delete',
-                                onPressed: () => _deletePreset(name),
-                              ),
-                            ],
+                              onTap: () {
+                                widget.onPresetSelected(name, preset);
+                                widget.tabController.animateTo(1);
+                              },
+                            ),
                           ),
-                          onTap: () {
-                            widget.onPresetSelected(name, preset);
-                            widget.tabController.animateTo(1);
-                          },
                         );
                       },
                     );
@@ -247,6 +211,13 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                   loading: () => const CommonProgressIndicator(),
                   error: (e, s) => Center(child: Text('Error: $e')),
                 ),
+          ),
+          const CommonLineDivider(),
+          PresetActionButtons(
+            onAddNewPreset: _addNewPreset,
+            onScanQR: _importPresetFromQR,
+            onImport: _importPresetsFile,
+            onExport: _exportPresetsFile,
           ),
         ],
       ),
@@ -453,6 +424,71 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
   }
 }
 
+class PresetActionButtons extends StatelessWidget {
+  const PresetActionButtons({
+    super.key,
+    required this.onExport,
+    required this.onImport,
+    required this.onScanQR,
+    required this.onAddNewPreset,
+  });
+
+  final void Function() onExport;
+  final void Function() onImport;
+  final void Function(String) onScanQR;
+  final void Function() onAddNewPreset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SecondaryButton(
+                text: 'Scan QR',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ScannerScreen(
+                        onDetect: (barcode) {
+                          final String? rawValue =
+                              barcode.barcodes.first.rawValue;
+                          if (rawValue != null) {
+                            onScanQR(rawValue);
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+              PrimaryButton(
+                label: 'Create',
+                icon: Icons.add,
+                onPressed: onAddNewPreset,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          TextButton(
+            onPressed: onImport,
+            child: Text('Import presets from file'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: onExport,
+            child: Text('Export presets'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class PresetEditColumn extends ConsumerWidget {
   const PresetEditColumn({
     super.key,
@@ -503,25 +539,6 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
     super.dispose();
   }
 
-  void _validate(String value) {
-    if (value.isEmpty) {
-      setState(() {
-        _errorText = 'Name cannot be empty';
-      });
-      return;
-    }
-    final RegExp validName = RegExp(r'^[a-zA-Z0-9_\-]+$');
-    if (!validName.hasMatch(value)) {
-      setState(() {
-        _errorText = 'Only alphanumeric, underscores, and dashes allowed';
-      });
-      return;
-    }
-    setState(() {
-      _errorText = null;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -566,5 +583,24 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
         ),
       ],
     );
+  }
+
+  void _validate(String value) {
+    if (value.isEmpty) {
+      setState(() {
+        _errorText = 'Name cannot be empty';
+      });
+      return;
+    }
+    final RegExp validName = RegExp(r'^[a-zA-Z0-9_\-]+$');
+    if (!validName.hasMatch(value)) {
+      setState(() {
+        _errorText = 'Only alphanumeric, underscores, and dashes allowed';
+      });
+      return;
+    }
+    setState(() {
+      _errorText = null;
+    });
   }
 }
