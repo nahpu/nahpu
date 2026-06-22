@@ -5,7 +5,7 @@ import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 
-const Map<SpecimenRecordType, String> TaxonGroupDropdownMap = {
+const Map<SpecimenRecordType, String> taxonGroupDropdownMap = {
   SpecimenRecordType.allTaxa: 'All taxa',
   SpecimenRecordType.birds: 'Birds',
   SpecimenRecordType.bats: 'Bats',
@@ -70,7 +70,7 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
               const Text('Taxon Group:'),
               DropdownButton<SpecimenRecordType>(
                 value: _selectedTaxon,
-                items: TaxonGroupDropdownMap.entries.map((entry) {
+                items: taxonGroupDropdownMap.entries.map((entry) {
                   return DropdownMenuItem(
                     value: entry.key,
                     child: Text(entry.value),
