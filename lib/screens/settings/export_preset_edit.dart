@@ -21,10 +21,12 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
     super.key,
     required this.presetName,
     required this.initialPreset,
+    required this.onPresetRenamed,
   });
 
   final String presetName;
   final ExportPresetModel initialPreset;
+  final void Function(String, String) onPresetRenamed;
 
   @override
   ExportPresetEditFormState createState() => ExportPresetEditFormState();
@@ -32,11 +34,13 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
 
 class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   late ExportPresetModel _currentPreset;
+  late TextEditingController _nameController;
   SpecimenRecordType _selectedTaxon = SpecimenRecordType.allTaxa;
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController(text: widget.presetName);
     _currentPreset = ExportPresetModel(
       fields: Map.from(widget.initialPreset.fields),
       combinedFields: List.from(widget.initialPreset.combinedFields),
@@ -44,10 +48,17 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
   void didUpdateWidget(ExportPresetEditForm oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.presetName != widget.presetName) {
       setState(() {
+        _nameController.text = widget.presetName;
         _currentPreset = ExportPresetModel(
           fields: Map.from(widget.initialPreset.fields),
           combinedFields: List.from(widget.initialPreset.combinedFields),
@@ -67,6 +78,17 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
       isExpanded: true,
       child: Column(
         children: [
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Preset Name',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
@@ -133,13 +155,14 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
           Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Select Fields',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     IconButton(
@@ -147,6 +170,7 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                       tooltip: 'Reorder Fields',
                       onPressed: _showReorderDialog,
                     ),
+                    const Spacer(),
                     TextButton(
                       onPressed: _selectAll,
                       child: const Text('Select All'),
@@ -156,13 +180,13 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                       child: const Text('Clear All'),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 ...groupKeys.map((table) {
                   List<String> columns = groups[table]!;
@@ -351,8 +375,23 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   }
 
   void _save() async {
+    final newName = _nameController.text.trim();
+    if (newName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preset name cannot be empty')),
+      );
+      return;
+    }
+
+    if (newName != widget.presetName) {
+      await ref
+          .read(exportPresetNotifierProvider.notifier)
+          .deletePreset(widget.presetName);
+      widget.onPresetRenamed(widget.presetName, newName);
+    }
+
     await ref.read(exportPresetNotifierProvider.notifier).savePreset(
-          widget.presetName,
+          newName,
           _currentPreset,
         );
     if (mounted) {
@@ -371,46 +410,116 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
       return;
     }
 
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              title: const Text('Reorder Fields'),
-              content: SizedBox(
-                width: double.maxFinite,
-                height: MediaQuery.sizeOf(context).height * 0.6,
-                child: ReorderableListView(
-                  onReorderItem: (oldIndex, newIndex) {
-                    setStateDialog(() {
-                      final item = entries.removeAt(oldIndex);
-                      entries.insert(newIndex, item);
-                    });
-                  },
-                  children: entries.map((e) {
-                    return ListTile(
-                      key: ValueKey(e.key),
-                      title: Text(e.value),
-                      subtitle: Text(e.key),
-                      trailing: const Icon(Icons.drag_handle),
-                    );
-                  }).toList(),
+    bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+
+    Widget buildReorderList(BuildContext context, StateSetter setStateDialog) {
+      return ReorderableListView(
+        onReorderItem: (oldIndex, newIndex) {
+          setStateDialog(() {
+            if (oldIndex < newIndex) {
+              newIndex -= 1;
+            }
+            final item = entries.removeAt(oldIndex);
+            entries.insert(newIndex, item);
+          });
+        },
+        children: entries.map((e) {
+          return ListTile(
+            key: ValueKey(e.key),
+            title: Text(e.value),
+            subtitle: Text(e.key),
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                setStateDialog(() {
+                  final currentIndex = entries.indexOf(e);
+                  if (currentIndex == -1) return;
+                  final item = entries.removeAt(currentIndex);
+                  if (value == 'first') {
+                    entries.insert(0, item);
+                  } else if (value == 'last') {
+                    entries.add(item);
+                  }
+                });
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem(
+                  value: 'first',
+                  child: Text('Move to First'),
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Done'),
+                const PopupMenuItem(
+                  value: 'last',
+                  child: Text('Move to Last'),
                 ),
               ],
-            );
-          },
-        );
-      },
-    );
+            ),
+          );
+        }).toList(),
+      );
+    }
+
+    if (isLargeScreen) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return AlertDialog(
+                title: const Text('Reorder Fields'),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  height: MediaQuery.sizeOf(context).height * 0.6,
+                  child: buildReorderList(context, setStateDialog),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Done'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } else {
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return FractionallySizedBox(
+                heightFactor: 0.8,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Reorder Fields',
+                              style: Theme.of(context).textTheme.titleLarge),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Done'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: buildReorderList(context, setStateDialog),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
 
     setState(() {
       _currentPreset.fields.clear();

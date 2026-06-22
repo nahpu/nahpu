@@ -76,6 +76,11 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                       child: PresetEditColumn(
                         selectedPresetName: _selectedPresetName,
                         selectedPresetMap: _selectedPresetMap,
+                        onPresetRenamed: (oldName, newName) {
+                          setState(() {
+                            _selectedPresetName = newName;
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -108,6 +113,11 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                       PresetEditColumn(
                         selectedPresetName: _selectedPresetName,
                         selectedPresetMap: _selectedPresetMap,
+                        onPresetRenamed: (oldName, newName) {
+                          setState(() {
+                            _selectedPresetName = newName;
+                          });
+                        },
                       ),
                     ],
                   ),
@@ -490,10 +500,12 @@ class PresetEditColumn extends ConsumerWidget {
     super.key,
     required this.selectedPresetName,
     required this.selectedPresetMap,
+    required this.onPresetRenamed,
   });
 
   final String? selectedPresetName;
   final ExportPresetModel? selectedPresetMap;
+  final void Function(String, String) onPresetRenamed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -510,6 +522,7 @@ class PresetEditColumn extends ConsumerWidget {
             return ExportPresetEditForm(
               presetName: selectedPresetName!,
               initialPreset: presets[selectedPresetName!]!,
+              onPresetRenamed: onPresetRenamed,
             );
           },
           loading: () => const CommonProgressIndicator(),
