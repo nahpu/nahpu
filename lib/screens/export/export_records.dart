@@ -114,7 +114,8 @@ class ExportFormState extends ConsumerState<ExportForm> {
                       ? PresetFieldViewer(preset: _selectedPresetMap!)
                       : ColumnSelectionList(
                           availableColumns: _availableColumns,
-                          selectedColumns: _selectedColumns ?? _availableColumns,
+                          selectedColumns:
+                              _selectedColumns ?? _availableColumns,
                           onSelectionChanged: (selected) {
                             setState(() {
                               _selectedColumns = selected;
@@ -172,7 +173,8 @@ class ExportFormState extends ConsumerState<ExportForm> {
                   if (val != null) {
                     _selectedPresetMap = data[val];
                     if (_selectedPresetMap != null) {
-                      _selectedColumns = _selectedPresetMap!.fields.keys.toList();
+                      _selectedColumns =
+                          _selectedPresetMap!.fields.keys.toList();
                       _useFieldNamesOnly = false;
                       _specimenExportFmt = SpecimenExportFmt.selectFields;
                     }
@@ -589,9 +591,8 @@ class PresetFieldViewer extends StatelessWidget {
                   children: preset.fields.values.map((f) {
                     return Chip(
                       label: Text(f),
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                     );
                   }).toList(),
                 ),
@@ -607,9 +608,8 @@ class PresetFieldViewer extends StatelessWidget {
                   children: preset.combinedFields.map((f) {
                     return Chip(
                       label: Text(f.fieldId),
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .secondaryContainer,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.secondaryContainer,
                     );
                   }).toList(),
                 ),

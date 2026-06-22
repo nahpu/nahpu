@@ -142,6 +142,11 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                 ),
                 Row(
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.reorder),
+                      tooltip: 'Reorder Fields',
+                      onPressed: _showReorderDialog,
+                    ),
                     TextButton(
                       onPressed: _selectAll,
                       child: const Text('Select All'),
@@ -159,9 +164,66 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-              ...groupKeys.map((table) {
-                List<String> columns = groups[table]!;
-                return Padding(
+                ...groupKeys.map((table) {
+                  List<String> columns = groups[table]!;
+                  final selectedCount = columns
+                      .where((col) => _currentPreset.fields.containsKey(col))
+                      .length;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Material(
+                      borderRadius: BorderRadius.circular(16.0),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.8),
+                      child: ExpansionTile(
+                        shape: const Border(),
+                        title: Text(
+                          table.toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '$selectedCount / ${columns.length} selected',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        initiallyExpanded: false,
+                        children: columns.map((col) {
+                          final isSelected =
+                              _currentPreset.fields.containsKey(col);
+                          return ListTile(
+                            leading: Checkbox(
+                              value: isSelected,
+                              onChanged: (bool? val) {
+                                setState(() {
+                                  if (val == true) {
+                                    _currentPreset.fields[col] = col;
+                                  } else {
+                                    _currentPreset.fields.remove(col);
+                                  }
+                                });
+                              },
+                            ),
+                            title: Text(col.split('::').last),
+                            subtitle: isSelected
+                                ? TextFormField(
+                                    initialValue: _currentPreset.fields[col],
+                                    decoration: const InputDecoration(
+                                      labelText: 'Custom Name',
+                                      isDense: true,
+                                    ),
+                                    onChanged: (val) {
+                                      _currentPreset.fields[col] = val;
+                                    },
+                                  )
+                                : null,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  );
+                }),
+                Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Material(
                     borderRadius: BorderRadius.circular(16.0),
@@ -171,112 +233,70 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                         .withValues(alpha: 0.8),
                     child: ExpansionTile(
                       shape: const Border(),
-                      title: Text(
-                        table.toUpperCase(),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      title: const Text(
+                        'COMBINED FIELDS',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      initiallyExpanded: false,
-                      children: columns.map((col) {
-                        final isSelected = _currentPreset.fields.containsKey(col);
-                        return ListTile(
-                          leading: Checkbox(
-                            value: isSelected,
-                            onChanged: (bool? val) {
-                              setState(() {
-                                if (val == true) {
-                                  _currentPreset.fields[col] = col;
-                                } else {
-                                  _currentPreset.fields.remove(col);
-                                }
-                              });
+                      initiallyExpanded: true,
+                      children: [
+                        ..._currentPreset.combinedFields.map((field) {
+                          return ListTile(
+                            title: Text(field.fieldId),
+                            subtitle: Text(field.fields.join(' ')),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () async {
+                                    final newField =
+                                        await showCombinedFieldDialog(
+                                            context, field);
+                                    if (newField != null) {
+                                      setState(() {
+                                        final index = _currentPreset
+                                            .combinedFields
+                                            .indexOf(field);
+                                        _currentPreset.combinedFields[index] =
+                                            newField;
+                                      });
+                                    }
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () {
+                                    setState(() {
+                                      _currentPreset.combinedFields
+                                          .remove(field);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SecondaryButton(
+                            text: 'Add Combined Field',
+                            onPressed: () async {
+                              final field =
+                                  await showCombinedFieldDialog(context);
+                              if (field != null) {
+                                setState(() {
+                                  _currentPreset.combinedFields.add(field);
+                                });
+                              }
                             },
                           ),
-                          title: Text(col.split('::').last),
-                          subtitle: isSelected
-                              ? TextFormField(
-                                  initialValue: _currentPreset.fields[col],
-                                  decoration: const InputDecoration(
-                                    labelText: 'Custom Name',
-                                    isDense: true,
-                                  ),
-                                  onChanged: (val) {
-                                    _currentPreset.fields[col] = val;
-                                  },
-                                )
-                              : null,
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                );
-              }),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Material(
-                  borderRadius: BorderRadius.circular(16.0),
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.8),
-                  child: ExpansionTile(
-                    shape: const Border(),
-                    title: const Text(
-                      'COMBINED FIELDS',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    initiallyExpanded: true,
-                    children: [
-                      ..._currentPreset.combinedFields.map((field) {
-                        return ListTile(
-                          title: Text(field.fieldId),
-                          subtitle: Text(field.fields.join(' ')),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () async {
-                                  final newField = await showCombinedFieldDialog(context, field);
-                                  if (newField != null) {
-                                    setState(() {
-                                      final index = _currentPreset.combinedFields.indexOf(field);
-                                      _currentPreset.combinedFields[index] = newField;
-                                    });
-                                  }
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  setState(() {
-                                    _currentPreset.combinedFields.remove(field);
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: SecondaryButton(
-                          text: 'Add Combined Field',
-                          onPressed: () async {
-                            final field = await showCombinedFieldDialog(context);
-                            if (field != null) {
-                              setState(() {
-                                _currentPreset.combinedFields.add(field);
-                              });
-                            }
-                          },
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           PrimaryButton(
@@ -295,7 +315,8 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     Map<String, List<String>> groups = {};
     for (var table in db.allTables) {
       final tableName = table.actualTableName;
-      groups[tableName] = table.$columns.map((c) => '$tableName::${c.name}').toList();
+      groups[tableName] =
+          table.$columns.map((c) => '$tableName::${c.name}').toList();
     }
     return groups;
   }
@@ -339,5 +360,61 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
         const SnackBar(content: Text('Preset saved')),
       );
     }
+  }
+
+  Future<void> _showReorderDialog() async {
+    final entries = _currentPreset.fields.entries.toList();
+    if (entries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No fields selected to reorder.')),
+      );
+      return;
+    }
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Reorder Fields'),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: MediaQuery.sizeOf(context).height * 0.6,
+                child: ReorderableListView(
+                  onReorderItem: (oldIndex, newIndex) {
+                    setStateDialog(() {
+                      final item = entries.removeAt(oldIndex);
+                      entries.insert(newIndex, item);
+                    });
+                  },
+                  children: entries.map((e) {
+                    return ListTile(
+                      key: ValueKey(e.key),
+                      title: Text(e.value),
+                      subtitle: Text(e.key),
+                      trailing: const Icon(Icons.drag_handle),
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Done'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    setState(() {
+      _currentPreset.fields.clear();
+      _currentPreset.fields.addEntries(entries);
+    });
   }
 }

@@ -210,7 +210,7 @@ class ProjectViewState extends ConsumerState<ProjectView> {
     return () {
       ProjectServices(ref: ref).updateProjectUuid(widget.project.uuid);
       // Always open a project on the Dashboard tab.
-      ref.read(projectNavbarIndexProvider.notifier).updateState( 0);
+      ref.read(projectNavbarIndexProvider.notifier).updateState(0);
 
       Navigator.push(context, ProjectShell.route());
     };

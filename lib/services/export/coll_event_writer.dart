@@ -35,8 +35,10 @@ class CollEventRecordWriter extends AppServices {
       for (int i = 0; i < header.length; i++) {
         if (selectedColumns == null || selectedColumns!.contains(header[i])) {
           String key = customColumnNames?.containsKey(header[i]) == true
-            ? customColumnNames![header[i]]!
-            : useFieldNamesOnly ? header[i].split('::').last : header[i];
+              ? customColumnNames![header[i]]!
+              : useFieldNamesOnly
+                  ? header[i].split('::').last
+                  : header[i];
           row[key] = eventDetails[i];
         }
       }
@@ -51,11 +53,11 @@ class CollEventRecordWriter extends AppServices {
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: customColumnNames != null 
-        ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
-        : useFieldNamesOnly 
-          ? filteredHeader.map((e) => e.split('::').last).toList() 
-          : filteredHeader,
+      columnNames: customColumnNames != null
+          ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
+          : useFieldNamesOnly
+              ? filteredHeader.map((e) => e.split('::').last).toList()
+              : filteredHeader,
       exportFormat: format.name,
       concatenateMultiEntries: true,
     );

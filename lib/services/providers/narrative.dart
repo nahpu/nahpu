@@ -6,6 +6,7 @@ import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 final narrativeEntryProvider =
     AsyncNotifierProvider.autoDispose<NarrativeEntry, List<NarrativeData>>(
   NarrativeEntry.new,

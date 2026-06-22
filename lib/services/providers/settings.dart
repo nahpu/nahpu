@@ -107,12 +107,10 @@ List<String> getDefaultOptionsList(String prefKey) {
   }
 }
 
-final userDefinedFieldProvider =
-    AsyncNotifierProvider.family.autoDispose<UserDefinedField, List<String>, String>(
-        UserDefinedField.new);
+final userDefinedFieldProvider = AsyncNotifierProvider.family
+    .autoDispose<UserDefinedField, List<String>, String>(UserDefinedField.new);
 
-class UserDefinedField
-    extends AsyncNotifier<List<String>> {
+class UserDefinedField extends AsyncNotifier<List<String>> {
   UserDefinedField(this.prefKey);
   final String prefKey;
 
@@ -189,11 +187,11 @@ class UserDefinedField
   }
 }
 
-final textCaseFmtNotifierProvider = AsyncNotifierProvider.family.autoDispose<
-    TextCaseFmtNotifier, TextCaseFmt, String>(TextCaseFmtNotifier.new);
+final textCaseFmtNotifierProvider = AsyncNotifierProvider.family
+    .autoDispose<TextCaseFmtNotifier, TextCaseFmt, String>(
+        TextCaseFmtNotifier.new);
 
-class TextCaseFmtNotifier
-    extends AsyncNotifier<TextCaseFmt> {
+class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   TextCaseFmtNotifier(this.prefKey);
   final String prefKey;
 
@@ -273,9 +271,11 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
 }
 
 final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
-    ExportPresetNotifier, Map<String, ExportPresetModel>>(ExportPresetNotifier.new);
+    ExportPresetNotifier,
+    Map<String, ExportPresetModel>>(ExportPresetNotifier.new);
 
-class ExportPresetNotifier extends AsyncNotifier<Map<String, ExportPresetModel>> {
+class ExportPresetNotifier
+    extends AsyncNotifier<Map<String, ExportPresetModel>> {
   Future<Map<String, ExportPresetModel>> _fetchSettings() async {
     final prefs = ref.watch(settingProvider);
     final presetString = prefs.getString(exportPresetPrefKey);
@@ -332,4 +332,3 @@ class ExportPresetNotifier extends AsyncNotifier<Map<String, ExportPresetModel>>
     });
   }
 }
-

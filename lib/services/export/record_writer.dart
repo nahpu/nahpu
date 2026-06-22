@@ -38,7 +38,7 @@ class SpecimenRecordWriter {
 
   Future<void> writeRecordDelimited(File filePath, ExportFmt format) async {
     List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
-    
+
     // If we have a custom preset, use the dynamic exporter
     if (exportPreset != null) {
       return await _writeDynamicRecordDelimited(filePath, format, specimenList);
@@ -60,9 +60,8 @@ class SpecimenRecordWriter {
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
         if (selectedColumns == null || selectedColumns!.contains(header[i])) {
-          String key = useFieldNamesOnly
-              ? header[i].split('::').last
-              : header[i];
+          String key =
+              useFieldNamesOnly ? header[i].split('::').last : header[i];
           row[key] = content[i];
         }
       }
@@ -94,7 +93,7 @@ class SpecimenRecordWriter {
     for (var specimen in specimenList) {
       final dynamicRecord = await exporter.getRecord(specimen);
       Map<String, dynamic> row = {};
-      
+
       // Add simple fields
       for (var col in exportPreset!.fields.keys) {
         final customName = exportPreset!.fields[col] ?? col;

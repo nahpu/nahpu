@@ -12,24 +12,28 @@ class DynamicRecordExporter {
   final WidgetRef ref;
 
   Future<Map<String, String>> getRecord(SpecimenData data) async {
-    final db = ref.read(databaseProvider);
-    Map<String, String> record = {};
+    final Map<String, String> record = {};
 
-    // Helper to add data to record
-    void addData(String table, Map<String, dynamic> json) {
-      for (var entry in json.entries) {
-        record['$table::${entry.key}'] = entry.value?.toString() ?? '';
-      }
-    }
+    await _getSpecimenData(data, record);
+    await _getProjectData(data.projectUuid, record);
+    await _getCollEventData(data.collEventID, record);
+    await _getCoordinateData(data.coordinateID, record);
+    await _getMeasurementData(data.uuid, record);
+    await _getPartData(data.uuid, record);
 
-    // 1. Specimen
-    addData('specimen', data.toJson());
-    // Resolve encoded specimen fields
+    return record;
+  }
+
+  Future<void> _getSpecimenData(
+    SpecimenData data,
+    Map<String, String> record,
+  ) async {
+    _addData(record, 'specimen', data.toJson());
     if (data.catalogerID != null) {
       final p = await PersonnelServices(ref: ref)
           .getPersonnelByUuid(data.catalogerID!);
       record['specimen::catalogerID'] = p.name ?? '';
-      addData('personnel', p.toJson());
+      _addData(record, 'personnel', p.toJson());
     }
     if (data.preparatorID != null) {
       final p = await PersonnelServices(ref: ref)
@@ -41,75 +45,108 @@ class DynamicRecordExporter {
           await TaxonomyServices(ref: ref).getTaxonById(data.speciesID!);
       record['specimen::speciesID'] =
           '${tax.genus ?? ''} ${tax.specificEpithet ?? ''}'.trim();
-      addData('taxonomy', tax.toJson());
+      _addData(record, 'taxonomy', tax.toJson());
     }
+  }
 
-    // 2. Project
-    final projectUuid = data.projectUuid;
+  Future<void> _getProjectData(
+    String? projectUuid,
+    Map<String, String> record,
+  ) async {
     if (projectUuid != null) {
       final proj =
           await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
-      addData('project', proj.toJson());
+      _addData(record, 'project', proj.toJson());
     }
+  }
 
-    // 3. CollEvent & Site
-    if (data.collEventID != null) {
-      final event =
-          await CollEventServices(ref: ref).getCollEvent(data.collEventID!);
+  Future<void> _getCollEventData(
+    int? collEventID,
+    Map<String, String> record,
+  ) async {
+    if (collEventID != null) {
+      final event = await CollEventServices(ref: ref).getCollEvent(collEventID);
       if (event != null) {
-        addData('collEvent', event.toJson());
+        _addData(record, 'collEvent', event.toJson());
 
         if (event.siteID != null) {
           final site = await SiteServices(ref: ref).getSite(event.siteID!);
           if (site != null) {
-            addData('site', site.toJson());
+            _addData(record, 'site', site.toJson());
           }
         }
 
-        // Weather
         try {
-          final weather = await CollEventServices(ref: ref).getAllWeatherData(data.collEventID!);
-          addData('weather', weather.toJson());
+          final weather =
+              await CollEventServices(ref: ref).getAllWeatherData(collEventID);
+          _addData(record, 'weather', weather.toJson());
         } catch (_) {
           // No weather data found
         }
       }
     }
+  }
 
-    // 4. Coordinates
-    if (data.coordinateID != null) {
-      final coord = await CoordinateServices(ref: ref).getCoordinateById(data.coordinateID!);
+  Future<void> _getCoordinateData(
+    int? coordinateID,
+    Map<String, String> record,
+  ) async {
+    if (coordinateID != null) {
+      final coord =
+          await CoordinateServices(ref: ref).getCoordinateById(coordinateID);
       if (coord != null) {
-        addData('coordinate', coord.toJson());
+        _addData(record, 'coordinate', coord.toJson());
       }
     }
+  }
 
-    // 5. Measurements
+  Future<void> _getMeasurementData(
+    String specimenUuid,
+    Map<String, String> record,
+  ) async {
+    final db = ref.read(databaseProvider);
     final mammal = await (db.select(db.mammalMeasurement)
-        ..where((t) => t.specimenUuid.equals(data.uuid)))
+          ..where((t) => t.specimenUuid.equals(specimenUuid)))
         .getSingleOrNull();
-    if (mammal != null) addData('mammalMeasurement', mammal.toJson());
-
-    final avian = await (db.select(db.avianMeasurement)
-        ..where((t) => t.specimenUuid.equals(data.uuid)))
-        .getSingleOrNull();
-    if (avian != null) addData('avianMeasurement', avian.toJson());
-
-    final herp = await (db.select(db.herpMeasurement)
-        ..where((t) => t.specimenUuid.equals(data.uuid)))
-        .getSingleOrNull();
-    if (herp != null) addData('herpMeasurement', herp.toJson());
-
-    // 6. Parts (Concatenated)
-    final parts = await (db.select(db.specimenPart)
-        ..where((t) => t.specimenUuid.equals(data.uuid)))
-        .get();
-    if (parts.isNotEmpty) {
-      // Just taking the first part's raw fields for the flat structure, or concatenate?
-      // For proper dynamic export, maybe we add the first one.
-      addData('specimenPart', parts.first.toJson());
+    if (mammal != null) {
+      _addData(record, 'mammalMeasurement', mammal.toJson());
     }
 
-    return record;
+    final avian = await (db.select(db.avianMeasurement)
+          ..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .getSingleOrNull();
+    if (avian != null) {
+      _addData(record, 'avianMeasurement', avian.toJson());
+    }
+
+    final herp = await (db.select(db.herpMeasurement)
+          ..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .getSingleOrNull();
+    if (herp != null) {
+      _addData(record, 'herpMeasurement', herp.toJson());
+    }
+  }
+
+  Future<void> _getPartData(
+    String specimenUuid,
+    Map<String, String> record,
+  ) async {
+    final db = ref.read(databaseProvider);
+    final parts = await (db.select(db.specimenPart)
+          ..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .get();
+    if (parts.isNotEmpty) {
+      _addData(record, 'specimenPart', parts.first.toJson());
+    }
+  }
+
+  void _addData(
+    Map<String, String> record,
+    String table,
+    Map<String, dynamic> json,
+  ) {
+    for (var entry in json.entries) {
+      record['$table::${entry.key}'] = entry.value?.toString() ?? '';
+    }
   }
 }

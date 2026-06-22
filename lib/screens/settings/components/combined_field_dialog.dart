@@ -23,7 +23,8 @@ class CombinedFieldDialogState extends ConsumerState<CombinedFieldDialog> {
   @override
   void initState() {
     super.initState();
-    _fieldIdController = TextEditingController(text: widget.initialField?.fieldId ?? '');
+    _fieldIdController =
+        TextEditingController(text: widget.initialField?.fieldId ?? '');
     if (widget.initialField != null) {
       _components = List.from(widget.initialField!.fields);
     }
@@ -56,7 +57,9 @@ class CombinedFieldDialogState extends ConsumerState<CombinedFieldDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.initialField == null ? 'New Combined Field' : 'Edit Combined Field'),
+      title: Text(widget.initialField == null
+          ? 'New Combined Field'
+          : 'Edit Combined Field'),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 400,
@@ -78,7 +81,9 @@ class CombinedFieldDialogState extends ConsumerState<CombinedFieldDialog> {
                       initialValue: _selectedField,
                       isExpanded: true,
                       items: _availableFields.map((f) {
-                        return DropdownMenuItem(value: f, child: Text(f, overflow: TextOverflow.ellipsis));
+                        return DropdownMenuItem(
+                            value: f,
+                            child: Text(f, overflow: TextOverflow.ellipsis));
                       }).toList(),
                       onChanged: (val) {
                         setState(() {
@@ -107,7 +112,8 @@ class CombinedFieldDialogState extends ConsumerState<CombinedFieldDialog> {
                   Expanded(
                     child: TextFormField(
                       initialValue: _separator,
-                      decoration: const InputDecoration(labelText: 'Separator (e.g. -, _, space)'),
+                      decoration: const InputDecoration(
+                          labelText: 'Separator (e.g. -, _, space)'),
                       onChanged: (val) {
                         _separator = val;
                       },
@@ -142,7 +148,9 @@ class CombinedFieldDialogState extends ConsumerState<CombinedFieldDialog> {
                   itemBuilder: (context, index) {
                     final comp = _components[index];
                     final isSep = comp.startsWith('SEP:');
-                    final display = isSep ? 'Separator: "${comp.substring(4)}"' : 'Field: $comp';
+                    final display = isSep
+                        ? 'Separator: "${comp.substring(4)}"'
+                        : 'Field: $comp';
                     return ListTile(
                       key: ValueKey('$index-$comp'),
                       title: Text(display),
@@ -172,7 +180,10 @@ class CombinedFieldDialogState extends ConsumerState<CombinedFieldDialog> {
           icon: Icons.save,
           onPressed: () {
             if (_fieldIdController.text.isNotEmpty && _components.isNotEmpty) {
-              Navigator.pop(context, CombinedField(fieldId: _fieldIdController.text, fields: _components));
+              Navigator.pop(
+                  context,
+                  CombinedField(
+                      fieldId: _fieldIdController.text, fields: _components));
             }
           },
         ),
@@ -181,7 +192,8 @@ class CombinedFieldDialogState extends ConsumerState<CombinedFieldDialog> {
   }
 }
 
-Future<CombinedField?> showCombinedFieldDialog(BuildContext context, [CombinedField? initialField]) {
+Future<CombinedField?> showCombinedFieldDialog(BuildContext context,
+    [CombinedField? initialField]) {
   bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
   if (isLargeScreen) {
     return showDialog<CombinedField>(
@@ -193,7 +205,8 @@ Future<CombinedField?> showCombinedFieldDialog(BuildContext context, [CombinedFi
       context: context,
       isScrollControlled: true,
       builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: CombinedFieldDialog(initialField: initialField),
       ),
     );

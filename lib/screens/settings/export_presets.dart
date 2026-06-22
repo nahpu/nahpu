@@ -174,8 +174,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                   ? const Icon(Icons.radio_button_checked)
                                   : const Icon(Icons.radio_button_unchecked),
                               title: Text(name),
-                              subtitle:
-                                  Text('${preset.fields.length + preset.combinedFields.length} fields selected'),
+                              subtitle: Text(
+                                  '${preset.fields.length + preset.combinedFields.length} fields selected'),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -271,7 +271,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
   }
 
   void _showQRCode(String name, ExportPresetModel preset) {
-    final payload = jsonEncode({'nahpu_export_preset': name, 'data': preset.toJson()});
+    final payload =
+        jsonEncode({'nahpu_export_preset': name, 'data': preset.toJson()});
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -301,7 +302,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
       if (decoded.containsKey('nahpu_export_preset') &&
           decoded.containsKey('data')) {
         String name = decoded['nahpu_export_preset'] as String;
-        final data = ExportPresetModel.fromJson(Map<String, dynamic>.from(decoded['data'] as Map));
+        final data = ExportPresetModel.fromJson(
+            Map<String, dynamic>.from(decoded['data'] as Map));
 
         final currentPresets =
             await ref.read(exportPresetNotifierProvider.future);
@@ -358,7 +360,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
               await ref.read(exportPresetNotifierProvider.future);
           if (currentPresetsLatest.length >= 20) break;
 
-          final data = ExportPresetModel.fromJson(Map<String, dynamic>.from(entry.value as Map));
+          final data = ExportPresetModel.fromJson(
+              Map<String, dynamic>.from(entry.value as Map));
 
           String finalName = entry.key;
           int i = 1;

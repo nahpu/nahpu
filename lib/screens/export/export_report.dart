@@ -84,16 +84,23 @@ class ReportFormState extends ConsumerState<ReportForm> {
               labelText: 'Format',
             ),
             items: _reportType == ReportType.coordinate
-                ? [ReportFmt.kml, ReportFmt.geojson, ReportFmt.topojson, ReportFmt.shp]
+                ? [
+                    ReportFmt.kml,
+                    ReportFmt.geojson,
+                    ReportFmt.topojson,
+                    ReportFmt.shp
+                  ]
                     .map((e) => DropdownMenuItem(
                           value: e,
-                          child: CommonDropdownText(text: reportFmtList[e.index]),
+                          child:
+                              CommonDropdownText(text: reportFmtList[e.index]),
                         ))
                     .toList()
                 : [ReportFmt.csv]
                     .map((e) => DropdownMenuItem(
                           value: e,
-                          child: CommonDropdownText(text: reportFmtList[e.index]),
+                          child:
+                              CommonDropdownText(text: reportFmtList[e.index]),
                         ))
                     .toList(),
             onChanged: (ReportFmt? value) {
@@ -200,7 +207,8 @@ class ReportFormState extends ConsumerState<ReportForm> {
         ext: ext,
       ).getSavePath();
 
-      await ReportServices(ref: ref).writeReport(_savePath, _reportType, _reportFmt);
+      await ReportServices(ref: ref)
+          .writeReport(_savePath, _reportType, _reportFmt);
       setState(() {
         _hasSaved = true;
       });

@@ -91,7 +91,6 @@ const List<String> specimenExportFmtList = [
   'Custom fields',
 ];
 
-
 enum TaxonRecordType {
   birds,
   mammals,

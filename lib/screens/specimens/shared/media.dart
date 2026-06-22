@@ -29,9 +29,7 @@ class SpecimenMediaFormState extends ConsumerState<SpecimenMediaForm> {
   @override
   Widget build(BuildContext context) {
     MediaCategory mediaCategory = MediaCategory.specimen;
-    return ref
-        .watch(specimenMediaProvider(widget.specimenUuid))
-        .when(
+    return ref.watch(specimenMediaProvider(widget.specimenUuid)).when(
           data: (data) {
             return MediaViewer(
               images: List.from(data),
