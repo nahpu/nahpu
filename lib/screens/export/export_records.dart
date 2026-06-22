@@ -80,7 +80,6 @@ class ExportFormState extends ConsumerState<ExportForm> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Export records'),
-        automaticallyImplyLeading: false,
       ),
       body: isLargeScreen ? _buildLargeScreenLayout() : _buildMobileLayout(),
     );
