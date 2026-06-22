@@ -12,7 +12,14 @@ import 'package:nahpu/src/rust/api/export.dart';
 class SpecimenPartWriter extends AppServices {
   const SpecimenPartWriter({
     required super.ref,
+    this.useFieldNamesOnly = false,
+    this.selectedColumns,
+    this.customColumnNames,
   });
+
+  final bool useFieldNamesOnly;
+  final List<String>? selectedColumns;
+  final Map<String, String>? customColumnNames;
 
   Future<void> writeDelimited(File filePath, ExportFmt format) async {
     List<String> header = [
@@ -41,19 +48,32 @@ class SpecimenPartWriter extends AppServices {
 
         Map<String, dynamic> row = {};
         for (int i = 0; i < header.length; i++) {
-          row[header[i]] = content[i];
+          if (selectedColumns == null || selectedColumns!.contains(header[i])) {
+            String key = customColumnNames?.containsKey(header[i]) == true
+              ? customColumnNames![header[i]]!
+              : useFieldNamesOnly ? header[i].split('::').last : header[i];
+            row[key] = content[i];
+          }
         }
         jsonList.add(row);
       }
     }
 
     String jsonContent = jsonEncode(jsonList);
+    List<String> filteredHeader = selectedColumns == null
+        ? header
+        : header.where((h) => selectedColumns!.contains(h)).toList();
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: header,
+      columnNames: customColumnNames != null 
+        ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
+        : useFieldNamesOnly 
+          ? filteredHeader.map((e) => e.split('::').last).toList() 
+          : filteredHeader,
       exportFormat: format.name,
+      concatenateMultiEntries: true,
     );
     await writer.write();
   }

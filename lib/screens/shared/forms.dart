@@ -19,6 +19,7 @@ class FormCard extends StatelessWidget {
     this.isWithTitle = true,
     this.isWithDivider = true,
     this.isWithSidePadding = true,
+    this.isExpanded = false,
   });
 
   final Widget child;
@@ -30,6 +31,7 @@ class FormCard extends StatelessWidget {
   final bool isWithTitle;
   final bool isWithDivider;
   final bool isWithSidePadding;
+  final bool isExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -68,14 +70,25 @@ class FormCard extends StatelessWidget {
                       thickness: 0.6,
                       color: Theme.of(context).tabBarTheme.dividerColor)
                   : const SizedBox.shrink(),
-              isWithSidePadding
-                  ? Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-                      child: child)
-                  : Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: child,
+              isExpanded
+                  ? Expanded(
+                      child: isWithSidePadding
+                          ? Padding(
+                              padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                              child: child)
+                          : Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: child,
+                            ),
                     )
+                  : isWithSidePadding
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                          child: child)
+                      : Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: child,
+                        )
             ]),
       ),
     );

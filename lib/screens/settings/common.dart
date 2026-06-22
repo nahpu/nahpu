@@ -54,14 +54,15 @@ class CommonSettingSection extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
             ),
           ),
-        Container(
-          decoration: BoxDecoration(
+        Material(
+          clipBehavior: Clip.hardEdge,
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withAlpha(120),
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withAlpha(120),
-            border: Border.all(
+            side: BorderSide(
               color: Theme.of(context)
                   .colorScheme
                   .surfaceContainerHighest

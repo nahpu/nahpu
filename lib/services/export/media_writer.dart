@@ -47,6 +47,7 @@ class MediaWriterServices {
       outputPath: filePath.path,
       columnNames: allMediaExportList,
       exportFormat: exportFormat,
+      concatenateMultiEntries: true,
     ).write();
   }
 

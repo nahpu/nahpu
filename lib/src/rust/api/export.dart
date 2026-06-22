@@ -25,14 +25,18 @@ class RecordWriter {
   /// The column names to be included in the export.
   final List<String> columnNames;
 
-  /// Export format, e.g., "csv", "tsv", "excel".
+  /// Export format, e.g., "csv", "tsv", "excel", "json".
   final String exportFormat;
+
+  /// Whether to concatenate multi-entry records or expand them.
+  final bool concatenateMultiEntries;
 
   const RecordWriter({
     required this.jsonContent,
     required this.outputPath,
     required this.columnNames,
     required this.exportFormat,
+    required this.concatenateMultiEntries,
   });
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
@@ -40,12 +44,14 @@ class RecordWriter {
           {required String jsonContent,
           required String outputPath,
           required List<String> columnNames,
-          required String exportFormat}) =>
+          required String exportFormat,
+          required bool concatenateMultiEntries}) =>
       RustLib.instance.api.crateApiExportRecordWriterNew(
           jsonContent: jsonContent,
           outputPath: outputPath,
           columnNames: columnNames,
-          exportFormat: exportFormat);
+          exportFormat: exportFormat,
+          concatenateMultiEntries: concatenateMultiEntries);
 
   Future<void> write() => RustLib.instance.api.crateApiExportRecordWriterWrite(
         that: this,
@@ -56,7 +62,8 @@ class RecordWriter {
       jsonContent.hashCode ^
       outputPath.hashCode ^
       columnNames.hashCode ^
-      exportFormat.hashCode;
+      exportFormat.hashCode ^
+      concatenateMultiEntries.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -66,5 +73,6 @@ class RecordWriter {
           jsonContent == other.jsonContent &&
           outputPath == other.outputPath &&
           columnNames == other.columnNames &&
-          exportFormat == other.exportFormat;
+          exportFormat == other.exportFormat &&
+          concatenateMultiEntries == other.concatenateMultiEntries;
 }
