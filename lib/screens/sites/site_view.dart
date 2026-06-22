@@ -180,7 +180,9 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
     if (pendingJump != null) {
       final target = siteEntries.indexWhere((site) => site.id == pendingJump);
       if (target != -1) {
-        ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).updateState(null);
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+            .updateState(null);
         return target;
       }
     }

@@ -32,9 +32,7 @@ class NarrativeMediaFormState extends ConsumerState<NarrativeMediaForm> {
 
   @override
   Widget build(BuildContext context) {
-    return ref
-        .watch(narrativeMediaProvider(widget.narrativeId))
-        .when(
+    return ref.watch(narrativeMediaProvider(widget.narrativeId)).when(
           data: (data) {
             return NarrativeMediaViewer(
               narrativeId: widget.narrativeId,

@@ -289,7 +289,7 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
   }
 
   void _goToDashboard() {
-    ref.read(projectNavbarIndexProvider.notifier).updateState( 0);
+    ref.read(projectNavbarIndexProvider.notifier).updateState(0);
     if (widget.isEditing) {
       // The shell is still below the edit form; return to it in place.
       ProjectShell.popToShell(context);

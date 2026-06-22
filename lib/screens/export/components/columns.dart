@@ -61,7 +61,6 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                   ),
                 ],
               )
-
             ],
           ),
         ),

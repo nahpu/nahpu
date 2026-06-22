@@ -10,7 +10,9 @@ import 'package:nahpu/services/site_services.dart';
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
   return SiteServices(ref: ref).createNewSite().then((newId) {
     // Refresh the always-mounted viewer in place and land on the new site.
-    ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).updateState(newId);
+    ref
+        .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+        .updateState(newId);
     ref.invalidate(siteEntryProvider);
   });
 }
@@ -126,7 +128,9 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
     try {
       final newId = await SiteServices(ref: ref).duplicateSite(widget.siteId!);
       if (newId != null) {
-        ref.read(pendingRecordJumpProvider(RecordViewer.site).notifier).updateState(newId);
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+            .updateState(newId);
       }
       ref.invalidate(siteEntryProvider);
     } catch (e) {

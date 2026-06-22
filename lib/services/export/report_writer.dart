@@ -10,11 +10,11 @@ import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/src/rust/api/export.dart';
 
-
 class ReportServices extends AppServices {
   const ReportServices({required super.ref});
 
-  Future<void> writeReport(File savePath, ReportType reportType, ReportFmt reportFmt) async {
+  Future<void> writeReport(
+      File savePath, ReportType reportType, ReportFmt reportFmt) async {
     switch (reportType) {
       case ReportType.speciesCount:
         await SpeciesListWriter(ref: ref).writeSpeciesListCompact(savePath);
@@ -35,14 +35,16 @@ class CoordinateWriter extends AppServices {
 
   Future<void> writeCoordinate(File savePath, ReportFmt reportFmt) async {
     final coordinateList = await _getAllCoordinate();
-    
-    List<Map<String, dynamic>> coordinateDataList = coordinateList.map((c) => {
-      'nameId': c.nameId,
-      'notes': c.notes,
-      'decimalLongitude': c.decimalLongitude,
-      'decimalLatitude': c.decimalLatitude,
-      'elevationInMeter': c.elevationInMeter,
-    }).toList();
+
+    List<Map<String, dynamic>> coordinateDataList = coordinateList
+        .map((c) => {
+              'nameId': c.nameId,
+              'notes': c.notes,
+              'decimalLongitude': c.decimalLongitude,
+              'decimalLatitude': c.decimalLatitude,
+              'elevationInMeter': c.elevationInMeter,
+            })
+        .toList();
 
     String formatStr = 'kml';
     switch (reportFmt) {

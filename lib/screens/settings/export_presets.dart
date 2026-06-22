@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/qr.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:path/path.dart' as path;
+import 'package:nahpu/services/types/export.dart';
 
 class ExportPresetsScreen extends ConsumerStatefulWidget {
   const ExportPresetsScreen({super.key});
@@ -22,7 +23,7 @@ class ExportPresetsScreen extends ConsumerStatefulWidget {
 class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
     with SingleTickerProviderStateMixin {
   String? _selectedPresetName;
-  Map<String, String>? _selectedPresetMap;
+  ExportPresetModel? _selectedPresetMap;
   late TabController _tabController;
 
   @override
@@ -75,6 +76,11 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                       child: PresetEditColumn(
                         selectedPresetName: _selectedPresetName,
                         selectedPresetMap: _selectedPresetMap,
+                        onPresetRenamed: (oldName, newName) {
+                          setState(() {
+                            _selectedPresetName = newName;
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -107,6 +113,11 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                       PresetEditColumn(
                         selectedPresetName: _selectedPresetName,
                         selectedPresetMap: _selectedPresetMap,
+                        onPresetRenamed: (oldName, newName) {
+                          setState(() {
+                            _selectedPresetName = newName;
+                          });
+                        },
                       ),
                     ],
                   ),
@@ -126,7 +137,7 @@ class PresetListColumn extends ConsumerStatefulWidget {
   });
 
   final String? selectedPresetName;
-  final void Function(String?, Map<String, String>?) onPresetSelected;
+  final void Function(String?, ExportPresetModel?) onPresetSelected;
   final TabController tabController;
 
   @override
@@ -173,8 +184,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                   ? const Icon(Icons.radio_button_checked)
                                   : const Icon(Icons.radio_button_unchecked),
                               title: Text(name),
-                              subtitle:
-                                  Text('${preset.length} fields selected'),
+                              subtitle: Text(
+                                  '${preset.fields.length + preset.combinedFields.length} fields selected'),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -233,7 +244,7 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
         builder: (context) => const NewPresetDialog(),
       );
       if (newName != null) {
-        widget.onPresetSelected(newName, {});
+        widget.onPresetSelected(newName, ExportPresetModel.empty());
         widget.tabController.animateTo(1);
       }
     }
@@ -269,8 +280,9 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
     }
   }
 
-  void _showQRCode(String name, Map<String, String> preset) {
-    final payload = jsonEncode({'nahpu_export_preset': name, 'data': preset});
+  void _showQRCode(String name, ExportPresetModel preset) {
+    final payload =
+        jsonEncode({'nahpu_export_preset': name, 'data': preset.toJson()});
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -300,7 +312,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
       if (decoded.containsKey('nahpu_export_preset') &&
           decoded.containsKey('data')) {
         String name = decoded['nahpu_export_preset'] as String;
-        final data = Map<String, String>.from(decoded['data'] as Map);
+        final data = ExportPresetModel.fromJson(
+            Map<String, dynamic>.from(decoded['data'] as Map));
 
         final currentPresets =
             await ref.read(exportPresetNotifierProvider.future);
@@ -357,7 +370,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
               await ref.read(exportPresetNotifierProvider.future);
           if (currentPresetsLatest.length >= 20) break;
 
-          final data = Map<String, String>.from(entry.value as Map);
+          final data = ExportPresetModel.fromJson(
+              Map<String, dynamic>.from(entry.value as Map));
 
           String finalName = entry.key;
           int i = 1;
@@ -486,10 +500,12 @@ class PresetEditColumn extends ConsumerWidget {
     super.key,
     required this.selectedPresetName,
     required this.selectedPresetMap,
+    required this.onPresetRenamed,
   });
 
   final String? selectedPresetName;
-  final Map<String, String>? selectedPresetMap;
+  final ExportPresetModel? selectedPresetMap;
+  final void Function(String, String) onPresetRenamed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -506,6 +522,7 @@ class PresetEditColumn extends ConsumerWidget {
             return ExportPresetEditForm(
               presetName: selectedPresetName!,
               initialPreset: presets[selectedPresetName!]!,
+              onPresetRenamed: onPresetRenamed,
             );
           },
           loading: () => const CommonProgressIndicator(),
@@ -566,7 +583,7 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
               }
               await ref
                   .read(exportPresetNotifierProvider.notifier)
-                  .savePreset(name, {});
+                  .savePreset(name, ExportPresetModel.empty());
               if (context.mounted) {
                 Navigator.pop(context, name);
               }

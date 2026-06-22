@@ -15,7 +15,7 @@ class ActionButtons extends ConsumerWidget {
   /// Switches the shell to the tab that displays the created record ([index]
   /// into [defaultProjectPages]); the pending jump then lands the viewer on it.
   void _showTab(WidgetRef ref, int index) {
-    ref.read(projectNavbarIndexProvider.notifier).updateState( index);
+    ref.read(projectNavbarIndexProvider.notifier).updateState(index);
   }
 
   @override

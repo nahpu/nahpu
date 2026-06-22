@@ -23,7 +23,7 @@ class MammalianMeasurements extends AppServices {
         await SpecimenServices(ref: ref).getMammalMeasurementData(specimenUuid);
 
     MeasurementAccuracy accuracyEnum = matchAccuracy(data.accuracy);
-    
+
     List<String> coreMeasurements = [
       _getTotalLength(data.totalLength, accuracyEnum),
       _getTailLength(data.tailLength, accuracyEnum),
@@ -35,7 +35,9 @@ class MammalianMeasurements extends AppServices {
         ? [
             data.forearm?.toString() ?? '',
             data.tibia?.toString() ?? '',
-            data.echolocation != null ? echolocationList[data.echolocation!] : '',
+            data.echolocation != null
+                ? echolocationList[data.echolocation!]
+                : '',
             data.frequencyMax?.toString() ?? '',
             data.frequencyMin?.toString() ?? '',
             data.frequencyAtMaxEnergy?.toString() ?? '',
@@ -59,8 +61,6 @@ class MammalianMeasurements extends AppServices {
       ...remainingMeasurements,
     ];
   }
-
-
 
   String _getTotalLength(double? length, MeasurementAccuracy accuracy) {
     if (length == null) return '';
@@ -188,15 +188,21 @@ class MammalianMeasurements extends AppServices {
 
   List<String> _getFemaleGonad() {
     return [
-      data.reproductiveStage != null ? reproductiveStageList[data.reproductiveStage!] : '',
+      data.reproductiveStage != null
+          ? reproductiveStageList[data.reproductiveStage!]
+          : '',
       data.leftPlacentalScars?.toString() ?? '',
       data.rightPlacentalScars?.toString() ?? '',
-      data.mammaeCondition != null ? mammaeConditionList[data.mammaeCondition!] : '',
+      data.mammaeCondition != null
+          ? mammaeConditionList[data.mammaeCondition!]
+          : '',
       data.mammaeInguinalCount?.toString() ?? '',
       data.mammaeAxillaryCount?.toString() ?? '',
       data.mammaeAbdominalCount?.toString() ?? '',
       data.vaginaOpening != null ? vaginaOpeningList[data.vaginaOpening!] : '',
-      data.pubicSymphysis != null ? pubicSymphysisList[data.pubicSymphysis!] : '',
+      data.pubicSymphysis != null
+          ? pubicSymphysisList[data.pubicSymphysis!]
+          : '',
       data.embryoLeftCount?.toString() ?? '',
       data.embryoRightCount?.toString() ?? '',
       data.embryoCR?.toString() ?? '',
@@ -208,7 +214,9 @@ class MammalianMeasurements extends AppServices {
       _matchTestisPos(data.testisPosition),
       data.testisLength?.toString() ?? '',
       data.testisWidth?.toString() ?? '',
-      data.epididymisAppearance != null ? epididymisAppearanceList[data.epididymisAppearance!] : '',
+      data.epididymisAppearance != null
+          ? epididymisAppearanceList[data.epididymisAppearance!]
+          : '',
     ];
   }
 

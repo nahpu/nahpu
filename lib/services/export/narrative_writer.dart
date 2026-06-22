@@ -31,10 +31,14 @@ class NarrativeRecordWriter extends AppServices {
       List<String> rowDetails = await getNarrative(narrative);
       Map<String, dynamic> row = {};
       for (int i = 0; i < narrativeExportList.length; i++) {
-        if (selectedColumns == null || selectedColumns!.contains(narrativeExportList[i])) {
-          String key = customColumnNames?.containsKey(narrativeExportList[i]) == true
-            ? customColumnNames![narrativeExportList[i]]!
-            : useFieldNamesOnly ? narrativeExportList[i].split('::').last : narrativeExportList[i];
+        if (selectedColumns == null ||
+            selectedColumns!.contains(narrativeExportList[i])) {
+          String key =
+              customColumnNames?.containsKey(narrativeExportList[i]) == true
+                  ? customColumnNames![narrativeExportList[i]]!
+                  : useFieldNamesOnly
+                      ? narrativeExportList[i].split('::').last
+                      : narrativeExportList[i];
           row[key] = rowDetails[i];
         }
       }
@@ -44,16 +48,18 @@ class NarrativeRecordWriter extends AppServices {
     String jsonContent = jsonEncode(jsonList);
     List<String> filteredHeader = selectedColumns == null
         ? narrativeExportList
-        : narrativeExportList.where((h) => selectedColumns!.contains(h)).toList();
+        : narrativeExportList
+            .where((h) => selectedColumns!.contains(h))
+            .toList();
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
       outputPath: filePath.path,
-      columnNames: customColumnNames != null 
-        ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
-        : useFieldNamesOnly 
-          ? filteredHeader.map((e) => e.split('::').last).toList() 
-          : filteredHeader,
+      columnNames: customColumnNames != null
+          ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
+          : useFieldNamesOnly
+              ? filteredHeader.map((e) => e.split('::').last).toList()
+              : filteredHeader,
       exportFormat: format.name,
       concatenateMultiEntries: true,
     );
