@@ -61,6 +61,7 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                   ),
                 ],
               )
+
             ],
           ),
         ),
@@ -133,9 +134,7 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
 
   void _deselectAll() {
     setState(() {
-      // Keep only ID fields
-      _selected =
-          widget.availableColumns.where((col) => _isIdField(col)).toList();
+      _selected = widget.availableColumns.where(_isIdField).toList();
       widget.onSelectionChanged(_selected);
     });
   }

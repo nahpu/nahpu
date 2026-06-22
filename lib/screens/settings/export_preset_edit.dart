@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/screens/settings/export_presets.dart';
 
 const Map<SpecimenRecordType, String> taxonGroupDropdownMap = {
   SpecimenRecordType.allTaxa: 'All taxa',
@@ -52,82 +53,104 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     final groups = _getAllGroups();
     final groupKeys = groups.keys.toList();
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Edit ${widget.presetName}',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ),
-        const CommonLineDivider(),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Flexible(
-                child: Text(
-                  'Taxon Group:',
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              DropdownButton<SpecimenRecordType>(
-                value: _selectedTaxon,
-                items: taxonGroupDropdownMap.entries.map((entry) {
-                  return DropdownMenuItem(
-                    value: entry.key,
-                    child: Text(entry.value),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedTaxon = val;
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Flexible(
-                child: Text(
-                  'Apply naming convention:',
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              DropdownButton<String>(
-                value: 'table::fieldName',
-                items: const [
-                  DropdownMenuItem(
-                    value: 'table::fieldName',
-                    child: Text('table::fieldName'),
+    return FormCard(
+      title: 'Edit ${widget.presetName}',
+      infoContent: const ExportPresetInfoContent(),
+      isExpanded: true,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Flexible(
+                  child: Text(
+                    'Taxon Group:',
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  DropdownMenuItem(
-                    value: 'fieldName',
-                    child: Text('fieldName'),
-                  ),
-                ],
-                onChanged: (val) {
-                  if (val != null) {
-                    _applyNamingConvention(val);
-                  }
-                },
-              ),
-            ],
+                ),
+                DropdownButton<SpecimenRecordType>(
+                  value: _selectedTaxon,
+                  items: taxonGroupDropdownMap.entries.map((entry) {
+                    return DropdownMenuItem(
+                      value: entry.key,
+                      child: Text(entry.value),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _selectedTaxon = val;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Flexible(
+                  child: Text(
+                    'Apply naming convention:',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                DropdownButton<String>(
+                  value: 'table::fieldName',
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'table::fieldName',
+                      child: Text('table::fieldName'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'fieldName',
+                      child: Text('fieldName'),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      _applyNamingConvention(val);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Select Fields',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: _selectAll,
+                      child: const Text('Select All'),
+                    ),
+                    TextButton(
+                      onPressed: _deselectAll,
+                      child: const Text('Clear All'),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
               ...groupKeys.map((table) {
                 List<String> columns = groups[table]!;
                 return Padding(
@@ -181,15 +204,16 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
               }),
             ],
           ),
-        ),
-        const SizedBox(height: 16),
-        PrimaryButton(
-          label: 'Save',
-          icon: Icons.save,
-          onPressed: _save,
-        ),
-        const SizedBox(height: 16),
-      ],
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(
+            label: 'Save',
+            icon: Icons.save,
+            onPressed: _save,
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 
@@ -232,6 +256,23 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
           _currentPreset[key] = key.split('::').last;
         }
       }
+    });
+  }
+
+  void _selectAll() {
+    setState(() {
+      final groups = _getAllGroups();
+      for (final table in groups.keys) {
+        for (final col in groups[table]!) {
+          _currentPreset[col] = col.split('::').last;
+        }
+      }
+    });
+  }
+
+  void _deselectAll() {
+    setState(() {
+      _currentPreset.clear();
     });
   }
 

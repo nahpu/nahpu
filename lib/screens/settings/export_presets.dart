@@ -8,6 +8,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/export_preset_edit.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:nahpu/screens/shared/qr.dart';
+import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:path/path.dart' as path;
 
@@ -71,12 +72,9 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                           .colorScheme
                           .surfaceContainerHighest
                           .withValues(alpha: 0.4),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: PresetEditColumn(
-                          selectedPresetName: _selectedPresetName,
-                          selectedPresetMap: _selectedPresetMap,
-                        ),
+                      child: PresetEditColumn(
+                        selectedPresetName: _selectedPresetName,
+                        selectedPresetMap: _selectedPresetMap,
                       ),
                     ),
                   ),
@@ -138,30 +136,24 @@ class PresetListColumn extends ConsumerStatefulWidget {
 class _PresetListColumnState extends ConsumerState<PresetListColumn> {
   @override
   Widget build(BuildContext context) {
-    return Material(
-      clipBehavior: Clip.hardEdge,
-      borderRadius: BorderRadius.circular(16.0),
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
+    return FormCard(
+      title: 'Select Presets',
+      infoContent: const ExportPresetInfoContent(),
+      isWithSidePadding: false,
+      isExpanded: true,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Select Presets',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-          ),
-          const CommonLineDivider(),
           Expanded(
             child: ref.watch(exportPresetNotifierProvider).when(
                   data: (presets) {
                     if (presets.isEmpty) {
-                      return const Center(child: Text('No presets found.'));
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(child: Text('No presets found.')),
+                      );
                     }
                     return ListView.builder(
+                      padding: EdgeInsets.zero,
                       itemCount: presets.length,
                       itemBuilder: (context, index) {
                         final name = presets.keys.elementAt(index);
@@ -602,5 +594,23 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
     setState(() {
       _errorText = null;
     });
+  }
+}
+
+class ExportPresetInfoContent extends StatelessWidget {
+  const ExportPresetInfoContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const InfoContainer(
+      content: [
+        InfoContent(
+          header: 'Export Presets',
+          content:
+              'Create and manage custom configurations for exporting records. '
+              'You can select specific fields to include in your exports.',
+        ),
+      ],
+    );
   }
 }
