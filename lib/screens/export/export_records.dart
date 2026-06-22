@@ -235,58 +235,61 @@ class ExportFormState extends ConsumerState<ExportForm> {
           },
         ),
         const SizedBox(height: 16),
-        FormatOptionsCard(
-          recordType: _recordType,
-          specimenExportFmt: _specimenExportFmt,
-          concatenateMultiEntry: _concatenateMultiEntry,
-          useFieldNamesOnly: _useFieldNamesOnly,
-          onSpecimenExportFmtChanged: (SpecimenExportFmt? value) {
-            if (value != null) {
-              setState(() {
-                _specimenExportFmt = value;
-                _hasSaved = false;
-                _updateAvailableColumns();
-              });
-            }
-          },
-          onConcatenateMultiEntryChanged: (bool value) {
-            setState(() {
-              _concatenateMultiEntry = value;
-              _hasSaved = false;
-            });
-          },
-          onSelectFields: !isLargeScreen
-              ? () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) {
-                      return FractionallySizedBox(
-                        heightFactor: 0.8,
-                        child: ColumnSelectionList(
-                          availableColumns: _availableColumns,
-                          selectedColumns:
-                              _selectedColumns ?? _availableColumns,
-                          onSelectionChanged: (selected) {
-                            setState(() {
-                              _selectedColumns = selected;
-                              _hasSaved = false;
-                            });
-                          },
-                        ),
-                      );
-                    },
-                  );
-                }
-              : null,
-          onUseFieldNamesOnlyChanged: (bool value) {
-            setState(() {
-              _useFieldNamesOnly = value;
-              _hasSaved = false;
-            });
-          },
-        ),
       ],
+      FormatOptionsCard(
+        recordType: _selectedPresetName != null
+            ? ExportRecordType.specimenRecord
+            : _recordType,
+        specimenExportFmt: _specimenExportFmt,
+        concatenateMultiEntry: _concatenateMultiEntry,
+        useFieldNamesOnly: _useFieldNamesOnly,
+        isPreset: _selectedPresetName != null,
+        onSpecimenExportFmtChanged: (SpecimenExportFmt? value) {
+          if (value != null) {
+            setState(() {
+              _specimenExportFmt = value;
+              _hasSaved = false;
+              _updateAvailableColumns();
+            });
+          }
+        },
+        onConcatenateMultiEntryChanged: (bool value) {
+          setState(() {
+            _concatenateMultiEntry = value;
+            _hasSaved = false;
+          });
+        },
+        onSelectFields: !isLargeScreen && _selectedPresetName == null
+            ? () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) {
+                    return FractionallySizedBox(
+                      heightFactor: 0.8,
+                      child: ColumnSelectionList(
+                        availableColumns: _availableColumns,
+                        selectedColumns:
+                            _selectedColumns ?? _availableColumns,
+                        onSelectionChanged: (selected) {
+                          setState(() {
+                            _selectedColumns = selected;
+                            _hasSaved = false;
+                          });
+                        },
+                      ),
+                    );
+                  },
+                );
+              }
+            : null,
+        onUseFieldNamesOnlyChanged: (bool value) {
+          setState(() {
+            _useFieldNamesOnly = value;
+            _hasSaved = false;
+          });
+        },
+      ),
       if (_selectedPresetName != null && !isLargeScreen)
         Padding(
           padding: const EdgeInsets.only(bottom: 16.0),

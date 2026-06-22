@@ -13,6 +13,7 @@ class FormatOptionsCard extends StatelessWidget {
     this.onSelectFields,
     required this.onConcatenateMultiEntryChanged,
     required this.onUseFieldNamesOnlyChanged,
+    this.isPreset = false,
   });
 
   final ExportRecordType? recordType;
@@ -23,6 +24,7 @@ class FormatOptionsCard extends StatelessWidget {
   final VoidCallback? onSelectFields;
   final void Function(bool) onConcatenateMultiEntryChanged;
   final void Function(bool) onUseFieldNamesOnlyChanged;
+  final bool isPreset;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,7 @@ class FormatOptionsCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Visibility(
-              visible: recordType == ExportRecordType.specimenRecord,
+              visible: recordType == ExportRecordType.specimenRecord && !isPreset,
               child: DropdownButtonFormField<SpecimenExportFmt>(
                 initialValue: specimenExportFmt,
                 decoration: const InputDecoration(
@@ -71,18 +73,20 @@ class FormatOptionsCard extends StatelessWidget {
                 ),
               ),
             Visibility(
-              visible: recordType == ExportRecordType.specimenRecord &&
-                  specimenExportFmt == SpecimenExportFmt.allFields,
+              visible: recordType == ExportRecordType.specimenRecord,
               child: SwitchField(
                 value: concatenateMultiEntry,
                 label: 'Concatenate multi-entry records',
                 onPressed: onConcatenateMultiEntryChanged,
               ),
             ),
-            SwitchField(
-              value: useFieldNamesOnly,
-              label: 'Field names only for headers',
-              onPressed: onUseFieldNamesOnlyChanged,
+            Visibility(
+              visible: !isPreset,
+              child: SwitchField(
+                value: useFieldNamesOnly,
+                label: 'Field names only for headers',
+                onPressed: onUseFieldNamesOnlyChanged,
+              ),
             ),
           ],
         ),

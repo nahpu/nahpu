@@ -8,20 +8,48 @@ import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 
 class DynamicRecordExporter {
-  DynamicRecordExporter({required this.ref});
+  DynamicRecordExporter({
+    required this.ref,
+    required this.concatenateMultiEntry,
+  });
   final WidgetRef ref;
+  final bool concatenateMultiEntry;
 
-  Future<Map<String, String>> getRecord(SpecimenData data) async {
-    final Map<String, String> record = {};
+  Future<List<Map<String, String>>> getRecord(SpecimenData data) async {
+    final Map<String, String> baseRecord = {};
 
-    await _getSpecimenData(data, record);
-    await _getProjectData(data.projectUuid, record);
-    await _getCollEventData(data.collEventID, record);
-    await _getCoordinateData(data.coordinateID, record);
-    await _getMeasurementData(data.uuid, record);
-    await _getPartData(data.uuid, record);
+    await _getSpecimenData(data, baseRecord);
+    await _getProjectData(data.projectUuid, baseRecord);
+    await _getCollEventData(data.collEventID, baseRecord);
+    await _getCoordinateData(data.coordinateID, baseRecord);
+    await _getMeasurementData(data.uuid, baseRecord);
+    
+    final List<Map<String, dynamic>> parts = await _getPartData(data.uuid);
 
-    return record;
+    if (parts.isEmpty) {
+      return [baseRecord];
+    }
+
+    if (concatenateMultiEntry) {
+      final Set<String> allKeys = {};
+      for (var part in parts) {
+        allKeys.addAll(part.keys);
+      }
+      for (var key in allKeys) {
+        String combinedValue =
+            parts.map((part) => part[key]?.toString() ?? '').join(' | ');
+        baseRecord['specimenPart::$key'] = combinedValue;
+      }
+      return [baseRecord];
+    } else {
+      List<Map<String, String>> records = [];
+      for (var part in parts) {
+        var row = Map<String, String>.from(baseRecord);
+        _addData(row, 'specimenPart', part);
+        records.add(row);
+      }
+      return records;
+    }
   }
 
   Future<void> _getSpecimenData(
@@ -127,17 +155,14 @@ class DynamicRecordExporter {
     }
   }
 
-  Future<void> _getPartData(
+  Future<List<Map<String, dynamic>>> _getPartData(
     String specimenUuid,
-    Map<String, String> record,
   ) async {
     final db = ref.read(databaseProvider);
     final parts = await (db.select(db.specimenPart)
           ..where((t) => t.specimenUuid.equals(specimenUuid)))
         .get();
-    if (parts.isNotEmpty) {
-      _addData(record, 'specimenPart', parts.first.toJson());
-    }
+    return parts.map((e) => e.toJson()).toList();
   }
 
   void _addData(

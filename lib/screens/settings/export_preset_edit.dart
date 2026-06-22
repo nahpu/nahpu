@@ -36,6 +36,8 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   late ExportPresetModel _currentPreset;
   late TextEditingController _nameController;
   SpecimenRecordType _selectedTaxon = SpecimenRecordType.allTaxa;
+  String _namingConvention = 'table::fieldName';
+  int _updateCount = 0;
 
   @override
   void initState() {
@@ -132,7 +134,7 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                   ),
                 ),
                 DropdownButton<String>(
-                  value: 'table::fieldName',
+                  value: _namingConvention,
                   items: const [
                     DropdownMenuItem(
                       value: 'table::fieldName',
@@ -221,7 +223,11 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                               onChanged: (bool? val) {
                                 setState(() {
                                   if (val == true) {
-                                    _currentPreset.fields[col] = col;
+                                    if (_namingConvention == 'fieldName') {
+                                      _currentPreset.fields[col] = col.split('::').last;
+                                    } else {
+                                      _currentPreset.fields[col] = col;
+                                    }
                                   } else {
                                     _currentPreset.fields.remove(col);
                                   }
@@ -231,6 +237,7 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                             title: Text(col.split('::').last),
                             subtitle: isSelected
                                 ? TextFormField(
+                                    key: ValueKey('$_updateCount-$col'),
                                     initialValue: _currentPreset.fields[col],
                                     decoration: const InputDecoration(
                                       labelText: 'Custom Name',
@@ -347,6 +354,8 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
 
   void _applyNamingConvention(String type) {
     setState(() {
+      _namingConvention = type;
+      _updateCount++;
       for (final key in _currentPreset.fields.keys) {
         if (type == 'table::fieldName') {
           _currentPreset.fields[key] = key;
@@ -359,10 +368,15 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
 
   void _selectAll() {
     setState(() {
+      _updateCount++;
       final groups = _getAllGroups(ref);
       for (final table in groups.keys) {
         for (final col in groups[table]!) {
-          _currentPreset.fields[col] = col.split('::').last;
+          if (_namingConvention == 'fieldName') {
+            _currentPreset.fields[col] = col.split('::').last;
+          } else {
+            _currentPreset.fields[col] = col;
+          }
         }
       }
     });
