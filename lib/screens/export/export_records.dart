@@ -1,21 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:nahpu/screens/export/components/columns.dart';
 import 'package:nahpu/screens/export/components/record_options.dart';
 import 'package:nahpu/screens/export/components/format_options.dart';
 import 'package:nahpu/screens/export/components/file_settings.dart';
-
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/file_operation.dart';
-
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/export_columns.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
-
 import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/services/export/specimen_part_records.dart';
 import 'package:nahpu/services/export/coll_event_writer.dart';
@@ -107,7 +103,6 @@ class ExportFormState extends ConsumerState<ExportForm> {
                 vertical: 16,
               ),
               child: Material(
-                clipBehavior: Clip.hardEdge,
                 borderRadius: BorderRadius.circular(16.0),
                 color: Theme.of(context)
                     .colorScheme
@@ -150,7 +145,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
             return const SizedBox.shrink();
           }
           return Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
+            padding: const EdgeInsets.all(8.0),
             child: DropdownButtonFormField<String?>(
               initialValue: _selectedPresetName,
               decoration: const InputDecoration(
@@ -194,98 +189,99 @@ class ExportFormState extends ConsumerState<ExportForm> {
       ),
       if (_selectedPresetName == null) ...[
         RecordOptionsCard(
-        recordType: _recordType,
-        taxonRecordType: _taxonRecordType,
-        mammalRecordType: _mammalRecordType,
-        inaccurateInBrackets: _inaccurateInBrackets,
-        isMammalSpecimenRecord: _isMammalSpecimenRecord(),
-        onRecordTypeChanged: (ExportRecordType? value) {
-          if (value != null) {
+          recordType: _recordType,
+          taxonRecordType: _taxonRecordType,
+          mammalRecordType: _mammalRecordType,
+          inaccurateInBrackets: _inaccurateInBrackets,
+          isMammalSpecimenRecord: _isMammalSpecimenRecord(),
+          onRecordTypeChanged: (ExportRecordType? value) {
+            if (value != null) {
+              setState(() {
+                _recordType = value;
+                _hasSaved = false;
+                _updateAvailableColumns();
+              });
+            }
+          },
+          onTaxonRecordTypeChanged: (TaxonRecordType? value) {
+            if (value != null) {
+              setState(() {
+                _taxonRecordType = value;
+                _matchTaxonToRecordType();
+                _hasSaved = false;
+                _updateAvailableColumns();
+              });
+            }
+          },
+          onMammalRecordTypeChanged: (MammalRecordType? value) {
+            if (value != null) {
+              setState(() {
+                _mammalRecordType = value;
+                _matchTaxonToRecordType();
+                _hasSaved = false;
+                _updateAvailableColumns();
+              });
+            }
+          },
+          onInaccurateInBracketsChanged: (bool value) {
             setState(() {
-              _recordType = value;
+              _inaccurateInBrackets = value;
               _hasSaved = false;
-              _updateAvailableColumns();
             });
-          }
-        },
-        onTaxonRecordTypeChanged: (TaxonRecordType? value) {
-          if (value != null) {
+          },
+        ),
+        const SizedBox(height: 16),
+        FormatOptionsCard(
+          recordType: _recordType,
+          specimenExportFmt: _specimenExportFmt,
+          concatenateMultiEntry: _concatenateMultiEntry,
+          useFieldNamesOnly: _useFieldNamesOnly,
+          onSpecimenExportFmtChanged: (SpecimenExportFmt? value) {
+            if (value != null) {
+              setState(() {
+                _specimenExportFmt = value;
+                _hasSaved = false;
+                _updateAvailableColumns();
+              });
+            }
+          },
+          onConcatenateMultiEntryChanged: (bool value) {
             setState(() {
-              _taxonRecordType = value;
-              _matchTaxonToRecordType();
+              _concatenateMultiEntry = value;
               _hasSaved = false;
-              _updateAvailableColumns();
             });
-          }
-        },
-        onMammalRecordTypeChanged: (MammalRecordType? value) {
-          if (value != null) {
+          },
+          onSelectFields: !isLargeScreen
+              ? () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) {
+                      return FractionallySizedBox(
+                        heightFactor: 0.8,
+                        child: ColumnSelectionList(
+                          availableColumns: _availableColumns,
+                          selectedColumns:
+                              _selectedColumns ?? _availableColumns,
+                          onSelectionChanged: (selected) {
+                            setState(() {
+                              _selectedColumns = selected;
+                              _hasSaved = false;
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  );
+                }
+              : null,
+          onUseFieldNamesOnlyChanged: (bool value) {
             setState(() {
-              _mammalRecordType = value;
-              _matchTaxonToRecordType();
+              _useFieldNamesOnly = value;
               _hasSaved = false;
-              _updateAvailableColumns();
             });
-          }
-        },
-        onInaccurateInBracketsChanged: (bool value) {
-          setState(() {
-            _inaccurateInBrackets = value;
-            _hasSaved = false;
-          });
-        },
-      ),
-      const SizedBox(height: 16),
-      FormatOptionsCard(
-        recordType: _recordType,
-        specimenExportFmt: _specimenExportFmt,
-        concatenateMultiEntry: _concatenateMultiEntry,
-        useFieldNamesOnly: _useFieldNamesOnly,
-        onSpecimenExportFmtChanged: (SpecimenExportFmt? value) {
-          if (value != null) {
-            setState(() {
-              _specimenExportFmt = value;
-              _hasSaved = false;
-              _updateAvailableColumns();
-            });
-          }
-        },
-        onConcatenateMultiEntryChanged: (bool value) {
-          setState(() {
-            _concatenateMultiEntry = value;
-            _hasSaved = false;
-          });
-        },
-        onSelectFields: !isLargeScreen
-            ? () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) {
-                    return FractionallySizedBox(
-                      heightFactor: 0.8,
-                      child: ColumnSelectionList(
-                        availableColumns: _availableColumns,
-                        selectedColumns: _selectedColumns ?? _availableColumns,
-                        onSelectionChanged: (selected) {
-                          setState(() {
-                            _selectedColumns = selected;
-                            _hasSaved = false;
-                          });
-                        },
-                      ),
-                    );
-                  },
-                );
-              }
-            : null,
-        onUseFieldNamesOnlyChanged: (bool value) {
-          setState(() {
-            _useFieldNamesOnly = value;
-            _hasSaved = false;
-          });
-        },
-      ),
+          },
+        ),
       ],
       const SizedBox(height: 16),
       FileSettingsCard(
