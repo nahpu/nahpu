@@ -36,7 +36,8 @@ class ExportFormState extends ConsumerState<ExportForm> {
   bool _concatenateMultiEntry = false;
   bool _useFieldNamesOnly = false;
   bool get _isCustomFields =>
-      _specimenExportFmt == SpecimenExportFmt.selectFields;
+      _specimenExportFmt == SpecimenExportFmt.selectFields &&
+      _selectedPresetName == null;
   String _fileStem = 'export';
   Directory? _selectedDir;
   bool _hasSaved = false;
@@ -47,7 +48,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
   List<String> _availableColumns = [];
   List<String>? _selectedColumns;
   String? _selectedPresetName;
-  Map<String, String>? _selectedPresetMap;
+  ExportPresetModel? _selectedPresetMap;
 
   @override
   void initState() {
@@ -94,7 +95,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
             children: _buildFormChildren(isLargeScreen: true),
           ),
         ),
-        if (_isCustomFields)
+        if (_isCustomFields || _selectedPresetName != null)
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -109,16 +110,18 @@ class ExportFormState extends ConsumerState<ExportForm> {
                     .withValues(alpha: 0.4),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: ColumnSelectionList(
-                    availableColumns: _availableColumns,
-                    selectedColumns: _selectedColumns ?? _availableColumns,
-                    onSelectionChanged: (selected) {
-                      setState(() {
-                        _selectedColumns = selected;
-                        _hasSaved = false;
-                      });
-                    },
-                  ),
+                  child: _selectedPresetMap != null
+                      ? PresetFieldViewer(preset: _selectedPresetMap!)
+                      : ColumnSelectionList(
+                          availableColumns: _availableColumns,
+                          selectedColumns: _selectedColumns ?? _availableColumns,
+                          onSelectionChanged: (selected) {
+                            setState(() {
+                              _selectedColumns = selected;
+                              _hasSaved = false;
+                            });
+                          },
+                        ),
                 ),
               ),
             ),
@@ -169,7 +172,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
                   if (val != null) {
                     _selectedPresetMap = data[val];
                     if (_selectedPresetMap != null) {
-                      _selectedColumns = _selectedPresetMap!.keys.toList();
+                      _selectedColumns = _selectedPresetMap!.fields.keys.toList();
                       _useFieldNamesOnly = false;
                       _specimenExportFmt = SpecimenExportFmt.selectFields;
                     }
@@ -282,6 +285,28 @@ class ExportFormState extends ConsumerState<ExportForm> {
           },
         ),
       ],
+      if (_selectedPresetName != null && !isLargeScreen)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: SecondaryButton(
+            text: 'View Preset Fields',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) {
+                  return FractionallySizedBox(
+                    heightFactor: 0.8,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: PresetFieldViewer(preset: _selectedPresetMap!),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
       const SizedBox(height: 16),
       FileSettingsCard(
         exportCtr: exportCtr,
@@ -481,7 +506,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
         concatenateMultiEntry: _concatenateMultiEntry,
         useFieldNamesOnly: _useFieldNamesOnly,
         selectedColumns: _selectedColumns,
-        customColumnNames: _selectedPresetMap,
+        exportPreset: _selectedPresetMap,
       ).writeRecordDelimited(file, format);
       return;
     }
@@ -517,7 +542,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
           concatenateMultiEntry: _concatenateMultiEntry,
           useFieldNamesOnly: _useFieldNamesOnly,
           selectedColumns: _isCustomFields ? _selectedColumns : null,
-          customColumnNames: _selectedPresetMap,
+          exportPreset: _selectedPresetMap,
         ).writeRecordDelimited(file, format);
         break;
       case ExportRecordType.specimenParts:
@@ -531,5 +556,68 @@ class ExportFormState extends ConsumerState<ExportForm> {
         );
         break;
     }
+  }
+}
+
+class PresetFieldViewer extends StatelessWidget {
+  const PresetFieldViewer({super.key, required this.preset});
+  final ExportPresetModel preset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            'Preset Fields (Read-Only)',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              if (preset.fields.isNotEmpty) ...[
+                Text('Standard Fields',
+                    style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: preset.fields.values.map((f) {
+                    return Chip(
+                      label: Text(f),
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest,
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (preset.combinedFields.isNotEmpty) ...[
+                Text('Combined Fields',
+                    style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: preset.combinedFields.map((f) {
+                    return Chip(
+                      label: Text(f.fieldId),
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .secondaryContainer,
+                    );
+                  }).toList(),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

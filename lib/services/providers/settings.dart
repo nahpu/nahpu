@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/types/sites.dart';
+import 'package:nahpu/services/types/export.dart';
 
 const String themeModePrefKey = 'themeMode';
 const String siteTypePrefKey = 'siteTypes';
@@ -272,10 +273,10 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
 }
 
 final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
-    ExportPresetNotifier, Map<String, Map<String, String>>>(ExportPresetNotifier.new);
+    ExportPresetNotifier, Map<String, ExportPresetModel>>(ExportPresetNotifier.new);
 
-class ExportPresetNotifier extends AsyncNotifier<Map<String, Map<String, String>>> {
-  Future<Map<String, Map<String, String>>> _fetchSettings() async {
+class ExportPresetNotifier extends AsyncNotifier<Map<String, ExportPresetModel>> {
+  Future<Map<String, ExportPresetModel>> _fetchSettings() async {
     final prefs = ref.watch(settingProvider);
     final presetString = prefs.getString(exportPresetPrefKey);
     if (presetString == null) {
@@ -283,18 +284,33 @@ class ExportPresetNotifier extends AsyncNotifier<Map<String, Map<String, String>
     }
     try {
       final decoded = jsonDecode(presetString) as Map<String, dynamic>;
-      return decoded.map((key, value) => MapEntry(key, Map<String, String>.from(value as Map)));
+      final Map<String, ExportPresetModel> mapped = {};
+      for (var entry in decoded.entries) {
+        if (entry.value is Map<String, dynamic> &&
+            (entry.value as Map<String, dynamic>).containsKey('fields')) {
+          // Version 2 format
+          mapped[entry.key] =
+              ExportPresetModel.fromJson(entry.value as Map<String, dynamic>);
+        } else {
+          // Version 1 format (legacy)
+          mapped[entry.key] = ExportPresetModel(
+            fields: Map<String, String>.from(entry.value as Map),
+            combinedFields: [],
+          );
+        }
+      }
+      return mapped;
     } catch (e) {
       return {};
     }
   }
 
   @override
-  Future<Map<String, Map<String, String>>> build() async {
+  Future<Map<String, ExportPresetModel>> build() async {
     return await _fetchSettings();
   }
 
-  Future<void> savePreset(String name, Map<String, String> preset) async {
+  Future<void> savePreset(String name, ExportPresetModel preset) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final current = await _fetchSettings();

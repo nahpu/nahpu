@@ -321,3 +321,57 @@ const allMediaExportList = [
   'media::additionalExifData',
   'media::fileName',
 ];
+
+class CombinedField {
+  CombinedField({
+    required this.fieldId,
+    required this.fields,
+  });
+
+  final String fieldId;
+  final List<String> fields;
+
+  factory CombinedField.fromJson(Map<String, dynamic> json) {
+    return CombinedField(
+      fieldId: json['fieldId'] as String,
+      fields: List<String>.from(json['fields'] as List),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'fieldId': fieldId,
+      'fields': fields,
+    };
+  }
+}
+
+class ExportPresetModel {
+  ExportPresetModel({
+    required this.fields,
+    required this.combinedFields,
+  });
+
+  final Map<String, String> fields;
+  final List<CombinedField> combinedFields;
+
+  factory ExportPresetModel.empty() {
+    return ExportPresetModel(fields: {}, combinedFields: []);
+  }
+
+  factory ExportPresetModel.fromJson(Map<String, dynamic> json) {
+    return ExportPresetModel(
+      fields: Map<String, String>.from(json['fields'] as Map),
+      combinedFields: (json['combined'] as List? ?? [])
+          .map((e) => CombinedField.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'fields': fields,
+      'combined': combinedFields.map((e) => e.toJson()).toList(),
+    };
+  }
+}

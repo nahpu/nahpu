@@ -5,6 +5,8 @@ import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/screens/settings/export_presets.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/screens/settings/components/combined_field_dialog.dart';
 
 const Map<SpecimenRecordType, String> taxonGroupDropdownMap = {
   SpecimenRecordType.allTaxa: 'All taxa',
@@ -22,20 +24,23 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
   });
 
   final String presetName;
-  final Map<String, String> initialPreset;
+  final ExportPresetModel initialPreset;
 
   @override
   ExportPresetEditFormState createState() => ExportPresetEditFormState();
 }
 
 class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
-  late Map<String, String> _currentPreset;
+  late ExportPresetModel _currentPreset;
   SpecimenRecordType _selectedTaxon = SpecimenRecordType.allTaxa;
 
   @override
   void initState() {
     super.initState();
-    _currentPreset = Map.from(widget.initialPreset);
+    _currentPreset = ExportPresetModel(
+      fields: Map.from(widget.initialPreset.fields),
+      combinedFields: List.from(widget.initialPreset.combinedFields),
+    );
   }
 
   @override
@@ -43,14 +48,17 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.presetName != widget.presetName) {
       setState(() {
-        _currentPreset = Map.from(widget.initialPreset);
+        _currentPreset = ExportPresetModel(
+          fields: Map.from(widget.initialPreset.fields),
+          combinedFields: List.from(widget.initialPreset.combinedFields),
+        );
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final groups = _getAllGroups();
+    final groups = _getAllGroups(ref);
     final groupKeys = groups.keys.toList();
 
     return FormCard(
@@ -169,16 +177,16 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                       ),
                       initiallyExpanded: false,
                       children: columns.map((col) {
-                        final isSelected = _currentPreset.containsKey(col);
+                        final isSelected = _currentPreset.fields.containsKey(col);
                         return ListTile(
                           leading: Checkbox(
                             value: isSelected,
                             onChanged: (bool? val) {
                               setState(() {
                                 if (val == true) {
-                                  _currentPreset[col] = col;
+                                  _currentPreset.fields[col] = col;
                                 } else {
-                                  _currentPreset.remove(col);
+                                  _currentPreset.fields.remove(col);
                                 }
                               });
                             },
@@ -186,13 +194,13 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                           title: Text(col.split('::').last),
                           subtitle: isSelected
                               ? TextFormField(
-                                  initialValue: _currentPreset[col],
+                                  initialValue: _currentPreset.fields[col],
                                   decoration: const InputDecoration(
                                     labelText: 'Custom Name',
                                     isDense: true,
                                   ),
                                   onChanged: (val) {
-                                    _currentPreset[col] = val;
+                                    _currentPreset.fields[col] = val;
                                   },
                                 )
                               : null,
@@ -202,6 +210,71 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                   ),
                 );
               }),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Material(
+                  borderRadius: BorderRadius.circular(16.0),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.8),
+                  child: ExpansionTile(
+                    shape: const Border(),
+                    title: const Text(
+                      'COMBINED FIELDS',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    initiallyExpanded: true,
+                    children: [
+                      ..._currentPreset.combinedFields.map((field) {
+                        return ListTile(
+                          title: Text(field.fieldId),
+                          subtitle: Text(field.fields.join(' ')),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () async {
+                                  final newField = await showCombinedFieldDialog(context, field);
+                                  if (newField != null) {
+                                    setState(() {
+                                      final index = _currentPreset.combinedFields.indexOf(field);
+                                      _currentPreset.combinedFields[index] = newField;
+                                    });
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  setState(() {
+                                    _currentPreset.combinedFields.remove(field);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: SecondaryButton(
+                          text: 'Add Combined Field',
+                          onPressed: () async {
+                            final field = await showCombinedFieldDialog(context);
+                            if (field != null) {
+                              setState(() {
+                                _currentPreset.combinedFields.add(field);
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           ),
@@ -217,43 +290,23 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     );
   }
 
-  Map<String, List<String>> _getAllGroups() {
-    Map<String, List<String>> groups = {
-      'Collecting Record': collectingRecordExportList,
-      'Site': siteExportList,
-      'Collection Event': collEventExportList,
-      'Specimen Part': [...partExportListDelimited, partExportSimple],
-      'Media': allMediaExportList,
-      'Narrative': narrativeExportList,
-    };
-
-    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
-        _selectedTaxon == SpecimenRecordType.generalMammals) {
-      groups['Mammal Measurements'] = mammalMeasurementExportList;
+  Map<String, List<String>> _getAllGroups(WidgetRef ref) {
+    final db = ref.read(databaseProvider);
+    Map<String, List<String>> groups = {};
+    for (var table in db.allTables) {
+      final tableName = table.actualTableName;
+      groups[tableName] = table.$columns.map((c) => '$tableName::${c.name}').toList();
     }
-    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
-        _selectedTaxon == SpecimenRecordType.bats) {
-      groups['Bat Measurements'] = batMeasurementExportList;
-    }
-    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
-        _selectedTaxon == SpecimenRecordType.birds) {
-      groups['Avian Measurements'] = avianMeasurementExportList;
-    }
-    if (_selectedTaxon == SpecimenRecordType.allTaxa ||
-        _selectedTaxon == SpecimenRecordType.herpetofauna) {
-      groups['Herpetofauna Measurements'] = herpMeasurementExportList;
-    }
-
     return groups;
   }
 
   void _applyNamingConvention(String type) {
     setState(() {
-      for (final key in _currentPreset.keys) {
+      for (final key in _currentPreset.fields.keys) {
         if (type == 'table::fieldName') {
-          _currentPreset[key] = key;
+          _currentPreset.fields[key] = key;
         } else if (type == 'fieldName') {
-          _currentPreset[key] = key.split('::').last;
+          _currentPreset.fields[key] = key.split('::').last;
         }
       }
     });
@@ -261,10 +314,10 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
 
   void _selectAll() {
     setState(() {
-      final groups = _getAllGroups();
+      final groups = _getAllGroups(ref);
       for (final table in groups.keys) {
         for (final col in groups[table]!) {
-          _currentPreset[col] = col.split('::').last;
+          _currentPreset.fields[col] = col.split('::').last;
         }
       }
     });
@@ -272,7 +325,7 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
 
   void _deselectAll() {
     setState(() {
-      _currentPreset.clear();
+      _currentPreset.fields.clear();
     });
   }
 
