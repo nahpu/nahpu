@@ -39,6 +39,10 @@ class MediaServices extends AppServices {
     return await MediaDbQuery(dbAccess).isImageUsed(fileName);
   }
 
+  Future<bool> isMediaUsed(File file) async {
+    return isImageUsed(file);
+  }
+
   Future<List<MediaData>> getAllMedia() {
     return MediaDbQuery(dbAccess).getAllMedia();
   }
@@ -159,8 +163,8 @@ class MediaFinder extends AppServices {
   }
 
   Future<List<File>> getAllPersonnelMediaByProject() async {
-    List<PersonnelData> personnelList =
-        await PersonnelServices(ref: ref).getPersonnelByProjectUuid(currentProjectUuid);
+    List<PersonnelData> personnelList = await PersonnelServices(ref: ref)
+        .getPersonnelByProjectUuid(currentProjectUuid);
     final List<File> mediaPaths = [];
     for (final personnel in personnelList) {
       if (personnel.photoPath != null &&
@@ -172,7 +176,7 @@ class MediaFinder extends AppServices {
       }
     }
     return mediaPaths;
-  }  
+  }
 
   Future<List<File>> getAllMediaFileByProject() async {
     final List<MediaData> mediaData =

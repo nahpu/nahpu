@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/common.dart';
+import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/media_services.dart';
 import 'package:nahpu/services/narrative_services.dart';
@@ -11,7 +12,6 @@ import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/utility_services.dart';
 
 class MediaWriterServices {
   MediaWriterServices({
@@ -137,11 +137,7 @@ class MediaWriterServices {
   }
 
   String _cleanAdditionalExif(String? addExif) {
-    if (addExif == null) {
-      return '';
-    }
-    String addExifClean = addExif.replaceAll(listTileSeparator, ' ');
-    return addExifClean;
+    return MediaMetadataServices().formatAdditionalMetadataForExport(addExif);
   }
 }
 

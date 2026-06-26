@@ -94,6 +94,29 @@ class NarrativeMediaViewerState extends ConsumerState<NarrativeMediaViewer> {
           }
         }
       },
+      onAddFromFiles: () async {
+        try {
+          List<String> mediaFiles =
+              await ImageServices(ref: ref, category: mediaCategory)
+                  .pickMediaFromFiles();
+          if (mediaFiles.isNotEmpty) {
+            await NarrativeServices(ref: ref).createNarrativeMediaFromList(
+              widget.narrativeId,
+              mediaFiles,
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          }
+        }
+      },
       onAccessingCamera: () async {
         try {
           String? image = await ImageServices(ref: ref, category: mediaCategory)

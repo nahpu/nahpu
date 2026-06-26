@@ -223,12 +223,12 @@ class DataUsageServices extends AppServices {
     return count;
   }
 
-  Future<int> get imageCount async {
+  Future<int> get mediaCount async {
     final nahpuDir = await nahpuDocumentDir;
     final dirSize = nahpuDir.listSync(recursive: true).whereType<File>();
     int count = 0;
     for (final file in dirSize) {
-      if (_isImage(file)) {
+      if (_isSupportedMediaFile(file)) {
         count++;
       }
     }
@@ -256,20 +256,21 @@ class DataUsageServices extends AppServices {
   }
 
   NahpuFileFormat _matchFormat(File file) {
-    return formatByExtension[path.extension(file.path)] ??
-        NahpuFileFormat.other;
+    return matchNahpuFormatFromPath(file.path);
   }
 
   Future<bool> _isDeletable(File file, NahpuFileFormat format) async {
-    if (path.extension(file.path) == 'db') {
+    if (normalizeExtension(file.path) == 'db') {
       return false;
     }
 
-    if (format == NahpuFileFormat.image) {
-      bool isUsedByMedia = await MediaServices(ref: ref).isImageUsed(file);
+    if (isSupportedMediaFormat(format)) {
+      bool isUsedByMedia = await MediaServices(ref: ref).isMediaUsed(file);
       bool isUsedByPersonnel =
           await PersonnelServices(ref: ref).isImageUsedInPersonnelPhoto(file);
-      return !isUsedByMedia || !isUsedByPersonnel;
+      bool isUsedInAssociatedData =
+          await AssociatedDataServices(ref: ref).isFileUsed(file);
+      return !(isUsedByMedia || isUsedByPersonnel || isUsedInAssociatedData);
     }
 
     if (format == NahpuFileFormat.other) {
@@ -281,15 +282,8 @@ class DataUsageServices extends AppServices {
     return true;
   }
 
-  bool _isImage(File file) {
-    if (file.path.endsWith('.jpg') ||
-        file.path.endsWith('.jpeg') ||
-        file.path.endsWith('.png') ||
-        file.path.endsWith('.gif') ||
-        file.path.endsWith('.heic')) {
-      return true;
-    }
-    return false;
+  bool _isSupportedMediaFile(File file) {
+    return isSupportedMediaPath(file.path);
   }
 }
 

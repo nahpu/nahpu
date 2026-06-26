@@ -62,6 +62,15 @@ class ImageServices extends AppServices {
     return files.map((e) => e.path).toList();
   }
 
+  Future<List<String>> pickMediaFromFiles() async {
+    List<XFile> result = await openFiles(
+      acceptedTypeGroups: mediaFmt,
+      confirmButtonText: 'Import',
+    );
+    List<File> files = await _copyFiles(result.map((e) => e.path).toList());
+    return files.map((e) => e.path).toList();
+  }
+
   Future<String> pickFromFileSingle() async {
     XFile? result = await openFile(acceptedTypeGroups: imageFmt);
     File? file = result == null ? null : await _copySingleFile(result.path);
@@ -85,6 +94,78 @@ class ImageServices extends AppServices {
         : await FileServices(ref: ref)
             .copyFileToProjectDir(file, getMediaDir(category));
     return newPath;
+  }
+}
+
+class MediaFileMetadata {
+  const MediaFileMetadata({
+    required this.taken,
+    required this.camera,
+    required this.lenses,
+    required this.additionalExif,
+  });
+
+  final String taken;
+  final String camera;
+  final String lenses;
+  final String additionalExif;
+}
+
+class MediaMetadataServices {
+  const MediaMetadataServices();
+
+  Future<MediaFileMetadata> extract(File file) async {
+    final mediaKind = matchMediaKindFromPath(file.path);
+    if (mediaKind == MediaKind.image) {
+      final exifData = ExifData.empty();
+      await exifData.readExif(file);
+      return MediaFileMetadata(
+        taken: exifData.dateTaken,
+        camera: exifData.camera,
+        lenses: exifData.lenseModel,
+        additionalExif: exifData.additionalExif,
+      );
+    }
+
+    final int byteSize = await file.length();
+    final DateTime modifiedAt = await file.lastModified();
+    final String ext = normalizeExtension(file.path).toUpperCase();
+    final List<String> metadata = [
+      'Type: ${matchMediaKindLabel(mediaKind)}',
+      'Format: $ext',
+      'Size: ${_sizeToReadable(byteSize)}',
+      'Modified: ${modifiedAt.toLocal()}',
+    ];
+
+    return MediaFileMetadata(
+      taken: '',
+      camera: '',
+      lenses: '',
+      additionalExif: metadata.join(listTileSeparator),
+    );
+  }
+
+  String formatAdditionalMetadataForExport(String? metadata) {
+    if (metadata == null || metadata.isEmpty) {
+      return '';
+    }
+    return metadata
+        .replaceAll(listTileSeparator, ' ')
+        .replaceAll('\n', ' ')
+        .trim();
+  }
+
+  String _sizeToReadable(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    }
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / 1024 / 1024).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / 1024 / 1024 / 1024).toStringAsFixed(1)} GB';
   }
 }
 
