@@ -15,8 +15,7 @@ class DocumentExportServices {
   final WidgetRef ref;
   DocumentExportServices({required this.ref});
 
-  Future<void> exportDocument({
-    required File file,
+  Future<Uint8List> generateBytes({
     required DocumentExportType type,
     required DocumentExportFmt format,
   }) async {
@@ -66,7 +65,16 @@ class DocumentExportServices {
         exportFormat: formatStr,
         fontBytes: fontBytesList,
     );
+    
+    return bytes;
+  }
 
+  Future<void> exportDocument({
+    required File file,
+    required DocumentExportType type,
+    required DocumentExportFmt format,
+  }) async {
+    final bytes = await generateBytes(type: type, format: format);
     await file.writeAsBytes(bytes);
   }
 }

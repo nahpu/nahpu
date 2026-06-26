@@ -66,6 +66,7 @@ dependencies:
   kdl: ^2.0.2
   material_ui: ^0.0.1
   qr: ^3.0.0
+  flutter_markdown_plus: ^1.0.7
 dev_dependencies:
   flutter_test:
     sdk: flutter
