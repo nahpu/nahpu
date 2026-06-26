@@ -45,7 +45,8 @@ class FormatOptionsCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Visibility(
-              visible: recordType == ExportRecordType.specimenRecord && !isPreset,
+              visible:
+                  recordType == ExportRecordType.specimenRecord && !isPreset,
               child: DropdownButtonFormField<SpecimenExportFmt>(
                 initialValue: specimenExportFmt,
                 decoration: const InputDecoration(

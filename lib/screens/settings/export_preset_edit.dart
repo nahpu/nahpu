@@ -224,7 +224,8 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                                 setState(() {
                                   if (val == true) {
                                     if (_namingConvention == 'fieldName') {
-                                      _currentPreset.fields[col] = col.split('::').last;
+                                      _currentPreset.fields[col] =
+                                          col.split('::').last;
                                     } else {
                                       _currentPreset.fields[col] = col;
                                     }

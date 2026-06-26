@@ -3,15 +3,12 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/services/export/pdf/narrative_pdf.dart';
-import 'package:nahpu/services/export/pdf/specimen_pdf.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/screens/shared/file_operation.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/services/io_services.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
+import 'package:nahpu/services/export/document_export_services.dart';
 
 class ExportPdfForm extends ConsumerStatefulWidget {
   const ExportPdfForm({super.key});
@@ -23,9 +20,8 @@ class ExportPdfForm extends ConsumerStatefulWidget {
 class ExportPdfFormState extends ConsumerState<ExportPdfForm> {
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   Directory? _selectedDir;
-  PdfExportType _pdfExportType = PdfExportType.narrative;
-  PdfPageFormat _pdfPageFormat = PdfPageFormat.letter;
-  pw.PageOrientation _pdfPageOrientation = pw.PageOrientation.portrait;
+  DocumentExportType _exportType = DocumentExportType.narrative;
+  DocumentExportFmt _exportFmt = DocumentExportFmt.pdf;
   String _fileStem = 'export';
   bool _hasSaved = false;
   late File _savePath;
@@ -35,71 +31,50 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Export to PDF"),
+        title: const Text("Document Export"),
         automaticallyImplyLeading: false,
       ),
       body: FileOperationPage(
         children: [
           const FileFormatIcon(path: 'assets/icons/pdf.svg'),
           DropdownButtonFormField(
-              initialValue: PdfExportType.narrative,
+              initialValue: _exportType,
               decoration: const InputDecoration(
                 labelText: 'Record type',
               ),
-              items: pdfExport.keys
+              items: documentExport.keys
                   .map((e) => DropdownMenuItem(
                         value: e,
                         child: CommonDropdownText(
-                          text: pdfExport[e] ?? '',
+                          text: documentExport[e] ?? '',
                         ),
                       ))
                   .toList(),
-              onChanged: (PdfExportType? value) {
+              onChanged: (DocumentExportType? value) {
                 if (value != null) {
                   setState(() {
-                    _pdfExportType = value;
+                    _exportType = value;
                     _hasSaved = false;
                   });
                 }
               }),
           DropdownButtonFormField(
-              initialValue: _pdfPageFormat,
+              initialValue: _exportFmt,
               decoration: const InputDecoration(
-                labelText: 'Page format',
+                labelText: 'Format',
               ),
-              items: pdfExportPageFormat.keys
+              items: documentExportFmt.keys
                   .map((e) => DropdownMenuItem(
                         value: e,
                         child: CommonDropdownText(
-                          text: pdfExportPageFormat[e] ?? '',
+                          text: documentExportFmt[e] ?? '',
                         ),
                       ))
                   .toList(),
-              onChanged: (PdfPageFormat? value) {
+              onChanged: (DocumentExportFmt? value) {
                 if (value != null) {
                   setState(() {
-                    _pdfPageFormat = value;
-                    _hasSaved = false;
-                  });
-                }
-              }),
-          DropdownButtonFormField(
-              initialValue: _pdfPageOrientation,
-              decoration: const InputDecoration(
-                labelText: 'Page orientation',
-              ),
-              items: pdfExportOrientation.keys
-                  .map((e) => DropdownMenuItem(
-                        value: e,
-                        child: CommonDropdownText(
-                          text: pdfExportOrientation[e] ?? '',
-                        ),
-                      ))
-                  .toList(),
-              onChanged: (pw.PageOrientation? value) {
-                if (value != null) {
-                  setState(() {
-                    _pdfPageOrientation = value;
+                    _exportFmt = value;
                     _hasSaved = false;
                   });
                 }
@@ -143,7 +118,7 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm> {
                               setState(() {
                                 _isRunning = true;
                               });
-                              await _writePdf();
+                              await _writeDocument();
                               setState(() {
                                 _isRunning = false;
                               });
@@ -163,12 +138,18 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm> {
     );
   }
 
-  Future<void> _writePdf() async {
+  Future<void> _writeDocument() async {
     try {
       _savePath = await AppIOServices(
-              dir: _selectedDir, fileStem: _fileStem, ext: 'pdf')
+              dir: _selectedDir, fileStem: _fileStem, ext: _exportFmt.name)
           .getSavePath();
-      await _matchExportTypeToWriter(_savePath);
+
+      await DocumentExportServices(ref: ref).exportDocument(
+        file: _savePath,
+        type: _exportType,
+        format: _exportFmt,
+      );
+
       setState(() {
         _hasSaved = true;
       });
@@ -185,27 +166,6 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm> {
         content: Text(errors),
       ),
     );
-  }
-
-  Future<void> _matchExportTypeToWriter(File file) async {
-    switch (_pdfExportType) {
-      case PdfExportType.narrative:
-        await NarrativePdfWriter(
-          ref: ref,
-          pageFormat: _pdfPageFormat,
-          filePath: file,
-          pageOrientation: _pdfPageOrientation,
-        ).generatePdf();
-        break;
-      case PdfExportType.specimen:
-        await SpecimenPdfWriter(
-          ref: ref,
-          pageFormat: _pdfPageFormat,
-          filePath: file,
-          pageOrientation: _pdfPageOrientation,
-        ).generatePdf();
-        break;
-    }
   }
 
   Future<void> _shareFile(BuildContext context) async {

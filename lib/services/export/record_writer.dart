@@ -154,11 +154,15 @@ class SpecimenRecordWriter {
     ];
 
     if (parts.isEmpty) {
-      return [[...baseContent, '', media]];
+      return [
+        [...baseContent, '', media]
+      ];
     }
 
     if (concatenateMultiEntry) {
-      return [[...baseContent, parts.join('|'), media]];
+      return [
+        [...baseContent, parts.join('|'), media]
+      ];
     } else {
       return parts.map((p) => [...baseContent, p, media]).toList();
     }

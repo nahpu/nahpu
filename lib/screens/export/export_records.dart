@@ -269,8 +269,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
                       heightFactor: 0.8,
                       child: ColumnSelectionList(
                         availableColumns: _availableColumns,
-                        selectedColumns:
-                            _selectedColumns ?? _availableColumns,
+                        selectedColumns: _selectedColumns ?? _availableColumns,
                         onSelectionChanged: (selected) {
                           setState(() {
                             _selectedColumns = selected;

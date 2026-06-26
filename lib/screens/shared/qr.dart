@@ -119,7 +119,8 @@ class _QrPainter extends CustomPainter {
       for (int y = 0; y < moduleCount; y++) {
         if (qrImage.isDark(y, x)) {
           canvas.drawRect(
-            Rect.fromLTWH(x * moduleSize, y * moduleSize, moduleSize, moduleSize),
+            Rect.fromLTWH(
+                x * moduleSize, y * moduleSize, moduleSize, moduleSize),
             paint,
           );
         }

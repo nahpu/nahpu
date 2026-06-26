@@ -36,9 +36,8 @@ class DynamicRecordExporter {
         allKeys.addAll(part.keys);
       }
       for (var key in allKeys) {
-        String combinedValue = parts
-            .map((part) => part[key]?.toString() ?? '')
-            .join(' | ');
+        String combinedValue =
+            parts.map((part) => part[key]?.toString() ?? '').join(' | ');
         baseRecord['specimenPart::$key'] = combinedValue;
       }
       return [baseRecord];
@@ -142,21 +141,24 @@ class DynamicRecordExporter {
     final db = ref.read(databaseProvider);
     final mammal = await (db.select(
       db.mammalMeasurement,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+    )..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .getSingleOrNull();
     if (mammal != null) {
       _addData(record, 'mammalMeasurement', mammal.toJson());
     }
 
     final avian = await (db.select(
       db.avianMeasurement,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+    )..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .getSingleOrNull();
     if (avian != null) {
       _addData(record, 'avianMeasurement', avian.toJson());
     }
 
     final herp = await (db.select(
       db.herpMeasurement,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+    )..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .getSingleOrNull();
     if (herp != null) {
       _addData(record, 'herpMeasurement', herp.toJson());
     }
@@ -166,7 +168,8 @@ class DynamicRecordExporter {
     final db = ref.read(databaseProvider);
     final parts = await (db.select(
       db.specimenPart,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).get();
+    )..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .get();
     return parts.map((e) => e.toJson()).toList();
   }
 
