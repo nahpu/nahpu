@@ -239,20 +239,50 @@ class SpecimenPages extends StatelessWidget {
       controller: pageNav.pageController,
       itemCount: specimenEntry.length,
       itemBuilder: (context, index) {
-        CatalogFmt catalogFmt =
-            matchTaxonGroupToCatFmt(specimenEntry[index].taxonGroup);
-        final specimenFormCtr = _updateController(specimenEntry[index]);
-        return PageViewer(
+        return _SpecimenPage(
+          specimen: specimenEntry[index],
           pageNav: pageNav,
           isNavButtonVisible: isNavButtonVisible,
-          child: SpecimenForm(
-            specimenUuid: specimenEntry[index].uuid,
-            specimenCtr: specimenFormCtr,
-            catalogFmt: catalogFmt,
-          ),
         );
       },
       onPageChanged: onPageChanged,
+    );
+  }
+}
+
+class _SpecimenPage extends ConsumerWidget {
+  const _SpecimenPage({
+    required this.specimen,
+    required this.pageNav,
+    required this.isNavButtonVisible,
+  });
+
+  final SpecimenData specimen;
+  final bool isNavButtonVisible;
+  final PageNavigation pageNav;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentSpecimen = ref.watch(specimenEntryProvider).maybeWhen(
+          data: (entries) => entries.firstWhere(
+            (entry) => entry.uuid == specimen.uuid,
+            orElse: () => specimen,
+          ),
+          orElse: () => specimen,
+        );
+
+    CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(currentSpecimen.taxonGroup);
+    final specimenFormCtr = _updateController(currentSpecimen);
+
+    return PageViewer(
+      pageNav: pageNav,
+      isNavButtonVisible: isNavButtonVisible,
+      child: SpecimenForm(
+        key: ValueKey('${currentSpecimen.uuid}-${currentSpecimen.speciesID}'),
+        specimenUuid: currentSpecimen.uuid,
+        specimenCtr: specimenFormCtr,
+        catalogFmt: catalogFmt,
+      ),
     );
   }
 

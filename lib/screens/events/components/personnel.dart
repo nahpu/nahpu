@@ -263,14 +263,23 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
               hintText: 'Enter a name',
             ),
             items: ref.watch(projectPersonnelProvider).when(
-                  data: (value) => value
-                      .map((person) => DropdownMenuItem(
-                            value: person.uuid,
-                            child: CommonDropdownText(
-                              text: person.name ?? '',
-                            ),
-                          ))
-                      .toList(),
+                  data: (value) {
+                    final personnel = value
+                        .fold<Map<String, PersonnelData>>(
+                          {},
+                          (map, person) => map..[person.uuid] = person,
+                        )
+                        .values
+                        .toList();
+                    return personnel
+                        .map((person) => DropdownMenuItem(
+                              value: person.uuid,
+                              child: CommonDropdownText(
+                                text: person.name ?? '',
+                              ),
+                            ))
+                        .toList();
+                  },
                   loading: () => const [],
                   error: (error, stack) => const [],
                 ),
@@ -317,6 +326,10 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
   Widget build(BuildContext context) {
     return ref.watch(userDefinedFieldProvider(collRolePrefKey)).when(
           data: (data) {
+            final roles = {
+              ...data,
+              if (widget.controller.roleCtr != null) widget.controller.roleCtr!,
+            }.toList();
             return DropdownButtonFormField<String>(
               isExpanded: true,
               initialValue: widget.controller.roleCtr,
@@ -324,7 +337,7 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
                 labelText: 'Role',
                 hintText: 'Enter a role',
               ),
-              items: data
+              items: roles
                   .map((role) => DropdownMenuItem(
                         value: role,
                         child: CommonDropdownText(text: role),
