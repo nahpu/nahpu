@@ -45,13 +45,12 @@ dependencies:
   shared_preferences: ^2.1.1
   fl_chart: ^1.0.0
   flex_color_scheme: ^8.2.0
-  pdf: ^3.8.4
+  pdf: ^3.13.0
   image_picker: ^1.0.0
   share_plus: ^13.1.0
   exif: ^3.1.4
   printing: ^5.15.0
   package_info_plus: ^10.1.0
-  qr_flutter: ^4.1.0
   carousel_slider: ^5.0.0
   flutter_svg: ^2.0.7
   file_selector: ^1.0.0
@@ -66,6 +65,7 @@ dependencies:
   timezone: ^0.11.0
   kdl: ^2.0.2
   material_ui: ^0.0.1
+  qr: ^4.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

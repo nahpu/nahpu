@@ -8,7 +8,7 @@ import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:nahpu/screens/shared/qr.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const String nahpuWebsite = 'https://nahpu.app/';
@@ -175,17 +175,9 @@ class DocQrCode extends StatelessWidget {
       alignment: Alignment.center,
       child: QrImageView(
         data: nahpuWebsite,
-        version: QrVersions.auto,
         size: isPhone ? 80 : 120,
         backgroundColor: Colors.transparent,
-        eyeStyle: QrEyeStyle(
-          eyeShape: QrEyeShape.circle,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
-        dataModuleStyle: QrDataModuleStyle(
-          dataModuleShape: QrDataModuleShape.circle,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
