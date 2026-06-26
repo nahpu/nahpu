@@ -273,7 +273,7 @@ class SpecimenServices extends AppServices {
   }
 
   Future<void> updateSpecimen(String uuid, SpecimenCompanion entries) async {
-    _updateSpecimen(uuid, entries);
+    await _updateSpecimen(uuid, entries);
     invalidateSpecimenList();
   }
 
