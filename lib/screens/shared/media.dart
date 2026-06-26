@@ -13,6 +13,7 @@ import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/media_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:drift/drift.dart' as db;
@@ -25,11 +26,13 @@ class MediaViewer extends StatefulWidget {
     super.key,
     required this.images,
     required this.onAddFromGallery,
+    required this.onAddFromFiles,
     required this.onAccessingCamera,
   });
 
   final List<MediaData> images;
   final VoidCallback onAddFromGallery;
+  final VoidCallback onAddFromFiles;
   final VoidCallback onAccessingCamera;
 
   @override
@@ -56,6 +59,7 @@ class _MediaViewerState extends State<MediaViewer> {
               ),
               MediaButton(
                 onAddFromGallery: widget.onAddFromGallery,
+                onAddFromFiles: widget.onAddFromFiles,
                 onAccessingCamera: widget.onAccessingCamera,
               ),
             ],
@@ -86,17 +90,19 @@ class EmptyMedia extends StatelessWidget {
   }
 }
 
-/// Display option to pick image from gallery or camera
-/// On mobile, display both options
-/// On desktop, display only gallery option
+/// Display options to add media.
+/// On mobile, secondary action opens gallery/files and primary action opens camera.
+/// On desktop, primary action opens the file picker.
 class MediaButton extends StatelessWidget {
   const MediaButton({
     super.key,
     required this.onAddFromGallery,
+    required this.onAddFromFiles,
     required this.onAccessingCamera,
   });
 
   final VoidCallback onAddFromGallery;
+  final VoidCallback onAddFromFiles;
   final VoidCallback onAccessingCamera;
 
   @override
@@ -108,17 +114,54 @@ class MediaButton extends StatelessWidget {
       children: [
         systemPlatform == PlatformType.mobile
             ? IconButton(
-                onPressed: onAddFromGallery, icon: const Icon(Icons.add))
+                onPressed: () {
+                  _showImportSourceSheet(context);
+                },
+                icon: const Icon(Icons.add),
+              )
             : const SizedBox.shrink(),
         PrimaryIconButton(
           onPressed: systemPlatform == PlatformType.mobile
               ? onAccessingCamera
-              : onAddFromGallery,
+              : onAddFromFiles,
           icon: systemPlatform == PlatformType.mobile
               ? Icons.camera_alt_outlined
-              : Icons.add_photo_alternate_outlined,
+              : Icons.attach_file_outlined,
         ),
       ],
+    );
+  }
+
+  void _showImportSourceSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  onAddFromGallery();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.folder_open_outlined),
+                title: const Text('Files'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  onAddFromFiles();
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -182,16 +225,38 @@ class MediaCardState extends ConsumerState<MediaCard> {
         ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: widget.ctr.fileNameCtr != null
-              ? FutureBuilder(
+              ? FutureBuilder<_MediaAssetPreview>(
                   builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return Image.file(
-                        width: imageSize.toDouble(),
-                        height: imageSize.toDouble(),
-                        cacheWidth: imageSize + 100,
-                        snapshot.data as File,
-                        fit: BoxFit.cover,
+                    if (snapshot.hasError) {
+                      return _MediaTypeFallback(
+                        kind: _getMediaKind(),
+                        label: 'Media unavailable',
                       );
+                    }
+                    if (snapshot.hasData) {
+                      final mediaAsset = snapshot.data!;
+                      if (!mediaAsset.exists) {
+                        return _MediaTypeFallback(
+                          kind: mediaAsset.kind,
+                          label: 'File missing',
+                        );
+                      }
+                      if (mediaAsset.file != null) {
+                        return Image.file(
+                          width: imageSize.toDouble(),
+                          height: imageSize.toDouble(),
+                          cacheWidth: imageSize + 100,
+                          mediaAsset.file!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _MediaTypeFallback(
+                              kind: mediaAsset.kind,
+                              label: 'Image unavailable',
+                            );
+                          },
+                        );
+                      }
+                      return _MediaTypeFallback(kind: mediaAsset.kind);
                     } else {
                       return const Center(
                         child: CircularProgressIndicator(),
@@ -201,7 +266,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
                   future: _getMediaPath(),
                   initialData: null)
               : const Center(
-                  child: Text('No image'),
+                  child: Text('No media'),
                 ),
         ),
         Positioned(
@@ -222,7 +287,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
                   dense: true,
                   minVerticalPadding: 12,
                   title: Text(
-                    widget.ctr.fileNameCtr ?? 'No image',
+                    widget.ctr.fileNameCtr ?? 'No media',
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
@@ -241,13 +306,81 @@ class MediaCardState extends ConsumerState<MediaCard> {
     );
   }
 
-  Future<File> _getMediaPath() async {
+  Future<_MediaAssetPreview> _getMediaPath() async {
     MediaCategory category =
         matchMediaCategoryString(widget.ctr.categoryCtr.text);
-    File path = await ImageServices(ref: ref, category: category)
-        .getMediaPath(widget.ctr.fileNameCtr!);
+    final fileName = widget.ctr.fileNameCtr!;
+    final kind = _getMediaKind();
+    final mediaPath = await ImageServices(ref: ref, category: category)
+        .getMediaPath(fileName);
+    final exists = await mediaPath.exists();
 
-    return path;
+    return _MediaAssetPreview(
+      file: kind == MediaKind.image ? mediaPath : null,
+      kind: kind,
+      exists: exists,
+    );
+  }
+
+  MediaKind _getMediaKind() {
+    return matchMediaKindFromPath(widget.ctr.fileNameCtr ?? '');
+  }
+}
+
+class _MediaAssetPreview {
+  const _MediaAssetPreview({
+    required this.file,
+    required this.kind,
+    required this.exists,
+  });
+
+  final File? file;
+  final MediaKind kind;
+  final bool exists;
+}
+
+class _MediaTypeFallback extends StatelessWidget {
+  const _MediaTypeFallback({
+    required this.kind,
+    this.label,
+  });
+
+  final MediaKind kind;
+  final String? label;
+
+  @override
+  Widget build(BuildContext context) {
+    IconData icon = Icons.insert_drive_file_outlined;
+    switch (kind) {
+      case MediaKind.audio:
+      case MediaKind.video:
+        icon = Icons.play_circle_outline;
+        break;
+      case MediaKind.pdf:
+        icon = Icons.picture_as_pdf_outlined;
+        break;
+      case MediaKind.image:
+        icon = Icons.image_outlined;
+        break;
+      case MediaKind.other:
+        icon = Icons.insert_drive_file_outlined;
+        break;
+    }
+    return Container(
+      width: imageSize.toDouble(),
+      height: imageSize.toDouble(),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 52, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 8),
+            Text(label ?? matchMediaKindLabel(kind)),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -526,16 +659,20 @@ class ExifViewer extends StatelessWidget {
         Text(ctr.lenseModelCtr.text, textAlign: TextAlign.center),
         Text(ctr.additionalExifCtr.text, textAlign: TextAlign.center),
         const SizedBox(height: 4),
-        Text(
-          _parseDateTime(),
-          textAlign: TextAlign.center,
-        ),
+        if (_parseDateTime().isNotEmpty)
+          Text(
+            _parseDateTime(),
+            textAlign: TextAlign.center,
+          ),
       ],
     );
   }
 
   String _parseDateTime() {
     final value = parseMediaDateTime(ctr.dateTakenCtr.text);
+    if (value.date.isEmpty && value.time.isEmpty) {
+      return '';
+    }
     return '${value.date}\n${value.time}';
   }
 
@@ -554,8 +691,8 @@ class MediaInfoContent extends StatelessWidget {
       content: [
         InfoContent(
           content: 'Media files of the project.'
-              ' You can add media files from the gallery or'
-              ' take a photo using your device camera (mobile devices only).',
+              ' On mobile, gallery and camera import images only.'
+              ' Use Files to import audio, video, and PDF.',
         ),
       ],
     );

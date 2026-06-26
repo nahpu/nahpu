@@ -414,7 +414,7 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
 
     Widget buildReorderList(BuildContext context, StateSetter setStateDialog) {
       return ReorderableListView(
-        onReorderItem: (oldIndex, newIndex) {
+        onReorder: (oldIndex, newIndex) {
           setStateDialog(() {
             if (oldIndex < newIndex) {
               newIndex -= 1;

@@ -139,7 +139,7 @@ class CombinedFieldDialogState extends ConsumerState<CombinedFieldDialog> {
                 child: ReorderableListView.builder(
                   shrinkWrap: true,
                   itemCount: _components.length,
-                  onReorderItem: (oldIndex, newIndex) {
+                  onReorder: (oldIndex, newIndex) {
                     setState(() {
                       final item = _components.removeAt(oldIndex);
                       _components.insert(newIndex, item);

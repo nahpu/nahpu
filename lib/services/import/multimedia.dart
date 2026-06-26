@@ -9,6 +9,25 @@ import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/services/types/file_format.dart';
+import 'package:path/path.dart' as path;
+
+class UnsupportedMediaFileException implements Exception {
+  const UnsupportedMediaFileException(
+    this.paths, {
+    this.supportedTypes = 'images, audio, video, and PDF',
+  });
+
+  final List<String> paths;
+  final String supportedTypes;
+
+  @override
+  String toString() {
+    final fileNames = paths.map(path.basename).join(', ');
+    final fileLabel = paths.length == 1 ? 'file' : 'files';
+    return 'Unsupported media $fileLabel: $fileNames. '
+        'Supported media files are $supportedTypes.';
+  }
+}
 
 class ImageServices extends AppServices {
   const ImageServices({required super.ref, required this.category});
@@ -57,15 +76,53 @@ class ImageServices extends AppServices {
 
   Future<List<String>> pickFromFiles() async {
     List<XFile> result = await openFiles(
-        acceptedTypeGroups: imageFmt, confirmButtonText: 'Import');
-    List<File> files = await _copyFiles(result.map((e) => e.path).toList());
+        acceptedTypeGroups: [imageFmt], confirmButtonText: 'Import');
+    final paths = result.map((e) => e.path).toList();
+    _validateImagePaths(paths);
+    List<File> files = await _copyFiles(paths);
+    return files.map((e) => e.path).toList();
+  }
+
+  Future<List<String>> pickMediaFromFiles() async {
+    List<XFile> result = await openFiles(
+      acceptedTypeGroups: [mediaFmt],
+      confirmButtonText: 'Import',
+    );
+    final paths = result.map((e) => e.path).toList();
+    _validateSupportedMediaPaths(paths);
+    List<File> files = await _copyFiles(paths);
     return files.map((e) => e.path).toList();
   }
 
   Future<String> pickFromFileSingle() async {
-    XFile? result = await openFile(acceptedTypeGroups: imageFmt);
-    File? file = result == null ? null : await _copySingleFile(result.path);
-    return file?.path ?? '';
+    XFile? result = await openFile(acceptedTypeGroups: [imageFmt]);
+    if (result == null) {
+      return '';
+    }
+    _validateImagePaths([result.path]);
+    File file = await _copySingleFile(result.path);
+    return file.path;
+  }
+
+  void _validateSupportedMediaPaths(List<String> paths) {
+    final unsupportedPaths =
+        paths.where((filePath) => !isSupportedMediaPath(filePath)).toList();
+    if (unsupportedPaths.isNotEmpty) {
+      throw UnsupportedMediaFileException(unsupportedPaths);
+    }
+  }
+
+  void _validateImagePaths(List<String> paths) {
+    final unsupportedPaths = paths
+        .where(
+            (filePath) => matchMediaKindFromPath(filePath) != MediaKind.image)
+        .toList();
+    if (unsupportedPaths.isNotEmpty) {
+      throw UnsupportedMediaFileException(
+        unsupportedPaths,
+        supportedTypes: 'images',
+      );
+    }
   }
 
   Future<List<File>> _copyFiles(List<String> paths) async {
@@ -85,6 +142,78 @@ class ImageServices extends AppServices {
         : await FileServices(ref: ref)
             .copyFileToProjectDir(file, getMediaDir(category));
     return newPath;
+  }
+}
+
+class MediaFileMetadata {
+  const MediaFileMetadata({
+    required this.taken,
+    required this.camera,
+    required this.lenses,
+    required this.additionalExif,
+  });
+
+  final String taken;
+  final String camera;
+  final String lenses;
+  final String additionalExif;
+}
+
+class MediaMetadataServices {
+  const MediaMetadataServices();
+
+  Future<MediaFileMetadata> extract(File file) async {
+    final mediaKind = matchMediaKindFromPath(file.path);
+    if (mediaKind == MediaKind.image) {
+      final exifData = ExifData.empty();
+      await exifData.readExif(file);
+      return MediaFileMetadata(
+        taken: exifData.dateTaken,
+        camera: exifData.camera,
+        lenses: exifData.lenseModel,
+        additionalExif: exifData.additionalExif,
+      );
+    }
+
+    final int byteSize = await file.length();
+    final DateTime modifiedAt = await file.lastModified();
+    final String ext = normalizeExtension(file.path).toUpperCase();
+    final List<String> metadata = [
+      'Type: ${matchMediaKindLabel(mediaKind)}',
+      'Format: $ext',
+      'Size: ${_sizeToReadable(byteSize)}',
+      'Modified: ${modifiedAt.toLocal()}',
+    ];
+
+    return MediaFileMetadata(
+      taken: '',
+      camera: '',
+      lenses: '',
+      additionalExif: metadata.join(listTileSeparator),
+    );
+  }
+
+  String formatAdditionalMetadataForExport(String? metadata) {
+    if (metadata == null || metadata.isEmpty) {
+      return '';
+    }
+    return metadata
+        .replaceAll(listTileSeparator, ' ')
+        .replaceAll('\n', ' ')
+        .trim();
+  }
+
+  String _sizeToReadable(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    }
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / 1024 / 1024).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / 1024 / 1024 / 1024).toStringAsFixed(1)} GB';
   }
 }
 
