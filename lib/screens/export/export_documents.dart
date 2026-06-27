@@ -371,7 +371,7 @@ class DocumentExportSettings extends StatelessWidget {
   }
 }
 
-class DocumentExportPreview extends ConsumerWidget {
+class DocumentExportPreview extends ConsumerStatefulWidget {
   const DocumentExportPreview({
     super.key,
     required this.showPreview,
@@ -386,7 +386,45 @@ class DocumentExportPreview extends ConsumerWidget {
   final VoidCallback onGeneratePreview;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DocumentExportPreview> createState() => _DocumentExportPreviewState();
+}
+
+class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
+  Future<Uint8List>? _bytesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.showPreview) {
+      _fetchData();
+    }
+  }
+
+  @override
+  void didUpdateWidget(DocumentExportPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.showPreview &&
+        (!oldWidget.showPreview ||
+            widget.exportFmt != oldWidget.exportFmt ||
+            widget.exportType != oldWidget.exportType)) {
+      _fetchData();
+    } else if (!widget.showPreview) {
+      _bytesFuture = null;
+    }
+  }
+
+  void _fetchData() {
+    final fmt = widget.exportFmt == DocumentExportFmt.pdf
+        ? DocumentExportFmt.md
+        : widget.exportFmt;
+    _bytesFuture = DocumentExportServices(ref: ref)
+        .generateBytes(type: widget.exportType, format: fmt);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+
     return Material(
       clipBehavior: Clip.hardEdge,
       borderRadius: BorderRadius.circular(16.0),
@@ -394,27 +432,16 @@ class DocumentExportPreview extends ConsumerWidget {
           .colorScheme
           .surfaceContainerHighest
           .withValues(alpha: 0.4),
-      child: !showPreview
+      child: !widget.showPreview
           ? Center(
               child: FilledButton.icon(
-                onPressed: onGeneratePreview,
+                onPressed: widget.onGeneratePreview,
                 icon: const Icon(Icons.visibility),
                 label: const Text('Generate Preview'),
               ),
             )
-          : exportFmt == DocumentExportFmt.pdf
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'PDF preview is not available. Please export the document to view it.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                )
-              : FutureBuilder<Uint8List>(
-                  future: DocumentExportServices(ref: ref)
-                      .generateBytes(type: exportType, format: exportFmt),
+          : FutureBuilder<Uint8List>(
+                  future: _bytesFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -431,8 +458,12 @@ class DocumentExportPreview extends ConsumerWidget {
                         ref.watch(pdfExportFontNotifierProvider).value ??
                             'Merriweather';
 
-                    if (exportFmt == DocumentExportFmt.md) {
-                      return Markdown(
+                    final isPdfPreview = widget.exportFmt == DocumentExportFmt.pdf;
+                    final isMd = widget.exportFmt == DocumentExportFmt.md || isPdfPreview;
+
+                    Widget content;
+                    if (isMd) {
+                      content = Markdown(
                         data: text,
                         styleSheet: MarkdownStyleSheet(
                           p: TextStyle(fontFamily: fontName),
@@ -446,14 +477,34 @@ class DocumentExportPreview extends ConsumerWidget {
                         ),
                       );
                     } else {
-                      return SingleChildScrollView(
+                      content = SingleChildScrollView(
                         padding: const EdgeInsets.all(16.0),
-                        child: SelectableText(
-                          text,
-                          style: TextStyle(fontFamily: fontName),
-                        ),
+                        child: SelectableText(text),
                       );
                     }
+
+                    if (isPdfPreview) {
+                      return Column(
+                        children: [
+                          Container(
+                            color: Theme.of(context).colorScheme.tertiaryContainer,
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              'Previewing as Markdown (Export will be PDF)',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Expanded(child: content),
+                        ],
+                      );
+                    }
+
+                    return content;
                   },
                 ),
     );

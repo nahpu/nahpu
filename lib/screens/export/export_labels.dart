@@ -6,8 +6,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as path;
 import 'package:nahpu/services/export/label_writer.dart';
+import 'package:nahpu/screens/export/labels/label_template_model.dart';
 import 'package:nahpu/screens/export/labels/label_template_editor_screen.dart';
-import 'package:nahpu/services/database/database.dart' show SpecimenData;
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/screens/shared/file_operation.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
@@ -19,6 +19,8 @@ import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/screens/export/components/label_page_preview.dart';
+import 'package:nahpu/screens/export/components/specimen_selection.dart';
 
 const Map<String, String> _printPageSizeLabels = {
   'A0': 'A0 (841 x 1188 mm)',
@@ -57,15 +59,6 @@ List<String> _mergeColumnOrder(
   return out;
 }
 
-String _cellText(Map<String, String> row, String columnId) {
-  if (row.containsKey(columnId)) return row[columnId]!;
-  final lower = columnId.toLowerCase();
-  for (final e in row.entries) {
-    if (e.key.toLowerCase() == lower) return e.value;
-  }
-  return '';
-}
-
 class ExportLabelsView extends ConsumerStatefulWidget {
   const ExportLabelsView({super.key});
 
@@ -74,15 +67,15 @@ class ExportLabelsView extends ConsumerStatefulWidget {
 }
 
 class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
-    with SingleTickerProviderStateMixin {
-  List<SpecimenData> _all = [];
-  Map<String, Map<String, String>> _rowValues = {};
+    with TickerProviderStateMixin {
   final Set<String> _selected = {};
   List<String> _visibleColumnIds = [];
   final LabelSettingsServices _settings = LabelSettingsServices();
   final LabelPageSetupService _pageSetupService = const LabelPageSetupService();
   bool _loading = true;
   String? _error;
+  bool _showPreview = false;
+  LabelTemplate? _template;
   List<String> _setupNames = const [];
   String _selectedSetupName = 'Default';
   String _pageSizeKey = 'Letter';
@@ -101,6 +94,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   double _labelPadBottomMm = 1;
 
   late TabController _tabController;
+  late TabController _mobileTabController;
 
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   Directory? _selectedDir;
@@ -111,6 +105,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _mobileTabController = TabController(length: 3, vsync: this);
     _load();
   }
 
@@ -140,8 +135,17 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     final setupNames = await _pageSetupService.listSetupNames();
     final currentSetupName = await _pageSetupService.getCurrentSetupName();
     final currentSetup = await _pageSetupService.getCurrentSetup();
+    
+    final templateService = const LabelTemplateService();
+    final currentTemplateName = await _settings.getCurrentTemplateName();
+    final pickedTemplate = currentTemplateName == null
+        ? null
+        : await templateService.getTemplate(currentTemplateName);
+
     if (mounted) {
       setState(() {
+        _template = pickedTemplate;
+        _showPreview = false;
         _setupNames = setupNames;
         _selectedSetupName = currentSetupName;
         _pageSizeKey =
@@ -167,15 +171,8 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       });
     }
     try {
-      final list = await SpecimenServices(ref: ref).getSpecimenList();
-      final rowVals = <String, Map<String, String>>{};
-      for (final s in list) {
-        rowVals[s.uuid] = await fieldValuesForSpecimen(db, s);
-      }
       if (!mounted) return;
       setState(() {
-        _all = list;
-        _rowValues = rowVals;
         _loading = false;
       });
     } catch (e) {
@@ -185,24 +182,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
         _loading = false;
       });
     }
-  }
-
-  bool? get _headerCheckboxValue {
-    if (_all.isEmpty) return false;
-    final n = _all.where((s) => _selected.contains(s.uuid)).length;
-    if (n == 0) return false;
-    if (n == _all.length) return true;
-    return null;
-  }
-
-  void _onHeaderCheckbox(bool? v) {
-    setState(() {
-      if (v == true) {
-        _selected.addAll(_all.map((e) => e.uuid));
-      } else {
-        _selected.removeWhere((id) => _all.any((s) => s.uuid == id));
-      }
-    });
   }
 
   Future<void> _pickColumns() async {
@@ -344,8 +323,10 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   }
 
   Future<void> _exportLabels() async {
+    final all = await SpecimenServices(ref: ref).getSpecimenList();
+    if (!mounted) return;
     final picked =
-        _all.where((s) => _selected.contains(s.uuid)).toList(growable: false);
+        all.where((s) => _selected.contains(s.uuid)).toList(growable: false);
     if (picked.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Select at least one specimen')),
@@ -417,23 +398,61 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     }
   }
 
+  Widget _buildPreviewPane() {
+    return Material(
+      clipBehavior: Clip.hardEdge,
+      borderRadius: BorderRadius.circular(16.0),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
+      child: !_showPreview
+          ? Center(
+              child: FilledButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showPreview = true;
+                  });
+                },
+                icon: const Icon(Icons.visibility),
+                label: const Text('Generate Preview'),
+              ),
+            )
+          : _template == null
+              ? const Center(child: Text('No template selected.'))
+              : LabelPageLivePreview(
+                  selectedUuidList: _selected.toList(),
+                  template: _template!,
+                  layout: LabelPrintLayoutOptions(
+                    rowsPerPage: _rowsPerPage,
+                    colsPerPage: _colsPerPage,
+                    pagePadTopMm: _pagePadTopMm,
+                    pagePadLeftMm: _pagePadLeftMm,
+                    pagePadRightMm: _pagePadRightMm,
+                    pagePadBottomMm: _pagePadBottomMm,
+                    labelPadTopMm: _labelPadTopMm,
+                    labelPadLeftMm: _labelPadLeftMm,
+                    labelPadRightMm: _labelPadRightMm,
+                    labelPadBottomMm: _labelPadBottomMm,
+                  ),
+                  pageWidthMm: _customPageWidthMm,
+                  pageHeightMm: _customPageHeightMm,
+                ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(projectUuidProvider);
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     final settingsPane = _buildSettingsPane();
-    final previewPane = const DocumentExportPreviewLike();
+    final previewPane = _buildPreviewPane();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Print labels'),
         actions: [
-          IconButton(
-            tooltip: 'Table columns',
-            icon: const Icon(Icons.view_column_outlined),
-            onPressed: _loading ? null : _pickColumns,
-          ),
           IconButton(
             tooltip: 'Template editor',
             icon: const Icon(Icons.edit_note_outlined),
@@ -460,24 +479,73 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
                         children: [
                           Expanded(child: settingsPane),
                           const SizedBox(width: 16),
-                          Expanded(child: previewPane),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                TabBar(
+                                  controller: _tabController,
+                                  tabs: const [
+                                    Tab(
+                                      icon: Icon(Icons.table_rows_outlined),
+                                      text: 'Specimens',
+                                    ),
+                                    Tab(
+                                      icon: Icon(Icons.preview_outlined),
+                                      text: 'Preview',
+                                    ),
+                                  ],
+                                ),
+                                Expanded(
+                                  child: TabBarView(
+                                    controller: _tabController,
+                                    children: [
+                                      SpecimenSelectionView(
+                                        selectedUuidList: _selected,
+                                        visibleColumnIds: _visibleColumnIds,
+                                        onSelectionChanged: (selected) {
+                                          setState(() {
+                                            _selected.clear();
+                                            _selected.addAll(selected);
+                                          });
+                                        },
+                                        onColumnsChanged: _pickColumns,
+                                      ),
+                                      previewPane,
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     )
                   : Column(
                       children: [
                         TabBar(
-                          controller: _tabController,
+                          controller: _mobileTabController,
                           tabs: const [
-                            Tab(text: 'Settings'),
-                            Tab(text: 'Preview'),
+                            Tab(icon: Icon(Icons.settings_outlined)),
+                            Tab(icon: Icon(Icons.table_rows_outlined)),
+                            Tab(icon: Icon(Icons.preview_outlined)),
                           ],
                         ),
                         Expanded(
                           child: TabBarView(
-                            controller: _tabController,
+                            controller: _mobileTabController,
                             children: [
                               settingsPane,
+                              SpecimenSelectionView(
+                                selectedUuidList: _selected,
+                                visibleColumnIds: _visibleColumnIds,
+                                onSelectionChanged: (selected) {
+                                  setState(() {
+                                    _selected.clear();
+                                    _selected.addAll(selected);
+                                  });
+                                },
+                                onColumnsChanged: _pickColumns,
+                              ),
                               previewPane,
                             ],
                           ),
@@ -754,96 +822,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
                 ],
               )
             ],
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Select Specimens',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          const SizedBox(height: 8),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Scrollbar(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minWidth: constraints.maxWidth,
-                    ),
-                    child: SingleChildScrollView(
-                      child: DataTable(
-                        columnSpacing: 16,
-                        horizontalMargin: 12,
-                        dataRowMinHeight: 40,
-                        columns: [
-                          DataColumn(
-                            label: Checkbox(
-                              tristate: true,
-                              value: _headerCheckboxValue,
-                              onChanged: _onHeaderCheckbox,
-                            ),
-                          ),
-                          for (final col in _visibleColumnIds)
-                            DataColumn(
-                              label: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  minWidth: 72,
-                                  maxWidth: 160,
-                                ),
-                                child: Text(
-                                  specimenColumnDisplayTitle(col),
-                                  softWrap: true,
-                                ),
-                              ),
-                            ),
-                        ],
-                        rows: [
-                          for (final s in _all)
-                            DataRow(
-                              selected: _selected.contains(s.uuid),
-                              cells: [
-                                DataCell(
-                                  Checkbox(
-                                    value: _selected.contains(s.uuid),
-                                    onChanged: (v) {
-                                      setState(() {
-                                        if (v == true) {
-                                          _selected.add(s.uuid);
-                                        } else {
-                                          _selected.remove(s.uuid);
-                                        }
-                                      });
-                                    },
-                                  ),
-                                ),
-                                for (final col in _visibleColumnIds)
-                                  DataCell(
-                                    ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 200,
-                                      ),
-                                      child: Text(
-                                        _cellText(
-                                          _rowValues[s.uuid] ?? {},
-                                          col,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
           ),
         ],
       ),
@@ -1201,27 +1179,3 @@ class PrintLayoutSection extends StatelessWidget {
   }
 }
 
-class DocumentExportPreviewLike extends StatelessWidget {
-  const DocumentExportPreviewLike({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      clipBehavior: Clip.hardEdge,
-      borderRadius: BorderRadius.circular(16.0),
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      child: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            'PDF preview is not available. Please export the document to view it.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-}
