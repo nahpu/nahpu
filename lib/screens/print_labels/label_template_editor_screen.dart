@@ -89,6 +89,9 @@ class _LabelTemplateEditorScreenState
 
   bool _fieldsPanelExpanded = false;
 
+  /// Non-null while a custom text box is in canvas inline edit; inserts at caret.
+  void Function(String)? _inlineCustomTextPaste;
+
   bool _labelBorderPanelOpen = false;
   int _labelBorderPanelSession = 0;
 
@@ -315,11 +318,15 @@ class _LabelTemplateEditorScreenState
   // --- Custom text helpers ---
 
   void _addCustomText(bool page1) {
+    _addCustomTextWithLabel(page1, 'Text');
+  }
+
+  void _addCustomTextWithLabel(bool page1, String text) {
     final id = 'ct_$_customIdCounter';
     _customIdCounter++;
     final element = CustomTextElement(
       id: id,
-      text: 'Text',
+      text: text,
       xMm: 5,
       yMm: 5,
     );
@@ -900,14 +907,43 @@ class _LabelTemplateEditorScreenState
     );
   }
 
-  Widget _buildAppBarTitleRow(BuildContext context) {
+  /// Row 1: back button + title.
+  Widget _buildBackButtonRow() {
     final theme = Theme.of(context);
     final titleStyle = theme.textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.bold,
         ) ??
         theme.appBarTheme.titleTextStyle ??
         theme.textTheme.titleLarge;
+    return Material(
+      elevation: 1,
+      surfaceTintColor: theme.colorScheme.surfaceTint,
+      color: theme.colorScheme.surface,
+      child: Row(
+        children: [
+          const BackButton(),
+          Expanded(
+            child: Text(
+              'Label Editor',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: titleStyle,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  /// Desktop: combined header — back + title + duplex centered + border/grid/fields buttons.
+  Widget _buildDesktopEditorHeader() {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final titleStyle = theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+        ) ??
+        theme.appBarTheme.titleTextStyle ??
+        theme.textTheme.titleLarge;
     final duplexControl = FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.center,
@@ -932,34 +968,6 @@ class _LabelTemplateEditorScreenState
         },
       ),
     );
-
-    return Stack(
-      alignment: Alignment.center,
-      clipBehavior: Clip.none,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const BackButton(),
-            Expanded(
-              child: Text(
-                'Label Editor',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: titleStyle,
-              ),
-            ),
-          ],
-        ),
-        Center(child: duplexControl),
-      ],
-    );
-  }
-
-  /// Top bar for the editor (replaces [AppBar]): title + duplex + grid/fields toggles.
-  /// Sits in the left column so opening the fields sidebar narrows this row and shifts the icons.
-  Widget _buildEditorHeader() {
-    final scheme = Theme.of(context).colorScheme;
     return Material(
       elevation: 1,
       surfaceTintColor: scheme.surfaceTint,
@@ -969,7 +977,220 @@ class _LabelTemplateEditorScreenState
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(child: _buildAppBarTitleRow(context)),
+            Expanded(
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const BackButton(),
+                      Expanded(
+                        child: Text(
+                          'Label Editor',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: titleStyle,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Center(child: duplexControl),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Label border',
+              style: IconButton.styleFrom(
+                foregroundColor: _labelBorderPanelOpen
+                    ? scheme.primary
+                    : scheme.onSurfaceVariant,
+                backgroundColor: _labelBorderPanelOpen
+                    ? scheme.primaryContainer.withValues(alpha: 0.45)
+                    : null,
+              ),
+              onPressed: () => _deferSetState(() {
+                _labelBorderPanelOpen = !_labelBorderPanelOpen;
+                if (_labelBorderPanelOpen) _labelBorderPanelSession++;
+              }),
+              icon: const Icon(Icons.border_outer, size: 22),
+            ),
+            IconButton(
+              tooltip: _showGrid ? 'Hide grid' : 'Show grid',
+              style: IconButton.styleFrom(
+                foregroundColor: scheme.onSurfaceVariant,
+              ),
+              onPressed: () => _deferSetState(() => _showGrid = !_showGrid),
+              icon: Icon(
+                _showGrid ? Icons.grid_on : Icons.grid_off,
+                size: 22,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: _buildFieldsPanelToggleButton(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Desktop: single toolbar row with page pickers + label size + tool buttons.
+  Widget _buildDesktopTopToolbar() {
+    return Material(
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _buildFrontBackPagePickers(context),
+                          if (_isDuplex) const SizedBox(width: 8),
+                          if (_isDuplex) ...[
+                            VerticalDivider(
+                              width: 1,
+                              thickness: 1,
+                              indent: 4,
+                              endIndent: 4,
+                              color:
+                                  Theme.of(context).colorScheme.outlineVariant,
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Label size:',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 168,
+                                child: LabelSizeSelector(
+                                  compact: true,
+                                  controlledWidthMm: _labelWidthMm,
+                                  controlledHeightMm: _labelHeightMm,
+                                  onControlledDimensionsApplied: (w, h) {
+                                    _deferSetState(() {
+                                      _labelWidthMm = w;
+                                      _labelHeightMm = h;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    IconButton.filledTonal(
+                      onPressed: () => _addCustomText(_isPage1),
+                      icon: const Icon(Icons.text_fields),
+                      tooltip: 'Add text',
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton.filledTonal(
+                      onPressed: () => _showAddImageDialog(_isPage1),
+                      icon: const Icon(Icons.image_outlined),
+                      tooltip: 'Add image',
+                    ),
+                    const SizedBox(width: 4),
+                    _buildMirrorToggleButton(context),
+                    const SizedBox(width: 4),
+                    IconButton.filledTonal(
+                      onPressed: _showPrintPreviewDialog,
+                      icon: const Icon(Icons.print_outlined),
+                      tooltip: 'Print preview',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              clipBehavior: Clip.hardEdge,
+              child: _attributesBarOpen
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: _buildLabelPanelAttributes(inToolbar: true),
+                    )
+                  : const SizedBox(width: double.infinity, height: 0),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Mobile row 2: duplex toggle + border / grid / fields-panel buttons.
+  Widget _buildEditorHeader() {
+    final scheme = Theme.of(context).colorScheme;
+    final duplexControl = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.center,
+      child: SegmentedButton<bool>(
+        showSelectedIcon: false,
+        segments: const [
+          ButtonSegment(value: false, label: Text('1 sided')),
+          ButtonSegment(value: true, label: Text('2 sided')),
+        ],
+        selected: {_isDuplex},
+        onSelectionChanged: (values) async {
+          final duplex = values.first;
+          _deferSetState(() {
+            _isDuplex = duplex;
+            if (!duplex && _tabController.index != 0) {
+              _tabController.index = 0;
+            }
+            _selectedElement = null;
+            _inlineCanvasCustomKey = null;
+          });
+          await _labelSettings.setDuplex(duplex);
+        },
+      ),
+    );
+    return Material(
+      elevation: 1,
+      surfaceTintColor: scheme.surfaceTint,
+      color: scheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          children: [
+            duplexControl,
+            const Spacer(),
             IconButton(
               tooltip: 'Label border',
               style: IconButton.styleFrom(
@@ -1094,57 +1315,80 @@ class _LabelTemplateEditorScreenState
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: SafeArea(
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
     }
+    final isMobile = Platform.isIOS || Platform.isAndroid;
+    final viewPadding = MediaQuery.viewPaddingOf(context);
+
+    final isLandscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+
+    final headerRows = isMobile
+        ? <Widget>[
+            _buildBackButtonRow(),
+            _buildEditorHeader(),
+            if (isLandscape)
+              ..._buildMobileLandscapeToolRows()
+            else
+              ..._buildMobilePortraitToolRows(),
+          ]
+        : <Widget>[
+            _buildDesktopEditorHeader(),
+            _buildDesktopTopToolbar(),
+          ];
+
     return Scaffold(
-      body: MediaQuery.removePadding(
-        context: context,
-        removeTop: true,
-        removeBottom: true,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: SafeArea(
-                top: true,
-                bottom: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildEditorHeader(),
-                    _buildTopToolbar(),
-                    Expanded(
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Positioned.fill(
-                            child: _isDuplex
-                                ? TabBarView(
-                                    controller: _tabController,
-                                    children: [
-                                      _buildCanvas(page1: true),
-                                      _buildCanvas(page1: false),
-                                    ],
-                                  )
-                                : _buildCanvas(page1: true),
-                          ),
-                          Positioned(
-                            right: 16,
-                            bottom: 16,
-                            child: _buildZoomControls(),
-                          ),
-                        ],
-                      ),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: isMobile
+                  ? EdgeInsets.only(
+                      top: viewPadding.top,
+                      left: viewPadding.left,
+                      right: viewPadding.right,
+                    )
+                  : EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...headerRows,
+                  Expanded(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned.fill(
+                          child: _isDuplex
+                              ? TabBarView(
+                                  controller: _tabController,
+                                  children: [
+                                    _buildCanvas(page1: true),
+                                    _buildCanvas(page1: false),
+                                  ],
+                                )
+                              : _buildCanvas(page1: true),
+                        ),
+                        Positioned(
+                          right: 16,
+                          bottom: 16,
+                          child: _buildZoomControls(),
+                        ),
+                      ],
                     ),
-                    if (_labelBorderPanelOpen) _buildLabelBorderPanel(),
-                    _buildBottomEditorBar(),
-                  ],
-                ),
+                  ),
+                  if (_labelBorderPanelOpen) _buildLabelBorderPanel(),
+                  _buildBottomEditorBar(),
+                ],
               ),
             ),
-            _buildAnimatedFieldsPanel(),
-          ],
-        ),
+          ),
+          _buildAnimatedFieldsPanel(),
+        ],
       ),
     );
   }
@@ -1256,120 +1500,154 @@ class _LabelTemplateEditorScreenState
     );
   }
 
-  Widget _buildTopToolbar() {
-    return Material(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+  List<Widget> _pageAndLabelWidgets() {
+    return [
+      _buildFrontBackPagePickers(context),
+      if (_isDuplex) const SizedBox(width: 8),
+      if (_isDuplex) ...[
+        VerticalDivider(
+          width: 1,
+          thickness: 1,
+          indent: 4,
+          endIndent: 4,
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+        const SizedBox(width: 12),
+      ],
+      Text(
+        'Label size:',
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+      ),
+      const SizedBox(width: 8),
+      SizedBox(
+        width: 168,
+        child: LabelSizeSelector(
+          compact: true,
+          controlledWidthMm: _labelWidthMm,
+          controlledHeightMm: _labelHeightMm,
+          onControlledDimensionsApplied: (w, h) {
+            _deferSetState(() {
+              _labelWidthMm = w;
+              _labelHeightMm = h;
+            });
+          },
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _toolButtonWidgets() {
+    return [
+      IconButton.filledTonal(
+        onPressed: () => _addCustomText(_isPage1),
+        icon: const Icon(Icons.text_fields),
+        tooltip: 'Add text',
+      ),
+      const SizedBox(width: 4),
+      IconButton.filledTonal(
+        onPressed: () => _showAddImageDialog(_isPage1),
+        icon: const Icon(Icons.image_outlined),
+        tooltip: 'Add image',
+      ),
+      const SizedBox(width: 4),
+      _buildMirrorToggleButton(context),
+      const SizedBox(width: 4),
+      IconButton.filledTonal(
+        onPressed: _showPrintPreviewDialog,
+        icon: const Icon(Icons.print_outlined),
+        tooltip: 'Print preview',
+      ),
+    ];
+  }
+
+  Widget _buildAttributesPanel() {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      clipBehavior: Clip.hardEdge,
+      child: _attributesBarOpen
+          ? Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _buildLabelPanelAttributes(inToolbar: true),
+            )
+          : const SizedBox(width: double.infinity, height: 0),
+    );
+  }
+
+  /// Portrait rows 3+4: page/label on one line, tool buttons on next.
+  List<Widget> _buildMobilePortraitToolRows() {
+    return [
+      Material(
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
+              children: _pageAndLabelWidgets(),
+            ),
+          ),
+        ),
+      ),
+      Material(
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: _toolButtonWidgets(),
+              ),
+              _buildAttributesPanel(),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  /// Landscape: page/label + tool buttons merged into one row.
+  List<Widget> _buildMobileLandscapeToolRows() {
+    return [
+      Material(
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildFrontBackPagePickers(context),
-                          if (_isDuplex) const SizedBox(width: 8),
-                          if (_isDuplex) ...[
-                            VerticalDivider(
-                              width: 1,
-                              thickness: 1,
-                              indent: 4,
-                              endIndent: 4,
-                              color:
-                                  Theme.of(context).colorScheme.outlineVariant,
-                            ),
-                            const SizedBox(width: 12),
-                          ],
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Label size:',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
-                                    ),
-                              ),
-                              const SizedBox(width: 8),
-                              SizedBox(
-                                width: 168,
-                                child: LabelSizeSelector(
-                                  compact: true,
-                                  controlledWidthMm: _labelWidthMm,
-                                  controlledHeightMm: _labelHeightMm,
-                                  onControlledDimensionsApplied: (w, h) {
-                                    _deferSetState(() {
-                                      _labelWidthMm = w;
-                                      _labelHeightMm = h;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        children: _pageAndLabelWidgets(),
                       ),
                     ),
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    IconButton.filledTonal(
-                      onPressed: () => _addCustomText(_isPage1),
-                      icon: const Icon(Icons.text_fields),
-                      tooltip: 'Add text',
-                    ),
-                    const SizedBox(width: 4),
-                    IconButton.filledTonal(
-                      onPressed: () => _showAddImageDialog(_isPage1),
-                      icon: const Icon(Icons.image_outlined),
-                      tooltip: 'Add image',
-                    ),
-                    const SizedBox(width: 4),
-                    _buildMirrorToggleButton(context),
-                    const SizedBox(width: 4),
-                    IconButton.filledTonal(
-                      onPressed: _showPrintPreviewDialog,
-                      icon: const Icon(Icons.print_outlined),
-                      tooltip: 'Print preview',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeOutCubic,
-              alignment: Alignment.topCenter,
-              clipBehavior: Clip.hardEdge,
-              child: _attributesBarOpen
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: _buildLabelPanelAttributes(inToolbar: true),
-                    )
-                  : const SizedBox(width: double.infinity, height: 0),
-            ),
-          ],
+                  ..._toolButtonWidgets(),
+                ],
+              ),
+              _buildAttributesPanel(),
+            ],
+          ),
         ),
       ),
-    );
+    ];
   }
 
   Widget _buildBottomEditorBar() {
@@ -1533,10 +1811,13 @@ class _LabelTemplateEditorScreenState
               ),
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onTap: () => _deferSetState(() {
-                  _selectedElement = null;
-                  _inlineCanvasCustomKey = null;
-                }),
+                onTap: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  _deferSetState(() {
+                    _selectedElement = null;
+                    _inlineCanvasCustomKey = null;
+                  });
+                },
                 child: Container(
                   width: scrollW,
                   height: scrollH,
@@ -1750,8 +2031,12 @@ class _LabelTemplateEditorScreenState
                                       );
                                     }
                                     _inlineCanvasCustomKey = null;
+                                    _inlineCustomTextPaste = null;
                                   });
                                 },
+                                onInlineTextInsertBinding: (fn) =>
+                                    _deferSetState(
+                                        () => _inlineCustomTextPaste = fn),
                                 onTap: () {
                                   final k =
                                       'custom:${page1 ? '1' : '2'}:${ct.id}';
@@ -1921,50 +2206,60 @@ class _LabelTemplateEditorScreenState
     required double width,
   }) {
     final rowLabels = _fieldPanelRowLabels(fieldIds);
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: SizedBox(
-        width: width,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-              child: Text(
-                'Available fields',
-                style: Theme.of(context).textTheme.titleSmall,
+    return TextFieldTapRegion(
+      child: Material(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        child: SizedBox(
+          width: width,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                child: Text(
+                  'Available fields',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
               ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                itemCount: rowLabels.length,
-                itemBuilder: (context, index) {
-                  final label = rowLabels[index];
-                  final fieldStyle = TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 14,
-                    height: 1.25,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  );
-                  return ListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    horizontalTitleGap: 8,
-                    contentPadding: const EdgeInsets.fromLTRB(16, 2, 5, 2),
-                    title: Text(
-                      label,
-                      style: fieldStyle,
-                      maxLines: 1,
-                      softWrap: false,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
-                },
+              const Divider(height: 1),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  itemCount: rowLabels.length,
+                  itemBuilder: (context, index) {
+                    final label = rowLabels[index];
+                    final fieldStyle = TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 14,
+                      height: 1.25,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    );
+                    return ListTile(
+                      dense: true,
+                      visualDensity: VisualDensity.compact,
+                      horizontalTitleGap: 8,
+                      contentPadding: const EdgeInsets.fromLTRB(16, 2, 5, 2),
+                      onTap: () {
+                        final paste = _inlineCustomTextPaste;
+                        if (paste != null) {
+                          paste(label);
+                        } else {
+                          _addCustomTextWithLabel(_isPage1, label);
+                        }
+                      },
+                      title: Text(
+                        label,
+                        style: fieldStyle,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -2738,6 +3033,7 @@ class _DraggableChip extends StatefulWidget {
     this.isSelected = false,
     this.isInlineEditing = false,
     this.onInlineEditingComplete,
+    this.onInlineTextInsertBinding,
     this.onTap,
     this.onSelect,
   });
@@ -2767,6 +3063,9 @@ class _DraggableChip extends StatefulWidget {
 
   /// Called once when inline editing ends (focus lost or Enter); updates template text.
   final ValueChanged<String>? onInlineEditingComplete;
+
+  /// Active while inline editing: non-null inserts at caret; null when edit ends.
+  final ValueChanged<void Function(String)?>? onInlineTextInsertBinding;
   final VoidCallback? onTap;
 
   /// When pan wins over tap (slight movement), [onTap] may not run; parent uses
@@ -2938,12 +3237,36 @@ class _DraggableChipState extends State<_DraggableChip> {
     _inlineCtrl = TextEditingController(text: widget.actualText);
     _inlineFocus = FocusNode();
     _inlineFocus!.addListener(_onInlineFocusChange);
+    widget.onInlineTextInsertBinding?.call(_pasteIntoInlineField);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !widget.isInlineEditing) return;
       _inlineFocus?.requestFocus();
       final t = _inlineCtrl?.text ?? '';
       _inlineCtrl?.selection = TextSelection.collapsed(offset: t.length);
     });
+  }
+
+  void _pasteIntoInlineField(String insertion) {
+    final c = _inlineCtrl;
+    if (c == null || !widget.isInlineEditing) return;
+    final text = c.text;
+    final sel = c.selection;
+    var start = sel.isValid ? sel.start : text.length;
+    var end = sel.isValid ? sel.end : text.length;
+    if (start < 0 || start > text.length) start = text.length;
+    if (end < 0 || end > text.length) end = text.length;
+    if (start > end) {
+      final t = start;
+      start = end;
+      end = t;
+    }
+    final newText = text.replaceRange(start, end, insertion);
+    final newOffset = start + insertion.length;
+    c.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newOffset),
+    );
+    _inlineFocus?.requestFocus();
   }
 
   @override
@@ -2987,6 +3310,7 @@ class _DraggableChipState extends State<_DraggableChip> {
     if (widget.isInlineEditing && !oldWidget.isInlineEditing) {
       _startInlineEditing();
     } else if (!widget.isInlineEditing && oldWidget.isInlineEditing) {
+      widget.onInlineTextInsertBinding?.call(null);
       if (!_inlineEditCommitted) {
         _commitInlineToParent();
       }
@@ -3017,6 +3341,9 @@ class _DraggableChipState extends State<_DraggableChip> {
 
   @override
   void dispose() {
+    if (widget.isInlineEditing) {
+      widget.onInlineTextInsertBinding?.call(null);
+    }
     _inlineFocus?.removeListener(_onInlineFocusChange);
     _inlineFocus?.dispose();
     _inlineCtrl?.dispose();
