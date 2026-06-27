@@ -10,7 +10,6 @@ import 'package:nahpu/screens/shared/file_operation.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/export/document_exports.dart';
-import 'package:printing/printing.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 class ExportPdfForm extends ConsumerStatefulWidget {
@@ -62,11 +61,73 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _buildSettings(),
+                    child: DocumentExportSettings(
+                      exportType: _exportType,
+                      exportFmt: _exportFmt,
+                      fileStem: _fileStem,
+                      hasSaved: _hasSaved,
+                      isRunning: _isRunning,
+                      selectedDir: _selectedDir,
+                      exportCtr: exportCtr,
+                      onExportTypeChanged: (DocumentExportType? value) {
+                        if (value != null) {
+                          setState(() {
+                            _exportType = value;
+                            _hasSaved = false;
+                            _showPreview = false;
+                          });
+                        }
+                      },
+                      onExportFmtChanged: (DocumentExportFmt? value) {
+                        if (value != null) {
+                          setState(() {
+                            _exportFmt = value;
+                            _hasSaved = false;
+                            _showPreview = false;
+                          });
+                        }
+                      },
+                      onFileStemChanged: (String? value) {
+                        if (value != null) {
+                          setState(() {
+                            _fileStem = value;
+                            _hasSaved = false;
+                          });
+                        }
+                      },
+                      onDirSelected: _getDir,
+                      onDirCleared: () {
+                        setState(() {
+                          _selectedDir = null;
+                          _hasSaved = false;
+                        });
+                      },
+                      onSave: () async {
+                        setState(() {
+                          _isRunning = true;
+                        });
+                        await _writeDocument();
+                        setState(() {
+                          _isRunning = false;
+                        });
+                      },
+                      onShare: (context) {
+                        _shareFile(context);
+                      },
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildPreview(),
+                    child: DocumentExportPreview(
+                      showPreview: _showPreview,
+                      exportFmt: _exportFmt,
+                      exportType: _exportType,
+                      onGeneratePreview: () {
+                        setState(() {
+                          _showPreview = true;
+                        });
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -84,179 +145,75 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildSettings(),
-                      _buildPreview(),
+                      DocumentExportSettings(
+                        exportType: _exportType,
+                        exportFmt: _exportFmt,
+                        fileStem: _fileStem,
+                        hasSaved: _hasSaved,
+                        isRunning: _isRunning,
+                        selectedDir: _selectedDir,
+                        exportCtr: exportCtr,
+                        onExportTypeChanged: (DocumentExportType? value) {
+                          if (value != null) {
+                            setState(() {
+                              _exportType = value;
+                              _hasSaved = false;
+                              _showPreview = false;
+                            });
+                          }
+                        },
+                        onExportFmtChanged: (DocumentExportFmt? value) {
+                          if (value != null) {
+                            setState(() {
+                              _exportFmt = value;
+                              _hasSaved = false;
+                              _showPreview = false;
+                            });
+                          }
+                        },
+                        onFileStemChanged: (String? value) {
+                          if (value != null) {
+                            setState(() {
+                              _fileStem = value;
+                              _hasSaved = false;
+                            });
+                          }
+                        },
+                        onDirSelected: _getDir,
+                        onDirCleared: () {
+                          setState(() {
+                            _selectedDir = null;
+                            _hasSaved = false;
+                          });
+                        },
+                        onSave: () async {
+                          setState(() {
+                            _isRunning = true;
+                          });
+                          await _writeDocument();
+                          setState(() {
+                            _isRunning = false;
+                          });
+                        },
+                        onShare: (context) {
+                          _shareFile(context);
+                        },
+                      ),
+                      DocumentExportPreview(
+                        showPreview: _showPreview,
+                        exportFmt: _exportFmt,
+                        exportType: _exportType,
+                        onGeneratePreview: () {
+                          setState(() {
+                            _showPreview = true;
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-    );
-  }
-
-  Widget _buildSettings() {
-    return FileOperationPage(
-      children: [
-        const FileFormatIcon(path: 'assets/icons/pdf.svg'),
-        DropdownButtonFormField(
-            initialValue: _exportType,
-            decoration: const InputDecoration(
-              labelText: 'Record type',
-            ),
-            items: documentExport.keys
-                .map((e) => DropdownMenuItem(
-                      value: e,
-                      child: CommonDropdownText(
-                        text: documentExport[e] ?? '',
-                      ),
-                    ))
-                .toList(),
-            onChanged: (DocumentExportType? value) {
-              if (value != null) {
-                setState(() {
-                  _exportType = value;
-                  _hasSaved = false;
-                  _showPreview = false;
-                });
-              }
-            }),
-        DropdownButtonFormField(
-            initialValue: _exportFmt,
-            decoration: const InputDecoration(
-              labelText: 'Format',
-            ),
-            items: documentExportFmt.keys
-                .map((e) => DropdownMenuItem(
-                      value: e,
-                      child: CommonDropdownText(
-                        text: documentExportFmt[e] ?? '',
-                      ),
-                    ))
-                .toList(),
-            onChanged: (DocumentExportFmt? value) {
-              if (value != null) {
-                setState(() {
-                  _exportFmt = value;
-                  _hasSaved = false;
-                  _showPreview = false;
-                });
-              }
-            }),
-        FileNameField(
-          controller: exportCtr,
-          onChanged: (String? value) {
-            if (value != null) {
-              setState(() {
-                _fileStem = value;
-                _hasSaved = false;
-              });
-            }
-          },
-        ),
-        SelectDirField(
-          dirPath: _selectedDir,
-          onPressed: () {
-            _getDir();
-          },
-          onCanceled: () {
-            setState(() {
-              _selectedDir = null;
-              _hasSaved = false;
-            });
-          },
-        ),
-        const SizedBox(height: 24),
-        Wrap(
-          spacing: 20,
-          children: [
-            SaveSecondaryButton(hasSaved: _hasSaved),
-            !_hasSaved
-                ? ProgressButton(
-                    label: 'Save',
-                    isRunning: _isRunning,
-                    icon: Icons.save_alt_outlined,
-                    onPressed: !exportCtr.isValid
-                        ? null
-                        : () async {
-                            setState(() {
-                              _isRunning = true;
-                            });
-                            await _writeDocument();
-                            setState(() {
-                              _isRunning = false;
-                            });
-                          },
-                  )
-                : Builder(
-                    builder: (BuildContext context) {
-                      return ShareButton(onPressed: () {
-                        _shareFile(context);
-                      });
-                    },
-                  ),
-          ],
-        )
-      ],
-    );
-  }
-
-  Widget _buildPreview() {
-    return Material(
-      clipBehavior: Clip.hardEdge,
-      borderRadius: BorderRadius.circular(16.0),
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      child: !_showPreview
-          ? Center(
-              child: FilledButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showPreview = true;
-                  });
-                },
-                icon: const Icon(Icons.visibility),
-                label: const Text('Generate Preview'),
-              ),
-            )
-          : _exportFmt == DocumentExportFmt.pdf
-              ? PdfPreview(
-                  build: (format) async {
-                    return await DocumentExportServices(ref: ref)
-                        .generateBytes(type: _exportType, format: _exportFmt);
-                  },
-                  useActions: false,
-                  canChangeOrientation: false,
-                  canChangePageFormat: false,
-                  canDebug: false,
-                )
-              : FutureBuilder<Uint8List>(
-                  future: DocumentExportServices(ref: ref)
-                      .generateBytes(type: _exportType, format: _exportFmt),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No data'));
-                    }
-
-                    final text = utf8.decode(snapshot.data!);
-
-                    if (_exportFmt == DocumentExportFmt.md) {
-                      return Markdown(data: text);
-                    } else {
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.all(16.0),
-                        child: SelectableText(text),
-                      );
-                    }
-                  },
-                ),
     );
   }
 
@@ -310,5 +267,176 @@ class ExportPdfFormState extends ConsumerState<ExportPdfForm>
     setState(() {
       _selectedDir = path;
     });
+  }
+}
+
+class DocumentExportSettings extends StatelessWidget {
+  const DocumentExportSettings({
+    super.key,
+    required this.exportType,
+    required this.exportFmt,
+    required this.fileStem,
+    required this.hasSaved,
+    required this.isRunning,
+    required this.selectedDir,
+    required this.exportCtr,
+    required this.onExportTypeChanged,
+    required this.onExportFmtChanged,
+    required this.onFileStemChanged,
+    required this.onDirSelected,
+    required this.onDirCleared,
+    required this.onSave,
+    required this.onShare,
+  });
+
+  final DocumentExportType exportType;
+  final DocumentExportFmt exportFmt;
+  final String fileStem;
+  final bool hasSaved;
+  final bool isRunning;
+  final Directory? selectedDir;
+  final FileOpCtrModel exportCtr;
+  final void Function(DocumentExportType?) onExportTypeChanged;
+  final void Function(DocumentExportFmt?) onExportFmtChanged;
+  final void Function(String?) onFileStemChanged;
+  final VoidCallback onDirSelected;
+  final VoidCallback onDirCleared;
+  final VoidCallback onSave;
+  final void Function(BuildContext) onShare;
+
+  @override
+  Widget build(BuildContext context) {
+    return FileOperationPage(
+      children: [
+        const FileFormatIcon(path: 'assets/icons/pdf.svg'),
+        DropdownButtonFormField(
+            initialValue: exportType,
+            decoration: const InputDecoration(
+              labelText: 'Record type',
+            ),
+            items: documentExport.keys
+                .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: CommonDropdownText(
+                        text: documentExport[e] ?? '',
+                      ),
+                    ))
+                .toList(),
+            onChanged: onExportTypeChanged),
+        DropdownButtonFormField(
+            initialValue: exportFmt,
+            decoration: const InputDecoration(
+              labelText: 'Format',
+            ),
+            items: documentExportFmt.keys
+                .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: CommonDropdownText(
+                        text: documentExportFmt[e] ?? '',
+                      ),
+                    ))
+                .toList(),
+            onChanged: onExportFmtChanged),
+        FileNameField(
+          controller: exportCtr,
+          onChanged: onFileStemChanged,
+        ),
+        SelectDirField(
+          dirPath: selectedDir,
+          onPressed: onDirSelected,
+          onCanceled: onDirCleared,
+        ),
+        const SizedBox(height: 24),
+        Wrap(
+          spacing: 20,
+          children: [
+            SaveSecondaryButton(hasSaved: hasSaved),
+            !hasSaved
+                ? ProgressButton(
+                    label: 'Save',
+                    isRunning: isRunning,
+                    icon: Icons.save_alt_outlined,
+                    onPressed: !exportCtr.isValid ? null : onSave,
+                  )
+                : Builder(
+                    builder: (BuildContext context) {
+                      return ShareButton(onPressed: () => onShare(context));
+                    },
+                  ),
+          ],
+        )
+      ],
+    );
+  }
+}
+
+class DocumentExportPreview extends ConsumerWidget {
+  const DocumentExportPreview({
+    super.key,
+    required this.showPreview,
+    required this.exportFmt,
+    required this.exportType,
+    required this.onGeneratePreview,
+  });
+
+  final bool showPreview;
+  final DocumentExportFmt exportFmt;
+  final DocumentExportType exportType;
+  final VoidCallback onGeneratePreview;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Material(
+      clipBehavior: Clip.hardEdge,
+      borderRadius: BorderRadius.circular(16.0),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
+      child: !showPreview
+          ? Center(
+              child: FilledButton.icon(
+                onPressed: onGeneratePreview,
+                icon: const Icon(Icons.visibility),
+                label: const Text('Generate Preview'),
+              ),
+            )
+          : exportFmt == DocumentExportFmt.pdf
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'PDF preview is not available. Please export the document to view it.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              : FutureBuilder<Uint8List>(
+                  future: DocumentExportServices(ref: ref)
+                      .generateBytes(type: exportType, format: exportFmt),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No data'));
+                    }
+
+                    final text = utf8.decode(snapshot.data!);
+
+                    if (exportFmt == DocumentExportFmt.md) {
+                      return Markdown(data: text);
+                    } else {
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.all(16.0),
+                        child: SelectableText(text),
+                      );
+                    }
+                  },
+                ),
+    );
   }
 }

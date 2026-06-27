@@ -1,6 +1,3 @@
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart';
-
 enum DocumentExportType { narrative, site, event, specimen }
 
 enum DocumentExportFmt { md, typ, pdf }
@@ -66,6 +63,8 @@ const List<String> reportTypeList = [
 
 enum ArchiveFmt { zip }
 
+enum PdfPageFormat { a3, a4, a5, a6, letter, legal }
+
 Map<PdfPageFormat, String> pdfExportPageFormat = {
   PdfPageFormat.a3: 'A3 (29.7 x 42.0 cm)',
   PdfPageFormat.a4: 'A4 (21.0 x 29.7 cm)',
@@ -74,6 +73,8 @@ Map<PdfPageFormat, String> pdfExportPageFormat = {
   PdfPageFormat.letter: 'Letter (8.5 x 11.0 in)',
   PdfPageFormat.legal: 'Legal (8.5 x 14.0 in)',
 };
+
+enum PageOrientation { landscape, portrait }
 
 Map<PageOrientation, String> pdfExportOrientation = {
   PageOrientation.landscape: 'Landscape',

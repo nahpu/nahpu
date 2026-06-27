@@ -2057,20 +2057,6 @@ dependencies = [
 [[package]]
 name = "nahpu_db"
 version = "0.4.0"
-dependencies = [
- "calamine",
- "csv",
- "heck",
- "reqwest",
- "rust_xlsxwriter",
- "serde",
- "serde_json",
- "sqlparser",
-]
-
-[[package]]
-name = "nahpu_db"
-version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78cbb22f87a21e8ed969d3326636fa6d127c1809b1bccf7ce31fab7b61955051"
 dependencies = [
@@ -2087,9 +2073,11 @@ dependencies = [
 [[package]]
 name = "nahpu_export"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b98921795fbdde788a3a41d6a6bf3798444bf5487f2fd73783cea1bbc3cb63c4"
 dependencies = [
  "chrono",
- "nahpu_db 0.4.0",
+ "nahpu_db",
  "serde",
  "serde_json",
  "typst",
@@ -2847,7 +2835,7 @@ version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
  "nahpu_archive",
- "nahpu_db 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nahpu_db",
  "nahpu_export",
  "nahpu_gis",
  "serde_json",

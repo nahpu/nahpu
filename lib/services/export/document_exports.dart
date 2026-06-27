@@ -47,9 +47,14 @@ class DocumentExportServices {
     List<Uint8List> fontBytesList = [];
 
     if (format == DocumentExportFmt.pdf) {
-      final AssetManifest manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-      final List<String> fontAssets = manifest.listAssets()
-          .where((String key) => key.startsWith('assets/fonts/') && key.endsWith('.ttf') && !key.contains('nahpu_font.ttf'))
+      final AssetManifest manifest =
+          await AssetManifest.loadFromAssetBundle(rootBundle);
+      final List<String> fontAssets = manifest
+          .listAssets()
+          .where((String key) =>
+              key.startsWith('assets/fonts/') &&
+              key.endsWith('.ttf') &&
+              !key.contains('nahpu_font.ttf'))
           .toList();
 
       for (var asset in fontAssets) {
@@ -59,13 +64,13 @@ class DocumentExportServices {
     }
 
     String formatStr = format.name; // 'md', 'typ', 'pdf'
-    
+
     final bytes = await rust_export.generateDocument(
-        jsonContent: jsonContent,
-        exportFormat: formatStr,
-        fontBytes: fontBytesList,
+      jsonContent: jsonContent,
+      exportFormat: formatStr,
+      fontBytes: fontBytesList,
     );
-    
+
     return bytes;
   }
 

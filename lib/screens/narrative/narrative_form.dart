@@ -9,6 +9,7 @@ import 'package:nahpu/screens/narrative/components/top_forms.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/narrative_services.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 class NarrativeForm extends ConsumerStatefulWidget {
   const NarrativeForm({
@@ -99,7 +100,7 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
   }
 }
 
-class NarrativeText extends ConsumerWidget {
+class NarrativeText extends ConsumerStatefulWidget {
   const NarrativeText({
     super.key,
     required this.narrativeCtr,
@@ -110,24 +111,77 @@ class NarrativeText extends ConsumerWidget {
   final int narrativeId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return CommonPadding(
-      child: TextField(
-        decoration: InputDecoration(
-          labelText: 'Narrative',
-          hintText: 'Enter narrative',
+  NarrativeTextState createState() => NarrativeTextState();
+}
+
+class NarrativeTextState extends ConsumerState<NarrativeText> {
+  bool _isEditing = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                'Narrative',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2),
+              child: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isEditing = !_isEditing;
+                  });
+                },
+                icon: Icon(
+                  _isEditing ? Icons.visibility : Icons.edit,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                tooltip: _isEditing ? 'Preview' : 'Edit',
+              ),
+            ),
+          ],
         ),
-        controller: narrativeCtr.narrativeCtr,
-        maxLines: 20,
-        onChanged: (String? value) {
-          if (value != null) {
-            NarrativeServices(ref: ref).updateNarrative(
-              narrativeId,
-              NarrativeCompanion(narrative: db.Value(value)),
-            );
-          }
-        },
-      ),
+        CommonPadding(
+          child: _isEditing
+              ? TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'Enter narrative (Markdown supported)',
+                  ),
+                  controller: widget.narrativeCtr.narrativeCtr,
+                  maxLines: 20,
+                  onChanged: (String? value) {
+                    if (value != null) {
+                      NarrativeServices(ref: ref).updateNarrative(
+                        widget.narrativeId,
+                        NarrativeCompanion(narrative: db.Value(value)),
+                      );
+                    }
+                  },
+                )
+              : Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(minHeight: 300),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: MarkdownBody(
+                    data: widget.narrativeCtr.narrativeCtr.text.isEmpty
+                        ? '*No narrative. Use the Edit button above to start writing.*'
+                        : widget.narrativeCtr.narrativeCtr.text,
+                    selectable: true,
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }
