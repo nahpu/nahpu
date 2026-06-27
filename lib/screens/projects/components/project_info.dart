@@ -163,7 +163,9 @@ class ProjectQrCodeViewer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: isFullScreen ? 400 : 80,
-      padding: const EdgeInsets.all(2),
+      height: isFullScreen ? 400 : 80,
+      padding: const EdgeInsets.all(8.0),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
