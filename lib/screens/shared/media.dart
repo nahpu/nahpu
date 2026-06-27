@@ -356,9 +356,6 @@ class _MediaTypeFallback extends StatelessWidget {
       case MediaKind.video:
         icon = Icons.play_circle_outline;
         break;
-      case MediaKind.pdf:
-        icon = Icons.picture_as_pdf_outlined;
-        break;
       case MediaKind.image:
         icon = Icons.image_outlined;
         break;
@@ -692,7 +689,7 @@ class MediaInfoContent extends StatelessWidget {
         InfoContent(
           content: 'Media files of the project.'
               ' On mobile, gallery and camera import images only.'
-              ' Use Files to import audio, video, and PDF.',
+              ' Use Files to import audio and video.',
         ),
       ],
     );

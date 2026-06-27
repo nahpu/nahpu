@@ -14,7 +14,7 @@ import 'package:path/path.dart' as path;
 class UnsupportedMediaFileException implements Exception {
   const UnsupportedMediaFileException(
     this.paths, {
-    this.supportedTypes = 'images, audio, video, and PDF',
+    this.supportedTypes = 'images, audio, and video',
   });
 
   final List<String> paths;
