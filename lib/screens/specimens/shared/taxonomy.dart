@@ -142,9 +142,10 @@ class TaxonDetailsView extends StatelessWidget {
                 TaxonDetailRow(
                     label: 'Genus', value: taxonData.genus, isItalic: true),
                 TaxonDetailRow(
-                    label: 'Species',
-                    value: taxonData.specificEpithet,
-                    isItalic: true),
+                  label: 'Species',
+                  value: '${taxonData.genus} ${taxonData.specificEpithet}',
+                  isItalic: true,
+                ),
                 TaxonDetailRow(label: 'Authors', value: taxonData.authors),
                 TaxonDetailRow(
                     label: 'Common name', value: taxonData.commonName),
