@@ -5,7 +5,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:nahpu/screens/export/labels/label_border_sheet.dart';
 import 'package:nahpu/screens/export/labels/label_canvas_stack.dart';
 import 'package:nahpu/screens/export/labels/label_outline.dart';
@@ -16,14 +15,23 @@ import 'package:nahpu/screens/export/labels/label_gender_icon.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 import 'package:nahpu/services/label_template_service.dart';
+import 'package:nahpu/services/label_template_editor_service.dart';
 import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/services/label_logo_service.dart';
+import 'package:nahpu/screens/export/labels/components/draggable_image_chip.dart';
+import 'package:nahpu/screens/export/labels/components/draggable_chip.dart';
+import 'package:nahpu/screens/export/labels/components/synced_font_size_field.dart';
+import 'package:nahpu/screens/export/labels/components/grid_painter.dart';
+import 'package:nahpu/screens/export/labels/components/available_fields_panel.dart';
+import 'package:nahpu/screens/export/labels/components/front_back_page_pickers.dart';
+import 'package:nahpu/screens/export/labels/components/zoom_controls.dart';
+import 'package:nahpu/screens/export/labels/components/mirror_toggle_button.dart';
+import 'package:nahpu/screens/export/labels/components/fields_panel_toggle_button.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:path/path.dart' as path;
 
 /// PDF points per mm (72 / 25.4); keep in sync with `labelPdfMmToPt`.
-const double _kPdfPointsPerMm = 72.0 / 25.4;
 
 /// Invisible margin around the label so resize/rotate controls that paint outside
 /// the white rect still receive hit tests (tight [SizedBox] would drop them).
@@ -36,7 +44,6 @@ typedef LabelPanMmDeltaCallback = Offset? Function(
     Offset globalPosition, Offset globalDelta);
 
 /// Logical px → mm along label axes; avoids div-by-zero before layout settles.
-double _canvasScaleForMmMath(double scale) => scale < 1e-9 ? 1e-9 : scale;
 
 double _clampMm(double value, double bound1, double bound2) {
   final lo = bound1 <= bound2 ? bound1 : bound2;
@@ -59,6 +66,8 @@ class _LabelTemplateEditorScreenState
   late TabController _tabController;
   final LabelTemplateService _templateService = const LabelTemplateService();
   final LabelSettingsServices _labelSettings = LabelSettingsServices();
+  final LabelTemplateEditorService _editorService =
+      LabelTemplateEditorService();
 
   LabelTemplate _template = DefaultLabelTemplate.defaultTemplate();
   List<String> _savedNames = [];
@@ -313,6 +322,304 @@ class _LabelTemplateEditorScreenState
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: SafeArea(
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    final isMobile = Platform.isIOS || Platform.isAndroid;
+    final viewPadding = MediaQuery.viewPaddingOf(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Label Editor'),
+        actions: [
+          PopupMenuButton<String>(
+            tooltip: 'Template Options',
+            icon: const Icon(Icons.more_vert),
+            onSelected: (action) {
+              if (action == 'import') {
+                _importTemplate();
+              } else if (action == 'export') {
+                _exportTemplate();
+              } else if (action == 'delete') {
+                _confirmDeleteTemplate();
+              } else if (action.startsWith('load:')) {
+                _loadTemplate(action.substring(5));
+              }
+            },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                  value: 'import', child: Text('Import template')),
+              const PopupMenuItem(
+                  value: 'export', child: Text('Export template')),
+              if (_canDeleteSavedTemplate)
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete template',
+                      style: TextStyle(color: scheme.error)),
+                ),
+              if (_savedNames.isNotEmpty) const PopupMenuDivider(),
+              if (_savedNames.isNotEmpty)
+                const PopupMenuItem(
+                    enabled: false, child: Text('Load template:')),
+              for (final n in _savedNames)
+                PopupMenuItem(value: 'load:$n', child: Text(n)),
+            ],
+          ),
+        ],
+      ),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: isMobile
+                  ? EdgeInsets.only(
+                      left: viewPadding.left,
+                      right: viewPadding.right,
+                      bottom: viewPadding.bottom,
+                    )
+                  : EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Material(
+                    elevation: 1,
+                    surfaceTintColor: scheme.surfaceTint,
+                    color: scheme.surface,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SegmentedButton<bool>(
+                              showSelectedIcon: false,
+                              segments: const [
+                                ButtonSegment(
+                                    value: false, label: Text('1 sided')),
+                                ButtonSegment(
+                                    value: true, label: Text('2 sided')),
+                              ],
+                              selected: {_isDuplex},
+                              onSelectionChanged: (values) async {
+                                final duplex = values.first;
+                                _deferSetState(() {
+                                  _isDuplex = duplex;
+                                  if (!duplex && _tabController.index != 0) {
+                                    _tabController.index = 0;
+                                  }
+                                  _selectedElement = null;
+                                  _inlineCanvasCustomKey = null;
+                                });
+                                await _labelSettings.setDuplex(duplex);
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            FrontBackPagePickers(
+                              isDuplex: _isDuplex,
+                              isPage1: _isPage1,
+                              mirrorFront: _mirrorFront,
+                              mirrorBack: _mirrorBack,
+                              onPageChanged: (idx) {
+                                _tabController.animateTo(idx);
+                                _deferSetState(() {
+                                  _selectedElement = null;
+                                  _inlineCanvasCustomKey = null;
+                                });
+                              },
+                            ),
+                            if (_isDuplex) const SizedBox(width: 8),
+                            if (_isDuplex) ...[
+                              VerticalDivider(
+                                width: 1,
+                                thickness: 1,
+                                indent: 4,
+                                endIndent: 4,
+                                color: scheme.outlineVariant,
+                              ),
+                              const SizedBox(width: 12),
+                            ],
+                            IconButton.filledTonal(
+                              onPressed: _promptSaveTemplate,
+                              icon: const Icon(Icons.save_outlined),
+                              tooltip: 'Save template',
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Label size:',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    color: scheme.onSurface,
+                                  ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 168,
+                              child: LabelSizeSelector(
+                                compact: true,
+                                controlledWidthMm: _labelWidthMm,
+                                controlledHeightMm: _labelHeightMm,
+                                onControlledDimensionsApplied: (w, h) {
+                                  _deferSetState(() {
+                                    _labelWidthMm = w;
+                                    _labelHeightMm = h;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            IconButton.filledTonal(
+                              onPressed: () => _addCustomText(_isPage1),
+                              icon: const Icon(Icons.text_fields),
+                              tooltip: 'Add text',
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton.filledTonal(
+                              onPressed: () => _showAddImageDialog(_isPage1),
+                              icon: const Icon(Icons.image_outlined),
+                              tooltip: 'Add image',
+                            ),
+                            const SizedBox(width: 4),
+                            MirrorToggleButton(
+                              isMirrorActive:
+                                  _isPage1 ? _mirrorFront : _mirrorBack,
+                              sideLabel: _isDuplex
+                                  ? (_isPage1 ? 'Front' : 'Back')
+                                  : 'Front',
+                              onToggle: () async {
+                                if (_isPage1) {
+                                  final next = !_mirrorFront;
+                                  _deferSetState(() => _mirrorFront = next);
+                                  await _labelSettings.setMirrorFront(next);
+                                } else {
+                                  final next = !_mirrorBack;
+                                  _deferSetState(() => _mirrorBack = next);
+                                  await _labelSettings.setMirrorBack(next);
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton.filledTonal(
+                              onPressed: _showPrintPreviewDialog,
+                              icon: const Icon(Icons.print_outlined),
+                              tooltip: 'Print preview',
+                            ),
+                            const SizedBox(width: 16),
+                            IconButton(
+                              tooltip: 'Label border',
+                              style: IconButton.styleFrom(
+                                foregroundColor: _labelBorderPanelOpen
+                                    ? scheme.primary
+                                    : scheme.onSurfaceVariant,
+                                backgroundColor: _labelBorderPanelOpen
+                                    ? scheme.primaryContainer
+                                        .withValues(alpha: 0.45)
+                                    : null,
+                              ),
+                              onPressed: () => _deferSetState(() {
+                                _labelBorderPanelOpen = !_labelBorderPanelOpen;
+                                if (_labelBorderPanelOpen) {
+                                  _labelBorderPanelSession++;
+                                }
+                              }),
+                              icon: const Icon(Icons.border_outer, size: 22),
+                            ),
+                            IconButton(
+                              tooltip: _showGrid ? 'Hide grid' : 'Show grid',
+                              style: IconButton.styleFrom(
+                                foregroundColor: scheme.onSurfaceVariant,
+                              ),
+                              onPressed: () =>
+                                  _deferSetState(() => _showGrid = !_showGrid),
+                              icon: Icon(
+                                _showGrid ? Icons.grid_on : Icons.grid_off,
+                                size: 22,
+                              ),
+                            ),
+                            FieldsPanelToggleButton(
+                              isExpanded: _fieldsPanelExpanded,
+                              onToggle: () => _deferSetState(() =>
+                                  _fieldsPanelExpanded = !_fieldsPanelExpanded),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.topCenter,
+                    clipBehavior: Clip.hardEdge,
+                    child: _selectedElement != null &&
+                            _selectedElement!.startsWith('custom:')
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: _buildCustomTextPanel(_selectedElement!,
+                                inToolbar: true),
+                          )
+                        : const SizedBox(width: double.infinity, height: 0),
+                  ),
+                  Expanded(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned.fill(
+                          child: _isDuplex
+                              ? TabBarView(
+                                  controller: _tabController,
+                                  children: [
+                                    _buildCanvas(page1: true),
+                                    _buildCanvas(page1: false),
+                                  ],
+                                )
+                              : _buildCanvas(page1: true),
+                        ),
+                        Positioned(
+                          right: 16,
+                          bottom: 16,
+                          child: ZoomControls(
+                            zoom: _zoom,
+                            onZoomChanged: (z) =>
+                                _deferSetState(() => _zoom = z),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_labelBorderPanelOpen) _buildLabelBorderPanel(),
+                ],
+              ),
+            ),
+          ),
+          AvailableFieldsPanel(
+            isExpanded: _fieldsPanelExpanded,
+            onAddField: (label) {
+              final paste = _inlineCustomTextPaste;
+              if (paste != null) {
+                paste(label);
+              } else {
+                _addCustomTextWithLabel(_isPage1, label);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   bool get _isPage1 => _tabController.index == 0;
 
   // --- Custom text helpers ---
@@ -402,19 +709,10 @@ class _LabelTemplateEditorScreenState
   /// Picks an image file and copies it into the label logos folder; returns
   /// the stored path or null.
   Future<String?> _copyPickedImageToLogos() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.image,
-    );
-    if (result == null || result.files.isEmpty) return null;
-    final filePath = result.files.single.path;
-    if (filePath == null) return null;
-    final ext = result.files.single.extension;
-    const logoService = LabelLogoService();
-    final added = ext != null && ext.isNotEmpty
-        ? await logoService.addLogoFromFile(filePath)
-        : await logoService.addLogoFromFileWithExtension(filePath, '.png');
-    if (!mounted) return null;
-    setState(() => _logoLibraryEpoch++);
+    final added = await _editorService.copyPickedImageToLogos();
+    if (added != null && mounted) {
+      setState(() => _logoLibraryEpoch++);
+    }
     return added;
   }
 
@@ -557,124 +855,13 @@ class _LabelTemplateEditorScreenState
   // --- Save / Export / Import ---
 
   Future<void> _promptSaveTemplate() async {
-    final ctrl = TextEditingController(text: _template.name.trim());
-    final formKey = GlobalKey<FormState>();
-    try {
-      final name = await showDialog<String>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Save template'),
-          content: Form(
-            key: formKey,
-            child: TextFormField(
-              controller: ctrl,
-              decoration: const InputDecoration(
-                labelText: 'Template name',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) {
-                  return 'Enter a name';
-                }
-                return null;
-              },
-              onFieldSubmitted: (_) {
-                if (formKey.currentState?.validate() ?? false) {
-                  Navigator.pop(ctx, ctrl.text.trim());
-                }
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (formKey.currentState?.validate() ?? false) {
-                  Navigator.pop(ctx, ctrl.text.trim());
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
-      );
-      if (name == null || !mounted) return;
-      await _saveTemplateWithName(name);
-    } finally {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ctrl.dispose();
-      });
-    }
+    final name =
+        await _editorService.promptSaveTemplate(context, _template.name);
+    if (name == null || !mounted) return;
+    await _saveTemplateWithName(name);
   }
 
   /// When import would overwrite an existing saved template, user picks a new unique name.
-  Future<String?> _promptImportNewName({
-    required String conflictingName,
-    required Set<String> takenNames,
-  }) async {
-    final ctrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    try {
-      return await showDialog<String>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Save imported template as'),
-          content: Form(
-            key: formKey,
-            child: TextFormField(
-              controller: ctrl,
-              decoration: InputDecoration(
-                labelText: 'Template name',
-                hintText: 'Must differ from "$conflictingName"',
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              validator: (v) {
-                final t = v?.trim() ?? '';
-                if (t.isEmpty) return 'Enter a name';
-                if (takenNames.contains(t)) {
-                  return 'A template with this name already exists';
-                }
-                return null;
-              },
-              onFieldSubmitted: (_) {
-                if (formKey.currentState?.validate() ?? false) {
-                  Navigator.pop(ctx, ctrl.text.trim());
-                }
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (formKey.currentState?.validate() ?? false) {
-                  Navigator.pop(ctx, ctrl.text.trim());
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
-      );
-    } finally {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ctrl.dispose();
-      });
-    }
-  }
-
   Future<void> _saveTemplateWithName(String name) async {
     final merged = _templateWithCurrentPrintOptions(name: name);
     await _templateService.saveTemplate(merged);
@@ -688,31 +875,8 @@ class _LabelTemplateEditorScreenState
   }
 
   Future<void> _exportTemplate() async {
-    final raw = _template.name.trim();
-    final safe =
-        raw.isEmpty ? 'template' : raw.replaceAll(RegExp(r'[^\w.\-]'), '_');
-    final suggested = 'label_template_$safe.json';
-    final location = await getSaveLocation(
-      suggestedName: suggested,
-    );
-    if (location == null || !mounted) return;
-    final savePath = location.path;
-    final out =
-        savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
-    try {
-      final merged = _templateWithCurrentPrintOptions();
-      await File(out).writeAsString(merged.toJsonString());
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved ${path.basename(out)}')),
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
-        );
-      }
-    }
+    final merged = _templateWithCurrentPrintOptions();
+    await _editorService.exportTemplate(context, merged);
   }
 
   Future<void> _importTemplate() async {
@@ -760,9 +924,10 @@ class _LabelTemplateEditorScreenState
         );
         if (replace == null || !mounted) return;
         if (!replace) {
-          final newName = await _promptImportNewName(
-            conflictingName: name,
-            takenNames: taken,
+          final newName = await _editorService.promptImportNewName(
+            context,
+            name,
+            taken,
           );
           if (newName == null || !mounted) return;
           name = newName;
@@ -833,30 +998,8 @@ class _LabelTemplateEditorScreenState
   Future<void> _confirmDeleteTemplate() async {
     final name = _template.name.trim();
     if (!_canDeleteSavedTemplate) return;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete template'),
-        content: Text(
-          'Permanently delete "$name"? This cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) return;
+    final ok = await _editorService.confirmDeleteTemplate(context, name);
+    if (!ok || !mounted) return;
     await _templateService.deleteTemplate(name);
     _savedNames = await _templateService.listTemplateNames();
     final fresh = DefaultLabelTemplate.defaultTemplate();
@@ -877,558 +1020,7 @@ class _LabelTemplateEditorScreenState
   }
 
   /// Mirror for the side currently being edited (front tab or single-sided).
-  bool get _mirrorActiveForCurrentSide => _isPage1 ? _mirrorFront : _mirrorBack;
 
-  String get _mirrorSideLabel =>
-      _isDuplex ? (_isPage1 ? 'Front' : 'Back') : 'Front';
-
-  Widget _buildMirrorToggleButton(BuildContext context) {
-    final active = _mirrorActiveForCurrentSide;
-    return IconButton.filledTonal(
-      icon: const Icon(Icons.rotate_right),
-      tooltip: active
-          ? '$_mirrorSideLabel: rotated 180° for print (tap to turn off)'
-          : '$_mirrorSideLabel: tap to rotate label 180° for print',
-      onPressed: () async {
-        if (_isPage1) {
-          final next = !_mirrorFront;
-          _deferSetState(() => _mirrorFront = next);
-          await _labelSettings.setMirrorFront(next);
-        } else {
-          final next = !_mirrorBack;
-          _deferSetState(() => _mirrorBack = next);
-          await _labelSettings.setMirrorBack(next);
-        }
-      },
-    );
-  }
-
-  /// Row 1: back button + title.
-  Widget _buildBackButtonRow() {
-    final theme = Theme.of(context);
-    final titleStyle = theme.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-        ) ??
-        theme.appBarTheme.titleTextStyle ??
-        theme.textTheme.titleLarge;
-    return Material(
-      elevation: 1,
-      surfaceTintColor: theme.colorScheme.surfaceTint,
-      color: theme.colorScheme.surface,
-      child: Row(
-        children: [
-          const BackButton(),
-          Expanded(
-            child: Text(
-              'Label Editor',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: titleStyle,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Desktop: combined header — back + title + duplex centered + border/grid/fields buttons.
-  Widget _buildDesktopEditorHeader() {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final titleStyle = theme.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-        ) ??
-        theme.appBarTheme.titleTextStyle ??
-        theme.textTheme.titleLarge;
-    final duplexControl = FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.center,
-      child: SegmentedButton<bool>(
-        showSelectedIcon: false,
-        segments: const [
-          ButtonSegment(value: false, label: Text('1 sided')),
-          ButtonSegment(value: true, label: Text('2 sided')),
-        ],
-        selected: {_isDuplex},
-        onSelectionChanged: (values) async {
-          final duplex = values.first;
-          _deferSetState(() {
-            _isDuplex = duplex;
-            if (!duplex && _tabController.index != 0) {
-              _tabController.index = 0;
-            }
-            _selectedElement = null;
-            _inlineCanvasCustomKey = null;
-          });
-          await _labelSettings.setDuplex(duplex);
-        },
-      ),
-    );
-    return Material(
-      elevation: 1,
-      surfaceTintColor: scheme.surfaceTint,
-      color: scheme.surface,
-      child: SizedBox(
-        height: kToolbarHeight,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Stack(
-                alignment: Alignment.center,
-                clipBehavior: Clip.none,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const BackButton(),
-                      Expanded(
-                        child: Text(
-                          'Label Editor',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: titleStyle,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Center(child: duplexControl),
-                ],
-              ),
-            ),
-            IconButton(
-              tooltip: 'Label border',
-              style: IconButton.styleFrom(
-                foregroundColor: _labelBorderPanelOpen
-                    ? scheme.primary
-                    : scheme.onSurfaceVariant,
-                backgroundColor: _labelBorderPanelOpen
-                    ? scheme.primaryContainer.withValues(alpha: 0.45)
-                    : null,
-              ),
-              onPressed: () => _deferSetState(() {
-                _labelBorderPanelOpen = !_labelBorderPanelOpen;
-                if (_labelBorderPanelOpen) _labelBorderPanelSession++;
-              }),
-              icon: const Icon(Icons.border_outer, size: 22),
-            ),
-            IconButton(
-              tooltip: _showGrid ? 'Hide grid' : 'Show grid',
-              style: IconButton.styleFrom(
-                foregroundColor: scheme.onSurfaceVariant,
-              ),
-              onPressed: () => _deferSetState(() => _showGrid = !_showGrid),
-              icon: Icon(
-                _showGrid ? Icons.grid_on : Icons.grid_off,
-                size: 22,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: _buildFieldsPanelToggleButton(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Desktop: single toolbar row with page pickers + label size + tool buttons.
-  Widget _buildDesktopTopToolbar() {
-    return Material(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildFrontBackPagePickers(context),
-                          if (_isDuplex) const SizedBox(width: 8),
-                          if (_isDuplex) ...[
-                            VerticalDivider(
-                              width: 1,
-                              thickness: 1,
-                              indent: 4,
-                              endIndent: 4,
-                              color:
-                                  Theme.of(context).colorScheme.outlineVariant,
-                            ),
-                            const SizedBox(width: 12),
-                          ],
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Label size:',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
-                                    ),
-                              ),
-                              const SizedBox(width: 8),
-                              SizedBox(
-                                width: 168,
-                                child: LabelSizeSelector(
-                                  compact: true,
-                                  controlledWidthMm: _labelWidthMm,
-                                  controlledHeightMm: _labelHeightMm,
-                                  onControlledDimensionsApplied: (w, h) {
-                                    _deferSetState(() {
-                                      _labelWidthMm = w;
-                                      _labelHeightMm = h;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    IconButton.filledTonal(
-                      onPressed: () => _addCustomText(_isPage1),
-                      icon: const Icon(Icons.text_fields),
-                      tooltip: 'Add text',
-                    ),
-                    const SizedBox(width: 4),
-                    IconButton.filledTonal(
-                      onPressed: () => _showAddImageDialog(_isPage1),
-                      icon: const Icon(Icons.image_outlined),
-                      tooltip: 'Add image',
-                    ),
-                    const SizedBox(width: 4),
-                    _buildMirrorToggleButton(context),
-                    const SizedBox(width: 4),
-                    IconButton.filledTonal(
-                      onPressed: _showPrintPreviewDialog,
-                      icon: const Icon(Icons.print_outlined),
-                      tooltip: 'Print preview',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeOutCubic,
-              alignment: Alignment.topCenter,
-              clipBehavior: Clip.hardEdge,
-              child: _attributesBarOpen
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: _buildLabelPanelAttributes(inToolbar: true),
-                    )
-                  : const SizedBox(width: double.infinity, height: 0),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Mobile row 2: duplex toggle + border / grid / fields-panel buttons.
-  Widget _buildEditorHeader() {
-    final scheme = Theme.of(context).colorScheme;
-    final duplexControl = FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.center,
-      child: SegmentedButton<bool>(
-        showSelectedIcon: false,
-        segments: const [
-          ButtonSegment(value: false, label: Text('1 sided')),
-          ButtonSegment(value: true, label: Text('2 sided')),
-        ],
-        selected: {_isDuplex},
-        onSelectionChanged: (values) async {
-          final duplex = values.first;
-          _deferSetState(() {
-            _isDuplex = duplex;
-            if (!duplex && _tabController.index != 0) {
-              _tabController.index = 0;
-            }
-            _selectedElement = null;
-            _inlineCanvasCustomKey = null;
-          });
-          await _labelSettings.setDuplex(duplex);
-        },
-      ),
-    );
-    return Material(
-      elevation: 1,
-      surfaceTintColor: scheme.surfaceTint,
-      color: scheme.surface,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            duplexControl,
-            const Spacer(),
-            IconButton(
-              tooltip: 'Label border',
-              style: IconButton.styleFrom(
-                foregroundColor: _labelBorderPanelOpen
-                    ? scheme.primary
-                    : scheme.onSurfaceVariant,
-                backgroundColor: _labelBorderPanelOpen
-                    ? scheme.primaryContainer.withValues(alpha: 0.45)
-                    : null,
-              ),
-              onPressed: () => _deferSetState(() {
-                _labelBorderPanelOpen = !_labelBorderPanelOpen;
-                if (_labelBorderPanelOpen) _labelBorderPanelSession++;
-              }),
-              icon: const Icon(Icons.border_outer, size: 22),
-            ),
-            IconButton(
-              tooltip: _showGrid ? 'Hide grid' : 'Show grid',
-              style: IconButton.styleFrom(
-                foregroundColor: scheme.onSurfaceVariant,
-              ),
-              onPressed: () => _deferSetState(() => _showGrid = !_showGrid),
-              icon: Icon(
-                _showGrid ? Icons.grid_on : Icons.grid_off,
-                size: 22,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: _buildFieldsPanelToggleButton(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFrontBackPagePickers(BuildContext context) {
-    if (!_isDuplex) return const SizedBox.shrink();
-    final scheme = Theme.of(context).colorScheme;
-    final fg = scheme.onSurface;
-    final frontActive = _tabController.index == 0;
-    void clearSelection() => _deferSetState(() {
-          _selectedElement = null;
-          _inlineCanvasCustomKey = null;
-        });
-
-    TextStyle labelStyle(bool active) => TextStyle(
-          fontSize: 15,
-          fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-          color: active ? scheme.primary : fg.withValues(alpha: 0.38),
-        );
-
-    Color mirrorColor(bool active) =>
-        active ? scheme.primary : fg.withValues(alpha: 0.38);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextButton(
-          onPressed: () {
-            if (_tabController.index != 0) {
-              _tabController.animateTo(0);
-            }
-            clearSelection();
-          },
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            foregroundColor: fg,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Front', style: labelStyle(frontActive)),
-              if (_mirrorFront) ...[
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.rotate_right,
-                  size: 16,
-                  color: mirrorColor(frontActive),
-                ),
-              ],
-            ],
-          ),
-        ),
-        TextButton(
-          onPressed: () {
-            if (_tabController.index != 1) {
-              _tabController.animateTo(1);
-            }
-            clearSelection();
-          },
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            foregroundColor: fg,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Back', style: labelStyle(!frontActive)),
-              if (_mirrorBack) ...[
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.rotate_right,
-                  size: 16,
-                  color: mirrorColor(!frontActive),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // --- Build ---
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: SafeArea(
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      );
-    }
-    final isMobile = Platform.isIOS || Platform.isAndroid;
-    final viewPadding = MediaQuery.viewPaddingOf(context);
-
-    final isLandscape =
-        MediaQuery.orientationOf(context) == Orientation.landscape;
-
-    final headerRows = isMobile
-        ? <Widget>[
-            _buildBackButtonRow(),
-            _buildEditorHeader(),
-            if (isLandscape)
-              ..._buildMobileLandscapeToolRows()
-            else
-              ..._buildMobilePortraitToolRows(),
-          ]
-        : <Widget>[
-            _buildDesktopEditorHeader(),
-            _buildDesktopTopToolbar(),
-          ];
-
-    return Scaffold(
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: isMobile
-                  ? EdgeInsets.only(
-                      top: viewPadding.top,
-                      left: viewPadding.left,
-                      right: viewPadding.right,
-                    )
-                  : EdgeInsets.zero,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ...headerRows,
-                  Expanded(
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned.fill(
-                          child: _isDuplex
-                              ? TabBarView(
-                                  controller: _tabController,
-                                  children: [
-                                    _buildCanvas(page1: true),
-                                    _buildCanvas(page1: false),
-                                  ],
-                                )
-                              : _buildCanvas(page1: true),
-                        ),
-                        Positioned(
-                          right: 16,
-                          bottom: 16,
-                          child: _buildZoomControls(),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (_labelBorderPanelOpen) _buildLabelBorderPanel(),
-                  _buildBottomEditorBar(),
-                ],
-              ),
-            ),
-          ),
-          AvailableFieldsPanel(
-            isExpanded: _fieldsPanelExpanded,
-            onAddField: (label) {
-              final paste = _inlineCustomTextPaste;
-              if (paste != null) {
-                paste(label);
-              } else {
-                _addCustomTextWithLabel(_isPage1, label);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLabelBorderPanel() {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      elevation: 3,
-      surfaceTintColor: scheme.surfaceTint,
-      color: scheme.surfaceContainerHigh,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Divider(height: 1, color: scheme.outlineVariant),
-          LabelBorderEditorSheet(
-            key: ValueKey<int>(_labelBorderPanelSession),
-            initialOutline: _template.outline,
-            embeddedPanel: true,
-            maxHeightFraction: 0.36,
-            onOutlineChanged: (o) {
-              _deferSetState(() {
-                if (o == null) {
-                  _template = _template.copyWith(clearOutline: true);
-                } else {
-                  _template = _template.copyWith(outline: o);
-                }
-              });
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _showPrintPreviewDialog() async {
     Map<String, String> sample = {};
@@ -1506,268 +1098,9 @@ class _LabelTemplateEditorScreenState
     );
   }
 
-  List<Widget> _pageAndLabelWidgets() {
-    return [
-      _buildFrontBackPagePickers(context),
-      if (_isDuplex) const SizedBox(width: 8),
-      if (_isDuplex) ...[
-        VerticalDivider(
-          width: 1,
-          thickness: 1,
-          indent: 4,
-          endIndent: 4,
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
-        const SizedBox(width: 12),
-      ],
-      Text(
-        'Label size:',
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-      ),
-      const SizedBox(width: 8),
-      SizedBox(
-        width: 168,
-        child: LabelSizeSelector(
-          compact: true,
-          controlledWidthMm: _labelWidthMm,
-          controlledHeightMm: _labelHeightMm,
-          onControlledDimensionsApplied: (w, h) {
-            _deferSetState(() {
-              _labelWidthMm = w;
-              _labelHeightMm = h;
-            });
-          },
-        ),
-      ),
-    ];
-  }
-
-  List<Widget> _toolButtonWidgets() {
-    return [
-      IconButton.filledTonal(
-        onPressed: () => _addCustomText(_isPage1),
-        icon: const Icon(Icons.text_fields),
-        tooltip: 'Add text',
-      ),
-      const SizedBox(width: 4),
-      IconButton.filledTonal(
-        onPressed: () => _showAddImageDialog(_isPage1),
-        icon: const Icon(Icons.image_outlined),
-        tooltip: 'Add image',
-      ),
-      const SizedBox(width: 4),
-      _buildMirrorToggleButton(context),
-      const SizedBox(width: 4),
-      IconButton.filledTonal(
-        onPressed: _showPrintPreviewDialog,
-        icon: const Icon(Icons.print_outlined),
-        tooltip: 'Print preview',
-      ),
-    ];
-  }
-
-  Widget _buildAttributesPanel() {
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
-      alignment: Alignment.topCenter,
-      clipBehavior: Clip.hardEdge,
-      child: _attributesBarOpen
-          ? Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: _buildLabelPanelAttributes(inToolbar: true),
-            )
-          : const SizedBox(width: double.infinity, height: 0),
-    );
-  }
-
   /// Portrait rows 3+4: page/label on one line, tool buttons on next.
-  List<Widget> _buildMobilePortraitToolRows() {
-    return [
-      Material(
-        elevation: 1,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: _pageAndLabelWidgets(),
-            ),
-          ),
-        ),
-      ),
-      Material(
-        elevation: 1,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: _toolButtonWidgets(),
-              ),
-              _buildAttributesPanel(),
-            ],
-          ),
-        ),
-      ),
-    ];
-  }
 
   /// Landscape: page/label + tool buttons merged into one row.
-  List<Widget> _buildMobileLandscapeToolRows() {
-    return [
-      Material(
-        elevation: 1,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: _pageAndLabelWidgets(),
-                      ),
-                    ),
-                  ),
-                  ..._toolButtonWidgets(),
-                ],
-              ),
-              _buildAttributesPanel(),
-            ],
-          ),
-        ),
-      ),
-    ];
-  }
-
-  Widget _buildBottomEditorBar() {
-    final scheme = Theme.of(context).colorScheme;
-    final hasTemplates = _savedNames.isNotEmpty;
-    return Material(
-      elevation: 4,
-      color: scheme.surfaceContainerHigh,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              PopupMenuButton<String>(
-                tooltip: hasTemplates ? 'Load template' : 'No saved templates',
-                enabled: hasTemplates,
-                icon: Icon(
-                  Icons.folder_open_outlined,
-                  color: hasTemplates
-                      ? scheme.onSurface
-                      : scheme.onSurface.withValues(alpha: 0.38),
-                ),
-                onSelected: (n) => _loadTemplate(n),
-                itemBuilder: (ctx) => [
-                  for (final n in _savedNames)
-                    PopupMenuItem<String>(
-                      value: n,
-                      child: Text(
-                        n,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-              ),
-              IconButton(
-                onPressed: _promptSaveTemplate,
-                icon: const Icon(Icons.save_outlined),
-                tooltip: 'Save template',
-              ),
-              IconButton(
-                onPressed: _exportTemplate,
-                icon: const Icon(Icons.upload_file),
-                tooltip: 'Export template',
-              ),
-              IconButton(
-                onPressed: _importTemplate,
-                icon: const Icon(Icons.download_outlined),
-                tooltip: 'Import template',
-              ),
-              IconButton(
-                onPressed:
-                    _canDeleteSavedTemplate ? _confirmDeleteTemplate : null,
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: _canDeleteSavedTemplate
-                      ? scheme.error
-                      : scheme.onSurface.withValues(alpha: 0.38),
-                ),
-                tooltip: 'Delete saved template',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildZoomControls() {
-    final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              icon: const Icon(Icons.remove, size: 20),
-              tooltip: 'Zoom out',
-              onPressed: _zoom > 0.5
-                  ? () => _deferSetState(
-                        () => _zoom = (_zoom - 0.25).clamp(0.5, 4.0),
-                      )
-                  : null,
-            ),
-            Text(
-              '${(_zoom * 100).round()}%',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              icon: const Icon(Icons.add, size: 20),
-              tooltip: 'Zoom in',
-              onPressed: _zoom < 4.0
-                  ? () => _deferSetState(
-                        () => _zoom = (_zoom + 0.25).clamp(0.5, 4.0),
-                      )
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildCanvas({required bool page1}) {
     final page = page1 ? _template.page1 : _template.page2;
@@ -1853,7 +1186,7 @@ class _LabelTemplateEditorScreenState
                                     decoration: labelAreaStackDecoration(),
                                     child: _showGrid
                                         ? CustomPaint(
-                                            painter: _GridPainter(
+                                            painter: GridPainter(
                                               labelWidthMm: _labelWidthMm,
                                               labelHeightMm: _labelHeightMm,
                                               scale: scale,
@@ -1875,7 +1208,7 @@ class _LabelTemplateEditorScreenState
                             ),
                           ),
                           for (final im in page.customImages)
-                            _DraggableImageChip(
+                            DraggableImageChip(
                               key: ValueKey(
                                   'p${page1 ? '1' : '2'}_img_${im.id}'),
                               imagePath: im.imagePath,
@@ -1931,7 +1264,7 @@ class _LabelTemplateEditorScreenState
                           for (final ct in page.customTexts)
                             if (labelGenderIconFieldKeyFromBracketText(ct.text)
                                 case final gKey?)
-                              _DraggableImageChip(
+                              DraggableImageChip(
                                 key: ValueKey(
                                   'p${page1 ? '1' : '2'}_gct_${ct.id}',
                                 ),
@@ -1998,7 +1331,7 @@ class _LabelTemplateEditorScreenState
                                 onDelete: null,
                               )
                             else
-                              _DraggableChip(
+                              DraggableChip(
                                 key: ValueKey(
                                     'p${page1 ? '1' : '2'}_ct_${ct.id}_${ct.rotationDegrees}_${ct.fontFamily}'),
                                 label: ct.text.isEmpty ? '(empty)' : ct.text,
@@ -2086,50 +1419,39 @@ class _LabelTemplateEditorScreenState
     });
   }
 
-  Widget _buildFieldsPanelToggleButton() {
-    final scheme = Theme.of(context).colorScheme;
-    final open = _fieldsPanelExpanded;
-    void toggle() =>
-        _deferSetState(() => _fieldsPanelExpanded = !_fieldsPanelExpanded);
 
-    if (open) {
-      return IconButton.filledTonal(
-        tooltip: 'Hide available fields',
-        style: IconButton.styleFrom(
-          backgroundColor: scheme.primaryContainer,
-          foregroundColor: scheme.onPrimaryContainer,
-        ),
-        onPressed: toggle,
-        icon: _EndSidebarPanelIcon(
-          size: 22,
-          color: scheme.onPrimaryContainer,
-        ),
-      );
-    }
-    return IconButton(
-      tooltip: 'Show available fields',
-      style: IconButton.styleFrom(
-        foregroundColor: scheme.onSurfaceVariant,
-      ),
-      onPressed: toggle,
-      icon: _EndSidebarPanelIcon(
-        size: 22,
-        color: scheme.onSurfaceVariant,
+
+
+
+  Widget _buildLabelBorderPanel() {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      elevation: 3,
+      surfaceTintColor: scheme.surfaceTint,
+      color: scheme.surfaceContainerHigh,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Divider(height: 1, color: scheme.outlineVariant),
+          LabelBorderEditorSheet(
+            key: ValueKey<int>(_labelBorderPanelSession),
+            initialOutline: _template.outline,
+            embeddedPanel: true,
+            maxHeightFraction: 0.36,
+            onOutlineChanged: (o) {
+              _deferSetState(() {
+                if (o == null) {
+                  _template = _template.copyWith(clearOutline: true);
+                } else {
+                  _template = _template.copyWith(outline: o);
+                }
+              });
+            },
+          ),
+        ],
       ),
     );
-  }
-
-  bool get _attributesBarOpen {
-    final sel = _selectedElement;
-    return sel != null && sel.startsWith('custom:');
-  }
-
-  Widget _buildLabelPanelAttributes({bool inToolbar = false}) {
-    final sel = _selectedElement;
-    if (sel == null || !sel.startsWith('custom:')) {
-      return const SizedBox.shrink();
-    }
-    return _buildCustomTextPanel(sel, inToolbar: inToolbar);
   }
 
   Widget _buildCustomTextPanel(String sel, {bool inToolbar = false}) {
@@ -2221,7 +1543,7 @@ class _LabelTemplateEditorScreenState
                   const SizedBox(width: 8),
                   SizedBox(
                     width: 64,
-                    child: _SyncedFontSizeField(
+                    child: SyncedFontSizeField(
                       key: ValueKey('fs_$id'),
                       fontSizePt: ct.fontSizePt,
                       onValidSize: (p) => _updateCustomText(
@@ -2323,1428 +1645,3 @@ class _LabelTemplateEditorScreenState
 }
 
 // ---------------------------------------------------------------------------
-// Draggable image on canvas (mm space)
-// ---------------------------------------------------------------------------
-
-enum _ImageCorner { tl, tr, bl, br }
-
-class _DraggableImageChip extends StatefulWidget {
-  const _DraggableImageChip({
-    super.key,
-    required this.imagePath,
-    required this.position,
-    required this.widthMm,
-    required this.heightMm,
-    this.rotationDegrees = 0,
-    required this.scale,
-    required this.labelWidthMm,
-    required this.labelHeightMm,
-    this.canvasInsetXPx = 0,
-    this.canvasInsetYPx = 0,
-    required this.labelPanToMmDelta,
-    required this.onMoved,
-    required this.onBoundsChanged,
-    required this.onRotationChanged,
-    this.onDelete,
-    this.isSelected = false,
-    this.onTap,
-    this.vectorChild,
-  });
-
-  final String imagePath;
-  final Offset position;
-  final double widthMm;
-  final double heightMm;
-  final int rotationDegrees;
-  final double scale;
-  final double labelWidthMm;
-  final double labelHeightMm;
-
-  /// Pixels added to [position] so chips align with the white label when the
-  /// interactive stack is asymmetrically padded (e.g. hit area on one side).
-  final double canvasInsetXPx;
-  final double canvasInsetYPx;
-  final LabelPanMmDeltaCallback labelPanToMmDelta;
-  final void Function(Offset newPosMm) onMoved;
-  final void Function(double xMm, double yMm, double widthMm, double heightMm)
-      onBoundsChanged;
-  final void Function(int rotationDegrees) onRotationChanged;
-  final VoidCallback? onDelete;
-  final bool isSelected;
-  final VoidCallback? onTap;
-
-  /// When set, drawn instead of [imagePath] (e.g. sex icon for `[*.sex]-img`).
-  final Widget? vectorChild;
-
-  @override
-  State<_DraggableImageChip> createState() => _DraggableImageChipState();
-}
-
-class _DraggableImageChipState extends State<_DraggableImageChip> {
-  static const double _handleVisual = 10;
-  static const double _handleHit = 24;
-
-  void _deferSetState(VoidCallback fn) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(fn);
-    });
-  }
-
-  final GlobalKey _measureKey = GlobalKey();
-
-  bool _moving = false;
-  _ImageCorner? _resizeCorner;
-  Rect? _resizeStart;
-  Offset _resizeAccum = Offset.zero;
-
-  /// During corner resize, parent template updates post-frame; local rect keeps UI in sync.
-  Rect? _resizeLiveRect;
-
-  double? _rotateStartFingerRad;
-  int? _rotateStartElemDeg;
-  int? _rotateLiveDeg;
-
-  /// Last global position for this drag; [DragUpdateDetails.delta] is local.
-  Offset? _imageMovePanLastGlobal;
-  Offset? _resizePanLastGlobal;
-
-  Offset? _imagePanOriginMm;
-  Offset _imagePanAccumMm = Offset.zero;
-  Offset? _imageDragLiveMm;
-  int _imageMoveSession = 0;
-
-  Offset _mmDeltaFromGlobalDrag(Offset globalPos, Offset globalDelta) {
-    final s = _canvasScaleForMmMath(widget.scale);
-    final fromStack = widget.labelPanToMmDelta(globalPos, globalDelta);
-    if (fromStack != null) return fromStack;
-    return Offset(globalDelta.dx / s, globalDelta.dy / s);
-  }
-
-  int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
-
-  /// Drag in label mm → delta along image unrotated width/height (mm).
-  Offset _labelDeltaToImageLocalMm(Offset dLabelMm) {
-    final rad = _effectiveRotationDeg * math.pi / 180;
-    final cosT = math.cos(rad);
-    final sinT = math.sin(rad);
-    final dlx = dLabelMm.dx * cosT - dLabelMm.dy * sinT;
-    final dly = dLabelMm.dx * sinT + dLabelMm.dy * cosT;
-    return Offset(dlx, dly);
-  }
-
-  void _onResizePanStart(DragStartDetails d, _ImageCorner c) {
-    _beginResize(c);
-    _resizePanLastGlobal = d.globalPosition;
-  }
-
-  void _beginResize(_ImageCorner c) {
-    _resizeCorner = c;
-    _resizeStart = Rect.fromLTWH(
-      widget.position.dx,
-      widget.position.dy,
-      widget.widthMm,
-      widget.heightMm,
-    );
-    _resizeAccum = Offset.zero;
-  }
-
-  void _onResizePanUpdate(DragUpdateDetails d) {
-    if (_resizeCorner == null || _resizeStart == null) return;
-    final last = _resizePanLastGlobal ?? d.globalPosition;
-    final gDelta = d.globalPosition - last;
-    _resizePanLastGlobal = d.globalPosition;
-    final dLabelMm = _mmDeltaFromGlobalDrag(d.globalPosition, gDelta);
-    _resizeAccum += _labelDeltaToImageLocalMm(dLabelMm);
-    final s = _resizeStart!;
-    final a = _resizeAccum;
-    late double x;
-    late double y;
-    late double rw;
-    late double rh;
-    switch (_resizeCorner!) {
-      case _ImageCorner.br:
-        x = s.left;
-        y = s.top;
-        rw = s.width + a.dx;
-        rh = s.height + a.dy;
-        break;
-      case _ImageCorner.tr:
-        x = s.left;
-        y = s.top + a.dy;
-        rw = s.width + a.dx;
-        rh = s.height - a.dy;
-        break;
-      case _ImageCorner.bl:
-        x = s.left + a.dx;
-        y = s.top;
-        rw = s.width - a.dx;
-        rh = s.height + a.dy;
-        break;
-      case _ImageCorner.tl:
-        x = s.left + a.dx;
-        y = s.top + a.dy;
-        rw = s.width - a.dx;
-        rh = s.height - a.dy;
-        break;
-    }
-    rw = rw.clamp(2.0, widget.labelWidthMm);
-    rh = rh.clamp(2.0, widget.labelHeightMm);
-    x = _clampMm(x, 0, math.max(0.0, widget.labelWidthMm - rw));
-    y = _clampMm(y, 0, math.max(0.0, widget.labelHeightMm - rh));
-    setState(() => _resizeLiveRect = Rect.fromLTWH(x, y, rw, rh));
-    widget.onBoundsChanged(x, y, rw, rh);
-  }
-
-  void _endResize() {
-    _resizeCorner = null;
-    _resizeStart = null;
-    _resizeAccum = Offset.zero;
-    _resizePanLastGlobal = null;
-    _resizeLiveRect = null;
-  }
-
-  void _beginRotate(DragStartDetails d) {
-    _rotateStartElemDeg = widget.rotationDegrees;
-    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    _rotateStartFingerRad =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
-  }
-
-  void _onRotatePanUpdate(DragUpdateDetails d) {
-    if (_rotateStartFingerRad == null || _rotateStartElemDeg == null) return;
-    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    final cur =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
-    var delta = cur - _rotateStartFingerRad!;
-    if (delta > math.pi) delta -= 2 * math.pi;
-    if (delta < -math.pi) delta += 2 * math.pi;
-    final deg = CustomImageElement.normalizeImageRotationDegrees(
-      _rotateStartElemDeg! + delta * 180 / math.pi,
-    );
-    setState(() => _rotateLiveDeg = deg);
-    widget.onRotationChanged(deg);
-  }
-
-  void _endRotate() {
-    _rotateStartFingerRad = null;
-    _rotateStartElemDeg = null;
-    _rotateLiveDeg = null;
-  }
-
-  /// [innerLeft]/[innerTop] = top-left of the image rect inside the padded stack.
-  Widget _cornerHandle(
-    ColorScheme scheme,
-    _ImageCorner corner, {
-    required double innerLeft,
-    required double innerTop,
-    required double innerW,
-    required double innerH,
-  }) {
-    final o = _handleHit / 2;
-    late final double left;
-    late final double top;
-    switch (corner) {
-      case _ImageCorner.tl:
-        left = innerLeft - o;
-        top = innerTop - o;
-        break;
-      case _ImageCorner.tr:
-        left = innerLeft + innerW - o;
-        top = innerTop - o;
-        break;
-      case _ImageCorner.bl:
-        left = innerLeft - o;
-        top = innerTop + innerH - o;
-        break;
-      case _ImageCorner.br:
-        left = innerLeft + innerW - o;
-        top = innerTop + innerH - o;
-        break;
-    }
-    return Positioned(
-      left: left,
-      top: top,
-      width: _handleHit,
-      height: _handleHit,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanStart: (d) => _onResizePanStart(d, corner),
-        onPanUpdate: _onResizePanUpdate,
-        onPanEnd: (_) => _deferSetState(_endResize),
-        onPanCancel: () => _deferSetState(_endResize),
-        child: Center(
-          child: Container(
-            width: _handleVisual,
-            height: _handleVisual,
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.primary, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _finishImageMoveGesture() {
-    final session = _imageMoveSession;
-    _imageMovePanLastGlobal = null;
-    _imagePanOriginMm = null;
-    _imagePanAccumMm = Offset.zero;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || session != _imageMoveSession) return;
-      setState(() => _imageDragLiveMm = null);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final insetX = widget.canvasInsetXPx;
-    final insetY = widget.canvasInsetYPx;
-    final liveR = _resizeLiveRect;
-    final posMm = liveR != null
-        ? Offset(liveR.left, liveR.top)
-        : (_imageDragLiveMm ?? widget.position);
-    final effWmm = liveR?.width ?? widget.widthMm;
-    final effHmm = liveR?.height ?? widget.heightMm;
-    final left = posMm.dx * widget.scale + insetX;
-    final top = posMm.dy * widget.scale + insetY;
-    final w = effWmm * widget.scale;
-    final h = effHmm * widget.scale;
-    final scheme = Theme.of(context).colorScheme;
-
-    final borderColor = _moving
-        ? scheme.primary
-        : widget.isSelected
-            ? scheme.primary
-            : scheme.outline;
-
-    // Padded outer stack so handles/rotate sit inside hit-test bounds (Flutter
-    // does not hit-test children outside a tight w×h Stack).
-    final padL = _handleHit / 2 + 6;
-    final padR = _handleHit / 2 + 6;
-    final padT = 52.0;
-    final padB = _handleHit / 2 + 6;
-    final outerW = w + padL + padR;
-    final outerH = h + padT + padB;
-
-    final rad = _effectiveRotationDeg * math.pi / 180;
-    final pivotX = padL + w / 2;
-    final pivotY = padT + h / 2;
-    final rot = Matrix4.identity()
-      ..translateByDouble(pivotX, pivotY, 0, 1)
-      ..rotateZ(rad)
-      ..translateByDouble(-pivotX, -pivotY, 0, 1);
-
-    return Positioned(
-      left: left - padL,
-      top: top - padT,
-      child: Transform(
-        transform: rot,
-        child: SizedBox(
-          width: outerW,
-          height: outerH,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                left: padL,
-                top: padT,
-                width: w,
-                height: h,
-                child: GestureDetector(
-                  key: _measureKey,
-                  behavior: HitTestBehavior.opaque,
-                  onTap: widget.onTap,
-                  onPanStart: (d) {
-                    _imageMoveSession++;
-                    _imagePanOriginMm = widget.position;
-                    _imagePanAccumMm = Offset.zero;
-                    _imageDragLiveMm = null;
-                    _deferSetState(() => _moving = true);
-                    _imageMovePanLastGlobal = d.globalPosition;
-                  },
-                  onPanUpdate: (details) {
-                    final last =
-                        _imageMovePanLastGlobal ?? details.globalPosition;
-                    final gDelta = details.globalPosition - last;
-                    _imageMovePanLastGlobal = details.globalPosition;
-                    final dMm =
-                        _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
-                    final origin = _imagePanOriginMm ?? widget.position;
-                    _imagePanAccumMm += dMm;
-                    final lr = _resizeLiveRect;
-                    final w = lr?.width ?? widget.widthMm;
-                    final h = lr?.height ?? widget.heightMm;
-                    final maxX = math.max(0.0, widget.labelWidthMm - w);
-                    final maxY = math.max(0.0, widget.labelHeightMm - h);
-                    final rawX = origin.dx + _imagePanAccumMm.dx;
-                    final rawY = origin.dy + _imagePanAccumMm.dy;
-                    final cx = _clampMm(rawX, 0, maxX);
-                    final cy = _clampMm(rawY, 0, maxY);
-                    if (cx != rawX || cy != rawY) {
-                      _imagePanOriginMm = Offset(cx, cy);
-                      _imagePanAccumMm = Offset.zero;
-                    }
-                    final clamped = Offset(cx, cy);
-                    setState(() => _imageDragLiveMm = clamped);
-                    widget.onMoved(clamped);
-                  },
-                  onPanEnd: (_) {
-                    _deferSetState(() => _moving = false);
-                    _finishImageMoveGesture();
-                  },
-                  onPanCancel: () {
-                    _deferSetState(() => _moving = false);
-                    _finishImageMoveGesture();
-                  },
-                  child: AnimatedContainer(
-                    duration: (_resizeCorner != null ||
-                            _rotateStartFingerRad != null ||
-                            _moving)
-                        ? Duration.zero
-                        : const Duration(milliseconds: 100),
-                    width: w,
-                    height: h,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: borderColor,
-                        width: (widget.isSelected || _moving) ? 2.0 : 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                      color: scheme.surfaceContainerHighest,
-                      boxShadow: _moving
-                          ? [
-                              BoxShadow(
-                                color: scheme.primary.withValues(alpha: 0.25),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      fit: StackFit.expand,
-                      children: [
-                        if (widget.vectorChild != null)
-                          Center(
-                            child: IconTheme(
-                              data: IconThemeData(
-                                size: math.min(w, h) * 0.88,
-                                color: scheme.onSurface,
-                              ),
-                              child: widget.vectorChild!,
-                            ),
-                          )
-                        else if (isLabelImagePathUsable(widget.imagePath))
-                          Image.file(
-                            File(widget.imagePath),
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child:
-                                  Icon(Icons.broken_image_outlined, size: 28),
-                            ),
-                          )
-                        else
-                          const Center(
-                            child: Icon(Icons.image_not_supported_outlined,
-                                size: 28),
-                          ),
-                        if (widget.vectorChild == null)
-                          Positioned(
-                            left: 2,
-                            top: 2,
-                            child: Icon(
-                              Icons.drag_indicator,
-                              size: 14,
-                              color: scheme.onSurface.withValues(alpha: 0.5),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              if (widget.isSelected) ...[
-                _cornerHandle(scheme, _ImageCorner.tl,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.tr,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.bl,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.br,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                Positioned(
-                  left: padL + w / 2 - 20,
-                  top: math.max(
-                    0.0,
-                    padT - 42 - (widget.onDelete != null ? 34.0 : 0.0),
-                  ),
-                  width: 40,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (widget.onDelete != null) ...[
-                        IconButton.filled(
-                          tooltip: 'Remove image',
-                          onPressed: widget.onDelete,
-                          icon: const Icon(Icons.close, size: 13),
-                          style: IconButton.styleFrom(
-                            backgroundColor: scheme.error,
-                            foregroundColor: scheme.onError,
-                            fixedSize: const Size(26, 26),
-                            padding: EdgeInsets.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                      ],
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onPanStart: _beginRotate,
-                          onPanUpdate: _onRotatePanUpdate,
-                          onPanEnd: (_) => _deferSetState(_endRotate),
-                          onPanCancel: () => _deferSetState(_endRotate),
-                          child: Tooltip(
-                            message: 'Drag to rotate',
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: scheme.primaryContainer,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: scheme.primary),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.15),
-                                    blurRadius: 3,
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.rotate_right,
-                                size: 18,
-                                color: scheme.onPrimaryContainer,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Draggable chip widget
-// ---------------------------------------------------------------------------
-
-class _DraggableChip extends StatefulWidget {
-  const _DraggableChip({
-    super.key,
-    required this.label,
-    this.actualText = '',
-    required this.position,
-    required this.fontSize,
-    this.fontFamily = '',
-    this.bold = false,
-    this.italic = false,
-    this.rotationDegrees = 0,
-    required this.scale,
-    required this.labelWidthMm,
-    required this.labelHeightMm,
-    this.canvasInsetXPx = 0,
-    this.canvasInsetYPx = 0,
-    required this.labelPanToMmDelta,
-    required this.onMoved,
-    this.isCustom = false,
-    this.isSelected = false,
-    this.isInlineEditing = false,
-    this.onInlineEditingComplete,
-    this.onInlineTextInsertBinding,
-    this.onTap,
-    this.onSelect,
-  });
-
-  final String label;
-
-  /// Raw template text for custom chips (may be empty); ignored when not custom.
-  final String actualText;
-  final Offset position;
-  final double fontSize;
-  final String fontFamily;
-  final bool bold;
-  final bool italic;
-  final int rotationDegrees;
-  final double scale;
-  final double labelWidthMm;
-  final double labelHeightMm;
-
-  /// See [_DraggableImageChip.canvasInsetXPx].
-  final double canvasInsetXPx;
-  final double canvasInsetYPx;
-  final LabelPanMmDeltaCallback labelPanToMmDelta;
-  final void Function(Offset newPosMm) onMoved;
-  final bool isCustom;
-  final bool isSelected;
-  final bool isInlineEditing;
-
-  /// Called once when inline editing ends (focus lost or Enter); updates template text.
-  final ValueChanged<String>? onInlineEditingComplete;
-
-  /// Active while inline editing: non-null inserts at caret; null when edit ends.
-  final ValueChanged<void Function(String)?>? onInlineTextInsertBinding;
-  final VoidCallback? onTap;
-
-  /// When pan wins over tap (slight movement), [onTap] may not run; parent uses
-  /// this to select so the attributes bar appears immediately.
-  final VoidCallback? onSelect;
-
-  @override
-  State<_DraggableChip> createState() => _DraggableChipState();
-}
-
-class _DraggableChipState extends State<_DraggableChip> {
-  bool _dragging = false;
-  TextEditingController? _inlineCtrl;
-  FocusNode? _inlineFocus;
-  bool _inlineEditCommitted = false;
-
-  void _deferSetState(VoidCallback fn) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(fn);
-    });
-  }
-
-  /// [DragUpdateDetails.delta] is local; track global positions for label mm.
-  Offset? _labelDragLastGlobal;
-
-  /// Parent template updates are deferred to post-frame; [widget.position] stays
-  /// stale across multiple [onPanUpdate] calls, so we accumulate from drag start
-  /// and paint from [_dragLiveMm] until the parent catches up.
-  Offset? _panOriginMm;
-  Offset _panAccumMm = Offset.zero;
-  Offset? _dragLiveMm;
-  int _labelDragSession = 0;
-
-  Offset _mmDeltaForLabelPan(DragUpdateDetails d) {
-    final last = _labelDragLastGlobal ?? d.globalPosition;
-    final gDelta = d.globalPosition - last;
-    _labelDragLastGlobal = d.globalPosition;
-    final s = _canvasScaleForMmMath(widget.scale);
-    final fromStack = widget.labelPanToMmDelta(d.globalPosition, gDelta);
-    if (fromStack != null) return fromStack;
-    return Offset(gDelta.dx / s, gDelta.dy / s);
-  }
-
-  Size _builtinChipSizePx() {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: widget.label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    final pt = TextPainter(
-      text: TextSpan(
-        text: '${widget.fontSize.toStringAsFixed(0)}pt',
-        style: const TextStyle(fontSize: 9),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    const hPad = 10.0 * 2;
-    const vPad = 8.0 * 2;
-    final rowW = 16 + 4 + tp.width + 4 + pt.width;
-    final rowH = math.max(16.0, math.max(tp.height, pt.height));
-    return Size(hPad + rowW, vPad + rowH);
-  }
-
-  /// Unrotated hit target size in mm (axis-aligned box for clamping).
-  Size _labelChipBoundsMm() {
-    final scale = widget.scale;
-    if (!widget.isCustom) {
-      final px = _builtinChipSizePx();
-      return Size(px.width / scale, px.height / scale);
-    }
-    final fontPx = widget.fontSize * scale / _kPdfPointsPerMm;
-    final textStyle = customLabelCanvasTextStyle(
-      fontFamilyRaw: widget.fontFamily,
-      fontSize: fontPx,
-      fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
-      fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
-    ).copyWith(color: Colors.black);
-    final displayText =
-        widget.actualText.isEmpty ? widget.label : widget.actualText;
-
-    if (widget.isInlineEditing && _inlineCtrl != null) {
-      final posMm = _dragLiveMm ?? widget.position;
-      final handle = fontPx.clamp(18.0, 28.0);
-      final fieldW = ((widget.labelWidthMm - posMm.dx) * scale - handle - 6)
-          .clamp(48.0, 2000.0);
-      final editTp = TextPainter(
-        text: TextSpan(text: _inlineCtrl!.text, style: textStyle),
-        textDirection: TextDirection.ltr,
-        maxLines: 6,
-      )..layout(maxWidth: fieldW);
-      final wPx = handle + fieldW;
-      final hPx = math.max(handle + 4, editTp.height + 12);
-      return Size(wPx / scale, hPx / scale);
-    }
-
-    final tp = TextPainter(
-      text: TextSpan(text: displayText, style: textStyle),
-      textDirection: TextDirection.ltr,
-      maxLines: 6,
-    )..layout(maxWidth: widget.labelWidthMm * scale);
-    final handleSize = fontPx.clamp(20.0, 32.0);
-    final wPx = handleSize + tp.width;
-    final hPx = math.max(handleSize, tp.height);
-    return Size(wPx / scale, hPx / scale);
-  }
-
-  void _onLabelPanStart(DragStartDetails d) {
-    if (widget.isCustom && !widget.isSelected) {
-      widget.onSelect?.call();
-    }
-    _labelDragSession++;
-    _panOriginMm = widget.position;
-    _panAccumMm = Offset.zero;
-    _dragLiveMm = null;
-    _deferSetState(() => _dragging = true);
-    _labelDragLastGlobal = d.globalPosition;
-  }
-
-  void _finishLabelPanGesture() {
-    final session = _labelDragSession;
-    _labelDragLastGlobal = null;
-    _panOriginMm = null;
-    _panAccumMm = Offset.zero;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || session != _labelDragSession) return;
-      setState(() => _dragLiveMm = null);
-    });
-  }
-
-  void _onLabelPanEnd() {
-    _deferSetState(() => _dragging = false);
-    _finishLabelPanGesture();
-  }
-
-  void _panMoveClampedToHitInset(DragUpdateDetails details) {
-    final dMm = _mmDeltaForLabelPan(details);
-    if (dMm.dx.isNaN ||
-        dMm.dy.isNaN ||
-        dMm.dx.isInfinite ||
-        dMm.dy.isInfinite) {
-      return;
-    }
-    final origin = _panOriginMm ?? widget.position;
-    _panAccumMm += dMm;
-    final bounds = _labelChipBoundsMm();
-    final maxX = math.max(0.0, widget.labelWidthMm - bounds.width);
-    final maxY = math.max(0.0, widget.labelHeightMm - bounds.height);
-    final rawX = origin.dx + _panAccumMm.dx;
-    final rawY = origin.dy + _panAccumMm.dy;
-    final cx = _clampMm(rawX, 0, maxX);
-    final cy = _clampMm(rawY, 0, maxY);
-    if (cx != rawX || cy != rawY) {
-      _panOriginMm = Offset(cx, cy);
-      _panAccumMm = Offset.zero;
-    }
-    final clamped = Offset(cx, cy);
-    setState(() => _dragLiveMm = clamped);
-    widget.onMoved(clamped);
-  }
-
-  void _startInlineEditing() {
-    _inlineEditCommitted = false;
-    _inlineCtrl?.dispose();
-    _inlineFocus?.removeListener(_onInlineFocusChange);
-    _inlineFocus?.dispose();
-    _inlineCtrl = TextEditingController(text: widget.actualText);
-    _inlineFocus = FocusNode();
-    _inlineFocus!.addListener(_onInlineFocusChange);
-    widget.onInlineTextInsertBinding?.call(_pasteIntoInlineField);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !widget.isInlineEditing) return;
-      _inlineFocus?.requestFocus();
-      final t = _inlineCtrl?.text ?? '';
-      _inlineCtrl?.selection = TextSelection.collapsed(offset: t.length);
-    });
-  }
-
-  void _pasteIntoInlineField(String insertion) {
-    final c = _inlineCtrl;
-    if (c == null || !widget.isInlineEditing) return;
-    final text = c.text;
-    final sel = c.selection;
-    var start = sel.isValid ? sel.start : text.length;
-    var end = sel.isValid ? sel.end : text.length;
-    if (start < 0 || start > text.length) start = text.length;
-    if (end < 0 || end > text.length) end = text.length;
-    if (start > end) {
-      final t = start;
-      start = end;
-      end = t;
-    }
-    final newText = text.replaceRange(start, end, insertion);
-    final newOffset = start + insertion.length;
-    c.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-    _inlineFocus?.requestFocus();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isCustom && widget.isInlineEditing) {
-      _startInlineEditing();
-    }
-    if (widget.isCustom) {
-      _scheduleCanvasGoogleFontPrime();
-    }
-  }
-
-  void _scheduleCanvasGoogleFontPrime() {
-    if (!labelCanvasFontUsesGoogle(widget.fontFamily)) return;
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _loadCanvasGoogleFontIfNeeded());
-  }
-
-  Future<void> _loadCanvasGoogleFontIfNeeded() async {
-    if (!mounted || !widget.isCustom) return;
-    try {
-      await preloadGoogleFontForLabelCanvas(
-        widget.fontFamily,
-        widget.bold ? FontWeight.bold : FontWeight.normal,
-        widget.italic ? FontStyle.italic : FontStyle.normal,
-      );
-    } catch (_) {}
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void didUpdateWidget(covariant _DraggableChip oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!widget.isCustom) return;
-    if (oldWidget.fontFamily != widget.fontFamily ||
-        oldWidget.bold != widget.bold ||
-        oldWidget.italic != widget.italic) {
-      _scheduleCanvasGoogleFontPrime();
-    }
-    if (widget.isInlineEditing && !oldWidget.isInlineEditing) {
-      _startInlineEditing();
-    } else if (!widget.isInlineEditing && oldWidget.isInlineEditing) {
-      widget.onInlineTextInsertBinding?.call(null);
-      if (!_inlineEditCommitted) {
-        _commitInlineToParent();
-      }
-      _inlineEditCommitted = false;
-      _inlineFocus?.removeListener(_onInlineFocusChange);
-      _inlineFocus?.dispose();
-      _inlineFocus = null;
-      _inlineCtrl?.dispose();
-      _inlineCtrl = null;
-    } else if (widget.isInlineEditing &&
-        _inlineCtrl != null &&
-        widget.actualText != _inlineCtrl!.text &&
-        !(_inlineFocus?.hasFocus ?? false)) {
-      _inlineCtrl!.text = widget.actualText;
-    }
-  }
-
-  void _onInlineFocusChange() {
-    if (_inlineFocus == null || _inlineFocus!.hasFocus) return;
-    _commitInlineToParent();
-  }
-
-  void _commitInlineToParent() {
-    if (_inlineEditCommitted) return;
-    _inlineEditCommitted = true;
-    widget.onInlineEditingComplete?.call(_inlineCtrl?.text ?? '');
-  }
-
-  @override
-  void dispose() {
-    if (widget.isInlineEditing) {
-      widget.onInlineTextInsertBinding?.call(null);
-    }
-    _inlineFocus?.removeListener(_onInlineFocusChange);
-    _inlineFocus?.dispose();
-    _inlineCtrl?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final insetX = widget.canvasInsetXPx;
-    final insetY = widget.canvasInsetYPx;
-    final posMm = _dragLiveMm ?? widget.position;
-    final left = posMm.dx * widget.scale + insetX;
-    final top = posMm.dy * widget.scale + insetY;
-    final scheme = Theme.of(context).colorScheme;
-
-    if (widget.isCustom) {
-      // Match PDF: pw.Text at (xMm,yMm), fontSize in pt, rotateZ about top-left.
-      final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
-      final textStyle = customLabelCanvasTextStyle(
-        fontFamilyRaw: widget.fontFamily,
-        fontSize: fontPx,
-        fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
-        fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
-      ).copyWith(color: Colors.black);
-
-      if (widget.isInlineEditing &&
-          _inlineCtrl != null &&
-          _inlineFocus != null) {
-        final handle = fontPx.clamp(18.0, 28.0);
-        final fieldW =
-            ((widget.labelWidthMm - posMm.dx) * widget.scale - handle - 6)
-                .clamp(48.0, 2000.0);
-        final editor = Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onPanStart: _onLabelPanStart,
-              onPanUpdate: _panMoveClampedToHitInset,
-              onPanEnd: (_) => _onLabelPanEnd(),
-              onPanCancel: _onLabelPanEnd,
-              child: SizedBox(
-                width: handle,
-                height: handle + 4,
-                child: Icon(
-                  Icons.drag_indicator,
-                  size: handle,
-                  color: scheme.primary,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: fieldW,
-              child: TextField(
-                controller: _inlineCtrl,
-                focusNode: _inlineFocus,
-                autofocus: true,
-                style: textStyle,
-                maxLines: 6,
-                minLines: 1,
-                cursorColor: Colors.black,
-                decoration: InputDecoration(
-                  isDense: true,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 6,
-                  ),
-                ),
-                onSubmitted: (_) => _inlineFocus?.unfocus(),
-              ),
-            ),
-          ],
-        );
-        return Positioned(
-          left: left,
-          top: top,
-          child: Transform.rotate(
-            angle: widget.rotationDegrees * math.pi / 180,
-            alignment: Alignment.topLeft,
-            child: editor,
-          ),
-        );
-      }
-
-      final text = Text(
-        widget.label,
-        style: textStyle,
-      );
-      final handleSize = fontPx.clamp(20.0, 32.0);
-      return Positioned(
-        left: left,
-        top: top,
-        child: Transform.rotate(
-          angle: widget.rotationDegrees * math.pi / 180,
-          alignment: Alignment.topLeft,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: widget.onTap,
-            onPanStart: _onLabelPanStart,
-            onPanUpdate: _panMoveClampedToHitInset,
-            onPanEnd: (_) => _onLabelPanEnd(),
-            onPanCancel: _onLabelPanEnd,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: handleSize,
-                  height: handleSize,
-                  child: Center(
-                    child: Icon(
-                      Icons.drag_indicator,
-                      size: handleSize * 0.65,
-                      color: scheme.primary.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ),
-                Container(
-                  foregroundDecoration: (widget.isSelected || _dragging)
-                      ? BoxDecoration(
-                          border: Border.all(color: scheme.primary, width: 2),
-                        )
-                      : null,
-                  child: text,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    final Color bgColor;
-    final Color fgColor;
-    final Color borderColor;
-    if (_dragging) {
-      bgColor = scheme.primaryContainer;
-      fgColor = Colors.black;
-      borderColor = scheme.primary;
-    } else if (widget.isSelected) {
-      bgColor = Colors.amber.shade50;
-      fgColor = Colors.black;
-      borderColor = scheme.primary;
-    } else {
-      bgColor = Colors.grey.shade200;
-      fgColor = Colors.black87;
-      borderColor = Colors.grey.shade500;
-    }
-
-    final chip = AnimatedContainer(
-      duration: const Duration(milliseconds: 100),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: borderColor,
-          width: (widget.isSelected || _dragging) ? 2.0 : 1.0,
-        ),
-        boxShadow: _dragging
-            ? [
-                BoxShadow(
-                  color: scheme.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.drag_indicator, size: 16, color: fgColor),
-          const SizedBox(width: 4),
-          Text(
-            widget.label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: fgColor,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${widget.fontSize.toStringAsFixed(0)}pt',
-            style:
-                TextStyle(fontSize: 9, color: fgColor.withValues(alpha: 0.7)),
-          ),
-        ],
-      ),
-    );
-
-    return Positioned(
-      left: left,
-      top: top,
-      child: Transform.rotate(
-        angle: widget.rotationDegrees * math.pi / 180,
-        alignment: Alignment.center,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: widget.onTap,
-          onPanStart: _onLabelPanStart,
-          onPanUpdate: _panMoveClampedToHitInset,
-          onPanEnd: (_) => _onLabelPanEnd(),
-          onPanCancel: _onLabelPanEnd,
-          child: chip,
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-
-class _SyncedFontSizeField extends StatefulWidget {
-  const _SyncedFontSizeField({
-    super.key,
-    required this.fontSizePt,
-    required this.onValidSize,
-  });
-
-  final double fontSizePt;
-  final ValueChanged<double> onValidSize;
-
-  @override
-  State<_SyncedFontSizeField> createState() => _SyncedFontSizeFieldState();
-}
-
-class _SyncedFontSizeFieldState extends State<_SyncedFontSizeField> {
-  late final TextEditingController _controller;
-  late final FocusNode _focus;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller =
-        TextEditingController(text: widget.fontSizePt.toStringAsFixed(1));
-    _focus = FocusNode();
-    _controller.addListener(_onEdit);
-  }
-
-  void _onEdit() {
-    final p = double.tryParse(_controller.text.trim());
-    if (p != null && p >= 4 && p <= 72) {
-      widget.onValidSize(p);
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _SyncedFontSizeField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.fontSizePt != widget.fontSizePt) {
-      final next = widget.fontSizePt.toStringAsFixed(1);
-      if (_controller.text != next) {
-        _controller.removeListener(_onEdit);
-        _controller.text = next;
-        _controller.addListener(_onEdit);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onEdit);
-    _controller.dispose();
-    _focus.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: _controller,
-      focusNode: _focus,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      ),
-      style: const TextStyle(fontSize: 14),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-
-/// Rounded frame with a solid vertical rail on the **right** (end drawer).
-class _EndSidebarPanelIcon extends StatelessWidget {
-  const _EndSidebarPanelIcon({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size, size),
-      painter: _EndSidebarPanelIconPainter(color: color),
-    );
-  }
-}
-
-class _EndSidebarPanelIconPainter extends CustomPainter {
-  _EndSidebarPanelIconPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final m = w * 0.1;
-    final radius = w * 0.12;
-    final outer = RRect.fromRectAndRadius(
-      Rect.fromLTWH(m, m, w - 2 * m, h - 2 * m),
-      Radius.circular(radius),
-    );
-    final stroke = (w * 0.09).clamp(1.5, 2.5);
-    canvas.drawRRect(
-      outer,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = stroke,
-    );
-
-    final innerPad = w * 0.06;
-    final barW = w * 0.24;
-    final barRight = w - m - innerPad;
-    final barLeft = barRight - barW;
-    final barTop = m + innerPad;
-    final barBottom = h - m - innerPad;
-    final bar = RRect.fromRectAndRadius(
-      Rect.fromLTRB(barLeft, barTop, barRight, barBottom),
-      Radius.circular(stroke * 0.35),
-    );
-    canvas.drawRRect(bar, Paint()..color = color);
-  }
-
-  @override
-  bool shouldRepaint(covariant _EndSidebarPanelIconPainter old) =>
-      old.color != color;
-}
-
-// ---------------------------------------------------------------------------
-
-class _GridPainter extends CustomPainter {
-  _GridPainter({
-    required this.labelWidthMm,
-    required this.labelHeightMm,
-    required this.scale,
-  });
-
-  final double labelWidthMm;
-  final double labelHeightMm;
-  final double scale;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final thinPaint = Paint()
-      ..color = Colors.grey.withValues(alpha: 0.15)
-      ..strokeWidth = 0.5;
-    final thickPaint = Paint()
-      ..color = Colors.grey.withValues(alpha: 0.35)
-      ..strokeWidth = 1.0;
-
-    const smallStep = 1.0;
-    const bigStep = 5.0;
-
-    for (double x = 0; x <= labelWidthMm; x += smallStep) {
-      final px = x * scale;
-      final isMajor = (x % bigStep) < 0.01;
-      canvas.drawLine(Offset(px, 0), Offset(px, size.height),
-          isMajor ? thickPaint : thinPaint);
-    }
-    for (double y = 0; y <= labelHeightMm; y += smallStep) {
-      final py = y * scale;
-      final isMajor = (y % bigStep) < 0.01;
-      canvas.drawLine(Offset(0, py), Offset(size.width, py),
-          isMajor ? thickPaint : thinPaint);
-    }
-
-    final textStyle = TextStyle(color: Colors.grey.shade500, fontSize: 9);
-    for (double x = 0; x <= labelWidthMm; x += 10) {
-      final tp = TextPainter(
-        text: TextSpan(text: '${x.toInt()}', style: textStyle),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(x * scale + 2, 2));
-    }
-    for (double y = 10; y <= labelHeightMm; y += 10) {
-      final tp = TextPainter(
-        text: TextSpan(text: '${y.toInt()}', style: textStyle),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(2, y * scale + 2));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _GridPainter old) =>
-      old.scale != scale ||
-      old.labelWidthMm != labelWidthMm ||
-      old.labelHeightMm != labelHeightMm;
-}
-
-class AvailableFieldsPanel extends ConsumerWidget {
-  const AvailableFieldsPanel({
-    super.key,
-    required this.isExpanded,
-    required this.onAddField,
-  });
-
-  final bool isExpanded;
-  final void Function(String) onAddField;
-
-  Map<String, List<String>> _getAllGroups(WidgetRef ref) {
-    final db = ref.read(databaseProvider);
-    Map<String, List<String>> groups = {};
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      groups[tableName] =
-          table.$columns.map((c) => '$tableName::${c.name}').toList();
-    }
-    return groups;
-  }
-
-  /// One list row per label; `.sex` columns become two rows (`[id]`, `[id]-img`).
-  List<String> _fieldPanelRowLabels(List<String> fieldIds) {
-    final out = <String>[];
-    for (final id in fieldIds) {
-      if (id.toLowerCase().endsWith('.sex')) {
-        out.add('[$id]');
-        out.add('[$id]-img');
-      } else {
-        out.add('[$id]');
-      }
-    }
-    return out;
-  }
-
-  Widget _buildExpansionGroup(
-    BuildContext context,
-    String title,
-    List<String> fields,
-  ) {
-    final rowLabels = _fieldPanelRowLabels(fields);
-    final fieldStyle = TextStyle(
-      fontFamily: 'monospace',
-      fontSize: 14,
-      height: 1.25,
-      color: Theme.of(context).colorScheme.onSurface,
-    );
-    return ExpansionTile(
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-      ),
-      dense: true,
-      childrenPadding: EdgeInsets.zero,
-      children: rowLabels.map((label) {
-        return ListTile(
-          dense: true,
-          visualDensity: VisualDensity.compact,
-          horizontalTitleGap: 8,
-          contentPadding: const EdgeInsets.fromLTRB(16, 2, 5, 2),
-          onTap: () => onAddField(label),
-          title: Text(
-            label,
-            style: fieldStyle,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final panelW = 280.0;
-    const divW = 1.0;
-
-    final groups = _getAllGroups(ref);
-    final groupKeys = groups.keys.toList();
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
-      width: isExpanded ? divW + panelW : 0,
-      child: UnconstrainedBox(
-        constrainedAxis: Axis.vertical,
-        alignment: Alignment.centerLeft,
-        clipBehavior: Clip.hardEdge,
-        child: SizedBox(
-          width: divW + panelW,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const VerticalDivider(width: 1),
-              SizedBox(
-                width: panelW,
-                child: TextFieldTapRegion(
-                  child: Material(
-                    color: Theme.of(context).colorScheme.surfaceContainerLow,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-                          child: Text(
-                            'Available fields',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        Expanded(
-                          child: ListView(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            children: [
-                              ...groupKeys.map((table) {
-                                return _buildExpansionGroup(
-                                  context,
-                                  table.toUpperCase(),
-                                  groups[table]!,
-                                );
-                              }),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
