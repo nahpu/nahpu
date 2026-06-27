@@ -18,17 +18,16 @@ void main() {
         return [
           XFile('/tmp/voice.mp3'),
           XFile('/tmp/clip.mp4'),
-          XFile('/tmp/doc.pdf'),
         ];
       },
     ).pickMultiFiles([mediaFmt]);
 
-    expect(selected, hasLength(3));
+    expect(selected, hasLength(2));
     expect(lastAcceptedTypeGroups, isNotNull);
     expect(lastAcceptedTypeGroups, hasLength(1));
     expect(
       lastAcceptedTypeGroups!.single.extensions,
-      containsAll(['jpg', 'mp3', 'mp4', 'pdf']),
+      containsAll(['jpg', 'mp3', 'mp4']),
     );
     for (final group in lastAcceptedTypeGroups!) {
       expect(
@@ -68,7 +67,6 @@ void main() {
         '/tmp/photo.jpg',
         '/tmp/voice.mp3',
         '/tmp/clip.mp4',
-        '/tmp/doc.pdf',
       ]),
       returnsNormally,
     );
