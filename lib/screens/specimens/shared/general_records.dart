@@ -10,7 +10,7 @@ import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/layout.dart';
-import 'package:nahpu/screens/specimens/shared/taxa.dart';
+import 'package:nahpu/screens/specimens/shared/taxonomy.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/specimen_services.dart';

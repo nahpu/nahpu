@@ -11,7 +11,7 @@ import 'package:nahpu/screens/specimens/shared/capture_records.dart';
 import 'package:nahpu/screens/specimens/shared/general_records.dart';
 import 'package:nahpu/screens/specimens/shared/media.dart';
 import 'package:nahpu/screens/specimens/shared/specimen_parts.dart';
-import 'package:nahpu/screens/specimens/shared/taxa.dart';
+import 'package:nahpu/screens/specimens/shared/taxonomy.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
 class MainForms extends ConsumerStatefulWidget {
