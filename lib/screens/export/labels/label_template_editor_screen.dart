@@ -13,13 +13,12 @@ import 'package:nahpu/screens/export/labels/label_size_selector.dart';
 import 'package:nahpu/screens/export/labels/label_template_fonts.dart';
 import 'package:nahpu/screens/export/labels/label_template_live_preview.dart';
 import 'package:nahpu/screens/export/labels/label_gender_icon.dart';
-import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
-import 'package:nahpu/services/label_logo_service.dart';
-import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 import 'package:nahpu/services/label_template_service.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/export/label_writer.dart';
+import 'package:nahpu/services/label_logo_service.dart';
+import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:path/path.dart' as path;
 
@@ -243,7 +242,7 @@ class _LabelTemplateEditorScreenState
       final list = await SpecimenServices(ref: ref).getSpecimenList();
       if (list.isEmpty) return;
       final db = ref.read(databaseProvider);
-      final m = await fieldValuesForSpecimen(db, list.first);
+      final m = await fieldValuesForSpecimen(db, list.first, ref);
       if (mounted) setState(() => _editorLabelFieldPreview = m);
     } catch (_) {}
   }
@@ -1384,7 +1383,17 @@ class _LabelTemplateEditorScreenState
               ),
             ),
           ),
-          _buildAnimatedFieldsPanel(),
+          AvailableFieldsPanel(
+            isExpanded: _fieldsPanelExpanded,
+            onAddField: (label) {
+              final paste = _inlineCustomTextPaste;
+              if (paste != null) {
+                paste(label);
+              } else {
+                _addCustomTextWithLabel(_isPage1, label);
+              }
+            },
+          ),
         ],
       ),
     );
@@ -1427,7 +1436,7 @@ class _LabelTemplateEditorScreenState
       final list = await SpecimenServices(ref: ref).getSpecimenList();
       if (list.isNotEmpty) {
         final db = ref.read(databaseProvider);
-        sample = await fieldValuesForSpecimen(db, list.first);
+        sample = await fieldValuesForSpecimen(db, list.first, ref);
       }
     } catch (_) {}
     if (!mounted) return;
@@ -2106,158 +2115,6 @@ class _LabelTemplateEditorScreenState
       icon: _EndSidebarPanelIcon(
         size: 22,
         color: scheme.onSurfaceVariant,
-      ),
-    );
-  }
-
-  double _measurePanelTextWidth(String text, TextStyle style) {
-    final tp = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: TextDirection.ltr,
-      textScaler: MediaQuery.textScalerOf(context),
-    )..layout();
-    return tp.width;
-  }
-
-  /// One list row per label; `.sex` columns become two rows (`[id]`, `[id]-img`).
-  List<String> _fieldPanelRowLabels(List<String> fieldIds) {
-    final out = <String>[];
-    for (final id in fieldIds) {
-      if (id.toLowerCase().endsWith('.sex')) {
-        out.add('[$id]');
-        out.add('[$id]-img');
-      } else {
-        out.add('[$id]');
-      }
-    }
-    return out;
-  }
-
-  /// Width to fit the widest line (title or field label) plus padding and [extra] px.
-  double _availableFieldsPanelWidth(List<String> fieldIds, {double extra = 5}) {
-    final titleStyle =
-        Theme.of(context).textTheme.titleSmall ?? const TextStyle();
-    final fieldStyle = TextStyle(
-      fontFamily: 'monospace',
-      fontSize: 14,
-      height: 1.25,
-      color: Theme.of(context).colorScheme.onSurface,
-    );
-    final titleW = _measurePanelTextWidth('Available fields', titleStyle);
-    var maxFieldW = 0.0;
-    for (final id in fieldIds) {
-      if (id.toLowerCase().endsWith('.sex')) {
-        maxFieldW = math.max(
-          maxFieldW,
-          _measurePanelTextWidth('[$id]', fieldStyle),
-        );
-        maxFieldW = math.max(
-          maxFieldW,
-          _measurePanelTextWidth('[$id]-img', fieldStyle),
-        );
-      } else {
-        maxFieldW = math.max(
-          maxFieldW,
-          _measurePanelTextWidth('[$id]', fieldStyle),
-        );
-      }
-    }
-    const titleHorizontalPadding = 20.0;
-    const listHorizontalPadding = 21.0;
-    final inner = math.max(
-        titleW + titleHorizontalPadding, maxFieldW + listHorizontalPadding);
-    return (inner + extra).clamp(80.0, 10000.0);
-  }
-
-  Widget _buildAnimatedFieldsPanel() {
-    final fieldIds = labelTemplateAvailableFieldIds(ref.read(databaseProvider));
-    final panelW = _availableFieldsPanelWidth(fieldIds);
-    const divW = 1.0;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
-      width: _fieldsPanelExpanded ? divW + panelW : 0,
-      child: UnconstrainedBox(
-        constrainedAxis: Axis.vertical,
-        alignment: Alignment.centerLeft,
-        clipBehavior: Clip.hardEdge,
-        child: SizedBox(
-          width: divW + panelW,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const VerticalDivider(width: 1),
-              SizedBox(
-                width: panelW,
-                child: _buildFieldsPanel(fieldIds: fieldIds, width: panelW),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFieldsPanel({
-    required List<String> fieldIds,
-    required double width,
-  }) {
-    final rowLabels = _fieldPanelRowLabels(fieldIds);
-    return TextFieldTapRegion(
-      child: Material(
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
-        child: SizedBox(
-          width: width,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-                child: Text(
-                  'Available fields',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  itemCount: rowLabels.length,
-                  itemBuilder: (context, index) {
-                    final label = rowLabels[index];
-                    final fieldStyle = TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 14,
-                      height: 1.25,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    );
-                    return ListTile(
-                      dense: true,
-                      visualDensity: VisualDensity.compact,
-                      horizontalTitleGap: 8,
-                      contentPadding: const EdgeInsets.fromLTRB(16, 2, 5, 2),
-                      onTap: () {
-                        final paste = _inlineCustomTextPaste;
-                        if (paste != null) {
-                          paste(label);
-                        } else {
-                          _addCustomTextWithLabel(_isPage1, label);
-                        }
-                      },
-                      title: Text(
-                        label,
-                        style: fieldStyle,
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -3752,4 +3609,142 @@ class _GridPainter extends CustomPainter {
       old.scale != scale ||
       old.labelWidthMm != labelWidthMm ||
       old.labelHeightMm != labelHeightMm;
+}
+
+class AvailableFieldsPanel extends ConsumerWidget {
+  const AvailableFieldsPanel({
+    super.key,
+    required this.isExpanded,
+    required this.onAddField,
+  });
+
+  final bool isExpanded;
+  final void Function(String) onAddField;
+
+  Map<String, List<String>> _getAllGroups(WidgetRef ref) {
+    final db = ref.read(databaseProvider);
+    Map<String, List<String>> groups = {};
+    for (var table in db.allTables) {
+      final tableName = table.actualTableName;
+      groups[tableName] =
+          table.$columns.map((c) => '$tableName::${c.name}').toList();
+    }
+    return groups;
+  }
+
+  /// One list row per label; `.sex` columns become two rows (`[id]`, `[id]-img`).
+  List<String> _fieldPanelRowLabels(List<String> fieldIds) {
+    final out = <String>[];
+    for (final id in fieldIds) {
+      if (id.toLowerCase().endsWith('.sex')) {
+        out.add('[$id]');
+        out.add('[$id]-img');
+      } else {
+        out.add('[$id]');
+      }
+    }
+    return out;
+  }
+
+  Widget _buildExpansionGroup(
+    BuildContext context,
+    String title,
+    List<String> fields,
+  ) {
+    final rowLabels = _fieldPanelRowLabels(fields);
+    final fieldStyle = TextStyle(
+      fontFamily: 'monospace',
+      fontSize: 14,
+      height: 1.25,
+      color: Theme.of(context).colorScheme.onSurface,
+    );
+    return ExpansionTile(
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+      dense: true,
+      childrenPadding: EdgeInsets.zero,
+      children: rowLabels.map((label) {
+        return ListTile(
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          horizontalTitleGap: 8,
+          contentPadding: const EdgeInsets.fromLTRB(16, 2, 5, 2),
+          onTap: () => onAddField(label),
+          title: Text(
+            label,
+            style: fieldStyle,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final panelW = 280.0;
+    const divW = 1.0;
+
+    final groups = _getAllGroups(ref);
+    final groupKeys = groups.keys.toList();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      width: isExpanded ? divW + panelW : 0,
+      child: UnconstrainedBox(
+        constrainedAxis: Axis.vertical,
+        alignment: Alignment.centerLeft,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: divW + panelW,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const VerticalDivider(width: 1),
+              SizedBox(
+                width: panelW,
+                child: TextFieldTapRegion(
+                  child: Material(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                          child: Text(
+                            'Available fields',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        Expanded(
+                          child: ListView(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            children: [
+                              ...groupKeys.map((table) {
+                                return _buildExpansionGroup(
+                                  context,
+                                  table.toUpperCase(),
+                                  groups[table]!,
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -32,6 +32,9 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
   List<SpecimenData> _currentPageData = [];
   Map<String, Map<String, String>> _rowValues = {};
 
+  final ScrollController _hScrollController = ScrollController();
+  final ScrollController _vScrollController = ScrollController();
+
   int _totalCount = 0;
   int _currentPage = 0;
   final int _pageSize = 50;
@@ -55,6 +58,8 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
   @override
   void dispose() {
     _searchController.dispose();
+    _hScrollController.dispose();
+    _vScrollController.dispose();
     super.dispose();
   }
 
@@ -94,7 +99,7 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
 
       final rowVals = <String, Map<String, String>>{};
       for (final s in data) {
-        rowVals[s.uuid] = await fieldValuesForSpecimen(db, s);
+        rowVals[s.uuid] = await fieldValuesForSpecimen(db, s, ref);
       }
 
       if (!mounted) return;
@@ -263,79 +268,86 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
               : LayoutBuilder(
                   builder: (context, constraints) {
                     return Scrollbar(
+                      controller: _hScrollController,
                       child: SingleChildScrollView(
+                        controller: _hScrollController,
                         scrollDirection: Axis.horizontal,
                         child: ConstrainedBox(
                           constraints:
                               BoxConstraints(minWidth: constraints.maxWidth),
-                          child: SingleChildScrollView(
-                            child: DataTable(
-                              columnSpacing: 16,
-                              horizontalMargin: 12,
-                              dataRowMinHeight: 40,
-                              columns: [
-                                DataColumn(
-                                  label: Checkbox(
-                                    tristate: true,
-                                    value: _headerCheckboxValue,
-                                    onChanged: _onHeaderCheckbox,
-                                  ),
-                                ),
-                                for (final col in widget.visibleColumnIds)
+                          child: Scrollbar(
+                            controller: _vScrollController,
+                            child: SingleChildScrollView(
+                              controller: _vScrollController,
+                              child: DataTable(
+                                columnSpacing: 16,
+                                horizontalMargin: 12,
+                                dataRowMinHeight: 40,
+                                columns: [
                                   DataColumn(
-                                    label: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        minWidth: 72,
-                                        maxWidth: 160,
-                                      ),
-                                      child: Text(
-                                        specimenColumnDisplayTitle(col),
-                                        softWrap: true,
-                                      ),
+                                    label: Checkbox(
+                                      tristate: true,
+                                      value: _headerCheckboxValue,
+                                      onChanged: _onHeaderCheckbox,
                                     ),
                                   ),
-                              ],
-                              rows: [
-                                for (final s in _currentPageData)
-                                  DataRow(
-                                    selected: widget.selectedUuidList
-                                        .contains(s.uuid),
-                                    cells: [
-                                      DataCell(
-                                        Checkbox(
-                                          value: widget.selectedUuidList
-                                              .contains(s.uuid),
-                                          onChanged: (v) {
-                                            final newSelected =
-                                                Set<String>.from(
-                                                    widget.selectedUuidList);
-                                            if (v == true) {
-                                              newSelected.add(s.uuid);
-                                            } else {
-                                              newSelected.remove(s.uuid);
-                                            }
-                                            widget.onSelectionChanged(
-                                                newSelected);
-                                          },
+                                  for (final col in widget.visibleColumnIds)
+                                    DataColumn(
+                                      label: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                          minWidth: 72,
+                                          maxWidth: 160,
+                                        ),
+                                        child: Text(
+                                          specimenColumnDisplayTitle(col),
+                                          softWrap: true,
                                         ),
                                       ),
-                                      for (final col in widget.visibleColumnIds)
+                                    ),
+                                ],
+                                rows: [
+                                  for (final s in _currentPageData)
+                                    DataRow(
+                                      selected: widget.selectedUuidList
+                                          .contains(s.uuid),
+                                      cells: [
                                         DataCell(
-                                          ConstrainedBox(
-                                            constraints: const BoxConstraints(
-                                                maxWidth: 200),
-                                            child: Text(
-                                              _cellText(
-                                                  _rowValues[s.uuid] ?? {},
-                                                  col),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                          Checkbox(
+                                            value: widget.selectedUuidList
+                                                .contains(s.uuid),
+                                            onChanged: (v) {
+                                              final newSelected =
+                                                  Set<String>.from(
+                                                      widget.selectedUuidList);
+                                              if (v == true) {
+                                                newSelected.add(s.uuid);
+                                              } else {
+                                                newSelected.remove(s.uuid);
+                                              }
+                                              widget.onSelectionChanged(
+                                                  newSelected);
+                                            },
                                           ),
                                         ),
-                                    ],
-                                  ),
-                              ],
+                                        for (final col
+                                            in widget.visibleColumnIds)
+                                          DataCell(
+                                            ConstrainedBox(
+                                              constraints: const BoxConstraints(
+                                                  maxWidth: 200),
+                                              child: Text(
+                                                _cellText(
+                                                    _rowValues[s.uuid] ?? {},
+                                                    col),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

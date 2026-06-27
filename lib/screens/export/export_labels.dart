@@ -21,6 +21,8 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/screens/export/components/label_page_preview.dart';
 import 'package:nahpu/screens/export/components/specimen_selection.dart';
+import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/database/database.dart';
 
 const Map<String, String> _printPageSizeLabels = {
   'A0': 'A0 (841 x 1188 mm)',
@@ -135,7 +137,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     final setupNames = await _pageSetupService.listSetupNames();
     final currentSetupName = await _pageSetupService.getCurrentSetupName();
     final currentSetup = await _pageSetupService.getCurrentSetup();
-    
+
     final templateService = const LabelTemplateService();
     final currentTemplateName = await _settings.getCurrentTemplateName();
     final pickedTemplate = currentTemplateName == null
@@ -186,80 +188,57 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
 
   Future<void> _pickColumns() async {
     final db = ref.read(databaseProvider);
-    final catalog = labelTemplateAvailableFieldIds(db)
-      ..sort((a, b) => specimenColumnDisplayTitle(a)
-          .toLowerCase()
-          .compareTo(specimenColumnDisplayTitle(b).toLowerCase()));
-    final sel = _visibleColumnIds.toSet();
     final order = List<String>.from(_visibleColumnIds);
-    final result = await showDialog<List<String>>(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModal) {
-            return AlertDialog(
-              title: const Text('Table columns'),
-              content: SizedBox(
-                width: 420,
-                height: 420,
-                child: ListView(
-                  children: [
-                    for (final id in catalog)
-                      CheckboxListTile(
-                        dense: true,
-                        value: sel.contains(id),
-                        onChanged: (v) {
-                          setModal(() {
-                            if (v == true) {
-                              sel.add(id);
-                            } else {
-                              sel.remove(id);
-                            }
-                          });
-                        },
-                        title: Text(specimenColumnDisplayTitle(id)),
-                      ),
-                  ],
-                ),
+    List<String>? result;
+
+    if (systemPlatform == PlatformType.mobile) {
+      result = await showModalBottomSheet<List<String>>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) {
+          return FractionallySizedBox(
+            heightFactor: 0.9,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('Table columns'),
+                automaticallyImplyLeading: false,
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    setModal(() {
-                      sel
-                        ..clear()
-                        ..addAll(kDefaultPrintSpecimenTableColumnIds);
-                    });
-                  },
-                  child: const Text('Defaults'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    var merged = _mergeColumnOrder(order, sel);
-                    merged = normalizePrintSpecimenTableColumnIds(merged, db);
-                    if (merged.isEmpty) {
-                      merged = normalizePrintSpecimenTableColumnIds(
-                        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-                        db,
-                      );
-                    }
-                    Navigator.pop(ctx, merged);
-                  },
-                  child: const Text('Apply'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+              body: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      result = await showDialog<List<String>>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('Table columns'),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     if (result != null && mounted) {
-      await _settings.setPrintSpecimenTableColumnIds(result);
-      setState(() => _visibleColumnIds = result);
+      var merged = _mergeColumnOrder(order, result.toSet());
+      merged = normalizePrintSpecimenTableColumnIds(merged, db);
+      if (merged.isEmpty) {
+        merged = normalizePrintSpecimenTableColumnIds(
+          List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+          db,
+        );
+      }
+      await _settings.setPrintSpecimenTableColumnIds(merged);
+      setState(() => _visibleColumnIds = merged);
     }
   }
 
@@ -1179,3 +1158,140 @@ class PrintLayoutSection extends StatelessWidget {
   }
 }
 
+class SpecimenTableColumnSelector extends ConsumerStatefulWidget {
+  const SpecimenTableColumnSelector({
+    super.key,
+    required this.selectedColumns,
+  });
+
+  final List<String> selectedColumns;
+
+  @override
+  ConsumerState<SpecimenTableColumnSelector> createState() =>
+      _SpecimenTableColumnSelectorState();
+}
+
+class _SpecimenTableColumnSelectorState
+    extends ConsumerState<SpecimenTableColumnSelector> {
+  late Set<String> _selected;
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.selectedColumns.toSet();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Map<String, List<String>> _getAllGroups(Database db) {
+    Map<String, List<String>> groups = {};
+    for (var table in db.allTables) {
+      final tableName = table.actualTableName;
+      final cols = table.$columns.map((c) => '$tableName::${c.name}').toList();
+      cols.sort((a, b) => specimenColumnDisplayTitle(a)
+          .toLowerCase()
+          .compareTo(specimenColumnDisplayTitle(b).toLowerCase()));
+      groups[tableName] = cols;
+    }
+    return groups;
+  }
+
+  Widget _buildExpansionGroup(
+    String tableName,
+    List<String> fields,
+  ) {
+    final formattedTable = tableName
+        .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[1]}')
+        .trim()
+        .split(' ')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
+
+    final int selectedCount = fields.where((f) => _selected.contains(f)).length;
+    final subtitleText = 'Selected $selectedCount of ${fields.length} columns';
+
+    return ExpansionTile(
+      title: Text(
+        formattedTable,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(subtitleText),
+      children: [
+        for (final id in fields)
+          CheckboxListTile(
+            dense: true,
+            value: _selected.contains(id),
+            onChanged: (v) {
+              setState(() {
+                if (v == true) {
+                  _selected.add(id);
+                } else {
+                  _selected.remove(id);
+                }
+              });
+            },
+            title: Text(specimenColumnDisplayTitle(id)),
+          ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final db = ref.watch(databaseProvider);
+    final groups = _getAllGroups(db);
+    final keys = groups.keys.toList()..sort();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Expanded(
+          child: Scrollbar(
+            controller: _scrollController,
+            thumbVisibility: true,
+            child: ListView(
+              controller: _scrollController,
+              shrinkWrap: true,
+              children: [
+                for (final table in keys)
+                  _buildExpansionGroup(table, groups[table]!),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _selected.clear();
+                    _selected.addAll(kDefaultPrintSpecimenTableColumnIds);
+                  });
+                },
+                child: const Text('Defaults'),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, _selected.toList()),
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

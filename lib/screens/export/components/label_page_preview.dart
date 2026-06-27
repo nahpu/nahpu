@@ -67,10 +67,10 @@ class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
 
       final dataList = <Map<String, String>>[];
       for (final s in picked) {
-        final data = await fieldValuesForSpecimen(db, s);
+        final data = await fieldValuesForSpecimen(db, s, ref);
         dataList.add(data);
       }
-      
+
       final settings = LabelSettingsServices();
       final width = await settings.getLabelWidthMm();
       final height = await settings.getLabelHeightMm();
@@ -105,22 +105,45 @@ class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
     final ptWidth = widget.pageWidthMm * 72.0 / 25.4;
     final ptHeight = widget.pageHeightMm * 72.0 / 25.4;
 
-    final usableW = math.max(1.0, widget.pageWidthMm - widget.layout.pagePadLeftMm - widget.layout.pagePadRightMm);
-    final usableH = math.max(1.0, widget.pageHeightMm - widget.layout.pagePadTopMm - widget.layout.pagePadBottomMm);
-    
-    final labelTotalW = _labelWidthMm + widget.layout.labelPadLeftMm + widget.layout.labelPadRightMm;
-    final labelTotalH = _labelHeightMm + widget.layout.labelPadTopMm + widget.layout.labelPadBottomMm;
+    final usableW = math.max(
+        1.0,
+        widget.pageWidthMm -
+            widget.layout.pagePadLeftMm -
+            widget.layout.pagePadRightMm);
+    final usableH = math.max(
+        1.0,
+        widget.pageHeightMm -
+            widget.layout.pagePadTopMm -
+            widget.layout.pagePadBottomMm);
 
-    final scale = math.min(1.0, math.min(usableW / labelTotalW, usableH / labelTotalH));
-    final scaledCellW = widget.layout.colsPerPage > 0 ? usableW / widget.layout.colsPerPage : labelTotalW * scale;
-    final scaledCellH = widget.layout.rowsPerPage > 0 ? usableH / widget.layout.rowsPerPage : labelTotalH * scale;
+    final labelTotalW = _labelWidthMm +
+        widget.layout.labelPadLeftMm +
+        widget.layout.labelPadRightMm;
+    final labelTotalH = _labelHeightMm +
+        widget.layout.labelPadTopMm +
+        widget.layout.labelPadBottomMm;
 
-    final cols = widget.layout.colsPerPage > 0 ? widget.layout.colsPerPage : math.max(1, (usableW / scaledCellW).floor());
-    final rows = widget.layout.rowsPerPage > 0 ? widget.layout.rowsPerPage : math.max(1, (usableH / scaledCellH).floor());
+    final scale =
+        math.min(1.0, math.min(usableW / labelTotalW, usableH / labelTotalH));
+    final scaledCellW = widget.layout.colsPerPage > 0
+        ? usableW / widget.layout.colsPerPage
+        : labelTotalW * scale;
+    final scaledCellH = widget.layout.rowsPerPage > 0
+        ? usableH / widget.layout.rowsPerPage
+        : labelTotalH * scale;
+
+    final cols = widget.layout.colsPerPage > 0
+        ? widget.layout.colsPerPage
+        : math.max(1, (usableW / scaledCellW).floor());
+    final rows = widget.layout.rowsPerPage > 0
+        ? widget.layout.rowsPerPage
+        : math.max(1, (usableH / scaledCellH).floor());
 
     final itemsPerPage = cols * rows;
-    final totalPages = _previewData.isEmpty ? 1 : (itemsPerPage > 0 ? (_previewData.length / itemsPerPage).ceil() : 1);
-    
+    final totalPages = _previewData.isEmpty
+        ? 1
+        : (itemsPerPage > 0 ? (_previewData.length / itemsPerPage).ceil() : 1);
+
     final cellW = scaledCellW * 72.0 / 25.4;
     final cellH = scaledCellH * 72.0 / 25.4;
 
@@ -132,7 +155,8 @@ class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
             children: [
               for (var p = 0; p < totalPages; p++)
                 Padding(
-                  padding: EdgeInsets.only(bottom: p < totalPages - 1 ? 32.0 : 0),
+                  padding:
+                      EdgeInsets.only(bottom: p < totalPages - 1 ? 32.0 : 0),
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Container(
@@ -148,18 +172,18 @@ class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
                           ),
                         ],
                       ),
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: widget.layout.pagePadTopMm * 72.0 / 25.4,
-                        left: widget.layout.pagePadLeftMm * 72.0 / 25.4,
-                        right: widget.layout.pagePadRightMm * 72.0 / 25.4,
-                        bottom: widget.layout.pagePadBottomMm * 72.0 / 25.4,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: widget.layout.pagePadTopMm * 72.0 / 25.4,
+                          left: widget.layout.pagePadLeftMm * 72.0 / 25.4,
+                          right: widget.layout.pagePadRightMm * 72.0 / 25.4,
+                          bottom: widget.layout.pagePadBottomMm * 72.0 / 25.4,
+                        ),
+                        child: _buildGrid(cols, cellW, cellH, p, itemsPerPage),
                       ),
-                      child: _buildGrid(cols, cellW, cellH, p, itemsPerPage),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -167,7 +191,8 @@ class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
     );
   }
 
-  Widget _buildGrid(int cols, double cellW, double cellH, int pageIndex, int itemsPerPage) {
+  Widget _buildGrid(
+      int cols, double cellW, double cellH, int pageIndex, int itemsPerPage) {
     if (_previewData.isEmpty) {
       return const Center(
         child: Text(
@@ -185,7 +210,8 @@ class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
         crossAxisSpacing: 0,
         mainAxisSpacing: 0,
       ),
-      itemCount: math.min(itemsPerPage, _previewData.length - pageIndex * itemsPerPage),
+      itemCount: math.min(
+          itemsPerPage, _previewData.length - pageIndex * itemsPerPage),
       itemBuilder: (context, index) {
         final itemIndex = pageIndex * itemsPerPage + index;
         return Container(

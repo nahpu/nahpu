@@ -386,7 +386,8 @@ class DocumentExportPreview extends ConsumerStatefulWidget {
   final VoidCallback onGeneratePreview;
 
   @override
-  ConsumerState<DocumentExportPreview> createState() => _DocumentExportPreviewState();
+  ConsumerState<DocumentExportPreview> createState() =>
+      _DocumentExportPreviewState();
 }
 
 class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
@@ -423,8 +424,6 @@ class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Material(
       clipBehavior: Clip.hardEdge,
       borderRadius: BorderRadius.circular(16.0),
@@ -441,72 +440,75 @@ class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
               ),
             )
           : FutureBuilder<Uint8List>(
-                  future: _bytesFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No data'));
-                    }
+              future: _bytesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No data'));
+                }
 
-                    final text = utf8.decode(snapshot.data!);
-                    final fontName =
-                        ref.watch(pdfExportFontNotifierProvider).value ??
-                            'Merriweather';
+                final text = utf8.decode(snapshot.data!);
+                final fontName =
+                    ref.watch(pdfExportFontNotifierProvider).value ??
+                        'Merriweather';
 
-                    final isPdfPreview = widget.exportFmt == DocumentExportFmt.pdf;
-                    final isMd = widget.exportFmt == DocumentExportFmt.md || isPdfPreview;
+                final isPdfPreview = widget.exportFmt == DocumentExportFmt.pdf;
+                final isMd =
+                    widget.exportFmt == DocumentExportFmt.md || isPdfPreview;
 
-                    Widget content;
-                    if (isMd) {
-                      content = Markdown(
-                        data: text,
-                        styleSheet: MarkdownStyleSheet(
-                          p: TextStyle(fontFamily: fontName),
-                          h1: TextStyle(fontFamily: fontName),
-                          h2: TextStyle(fontFamily: fontName),
-                          h3: TextStyle(fontFamily: fontName),
-                          h4: TextStyle(fontFamily: fontName),
-                          h5: TextStyle(fontFamily: fontName),
-                          h6: TextStyle(fontFamily: fontName),
-                          listBullet: TextStyle(fontFamily: fontName),
-                        ),
-                      );
-                    } else {
-                      content = SingleChildScrollView(
-                        padding: const EdgeInsets.all(16.0),
-                        child: SelectableText(text),
-                      );
-                    }
+                Widget content;
+                if (isMd) {
+                  content = Markdown(
+                    data: text,
+                    styleSheet: MarkdownStyleSheet(
+                      p: TextStyle(fontFamily: fontName),
+                      h1: TextStyle(fontFamily: fontName),
+                      h2: TextStyle(fontFamily: fontName),
+                      h3: TextStyle(fontFamily: fontName),
+                      h4: TextStyle(fontFamily: fontName),
+                      h5: TextStyle(fontFamily: fontName),
+                      h6: TextStyle(fontFamily: fontName),
+                      listBullet: TextStyle(fontFamily: fontName),
+                    ),
+                  );
+                } else {
+                  content = SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SelectableText(text),
+                  );
+                }
 
-                    if (isPdfPreview) {
-                      return Column(
-                        children: [
-                          Container(
-                            color: Theme.of(context).colorScheme.tertiaryContainer,
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(8),
-                            child: Text(
-                              'Previewing as Markdown (Export will be PDF)',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onTertiaryContainer,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                if (isPdfPreview) {
+                  return Column(
+                    children: [
+                      Container(
+                        color: Theme.of(context).colorScheme.tertiaryContainer,
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          'Previewing as Markdown (Export will be PDF)',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onTertiaryContainer,
+                            fontWeight: FontWeight.bold,
                           ),
-                          Expanded(child: content),
-                        ],
-                      );
-                    }
+                        ),
+                      ),
+                      Expanded(child: content),
+                    ],
+                  );
+                }
 
-                    return content;
-                  },
-                ),
+                return content;
+              },
+            ),
     );
   }
 }

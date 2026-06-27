@@ -6,18 +6,11 @@ import 'package:nahpu/services/io_services.dart';
 import 'package:flutter/services.dart' show rootBundle, AssetManifest;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
-import 'package:nahpu/services/database/collevent_queries.dart';
-import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/database/personnel_queries.dart';
-import 'package:nahpu/services/database/site_queries.dart';
-import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/database/taxonomy_queries.dart';
-import 'package:nahpu/services/label_settings_services.dart';
 import 'package:nahpu/services/label_template_service.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/label_settings_services.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 import 'package:nahpu/src/rust/api/export.dart' as rust_export;
 
 /// Layout options for configuring the precise physical dimensions
@@ -339,7 +332,7 @@ class LabelWriter {
     final pages = <LabelPageTemplate>[];
 
     for (final specimen in batch) {
-      final data = await fieldValuesForSpecimen(_db, specimen);
+      final data = await fieldValuesForSpecimen(_db, specimen, ref);
       dataList.add(data);
       pages.add(await _substitutePage(pageTemplate, data));
     }
@@ -565,236 +558,18 @@ String substituteLabelPlaceholders(String input, Map<String, String> data) {
 Future<Map<String, String>> fieldValuesForSpecimen(
   Database db,
   SpecimenData s,
+  WidgetRef ref,
 ) async {
   final m = <String, String>{};
 
-  void put(String k, Object? v) {
-    m[k] = v == null ? '' : v.toString();
-  }
+  try {
+    final exporter =
+        DynamicRecordExporter(ref: ref, concatenateMultiEntry: true);
+    final records = await exporter.getRecord(s);
+    if (records.isNotEmpty) {
+      m.addAll(records.first);
+    }
+  } catch (_) {}
 
-  _putBasicFields(m, put, s);
-  await _putPersonnelFields(db, m, put, s);
-  await _putTaxonomyFields(db, m, put, s);
-  await _putSiteFields(db, m, put, s);
-  await _putCoordinateFields(db, m, put, s);
-  await _putPartFields(db, m, put, s);
-  await _putMeasurementsFields(db, m, s);
-
-  for (final id in labelTemplateAvailableFieldIds(db)) {
-    m.putIfAbsent(id, () => '');
-  }
   return m;
-}
-
-void _putBasicFields(
-  Map<String, String> m,
-  void Function(String, Object?) put,
-  SpecimenData s,
-) {
-  put('uuid', s.uuid);
-  put('projectUuid', s.projectUuid);
-  put('speciesID', s.speciesID);
-  put('iDConfidence', s.iDConfidence);
-  put('iDMethod', s.iDMethod);
-  put('taxonGroup', s.taxonGroup);
-  put('condition', s.condition);
-  put('prepDate', s.prepDate);
-  put('prepTime', s.prepTime);
-  put('collectionDate', s.collectionDate);
-  put('collectionTime', s.collectionTime);
-  put('captureDate', s.captureDate);
-  put('isRelativeTime', s.isRelativeTime);
-  put('captureTime', s.captureTime);
-  put('relativeCaptureTime', s.relativeCaptureTime);
-  put('trapType', s.trapType);
-  put('methodID', s.methodID);
-  put('coordinateID', s.coordinateID);
-  put('catalogerID', s.catalogerID);
-  put('fieldNumber', s.fieldNumber);
-  put('collEventID', s.collEventID);
-  put('isMultipleCollector', s.isMultipleCollector);
-  put('collPersonnelID', s.collPersonnelID);
-  put('collMethodID', s.collMethodID);
-  put('museumID', s.museumID);
-  put('preparatorID', s.preparatorID);
-
-  put('fieldNumber', s.fieldNumber);
-  put('catalogNum', s.fieldNumber?.toString() ?? '');
-  put('collector', '');
-}
-
-Future<void> _putPersonnelFields(
-  Database db,
-  Map<String, String> m,
-  void Function(String, Object?) put,
-  SpecimenData s,
-) async {
-  final personnelQuery = PersonnelQuery(db);
-  String fieldId = s.uuid;
-
-  if (s.catalogerID != null) {
-    try {
-      final initial = await personnelQuery.getInitial(s.catalogerID!);
-      fieldId = '${initial ?? ''}${s.fieldNumber ?? ''}';
-      if (fieldId.isEmpty) fieldId = s.uuid;
-    } catch (_) {
-      fieldId = s.fieldNumber?.toString() ?? s.uuid;
-    }
-  } else if (s.fieldNumber != null) {
-    fieldId = s.fieldNumber.toString();
-  }
-  put('fieldId', fieldId);
-
-  String cataloger = '';
-  if (s.catalogerID != null) {
-    try {
-      cataloger = await personnelQuery.getPersonnelName(s.catalogerID!) ?? '';
-    } catch (_) {}
-  }
-  put('cataloger', cataloger);
-
-  String preparator = '';
-  if (s.preparatorID != null) {
-    try {
-      preparator = await personnelQuery.getPersonnelName(s.preparatorID!) ?? '';
-    } catch (_) {}
-  }
-  put('preparator', preparator);
-}
-
-Future<void> _putTaxonomyFields(
-  Database db,
-  Map<String, String> m,
-  void Function(String, Object?) put,
-  SpecimenData s,
-) async {
-  String genus = '';
-  String specificEpithet = '';
-  String species = '';
-  if (s.speciesID != null) {
-    try {
-      final tax = await TaxonomyQuery(db).getTaxonById(s.speciesID!);
-      genus = tax.genus ?? '';
-      specificEpithet = tax.specificEpithet ?? '';
-      species = '$genus $specificEpithet'.trim();
-      put('taxonClass', tax.taxonClass);
-      put('taxonOrder', tax.taxonOrder);
-      put('taxonFamily', tax.taxonFamily);
-      put('commonName', tax.commonName);
-    } catch (_) {}
-  }
-  put('species', species);
-  put('genus', genus);
-  put('specificEpithet', specificEpithet);
-}
-
-Future<void> _putSiteFields(
-  Database db,
-  Map<String, String> m,
-  void Function(String, Object?) put,
-  SpecimenData s,
-) async {
-  String locality = '';
-  String site = '';
-  if (s.collEventID != null) {
-    try {
-      final ev = await CollEventQuery(db).getCollEventById(s.collEventID!);
-      if (ev.siteID != null) {
-        final siteData = await SiteQuery(db).getSiteById(ev.siteID!);
-        site = siteData.siteID ?? '';
-        locality = siteData.locality ??
-            siteData.habitatType ??
-            siteData.municipality ??
-            '';
-      }
-    } catch (_) {}
-  }
-  put('locality', locality);
-  put('site', site);
-}
-
-Future<void> _putCoordinateFields(
-  Database db,
-  Map<String, String> m,
-  void Function(String, Object?) put,
-  SpecimenData s,
-) async {
-  String coordinates = '';
-  if (s.coordinateID != null) {
-    try {
-      final c = await CoordinateQuery(db).getCoordinateById(s.coordinateID!);
-      coordinates =
-          '${c.decimalLatitude ?? ''} ${c.decimalLongitude ?? ''}'.trim();
-    } catch (_) {}
-  }
-  put('coordinates', coordinates);
-}
-
-Future<void> _putPartFields(
-  Database db,
-  Map<String, String> m,
-  void Function(String, Object?) put,
-  SpecimenData s,
-) async {
-  String backOfTag = '';
-  String tissueId = '';
-  try {
-    final parts = await SpecimenPartQuery(db).getSpecimenParts(s.uuid);
-    if (parts.isNotEmpty) {
-      final first = parts.first;
-      backOfTag = first.type ?? '';
-      tissueId = first.tissueID ?? '';
-    }
-  } catch (_) {}
-  put('backOfTag', backOfTag);
-  put('tissueId', tissueId);
-}
-
-Future<void> _putMeasurementsFields(
-  Database db,
-  Map<String, String> m,
-  SpecimenData s,
-) async {
-  try {
-    final row =
-        await MammalSpecimenQuery(db).getMammalMeasurementByUuid(s.uuid);
-    _mergeMeasurementRowToLabelMap('mammal', row.toJson(), m);
-  } catch (_) {}
-  try {
-    final row = await AvianSpecimenQuery(db).getAvianMeasurementByUuid(s.uuid);
-    _mergeMeasurementRowToLabelMap('avian', row.toJson(), m);
-  } catch (_) {}
-  try {
-    final row = await HerpSpecimenQuery(db).getHerpMeasurementByUuid(s.uuid);
-    _mergeMeasurementRowToLabelMap('herp', row.toJson(), m);
-  } catch (_) {}
-}
-
-void _mergeMeasurementRowToLabelMap(
-  String prefix,
-  Map<String, dynamic> json,
-  Map<String, String> target,
-) {
-  for (final e in json.entries) {
-    if (e.key == 'specimenUuid') continue;
-    final v = e.value;
-    if (v == null) continue;
-    target['$prefix.${e.key}'] = _measurementValueForLabel(e.key, v as Object?);
-  }
-}
-
-String _measurementValueForLabel(String columnName, Object? raw) {
-  if (raw == null) return '';
-  if (columnName == 'sex') {
-    final idx = raw is int ? raw : (raw is num ? raw.toInt() : -1);
-    if (idx >= 0 && idx < specimenSexList.length) {
-      return specimenSexList[idx];
-    }
-  }
-  if (raw is double) {
-    if (raw.isNaN || raw.isInfinite) return '';
-    if (raw == raw.roundToDouble()) return raw.toInt().toString();
-    return raw.toString();
-  }
-  return raw.toString();
 }
