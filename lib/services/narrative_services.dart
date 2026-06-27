@@ -93,16 +93,15 @@ class NarrativeServices extends AppServices {
   }
 
   Future<void> createNarrativeMedia(int narrativeId, String filePath) async {
-    ExifData exifData = ExifData.empty();
-    await exifData.readExif(File(filePath));
+    final metadata = await MediaMetadataServices().extract(File(filePath));
     int mediaId = await MediaDbQuery(dbAccess).createMedia(MediaCompanion(
       projectUuid: db.Value(currentProjectUuid),
       fileName: db.Value(basename(filePath)),
       category: db.Value(matchMediaCategory(MediaCategory.narrative)),
-      taken: db.Value(exifData.dateTaken),
-      camera: db.Value(exifData.camera),
-      lenses: db.Value(exifData.lenseModel),
-      additionalExif: db.Value(exifData.additionalExif),
+      taken: db.Value(metadata.taken),
+      camera: db.Value(metadata.camera),
+      lenses: db.Value(metadata.lenses),
+      additionalExif: db.Value(metadata.additionalExif),
     ));
     NarrativeMediaCompanion entries = NarrativeMediaCompanion(
       narrativeId: db.Value(narrativeId),

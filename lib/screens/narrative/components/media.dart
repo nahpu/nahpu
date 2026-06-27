@@ -79,6 +79,31 @@ class NarrativeMediaViewerState extends ConsumerState<NarrativeMediaViewer> {
               widget.narrativeId,
               images,
             );
+            ref.invalidate(narrativeMediaProvider(widget.narrativeId));
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          }
+        }
+      },
+      onAddFromFiles: () async {
+        try {
+          List<String> mediaFiles =
+              await ImageServices(ref: ref, category: mediaCategory)
+                  .pickMediaFromFiles();
+          if (mediaFiles.isNotEmpty) {
+            await NarrativeServices(ref: ref).createNarrativeMediaFromList(
+              widget.narrativeId,
+              mediaFiles,
+            );
+            ref.invalidate(narrativeMediaProvider(widget.narrativeId));
           }
         } catch (e) {
           if (context.mounted) {
@@ -101,6 +126,7 @@ class NarrativeMediaViewerState extends ConsumerState<NarrativeMediaViewer> {
               widget.narrativeId,
               image,
             );
+            ref.invalidate(narrativeMediaProvider(widget.narrativeId));
           }
         } catch (e) {
           if (context.mounted) {
