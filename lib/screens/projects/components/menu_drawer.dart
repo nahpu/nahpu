@@ -7,7 +7,7 @@ import 'package:nahpu/screens/export/export_settings.dart';
 import 'package:nahpu/screens/export/export_documents.dart';
 import 'package:nahpu/screens/export/export_records.dart';
 import 'package:nahpu/screens/export/export_report.dart';
-import 'package:nahpu/screens/print_labels/select_specimens_view.dart';
+import 'package:nahpu/screens/export/print_labels/select_specimens_view.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';

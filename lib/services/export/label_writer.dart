@@ -5,7 +5,7 @@ import 'package:nahpu/services/io_services.dart';
 
 import 'package:flutter/services.dart' show rootBundle, AssetManifest;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/print_labels/label_template_model.dart';
+import 'package:nahpu/screens/export/print_labels/label_template_model.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';

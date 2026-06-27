@@ -6,7 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as path;
 import 'package:nahpu/services/export/label_writer.dart';
-import 'package:nahpu/screens/print_labels/label_template_editor_screen.dart';
+import 'package:nahpu/screens/export/print_labels/label_template_editor_screen.dart';
 import 'package:nahpu/services/database/database.dart' show SpecimenData;
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/screens/shared/file_operation.dart';
