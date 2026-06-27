@@ -66,15 +66,14 @@ String _cellText(Map<String, String> row, String columnId) {
   return '';
 }
 
-class SelectSpecimensView extends ConsumerStatefulWidget {
-  const SelectSpecimensView({super.key});
+class ExportLabelsView extends ConsumerStatefulWidget {
+  const ExportLabelsView({super.key});
 
   @override
-  ConsumerState<SelectSpecimensView> createState() =>
-      _SelectSpecimensViewState();
+  ConsumerState<ExportLabelsView> createState() => _ExportLabelsViewState();
 }
 
-class _SelectSpecimensViewState extends ConsumerState<SelectSpecimensView>
+class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     with SingleTickerProviderStateMixin {
   List<SpecimenData> _all = [];
   Map<String, Map<String, String>> _rowValues = {};
