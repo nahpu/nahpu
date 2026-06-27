@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/export/document_exports.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:nahpu/services/providers/settings.dart';
 
 class ExportPdfForm extends ConsumerStatefulWidget {
   const ExportPdfForm({super.key});
@@ -426,13 +427,31 @@ class DocumentExportPreview extends ConsumerWidget {
                     }
 
                     final text = utf8.decode(snapshot.data!);
+                    final fontName =
+                        ref.watch(pdfExportFontNotifierProvider).value ??
+                            'Merriweather';
 
                     if (exportFmt == DocumentExportFmt.md) {
-                      return Markdown(data: text);
+                      return Markdown(
+                        data: text,
+                        styleSheet: MarkdownStyleSheet(
+                          p: TextStyle(fontFamily: fontName),
+                          h1: TextStyle(fontFamily: fontName),
+                          h2: TextStyle(fontFamily: fontName),
+                          h3: TextStyle(fontFamily: fontName),
+                          h4: TextStyle(fontFamily: fontName),
+                          h5: TextStyle(fontFamily: fontName),
+                          h6: TextStyle(fontFamily: fontName),
+                          listBullet: TextStyle(fontFamily: fontName),
+                        ),
+                      );
                     } else {
                       return SingleChildScrollView(
                         padding: const EdgeInsets.all(16.0),
-                        child: SelectableText(text),
+                        child: SelectableText(
+                          text,
+                          style: TextStyle(fontFamily: fontName),
+                        ),
                       );
                     }
                   },

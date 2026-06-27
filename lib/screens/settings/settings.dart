@@ -224,8 +224,7 @@ class ExportSettingsSection extends StatelessWidget {
             }),
         CommonSettingTile(
             title: 'Document exports',
-            label:
-                'Import custom fonts and icons for typst document generation',
+            label: 'Import custom fonts and icons for document generation',
             isNavigation: true,
             icon: Icons.picture_as_pdf_outlined,
             onTap: () {

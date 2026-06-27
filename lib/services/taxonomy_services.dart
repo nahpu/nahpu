@@ -134,7 +134,8 @@ Color matchRedListCategoryColor(String category) {
     return Colors.black;
   } else if (RegExp(r'\b(ew|extinct in the wild)\b').hasMatch(lowerCategory)) {
     return Colors.brown;
-  } else if (RegExp(r'\b(cr|critically endangered)\b').hasMatch(lowerCategory)) {
+  } else if (RegExp(r'\b(cr|critically endangered)\b')
+      .hasMatch(lowerCategory)) {
     return Colors.red[900]!;
   } else if (RegExp(r'\b(en|endangered)\b').hasMatch(lowerCategory)) {
     return Colors.red;
