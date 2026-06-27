@@ -1,5 +1,6 @@
 //! Module for exporting database records
 use nahpu_db::io::export::RecordExporter;
+use nahpu_export::DocumentExport;
 use std::path::Path;
 
 pub struct RecordWriter {
@@ -36,7 +37,8 @@ impl RecordWriter {
         let data: Vec<serde_json::Value> = serde_json::from_str(&self.json_content)
             .map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
-        let exporter = RecordExporter::new(&data, &self.column_names, self.concatenate_multi_entries);
+        let exporter =
+            RecordExporter::new(&data, &self.column_names, self.concatenate_multi_entries);
         let path = Path::new(&self.output_path);
 
         match self.export_format.as_str() {
@@ -84,6 +86,22 @@ pub fn export_coordinates(
             let exporter = nahpu_gis::io::shp::ShapefileExporter::new(&data);
             exporter.export_shp(path)
         }
+        _ => Err(format!("Unsupported export format: {}", export_format)),
+    }
+}
+
+pub fn generate_document(
+    json_content: String,
+    export_format: String,
+    font_bytes: Vec<Vec<u8>>,
+) -> Result<Vec<u8>, String> {
+    let exporter = DocumentExport::new(&json_content)
+        .map_err(|e| format!("Failed to parse Document JSON: {}", e))?;
+
+    match export_format.as_str() {
+        "md" => Ok(exporter.to_markdown().into_bytes()),
+        "typ" => Ok(exporter.to_typst().into_bytes()),
+        "pdf" => exporter.to_pdf(font_bytes),
         _ => Err(format!("Unsupported export format: {}", export_format)),
     }
 }

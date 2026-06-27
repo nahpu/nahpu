@@ -189,7 +189,7 @@ class DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
                       return CommonSettingTile(
                         icon: Icons.photo_library_outlined,
                         title: 'Media files',
-                        label: 'Images, audio, video, PDF',
+                        label: 'Images, audio, video',
                         value: snapshot.data,
                         onTap: null,
                       );
