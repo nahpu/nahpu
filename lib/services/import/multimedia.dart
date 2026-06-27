@@ -89,7 +89,7 @@ class ImageServices extends AppServices {
       confirmButtonText: 'Import',
     );
     final paths = result.map((e) => e.path).toList();
-    _validateSupportedMediaPaths(paths);
+    validateSupportedMediaPaths(paths);
     List<File> files = await _copyFiles(paths);
     return files.map((e) => e.path).toList();
   }
@@ -104,7 +104,7 @@ class ImageServices extends AppServices {
     return file.path;
   }
 
-  void _validateSupportedMediaPaths(List<String> paths) {
+  static void validateSupportedMediaPaths(List<String> paths) {
     final unsupportedPaths =
         paths.where((filePath) => !isSupportedMediaPath(filePath)).toList();
     if (unsupportedPaths.isNotEmpty) {

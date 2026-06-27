@@ -23,8 +23,30 @@ String get dateTimeStamp {
   return '$date-$time';
 }
 
+typedef OpenFilesCallback = Future<List<XFile>> Function({
+  List<XTypeGroup>? acceptedTypeGroups,
+  String? initialDirectory,
+  String? confirmButtonText,
+});
+
+Future<List<XFile>> _defaultOpenFiles({
+  List<XTypeGroup>? acceptedTypeGroups,
+  String? initialDirectory,
+  String? confirmButtonText,
+}) {
+  return openFiles(
+    acceptedTypeGroups: acceptedTypeGroups ?? const <XTypeGroup>[],
+    initialDirectory: initialDirectory,
+    confirmButtonText: confirmButtonText,
+  );
+}
+
 class FilePickerServices {
-  FilePickerServices();
+  FilePickerServices({
+    OpenFilesCallback openFiles = _defaultOpenFiles,
+  }) : _openFiles = openFiles;
+
+  final OpenFilesCallback _openFiles;
 
   Future<void> shareFile(BuildContext context, File file) async {
     final box = context.findRenderObject() as RenderBox?;
@@ -57,7 +79,7 @@ class FilePickerServices {
   }
 
   Future<List<XFile>> pickMultiFiles(List<XTypeGroup> allowedExtension) async {
-    return await openFiles(acceptedTypeGroups: allowedExtension);
+    return await _openFiles(acceptedTypeGroups: allowedExtension);
   }
 }
 

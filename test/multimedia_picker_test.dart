@@ -1,38 +1,36 @@
-import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/file_format.dart';
-import 'package:nahpu/services/types/import.dart';
 
 void main() {
-  late FileSelectorPlatform previousPlatform;
-  late FakeFileSelectorPlatform fakePlatform;
-
-  setUp(() {
-    previousPlatform = FileSelectorPlatform.instance;
-    fakePlatform = FakeFileSelectorPlatform();
-    FileSelectorPlatform.instance = fakePlatform;
-  });
-
-  tearDown(() {
-    FileSelectorPlatform.instance = previousPlatform;
-  });
-
   test('pickMultiFiles accepts iOS-safe media type groups', () async {
-    fakePlatform.filesToReturn = [
-      XFile('/tmp/voice.mp3'),
-      XFile('/tmp/clip.mp4'),
-      XFile('/tmp/doc.pdf'),
-    ];
+    List<XTypeGroup>? lastAcceptedTypeGroups;
 
-    final selected = await FilePickerServices().pickMultiFiles([mediaFmt]);
+    final selected = await FilePickerServices(
+      openFiles: ({
+        List<XTypeGroup>? acceptedTypeGroups,
+        String? initialDirectory,
+        String? confirmButtonText,
+      }) async {
+        lastAcceptedTypeGroups = acceptedTypeGroups;
+        return [
+          XFile('/tmp/voice.mp3'),
+          XFile('/tmp/clip.mp4'),
+          XFile('/tmp/doc.pdf'),
+        ];
+      },
+    ).pickMultiFiles([mediaFmt]);
 
     expect(selected, hasLength(3));
-    expect(fakePlatform.lastAcceptedTypeGroups, isNotNull);
-    expect(fakePlatform.lastAcceptedTypeGroups, hasLength(1));
-    for (final group in fakePlatform.lastAcceptedTypeGroups!) {
+    expect(lastAcceptedTypeGroups, isNotNull);
+    expect(lastAcceptedTypeGroups, hasLength(1));
+    expect(
+      lastAcceptedTypeGroups!.single.extensions,
+      containsAll(['jpg', 'mp3', 'mp4', 'pdf']),
+    );
+    for (final group in lastAcceptedTypeGroups!) {
       expect(
         group.allowsAny ||
             ((group.uniformTypeIdentifiers?.isNotEmpty ?? false) == true),
@@ -41,18 +39,12 @@ void main() {
     }
   });
 
-  test('pickMediaFromFiles rejects unsupported selections before copying',
-      () async {
-    fakePlatform.filesToReturn = [
-      XFile('/tmp/photo.jpg'),
-      XFile('/tmp/notes.txt'),
-    ];
-
-    await expectLater(
-      ImageServices(
-        ref: FakeWidgetRef(),
-        category: MediaCategory.site,
-      ).pickMediaFromFiles(),
+  test('validateSupportedMediaPaths rejects unsupported selections', () {
+    expect(
+      () => ImageServices.validateSupportedMediaPaths([
+        '/tmp/photo.jpg',
+        '/tmp/notes.txt',
+      ]),
       throwsA(
         isA<UnsupportedMediaFileException>()
             .having(
@@ -71,43 +63,14 @@ void main() {
       ),
     );
 
-    expect(fakePlatform.lastAcceptedTypeGroups, hasLength(1));
     expect(
-      fakePlatform.lastAcceptedTypeGroups!.single.extensions,
-      containsAll(['jpg', 'mp3', 'mp4', 'pdf']),
+      () => ImageServices.validateSupportedMediaPaths([
+        '/tmp/photo.jpg',
+        '/tmp/voice.mp3',
+        '/tmp/clip.mp4',
+        '/tmp/doc.pdf',
+      ]),
+      returnsNormally,
     );
   });
-}
-
-class FakeWidgetRef implements WidgetRef {
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    throw UnsupportedError('FakeWidgetRef should not be used');
-  }
-}
-
-class FakeFileSelectorPlatform extends FileSelectorPlatform {
-  List<XFile> filesToReturn = [];
-  List<XTypeGroup>? lastAcceptedTypeGroups;
-
-  @override
-  Future<List<XFile>> openFiles({
-    List<XTypeGroup>? acceptedTypeGroups,
-    String? initialDirectory,
-    String? confirmButtonText,
-  }) async {
-    lastAcceptedTypeGroups = acceptedTypeGroups;
-
-    for (final group in acceptedTypeGroups ?? <XTypeGroup>[]) {
-      final hasIosSupportedFilter = group.allowsAny ||
-          (group.uniformTypeIdentifiers?.isNotEmpty ?? false);
-      if (!hasIosSupportedFilter) {
-        throw ArgumentError(
-          'The provided type group should either allow all files, '
-          'or have a non-empty "uniformTypeIdentifiers"',
-        );
-      }
-    }
-    return filesToReturn;
-  }
 }
