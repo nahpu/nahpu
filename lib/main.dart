@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nahpu/src/rust/api/common.dart';
 import 'package:timezone/data/latest.dart';
 import 'package:nahpu/src/rust/frb_generated.dart';

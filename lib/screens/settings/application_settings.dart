@@ -35,18 +35,6 @@ class ApplicationSettings extends ConsumerWidget {
           loading: () => const CommonProgressIndicator(),
           error: (error, stackTrace) => const Text('Error'),
         ),
-        CommonSettingTile(
-          isNavigation: true,
-          icon: Icons.label_outline,
-          title: 'Labels',
-          label: 'Template editor and print settings',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (context) => const LabelSettingsScreen(),
-            ),
-          ),
-        ),
         const DataUsage(),
         CommonSettingTile(
           isNavigation: true,
@@ -201,7 +189,7 @@ class DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
                       return CommonSettingTile(
                         icon: Icons.photo_library_outlined,
                         title: 'Media files',
-                        label: 'Images, audio, video, PDF',
+                        label: 'Images, audio, video',
                         value: snapshot.data,
                         onTap: null,
                       );

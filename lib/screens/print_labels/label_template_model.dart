@@ -248,11 +248,13 @@ class LabelPageTemplate {
   factory LabelPageTemplate.fromJson(Map<String, dynamic> json) {
     return LabelPageTemplate(
       customTexts: (json['customTexts'] as List<dynamic>?)
-              ?.map((e) => CustomTextElement.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                  (e) => CustomTextElement.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
       customImages: (json['customImages'] as List<dynamic>?)
-              ?.map((e) => CustomImageElement.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                  (e) => CustomImageElement.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
     );
@@ -467,9 +469,8 @@ class LabelTemplate {
       name: name ?? this.name,
       page1: page1 ?? this.page1,
       page2: page2 ?? this.page2,
-      printOptions: clearPrintOptions
-          ? null
-          : (printOptions ?? this.printOptions),
+      printOptions:
+          clearPrintOptions ? null : (printOptions ?? this.printOptions),
       outline: clearOutline ? null : (outline ?? this.outline),
     );
   }

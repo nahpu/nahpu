@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:nahpu/screens/print_labels/label_border_sheet.dart';
 import 'package:nahpu/screens/print_labels/label_canvas_stack.dart';
 import 'package:nahpu/screens/print_labels/label_outline.dart';
@@ -12,7 +13,7 @@ import 'package:nahpu/screens/print_labels/label_size_selector.dart';
 import 'package:nahpu/screens/print_labels/label_template_fonts.dart';
 import 'package:nahpu/screens/print_labels/label_template_live_preview.dart';
 import 'package:nahpu/screens/print_labels/label_gender_icon.dart';
-import 'package:nahpu/screens/print_labels/label_pdf_service.dart';
+import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/screens/print_labels/label_template_model.dart';
 import 'package:nahpu/services/label_logo_service.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -402,9 +403,8 @@ class _LabelTemplateEditorScreenState
   /// Picks an image file and copies it into the label logos folder; returns
   /// the stored path or null.
   Future<String?> _copyPickedImageToLogos() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.image,
-      allowMultiple: false,
     );
     if (result == null || result.files.isEmpty) return null;
     final filePath = result.files.single.path;
@@ -693,13 +693,11 @@ class _LabelTemplateEditorScreenState
     final safe =
         raw.isEmpty ? 'template' : raw.replaceAll(RegExp(r'[^\w.\-]'), '_');
     final suggested = 'label_template_$safe.json';
-    final savePath = await FilePicker.platform.saveFile(
-      dialogTitle: 'Export label template',
-      fileName: suggested,
-      type: FileType.custom,
-      allowedExtensions: ['json'],
+    final location = await getSaveLocation(
+      suggestedName: suggested,
     );
-    if (savePath == null || !mounted) return;
+    if (location == null || !mounted) return;
+    final savePath = location.path;
     final out =
         savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
     try {
@@ -719,10 +717,9 @@ class _LabelTemplateEditorScreenState
   }
 
   Future<void> _importTemplate() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
-      withData: false,
     );
     if (result == null || result.files.single.path == null) return;
     final filePath = result.files.single.path!;

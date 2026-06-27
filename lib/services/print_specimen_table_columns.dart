@@ -119,6 +119,7 @@ List<String> normalizePrintSpecimenTableColumnIds(
   List<String> ids,
   Database db,
 ) {
-  final allowed = labelTemplateAvailableFieldIds(db).map((e) => e.toLowerCase()).toSet();
+  final allowed =
+      labelTemplateAvailableFieldIds(db).map((e) => e.toLowerCase()).toSet();
   return ids.where((id) => allowed.contains(id.toLowerCase())).toList();
 }

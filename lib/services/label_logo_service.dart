@@ -35,11 +35,6 @@ class LabelLogoService {
 
   Future<List<String>> listLogoPaths() async {
     final dir = await _logosDir();
-    return dir
-        .listSync()
-        .whereType<File>()
-        .map((f) => f.path)
-        .toList()
-      ..sort();
+    return dir.listSync().whereType<File>().map((f) => f.path).toList()..sort();
   }
 }

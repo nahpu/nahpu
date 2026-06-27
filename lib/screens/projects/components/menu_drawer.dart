@@ -4,7 +4,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/export/bundle_project.dart';
 import 'package:nahpu/screens/export/export_db.dart';
 import 'package:nahpu/screens/export/export_settings.dart';
-import 'package:nahpu/screens/export/export_pdf.dart';
+import 'package:nahpu/screens/export/export_documents.dart';
 import 'package:nahpu/screens/export/export_records.dart';
 import 'package:nahpu/screens/export/export_report.dart';
 import 'package:nahpu/screens/print_labels/select_specimens_view.dart';
@@ -68,22 +68,13 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.picture_as_pdf_rounded),
-          title: const Text('Export to pdf'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ExportPdfForm()),
-            );
-          },
-        ),
-        ListTile(
           leading: const Icon(Icons.label_outline_rounded),
           title: const Text('Print labels'),
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const SelectSpecimensView()),
+              MaterialPageRoute(
+                  builder: (context) => const SelectSpecimensView()),
             );
           },
         ),
@@ -94,6 +85,16 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ExportForm()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.picture_as_pdf_rounded),
+          title: const Text('Export documents'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ExportPdfForm()),
             );
           },
         ),

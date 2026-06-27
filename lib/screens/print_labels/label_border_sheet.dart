@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:nahpu/screens/print_labels/label_template_model.dart';
 
 /// Line style, thickness, and color for the label outline. Updates
@@ -58,8 +58,8 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
     final g = _gChannel(argb);
     final b = _bChannel(argb);
     return '#${r.toRadixString(16).padLeft(2, '0')}'
-        '${g.toRadixString(16).padLeft(2, '0')}'
-        '${b.toRadixString(16).padLeft(2, '0')}'
+            '${g.toRadixString(16).padLeft(2, '0')}'
+            '${b.toRadixString(16).padLeft(2, '0')}'
         .toUpperCase();
   }
 
@@ -110,14 +110,6 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
   void _commitHexRgbField() {
     _tryApplyHexRgbIfComplete();
     _syncHexField();
-  }
-
-  void _applyHsv(HSVColor hsv) {
-    setState(() {
-      _colorArgb = hsv.toColor().toARGB32();
-      _syncHexField();
-    });
-    if (_style != null) _pushOutline();
   }
 
   LabelTemplateOutline? _currentOutline() {
@@ -307,7 +299,9 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
                               width: 118,
                               child: TextField(
                                 controller: _hexRgbCtrl,
-                                style: Theme.of(context).textTheme.bodySmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
                                     ?.copyWith(fontSize: 13),
                                 decoration: const InputDecoration(
                                   labelText: 'Hex',
@@ -336,66 +330,56 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
                         ),
                         const SizedBox(height: 8),
                         Expanded(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              const strip = 26.0;
-                              const gap = 8.0;
-                              final rowH = constraints.maxHeight;
-                              final hsv =
-                                  HSVColor.fromColor(Color(_colorArgb));
-                              return Row(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.stretch,
-                                children: [
-                                  SizedBox(
-                                    width: strip,
-                                    height: rowH,
-                                    child: RotatedBox(
-                                      quarterTurns: 1,
-                                      child: SizedBox(
-                                        width: rowH,
-                                        height: strip,
-                                        child: ColorPickerSlider(
-                                          TrackType.hue,
-                                          hsv,
-                                          _applyHsv,
-                                          displayThumbColor: false,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: gap),
-                                  SizedBox(
-                                    width: strip,
-                                    height: rowH,
-                                    child: RotatedBox(
-                                      quarterTurns: 1,
-                                      child: SizedBox(
-                                        width: rowH,
-                                        height: strip,
-                                        child: ColorPickerSlider(
-                                          TrackType.alpha,
-                                          hsv,
-                                          _applyHsv,
-                                          displayThumbColor: false,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: gap),
-                                  Expanded(
-                                    child: SizedBox(
-                                      height: rowH,
-                                      child: ColorPickerArea(
-                                        hsv,
-                                        _applyHsv,
-                                        PaletteType.hsvWithHue,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                          child: SingleChildScrollView(
+                            child: ColorPicker(
+                              color: Color(_colorArgb),
+                              onColorChanged: (Color color) {
+                                setState(() {
+                                  _colorArgb = color.toARGB32();
+                                  _syncHexField();
+                                });
+                                if (_style != null) _pushOutline();
+                              },
+                              width: 32,
+                              height: 32,
+                              borderRadius: 4,
+                              spacing: 5,
+                              runSpacing: 5,
+                              wheelDiameter: 155,
+                              heading: Text(
+                                'Select color',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              subheading: Text(
+                                'Select color shade',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              wheelSubheading: Text(
+                                'Selected color and its shades',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              showMaterialName: true,
+                              showColorName: true,
+                              showColorCode: false,
+                              copyPasteBehavior:
+                                  const ColorPickerCopyPasteBehavior(
+                                longPressMenu: true,
+                              ),
+                              materialNameTextStyle:
+                                  Theme.of(context).textTheme.bodySmall,
+                              colorNameTextStyle:
+                                  Theme.of(context).textTheme.bodySmall,
+                              colorCodeTextStyle:
+                                  Theme.of(context).textTheme.bodySmall,
+                              pickersEnabled: const <ColorPickerType, bool>{
+                                ColorPickerType.both: false,
+                                ColorPickerType.primary: true,
+                                ColorPickerType.accent: true,
+                                ColorPickerType.bw: false,
+                                ColorPickerType.custom: true,
+                                ColorPickerType.wheel: true,
+                              },
+                            ),
                           ),
                         ),
                       ],

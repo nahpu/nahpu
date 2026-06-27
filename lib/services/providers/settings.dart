@@ -23,6 +23,7 @@ const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
 const String exportPresetPrefKey = 'exportPresets';
+const String pdfExportFontPrefKey = 'pdfExportFont';
 
 final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
@@ -226,6 +227,32 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
 
       await prefs.setString(prefKey, fmt.name);
       return fmt;
+    });
+  }
+}
+
+final pdfExportFontNotifierProvider =
+    AsyncNotifierProvider.autoDispose<PdfExportFontNotifier, String>(
+        PdfExportFontNotifier.new);
+
+class PdfExportFontNotifier extends AsyncNotifier<String> {
+  Future<String> _fetchSettings() async {
+    final prefs = ref.watch(settingProvider);
+    final font = prefs.getString(pdfExportFontPrefKey);
+    return font ?? 'Merriweather';
+  }
+
+  @override
+  Future<String> build() async {
+    return await _fetchSettings();
+  }
+
+  Future<void> set(String font) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final prefs = ref.watch(settingProvider);
+      await prefs.setString(pdfExportFontPrefKey, font);
+      return font;
     });
   }
 }

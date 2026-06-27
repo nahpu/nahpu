@@ -104,8 +104,7 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
   @override
   void initState() {
     super.initState();
-    if (widget.controlledWidthMm != null &&
-        widget.controlledHeightMm != null) {
+    if (widget.controlledWidthMm != null && widget.controlledHeightMm != null) {
       _w = widget.controlledWidthMm!;
       _h = widget.controlledHeightMm!;
       _loaded = true;
@@ -117,8 +116,7 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
   @override
   void didUpdateWidget(LabelSizeSelector oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.controlledWidthMm != null &&
-        widget.controlledHeightMm != null) {
+    if (widget.controlledWidthMm != null && widget.controlledHeightMm != null) {
       final nw = widget.controlledWidthMm!;
       final nh = widget.controlledHeightMm!;
       if (nw != oldWidget.controlledWidthMm ||
@@ -170,12 +168,14 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
             TextField(
               controller: wCtr,
               decoration: const InputDecoration(labelText: 'Width (mm)'),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
             ),
             TextField(
               controller: hCtr,
               decoration: const InputDecoration(labelText: 'Height (mm)'),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
             ),
           ],
         ),
@@ -208,8 +208,7 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
       );
     }
 
-    final label =
-        '${_w.toStringAsFixed(0)}×${_h.toStringAsFixed(0)} mm';
+    final label = '${_w.toStringAsFixed(0)}×${_h.toStringAsFixed(0)} mm';
 
     final menuItems = <PopupMenuEntry<String>>[
       ..._labelSizePresetMenuEntries(),

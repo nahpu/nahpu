@@ -56,16 +56,18 @@ class SpecimenRecordWriter {
     List<Map<String, dynamic>> jsonList = [];
 
     for (var element in specimenList) {
-      List<String> content = await _getSpecimenDetails(element);
-      Map<String, dynamic> row = {};
-      for (int i = 0; i < header.length; i++) {
-        if (selectedColumns == null || selectedColumns!.contains(header[i])) {
-          String key =
-              useFieldNamesOnly ? header[i].split('::').last : header[i];
-          row[key] = content[i];
+      List<List<String>> contents = await _getSpecimenDetails(element);
+      for (var content in contents) {
+        Map<String, dynamic> row = {};
+        for (int i = 0; i < header.length; i++) {
+          if (selectedColumns == null || selectedColumns!.contains(header[i])) {
+            String key =
+                useFieldNamesOnly ? header[i].split('::').last : header[i];
+            row[key] = content[i];
+          }
         }
+        jsonList.add(row);
       }
-      jsonList.add(row);
     }
 
     String jsonContent = jsonEncode(jsonList);
@@ -87,32 +89,37 @@ class SpecimenRecordWriter {
 
   Future<void> _writeDynamicRecordDelimited(
       File filePath, ExportFmt format, List<SpecimenData> specimenList) async {
-    final exporter = DynamicRecordExporter(ref: ref);
+    final exporter = DynamicRecordExporter(
+      ref: ref,
+      concatenateMultiEntry: concatenateMultiEntry,
+    );
     List<Map<String, dynamic>> jsonList = [];
 
     for (var specimen in specimenList) {
-      final dynamicRecord = await exporter.getRecord(specimen);
-      Map<String, dynamic> row = {};
+      final dynamicRecords = await exporter.getRecord(specimen);
+      for (var dynamicRecord in dynamicRecords) {
+        Map<String, dynamic> row = {};
 
-      // Add simple fields
-      for (var col in exportPreset!.fields.keys) {
-        final customName = exportPreset!.fields[col] ?? col;
-        row[customName] = dynamicRecord[col] ?? '';
-      }
-
-      // Add combined fields
-      for (var combined in exportPreset!.combinedFields) {
-        String value = '';
-        for (var comp in combined.fields) {
-          if (comp.startsWith('SEP:')) {
-            value += comp.substring(4);
-          } else {
-            value += dynamicRecord[comp] ?? '';
-          }
+        // Add simple fields
+        for (var col in exportPreset!.fields.keys) {
+          final customName = exportPreset!.fields[col] ?? col;
+          row[customName] = dynamicRecord[col] ?? '';
         }
-        row[combined.fieldId] = value;
+
+        // Add combined fields
+        for (var combined in exportPreset!.combinedFields) {
+          String value = '';
+          for (var comp in combined.fields) {
+            if (comp.startsWith('SEP:')) {
+              value += comp.substring(4);
+            } else {
+              value += dynamicRecord[comp] ?? '';
+            }
+          }
+          row[combined.fieldId] = value;
+        }
+        jsonList.add(row);
       }
-      jsonList.add(row);
     }
 
     String jsonContent = jsonEncode(jsonList);
@@ -131,24 +138,34 @@ class SpecimenRecordWriter {
     await writer.write();
   }
 
-  Future<List<String>> _getSpecimenDetails(SpecimenData data) async {
+  Future<List<List<String>>> _getSpecimenDetails(SpecimenData data) async {
     List<String> collectingRecord = await _getCollectingRecord(data);
-    String parts = await _getPartList(data.uuid);
+    List<String> parts = await _getPartListStrings(data.uuid);
     List<String> collSiteDetails = await _getCollEventSiteDetails(
       data.collEventID,
     );
     List<String> measurement = await _getMeasurement(data);
     String media = await _getSpecimenMedia(data.uuid);
 
-    List<String> content = [
+    List<String> baseContent = [
       ...collectingRecord,
       ...collSiteDetails,
       ...measurement,
-      parts,
-      media
     ];
 
-    return content;
+    if (parts.isEmpty) {
+      return [
+        [...baseContent, '', media]
+      ];
+    }
+
+    if (concatenateMultiEntry) {
+      return [
+        [...baseContent, parts.join('|'), media]
+      ];
+    } else {
+      return parts.map((p) => [...baseContent, p, media]).toList();
+    }
   }
 
   Future<List<String>> _getCollectingRecord(SpecimenData data) async {
@@ -196,10 +213,12 @@ class SpecimenRecordWriter {
         .getCOllEventSiteDetails(collEventId);
   }
 
-  Future<String> _getPartList(String specimenUuid) async {
+  Future<List<String>> _getPartListStrings(String specimenUuid) async {
     SpecimenPartWriterServices service =
         SpecimenPartWriterServices(ref: ref, isWithLabel: true);
-    return await service.getPartListStr(specimenUuid);
+    List<List<String>> partList =
+        await service.getPartList(specimenUuid, isWithEmpty: false);
+    return partList.map((e) => e.join(';')).toList();
   }
 
   Future<List<String>> _getMeasurement(SpecimenData data) async {

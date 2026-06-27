@@ -6,7 +6,6 @@ import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/export_preset_edit.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:nahpu/screens/shared/qr.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/io_services.dart';
@@ -292,7 +291,6 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
           height: 300,
           child: QrImageView(
             data: payload,
-            version: QrVersions.auto,
             backgroundColor: Colors.white,
           ),
         ),

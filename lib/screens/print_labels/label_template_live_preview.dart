@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/print_labels/label_gender_icon.dart';
 import 'package:nahpu/screens/print_labels/label_outline.dart';
-import 'package:nahpu/screens/print_labels/label_pdf_service.dart';
+import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/screens/print_labels/label_template_fonts.dart';
 import 'package:nahpu/screens/print_labels/label_template_model.dart';
 
@@ -152,14 +152,14 @@ class _PreviewPage extends StatelessWidget {
                 ),
               ),
             for (final ct in page.customTexts)
-              if (labelGenderIconFieldKeyFromBracketText(ct.text) case final gKey?)
+              if (labelGenderIconFieldKeyFromBracketText(ct.text)
+                  case final gKey?)
                 Positioned(
                   left: ct.xMm * scale,
                   top: ct.yMm * scale,
                   width: math.max(
                     1.0,
-                    (ct.iconWidthMm ?? kLabelGenderIconDefaultWidthMm) *
-                        scale,
+                    (ct.iconWidthMm ?? kLabelGenderIconDefaultWidthMm) * scale,
                   ),
                   height: math.max(
                     1.0,
@@ -171,7 +171,8 @@ class _PreviewPage extends StatelessWidget {
                     child: IconTheme(
                       data: IconThemeData(
                         size: math.min(
-                              (ct.iconWidthMm ?? kLabelGenderIconDefaultWidthMm) *
+                              (ct.iconWidthMm ??
+                                      kLabelGenderIconDefaultWidthMm) *
                                   scale,
                               (ct.iconHeightMm ??
                                       kLabelGenderIconDefaultHeightMm) *

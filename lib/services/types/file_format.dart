@@ -2,7 +2,7 @@ import 'package:file_selector/file_selector.dart';
 
 enum NahpuFileFormat { tabulated, image, audio, video, pdf, database, other }
 
-enum MediaKind { image, audio, video, pdf, other }
+enum MediaKind { image, audio, video, other }
 
 const Map<String, NahpuFileFormat> formatByExtension = {
   'csv': NahpuFileFormat.tabulated,
@@ -33,7 +33,6 @@ const Map<String, NahpuFileFormat> formatByExtension = {
 const Set<String> imageExtensions = {'jpg', 'jpeg', 'png', 'gif', 'heic'};
 const Set<String> audioExtensions = {'mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'};
 const Set<String> videoExtensions = {'mp4', 'mov', 'm4v', 'avi', 'mkv', 'webm'};
-const Set<String> pdfExtensions = {'pdf'};
 
 String normalizeExtension(String value) {
   String ext = value.trim().toLowerCase();
@@ -51,8 +50,7 @@ NahpuFileFormat matchNahpuFormatFromPath(String filePath) {
 bool isSupportedMediaFormat(NahpuFileFormat format) {
   return format == NahpuFileFormat.image ||
       format == NahpuFileFormat.audio ||
-      format == NahpuFileFormat.video ||
-      format == NahpuFileFormat.pdf;
+      format == NahpuFileFormat.video;
 }
 
 bool isSupportedMediaPath(String filePath) {
@@ -70,9 +68,6 @@ MediaKind matchMediaKindFromPath(String filePath) {
   if (videoExtensions.contains(ext)) {
     return MediaKind.video;
   }
-  if (pdfExtensions.contains(ext)) {
-    return MediaKind.pdf;
-  }
   return MediaKind.other;
 }
 
@@ -84,8 +79,6 @@ String matchMediaKindLabel(MediaKind kind) {
       return 'Audio';
     case MediaKind.video:
       return 'Video';
-    case MediaKind.pdf:
-      return 'PDF';
     case MediaKind.other:
       return 'Other';
   }
@@ -96,13 +89,6 @@ const XTypeGroup dbFmt = XTypeGroup(
   extensions: ['sqlite3', 'db'],
   uniformTypeIdentifiers: ['public.database'],
   mimeTypes: ['application/vnd.sqlite3'],
-);
-
-const XTypeGroup pdfFmt = XTypeGroup(
-  label: 'PDF (.pdf)',
-  extensions: ['pdf'],
-  uniformTypeIdentifiers: ['com.adobe.pdf'],
-  mimeTypes: ['application/pdf'],
 );
 
 const XTypeGroup audioFmt = XTypeGroup(
@@ -160,13 +146,11 @@ const XTypeGroup mediaFmt = XTypeGroup(
     'avi',
     'mkv',
     'webm',
-    'pdf',
   ],
   uniformTypeIdentifiers: [
     'public.image',
     'public.audio',
     'public.movie',
-    'com.adobe.pdf',
   ],
   mimeTypes: [
     'image/jpeg',
@@ -184,7 +168,6 @@ const XTypeGroup mediaFmt = XTypeGroup(
     'video/x-msvideo',
     'video/x-matroska',
     'video/webm',
-    'application/pdf',
   ],
 );
 

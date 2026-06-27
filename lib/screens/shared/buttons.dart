@@ -383,7 +383,7 @@ class PdfExportMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return const ListTile(
       leading: Icon(Icons.picture_as_pdf_outlined),
-      title: Text('Export to PDF'),
+      title: Text('Export As ...'),
     );
   }
 }

@@ -22,7 +22,7 @@ void main() {
     expect(matchMediaKindFromPath('photo.jpeg'), MediaKind.image);
     expect(matchMediaKindFromPath('voice.m4a'), MediaKind.audio);
     expect(matchMediaKindFromPath('movie.mov'), MediaKind.video);
-    expect(matchMediaKindFromPath('report.pdf'), MediaKind.pdf);
+    expect(matchMediaKindFromPath('report.pdf'), MediaKind.other);
     expect(matchMediaKindFromPath('archive.zip'), MediaKind.other);
   });
 
@@ -33,14 +33,14 @@ void main() {
     expect(isSupportedMediaPath('VOICE.MP3'), isTrue);
     expect(isSupportedMediaPath('movie.mov'), isTrue);
     expect(isSupportedMediaPath('MOVIE.MP4'), isTrue);
-    expect(isSupportedMediaPath('report.pdf'), isTrue);
-    expect(isSupportedMediaPath('REPORT.PDF'), isTrue);
+    expect(isSupportedMediaPath('report.pdf'), isFalse);
+    expect(isSupportedMediaPath('REPORT.PDF'), isFalse);
     expect(isSupportedMediaPath('table.csv'), isFalse);
 
     expect(isSupportedMediaFormat(NahpuFileFormat.image), isTrue);
     expect(isSupportedMediaFormat(NahpuFileFormat.audio), isTrue);
     expect(isSupportedMediaFormat(NahpuFileFormat.video), isTrue);
-    expect(isSupportedMediaFormat(NahpuFileFormat.pdf), isTrue);
+    expect(isSupportedMediaFormat(NahpuFileFormat.pdf), isFalse);
     expect(isSupportedMediaFormat(NahpuFileFormat.tabulated), isFalse);
     expect(isSupportedMediaFormat(NahpuFileFormat.database), isFalse);
   });
@@ -53,7 +53,6 @@ void main() {
         ...imageExtensions,
         ...audioExtensions,
         ...videoExtensions,
-        ...pdfExtensions,
       ]),
     );
     expect(
@@ -61,8 +60,7 @@ void main() {
       hasLength(
         imageExtensions.length +
             audioExtensions.length +
-            videoExtensions.length +
-            pdfExtensions.length,
+            videoExtensions.length,
       ),
     );
     expect(
@@ -71,7 +69,6 @@ void main() {
         'public.image',
         'public.audio',
         'public.movie',
-        'com.adobe.pdf',
       ]),
     );
     expect(
@@ -80,7 +77,6 @@ void main() {
         'image/jpeg',
         'audio/mpeg',
         'video/mp4',
-        'application/pdf',
       ]),
     );
   });
