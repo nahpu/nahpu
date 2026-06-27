@@ -23,8 +23,30 @@ String get dateTimeStamp {
   return '$date-$time';
 }
 
+typedef OpenFilesCallback = Future<List<XFile>> Function({
+  List<XTypeGroup>? acceptedTypeGroups,
+  String? initialDirectory,
+  String? confirmButtonText,
+});
+
+Future<List<XFile>> _defaultOpenFiles({
+  List<XTypeGroup>? acceptedTypeGroups,
+  String? initialDirectory,
+  String? confirmButtonText,
+}) {
+  return openFiles(
+    acceptedTypeGroups: acceptedTypeGroups ?? const <XTypeGroup>[],
+    initialDirectory: initialDirectory,
+    confirmButtonText: confirmButtonText,
+  );
+}
+
 class FilePickerServices {
-  FilePickerServices();
+  FilePickerServices({
+    OpenFilesCallback openFiles = _defaultOpenFiles,
+  }) : _openFiles = openFiles;
+
+  final OpenFilesCallback _openFiles;
 
   Future<void> shareFile(BuildContext context, File file) async {
     final box = context.findRenderObject() as RenderBox?;
@@ -57,7 +79,7 @@ class FilePickerServices {
   }
 
   Future<List<XFile>> pickMultiFiles(List<XTypeGroup> allowedExtension) async {
-    return await openFiles(acceptedTypeGroups: allowedExtension);
+    return await _openFiles(acceptedTypeGroups: allowedExtension);
   }
 }
 
@@ -122,22 +144,34 @@ class FileServices extends AppServices {
 
   Future<File> copyFileToProjectDir(File from, Directory to) async {
     final projectDir = await currentProjectDir;
-    final fileName = path.basename(from.path);
     final targetDir = path.join(projectDir.path, to.path);
-    await Directory(targetDir).create(recursive: true);
-    final toPath = path.join(targetDir, fileName);
-    await from.copy(toPath);
-    return File(toPath);
+    return _copyFileToDir(from, targetDir);
   }
 
   Future<File> copyFileToAppDir(File from, Directory to) async {
     final appDir = await nahpuDocumentDir;
-    final fileName = path.basename(from.path);
     final targetDir = path.join(appDir.path, to.path);
+    return _copyFileToDir(from, targetDir);
+  }
+
+  Future<File> _copyFileToDir(File from, String targetDir) async {
     await Directory(targetDir).create(recursive: true);
-    final toPath = path.join(targetDir, fileName);
+    final fileName = path.basename(from.path);
+    final toPath = _uniqueFilePath(targetDir, fileName);
     await from.copy(toPath);
     return File(toPath);
+  }
+
+  String _uniqueFilePath(String targetDir, String fileName) {
+    final stem = path.basenameWithoutExtension(fileName);
+    final extension = path.extension(fileName);
+    String candidate = path.join(targetDir, fileName);
+    int index = 1;
+    while (File(candidate).existsSync()) {
+      candidate = path.join(targetDir, '${stem}_$index$extension');
+      index++;
+    }
+    return candidate;
   }
 }
 
@@ -223,12 +257,12 @@ class DataUsageServices extends AppServices {
     return count;
   }
 
-  Future<int> get imageCount async {
+  Future<int> get mediaCount async {
     final nahpuDir = await nahpuDocumentDir;
     final dirSize = nahpuDir.listSync(recursive: true).whereType<File>();
     int count = 0;
     for (final file in dirSize) {
-      if (_isImage(file)) {
+      if (_isSupportedMediaFile(file)) {
         count++;
       }
     }
@@ -256,20 +290,21 @@ class DataUsageServices extends AppServices {
   }
 
   NahpuFileFormat _matchFormat(File file) {
-    return formatByExtension[path.extension(file.path)] ??
-        NahpuFileFormat.other;
+    return matchNahpuFormatFromPath(file.path);
   }
 
   Future<bool> _isDeletable(File file, NahpuFileFormat format) async {
-    if (path.extension(file.path) == 'db') {
+    if (format == NahpuFileFormat.database) {
       return false;
     }
 
-    if (format == NahpuFileFormat.image) {
-      bool isUsedByMedia = await MediaServices(ref: ref).isImageUsed(file);
+    if (isSupportedMediaFormat(format)) {
+      bool isUsedByMedia = await MediaServices(ref: ref).isMediaUsed(file);
       bool isUsedByPersonnel =
           await PersonnelServices(ref: ref).isImageUsedInPersonnelPhoto(file);
-      return !isUsedByMedia || !isUsedByPersonnel;
+      bool isUsedInAssociatedData =
+          await AssociatedDataServices(ref: ref).isFileUsed(file);
+      return !(isUsedByMedia || isUsedByPersonnel || isUsedInAssociatedData);
     }
 
     if (format == NahpuFileFormat.other) {
@@ -281,15 +316,8 @@ class DataUsageServices extends AppServices {
     return true;
   }
 
-  bool _isImage(File file) {
-    if (file.path.endsWith('.jpg') ||
-        file.path.endsWith('.jpeg') ||
-        file.path.endsWith('.png') ||
-        file.path.endsWith('.gif') ||
-        file.path.endsWith('.heic')) {
-      return true;
-    }
-    return false;
+  bool _isSupportedMediaFile(File file) {
+    return isSupportedMediaPath(file.path);
   }
 }
 

@@ -31,9 +31,9 @@ class MediaServices extends AppServices {
     return await MediaDbQuery(dbAccess).getMedia(primaryId);
   }
 
-  Future<bool> isImageUsed(File file) async {
+  Future<bool> isMediaUsed(File file) async {
     final String fileName = path.basename(file.path);
-    return await MediaDbQuery(dbAccess).isImageUsed(fileName);
+    return await MediaDbQuery(dbAccess).isMediaUsed(fileName);
   }
 
   Future<List<MediaData>> getAllMedia() {
