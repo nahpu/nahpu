@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:nahpu/screens/export/print_labels/label_template_model.dart';
+import 'package:nahpu/screens/export/labels/label_template_model.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';

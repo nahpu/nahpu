@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/export/print_labels/label_template_model.dart';
+import 'package:nahpu/screens/export/labels/label_template_model.dart';
 
 /// PDF points per mm (same as label PDF helpers).
 const double kLabelOutlinePdfPointsPerMm = 72.0 / 25.4;
