@@ -33,8 +33,7 @@ dependencies:
 
   cupertino_icons: ^1.0.5
   flutter_speed_dial: ^7.0.0
-  drift: ^2.18.0
-  sqlite3_flutter_libs: ^0.5.9
+  drift: ^2.34.0
   path_provider: ^2.0.15
   path: ^1.8.2
   uuid: ^4.1.0
@@ -42,73 +41,65 @@ dependencies:
   url_launcher: ^6.1.5
   intl: ^0.20.0
   freezed_annotation: ^3.0.0
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
+  flutter_riverpod: ^3.3.2
   shared_preferences: ^2.1.1
-  material_design_icons_flutter: ^7.0.7096
   fl_chart: ^1.0.0
   flex_color_scheme: ^8.2.0
   pdf: ^3.8.4
-  csv: ^6.0.0
-  excel: ^4.0.6
   image_picker: ^1.0.0
-  share_plus: ^11.0.0
+  share_plus: ^13.1.0
   exif: ^3.1.4
-  printing: ^5.11.0
-  package_info_plus: ^8.0.0
+  printing: ^5.15.0
+  package_info_plus: ^10.1.0
   qr_flutter: ^4.1.0
   carousel_slider: ^5.0.0
   flutter_svg: ^2.0.7
   file_selector: ^1.0.0
-  file_picker: ^10.0.0
+  file_picker: ^12.0.0-beta.7
   geolocator: ^14.0.0
-  xml: ^6.3.0
+  xml: ^7.0.0
   flutter_rust_bridge: 2.12.0
   mobile_scanner: ^7.0.0
-  sqlite3: ^2.4.4
+  sqlite3: ^3.1.5
   rust_lib_nahpu:
     path: rust_builder
-  open_file_manager: ^2.0.1
-  timezone: ^0.10.1
+  timezone: ^0.11.0
   kdl: ^2.0.2
-  flutter_native_html_to_pdf: ^2.0.0
-  google_fonts: ^6.2.1
-  flutter_colorpicker: ^1.1.0
-
+  material_ui: ^0.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  drift_dev: ^2.3.3
+  drift_dev: ^2.34.0
   build_runner: ^2.2.0
-  flutter_launcher_icons: ^0.14.1
+  flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   freezed: ^3.0.0
-  custom_lint: ^0.7.5
-  riverpod_lint: ^2.0.2
-  riverpod_generator: ^2.3.7
   integration_test:
     sdk: flutter
 
-flutter_icons:
+flutter_launcher_icons:
   ios: true
   android: true
+  image_path_ios: "assets/launcher/ios/iosNahpuIcon-iOS-Default-1024x1024@1x.png"
+  image_path_ios_dark_transparent: "assets/launcher/ios/iosNahpuIcon-iOS-Dark-1024x1024@1x.png"
+  image_path_ios_tinted_grayscale: "assets/launcher/ios/iosNahpuIcon-iOS-TintedLight-1024x1024@1x.png"
+  desaturate_tinted_to_grayscale_ios: true
+  image_path_android: "assets/launcher/nahpu-bg.png"
   remove_alpha_ios: true
-  image_path_ios: "assets/launcher/icon.png"
-  image_path_android: "assets/launcher/icon.png"
-  adaptive_icon_background: "#1b9e77"
-  adaptive_icon_foreground: "assets/launcher/icon_android.png"
+  adaptive_icon_background: "#f4f1de"
+  adaptive_icon_foreground: "assets/launcher/nahpu-no-bg.png"
   windows:
     generate: true
-    image_path: "assets/launcher/icon_desktop.png"
+    image_path: "assets/launcher/nahpu-light.png"
   macos:
     generate: true
-    image_path: "assets/launcher/icon_desktop.png"
+    image_path: "assets/launcher/ios/iosNahpuIcon-iOS-Default-1024x1024@1x.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -119,13 +110,12 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
+  # These assets are bundled with the application.
+  # Do not add assets/web here. They are not used inside the app bundle.
   assets:
-    - assets/images/
+    - assets/logo/
     - assets/avatars/
     - assets/icons/
-    - assets/fonts/google/
-  #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -142,6 +132,9 @@ flutter:
     - family: "Merriweather"
       fonts:
         - asset: assets/fonts/Merriweather-Regular.ttf
+    - family: "NahpuIcons"
+      fonts:
+        - asset: assets/fonts/nahpu_font.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro

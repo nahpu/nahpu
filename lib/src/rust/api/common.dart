@@ -6,4 +6,5 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-String testRust() => RustLib.instance.api.crateApiCommonTestRust();
+/// Check if Rust is working
+Future<String> checkRust() => RustLib.instance.api.crateApiCommonCheckRust();

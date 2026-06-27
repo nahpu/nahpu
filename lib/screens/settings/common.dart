@@ -54,14 +54,15 @@ class CommonSettingSection extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
             ),
           ),
-        Container(
-          decoration: BoxDecoration(
+        Material(
+          clipBehavior: Clip.hardEdge,
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withAlpha(120),
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withAlpha(120),
-            border: Border.all(
+            side: BorderSide(
               color: Theme.of(context)
                   .colorScheme
                   .surfaceContainerHighest
@@ -92,7 +93,8 @@ class CommonSettingTile extends StatelessWidget {
     super.key,
     required this.title,
     this.label,
-    required this.icon,
+    this.icon,
+    this.leading,
     this.value,
     required this.onTap,
     this.trailing,
@@ -101,7 +103,8 @@ class CommonSettingTile extends StatelessWidget {
 
   final String title;
   final String? label;
-  final IconData icon;
+  final IconData? icon;
+  final Widget? leading;
   final VoidCallback? onTap;
   final String? value;
   final Widget? trailing;
@@ -128,10 +131,13 @@ class CommonSettingTile extends StatelessWidget {
                   ),
                 )
               : null,
-          leading: Icon(
-            icon,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          leading: leading ??
+              (icon != null
+                  ? Icon(
+                      icon,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,

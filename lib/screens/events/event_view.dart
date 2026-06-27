@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/screens/events/event_form.dart';
 import 'package:nahpu/screens/events/components/menu_bar.dart';
 import 'package:nahpu/screens/shared/common.dart';
@@ -25,6 +25,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   final PageNavigation _pageNav = PageNavigation.init();
   final TextEditingController _searchController = TextEditingController();
   int? _collEvenId;
+  bool _loadedOnce = false;
   bool _isSearching = false;
   final FocusNode _focus = FocusNode();
 
@@ -43,8 +44,13 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   @override
   Widget build(BuildContext context) {
     final services = CollEventServices(ref: ref);
-    return FalseWillPop(
-        child: Scaffold(
+    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
+    ref.listen(collEventEntryProvider, (_, next) {
+      // Skip refresh emissions (see site_view.dart).
+      if (next.isLoading) return;
+      next.whenData(_reconcile);
+    });
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Events"),
         actions: [
@@ -88,10 +94,6 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
                       _isSearching = false;
                       _searchController.clear();
                       services.invalidateCollEvent();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => super.widget),
-                      );
                     });
                   },
                   child: const Text("Cancel")),
@@ -107,35 +109,19 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
           child: ref.watch(collEventEntryProvider).when(
                 data: (collEventEntries) {
                   if (collEventEntries.isEmpty) {
-                    setState(() {
-                      _isVisible = false;
-                      _collEvenId = null;
-                    });
-
                     return EmptyCollEvent(isButtonVisible: !_isSearching);
-                  } else {
-                    int collEventSize = collEventEntries.length;
-                    setState(() {
-                      if (collEventSize >= 2) {
-                        _isVisible = true;
-                      } else {
-                        _isVisible = false;
-                      }
-                      _pageNav.pageCounts = collEventSize;
-                      _pageNav.updatePageController();
-                    });
-                    return CollEventPages(
-                      collEventEntries: collEventEntries,
-                      pageNav: _pageNav,
-                      isNavButtonVisible: _isVisible,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _collEvenId = collEventEntries[index].id;
-                          _updatePageNav(index);
-                        });
-                      },
-                    );
                   }
+                  return CollEventPages(
+                    collEventEntries: collEventEntries,
+                    pageNav: _pageNav,
+                    isNavButtonVisible: _isVisible,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _collEvenId = collEventEntries[index].id;
+                        _updatePageNav(index);
+                      });
+                    },
+                  );
                 },
                 loading: () => const CommonProgressIndicator(),
                 error: (error, stack) => Text(error.toString()),
@@ -148,8 +134,57 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
           pageNav: _pageNav,
         ),
       ),
-      bottomNavigationBar: const ProjectBottomNavbar(),
-    ));
+    );
+  }
+
+  void _reconcile(List<CollEventData> collEventEntries) {
+    if (!mounted) return;
+    final count = collEventEntries.length;
+    final landIndex = _landingIndex(collEventEntries);
+    if (landIndex != null) {
+      _pageNav.currentPage = landIndex + 1;
+    }
+    final index = _pageNav.clampToCount(count);
+    setState(() {
+      _isVisible = count >= 2;
+      if (count == 0) {
+        _collEvenId = null;
+      } else if (landIndex != null ||
+          _collEvenId == null ||
+          !collEventEntries.any((event) => event.id == _collEvenId)) {
+        _collEvenId = collEventEntries[index].id;
+      }
+    });
+    if (landIndex != null) {
+      // Keyed controller swap (see site_view.dart).
+      _pageNav.openControllerAt(index);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pageNav.clampController(index);
+      });
+    }
+  }
+
+  /// One-shot landing target for this refresh (see site_view.dart).
+  int? _landingIndex(List<CollEventData> collEventEntries) {
+    final firstLoad = !_loadedOnce;
+    _loadedOnce = true;
+    final pendingJump =
+        ref.read(pendingRecordJumpProvider(RecordViewer.collEvent));
+    if (pendingJump != null) {
+      final target =
+          collEventEntries.indexWhere((event) => event.id == pendingJump);
+      if (target != -1) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+            .updateState(null);
+        return target;
+      }
+    }
+    if (firstLoad && collEventEntries.isNotEmpty) {
+      return collEventEntries.length - 1;
+    }
+    return null;
   }
 
   void _updatePageNav(int value) {
@@ -180,6 +215,8 @@ class CollEventPages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
+      // Keyed by controller identity (see site_view.dart).
+      key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: collEventEntries.length,
       itemBuilder: (context, index) {

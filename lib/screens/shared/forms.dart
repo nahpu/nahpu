@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -17,6 +19,7 @@ class FormCard extends StatelessWidget {
     this.isWithTitle = true,
     this.isWithDivider = true,
     this.isWithSidePadding = true,
+    this.isExpanded = false,
   });
 
   final Widget child;
@@ -28,6 +31,7 @@ class FormCard extends StatelessWidget {
   final bool isWithTitle;
   final bool isWithDivider;
   final bool isWithSidePadding;
+  final bool isExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -66,14 +70,25 @@ class FormCard extends StatelessWidget {
                       thickness: 0.6,
                       color: Theme.of(context).tabBarTheme.dividerColor)
                   : const SizedBox.shrink(),
-              isWithSidePadding
-                  ? Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-                      child: child)
-                  : Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: child,
+              isExpanded
+                  ? Expanded(
+                      child: isWithSidePadding
+                          ? Padding(
+                              padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                              child: child)
+                          : Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: child,
+                            ),
                     )
+                  : isWithSidePadding
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                          child: child)
+                      : Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: child,
+                        )
             ]),
       ),
     );
@@ -324,7 +339,8 @@ void showDeleteAlertOnMenu({
   required BuildContext context,
   required String deletePrompt,
   required String title,
-  required VoidCallback onDelete,
+  required FutureOr<void> Function() onDelete,
+  String? requiredConfirmationText,
 }) {
   Future.delayed(
     const Duration(milliseconds: 0),
@@ -337,6 +353,7 @@ void showDeleteAlertOnMenu({
               deletePrompt: deletePrompt,
               title: title,
               onDelete: onDelete,
+              requiredConfirmationText: requiredConfirmationText,
             );
           },
         );
@@ -345,39 +362,108 @@ void showDeleteAlertOnMenu({
   );
 }
 
-class DeleteAlerts extends ConsumerWidget {
+class DeleteAlerts extends ConsumerStatefulWidget {
   const DeleteAlerts({
     super.key,
     required this.title,
     required this.deletePrompt,
     required this.onDelete,
+    this.requiredConfirmationText,
   });
 
   final String title;
   final String deletePrompt;
-  final VoidCallback onDelete;
+  final FutureOr<void> Function() onDelete;
+  final String? requiredConfirmationText;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DeleteAlerts> createState() => _DeleteAlertsState();
+}
+
+class _DeleteAlertsState extends ConsumerState<DeleteAlerts> {
+  late final TextEditingController _confirmationController;
+  bool _isDeleting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _confirmationController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _confirmationController.dispose();
+    super.dispose();
+  }
+
+  bool get _isDeleteEnabled {
+    final requiredConfirmation = widget.requiredConfirmationText;
+    if (requiredConfirmation == null) {
+      return true;
+    }
+    return _confirmationController.text == requiredConfirmation;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(title),
-      content: Text(
-        deletePrompt,
-        textAlign: TextAlign.center,
+      title: Text(widget.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            widget.deletePrompt,
+            textAlign: TextAlign.center,
+          ),
+          if (widget.requiredConfirmationText != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Type `${widget.requiredConfirmationText}` to enable delete',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _confirmationController,
+              autofocus: true,
+              onChanged: (_) => setState(() {}),
+              enabled: !_isDeleting,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                hintText: 'Enter confirmation text',
+              ),
+            ),
+          ],
+        ],
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: _isDeleting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
           child: const Text('Cancel'),
         ),
         TextButton(
-          onPressed: () {
-            onDelete();
-          },
-          child: Text('Delete',
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.error,
+            disabledForegroundColor:
+                Theme.of(context).colorScheme.onSurface.withAlpha(160),
+          ),
+          onPressed: _isDeleteEnabled && !_isDeleting
+              ? () async {
+                  setState(() => _isDeleting = true);
+                  try {
+                    await widget.onDelete();
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isDeleting = false);
+                    }
+                  }
+                }
+              : null,
+          child: const Text('Delete'),
         ),
       ],
     );

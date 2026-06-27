@@ -29,30 +29,30 @@ class UtilityServices extends AppServices {
   }
 
   Future<void> getAllOptions(String prefKey) async {
-    List<String> data = await getDistinctOptions(prefKey);
-    final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
-    List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
-    notifier.replaceAll(options);
+    // List<String> data = await getDistinctOptions(prefKey);
+    // final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
+    // List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
+    // await notifier.replaceAll(options);
     _invalidateOptions(prefKey);
   }
 
   Future<void> addOption(String prefKey, String option) async {
-    await ref.read(userDefinedFieldProvider(prefKey).notifier).add(option);
+    // await ref.read(userDefinedFieldProvider(prefKey).notifier).add(option);
     _invalidateOptions(prefKey);
   }
 
   Future<void> removeOption(String prefKey, String option) async {
-    await ref.read(userDefinedFieldProvider(prefKey).notifier).remove(option);
+    // await ref.read(userDefinedFieldProvider(prefKey).notifier).remove(option);
     _invalidateOptions(prefKey);
   }
 
   Future<void> removeAllOptions(String prefKey) async {
-    await ref.read(userDefinedFieldProvider(prefKey).notifier).clear();
+    // await ref.read(userDefinedFieldProvider(prefKey).notifier).clear();
     _invalidateOptions(prefKey);
   }
 
   void _invalidateOptions(String prefKey) {
-    ref.invalidate(userDefinedFieldProvider(prefKey));
+    // ref.invalidate(userDefinedFieldProvider(prefKey));
   }
 }
 

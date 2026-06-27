@@ -27,7 +27,7 @@ class Habitat extends ConsumerWidget {
       infoContent: const HabitatInfoContent(),
       mainAxisAlignment: MainAxisAlignment.start,
       child: Padding(
-        padding: const EdgeInsets.all(5),
+        padding: const EdgeInsets.all(6),
         child: Column(
           children: [
             ref.watch(userDefinedFieldProvider(habitatTypePrefKey)).when(
@@ -48,6 +48,7 @@ class Habitat extends ConsumerWidget {
                             : null;
 
                     return DropdownButtonFormField<String?>(
+                      isExpanded: true,
                       initialValue: initialValue,
                       decoration: const InputDecoration(
                         labelText: 'Type',

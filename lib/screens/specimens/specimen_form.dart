@@ -34,9 +34,8 @@ class SpecimenFormState extends ConsumerState<SpecimenForm> {
   @override
   Widget build(BuildContext context) {
     return MainForms(
-      catalogFmt: widget.catalogFmt,
-      specimenUuid: widget.specimenUuid, 
-      specimenCtr: widget.specimenCtr
-    );
+        catalogFmt: widget.catalogFmt,
+        specimenUuid: widget.specimenUuid,
+        specimenCtr: widget.specimenCtr);
   }
 }

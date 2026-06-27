@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/events/event_view.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,14 +11,12 @@ Future<void> createNewCollEvents(BuildContext context, WidgetRef ref) {
   CollEventServices services = CollEventServices(ref: ref);
 
   return services.createNewCollEvents().then(
-    (_) {
-      if (context.mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const CollEventViewer(),
-          ),
-        );
-      }
+    (newId) {
+      // Refresh the always-mounted viewer in place and land on the new event.
+      ref
+          .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+          .updateState(newId);
+      ref.invalidate(collEventEntryProvider);
     },
   );
 }
@@ -124,9 +123,11 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
           try {
             await CollEventServices(ref: ref)
                 .deleteCollEvent(widget.collEventId!);
-            if (context.mounted) {
-              _navigate();
+            // Close the delete dialog.
+            if (mounted) {
+              Navigator.of(context).pop();
             }
+            ref.invalidate(collEventEntryProvider);
           } catch (e) {
             _showError(e.toString());
           }
@@ -135,23 +136,16 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
     }
   }
 
-  void _navigate() {
-    Navigator.of(context).pop();
-    // We need to trigger a rebuild of the CollEventViewer
-    // to update page numbers and the CollEventViewer
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => const CollEventViewer(),
-      ),
-    );
-  }
-
   Future<void> _duplicateEvent() async {
     try {
-      await EventDuplicateService(ref: ref).duplicate(widget.collEventId!);
-      if (context.mounted) {
-        _navigate();
+      final newId =
+          await EventDuplicateService(ref: ref).duplicate(widget.collEventId!);
+      if (newId != null) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+            .updateState(newId);
       }
+      ref.invalidate(collEventEntryProvider);
     } catch (e) {
       _showError(e.toString());
     }

@@ -50,6 +50,6 @@ class CoordinateIcon {
     } else if (lowercased.contains('camp') || lowercased.contains('tent')) {
       return 'assets/icons/tent.svg';
     }
-    return 'assets/icons/placeholder.svg';
+    return 'assets/icons/coordinate.svg';
   }
 }

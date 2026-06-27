@@ -363,7 +363,7 @@ class SwitchField extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label),
+        Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
         Switch(
           value: value,
           onChanged: (disabled ?? false) ? null : onPressed,

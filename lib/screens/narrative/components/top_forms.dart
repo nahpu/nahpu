@@ -59,7 +59,7 @@ class SiteNameField extends ConsumerWidget {
     if (siteId == null) {
       return const SizedBox.shrink();
     }
-    
+
     // We cannot use firstWhereOrNull because it is not available in Iterable
     // by default on older Dart SDKs and we don't want to add a dependency
     // if not needed. Using standard where + isEmpty check.
@@ -67,9 +67,9 @@ class SiteNameField extends ConsumerWidget {
     if (selectedSiteIterable.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     final site = selectedSiteIterable.first;
-    
+
     final List<String?> localityList = [
       site.country,
       site.stateProvince,
@@ -79,9 +79,8 @@ class SiteNameField extends ConsumerWidget {
     ];
 
     // Filter out null or empty strings
-    final String siteName = localityList
-        .where((e) => e != null && e.isNotEmpty)
-        .join(', ');
+    final String siteName =
+        localityList.where((e) => e != null && e.isNotEmpty).join(', ');
 
     if (siteName.isEmpty) {
       return const SizedBox.shrink();
@@ -115,32 +114,31 @@ class DateForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-      labelText: 'Date',
-      hintText: 'Enter date',
-      initialDate: DateTime.now(),
-      lastDate: DateTime.now(),
-      controller: narrativeCtr.dateCtr,
-      onTap: () {
-        // Persist date and (optionally) time into separate columns.
-        String? dateStd = narrativeCtr.dateCtr.date;
-        String? timeStd = narrativeCtr.timeCtr.time;
-        NarrativeServices(ref: ref).updateNarrative(
-          narrativeId,
-          NarrativeCompanion(
-            date: db.Value(dateStd),
-            time: db.Value(timeStd),
-          ),
-        );
-      },
-      onClear: () {
-        // Clearing date should remove the stored date (and time)
-        narrativeCtr.timeCtr.time = null;
-        NarrativeServices(ref: ref).updateNarrative(
-          narrativeId,
-          NarrativeCompanion(date: db.Value(null), time: db.Value(null)),
-        );
-      }
-    );
+        labelText: 'Date',
+        hintText: 'Enter date',
+        initialDate: DateTime.now(),
+        lastDate: DateTime.now(),
+        controller: narrativeCtr.dateCtr,
+        onTap: () {
+          // Persist date and (optionally) time into separate columns.
+          String? dateStd = narrativeCtr.dateCtr.date;
+          String? timeStd = narrativeCtr.timeCtr.time;
+          NarrativeServices(ref: ref).updateNarrative(
+            narrativeId,
+            NarrativeCompanion(
+              date: db.Value(dateStd),
+              time: db.Value(timeStd),
+            ),
+          );
+        },
+        onClear: () {
+          // Clearing date should remove the stored date (and time)
+          narrativeCtr.timeCtr.time = null;
+          NarrativeServices(ref: ref).updateNarrative(
+            narrativeId,
+            NarrativeCompanion(date: db.Value(null), time: db.Value(null)),
+          );
+        });
   }
 }
 
@@ -158,11 +156,14 @@ class TimeForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     void persistTimeChange(String? timeStd) {
       String? dateStd = narrativeCtr.dateCtr.date;
-      
+
       // If setting a time and no date is set, default to today
-      if (timeStd != null && timeStd.isNotEmpty && (dateStd == null || dateStd.isEmpty)) {
+      if (timeStd != null &&
+          timeStd.isNotEmpty &&
+          (dateStd == null || dateStd.isEmpty)) {
         final today = DateTime.now();
-        dateStd = '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+        dateStd =
+            '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
         // Update both date and time
         NarrativeServices(ref: ref).updateNarrative(
           narrativeId,
@@ -232,7 +233,8 @@ class WriterForm extends ConsumerWidget {
           .toList(),
       onChanged: (String? uuid) async {
         narrativeCtr.writerCtr = uuid;
-        await NarrativeServices(ref: ref).updateNarrativeWriter(narrativeId, uuid);
+        await NarrativeServices(ref: ref)
+            .updateNarrativeWriter(narrativeId, uuid);
       },
     );
   }

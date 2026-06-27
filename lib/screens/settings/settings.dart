@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
@@ -13,6 +12,7 @@ import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/settings/application_settings.dart';
 import 'package:nahpu/screens/settings/specimen_settings.dart';
+import 'package:nahpu/screens/settings/export_presets.dart';
 
 class AppSettings extends ConsumerStatefulWidget {
   const AppSettings({super.key});
@@ -37,6 +37,7 @@ class ProjectSettingState extends ConsumerState<AppSettings> {
                   error: (e, s) => const Text('Error'),
                 ),
             const DatabaseSettingSections(),
+            const ExportSettingsSection(),
             const ApplicationSettings(),
           ],
         ),
@@ -118,7 +119,7 @@ class DatabaseSettingSections extends StatelessWidget {
             })),
         CommonSettingTile(
           isNavigation: true,
-          icon: MdiIcons.databaseOutline,
+          icon: Icons.storage_outlined,
           title: 'Replace database',
           onTap: () => Navigator.push(
             context,
@@ -141,7 +142,7 @@ class CatalogFmtSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonSettingTile(
         isNavigation: true,
-        icon: MdiIcons.fileCabinet,
+        icon: Icons.archive_outlined,
         title: 'Format',
         value: matchCatFmtToTaxonGroup(selectedFmt),
         onTap: () {
@@ -164,7 +165,7 @@ class SpecimenSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonSettingTile(
         isNavigation: true,
-        icon: matchCatFmtToIcon(catalogFmt, false),
+        icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
         title: 'Specimens',
         label: 'Tissue ID, specimen type, treatments, and more',
         onTap: () {
@@ -194,6 +195,33 @@ class CollEventSection extends StatelessWidget {
           builder: (context) => const CollEventSelection(),
         ),
       ),
+    );
+  }
+}
+
+class ExportSettingsSection extends StatelessWidget {
+  const ExportSettingsSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CommonSettingSection(
+      title: 'Exports',
+      isDivided: true,
+      children: [
+        CommonSettingTile(
+            title: 'Collection records',
+            label: 'Create and edit presets for exporting records',
+            isNavigation: true,
+            icon: Icons.table_view_outlined,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ExportPresetsScreen(),
+                ),
+              );
+            }),
+      ],
     );
   }
 }

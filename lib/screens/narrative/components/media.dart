@@ -32,9 +32,7 @@ class NarrativeMediaFormState extends ConsumerState<NarrativeMediaForm> {
 
   @override
   Widget build(BuildContext context) {
-    return ref
-        .watch(narrativeMediaProvider(narrativeId: widget.narrativeId))
-        .when(
+    return ref.watch(narrativeMediaProvider(widget.narrativeId)).when(
           data: (data) {
             return NarrativeMediaViewer(
               narrativeId: widget.narrativeId,
@@ -81,6 +79,31 @@ class NarrativeMediaViewerState extends ConsumerState<NarrativeMediaViewer> {
               widget.narrativeId,
               images,
             );
+            ref.invalidate(narrativeMediaProvider(widget.narrativeId));
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          }
+        }
+      },
+      onAddFromFiles: () async {
+        try {
+          List<String> mediaFiles =
+              await ImageServices(ref: ref, category: mediaCategory)
+                  .pickMediaFromFiles();
+          if (mediaFiles.isNotEmpty) {
+            await NarrativeServices(ref: ref).createNarrativeMediaFromList(
+              widget.narrativeId,
+              mediaFiles,
+            );
+            ref.invalidate(narrativeMediaProvider(widget.narrativeId));
           }
         } catch (e) {
           if (context.mounted) {
@@ -103,6 +126,7 @@ class NarrativeMediaViewerState extends ConsumerState<NarrativeMediaViewer> {
               widget.narrativeId,
               image,
             );
+            ref.invalidate(narrativeMediaProvider(widget.narrativeId));
           }
         } catch (e) {
           if (context.mounted) {

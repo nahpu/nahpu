@@ -177,7 +177,7 @@ class SpecimenList extends StatelessWidget {
             itemCount: data.length,
             itemBuilder: (context, index) {
               return ListTile(
-                leading: Icon(_getLeadingIcon(data[index].taxonGroup)),
+                leading: _getLeadingIcon(data[index].taxonGroup),
                 title: SpecimenListTitle(
                     catalogerID: data[index].catalogerID,
                     fieldNumber: data[index].fieldNumber),
@@ -200,9 +200,9 @@ class SpecimenList extends StatelessWidget {
         ));
   }
 
-  IconData _getLeadingIcon(String? taxonGroup) {
+  Icon _getLeadingIcon(String? taxonGroup) {
     CatalogFmt fmt = matchTaxonGroupToCatFmt(taxonGroup);
-    return matchCatFmtToIcon(fmt, false);
+    return Icon(matchCatFmtToIcon(fmt, isFilledIcon: false));
   }
 }
 

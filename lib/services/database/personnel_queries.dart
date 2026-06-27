@@ -18,6 +18,13 @@ class PersonnelQuery extends DatabaseAccessor<Database>
     return await select(personnelList).get();
   }
 
+  Future<List<PersonnelListData>> getProjectPersonnelLinks(
+      String projectUuid) async {
+    return (select(personnelList)
+          ..where((t) => t.projectUuid.equals(projectUuid)))
+        .get();
+  }
+
   Future<bool> isImageUsed(String baseName) async {
     final PersonnelData? personnelList = await (select(personnel)
           ..where((tbl) => tbl.photoPath.equals(baseName))
@@ -117,11 +124,17 @@ class PersonnelQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteProjectPersonnel(
-      {required projectUuid, required personnelUuid}) {
+      {required String projectUuid, required String personnelUuid}) {
     return (delete(personnelList)
           ..where((t) =>
               t.projectUuid.equals(projectUuid) &
               t.personnelUuid.equals(personnelUuid)))
+        .go();
+  }
+
+  Future<void> deleteAllProjectPersonnel({required String projectUuid}) {
+    return (delete(personnelList)
+          ..where((t) => t.projectUuid.equals(projectUuid)))
         .go();
   }
 

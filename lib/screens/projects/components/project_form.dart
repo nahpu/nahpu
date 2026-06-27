@@ -11,8 +11,9 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/projects/dashboard.dart';
+import 'package:nahpu/screens/shared/project_shell.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/validation.dart';
 
 class ProjectForm extends ConsumerStatefulWidget {
@@ -287,11 +288,18 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
     ProjectServices(ref: ref).updateProject(widget.projectUuid, projectData);
   }
 
-  Future<void> _goToDashboard() async {
-    await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const Dashboard()),
-    );
+  void _goToDashboard() {
+    ref.read(projectNavbarIndexProvider.notifier).updateState(0);
+    if (widget.isEditing) {
+      // The shell is still below the edit form; return to it in place.
+      ProjectShell.popToShell(context);
+    } else {
+      // createProject already pointed projectUuidProvider at the new project.
+      // Pop everything back to Home and open one shell for it, so a second
+      // shell can never stack on top of an existing one.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).push(ProjectShell.route());
+    }
   }
 }
 
@@ -299,7 +307,7 @@ extension LocationDropdownText on Location {
   String toText() {
     if (name == 'UTC') return '(UTC) Coordinated Universal Time';
 
-    final utcOffset = (currentTimeZone.offset / 3.6e6);
+    final utcOffset = (currentTimeZone.offset.inMilliseconds / 3.6e6);
     final plusMinus = utcOffset >= 0 ? '+' : '-';
     final utcOffsetHours = utcOffset.toInt();
     final utcOffsetMinutes = ((utcOffset % 1.0) * 60).toInt();

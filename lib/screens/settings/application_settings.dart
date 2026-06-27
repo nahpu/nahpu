@@ -6,8 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/screens/print_labels/label_settings.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:nahpu/screens/settings/app_settings_import.dart';
 
 class ApplicationSettings extends ConsumerWidget {
@@ -52,7 +50,7 @@ class ApplicationSettings extends ConsumerWidget {
         const DataUsage(),
         CommonSettingTile(
           isNavigation: true,
-          icon: MdiIcons.cogSyncOutline,
+          icon: Icons.sync,
           title: 'Replace app settings',
           onTap: () => Navigator.push(
             context,
@@ -202,8 +200,8 @@ class DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
                     if (snapshot.hasData) {
                       return CommonSettingTile(
                         icon: Icons.photo_library_outlined,
-                        title: 'Images',
-                        label: 'Only images',
+                        title: 'Media files',
+                        label: 'Images, audio, video, PDF',
                         value: snapshot.data,
                         onTap: null,
                       );
@@ -213,7 +211,7 @@ class DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
                       return const CommonProgressIndicator();
                     }
                   },
-                  future: _calculateImageCount(ref)),
+                  future: _calculateMediaCount(ref)),
             ],
           ),
         ],
@@ -234,12 +232,12 @@ class DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
     }
   }
 
-  Future<String> _calculateImageCount(WidgetRef ref) async {
-    int imageCount = await DataUsageServices(ref: ref).imageCount;
-    if (imageCount <= 1) {
-      return '$imageCount image';
+  Future<String> _calculateMediaCount(WidgetRef ref) async {
+    int mediaCount = await DataUsageServices(ref: ref).mediaCount;
+    if (mediaCount <= 1) {
+      return '$mediaCount file';
     } else {
-      return '$imageCount images';
+      return '$mediaCount files';
     }
   }
 }

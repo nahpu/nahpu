@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/screens/narrative/components/menu_bar.dart';
 import 'package:nahpu/screens/narrative/narrative_form.dart';
 import 'package:nahpu/screens/shared/common.dart';
@@ -25,6 +25,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   final PageNavigation _pageNav = PageNavigation.init();
   final TextEditingController _searchController = TextEditingController();
   int? _narrativeId;
+  bool _loadedOnce = false;
   bool _isSearching = false;
   late FocusNode _focus;
 
@@ -44,8 +45,13 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   @override
   Widget build(BuildContext context) {
     final narrativeServices = NarrativeServices(ref: ref);
-    return FalseWillPop(
-        child: Scaffold(
+    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
+    ref.listen(narrativeEntryProvider, (_, next) {
+      // Skip refresh emissions (see site_view.dart).
+      if (next.isLoading) return;
+      next.whenData(_reconcile);
+    });
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Narrative"),
         actions: [
@@ -90,10 +96,6 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
                       _isSearching = false;
                       _searchController.clear();
                       narrativeServices.invalidateNarrative();
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => super.widget));
                     });
                   },
                   child: const Text('Cancel')),
@@ -109,35 +111,19 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
           child: ref.watch(narrativeEntryProvider).when(
                 data: (narrativeEntries) {
                   if (narrativeEntries.isEmpty) {
-                    setState(() {
-                      isVisible = false;
-                      _narrativeId = null;
-                    });
-
                     return EmptyNarrative(isButtonVisible: !_isSearching);
-                  } else {
-                    int narrativeSize = narrativeEntries.length;
-                    setState(() {
-                      if (narrativeSize >= 2) {
-                        isVisible = true;
-                      } else {
-                        isVisible = false;
-                      }
-                      _pageNav.pageCounts = narrativeSize;
-                      _pageNav.updatePageController();
-                    });
-                    return NarrativePages(
-                      narrativeEntries: narrativeEntries,
-                      isNavButtonVisible: isVisible,
-                      pageNav: _pageNav,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _narrativeId = narrativeEntries[index].id;
-                          _updatePageNav(index);
-                        });
-                      },
-                    );
                   }
+                  return NarrativePages(
+                    narrativeEntries: narrativeEntries,
+                    isNavButtonVisible: isVisible,
+                    pageNav: _pageNav,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _narrativeId = narrativeEntries[index].id;
+                        _updatePageNav(index);
+                      });
+                    },
+                  );
                 },
                 loading: () => const CommonProgressIndicator(),
                 error: (error, stack) => Text(error.toString()),
@@ -150,8 +136,57 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
           pageNav: _pageNav,
         ),
       ),
-      bottomNavigationBar: const ProjectBottomNavbar(),
-    ));
+    );
+  }
+
+  void _reconcile(List<NarrativeData> narrativeEntries) {
+    if (!mounted) return;
+    final count = narrativeEntries.length;
+    final landIndex = _landingIndex(narrativeEntries);
+    if (landIndex != null) {
+      _pageNav.currentPage = landIndex + 1;
+    }
+    final index = _pageNav.clampToCount(count);
+    setState(() {
+      isVisible = count >= 2;
+      if (count == 0) {
+        _narrativeId = null;
+      } else if (landIndex != null ||
+          _narrativeId == null ||
+          !narrativeEntries.any((narrative) => narrative.id == _narrativeId)) {
+        _narrativeId = narrativeEntries[index].id;
+      }
+    });
+    if (landIndex != null) {
+      // Keyed controller swap (see site_view.dart).
+      _pageNav.openControllerAt(index);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pageNav.clampController(index);
+      });
+    }
+  }
+
+  /// One-shot landing target for this refresh (see site_view.dart).
+  int? _landingIndex(List<NarrativeData> narrativeEntries) {
+    final firstLoad = !_loadedOnce;
+    _loadedOnce = true;
+    final pendingJump =
+        ref.read(pendingRecordJumpProvider(RecordViewer.narrative));
+    if (pendingJump != null) {
+      final target = narrativeEntries
+          .indexWhere((narrative) => narrative.id == pendingJump);
+      if (target != -1) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.narrative).notifier)
+            .updateState(null);
+        return target;
+      }
+    }
+    if (firstLoad && narrativeEntries.isNotEmpty) {
+      return narrativeEntries.length - 1;
+    }
+    return null;
   }
 
   void _updatePageNav(int value) {
@@ -180,6 +215,8 @@ class NarrativePages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
+      // Keyed by controller identity (see site_view.dart).
+      key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: narrativeEntries.length,
       itemBuilder: (context, index) {
@@ -203,7 +240,8 @@ class NarrativePages extends StatelessWidget {
     // to parse a time from the existing date string for backwards
     // compatibility with old data.
     String? timeStd = narrativeEntries[index].time;
-    if ((timeStd == null || timeStd.isEmpty) && narrativeEntries[index].date != null) {
+    if ((timeStd == null || timeStd.isEmpty) &&
+        narrativeEntries[index].date != null) {
       final storedDate = narrativeEntries[index].date!;
       final parsed = DateTime.tryParse(storedDate);
       if (parsed != null) {
