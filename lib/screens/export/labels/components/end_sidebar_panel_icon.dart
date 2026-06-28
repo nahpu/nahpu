@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class EndSidebarPanelIcon extends StatelessWidget {
-  const EndSidebarPanelIcon({super.key, required this.size, required this.color});
+  const EndSidebarPanelIcon(
+      {super.key, required this.size, required this.color});
 
   final double size;
   final Color color;

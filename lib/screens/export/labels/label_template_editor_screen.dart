@@ -340,6 +340,11 @@ class _LabelTemplateEditorScreenState
       appBar: AppBar(
         title: const Text('Label Editor'),
         actions: [
+          IconButton(
+            onPressed: _promptSaveTemplate,
+            icon: const Icon(Icons.save_outlined),
+            tooltip: 'Save template',
+          ),
           PopupMenuButton<String>(
             tooltip: 'Template Options',
             icon: const Icon(Icons.more_vert),
@@ -350,8 +355,6 @@ class _LabelTemplateEditorScreenState
                 _exportTemplate();
               } else if (action == 'delete') {
                 _confirmDeleteTemplate();
-              } else if (action.startsWith('load:')) {
-                _loadTemplate(action.substring(5));
               }
             },
             itemBuilder: (ctx) => [
@@ -365,12 +368,6 @@ class _LabelTemplateEditorScreenState
                   child: Text('Delete template',
                       style: TextStyle(color: scheme.error)),
                 ),
-              if (_savedNames.isNotEmpty) const PopupMenuDivider(),
-              if (_savedNames.isNotEmpty)
-                const PopupMenuItem(
-                    enabled: false, child: Text('Load template:')),
-              for (final n in _savedNames)
-                PopupMenuItem(value: 'load:$n', child: Text(n)),
             ],
           ),
         ],
@@ -397,164 +394,193 @@ class _LabelTemplateEditorScreenState
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SegmentedButton<bool>(
-                              showSelectedIcon: false,
-                              segments: const [
-                                ButtonSegment(
-                                    value: false, label: Text('1 sided')),
-                                ButtonSegment(
-                                    value: true, label: Text('2 sided')),
-                              ],
-                              selected: {_isDuplex},
-                              onSelectionChanged: (values) async {
-                                final duplex = values.first;
-                                _deferSetState(() {
-                                  _isDuplex = duplex;
-                                  if (!duplex && _tabController.index != 0) {
-                                    _tabController.index = 0;
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              DropdownMenu<String>(
+                                initialSelection: _savedNames.contains(_template.name)
+                                    ? _template.name
+                                    : null,
+                                label: const Text('Preset label'),
+                                inputDecorationTheme: const InputDecorationTheme(
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
+                                dropdownMenuEntries: [
+                                  for (final n in _savedNames)
+                                    DropdownMenuEntry(value: n, label: n),
+                                ],
+                                onSelected: (value) {
+                                  if (value != null) {
+                                    _loadTemplate(value);
                                   }
-                                  _selectedElement = null;
-                                  _inlineCanvasCustomKey = null;
-                                });
-                                await _labelSettings.setDuplex(duplex);
-                              },
-                            ),
-                            const SizedBox(width: 16),
-                            FrontBackPagePickers(
-                              isDuplex: _isDuplex,
-                              isPage1: _isPage1,
-                              mirrorFront: _mirrorFront,
-                              mirrorBack: _mirrorBack,
-                              onPageChanged: (idx) {
-                                _tabController.animateTo(idx);
-                                _deferSetState(() {
-                                  _selectedElement = null;
-                                  _inlineCanvasCustomKey = null;
-                                });
-                              },
-                            ),
-                            if (_isDuplex) const SizedBox(width: 8),
-                            if (_isDuplex) ...[
-                              VerticalDivider(
-                                width: 1,
-                                thickness: 1,
-                                indent: 4,
-                                endIndent: 4,
-                                color: scheme.outlineVariant,
-                              ),
-                              const SizedBox(width: 12),
-                            ],
-                            IconButton.filledTonal(
-                              onPressed: _promptSaveTemplate,
-                              icon: const Icon(Icons.save_outlined),
-                              tooltip: 'Save template',
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Label size:',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    color: scheme.onSurface,
-                                  ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 168,
-                              child: LabelSizeSelector(
-                                compact: true,
-                                controlledWidthMm: _labelWidthMm,
-                                controlledHeightMm: _labelHeightMm,
-                                onControlledDimensionsApplied: (w, h) {
-                                  _deferSetState(() {
-                                    _labelWidthMm = w;
-                                    _labelHeightMm = h;
-                                  });
                                 },
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            IconButton.filledTonal(
-                              onPressed: () => _addCustomText(_isPage1),
-                              icon: const Icon(Icons.text_fields),
-                              tooltip: 'Add text',
-                            ),
-                            const SizedBox(width: 4),
-                            IconButton.filledTonal(
-                              onPressed: () => _showAddImageDialog(_isPage1),
-                              icon: const Icon(Icons.image_outlined),
-                              tooltip: 'Add image',
-                            ),
-                            const SizedBox(width: 4),
-                            MirrorToggleButton(
-                              isMirrorActive:
-                                  _isPage1 ? _mirrorFront : _mirrorBack,
-                              sideLabel: _isDuplex
-                                  ? (_isPage1 ? 'Front' : 'Back')
-                                  : 'Front',
-                              onToggle: () async {
-                                if (_isPage1) {
-                                  final next = !_mirrorFront;
-                                  _deferSetState(() => _mirrorFront = next);
-                                  await _labelSettings.setMirrorFront(next);
-                                } else {
-                                  final next = !_mirrorBack;
-                                  _deferSetState(() => _mirrorBack = next);
-                                  await _labelSettings.setMirrorBack(next);
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 4),
-                            IconButton.filledTonal(
-                              onPressed: _showPrintPreviewDialog,
-                              icon: const Icon(Icons.print_outlined),
-                              tooltip: 'Print preview',
-                            ),
-                            const SizedBox(width: 16),
-                            IconButton(
-                              tooltip: 'Label border',
-                              style: IconButton.styleFrom(
-                                foregroundColor: _labelBorderPanelOpen
-                                    ? scheme.primary
-                                    : scheme.onSurfaceVariant,
-                                backgroundColor: _labelBorderPanelOpen
-                                    ? scheme.primaryContainer
-                                        .withValues(alpha: 0.45)
-                                    : null,
+                              const SizedBox(width: 16),
+                              SegmentedButton<bool>(
+                                showSelectedIcon: false,
+                                segments: const [
+                                  ButtonSegment(
+                                      value: false, label: Text('1 sided')),
+                                  ButtonSegment(
+                                      value: true, label: Text('2 sided')),
+                                ],
+                                selected: {_isDuplex},
+                                onSelectionChanged: (values) async {
+                                  final duplex = values.first;
+                                  _deferSetState(() {
+                                    _isDuplex = duplex;
+                                    if (!duplex && _tabController.index != 0) {
+                                      _tabController.index = 0;
+                                    }
+                                    _selectedElement = null;
+                                    _inlineCanvasCustomKey = null;
+                                  });
+                                  await _labelSettings.setDuplex(duplex);
+                                },
                               ),
-                              onPressed: () => _deferSetState(() {
-                                _labelBorderPanelOpen = !_labelBorderPanelOpen;
-                                if (_labelBorderPanelOpen) {
-                                  _labelBorderPanelSession++;
-                                }
-                              }),
-                              icon: const Icon(Icons.border_outer, size: 22),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                FrontBackPagePickers(
+                                  isDuplex: _isDuplex,
+                                  isPage1: _isPage1,
+                                  mirrorFront: _mirrorFront,
+                                  mirrorBack: _mirrorBack,
+                                  onPageChanged: (idx) {
+                                    _tabController.animateTo(idx);
+                                    _deferSetState(() {
+                                      _selectedElement = null;
+                                      _inlineCanvasCustomKey = null;
+                                    });
+                                  },
+                                ),
+                                if (_isDuplex) const SizedBox(width: 8),
+                                if (_isDuplex) ...[
+                                  VerticalDivider(
+                                    width: 1,
+                                    thickness: 1,
+                                    indent: 4,
+                                    endIndent: 4,
+                                    color: scheme.outlineVariant,
+                                  ),
+                                  const SizedBox(width: 12),
+                                ],
+                                Text(
+                                  'Label size:',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(
+                                        color: scheme.onSurface,
+                                      ),
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 168,
+                                  child: LabelSizeSelector(
+                                    compact: true,
+                                    controlledWidthMm: _labelWidthMm,
+                                    controlledHeightMm: _labelHeightMm,
+                                    onControlledDimensionsApplied: (w, h) {
+                                      _deferSetState(() {
+                                        _labelWidthMm = w;
+                                        _labelHeightMm = h;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                IconButton.filledTonal(
+                                  onPressed: () => _addCustomText(_isPage1),
+                                  icon: const Icon(Icons.text_fields),
+                                  tooltip: 'Add text',
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton.filledTonal(
+                                  onPressed: () =>
+                                      _showAddImageDialog(_isPage1),
+                                  icon: const Icon(Icons.image_outlined),
+                                  tooltip: 'Add image',
+                                ),
+                                const SizedBox(width: 4),
+                                MirrorToggleButton(
+                                  isMirrorActive:
+                                      _isPage1 ? _mirrorFront : _mirrorBack,
+                                  sideLabel: _isDuplex
+                                      ? (_isPage1 ? 'Front' : 'Back')
+                                      : 'Front',
+                                  onToggle: () async {
+                                    if (_isPage1) {
+                                      final next = !_mirrorFront;
+                                      _deferSetState(() => _mirrorFront = next);
+                                      await _labelSettings.setMirrorFront(next);
+                                    } else {
+                                      final next = !_mirrorBack;
+                                      _deferSetState(() => _mirrorBack = next);
+                                      await _labelSettings.setMirrorBack(next);
+                                    }
+                                  },
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton.filledTonal(
+                                  onPressed: _showPrintPreviewDialog,
+                                  icon: const Icon(Icons.print_outlined),
+                                  tooltip: 'Print preview',
+                                ),
+                                const SizedBox(width: 16),
+                                IconButton(
+                                  tooltip: 'Label border',
+                                  style: IconButton.styleFrom(
+                                    foregroundColor: _labelBorderPanelOpen
+                                        ? scheme.primary
+                                        : scheme.onSurfaceVariant,
+                                    backgroundColor: _labelBorderPanelOpen
+                                        ? scheme.primaryContainer
+                                            .withValues(alpha: 0.45)
+                                        : null,
+                                  ),
+                                  onPressed: () => _deferSetState(() {
+                                    _labelBorderPanelOpen =
+                                        !_labelBorderPanelOpen;
+                                    if (_labelBorderPanelOpen) {
+                                      _labelBorderPanelSession++;
+                                    }
+                                  }),
+                                  icon:
+                                      const Icon(Icons.border_outer, size: 22),
+                                ),
+                                IconButton(
+                                  tooltip:
+                                      _showGrid ? 'Hide grid' : 'Show grid',
+                                  style: IconButton.styleFrom(
+                                    foregroundColor: scheme.onSurfaceVariant,
+                                  ),
+                                  onPressed: () => _deferSetState(
+                                      () => _showGrid = !_showGrid),
+                                  icon: Icon(
+                                    _showGrid ? Icons.grid_on : Icons.grid_off,
+                                    size: 22,
+                                  ),
+                                ),
+                                FieldsPanelToggleButton(
+                                  isExpanded: _fieldsPanelExpanded,
+                                  onToggle: () => _deferSetState(() =>
+                                      _fieldsPanelExpanded =
+                                          !_fieldsPanelExpanded),
+                                ),
+                              ],
                             ),
-                            IconButton(
-                              tooltip: _showGrid ? 'Hide grid' : 'Show grid',
-                              style: IconButton.styleFrom(
-                                foregroundColor: scheme.onSurfaceVariant,
-                              ),
-                              onPressed: () =>
-                                  _deferSetState(() => _showGrid = !_showGrid),
-                              icon: Icon(
-                                _showGrid ? Icons.grid_on : Icons.grid_off,
-                                size: 22,
-                              ),
-                            ),
-                            FieldsPanelToggleButton(
-                              isExpanded: _fieldsPanelExpanded,
-                              onToggle: () => _deferSetState(() =>
-                                  _fieldsPanelExpanded = !_fieldsPanelExpanded),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1021,7 +1047,6 @@ class _LabelTemplateEditorScreenState
 
   /// Mirror for the side currently being edited (front tab or single-sided).
 
-
   Future<void> _showPrintPreviewDialog() async {
     Map<String, String> sample = {};
     try {
@@ -1419,10 +1444,6 @@ class _LabelTemplateEditorScreenState
     });
   }
 
-
-
-
-
   Widget _buildLabelBorderPanel() {
     final scheme = Theme.of(context).colorScheme;
     return Material(
@@ -1643,5 +1664,3 @@ class _LabelTemplateEditorScreenState
     );
   }
 }
-
-// ---------------------------------------------------------------------------

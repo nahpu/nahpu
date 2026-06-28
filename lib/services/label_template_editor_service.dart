@@ -10,7 +10,8 @@ import 'package:nahpu/services/label_logo_service.dart';
 class LabelTemplateEditorService {
   final LabelLogoService _logoService = const LabelLogoService();
 
-  Future<String?> promptSaveTemplate(BuildContext context, String currentName) async {
+  Future<String?> promptSaveTemplate(
+      BuildContext context, String currentName) async {
     final ctrl = TextEditingController(text: currentName.trim());
     final formKey = GlobalKey<FormState>();
     try {
@@ -66,7 +67,8 @@ class LabelTemplateEditorService {
     }
   }
 
-  Future<String?> promptImportNewName(BuildContext context, String conflictingName, Set<String> takenNames) async {
+  Future<String?> promptImportNewName(BuildContext context,
+      String conflictingName, Set<String> takenNames) async {
     final ctrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
     try {
@@ -124,14 +126,17 @@ class LabelTemplateEditorService {
     }
   }
 
-  Future<void> exportTemplate(BuildContext context, LabelTemplate template) async {
+  Future<void> exportTemplate(
+      BuildContext context, LabelTemplate template) async {
     final raw = template.name.trim();
-    final safe = raw.isEmpty ? 'template' : raw.replaceAll(RegExp(r'[^\w.\-]'), '_');
+    final safe =
+        raw.isEmpty ? 'template' : raw.replaceAll(RegExp(r'[^\w.\-]'), '_');
     final suggested = 'label_template_$safe.json';
     final location = await getSaveLocation(suggestedName: suggested);
     if (location == null || !context.mounted) return;
     final savePath = location.path;
-    final out = savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
+    final out =
+        savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
     try {
       await File(out).writeAsString(template.toJsonString());
       if (!context.mounted) return;

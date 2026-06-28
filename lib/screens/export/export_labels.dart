@@ -5,12 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as path;
-import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
 import 'package:nahpu/screens/export/labels/label_template_editor_screen.dart';
 import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/label_page_setup_service.dart';
 import 'package:nahpu/services/label_settings_services.dart';
@@ -18,48 +15,12 @@ import 'package:nahpu/services/label_template_service.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/screens/export/components/label_page_preview.dart';
 import 'package:nahpu/screens/export/components/specimen_selection.dart';
 import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/database/database.dart';
-
-const Map<String, String> _printPageSizeLabels = {
-  'A0': 'A0 (841 x 1188 mm)',
-  'A1': 'A1 (594 x 841 mm)',
-  'A2': 'A2 (420 x 594 mm)',
-  'A3': 'A3 (297 x 420 mm)',
-  'A4': 'A4 (210 x 297 mm)',
-  'A5': 'A5 (148 x 210 mm)',
-  'A6': 'A6 (105 x 148 mm)',
-  'A7': 'A7 (74 x 105 mm)',
-  'A8': 'A8 (52 x 74 mm)',
-  'Letter': 'US Letter (8.5 x 11 in)',
-  'Legal': 'US Legal',
-  'Custom': 'Custom',
-};
-
-const Map<String, String> _pageOrientationLabels = {
-  'portrait': 'Portrait',
-  'landscape': 'Landscape',
-};
-
-List<String> _mergeColumnOrder(
-  List<String> previousOrder,
-  Set<String> selected,
-) {
-  final out = <String>[];
-  final sel = {...selected};
-  for (final id in previousOrder) {
-    if (sel.remove(id)) out.add(id);
-  }
-  final rest = sel.toList()
-    ..sort((a, b) => specimenColumnDisplayTitle(a)
-        .toLowerCase()
-        .compareTo(specimenColumnDisplayTitle(b).toLowerCase()));
-  out.addAll(rest);
-  return out;
-}
+import 'package:nahpu/services/export/export_label_service.dart';
+import 'package:nahpu/screens/export/labels/components/column_picker.dart';
+import 'package:nahpu/screens/export/labels/components/label_preview_pane.dart';
+import 'package:nahpu/screens/export/labels/components/label_settings_pane.dart';
 
 class ExportLabelsView extends ConsumerStatefulWidget {
   const ExportLabelsView({super.key});
@@ -114,137 +75,18 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   @override
   void dispose() {
     _tabController.dispose();
+    _mobileTabController.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final storedCols = await _settings.getPrintSpecimenTableColumnIds();
-    final db = ref.read(databaseProvider);
-    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
-    if (visible.isEmpty) {
-      visible = normalizePrintSpecimenTableColumnIds(
-        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-        db,
-      );
-    }
-    if (mounted) {
-      setState(() => _visibleColumnIds = visible);
-    }
-    final setupNames = await _pageSetupService.listSetupNames();
-    final currentSetupName = await _pageSetupService.getCurrentSetupName();
-    final currentSetup = await _pageSetupService.getCurrentSetup();
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(projectUuidProvider);
+    bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
-    final templateService = const LabelTemplateService();
-    final currentTemplateName = await _settings.getCurrentTemplateName();
-    final pickedTemplate = currentTemplateName == null
-        ? null
-        : await templateService.getTemplate(currentTemplateName);
-
-    if (mounted) {
-      setState(() {
-        _template = pickedTemplate;
-        _showPreview = false;
-        _setupNames = setupNames;
-        _selectedSetupName = currentSetupName;
-        _pageSizeKey =
-            _printPageSizeLabels.containsKey(currentSetup.pageSizeKey)
-                ? currentSetup.pageSizeKey
-                : 'Letter';
-        _pageOrientation =
-            _pageOrientationLabels.containsKey(currentSetup.pageOrientation)
-                ? currentSetup.pageOrientation
-                : 'portrait';
-        _customPageWidthMm = currentSetup.customPageWidthMm;
-        _customPageHeightMm = currentSetup.customPageHeightMm;
-        _rowsPerPage = currentSetup.rowsPerPage;
-        _colsPerPage = currentSetup.colsPerPage;
-        _pagePadTopMm = currentSetup.pagePadTopMm;
-        _pagePadLeftMm = currentSetup.pagePadLeftMm;
-        _pagePadRightMm = currentSetup.pagePadRightMm;
-        _pagePadBottomMm = currentSetup.pagePadBottomMm;
-        _labelPadTopMm = currentSetup.labelPadTopMm;
-        _labelPadLeftMm = currentSetup.labelPadLeftMm;
-        _labelPadRightMm = currentSetup.labelPadRightMm;
-        _labelPadBottomMm = currentSetup.labelPadBottomMm;
-      });
-    }
-    try {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
-  }
-
-  Future<void> _pickColumns() async {
-    final db = ref.read(databaseProvider);
-    final order = List<String>.from(_visibleColumnIds);
-    List<String>? result;
-
-    if (systemPlatform == PlatformType.mobile) {
-      result = await showModalBottomSheet<List<String>>(
-        context: context,
-        isScrollControlled: true,
-        builder: (ctx) {
-          return FractionallySizedBox(
-            heightFactor: 0.9,
-            child: Scaffold(
-              appBar: AppBar(
-                title: const Text('Table columns'),
-                automaticallyImplyLeading: false,
-              ),
-              body: SpecimenTableColumnSelector(
-                selectedColumns: _visibleColumnIds,
-              ),
-            ),
-          );
-        },
-      );
-    } else {
-      result = await showDialog<List<String>>(
-        context: context,
-        builder: (ctx) {
-          return AlertDialog(
-            title: const Text('Table columns'),
-            content: SizedBox(
-              width: 420,
-              height: 420,
-              child: SpecimenTableColumnSelector(
-                selectedColumns: _visibleColumnIds,
-              ),
-            ),
-          );
-        },
-      );
-    }
-
-    if (result != null && mounted) {
-      var merged = _mergeColumnOrder(order, result.toSet());
-      merged = normalizePrintSpecimenTableColumnIds(merged, db);
-      if (merged.isEmpty) {
-        merged = normalizePrintSpecimenTableColumnIds(
-          List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-          db,
-        );
-      }
-      await _settings.setPrintSpecimenTableColumnIds(merged);
-      setState(() => _visibleColumnIds = merged);
-    }
-  }
-
-  LabelPageSetup _currentSetup([String? name]) {
-    return LabelPageSetup(
-      name: name ?? _selectedSetupName,
+    final settingsPane = LabelSettingsPane(
+      setupNames: _setupNames,
+      selectedSetupName: _selectedSetupName,
       pageSizeKey: _pageSizeKey,
       pageOrientation: _pageOrientation,
       customPageWidthMm: _customPageWidthMm,
@@ -259,174 +101,107 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       labelPadLeftMm: _labelPadLeftMm,
       labelPadRightMm: _labelPadRightMm,
       labelPadBottomMm: _labelPadBottomMm,
-    );
-  }
-
-  Future<void> _selectSetup(String name) async {
-    final setup = await _pageSetupService.getSetup(name);
-    if (setup == null) return;
-    await _pageSetupService.setCurrentSetupName(name);
-    _applySetup(setup);
-  }
-
-  void _applySetup(LabelPageSetup setup) {
-    setState(() {
-      _selectedSetupName = setup.name;
-      _pageSizeKey = _printPageSizeLabels.containsKey(setup.pageSizeKey)
-          ? setup.pageSizeKey
-          : 'Letter';
-      _pageOrientation =
-          _pageOrientationLabels.containsKey(setup.pageOrientation)
-              ? setup.pageOrientation
-              : 'portrait';
-      _customPageWidthMm = setup.customPageWidthMm;
-      _customPageHeightMm = setup.customPageHeightMm;
-      _rowsPerPage = setup.rowsPerPage;
-      _colsPerPage = setup.colsPerPage;
-      _pagePadTopMm = setup.pagePadTopMm;
-      _pagePadLeftMm = setup.pagePadLeftMm;
-      _pagePadRightMm = setup.pagePadRightMm;
-      _pagePadBottomMm = setup.pagePadBottomMm;
-      _labelPadTopMm = setup.labelPadTopMm;
-      _labelPadLeftMm = setup.labelPadLeftMm;
-      _labelPadRightMm = setup.labelPadRightMm;
-      _labelPadBottomMm = setup.labelPadBottomMm;
-    });
-  }
-
-  Future<void> _persistCurrentSetup() async {
-    await _pageSetupService.saveSetup(_currentSetup());
-    final names = await _pageSetupService.listSetupNames();
-    if (!mounted) return;
-    setState(() => _setupNames = names);
-  }
-
-  Future<void> _exportLabels() async {
-    final all = await SpecimenServices(ref: ref).getSpecimenList();
-    if (!mounted) return;
-    final picked =
-        all.where((s) => _selected.contains(s.uuid)).toList(growable: false);
-    if (picked.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select at least one specimen')),
-      );
-      return;
-    }
-    if (!exportCtr.isValid || _selectedDir == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Set valid file name and directory')),
-      );
-      return;
-    }
-
-    setState(() {
-      _isRunning = true;
-      _hasSaved = false;
-    });
-
-    try {
-      final templateService = const LabelTemplateService();
-      final currentTemplateName = await _settings.getCurrentTemplateName();
-      final pickedTemplate = currentTemplateName == null
-          ? null
-          : await templateService.getTemplate(currentTemplateName);
-
-      await LabelWriter(ref: ref).writeLabels(
-        picked: picked,
-        selectedDir: _selectedDir!,
-        fileStem: exportCtr.fileNameCtr.text,
-        template: pickedTemplate,
-        pageSizeKey: _pageSizeKey,
-        pageOrientation: _pageOrientation,
-        customPageWidthMm: _customPageWidthMm,
-        customPageHeightMm: _customPageHeightMm,
-        layout: LabelPrintLayoutOptions(
-          rowsPerPage: _rowsPerPage,
-          colsPerPage: _colsPerPage,
-          pagePadTopMm: _pagePadTopMm,
-          pagePadLeftMm: _pagePadLeftMm,
-          pagePadRightMm: _pagePadRightMm,
-          pagePadBottomMm: _pagePadBottomMm,
-          labelPadTopMm: _labelPadTopMm,
-          labelPadLeftMm: _labelPadLeftMm,
-          labelPadRightMm: _labelPadRightMm,
-          labelPadBottomMm: _labelPadBottomMm,
-        ),
-      );
-
-      if (mounted) {
+      exportCtr: exportCtr,
+      selectedDir: _selectedDir,
+      hasSaved: _hasSaved,
+      isRunning: _isRunning,
+      onSetupSelected: _selectSetup,
+      onSaveSetupAs: _saveSetupAs,
+      onDeleteSetup: _deleteSetup,
+      onExportSetup: _exportSetup,
+      onImportSetup: _importSetup,
+      onPageSizeKeyChanged: (v) async {
+        setState(() => _pageSizeKey = v);
+        await _persistCurrentSetup();
+      },
+      onCustomPageWidthChanged: (v) async {
+        setState(() => _customPageWidthMm = v);
+        await _persistCurrentSetup();
+      },
+      onCustomPageHeightChanged: (v) async {
+        setState(() => _customPageHeightMm = v);
+        await _persistCurrentSetup();
+      },
+      onOrientationChanged: (v) async {
+        setState(() => _pageOrientation = v);
+        await _persistCurrentSetup();
+      },
+      onPagePadTopChanged: (v) async {
+        setState(() => _pagePadTopMm = v);
+        await _persistCurrentSetup();
+      },
+      onPagePadLeftChanged: (v) async {
+        setState(() => _pagePadLeftMm = v);
+        await _persistCurrentSetup();
+      },
+      onPagePadRightChanged: (v) async {
+        setState(() => _pagePadRightMm = v);
+        await _persistCurrentSetup();
+      },
+      onPagePadBottomChanged: (v) async {
+        setState(() => _pagePadBottomMm = v);
+        await _persistCurrentSetup();
+      },
+      onRowsPerPageChanged: (v) async {
+        setState(() => _rowsPerPage = v);
+        await _persistCurrentSetup();
+      },
+      onColsPerPageChanged: (v) async {
+        setState(() => _colsPerPage = v);
+        await _persistCurrentSetup();
+      },
+      onLabelPadTopChanged: (v) async {
+        setState(() => _labelPadTopMm = v);
+        await _persistCurrentSetup();
+      },
+      onLabelPadLeftChanged: (v) async {
+        setState(() => _labelPadLeftMm = v);
+        await _persistCurrentSetup();
+      },
+      onLabelPadRightChanged: (v) async {
+        setState(() => _labelPadRightMm = v);
+        await _persistCurrentSetup();
+      },
+      onLabelPadBottomChanged: (v) async {
+        setState(() => _labelPadBottomMm = v);
+        await _persistCurrentSetup();
+      },
+      onFileNameChanged: (v) {
         setState(() {
-          _hasSaved = true;
+          _hasSaved = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved labels successfully.')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
+      },
+      onSelectDir: () async {
+        Directory? path = await FilePickerServices().selectDir();
         setState(() {
-          _isRunning = false;
+          _selectedDir = path;
         });
-      }
-    }
-  }
-
-  Widget _buildPreviewPane() {
-    return Material(
-      clipBehavior: Clip.hardEdge,
-      borderRadius: BorderRadius.circular(16.0),
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      child: !_showPreview
-          ? Center(
-              child: FilledButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showPreview = true;
-                  });
-                },
-                icon: const Icon(Icons.visibility),
-                label: const Text('Generate Preview'),
-              ),
-            )
-          : _template == null
-              ? const Center(child: Text('No template selected.'))
-              : LabelPageLivePreview(
-                  selectedUuidList: _selected.toList(),
-                  template: _template!,
-                  layout: LabelPrintLayoutOptions(
-                    rowsPerPage: _rowsPerPage,
-                    colsPerPage: _colsPerPage,
-                    pagePadTopMm: _pagePadTopMm,
-                    pagePadLeftMm: _pagePadLeftMm,
-                    pagePadRightMm: _pagePadRightMm,
-                    pagePadBottomMm: _pagePadBottomMm,
-                    labelPadTopMm: _labelPadTopMm,
-                    labelPadLeftMm: _labelPadLeftMm,
-                    labelPadRightMm: _labelPadRightMm,
-                    labelPadBottomMm: _labelPadBottomMm,
-                  ),
-                  pageWidthMm: _customPageWidthMm,
-                  pageHeightMm: _customPageHeightMm,
-                ),
+      },
+      onExportPressed: !exportCtr.isValid ? null : _exportLabels,
     );
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    ref.watch(projectUuidProvider);
-    bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
-
-    final settingsPane = _buildSettingsPane();
-    final previewPane = _buildPreviewPane();
+    final previewPane = LabelPreviewPane(
+      showPreview: _showPreview,
+      template: _template,
+      selectedUuidList: _selected.toList(),
+      rowsPerPage: _rowsPerPage,
+      colsPerPage: _colsPerPage,
+      pagePadTopMm: _pagePadTopMm,
+      pagePadLeftMm: _pagePadLeftMm,
+      pagePadRightMm: _pagePadRightMm,
+      pagePadBottomMm: _pagePadBottomMm,
+      labelPadTopMm: _labelPadTopMm,
+      labelPadLeftMm: _labelPadLeftMm,
+      labelPadRightMm: _labelPadRightMm,
+      labelPadBottomMm: _labelPadBottomMm,
+      customPageWidthMm: _customPageWidthMm,
+      customPageHeightMm: _customPageHeightMm,
+      onGeneratePreview: () {
+        setState(() {
+          _showPreview = true;
+        });
+      },
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -534,764 +309,378 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     );
   }
 
-  Widget _buildSettingsPane() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FileOperationPage(
-            children: [
-              const FileFormatIcon(path: 'assets/icons/pdf.svg'),
-              PrintLayoutSection(
-                setupNames: _setupNames,
-                selectedSetupName: _selectedSetupName,
-                pageSizeKey: _pageSizeKey,
-                pageOrientation: _pageOrientation,
-                customPageWidthMm: _customPageWidthMm,
-                customPageHeightMm: _customPageHeightMm,
-                rowsPerPage: _rowsPerPage,
-                colsPerPage: _colsPerPage,
-                pagePadTopMm: _pagePadTopMm,
-                pagePadLeftMm: _pagePadLeftMm,
-                pagePadRightMm: _pagePadRightMm,
-                pagePadBottomMm: _pagePadBottomMm,
-                labelPadTopMm: _labelPadTopMm,
-                labelPadLeftMm: _labelPadLeftMm,
-                labelPadRightMm: _labelPadRightMm,
-                labelPadBottomMm: _labelPadBottomMm,
-                onSetupSelected: (name) => _selectSetup(name),
-                onSaveSetupAs: () async {
-                  final ctrl = TextEditingController(text: _selectedSetupName);
-                  try {
-                    final name = await showDialog<String>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Save page setup'),
-                        content: TextField(
-                          controller: ctrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Setup name',
-                            border: OutlineInputBorder(),
-                          ),
-                          autofocus: true,
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            child: const Text('Cancel'),
-                          ),
-                          FilledButton(
-                            onPressed: () =>
-                                Navigator.pop(ctx, ctrl.text.trim()),
-                            child: const Text('Save'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (name == null || name.trim().isEmpty || !mounted) return;
-                    final setup = _currentSetup(name.trim());
-                    await _pageSetupService.saveSetup(setup);
-                    await _pageSetupService.setCurrentSetupName(setup.name);
-                    final names = await _pageSetupService.listSetupNames();
-                    if (!mounted) return;
-                    setState(() {
-                      _setupNames = names;
-                      _selectedSetupName = setup.name;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Saved setup "${setup.name}"')),
-                    );
-                  } finally {
-                    ctrl.dispose();
-                  }
-                },
-                onDeleteSetup: () async {
-                  if (_selectedSetupName == 'Default') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Cannot delete Default setup')),
-                    );
-                    return;
-                  }
-                  final ok = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Delete page setup'),
-                      content: Text('Delete "$_selectedSetupName"?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancel'),
-                        ),
-                        FilledButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Delete'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (ok != true || !mounted) return;
-                  await _pageSetupService.deleteSetup(_selectedSetupName);
-                  final names = await _pageSetupService.listSetupNames();
-                  final currentName =
-                      await _pageSetupService.getCurrentSetupName();
-                  final setup = await _pageSetupService.getCurrentSetup();
-                  if (!mounted) return;
-                  setState(() {
-                    _setupNames = names;
-                    _selectedSetupName = currentName;
-                  });
-                  _applySetup(setup);
-                },
-                onExportSetup: () async {
-                  final safe =
-                      _selectedSetupName.replaceAll(RegExp(r'[^\w.\-]'), '_');
-                  final location = await getSaveLocation(
-                    suggestedName: 'label_page_setup_$safe.json',
-                  );
-                  if (location == null) return;
-                  final savePath = location.path;
-                  final out = savePath.toLowerCase().endsWith('.json')
-                      ? savePath
-                      : '$savePath.json';
-                  await _pageSetupService.exportToPath(_currentSetup(), out);
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Saved ${path.basename(out)}')),
-                  );
-                },
-                onImportSetup: () async {
-                  final picked = await FilePicker.pickFiles(
-                    type: FileType.custom,
-                    allowedExtensions: ['json'],
-                  );
-                  final filePath = picked?.files.single.path;
-                  if (filePath == null) return;
-                  final imported =
-                      await _pageSetupService.importFromPath(filePath);
-                  if (imported == null) {
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invalid page setup file')),
-                    );
-                    return;
-                  }
-                  var setup = imported;
-                  final names = await _pageSetupService.listSetupNames();
-                  if (names.contains(setup.name)) {
-                    final base = setup.name;
-                    var i = 2;
-                    while (names.contains('$base $i')) {
-                      i++;
-                    }
-                    setup = setup.copyWith(name: '$base $i');
-                  }
-                  await _pageSetupService.saveSetup(setup);
-                  await _pageSetupService.setCurrentSetupName(setup.name);
-                  final refreshed = await _pageSetupService.listSetupNames();
-                  if (!mounted) return;
-                  setState(() {
-                    _setupNames = refreshed;
-                    _selectedSetupName = setup.name;
-                  });
-                  _applySetup(setup);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Imported setup "${setup.name}"')),
-                  );
-                },
-                onPageSizeKeyChanged: (v) async {
-                  setState(() => _pageSizeKey = v);
-                  await _persistCurrentSetup();
-                },
-                onCustomPageWidthChanged: (v) async {
-                  setState(() => _customPageWidthMm = v);
-                  await _persistCurrentSetup();
-                },
-                onCustomPageHeightChanged: (v) async {
-                  setState(() => _customPageHeightMm = v);
-                  await _persistCurrentSetup();
-                },
-                onOrientationChanged: (v) async {
-                  setState(() => _pageOrientation = v);
-                  await _persistCurrentSetup();
-                },
-                onPagePadTopChanged: (v) async {
-                  setState(() => _pagePadTopMm = v);
-                  await _persistCurrentSetup();
-                },
-                onPagePadLeftChanged: (v) async {
-                  setState(() => _pagePadLeftMm = v);
-                  await _persistCurrentSetup();
-                },
-                onPagePadRightChanged: (v) async {
-                  setState(() => _pagePadRightMm = v);
-                  await _persistCurrentSetup();
-                },
-                onPagePadBottomChanged: (v) async {
-                  setState(() => _pagePadBottomMm = v);
-                  await _persistCurrentSetup();
-                },
-                onRowsPerPageChanged: (v) async {
-                  setState(() => _rowsPerPage = v);
-                  await _persistCurrentSetup();
-                },
-                onColsPerPageChanged: (v) async {
-                  setState(() => _colsPerPage = v);
-                  await _persistCurrentSetup();
-                },
-                onLabelPadTopChanged: (v) async {
-                  setState(() => _labelPadTopMm = v);
-                  await _persistCurrentSetup();
-                },
-                onLabelPadLeftChanged: (v) async {
-                  setState(() => _labelPadLeftMm = v);
-                  await _persistCurrentSetup();
-                },
-                onLabelPadRightChanged: (v) async {
-                  setState(() => _labelPadRightMm = v);
-                  await _persistCurrentSetup();
-                },
-                onLabelPadBottomChanged: (v) async {
-                  setState(() => _labelPadBottomMm = v);
-                  await _persistCurrentSetup();
-                },
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final storedCols = await _settings.getPrintSpecimenTableColumnIds();
+    final db = ref.read(databaseProvider);
+    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
+    if (visible.isEmpty) {
+      visible = normalizePrintSpecimenTableColumnIds(
+        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+        db,
+      );
+    }
+    if (mounted) {
+      setState(() => _visibleColumnIds = visible);
+    }
+    final setupNames = await _pageSetupService.listSetupNames();
+    final currentSetupName = await _pageSetupService.getCurrentSetupName();
+    final currentSetup = await _pageSetupService.getCurrentSetup();
+
+    final templateService = const LabelTemplateService();
+    final currentTemplateName = await _settings.getCurrentTemplateName();
+    final pickedTemplate = currentTemplateName == null
+        ? null
+        : await templateService.getTemplate(currentTemplateName);
+
+    if (mounted) {
+      setState(() {
+        _template = pickedTemplate;
+        _showPreview = false;
+        _setupNames = setupNames;
+        _selectedSetupName = currentSetupName;
+        _pageSizeKey = currentSetup.pageSizeKey;
+        _pageOrientation = currentSetup.pageOrientation;
+        _customPageWidthMm = currentSetup.customPageWidthMm;
+        _customPageHeightMm = currentSetup.customPageHeightMm;
+        _rowsPerPage = currentSetup.rowsPerPage;
+        _colsPerPage = currentSetup.colsPerPage;
+        _pagePadTopMm = currentSetup.pagePadTopMm;
+        _pagePadLeftMm = currentSetup.pagePadLeftMm;
+        _pagePadRightMm = currentSetup.pagePadRightMm;
+        _pagePadBottomMm = currentSetup.pagePadBottomMm;
+        _labelPadTopMm = currentSetup.labelPadTopMm;
+        _labelPadLeftMm = currentSetup.labelPadLeftMm;
+        _labelPadRightMm = currentSetup.labelPadRightMm;
+        _labelPadBottomMm = currentSetup.labelPadBottomMm;
+      });
+    }
+    try {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _pickColumns() async {
+    final db = ref.read(databaseProvider);
+    final order = List<String>.from(_visibleColumnIds);
+    List<String>? result;
+
+    if (systemPlatform == PlatformType.mobile) {
+      result = await showModalBottomSheet<List<String>>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) {
+          return FractionallySizedBox(
+            heightFactor: 0.9,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('Table columns'),
+                automaticallyImplyLeading: false,
               ),
-              FileNameField(
-                controller: exportCtr,
-                onChanged: (v) {
-                  setState(() {
-                    _hasSaved = false;
-                  });
-                },
+              body: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
               ),
-              SelectDirField(
-                dirPath: _selectedDir,
-                onPressed: () async {
-                  Directory? path = await FilePickerServices().selectDir();
-                  setState(() {
-                    _selectedDir = path;
-                  });
-                },
-                onCanceled: () {
-                  setState(() {
-                    _selectedDir = null;
-                    _hasSaved = false;
-                  });
-                },
+            ),
+          );
+        },
+      );
+    } else {
+      result = await showDialog<List<String>>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('Table columns'),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
               ),
-              const SizedBox(height: 24),
-              Wrap(
-                spacing: 20,
-                children: [
-                  SaveSecondaryButton(hasSaved: _hasSaved),
-                  !_hasSaved
-                      ? ProgressButton(
-                          label: 'Export PDF',
-                          isRunning: _isRunning,
-                          icon: Icons.save_alt_outlined,
-                          onPressed: !exportCtr.isValid ? null : _exportLabels,
-                        )
-                      : Builder(
-                          builder: (BuildContext context) {
-                            return ShareButton(onPressed: () async {
-                              // Share functionality
-                            });
-                          },
-                        ),
-                ],
-              )
-            ],
+            ),
+          );
+        },
+      );
+    }
+
+    if (result != null && mounted) {
+      var merged =
+          const ExportLabelService().mergeColumnOrder(order, result.toSet());
+      merged = normalizePrintSpecimenTableColumnIds(merged, db);
+      if (merged.isEmpty) {
+        merged = normalizePrintSpecimenTableColumnIds(
+          List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+          db,
+        );
+      }
+      await _settings.setPrintSpecimenTableColumnIds(merged);
+      setState(() => _visibleColumnIds = merged);
+    }
+  }
+
+  LabelPageSetup _currentSetup([String? name]) {
+    return LabelPageSetup(
+      name: name ?? _selectedSetupName,
+      pageSizeKey: _pageSizeKey,
+      pageOrientation: _pageOrientation,
+      customPageWidthMm: _customPageWidthMm,
+      customPageHeightMm: _customPageHeightMm,
+      rowsPerPage: _rowsPerPage,
+      colsPerPage: _colsPerPage,
+      pagePadTopMm: _pagePadTopMm,
+      pagePadLeftMm: _pagePadLeftMm,
+      pagePadRightMm: _pagePadRightMm,
+      pagePadBottomMm: _pagePadBottomMm,
+      labelPadTopMm: _labelPadTopMm,
+      labelPadLeftMm: _labelPadLeftMm,
+      labelPadRightMm: _labelPadRightMm,
+      labelPadBottomMm: _labelPadBottomMm,
+    );
+  }
+
+  Future<void> _selectSetup(String name) async {
+    final setup = await _pageSetupService.getSetup(name);
+    if (setup == null) return;
+    await _pageSetupService.setCurrentSetupName(name);
+    _applySetup(setup);
+  }
+
+  void _applySetup(LabelPageSetup setup) {
+    setState(() {
+      _selectedSetupName = setup.name;
+      _pageSizeKey = setup.pageSizeKey;
+      _pageOrientation = setup.pageOrientation;
+      _customPageWidthMm = setup.customPageWidthMm;
+      _customPageHeightMm = setup.customPageHeightMm;
+      _rowsPerPage = setup.rowsPerPage;
+      _colsPerPage = setup.colsPerPage;
+      _pagePadTopMm = setup.pagePadTopMm;
+      _pagePadLeftMm = setup.pagePadLeftMm;
+      _pagePadRightMm = setup.pagePadRightMm;
+      _pagePadBottomMm = setup.pagePadBottomMm;
+      _labelPadTopMm = setup.labelPadTopMm;
+      _labelPadLeftMm = setup.labelPadLeftMm;
+      _labelPadRightMm = setup.labelPadRightMm;
+      _labelPadBottomMm = setup.labelPadBottomMm;
+    });
+  }
+
+  Future<void> _persistCurrentSetup() async {
+    await _pageSetupService.saveSetup(_currentSetup());
+    final names = await _pageSetupService.listSetupNames();
+    if (!mounted) return;
+    setState(() => _setupNames = names);
+  }
+
+  Future<void> _saveSetupAs() async {
+    final ctrl = TextEditingController(text: _selectedSetupName);
+    try {
+      final name = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Save page setup'),
+          content: TextField(
+            controller: ctrl,
+            decoration: const InputDecoration(
+              labelText: 'Setup name',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      );
+      if (name == null || name.trim().isEmpty || !mounted) return;
+      final setup = _currentSetup(name.trim());
+      await _pageSetupService.saveSetup(setup);
+      await _pageSetupService.setCurrentSetupName(setup.name);
+      final names = await _pageSetupService.listSetupNames();
+      if (!mounted) return;
+      setState(() {
+        _setupNames = names;
+        _selectedSetupName = setup.name;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved setup "${setup.name}"')),
+      );
+    } finally {
+      ctrl.dispose();
+    }
+  }
+
+  Future<void> _deleteSetup() async {
+    if (_selectedSetupName == 'Default') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot delete Default setup')),
+      );
+      return;
+    }
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete page setup'),
+        content: Text('Delete "$_selectedSetupName"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
+    if (ok != true || !mounted) return;
+    await _pageSetupService.deleteSetup(_selectedSetupName);
+    final names = await _pageSetupService.listSetupNames();
+    final currentName = await _pageSetupService.getCurrentSetupName();
+    final setup = await _pageSetupService.getCurrentSetup();
+    if (!mounted) return;
+    setState(() {
+      _setupNames = names;
+      _selectedSetupName = currentName;
+    });
+    _applySetup(setup);
   }
-}
 
-class NumberField extends StatelessWidget {
-  const NumberField({
-    super.key,
-    required this.label,
-    required this.initialValue,
-    required this.onSubmitted,
-  });
-
-  final String label;
-  final String initialValue;
-  final ValueChanged<String> onSubmitted;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 112,
-      child: TextFormField(
-        key: ValueKey('$label-$initialValue'),
-        initialValue: initialValue,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          isDense: true,
-        ),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        onFieldSubmitted: onSubmitted,
-      ),
+  Future<void> _exportSetup() async {
+    final safe = _selectedSetupName.replaceAll(RegExp(r'[^\w.\-]'), '_');
+    final location = await getSaveLocation(
+      suggestedName: 'label_page_setup_$safe.json',
+    );
+    if (location == null) return;
+    final savePath = location.path;
+    final out =
+        savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
+    await _pageSetupService.exportToPath(_currentSetup(), out);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Saved ${path.basename(out)}')),
     );
   }
-}
 
-class PrintLayoutSection extends StatelessWidget {
-  const PrintLayoutSection({
-    super.key,
-    required this.setupNames,
-    required this.selectedSetupName,
-    required this.pageSizeKey,
-    required this.pageOrientation,
-    required this.customPageWidthMm,
-    required this.customPageHeightMm,
-    required this.rowsPerPage,
-    required this.colsPerPage,
-    required this.pagePadTopMm,
-    required this.pagePadLeftMm,
-    required this.pagePadRightMm,
-    required this.pagePadBottomMm,
-    required this.labelPadTopMm,
-    required this.labelPadLeftMm,
-    required this.labelPadRightMm,
-    required this.labelPadBottomMm,
-    required this.onSetupSelected,
-    required this.onSaveSetupAs,
-    required this.onDeleteSetup,
-    required this.onExportSetup,
-    required this.onImportSetup,
-    required this.onPageSizeKeyChanged,
-    required this.onCustomPageWidthChanged,
-    required this.onCustomPageHeightChanged,
-    required this.onOrientationChanged,
-    required this.onPagePadTopChanged,
-    required this.onPagePadLeftChanged,
-    required this.onPagePadRightChanged,
-    required this.onPagePadBottomChanged,
-    required this.onRowsPerPageChanged,
-    required this.onColsPerPageChanged,
-    required this.onLabelPadTopChanged,
-    required this.onLabelPadLeftChanged,
-    required this.onLabelPadRightChanged,
-    required this.onLabelPadBottomChanged,
-  });
-
-  final List<String> setupNames;
-  final String selectedSetupName;
-  final String pageSizeKey;
-  final String pageOrientation;
-  final double customPageWidthMm;
-  final double customPageHeightMm;
-  final int rowsPerPage;
-  final int colsPerPage;
-  final double pagePadTopMm;
-  final double pagePadLeftMm;
-  final double pagePadRightMm;
-  final double pagePadBottomMm;
-  final double labelPadTopMm;
-  final double labelPadLeftMm;
-  final double labelPadRightMm;
-  final double labelPadBottomMm;
-
-  final ValueChanged<String> onSetupSelected;
-  final VoidCallback onSaveSetupAs;
-  final VoidCallback onDeleteSetup;
-  final VoidCallback onExportSetup;
-  final VoidCallback onImportSetup;
-  final ValueChanged<String> onPageSizeKeyChanged;
-  final ValueChanged<double> onCustomPageWidthChanged;
-  final ValueChanged<double> onCustomPageHeightChanged;
-  final ValueChanged<String> onOrientationChanged;
-  final ValueChanged<double> onPagePadTopChanged;
-  final ValueChanged<double> onPagePadLeftChanged;
-  final ValueChanged<double> onPagePadRightChanged;
-  final ValueChanged<double> onPagePadBottomChanged;
-  final ValueChanged<int> onRowsPerPageChanged;
-  final ValueChanged<int> onColsPerPageChanged;
-  final ValueChanged<double> onLabelPadTopChanged;
-  final ValueChanged<double> onLabelPadLeftChanged;
-  final ValueChanged<double> onLabelPadRightChanged;
-  final ValueChanged<double> onLabelPadBottomChanged;
-
-  double _parseMmOrCurrent(String value, double current) {
-    final parsed = double.tryParse(value.replaceAll(',', '.'));
-    if (parsed == null) return current;
-    return parsed.clamp(0.0, 200.0);
-  }
-
-  int _parseIntOrCurrent(String value, int current) {
-    final parsed = int.tryParse(value.trim());
-    if (parsed == null) return current;
-    return parsed.clamp(1, 200);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.fromLTRB(0, 12, 0, 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Print layout',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                SizedBox(
-                  width: 360,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('setup-$selectedSetupName'),
-                    initialValue: selectedSetupName,
-                    decoration: const InputDecoration(
-                      labelText: 'Page setup',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: setupNames
-                        .map(
-                          (n) => DropdownMenuItem<String>(
-                            value: n,
-                            child: Text(n),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) onSetupSelected(v);
-                    },
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onSaveSetupAs,
-                  icon: const Icon(Icons.save_outlined),
-                  label: const Text('Save'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onDeleteSetup,
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('Delete'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onImportSetup,
-                  icon: const Icon(Icons.download_outlined),
-                  label: const Text('Import'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onExportSetup,
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('Export'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                SizedBox(
-                  width: 280,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('page-size-$pageSizeKey'),
-                    initialValue: pageSizeKey,
-                    decoration: const InputDecoration(
-                      labelText: 'Page size',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: _printPageSizeLabels.entries
-                        .map(
-                          (e) => DropdownMenuItem<String>(
-                            value: e.key,
-                            child: Text(e.value),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) onPageSizeKeyChanged(v);
-                    },
-                  ),
-                ),
-                if (pageSizeKey == 'Custom') ...[
-                  NumberField(
-                    label: 'Width mm',
-                    initialValue: customPageWidthMm.toStringAsFixed(1),
-                    onSubmitted: (value) {
-                      onCustomPageWidthChanged(
-                          _parseMmOrCurrent(value, customPageWidthMm));
-                    },
-                  ),
-                  NumberField(
-                    label: 'Height mm',
-                    initialValue: customPageHeightMm.toStringAsFixed(1),
-                    onSubmitted: (value) {
-                      onCustomPageHeightChanged(
-                          _parseMmOrCurrent(value, customPageHeightMm));
-                    },
-                  ),
-                ],
-                SizedBox(
-                  width: 160,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('orientation-$pageOrientation'),
-                    initialValue: pageOrientation,
-                    decoration: const InputDecoration(
-                      labelText: 'Orientation',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: _pageOrientationLabels.entries
-                        .map(
-                          (e) => DropdownMenuItem<String>(
-                            value: e.key,
-                            child: Text(e.value),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) onOrientationChanged(v);
-                    },
-                  ),
-                ),
-                NumberField(
-                  label: 'Page top',
-                  initialValue: pagePadTopMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
-                    onPagePadTopChanged(_parseMmOrCurrent(value, pagePadTopMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Page left',
-                  initialValue: pagePadLeftMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
-                    onPagePadLeftChanged(
-                        _parseMmOrCurrent(value, pagePadLeftMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Page right',
-                  initialValue: pagePadRightMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
-                    onPagePadRightChanged(
-                        _parseMmOrCurrent(value, pagePadRightMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Page bottom',
-                  initialValue: pagePadBottomMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
-                    onPagePadBottomChanged(
-                        _parseMmOrCurrent(value, pagePadBottomMm));
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                NumberField(
-                  label: 'Rows / page',
-                  initialValue: '$rowsPerPage',
-                  onSubmitted: (value) {
-                    onRowsPerPageChanged(
-                        _parseIntOrCurrent(value, rowsPerPage));
-                  },
-                ),
-                NumberField(
-                  label: 'Cols / page',
-                  initialValue: '$colsPerPage',
-                  onSubmitted: (value) {
-                    onColsPerPageChanged(
-                        _parseIntOrCurrent(value, colsPerPage));
-                  },
-                ),
-                NumberField(
-                  label: 'Label top',
-                  initialValue: labelPadTopMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
-                    onLabelPadTopChanged(
-                        _parseMmOrCurrent(value, labelPadTopMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Label left',
-                  initialValue: labelPadLeftMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
-                    onLabelPadLeftChanged(
-                        _parseMmOrCurrent(value, labelPadLeftMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Label right',
-                  initialValue: labelPadRightMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
-                    onLabelPadRightChanged(
-                        _parseMmOrCurrent(value, labelPadRightMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Label bottom',
-                  initialValue: labelPadBottomMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
-                    onLabelPadBottomChanged(
-                        _parseMmOrCurrent(value, labelPadBottomMm));
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+  Future<void> _importSetup() async {
+    final picked = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
     );
-  }
-}
-
-class SpecimenTableColumnSelector extends ConsumerStatefulWidget {
-  const SpecimenTableColumnSelector({
-    super.key,
-    required this.selectedColumns,
-  });
-
-  final List<String> selectedColumns;
-
-  @override
-  ConsumerState<SpecimenTableColumnSelector> createState() =>
-      _SpecimenTableColumnSelectorState();
-}
-
-class _SpecimenTableColumnSelectorState
-    extends ConsumerState<SpecimenTableColumnSelector> {
-  late Set<String> _selected;
-  late final ScrollController _scrollController;
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = widget.selectedColumns.toSet();
-    _scrollController = ScrollController();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Map<String, List<String>> _getAllGroups(Database db) {
-    Map<String, List<String>> groups = {};
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      final cols = table.$columns.map((c) => '$tableName::${c.name}').toList();
-      cols.sort((a, b) => specimenColumnDisplayTitle(a)
-          .toLowerCase()
-          .compareTo(specimenColumnDisplayTitle(b).toLowerCase()));
-      groups[tableName] = cols;
+    final filePath = picked?.files.single.path;
+    if (filePath == null) return;
+    final imported = await _pageSetupService.importFromPath(filePath);
+    if (imported == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid page setup file')),
+      );
+      return;
     }
-    return groups;
-  }
-
-  Widget _buildExpansionGroup(
-    String tableName,
-    List<String> fields,
-  ) {
-    final formattedTable = tableName
-        .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[1]}')
-        .trim()
-        .split(' ')
-        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
-        .join(' ');
-
-    final int selectedCount = fields.where((f) => _selected.contains(f)).length;
-    final subtitleText = 'Selected $selectedCount of ${fields.length} columns';
-
-    return ExpansionTile(
-      title: Text(
-        formattedTable,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Text(subtitleText),
-      children: [
-        for (final id in fields)
-          CheckboxListTile(
-            dense: true,
-            value: _selected.contains(id),
-            onChanged: (v) {
-              setState(() {
-                if (v == true) {
-                  _selected.add(id);
-                } else {
-                  _selected.remove(id);
-                }
-              });
-            },
-            title: Text(specimenColumnDisplayTitle(id)),
-          ),
-      ],
+    var setup = imported;
+    final names = await _pageSetupService.listSetupNames();
+    if (names.contains(setup.name)) {
+      final base = setup.name;
+      var i = 2;
+      while (names.contains('$base $i')) {
+        i++;
+      }
+      setup = setup.copyWith(name: '$base $i');
+    }
+    await _pageSetupService.saveSetup(setup);
+    await _pageSetupService.setCurrentSetupName(setup.name);
+    final refreshed = await _pageSetupService.listSetupNames();
+    if (!mounted) return;
+    setState(() {
+      _setupNames = refreshed;
+      _selectedSetupName = setup.name;
+    });
+    _applySetup(setup);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Imported setup "${setup.name}"')),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final db = ref.watch(databaseProvider);
-    final groups = _getAllGroups(db);
-    final keys = groups.keys.toList()..sort();
+  Future<void> _exportLabels() async {
+    if (!exportCtr.isValid || _selectedDir == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Set valid file name and directory')),
+      );
+      return;
+    }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Expanded(
-          child: Scrollbar(
-            controller: _scrollController,
-            thumbVisibility: true,
-            child: ListView(
-              controller: _scrollController,
-              shrinkWrap: true,
-              children: [
-                for (final table in keys)
-                  _buildExpansionGroup(table, groups[table]!),
-              ],
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selected.clear();
-                    _selected.addAll(kDefaultPrintSpecimenTableColumnIds);
-                  });
-                },
-                child: const Text('Defaults'),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, _selected.toList()),
-                child: const Text('Apply'),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+    setState(() {
+      _isRunning = true;
+      _hasSaved = false;
+    });
+
+    try {
+      final templateService = const LabelTemplateService();
+      final currentTemplateName = await _settings.getCurrentTemplateName();
+      final pickedTemplate = currentTemplateName == null
+          ? null
+          : await templateService.getTemplate(currentTemplateName);
+
+      await ExportLabelService(ref: ref).exportLabels(
+        selectedSpecimens: _selected,
+        selectedDir: _selectedDir!,
+        fileStem: exportCtr.fileNameCtr.text,
+        template: pickedTemplate,
+        pageSizeKey: _pageSizeKey,
+        pageOrientation: _pageOrientation,
+        customPageWidthMm: _customPageWidthMm,
+        customPageHeightMm: _customPageHeightMm,
+        rowsPerPage: _rowsPerPage,
+        colsPerPage: _colsPerPage,
+        pagePadTopMm: _pagePadTopMm,
+        pagePadLeftMm: _pagePadLeftMm,
+        pagePadRightMm: _pagePadRightMm,
+        pagePadBottomMm: _pagePadBottomMm,
+        labelPadTopMm: _labelPadTopMm,
+        labelPadLeftMm: _labelPadLeftMm,
+        labelPadRightMm: _labelPadRightMm,
+        labelPadBottomMm: _labelPadBottomMm,
+      );
+
+      if (mounted) {
+        setState(() {
+          _hasSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Saved labels successfully.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRunning = false;
+        });
+      }
+    }
   }
 }
