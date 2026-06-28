@@ -23,6 +23,7 @@ class DraggableChip extends StatefulWidget {
     this.fontFamily = '',
     this.bold = false,
     this.italic = false,
+    this.textAlign = TextAlign.left,
     this.rotationDegrees = 0,
     required this.scale,
     required this.labelWidthMm,
@@ -54,6 +55,7 @@ class DraggableChip extends StatefulWidget {
   final String fontFamily;
   final bool bold;
   final bool italic;
+  final TextAlign textAlign;
   final int rotationDegrees;
   final double scale;
   final double labelWidthMm;
@@ -478,6 +480,7 @@ class DraggableChipState extends State<DraggableChip> {
                 maxLines: 6,
                 minLines: 1,
                 cursorColor: Colors.black,
+                textAlign: widget.textAlign,
                 decoration: InputDecoration(
                   isDense: true,
                   filled: true,
@@ -516,6 +519,7 @@ class DraggableChipState extends State<DraggableChip> {
           maxLines: activeWidthMm != null ? null : 1,
           overflow:
               activeWidthMm != null ? TextOverflow.clip : TextOverflow.visible,
+          textAlign: widget.textAlign,
         ),
       );
       final handleSize = fontPx.clamp(20.0, 32.0);

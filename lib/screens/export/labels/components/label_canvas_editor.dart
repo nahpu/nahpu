@@ -17,6 +17,18 @@ import 'package:nahpu/screens/export/labels/components/grid_painter.dart';
 
 const double _kLabelCanvasHitPadPx = 72.0;
 
+TextAlign _parseTextAlign(String align) {
+  switch (align) {
+    case 'center':
+      return TextAlign.center;
+    case 'right':
+      return TextAlign.right;
+    case 'left':
+    default:
+      return TextAlign.left;
+  }
+}
+
 class LabelCanvasEditor extends StatefulWidget {
   const LabelCanvasEditor({
     super.key,
@@ -338,17 +350,22 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                         'p${page1 ? '1' : '2'}_ct_${element.id}_${element.rotationDegrees}_${element.fontFamily}'),
                                     label: element.text.isEmpty
                                         ? '(empty)'
-                                        : (isPreviewMode
-                                            ? substituteLabelPlaceholders(
-                                                element.text,
-                                                editorLabelFieldPreview)
-                                            : element.text),
+                                        : formatTextWithCase(
+                                            isPreviewMode
+                                                ? substituteLabelPlaceholders(
+                                                    element.text,
+                                                    editorLabelFieldPreview)
+                                                : element.text,
+                                            element.caseFormat,
+                                          ),
                                     actualText: element.text,
                                     position: Offset(element.xMm, element.yMm),
                                     fontSize: element.fontSizePt,
                                     fontFamily: element.fontFamily,
                                     bold: element.bold,
                                     italic: element.italic,
+                                    textAlign:
+                                        _parseTextAlign(element.textAlign),
                                     rotationDegrees: element.rotationDegrees,
                                     scale: scale,
                                     labelWidthMm: labelWidthMm,

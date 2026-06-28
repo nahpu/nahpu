@@ -487,7 +487,8 @@ class LabelWriter {
       return;
     }
 
-    String content = _escapeTypstMarkup(t.text);
+    String content =
+        _escapeTypstMarkup(formatTextWithCase(t.text, t.caseFormat));
     final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
     final colorStr = 'rgb("${hexColor.substring(2)}")';
     String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
@@ -496,6 +497,9 @@ class LabelWriter {
     if (t.fontFamily.isNotEmpty) textProps += ', font: "${t.fontFamily}"';
 
     String textElem = '#text($textProps)[$content]';
+    if (t.textAlign != 'left') {
+      textElem = '#align(${t.textAlign})[$textElem]';
+    }
     if (t.maxWidthMm != null) {
       textElem = '#box(width: ${labelPdfMmToPt(t.maxWidthMm!)}pt)[$textElem]';
     }

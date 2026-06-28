@@ -75,4 +75,44 @@ void main() {
       expect((sortedElements[4] as CustomTextElement).id, 'txt1');
     });
   });
+
+  group('Label text formatting tests', () {
+    test('formatTextWithCase applies correct capitalization styles', () {
+      const text = 'hello world test';
+      expect(formatTextWithCase(text, 'uppercase'), 'HELLO WORLD TEST');
+      expect(formatTextWithCase(text, 'lowercase'), 'hello world test');
+      expect(formatTextWithCase(text, 'capitalize'), 'Hello World Test');
+      expect(formatTextWithCase(text, 'normal'), 'hello world test');
+    });
+
+    test('CustomTextElement JSON serialization retains textAlign and caseFormat', () {
+      final ct = CustomTextElement(
+        id: 'txt1',
+        text: 'hello',
+        xMm: 10,
+        yMm: 20,
+        textAlign: 'center',
+        caseFormat: 'uppercase',
+      );
+      final json = ct.toJson();
+      expect(json['textAlign'], 'center');
+      expect(json['caseFormat'], 'uppercase');
+
+      final deserialized = CustomTextElement.fromJson(json);
+      expect(deserialized.textAlign, 'center');
+      expect(deserialized.caseFormat, 'uppercase');
+    });
+
+    test('CustomTextElement defaults textAlign and caseFormat on missing json keys', () {
+      final json = {
+        'id': 'txt1',
+        'text': 'hello',
+        'xMm': 10,
+        'yMm': 20,
+      };
+      final deserialized = CustomTextElement.fromJson(json);
+      expect(deserialized.textAlign, 'left');
+      expect(deserialized.caseFormat, 'normal');
+    });
+  });
 }

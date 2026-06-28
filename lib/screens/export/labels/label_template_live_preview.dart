@@ -11,6 +11,18 @@ import 'package:nahpu/screens/export/labels/label_template_model.dart';
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;
 
+TextAlign _parseTextAlign(String align) {
+  switch (align) {
+    case 'center':
+      return TextAlign.center;
+    case 'right':
+      return TextAlign.right;
+    case 'left':
+    default:
+      return TextAlign.left;
+  }
+}
+
 /// Read-only scaled preview of one or both label pages (for print preview dialog).
 class LabelTemplateLivePreview extends StatelessWidget {
   const LabelTemplateLivePreview({
@@ -193,23 +205,36 @@ class _PreviewPage extends StatelessWidget {
                   top: ct.yMm * scale,
                   child: Transform.rotate(
                     angle: ct.rotationDegrees * math.pi / 180,
-                    child: Text(
-                      ct.text.isEmpty
-                          ? ' '
-                          : (placeholderValues.isEmpty
-                              ? ct.text
-                              : substituteLabelPlaceholders(
-                                  ct.text,
-                                  placeholderValues,
-                                )),
-                      style: customLabelCanvasTextStyle(
-                        fontFamilyRaw: ct.fontFamily,
-                        fontSize: _previewFontSizePx(ct.fontSizePt, scale),
-                        fontWeight:
-                            ct.bold ? FontWeight.bold : FontWeight.normal,
-                        fontStyle:
-                            ct.italic ? FontStyle.italic : FontStyle.normal,
-                      ).copyWith(color: Colors.black),
+                    child: SizedBox(
+                      width:
+                          ct.maxWidthMm != null ? ct.maxWidthMm! * scale : null,
+                      child: Text(
+                        ct.text.isEmpty
+                            ? ' '
+                            : formatTextWithCase(
+                                placeholderValues.isEmpty
+                                    ? ct.text
+                                    : substituteLabelPlaceholders(
+                                        ct.text,
+                                        placeholderValues,
+                                      ),
+                                ct.caseFormat,
+                              ),
+                        style: customLabelCanvasTextStyle(
+                          fontFamilyRaw: ct.fontFamily,
+                          fontSize: _previewFontSizePx(ct.fontSizePt, scale),
+                          fontWeight:
+                              ct.bold ? FontWeight.bold : FontWeight.normal,
+                          fontStyle:
+                              ct.italic ? FontStyle.italic : FontStyle.normal,
+                        ).copyWith(color: Colors.black),
+                        softWrap: ct.maxWidthMm != null,
+                        maxLines: ct.maxWidthMm != null ? null : 1,
+                        overflow: ct.maxWidthMm != null
+                            ? TextOverflow.clip
+                            : TextOverflow.visible,
+                        textAlign: _parseTextAlign(ct.textAlign),
+                      ),
                     ),
                   ),
                 ),

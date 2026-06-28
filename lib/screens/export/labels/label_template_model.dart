@@ -33,6 +33,23 @@ bool isLabelBracketGenderIconText(String text) =>
 const double kLabelGenderIconDefaultWidthMm = 6.0;
 const double kLabelGenderIconDefaultHeightMm = 6.0;
 
+String formatTextWithCase(String rawText, String caseFormat) {
+  switch (caseFormat) {
+    case 'uppercase':
+      return rawText.toUpperCase();
+    case 'lowercase':
+      return rawText.toLowerCase();
+    case 'capitalize':
+      if (rawText.isEmpty) return rawText;
+      return rawText.split(' ').map((word) {
+        if (word.isEmpty) return word;
+        return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+      }).join(' ');
+    default:
+      return rawText;
+  }
+}
+
 class CustomTextElement {
   const CustomTextElement({
     required this.id,
@@ -43,6 +60,8 @@ class CustomTextElement {
     this.fontFamily = '',
     this.bold = false,
     this.italic = false,
+    this.textAlign = 'left',
+    this.caseFormat = 'normal',
     this.rotationDegrees = 0,
     this.iconWidthMm,
     this.iconHeightMm,
@@ -59,6 +78,8 @@ class CustomTextElement {
   final String fontFamily;
   final bool bold;
   final bool italic;
+  final String textAlign;
+  final String caseFormat;
   final int rotationDegrees;
   final int zIndex;
   final int colorArgb;
@@ -79,6 +100,8 @@ class CustomTextElement {
     String? fontFamily,
     bool? bold,
     bool? italic,
+    String? textAlign,
+    String? caseFormat,
     int? rotationDegrees,
     double? iconWidthMm,
     double? iconHeightMm,
@@ -96,6 +119,8 @@ class CustomTextElement {
       fontFamily: fontFamily ?? this.fontFamily,
       bold: bold ?? this.bold,
       italic: italic ?? this.italic,
+      textAlign: textAlign ?? this.textAlign,
+      caseFormat: caseFormat ?? this.caseFormat,
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
       iconWidthMm: iconWidthMm ?? this.iconWidthMm,
       iconHeightMm: iconHeightMm ?? this.iconHeightMm,
@@ -114,6 +139,8 @@ class CustomTextElement {
         'fontFamily': fontFamily,
         'bold': bold,
         'italic': italic,
+        'textAlign': textAlign,
+        'caseFormat': caseFormat,
         'rotationDegrees': rotationDegrees,
         if (iconWidthMm != null) 'iconWidthMm': iconWidthMm,
         if (iconHeightMm != null) 'iconHeightMm': iconHeightMm,
@@ -132,6 +159,8 @@ class CustomTextElement {
       fontFamily: json['fontFamily'] as String? ?? '',
       bold: json['bold'] as bool? ?? false,
       italic: json['italic'] as bool? ?? false,
+      textAlign: json['textAlign'] as String? ?? 'left',
+      caseFormat: json['caseFormat'] as String? ?? 'normal',
       rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,
       iconWidthMm: (json['iconWidthMm'] as num?)?.toDouble(),
       iconHeightMm: (json['iconHeightMm'] as num?)?.toDouble(),
