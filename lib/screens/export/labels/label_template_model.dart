@@ -48,6 +48,7 @@ class CustomTextElement {
     this.iconHeightMm,
     this.maxWidthMm,
     this.zIndex = 0,
+    this.colorArgb = 0xFF000000,
   });
 
   final String id;
@@ -60,6 +61,7 @@ class CustomTextElement {
   final bool italic;
   final int rotationDegrees;
   final int zIndex;
+  final int colorArgb;
 
   /// For [isLabelBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
@@ -82,6 +84,7 @@ class CustomTextElement {
     double? iconHeightMm,
     double? maxWidthMm,
     int? zIndex,
+    int? colorArgb,
     bool clearMaxWidthMm = false,
   }) {
     return CustomTextElement(
@@ -98,6 +101,7 @@ class CustomTextElement {
       iconHeightMm: iconHeightMm ?? this.iconHeightMm,
       maxWidthMm: clearMaxWidthMm ? null : (maxWidthMm ?? this.maxWidthMm),
       zIndex: zIndex ?? this.zIndex,
+      colorArgb: colorArgb ?? this.colorArgb,
     );
   }
 
@@ -115,6 +119,7 @@ class CustomTextElement {
         if (iconHeightMm != null) 'iconHeightMm': iconHeightMm,
         if (maxWidthMm != null) 'maxWidthMm': maxWidthMm,
         'zIndex': zIndex,
+        'colorArgb': colorArgb,
       };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
@@ -132,6 +137,7 @@ class CustomTextElement {
       iconHeightMm: (json['iconHeightMm'] as num?)?.toDouble(),
       maxWidthMm: (json['maxWidthMm'] as num?)?.toDouble(),
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
+      colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF000000,
     );
   }
 }

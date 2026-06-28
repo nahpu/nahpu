@@ -40,6 +40,7 @@ class DraggableChip extends StatefulWidget {
     this.onSelect,
     this.maxWidthMm,
     this.onMaxWidthChanged,
+    this.colorArgb = 0xFF000000,
   });
 
   final String label;
@@ -78,6 +79,7 @@ class DraggableChip extends StatefulWidget {
 
   final double? maxWidthMm;
   final ValueChanged<double>? onMaxWidthChanged;
+  final int colorArgb;
 
   @override
   State<DraggableChip> createState() => DraggableChipState();
@@ -133,7 +135,7 @@ class DraggableChipState extends State<DraggableChip> {
       fontSize: fontPx,
       fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
       fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
-    ).copyWith(color: Colors.black);
+    ).copyWith(color: Color(widget.colorArgb));
 
     final tp = TextPainter(
       text: TextSpan(text: widget.label, style: textStyle),
@@ -429,7 +431,7 @@ class DraggableChipState extends State<DraggableChip> {
         fontSize: fontPx,
         fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
         fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
-      ).copyWith(color: Colors.black);
+      ).copyWith(color: Color(widget.colorArgb));
 
       if (widget.isInlineEditing &&
           _inlineCtrl != null &&

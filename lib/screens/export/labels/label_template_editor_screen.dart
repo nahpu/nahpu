@@ -27,8 +27,6 @@ import 'package:path/path.dart' as path;
 
 /// PDF points per mm (72 / 25.4); keep in sync with `labelPdfMmToPt`.
 
-
-
 /// Pixels → mm along label axes (mirror, scroll, nested transforms).
 /// [globalDelta] must be in **global** logical pixels (not [DragUpdateDetails.delta],
 /// which is local to the gesture target and wrong under [Transform.rotate]).
@@ -36,8 +34,6 @@ typedef LabelPanMmDeltaCallback = Offset? Function(
     Offset globalPosition, Offset globalDelta);
 
 /// Logical px → mm along label axes; avoids div-by-zero before layout settles.
-
-
 
 class LabelTemplateEditorScreen extends ConsumerStatefulWidget {
   const LabelTemplateEditorScreen({super.key});
@@ -437,10 +433,18 @@ class _LabelTemplateEditorScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Material(
-                    elevation: 1,
-                    surfaceTintColor: scheme.surfaceTint,
-                    color: scheme.surface,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: scheme.surface,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withAlpha(50),
+                        ),
+                      ),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
@@ -660,7 +664,10 @@ class _LabelTemplateEditorScreenState
                     clipBehavior: Clip.hardEdge,
                     child: _selectedElement != null
                         ? Padding(
-                            padding: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                             child: LabelElementPropertiesPanel(
                               selectedElement: _selectedElement!,
                               page1: _isPage1,
@@ -1079,7 +1086,6 @@ class _LabelTemplateEditorScreenState
     });
   }
 
-
   void _removeCustomImage(bool page1, String imageId) {
     _deferSetState(() {
       if (page1) {
@@ -1447,4 +1453,5 @@ class _LabelTemplateEditorScreenState
         ],
       ),
     );
-  }}
+  }
+}

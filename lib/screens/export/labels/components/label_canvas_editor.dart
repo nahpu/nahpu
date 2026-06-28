@@ -137,7 +137,7 @@ class LabelCanvasEditor extends StatelessWidget {
                 child: Container(
                   width: scrollW,
                   height: scrollH,
-                  alignment: Alignment.topLeft,
+                  alignment: Alignment.center,
                   color: Colors.transparent,
                   child: Transform.rotate(
                     angle: (page1 ? mirrorFront : mirrorBack) ? math.pi : 0,
@@ -329,6 +329,7 @@ class LabelCanvasEditor extends StatelessWidget {
                                     labelPanToMmDelta: labelPanToMmDelta,
                                     isCustom: true,
                                     maxWidthMm: element.maxWidthMm,
+                                    colorArgb: element.colorArgb,
                                     onMaxWidthChanged: (w) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(maxWidthMm: w),

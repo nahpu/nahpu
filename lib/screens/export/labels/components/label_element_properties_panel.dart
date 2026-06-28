@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
 import 'package:nahpu/screens/export/labels/label_template_fonts.dart';
 import 'package:nahpu/screens/export/labels/components/synced_font_size_field.dart';
+import 'package:nahpu/screens/export/labels/components/synced_max_width_field.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
 class LabelElementPropertiesPanel extends StatelessWidget {
@@ -113,19 +114,27 @@ class LabelElementPropertiesPanel extends StatelessWidget {
       final type = parts[0];
       final p1 = parts[1] == '1';
       final id = parts[2];
-      
+
       if (type == 'custom') {
         final el = _findCustomText(p1, id);
-        if (el != null) onUpdateCustomText(p1, el.copyWith(zIndex: el.zIndex + delta));
+        if (el != null) {
+          onUpdateCustomText(p1, el.copyWith(zIndex: el.zIndex + delta));
+        }
       } else if (type == 'image') {
         final el = _findCustomImage(p1, id);
-        if (el != null) onUpdateCustomImage(p1, el.copyWith(zIndex: el.zIndex + delta));
+        if (el != null) {
+          onUpdateCustomImage(p1, el.copyWith(zIndex: el.zIndex + delta));
+        }
       } else if (type == 'line') {
         final el = _findCustomLine(p1, id);
-        if (el != null) onUpdateCustomLine(p1, el.copyWith(zIndex: el.zIndex + delta));
+        if (el != null) {
+          onUpdateCustomLine(p1, el.copyWith(zIndex: el.zIndex + delta));
+        }
       } else if (type == 'shape') {
         final el = _findCustomShape(p1, id);
-        if (el != null) onUpdateCustomShape(p1, el.copyWith(zIndex: el.zIndex + delta));
+        if (el != null) {
+          onUpdateCustomShape(p1, el.copyWith(zIndex: el.zIndex + delta));
+        }
       }
     }
 
@@ -570,10 +579,70 @@ class LabelElementPropertiesPanel extends StatelessWidget {
                         : null,
                   ),
                   const SizedBox(width: 12),
+                  Text('Color', style: Theme.of(context).textTheme.labelMedium),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () async {
+                      Color selectedColor = Color(ct.colorArgb);
+                      final picked = await ColorPicker(
+                        color: selectedColor,
+                        onColorChanged: (c) => selectedColor = c,
+                        heading: Text('Select text color',
+                            style: Theme.of(context).textTheme.titleSmall),
+                        subheading: Text('Select color shade',
+                            style: Theme.of(context).textTheme.titleSmall),
+                        wheelSubheading: Text('Selected color and its shades',
+                            style: Theme.of(context).textTheme.titleSmall),
+                        showColorName: true,
+                        showColorCode: false,
+                        copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                          copyButton: true,
+                          pasteButton: true,
+                          longPressMenu: true,
+                        ),
+                        colorNameTextStyle:
+                            Theme.of(context).textTheme.bodySmall,
+                        colorCodeTextStyle:
+                            Theme.of(context).textTheme.bodySmall,
+                        pickersEnabled: const <ColorPickerType, bool>{
+                          ColorPickerType.both: false,
+                          ColorPickerType.primary: true,
+                          ColorPickerType.accent: true,
+                          ColorPickerType.bw: false,
+                          ColorPickerType.custom: true,
+                          ColorPickerType.wheel: true,
+                        },
+                      ).showPickerDialog(context);
+                      if (picked) {
+                        onUpdateCustomText(page1,
+                            ct.copyWith(colorArgb: selectedColor.toARGB32()));
+                      }
+                    },
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Color(ct.colorArgb),
+                        border: Border.all(color: scheme.outline),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 12),
                   Text('Max Width (mm)',
                       style: Theme.of(context).textTheme.labelMedium),
                   const SizedBox(width: 8),
+                  SizedBox(
+                    width: 64,
+                    child: SyncedMaxWidthField(
+                      key: ValueKey('mw_$id'),
+                      maxWidthMm: ct.maxWidthMm,
+                      onValidSize: (p) => onUpdateCustomText(
+                        page1,
+                        ct.copyWith(maxWidthMm: p),
+                      ),
+                    ),
+                  ),
                   SizedBox(
                     width: 100,
                     child: Slider(
@@ -596,27 +665,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
                     onSelected: (v) =>
                         onUpdateCustomText(page1, ct.copyWith(bold: v)),
                   ),
-                  const SizedBox(width: 6),
-                  const SizedBox(width: 12),
-                  Text('Max Width (mm)',
-                      style: Theme.of(context).textTheme.labelMedium),
                   const SizedBox(width: 8),
-                  SizedBox(
-                    width: 100,
-                    child: Slider(
-                      value: ct.maxWidthMm ?? 0.0,
-                      min: 0.0,
-                      max: 200.0,
-                      divisions: 40,
-                      label: ct.maxWidthMm == null || ct.maxWidthMm! == 0.0
-                          ? 'Auto'
-                          : '${ct.maxWidthMm!.toStringAsFixed(1)} mm',
-                      onChanged: (v) {
-                        onUpdateCustomText(page1,
-                            ct.copyWith(maxWidthMm: v == 0.0 ? null : v));
-                      },
-                    ),
-                  ),
                   FilterChip(
                     label: const Text('Italic'),
                     selected: ct.italic,

@@ -480,7 +480,9 @@ class LabelWriter {
     }
 
     String content = t.text.replaceAll(RegExp(r'["\\]'), r'\\$0');
-    String textProps = 'size: ${t.fontSizePt}pt';
+    final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
+    final colorStr = 'rgb("${hexColor.substring(2)}")';
+    String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
     if (t.bold) textProps += ', weight: "bold"';
     if (t.italic) textProps += ', style: "italic"';
     if (t.fontFamily.isNotEmpty) textProps += ', font: "${t.fontFamily}"';
