@@ -422,93 +422,99 @@ class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      clipBehavior: Clip.hardEdge,
-      borderRadius: BorderRadius.circular(16.0),
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      child: !widget.showPreview
-          ? Center(
-              child: FilledButton.icon(
-                onPressed: widget.onGeneratePreview,
-                icon: const Icon(Icons.visibility),
-                label: const Text('Generate Preview'),
-              ),
-            )
-          : FutureBuilder<Uint8List>(
-              future: _bytesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No data'));
-                }
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        padding: EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16.0),
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.4),
+        ),
+        child: !widget.showPreview
+            ? Center(
+                child: FilledButton.icon(
+                  onPressed: widget.onGeneratePreview,
+                  icon: const Icon(Icons.visibility),
+                  label: const Text('Generate Preview'),
+                ),
+              )
+            : FutureBuilder<Uint8List>(
+                future: _bytesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No data'));
+                  }
 
-                final isPdfPreview = widget.exportFmt == DocumentExportFmt.pdf;
+                  final isPdfPreview =
+                      widget.exportFmt == DocumentExportFmt.pdf;
 
-                if (isPdfPreview) {
-                  return Stack(
-                    children: [
-                      Positioned.fill(
-                        child: PdfViewer.data(
-                          snapshot.data!,
-                          sourceName: 'preview.pdf',
-                          params: const PdfViewerParams(
-                            backgroundColor: Colors.transparent,
+                  if (isPdfPreview) {
+                    return Stack(
+                      children: [
+                        Positioned.fill(
+                          child: PdfViewer.data(
+                            snapshot.data!,
+                            sourceName: 'preview.pdf',
+                            params: const PdfViewerParams(
+                              backgroundColor: Colors.transparent,
+                            ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        top: 16,
-                        right: 16,
-                        child: FloatingActionButton.small(
-                          onPressed: _fetchData,
-                          tooltip: 'Refresh Preview',
-                          child: const Icon(Icons.refresh),
+                        Positioned(
+                          top: 16,
+                          right: 16,
+                          child: FloatingActionButton.small(
+                            onPressed: _fetchData,
+                            tooltip: 'Refresh Preview',
+                            child: const Icon(Icons.refresh),
+                          ),
                         ),
+                      ],
+                    );
+                  }
+
+                  final text = utf8.decode(snapshot.data!);
+                  final fontName =
+                      ref.watch(pdfExportFontNotifierProvider).value ??
+                          'Merriweather';
+
+                  final isMd = widget.exportFmt == DocumentExportFmt.md;
+
+                  Widget content;
+                  if (isMd) {
+                    content = Markdown(
+                      data: text,
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(fontFamily: fontName),
+                        h1: TextStyle(fontFamily: fontName),
+                        h2: TextStyle(fontFamily: fontName),
+                        h3: TextStyle(fontFamily: fontName),
+                        h4: TextStyle(fontFamily: fontName),
+                        h5: TextStyle(fontFamily: fontName),
+                        h6: TextStyle(fontFamily: fontName),
+                        listBullet: TextStyle(fontFamily: fontName),
                       ),
-                    ],
-                  );
-                }
+                    );
+                  } else {
+                    content = SingleChildScrollView(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SelectableText(text),
+                    );
+                  }
 
-                final text = utf8.decode(snapshot.data!);
-                final fontName =
-                    ref.watch(pdfExportFontNotifierProvider).value ??
-                        'Merriweather';
-
-                final isMd = widget.exportFmt == DocumentExportFmt.md;
-
-                Widget content;
-                if (isMd) {
-                  content = Markdown(
-                    data: text,
-                    styleSheet: MarkdownStyleSheet(
-                      p: TextStyle(fontFamily: fontName),
-                      h1: TextStyle(fontFamily: fontName),
-                      h2: TextStyle(fontFamily: fontName),
-                      h3: TextStyle(fontFamily: fontName),
-                      h4: TextStyle(fontFamily: fontName),
-                      h5: TextStyle(fontFamily: fontName),
-                      h6: TextStyle(fontFamily: fontName),
-                      listBullet: TextStyle(fontFamily: fontName),
-                    ),
-                  );
-                } else {
-                  content = SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: SelectableText(text),
-                  );
-                }
-
-                return content;
-              },
-            ),
+                  return content;
+                },
+              ),
+      ),
     );
   }
 }

@@ -43,41 +43,46 @@ class LabelPreviewPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      clipBehavior: Clip.hardEdge,
-      borderRadius: BorderRadius.circular(16.0),
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      child: !showPreview
-          ? Center(
-              child: FilledButton.icon(
-                onPressed: onGeneratePreview,
-                icon: const Icon(Icons.visibility),
-                label: const Text('Generate Preview'),
-              ),
-            )
-          : template == null
-              ? const Center(child: Text('No template selected.'))
-              : LabelPageLivePreview(
-                  selectedUuidList: selectedUuidList,
-                  template: template!,
-                  layout: LabelPrintLayoutOptions(
-                    rowsPerPage: rowsPerPage,
-                    colsPerPage: colsPerPage,
-                    pagePadTopMm: pagePadTopMm,
-                    pagePadLeftMm: pagePadLeftMm,
-                    pagePadRightMm: pagePadRightMm,
-                    pagePadBottomMm: pagePadBottomMm,
-                    labelPadTopMm: labelPadTopMm,
-                    labelPadLeftMm: labelPadLeftMm,
-                    labelPadRightMm: labelPadRightMm,
-                    labelPadBottomMm: labelPadBottomMm,
-                  ),
-                  pageWidthMm: customPageWidthMm,
-                  pageHeightMm: customPageHeightMm,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        padding: EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16.0),
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.4),
+        ),
+        child: !showPreview
+            ? Center(
+                child: FilledButton.icon(
+                  onPressed: onGeneratePreview,
+                  icon: const Icon(Icons.visibility),
+                  label: const Text('Generate Preview'),
                 ),
+              )
+            : template == null
+                ? const Center(child: Text('No template selected.'))
+                : LabelPageLivePreview(
+                    selectedUuidList: selectedUuidList,
+                    template: template!,
+                    layout: LabelPrintLayoutOptions(
+                      rowsPerPage: rowsPerPage,
+                      colsPerPage: colsPerPage,
+                      pagePadTopMm: pagePadTopMm,
+                      pagePadLeftMm: pagePadLeftMm,
+                      pagePadRightMm: pagePadRightMm,
+                      pagePadBottomMm: pagePadBottomMm,
+                      labelPadTopMm: labelPadTopMm,
+                      labelPadLeftMm: labelPadLeftMm,
+                      labelPadRightMm: labelPadRightMm,
+                      labelPadBottomMm: labelPadBottomMm,
+                    ),
+                    pageWidthMm: customPageWidthMm,
+                    pageHeightMm: customPageHeightMm,
+                  ),
+      ),
     );
   }
 }
