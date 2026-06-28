@@ -134,6 +134,38 @@ class LabelElementPropertiesPanel extends StatelessWidget {
     );
   }
 
+  Widget _buildOptionSlider(
+    BuildContext context, {
+    required double value,
+    required double min,
+    required double max,
+    required int divisions,
+    required String label,
+    required ValueChanged<double> onChanged,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        activeTrackColor: scheme.primary,
+        inactiveTrackColor: scheme.onSurface.withValues(alpha: 0.12),
+        thumbColor: scheme.primary,
+        overlayColor: scheme.primary.withValues(alpha: 0.12),
+        valueIndicatorColor: scheme.primary,
+        valueIndicatorTextStyle: TextStyle(color: scheme.onPrimary),
+        valueIndicatorShape: const RectangularSliderValueIndicatorShape(),
+        showValueIndicator: ShowValueIndicator.onDrag,
+      ),
+      child: Slider(
+        value: value,
+        min: min,
+        max: max,
+        divisions: divisions,
+        label: label,
+        onChanged: onChanged,
+      ),
+    );
+  }
+
   Widget _buildZIndexControls(BuildContext context, String sel) {
     void setZIndex(String sel, int delta) {
       final parts = sel.split(':');
@@ -344,7 +376,8 @@ class LabelElementPropertiesPanel extends StatelessWidget {
                   ),
                   SizedBox(
                     width: 100,
-                    child: Slider(
+                    child: _buildOptionSlider(
+                      context,
                       value: ln.lengthMm.clamp(2.0, 200.0),
                       min: 2.0,
                       max: 200.0,
@@ -379,6 +412,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 16),
           deleteButton,
         ],
       ),
@@ -579,7 +613,8 @@ class LabelElementPropertiesPanel extends StatelessWidget {
                   ),
                   SizedBox(
                     width: 100,
-                    child: Slider(
+                    child: _buildOptionSlider(
+                      context,
                       value: sh.widthMm.clamp(2.0, 200.0),
                       min: 2.0,
                       max: 200.0,
@@ -609,7 +644,8 @@ class LabelElementPropertiesPanel extends StatelessWidget {
                   ),
                   SizedBox(
                     width: 100,
-                    child: Slider(
+                    child: _buildOptionSlider(
+                      context,
                       value: sh.heightMm.clamp(2.0, 200.0),
                       min: 2.0,
                       max: 200.0,
@@ -644,6 +680,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 16),
           deleteButton,
         ],
       ),
@@ -832,7 +869,8 @@ class LabelElementPropertiesPanel extends StatelessWidget {
                   ),
                   SizedBox(
                     width: 100,
-                    child: Slider(
+                    child: _buildOptionSlider(
+                      context,
                       value: ct.maxWidthMm ?? 0.0,
                       min: 0.0,
                       max: 200.0,
@@ -883,6 +921,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 16),
           deleteButton,
         ],
       ),
