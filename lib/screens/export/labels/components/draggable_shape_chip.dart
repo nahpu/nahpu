@@ -151,41 +151,76 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
     _resizeAccum += _labelDeltaToImageLocalMm(dLabelMm);
     final s = _resizeStart!;
     final a = _resizeAccum;
-    late double x;
-    late double y;
+
+    final rad = _effectiveRotationDeg * math.pi / 180;
+    final cosT = math.cos(rad);
+    final sinT = math.sin(rad);
+
     late double rw;
     late double rh;
+    late double x;
+    late double y;
+
     switch (_resizeCorner!) {
       case _ShapeCorner.br:
-        x = s.left;
-        y = s.top;
-        rw = s.width + a.dx;
-        rh = s.height + a.dy;
+        final fixedX = s.left + s.width / 2 * (1 - cosT) + s.height / 2 * sinT;
+        final fixedY = s.top + s.height / 2 * (1 - cosT) - s.width / 2 * sinT;
+
+        rw = (s.width + a.dx).clamp(2.0, widget.labelWidthMm);
+        rh = (s.height + a.dy).clamp(2.0, widget.labelHeightMm);
+
+        x = fixedX - rw / 2 * (1 - cosT) - rh / 2 * sinT;
+        y = fixedY - rh / 2 * (1 - cosT) + rw / 2 * sinT;
         break;
-      case _ShapeCorner.tr:
-        x = s.left;
-        y = s.top + a.dy;
-        rw = s.width + a.dx;
-        rh = s.height - a.dy;
-        break;
+
       case _ShapeCorner.bl:
-        x = s.left + a.dx;
-        y = s.top;
-        rw = s.width - a.dx;
-        rh = s.height + a.dy;
+        final fixedX = s.left + s.width / 2 * (1 + cosT) + s.height / 2 * sinT;
+        final fixedY = s.top + s.height / 2 * (1 - cosT) + s.width / 2 * sinT;
+
+        rw = (s.width - a.dx).clamp(2.0, widget.labelWidthMm);
+        rh = (s.height + a.dy).clamp(2.0, widget.labelHeightMm);
+
+        x = fixedX - rw / 2 * (1 + cosT) - rh / 2 * sinT;
+        y = fixedY - rh / 2 * (1 - cosT) - rw / 2 * sinT;
         break;
+
+      case _ShapeCorner.tr:
+        final fixedX = s.left + s.width / 2 * (1 - cosT) - s.height / 2 * sinT;
+        final fixedY = s.top + s.height / 2 * (1 + cosT) - s.width / 2 * sinT;
+
+        rw = (s.width + a.dx).clamp(2.0, widget.labelWidthMm);
+        rh = (s.height - a.dy).clamp(2.0, widget.labelHeightMm);
+
+        x = fixedX - rw / 2 * (1 - cosT) + rh / 2 * sinT;
+        y = fixedY - rh / 2 * (1 + cosT) + rw / 2 * sinT;
+        break;
+
       case _ShapeCorner.tl:
-        x = s.left + a.dx;
-        y = s.top + a.dy;
-        rw = s.width - a.dx;
-        rh = s.height - a.dy;
+        final fixedX = s.left + s.width / 2 * (1 + cosT) - s.height / 2 * sinT;
+        final fixedY = s.top + s.height / 2 * (1 + cosT) + s.width / 2 * sinT;
+
+        rw = (s.width - a.dx).clamp(2.0, widget.labelWidthMm);
+        rh = (s.height - a.dy).clamp(2.0, widget.labelHeightMm);
+
+        x = fixedX - rw / 2 * (1 + cosT) + rh / 2 * sinT;
+        y = fixedY - rh / 2 * (1 + cosT) - rw / 2 * sinT;
         break;
     }
-    rw = rw.clamp(2.0, widget.labelWidthMm);
-    rh = rh.clamp(2.0, widget.labelHeightMm);
-    x = _clampMm(x, 0, math.max(0.0, widget.labelWidthMm - rw));
-    y = _clampMm(y, 0, math.max(0.0, widget.labelHeightMm - rh));
-    setState(() => _resizeLiveRect = Rect.fromLTWH(x, y, rw, rh));
+
+    final cosTAbs = cosT.abs();
+    final sinTAbs = sinT.abs();
+    final halfBoundX = (rw * cosTAbs + rh * sinTAbs) / 2;
+    final halfBoundY = (rw * sinTAbs + rh * cosTAbs) / 2;
+
+    final minX = halfBoundX - rw / 2;
+    final maxX = widget.labelWidthMm - rw / 2 - halfBoundX;
+    final minY = halfBoundY - rh / 2;
+    final maxY = widget.labelHeightMm - rh / 2 - halfBoundY;
+
+    final cx = _clampMm(x, minX, maxX);
+    final cy = _clampMm(y, minY, maxY);
+
+    setState(() => _resizeLiveRect = Rect.fromLTWH(cx, cy, rw, rh));
   }
 
   void _endResize() {

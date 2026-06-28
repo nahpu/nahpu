@@ -472,14 +472,22 @@ class LabelWriter {
     }
   }
 
-  void _writeSingleCustomText(StringBuffer typst, CustomTextElement t, Map<String, String> data) {
+  String _escapeTypstMarkup(String text) {
+    var content = text.replaceAll(r'\', r'\\');
+    final activeChars = RegExp(r'([#$*_[\]<@~="+-])');
+    content = content.replaceAllMapped(activeChars, (m) => '\\${m.group(0)}');
+    return content;
+  }
+
+  void _writeSingleCustomText(
+      StringBuffer typst, CustomTextElement t, Map<String, String> data) {
     final gKey = labelGenderIconFieldKeyFromBracketText(t.text);
     if (gKey != null) {
       _writeGenderIcon(typst, t, data, gKey);
       return;
     }
 
-    String content = t.text.replaceAll(RegExp(r'["\\]'), r'\\$0');
+    String content = _escapeTypstMarkup(t.text);
     final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
     final colorStr = 'rgb("${hexColor.substring(2)}")';
     String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
@@ -487,7 +495,7 @@ class LabelWriter {
     if (t.italic) textProps += ', style: "italic"';
     if (t.fontFamily.isNotEmpty) textProps += ', font: "${t.fontFamily}"';
 
-    String textElem = '#text($textProps)["$content"]';
+    String textElem = '#text($textProps)[$content]';
     if (t.maxWidthMm != null) {
       textElem = '#box(width: ${labelPdfMmToPt(t.maxWidthMm!)}pt)[$textElem]';
     }
@@ -525,7 +533,6 @@ class LabelWriter {
     return '';
   }
 
-
   @visibleForTesting
   static List<dynamic> sortElementsForTesting(LabelPageTemplate page) {
     return <dynamic>[
@@ -546,10 +553,12 @@ class LabelWriter {
 
   void _writeSingleCustomLine(StringBuffer typst, CustomLineElement line) {
     final hexColor = line.colorArgb.toRadixString(16).padLeft(8, '0');
-    final colorStr = 'rgb("${hexColor.substring(2)}")'; // ignores alpha for now, assuming 100%
+    final colorStr =
+        'rgb("${hexColor.substring(2)}")'; // ignores alpha for now, assuming 100%
 
     final lengthPt = labelPdfMmToPt(line.lengthMm);
-    final elem = '#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)';
+    final elem =
+        '#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)';
 
     typst.writeln(
         '  #place(dx: ${labelPdfMmToPt(line.xMm)}pt, dy: ${labelPdfMmToPt(line.yMm)}pt)[#rotate(${line.rotationDegrees}deg)[$elem]]');
@@ -569,7 +578,8 @@ class LabelWriter {
     final hPt = labelPdfMmToPt(shape.heightMm);
 
     final kind = shape.shapeType == 'ellipse' ? 'ellipse' : 'rect';
-    final elem = '#$kind(width: ${wPt}pt, height: ${hPt}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor$fillOpt)';
+    final elem =
+        '#$kind(width: ${wPt}pt, height: ${hPt}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor$fillOpt)';
 
     typst.writeln(
         '  #place(dx: ${labelPdfMmToPt(shape.xMm)}pt, dy: ${labelPdfMmToPt(shape.yMm)}pt)[#rotate(${shape.rotationDegrees}deg)[$elem]]');
