@@ -2176,14 +2176,6 @@ checksum = "13d2233c9842d08cfe13f9eac96e207ca6a2ea10b80259ebe8ad0268be27d2af"
 [[package]]
 name = "nahpu_archive"
 version = "0.1.0"
-dependencies = [
- "flate2",
- "zip 8.6.0",
-]
-
-[[package]]
-name = "nahpu_archive"
-version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37bee3ca56f6f2dff792a4c2f14292fe9837d17067f8c52f7cb1924b92753631"
 dependencies = [
@@ -2193,9 +2185,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_db"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78cbb22f87a21e8ed969d3326636fa6d127c1809b1bccf7ce31fab7b61955051"
+checksum = "7a59bf0dd898e97e9506e85a2468f102d0ca8c8fe81e55d8059be0ebe8b89040"
 dependencies = [
  "calamine",
  "csv",
@@ -2224,13 +2216,15 @@ dependencies = [
 
 [[package]]
 name = "nahpu_gis"
-version = "0.1.1"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6cb8ec6a8f146e9958cdc0f69aeed42247c1e5ea86ed330b2680fc733c393b1b"
 dependencies = [
  "dbase",
  "geo",
  "geojson",
  "kml",
- "nahpu_archive 0.1.0",
+ "nahpu_archive",
  "serde",
  "serde_json",
  "shapefile",
@@ -2997,7 +2991,7 @@ name = "rust_lib_nahpu"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
- "nahpu_archive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nahpu_archive",
  "nahpu_db",
  "nahpu_export",
  "nahpu_gis",
