@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -810,6 +811,30 @@ class _LabelTemplateEditorScreenState
       } else {
         _template =
             _template.copyWith(page2: _template.page2.withCustomText(element));
+      }
+    });
+  }
+
+  void _updateCustomLine(bool page1, CustomLineElement element) {
+    setState(() {
+      if (page1) {
+        _template =
+            _template.copyWith(page1: _template.page1.withCustomLine(element));
+      } else {
+        _template =
+            _template.copyWith(page2: _template.page2.withCustomLine(element));
+      }
+    });
+  }
+
+  void _updateCustomShape(bool page1, CustomShapeElement element) {
+    setState(() {
+      if (page1) {
+        _template =
+            _template.copyWith(page1: _template.page1.withCustomShape(element));
+      } else {
+        _template =
+            _template.copyWith(page2: _template.page2.withCustomShape(element));
       }
     });
   }
@@ -1761,24 +1786,82 @@ class _LabelTemplateEditorScreenState
       onPressed: () => _removeCustomLine(page1, id),
     );
 
-    // TODO: Add Stroke width/color selectors
+    final content = Padding(
+      padding: inToolbar
+          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildZIndexControls(sel),
+          const SizedBox(width: 16),
+          Text('Thickness', style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(width: 8),
+          DropdownButton<double>(
+            value: [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0].contains(ln.thicknessPt) ? ln.thicknessPt : 1.0,
+            isDense: true,
+            underline: const SizedBox.shrink(),
+            items: [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0].map((t) => DropdownMenuItem(value: t, child: Text('${t}pt'))).toList(),
+            onChanged: (v) {
+              if (v != null) {
+                _updateCustomLine(page1, ln.copyWith(thicknessPt: v));
+              }
+            },
+          ),
+          const SizedBox(width: 16),
+          Text('Color', style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () async {
+              Color selectedColor = Color(ln.colorArgb);
+              final picked = await ColorPicker(
+                color: selectedColor,
+                onColorChanged: (c) => selectedColor = c,
+                heading: Text('Select color', style: Theme.of(context).textTheme.titleSmall),
+                subheading: Text('Select color shade', style: Theme.of(context).textTheme.titleSmall),
+                wheelSubheading: Text('Selected color and its shades', style: Theme.of(context).textTheme.titleSmall),
+                showColorName: true,
+                showColorCode: false,
+                copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                  copyButton: true,
+                  pasteButton: true,
+                  longPressMenu: true,
+                ),
+                colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
+                colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
+                pickersEnabled: const <ColorPickerType, bool>{
+                  ColorPickerType.both: false,
+                  ColorPickerType.primary: true,
+                  ColorPickerType.accent: true,
+                  ColorPickerType.bw: false,
+                  ColorPickerType.custom: true,
+                  ColorPickerType.wheel: true,
+                },
+              ).showPickerDialog(context);
+              if (picked) {
+                _updateCustomLine(page1, ln.copyWith(colorArgb: selectedColor.toARGB32()));
+              }
+            },
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Color(ln.colorArgb),
+                border: Border.all(color: scheme.outline),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const Spacer(),
+          deleteButton,
+        ],
+      ),
+    );
 
     return _buildPanelContainer(
       inToolbar: inToolbar,
-      child: Padding(
-        padding: inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildZIndexControls(sel),
-            const Spacer(),
-            deleteButton,
-          ],
-        ),
-      ),
+      child: content,
     );
   }
 
@@ -1796,24 +1879,135 @@ class _LabelTemplateEditorScreenState
       onPressed: () => _removeCustomShape(page1, id),
     );
 
-    // TODO: Add Fill/Stroke selectors
+    final content = Padding(
+      padding: inToolbar
+          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildZIndexControls(sel),
+          const SizedBox(width: 16),
+          Text('Stroke', style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(width: 8),
+          DropdownButton<double>(
+            value: [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0].contains(sh.strokeThicknessPt) ? sh.strokeThicknessPt : 1.0,
+            isDense: true,
+            underline: const SizedBox.shrink(),
+            items: [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0].map((t) => DropdownMenuItem(value: t, child: Text('${t}pt'))).toList(),
+            onChanged: (v) {
+              if (v != null) {
+                _updateCustomShape(page1, sh.copyWith(strokeThicknessPt: v));
+              }
+            },
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () async {
+              Color selectedColor = Color(sh.strokeColorArgb);
+              final picked = await ColorPicker(
+                color: selectedColor,
+                onColorChanged: (c) => selectedColor = c,
+                heading: Text('Select stroke color', style: Theme.of(context).textTheme.titleSmall),
+                subheading: Text('Select color shade', style: Theme.of(context).textTheme.titleSmall),
+                wheelSubheading: Text('Selected color and its shades', style: Theme.of(context).textTheme.titleSmall),
+                showColorName: true,
+                showColorCode: false,
+                copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                  copyButton: true,
+                  pasteButton: true,
+                  longPressMenu: true,
+                ),
+                colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
+                colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
+                pickersEnabled: const <ColorPickerType, bool>{
+                  ColorPickerType.both: false,
+                  ColorPickerType.primary: true,
+                  ColorPickerType.accent: true,
+                  ColorPickerType.bw: false,
+                  ColorPickerType.custom: true,
+                  ColorPickerType.wheel: true,
+                },
+              ).showPickerDialog(context);
+              if (picked) {
+                _updateCustomShape(page1, sh.copyWith(strokeColorArgb: selectedColor.toARGB32()));
+              }
+            },
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Color(sh.strokeColorArgb),
+                border: Border.all(color: scheme.outline),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Text('Fill', style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () async {
+              Color selectedColor = sh.fillColorArgb != null ? Color(sh.fillColorArgb!) : Colors.transparent;
+              final picked = await ColorPicker(
+                color: selectedColor,
+                onColorChanged: (c) => selectedColor = c,
+                enableShadesSelection: true,
+                heading: Text('Select fill color', style: Theme.of(context).textTheme.titleSmall),
+                subheading: Text('Select color shade', style: Theme.of(context).textTheme.titleSmall),
+                wheelSubheading: Text('Selected color and its shades', style: Theme.of(context).textTheme.titleSmall),
+                showColorName: true,
+                showColorCode: false,
+                copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                  copyButton: true,
+                  pasteButton: true,
+                  longPressMenu: true,
+                ),
+                colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
+                colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
+                pickersEnabled: const <ColorPickerType, bool>{
+                  ColorPickerType.both: false,
+                  ColorPickerType.primary: true,
+                  ColorPickerType.accent: true,
+                  ColorPickerType.bw: false,
+                  ColorPickerType.custom: true,
+                  ColorPickerType.wheel: true,
+                },
+              ).showPickerDialog(context);
+              if (picked) {
+                _updateCustomShape(page1, sh.copyWith(fillColorArgb: selectedColor.toARGB32()));
+              }
+            },
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: sh.fillColorArgb != null ? Color(sh.fillColorArgb!) : Colors.transparent,
+                border: Border.all(color: scheme.outline),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: sh.fillColorArgb == null
+                  ? Icon(Icons.close, size: 16, color: scheme.onSurfaceVariant)
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 4),
+          if (sh.fillColorArgb != null)
+            IconButton(
+              icon: const Icon(Icons.format_color_reset, size: 20),
+              tooltip: 'Clear fill',
+              onPressed: () => _updateCustomShape(page1, sh.copyWith(clearFillColor: true)),
+            ),
+          const Spacer(),
+          deleteButton,
+        ],
+      ),
+    );
 
     return _buildPanelContainer(
       inToolbar: inToolbar,
-      child: Padding(
-        padding: inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildZIndexControls(sel),
-            const Spacer(),
-            deleteButton,
-          ],
-        ),
-      ),
+      child: content,
     );
   }
 

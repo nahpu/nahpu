@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/export/labels/label_template_editor_screen.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
@@ -322,7 +321,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final effWmm = liveR?.width ?? widget.lengthMm;
     final left = posMm.dx * widget.scale + insetX;
     final top = posMm.dy * widget.scale + insetY;
-    final w = (widget.lengthMm * widget.scale).clamp(0.0, double.infinity);
+    final w = (effWmm * widget.scale).clamp(0.0, double.infinity);
     final h = math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
     final scheme = Theme.of(context).colorScheme;
 
