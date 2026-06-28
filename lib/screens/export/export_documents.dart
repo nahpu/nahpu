@@ -12,6 +12,7 @@ import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/export/document_exports.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 class ExportPdfForm extends ConsumerStatefulWidget {
   const ExportPdfForm({super.key});
@@ -415,11 +416,8 @@ class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
   }
 
   void _fetchData() {
-    final fmt = widget.exportFmt == DocumentExportFmt.pdf
-        ? DocumentExportFmt.md
-        : widget.exportFmt;
     _bytesFuture = DocumentExportServices(ref: ref)
-        .generateBytes(type: widget.exportType, format: fmt);
+        .generateBytes(type: widget.exportType, format: widget.exportFmt);
   }
 
   @override
@@ -452,14 +450,39 @@ class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
                   return const Center(child: Text('No data'));
                 }
 
+                final isPdfPreview = widget.exportFmt == DocumentExportFmt.pdf;
+
+                if (isPdfPreview) {
+                  return Stack(
+                    children: [
+                      Positioned.fill(
+                        child: PdfViewer.data(
+                          snapshot.data!,
+                          sourceName: 'preview.pdf',
+                          params: const PdfViewerParams(
+                            backgroundColor: Colors.transparent,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 16,
+                        right: 16,
+                        child: FloatingActionButton.small(
+                          onPressed: _fetchData,
+                          tooltip: 'Refresh Preview',
+                          child: const Icon(Icons.refresh),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
                 final text = utf8.decode(snapshot.data!);
                 final fontName =
                     ref.watch(pdfExportFontNotifierProvider).value ??
                         'Merriweather';
 
-                final isPdfPreview = widget.exportFmt == DocumentExportFmt.pdf;
-                final isMd =
-                    widget.exportFmt == DocumentExportFmt.md || isPdfPreview;
+                final isMd = widget.exportFmt == DocumentExportFmt.md;
 
                 Widget content;
                 if (isMd) {
@@ -480,29 +503,6 @@ class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
                   content = SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
                     child: SelectableText(text),
-                  );
-                }
-
-                if (isPdfPreview) {
-                  return Column(
-                    children: [
-                      Container(
-                        color: Theme.of(context).colorScheme.tertiaryContainer,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(8),
-                        child: Text(
-                          'Previewing as Markdown (Export will be PDF)',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onTertiaryContainer,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(child: content),
-                    ],
                   );
                 }
 

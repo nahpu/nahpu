@@ -82,7 +82,7 @@ class LabelWriter {
       h = tmp;
     }
 
-    final pdfBytes = await _generateLabelsPdf(
+    final pdfBytes = await generateLabelsPdf(
       picked,
       template: template,
       sheetWidthPt: w * 72.0 / 25.4,
@@ -156,7 +156,7 @@ class LabelWriter {
     }
   }
 
-  Future<Uint8List> _generateLabelsPdf(
+  Future<Uint8List> generateLabelsPdf(
     List<SpecimenData> specimens, {
     LabelTemplate? template,
     required double sheetWidthPt,

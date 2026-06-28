@@ -393,7 +393,7 @@ class PrintLayoutSection extends StatelessWidget {
                   NumberField(
                     label: 'Width mm',
                     initialValue: customPageWidthMm.toStringAsFixed(1),
-                    onSubmitted: (value) {
+                    onChanged: (value) {
                       onCustomPageWidthChanged(
                           _parseMmOrCurrent(value, customPageWidthMm));
                     },
@@ -401,7 +401,7 @@ class PrintLayoutSection extends StatelessWidget {
                   NumberField(
                     label: 'Height mm',
                     initialValue: customPageHeightMm.toStringAsFixed(1),
-                    onSubmitted: (value) {
+                    onChanged: (value) {
                       onCustomPageHeightChanged(
                           _parseMmOrCurrent(value, customPageHeightMm));
                     },
@@ -433,14 +433,14 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Page top',
                   initialValue: pagePadTopMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onPagePadTopChanged(_parseMmOrCurrent(value, pagePadTopMm));
                   },
                 ),
                 NumberField(
                   label: 'Page left',
                   initialValue: pagePadLeftMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onPagePadLeftChanged(
                         _parseMmOrCurrent(value, pagePadLeftMm));
                   },
@@ -448,7 +448,7 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Page right',
                   initialValue: pagePadRightMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onPagePadRightChanged(
                         _parseMmOrCurrent(value, pagePadRightMm));
                   },
@@ -456,7 +456,7 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Page bottom',
                   initialValue: pagePadBottomMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onPagePadBottomChanged(
                         _parseMmOrCurrent(value, pagePadBottomMm));
                   },
@@ -472,7 +472,7 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Rows / page',
                   initialValue: '$rowsPerPage',
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onRowsPerPageChanged(
                         _parseIntOrCurrent(value, rowsPerPage));
                   },
@@ -480,7 +480,7 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Cols / page',
                   initialValue: '$colsPerPage',
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onColsPerPageChanged(
                         _parseIntOrCurrent(value, colsPerPage));
                   },
@@ -488,7 +488,7 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Label top',
                   initialValue: labelPadTopMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onLabelPadTopChanged(
                         _parseMmOrCurrent(value, labelPadTopMm));
                   },
@@ -496,7 +496,7 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Label left',
                   initialValue: labelPadLeftMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onLabelPadLeftChanged(
                         _parseMmOrCurrent(value, labelPadLeftMm));
                   },
@@ -504,7 +504,7 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Label right',
                   initialValue: labelPadRightMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onLabelPadRightChanged(
                         _parseMmOrCurrent(value, labelPadRightMm));
                   },
@@ -512,7 +512,7 @@ class PrintLayoutSection extends StatelessWidget {
                 NumberField(
                   label: 'Label bottom',
                   initialValue: labelPadBottomMm.toStringAsFixed(1),
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     onLabelPadBottomChanged(
                         _parseMmOrCurrent(value, labelPadBottomMm));
                   },
@@ -526,32 +526,63 @@ class PrintLayoutSection extends StatelessWidget {
   }
 }
 
-class NumberField extends StatelessWidget {
+class NumberField extends StatefulWidget {
   const NumberField({
     super.key,
     required this.label,
     required this.initialValue,
-    required this.onSubmitted,
+    required this.onChanged,
   });
 
   final String label;
   final String initialValue;
-  final ValueChanged<String> onSubmitted;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<NumberField> createState() => _NumberFieldState();
+}
+
+class _NumberFieldState extends State<NumberField> {
+  late final TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant NumberField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue) {
+      if (!_focusNode.hasFocus) {
+        _controller.text = widget.initialValue;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 112,
       child: TextFormField(
-        key: ValueKey('$label-$initialValue'),
-        initialValue: initialValue,
+        controller: _controller,
+        focusNode: _focusNode,
         decoration: InputDecoration(
-          labelText: label,
+          labelText: widget.label,
           border: const OutlineInputBorder(),
           isDense: true,
         ),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        onFieldSubmitted: onSubmitted,
+        onChanged: widget.onChanged,
       ),
     );
   }
