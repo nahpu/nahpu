@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/projects/collection_records.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
@@ -95,6 +96,17 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
   Widget build(BuildContext context) {
     return PopupMenuButton(
         itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+              PopupMenuItem(
+                child: const ViewListMenuButton(text: 'View specimen list'),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CollectionRecordsPage(
+                      initialView: CollectionView.specimens,
+                    ),
+                  ),
+                ),
+              ),
+              const PopupMenuDivider(height: 10),
               PopupMenuItem(
                 child: CreateMenuButton(text: _getNewSpecimenLabel()),
                 onTap: () => createNewSpecimens(context, ref),

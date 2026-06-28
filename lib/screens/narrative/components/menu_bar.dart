@@ -1,3 +1,4 @@
+import 'package:nahpu/screens/projects/collection_records.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/narrative_services.dart';
@@ -84,6 +85,17 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
   Widget build(BuildContext context) {
     return PopupMenuButton<MenuSelection>(
         itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuSelection>>[
+              PopupMenuItem<MenuSelection>(
+                child: const ViewListMenuButton(text: 'View narrative list'),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CollectionRecordsPage(
+                      initialView: CollectionView.narrative,
+                    ),
+                  ),
+                ),
+              ),
+              const PopupMenuDivider(height: 10),
               PopupMenuItem<MenuSelection>(
                 value: MenuSelection.newNarrative,
                 child: const CreateMenuButton(text: 'Create narrative'),

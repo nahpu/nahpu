@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/projects/collection_records.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/collevent_services.dart';
@@ -89,6 +90,17 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
   Widget build(BuildContext context) {
     return PopupMenuButton(
       itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+        PopupMenuItem(
+          child: const ViewListMenuButton(text: 'View event list'),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const CollectionRecordsPage(
+                initialView: CollectionView.events,
+              ),
+            ),
+          ),
+        ),
+        const PopupMenuDivider(height: 10),
         PopupMenuItem(
           child: const CreateMenuButton(text: 'Create event'),
           onTap: () => createNewCollEvents(context, ref),

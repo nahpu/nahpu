@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/projects/collection_records.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
@@ -92,6 +93,17 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
   Widget build(BuildContext context) {
     return PopupMenuButton(
         itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+              PopupMenuItem(
+                child: const ViewListMenuButton(text: 'View site list'),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CollectionRecordsPage(
+                      initialView: CollectionView.sites,
+                    ),
+                  ),
+                ),
+              ),
+              const PopupMenuDivider(height: 10),
               PopupMenuItem(
                 child: const CreateMenuButton(
                   text: 'Create site',
