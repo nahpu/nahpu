@@ -298,229 +298,226 @@ class PrintLayoutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.fromLTRB(0, 12, 0, 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Print layout',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                SizedBox(
-                  width: 360,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('setup-$selectedSetupName'),
-                    initialValue: selectedSetupName,
-                    decoration: const InputDecoration(
-                      labelText: 'Page setup',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: setupNames
-                        .map(
-                          (n) => DropdownMenuItem<String>(
-                            value: n,
-                            child: Text(n),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) onSetupSelected(v);
-                    },
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Print layout',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SizedBox(
+                width: 360,
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('setup-$selectedSetupName'),
+                  initialValue: selectedSetupName,
+                  decoration: const InputDecoration(
+                    labelText: 'Page setup',
+                    border: OutlineInputBorder(),
+                    isDense: true,
                   ),
+                  items: setupNames
+                      .map(
+                        (n) => DropdownMenuItem<String>(
+                          value: n,
+                          child: Text(n),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) onSetupSelected(v);
+                  },
                 ),
-                OutlinedButton.icon(
-                  onPressed: onSaveSetupAs,
-                  icon: const Icon(Icons.save_outlined),
-                  label: const Text('Save'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onDeleteSetup,
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('Delete'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onImportSetup,
-                  icon: const Icon(Icons.download_outlined),
-                  label: const Text('Import'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onExportSetup,
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('Export'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                SizedBox(
-                  width: 280,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('page-size-$pageSizeKey'),
-                    initialValue: pageSizeKey,
-                    decoration: const InputDecoration(
-                      labelText: 'Page size',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: _printPageSizeLabels.entries
-                        .map(
-                          (e) => DropdownMenuItem<String>(
-                            value: e.key,
-                            child: Text(e.value),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) onPageSizeKeyChanged(v);
-                    },
+              ),
+              OutlinedButton.icon(
+                onPressed: onSaveSetupAs,
+                icon: const Icon(Icons.save_outlined),
+                label: const Text('Save'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onDeleteSetup,
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Delete'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onImportSetup,
+                icon: const Icon(Icons.download_outlined),
+                label: const Text('Import'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onExportSetup,
+                icon: const Icon(Icons.upload_file_outlined),
+                label: const Text('Export'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SizedBox(
+                width: 280,
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('page-size-$pageSizeKey'),
+                  initialValue: pageSizeKey,
+                  decoration: const InputDecoration(
+                    labelText: 'Page size',
+                    border: OutlineInputBorder(),
+                    isDense: true,
                   ),
+                  items: _printPageSizeLabels.entries
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e.key,
+                          child: Text(e.value),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) onPageSizeKeyChanged(v);
+                  },
                 ),
-                if (pageSizeKey == 'Custom') ...[
-                  NumberField(
-                    label: 'Width mm',
-                    initialValue: customPageWidthMm.toStringAsFixed(1),
-                    onChanged: (value) {
-                      onCustomPageWidthChanged(
-                          _parseMmOrCurrent(value, customPageWidthMm));
-                    },
-                  ),
-                  NumberField(
-                    label: 'Height mm',
-                    initialValue: customPageHeightMm.toStringAsFixed(1),
-                    onChanged: (value) {
-                      onCustomPageHeightChanged(
-                          _parseMmOrCurrent(value, customPageHeightMm));
-                    },
-                  ),
-                ],
-                SizedBox(
-                  width: 160,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('orientation-$pageOrientation'),
-                    initialValue: pageOrientation,
-                    decoration: const InputDecoration(
-                      labelText: 'Orientation',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: _pageOrientationLabels.entries
-                        .map(
-                          (e) => DropdownMenuItem<String>(
-                            value: e.key,
-                            child: Text(e.value),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) onOrientationChanged(v);
-                    },
-                  ),
-                ),
+              ),
+              if (pageSizeKey == 'Custom') ...[
                 NumberField(
-                  label: 'Page top',
-                  initialValue: pagePadTopMm.toStringAsFixed(1),
+                  label: 'Width mm',
+                  initialValue: customPageWidthMm.toStringAsFixed(1),
                   onChanged: (value) {
-                    onPagePadTopChanged(_parseMmOrCurrent(value, pagePadTopMm));
+                    onCustomPageWidthChanged(
+                        _parseMmOrCurrent(value, customPageWidthMm));
                   },
                 ),
                 NumberField(
-                  label: 'Page left',
-                  initialValue: pagePadLeftMm.toStringAsFixed(1),
+                  label: 'Height mm',
+                  initialValue: customPageHeightMm.toStringAsFixed(1),
                   onChanged: (value) {
-                    onPagePadLeftChanged(
-                        _parseMmOrCurrent(value, pagePadLeftMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Page right',
-                  initialValue: pagePadRightMm.toStringAsFixed(1),
-                  onChanged: (value) {
-                    onPagePadRightChanged(
-                        _parseMmOrCurrent(value, pagePadRightMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Page bottom',
-                  initialValue: pagePadBottomMm.toStringAsFixed(1),
-                  onChanged: (value) {
-                    onPagePadBottomChanged(
-                        _parseMmOrCurrent(value, pagePadBottomMm));
+                    onCustomPageHeightChanged(
+                        _parseMmOrCurrent(value, customPageHeightMm));
                   },
                 ),
               ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                NumberField(
-                  label: 'Rows / page',
-                  initialValue: '$rowsPerPage',
-                  onChanged: (value) {
-                    onRowsPerPageChanged(
-                        _parseIntOrCurrent(value, rowsPerPage));
+              SizedBox(
+                width: 160,
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('orientation-$pageOrientation'),
+                  initialValue: pageOrientation,
+                  decoration: const InputDecoration(
+                    labelText: 'Orientation',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  items: _pageOrientationLabels.entries
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e.key,
+                          child: Text(e.value),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) onOrientationChanged(v);
                   },
                 ),
-                NumberField(
-                  label: 'Cols / page',
-                  initialValue: '$colsPerPage',
-                  onChanged: (value) {
-                    onColsPerPageChanged(
-                        _parseIntOrCurrent(value, colsPerPage));
-                  },
-                ),
-                NumberField(
-                  label: 'Label top',
-                  initialValue: labelPadTopMm.toStringAsFixed(1),
-                  onChanged: (value) {
-                    onLabelPadTopChanged(
-                        _parseMmOrCurrent(value, labelPadTopMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Label left',
-                  initialValue: labelPadLeftMm.toStringAsFixed(1),
-                  onChanged: (value) {
-                    onLabelPadLeftChanged(
-                        _parseMmOrCurrent(value, labelPadLeftMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Label right',
-                  initialValue: labelPadRightMm.toStringAsFixed(1),
-                  onChanged: (value) {
-                    onLabelPadRightChanged(
-                        _parseMmOrCurrent(value, labelPadRightMm));
-                  },
-                ),
-                NumberField(
-                  label: 'Label bottom',
-                  initialValue: labelPadBottomMm.toStringAsFixed(1),
-                  onChanged: (value) {
-                    onLabelPadBottomChanged(
-                        _parseMmOrCurrent(value, labelPadBottomMm));
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              NumberField(
+                label: 'Page top',
+                initialValue: pagePadTopMm.toStringAsFixed(1),
+                onChanged: (value) {
+                  onPagePadTopChanged(_parseMmOrCurrent(value, pagePadTopMm));
+                },
+              ),
+              NumberField(
+                label: 'Page left',
+                initialValue: pagePadLeftMm.toStringAsFixed(1),
+                onChanged: (value) {
+                  onPagePadLeftChanged(_parseMmOrCurrent(value, pagePadLeftMm));
+                },
+              ),
+              NumberField(
+                label: 'Page right',
+                initialValue: pagePadRightMm.toStringAsFixed(1),
+                onChanged: (value) {
+                  onPagePadRightChanged(
+                      _parseMmOrCurrent(value, pagePadRightMm));
+                },
+              ),
+              NumberField(
+                label: 'Page bottom',
+                initialValue: pagePadBottomMm.toStringAsFixed(1),
+                onChanged: (value) {
+                  onPagePadBottomChanged(
+                      _parseMmOrCurrent(value, pagePadBottomMm));
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              NumberField(
+                label: 'Rows / page',
+                initialValue: '$rowsPerPage',
+                onChanged: (value) {
+                  onRowsPerPageChanged(_parseIntOrCurrent(value, rowsPerPage));
+                },
+              ),
+              NumberField(
+                label: 'Cols / page',
+                initialValue: '$colsPerPage',
+                onChanged: (value) {
+                  onColsPerPageChanged(_parseIntOrCurrent(value, colsPerPage));
+                },
+              ),
+              NumberField(
+                label: 'Label top',
+                initialValue: labelPadTopMm.toStringAsFixed(1),
+                onChanged: (value) {
+                  onLabelPadTopChanged(_parseMmOrCurrent(value, labelPadTopMm));
+                },
+              ),
+              NumberField(
+                label: 'Label left',
+                initialValue: labelPadLeftMm.toStringAsFixed(1),
+                onChanged: (value) {
+                  onLabelPadLeftChanged(
+                      _parseMmOrCurrent(value, labelPadLeftMm));
+                },
+              ),
+              NumberField(
+                label: 'Label right',
+                initialValue: labelPadRightMm.toStringAsFixed(1),
+                onChanged: (value) {
+                  onLabelPadRightChanged(
+                      _parseMmOrCurrent(value, labelPadRightMm));
+                },
+              ),
+              NumberField(
+                label: 'Label bottom',
+                initialValue: labelPadBottomMm.toStringAsFixed(1),
+                onChanged: (value) {
+                  onLabelPadBottomChanged(
+                      _parseMmOrCurrent(value, labelPadBottomMm));
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
