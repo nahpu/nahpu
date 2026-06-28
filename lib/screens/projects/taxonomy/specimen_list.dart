@@ -227,14 +227,14 @@ class SpecimenListTitle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder(
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return Text(
-            '${snapshot.data} ${fieldNumber ?? ''}',
-            style: Theme.of(context).textTheme.titleMedium,
-          );
-        } else {
-          return const CommonProgressIndicator();
-        }
+        // Render a stable Text regardless of the async state so recycled rows
+        // don't flash a progress indicator while scrolling. The field number is
+        // known synchronously; the cataloger name fills in once resolved.
+        final name = snapshot.data ?? '';
+        return Text(
+          '$name ${fieldNumber ?? ''}'.trim(),
+          style: Theme.of(context).textTheme.titleMedium,
+        );
       },
       future: _getPersonnelName(catalogerID, ref),
     );
@@ -263,14 +263,12 @@ class SpecimenListSubtitle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder(
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return Text(
-            snapshot.data ?? '',
-            style: Theme.of(context).textTheme.titleSmall,
-          );
-        } else {
-          return const Text('Loading...');
-        }
+        // Keep a blank, same-style placeholder while loading so fast scrolling
+        // doesn't flash 'Loading...' as rows are recycled.
+        return Text(
+          snapshot.data ?? '',
+          style: Theme.of(context).textTheme.titleSmall,
+        );
       },
       future: _getTaxonData(data?.speciesID, ref),
     );
