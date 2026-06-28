@@ -36,6 +36,7 @@ class LabelCanvasEditor extends StatefulWidget {
     required this.labelPanGlobalDeltaToMm,
     required this.onClearSelection,
     required this.onSelectElement,
+    required this.onStartInlineEditing,
     required this.onScheduleTemplateImageUpdate,
     required this.onRemoveCustomImage,
     required this.onScheduleTemplateTextPositionUpdate,
@@ -65,6 +66,7 @@ class LabelCanvasEditor extends StatefulWidget {
       Offset globalDelta, double scale) labelPanGlobalDeltaToMm;
   final VoidCallback onClearSelection;
   final void Function(String id) onSelectElement;
+  final void Function(String id) onStartInlineEditing;
   final void Function(CustomImageElement element) onScheduleTemplateImageUpdate;
   final void Function(String id) onRemoveCustomImage;
   final void Function(CustomTextElement element)
@@ -377,6 +379,10 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                     },
                                     onSelect: () {
                                       onSelectElement(
+                                          'custom:${page1 ? '1' : '2'}:${element.id}');
+                                    },
+                                    onDoubleTap: () {
+                                      widget.onStartInlineEditing(
                                           'custom:${page1 ? '1' : '2'}:${element.id}');
                                     },
                                     onDragStateChanged: onDragStateChanged,

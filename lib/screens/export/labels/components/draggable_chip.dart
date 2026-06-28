@@ -42,6 +42,7 @@ class DraggableChip extends StatefulWidget {
     this.onMaxWidthChanged,
     this.colorArgb = 0xFF000000,
     this.onDragStateChanged,
+    this.onDoubleTap,
   });
 
   final String label;
@@ -77,6 +78,7 @@ class DraggableChip extends StatefulWidget {
   /// When pan wins over tap (slight movement), [onTap] may not run; parent uses
   /// this to select so the attributes bar appears immediately.
   final VoidCallback? onSelect;
+  final VoidCallback? onDoubleTap;
 
   final double? maxWidthMm;
   final ValueChanged<double>? onMaxWidthChanged;
@@ -530,6 +532,7 @@ class DraggableChipState extends State<DraggableChip> {
               widget.onSelect?.call();
             },
             onTap: widget.onTap,
+            onDoubleTap: widget.onDoubleTap,
             onPanStart: _onLabelPanStart,
             onPanUpdate: _panMoveClampedToHitInset,
             onPanEnd: (_) => _onLabelPanEnd(),

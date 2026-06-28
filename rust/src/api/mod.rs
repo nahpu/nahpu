@@ -4,4 +4,5 @@
 pub mod archive;
 pub mod common;
 pub mod export;
+pub mod gis;
 pub mod import;

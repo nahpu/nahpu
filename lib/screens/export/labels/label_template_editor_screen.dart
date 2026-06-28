@@ -579,7 +579,7 @@ class _LabelTemplateEditorScreenState
                                   icon: const Icon(Icons.crop_square),
                                   tooltip: 'Add shape',
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 16),
                                 MirrorToggleButton(
                                   isMirrorActive:
                                       _isPage1 ? _mirrorFront : _mirrorBack,
@@ -726,6 +726,11 @@ class _LabelTemplateEditorScreenState
                                         _selectedElement = id;
                                         _inlineCanvasCustomKey = null;
                                       }),
+                                      onStartInlineEditing: (id) =>
+                                          _deferSetState(() {
+                                        _selectedElement = id;
+                                        _inlineCanvasCustomKey = id;
+                                      }),
                                       onScheduleTemplateImageUpdate:
                                           (element) =>
                                               _scheduleTemplateImageUpdate(
@@ -791,6 +796,11 @@ class _LabelTemplateEditorScreenState
                                         _selectedElement = id;
                                         _inlineCanvasCustomKey = null;
                                       }),
+                                      onStartInlineEditing: (id) =>
+                                          _deferSetState(() {
+                                        _selectedElement = id;
+                                        _inlineCanvasCustomKey = id;
+                                      }),
                                       onScheduleTemplateImageUpdate:
                                           (element) =>
                                               _scheduleTemplateImageUpdate(
@@ -854,6 +864,11 @@ class _LabelTemplateEditorScreenState
                                   onSelectElement: (id) => _deferSetState(() {
                                     _selectedElement = id;
                                     _inlineCanvasCustomKey = null;
+                                  }),
+                                  onStartInlineEditing: (id) =>
+                                      _deferSetState(() {
+                                    _selectedElement = id;
+                                    _inlineCanvasCustomKey = id;
                                   }),
                                   onScheduleTemplateImageUpdate: (element) =>
                                       _scheduleTemplateImageUpdate(
