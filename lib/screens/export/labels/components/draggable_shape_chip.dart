@@ -39,6 +39,7 @@ class DraggableShapeChip extends StatefulWidget {
     this.onDelete,
     this.isSelected = false,
     this.onTap,
+    this.onDragStateChanged,
   });
 
   final String shapeType; // 'rect' or 'ellipse'
@@ -65,6 +66,7 @@ class DraggableShapeChip extends StatefulWidget {
   final VoidCallback? onDelete;
   final bool isSelected;
   final VoidCallback? onTap;
+  final ValueChanged<bool>? onDragStateChanged;
 
   @override
   State<DraggableShapeChip> createState() => DraggableShapeChipState();
@@ -124,6 +126,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   }
 
   void _onResizePanStart(DragStartDetails d, _ShapeCorner c) {
+    widget.onDragStateChanged?.call(true);
     _beginResize(c);
     _resizePanLastGlobal = d.globalPosition;
   }
@@ -186,6 +189,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   }
 
   void _endResize() {
+    widget.onDragStateChanged?.call(false);
     if (_resizeLiveRect != null) {
       widget.onBoundsChanged(
         _resizeLiveRect!.left,
@@ -202,6 +206,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   }
 
   void _beginRotate(DragStartDetails d) {
+    widget.onDragStateChanged?.call(true);
     _rotateStartElemDeg = widget.rotationDegrees;
     final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
@@ -230,6 +235,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   }
 
   void _endRotate() {
+    widget.onDragStateChanged?.call(false);
     if (_rotateLiveDeg != null) {
       widget.onRotationChanged(_rotateLiveDeg!);
     }
@@ -372,8 +378,10 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                 child: GestureDetector(
                   key: _measureKey,
                   behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) => widget.onTap?.call(),
                   onTap: widget.onTap,
                   onPanStart: (d) {
+                    widget.onDragStateChanged?.call(true);
                     _imageMoveSession++;
                     _imagePanOriginMm = widget.position;
                     _imagePanAccumMm = Offset.zero;
@@ -393,12 +401,19 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                     final lr = _resizeLiveRect;
                     final w = lr?.width ?? widget.widthMm;
                     final h = lr?.height ?? widget.heightMm;
-                    final maxX = math.max(0.0, widget.labelWidthMm - w);
-                    final maxY = math.max(0.0, widget.labelHeightMm - h);
+                    final rad = _effectiveRotationDeg * math.pi / 180;
+                    final cosT = math.cos(rad).abs();
+                    final sinT = math.sin(rad).abs();
+                    final halfBoundX = (w * cosT + h * sinT) / 2;
+                    final halfBoundY = (w * sinT + h * cosT) / 2;
+                    final minX = halfBoundX - w / 2;
+                    final maxX = widget.labelWidthMm - w / 2 - halfBoundX;
+                    final minY = halfBoundY - h / 2;
+                    final maxY = widget.labelHeightMm - h / 2 - halfBoundY;
                     final rawX = origin.dx + _imagePanAccumMm.dx;
                     final rawY = origin.dy + _imagePanAccumMm.dy;
-                    final cx = _clampMm(rawX, 0, maxX);
-                    final cy = _clampMm(rawY, 0, maxY);
+                    final cx = _clampMm(rawX, minX, maxX);
+                    final cy = _clampMm(rawY, minY, maxY);
                     if (cx != rawX || cy != rawY) {
                       _imagePanOriginMm = Offset(cx, cy);
                       _imagePanAccumMm = Offset.zero;
@@ -409,10 +424,12 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                   onPanEnd: (_) {
                     _deferSetState(() => _moving = false);
                     _finishImageMoveGesture();
+                    widget.onDragStateChanged?.call(false);
                   },
                   onPanCancel: () {
                     _deferSetState(() => _moving = false);
                     _finishImageMoveGesture();
+                    widget.onDragStateChanged?.call(false);
                   },
                   child: AnimatedContainer(
                     duration: (_resizeCorner != null ||

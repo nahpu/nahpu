@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/export/labels/label_template_editor_screen.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
 
-enum _ShapeCorner { tl, tr, bl, br }
+enum _LineHandle { left, right }
 
 const double _kPdfPointsPerMm = 72.0 / 25.4;
 
@@ -36,6 +36,7 @@ class DraggableLineChip extends StatefulWidget {
     this.onDelete,
     this.isSelected = false,
     this.onTap,
+    this.onDragStateChanged,
   });
 
   final Offset position;
@@ -59,6 +60,7 @@ class DraggableLineChip extends StatefulWidget {
   final VoidCallback? onDelete;
   final bool isSelected;
   final VoidCallback? onTap;
+  final ValueChanged<bool>? onDragStateChanged;
 
   @override
   State<DraggableLineChip> createState() => DraggableLineChipState();
@@ -78,7 +80,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   final GlobalKey _measureKey = GlobalKey();
 
   bool _moving = false;
-  _ShapeCorner? _resizeCorner;
+  _LineHandle? _resizeHandle;
   Rect? _resizeStart;
   Offset _resizeAccum = Offset.zero;
 
@@ -117,13 +119,14 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     return Offset(dlx, dly);
   }
 
-  void _onResizePanStart(DragStartDetails d, _ShapeCorner c) {
-    _beginResize(c);
+  void _onResizePanStart(DragStartDetails d, _LineHandle h) {
+    widget.onDragStateChanged?.call(true);
+    _beginResize(h);
     _resizePanLastGlobal = d.globalPosition;
   }
 
-  void _beginResize(_ShapeCorner c) {
-    _resizeCorner = c;
+  void _beginResize(_LineHandle h) {
+    _resizeHandle = h;
     _resizeStart = Rect.fromLTWH(
       widget.position.dx,
       widget.position.dy,
@@ -135,7 +138,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   }
 
   void _onResizePanUpdate(DragUpdateDetails d) {
-    if (_resizeCorner == null || _resizeStart == null) return;
+    if (_resizeHandle == null || _resizeStart == null) return;
     final last = _resizePanLastGlobal ?? d.globalPosition;
     final gDelta = d.globalPosition - last;
     _resizePanLastGlobal = d.globalPosition;
@@ -143,44 +146,60 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     _resizeAccum += _labelDeltaToImageLocalMm(dLabelMm);
     final s = _resizeStart!;
     final a = _resizeAccum;
+
+    final rad = _effectiveRotationDeg * math.pi / 180;
+    final cosT = math.cos(rad);
+    final sinT = math.sin(rad);
+
+    final hMm = math.max(2.0, widget.thicknessPt * 0.3527);
+    final lStart = s.width;
+
+    late double rw;
     late double x;
     late double y;
-    late double rw;
-    late double rh;
-    switch (_resizeCorner!) {
-      case _ShapeCorner.br:
-        x = s.left;
-        y = s.top;
-        rw = s.width + a.dx;
-        rh = s.height + a.dy;
+
+    switch (_resizeHandle!) {
+      case _LineHandle.right:
+        final startXFixed = s.left + lStart / 2 * (1 - cosT);
+        final startYFixed = s.top + hMm / 2 - lStart / 2 * sinT;
+
+        rw = (s.width + a.dx).clamp(2.0, widget.labelWidthMm);
+
+        x = startXFixed - rw / 2 * (1 - cosT);
+        y = startYFixed - hMm / 2 + rw / 2 * sinT;
         break;
-      case _ShapeCorner.tr:
-        x = s.left;
-        y = s.top + a.dy;
-        rw = s.width + a.dx;
-        rh = s.height - a.dy;
-        break;
-      case _ShapeCorner.bl:
-        x = s.left + a.dx;
-        y = s.top;
-        rw = s.width - a.dx;
-        rh = s.height + a.dy;
-        break;
-      case _ShapeCorner.tl:
-        x = s.left + a.dx;
-        y = s.top + a.dy;
-        rw = s.width - a.dx;
-        rh = s.height - a.dy;
+
+      case _LineHandle.left:
+        final endXFixed = s.left + lStart / 2 * (1 + cosT);
+        final endYFixed = s.top + hMm / 2 + lStart / 2 * sinT;
+
+        rw = (s.width - a.dx).clamp(2.0, widget.labelWidthMm);
+
+        x = endXFixed - rw / 2 * (1 + cosT);
+        y = endYFixed - hMm / 2 - rw / 2 * sinT;
         break;
     }
-    rw = rw.clamp(2.0, widget.labelWidthMm);
-    rh = rh.clamp(2.0, widget.labelHeightMm);
-    x = _clampMm(x, 0, math.max(0.0, widget.labelWidthMm - rw));
-    y = _clampMm(y, 0, math.max(0.0, widget.labelHeightMm - rh));
-    setState(() => _resizeLiveRect = Rect.fromLTWH(x, y, rw, rh));
+
+    final rh = s.height;
+
+    final cosTAbs = cosT.abs();
+    final sinTAbs = sinT.abs();
+    final halfBoundX = (rw * cosTAbs + rh * sinTAbs) / 2;
+    final halfBoundY = (rw * sinTAbs + rh * cosTAbs) / 2;
+
+    final minX = halfBoundX - rw / 2;
+    final maxX = widget.labelWidthMm - rw / 2 - halfBoundX;
+    final minY = halfBoundY - rh / 2;
+    final maxY = widget.labelHeightMm - rh / 2 - halfBoundY;
+
+    final cx = _clampMm(x, minX, maxX);
+    final cy = _clampMm(y, minY, maxY);
+
+    setState(() => _resizeLiveRect = Rect.fromLTWH(cx, cy, rw, rh));
   }
 
   void _endResize() {
+    widget.onDragStateChanged?.call(false);
     if (_resizeLiveRect != null) {
       widget.onBoundsChanged(
         _resizeLiveRect!.left,
@@ -189,7 +208,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
         _resizeLiveRect!.height,
       );
     }
-    _resizeCorner = null;
+    _resizeHandle = null;
     _resizeStart = null;
     _resizeAccum = Offset.zero;
     _resizePanLastGlobal = null;
@@ -197,6 +216,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   }
 
   void _beginRotate(DragStartDetails d) {
+    widget.onDragStateChanged?.call(true);
     _rotateStartElemDeg = widget.rotationDegrees;
     final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
@@ -225,6 +245,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   }
 
   void _endRotate() {
+    widget.onDragStateChanged?.call(false);
     if (_rotateLiveDeg != null) {
       widget.onRotationChanged(_rotateLiveDeg!);
     }
@@ -234,8 +255,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   }
 
   /// [innerLeft]/[innerTop] = top-left of the image rect inside the padded stack.
-  Widget _cornerHandle(
-    _ShapeCorner corner,
+  Widget _lineHandle(
+    _LineHandle handle,
     ColorScheme scheme, {
     required double innerLeft,
     required double innerTop,
@@ -244,23 +265,13 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   }) {
     final o = _handleHit / 2;
     late final double left;
-    late final double top;
-    switch (corner) {
-      case _ShapeCorner.tl:
+    final double top = innerTop + innerH / 2 - o;
+    switch (handle) {
+      case _LineHandle.left:
         left = innerLeft - o;
-        top = innerTop - o;
         break;
-      case _ShapeCorner.tr:
+      case _LineHandle.right:
         left = innerLeft + innerW - o;
-        top = innerTop - o;
-        break;
-      case _ShapeCorner.bl:
-        left = innerLeft - o;
-        top = innerTop + innerH - o;
-        break;
-      case _ShapeCorner.br:
-        left = innerLeft + innerW - o;
-        top = innerTop + innerH - o;
         break;
     }
     return Positioned(
@@ -270,7 +281,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       height: _handleHit,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onPanStart: (d) => _onResizePanStart(d, corner),
+        onPanStart: (d) => _onResizePanStart(d, handle),
         onPanUpdate: _onResizePanUpdate,
         onPanEnd: (_) => _deferSetState(_endResize),
         onPanCancel: () => _deferSetState(_endResize),
@@ -367,8 +378,10 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                 child: GestureDetector(
                   key: _measureKey,
                   behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) => widget.onTap?.call(),
                   onTap: widget.onTap,
                   onPanStart: (d) {
+                    widget.onDragStateChanged?.call(true);
                     _imageMoveSession++;
                     _imagePanOriginMm = widget.position;
                     _imagePanAccumMm = Offset.zero;
@@ -389,12 +402,19 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                     final w = lr?.width ?? widget.lengthMm;
                     final h = lr?.height ??
                         math.max(1.0, widget.thicknessPt * 0.3527);
-                    final maxX = math.max(0.0, widget.labelWidthMm - w);
-                    final maxY = math.max(0.0, widget.labelHeightMm - h);
+                    final rad = _effectiveRotationDeg * math.pi / 180;
+                    final cosT = math.cos(rad).abs();
+                    final sinT = math.sin(rad).abs();
+                    final halfBoundX = (w * cosT + h * sinT) / 2;
+                    final halfBoundY = (w * sinT + h * cosT) / 2;
+                    final minX = halfBoundX - w / 2;
+                    final maxX = widget.labelWidthMm - w / 2 - halfBoundX;
+                    final minY = halfBoundY - h / 2;
+                    final maxY = widget.labelHeightMm - h / 2 - halfBoundY;
                     final rawX = origin.dx + _imagePanAccumMm.dx;
                     final rawY = origin.dy + _imagePanAccumMm.dy;
-                    final cx = _clampMm(rawX, 0, maxX);
-                    final cy = _clampMm(rawY, 0, maxY);
+                    final cx = _clampMm(rawX, minX, maxX);
+                    final cy = _clampMm(rawY, minY, maxY);
                     if (cx != rawX || cy != rawY) {
                       _imagePanOriginMm = Offset(cx, cy);
                       _imagePanAccumMm = Offset.zero;
@@ -405,13 +425,15 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                   onPanEnd: (_) {
                     _deferSetState(() => _moving = false);
                     _finishImageMoveGesture();
+                    widget.onDragStateChanged?.call(false);
                   },
                   onPanCancel: () {
                     _deferSetState(() => _moving = false);
                     _finishImageMoveGesture();
+                    widget.onDragStateChanged?.call(false);
                   },
                   child: AnimatedContainer(
-                    duration: (_resizeCorner != null ||
+                    duration: (_resizeHandle != null ||
                             _rotateStartFingerRad != null ||
                             _moving)
                         ? Duration.zero
@@ -460,13 +482,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                 ),
               ),
               if (widget.isSelected) ...[
-                _cornerHandle(_ShapeCorner.tl, scheme,
+                _lineHandle(_LineHandle.left, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(_ShapeCorner.tr, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(_ShapeCorner.bl, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(_ShapeCorner.br, scheme,
+                _lineHandle(_LineHandle.right, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
                 Positioned(
                   left: padL + w / 2 - 20,

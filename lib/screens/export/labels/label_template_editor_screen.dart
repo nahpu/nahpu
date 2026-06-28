@@ -681,6 +681,10 @@ class _LabelTemplateEditorScreenState
                               onDeleteCustomLine: _removeCustomLine,
                               onUpdateCustomShape: _updateCustomShape,
                               onDeleteCustomShape: _removeCustomShape,
+                              onDismiss: () => _deferSetState(() {
+                                _selectedElement = null;
+                                _inlineCanvasCustomKey = null;
+                              }),
                             ),
                           )
                         : const SizedBox(width: double.infinity, height: 0),

@@ -17,14 +17,7 @@ import 'package:nahpu/screens/export/labels/components/grid_painter.dart';
 
 const double _kLabelCanvasHitPadPx = 72.0;
 
-double _clampMm(double value, double bound1, double bound2) {
-  final lo = bound1 <= bound2 ? bound1 : bound2;
-  final hi = bound1 <= bound2 ? bound2 : bound1;
-  if (value.isNaN || value.isInfinite) return lo;
-  return value.clamp(lo, hi);
-}
-
-class LabelCanvasEditor extends StatelessWidget {
+class LabelCanvasEditor extends StatefulWidget {
   const LabelCanvasEditor({
     super.key,
     required this.page1,
@@ -85,7 +78,41 @@ class LabelCanvasEditor extends StatelessWidget {
   final void Function(String id) onRemoveCustomShape;
 
   @override
+  State<LabelCanvasEditor> createState() => _LabelCanvasEditorState();
+}
+
+class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
+  bool _canvasPanEnabled = true;
+
+  @override
   Widget build(BuildContext context) {
+    final page1 = widget.page1;
+    final template = widget.template;
+    final labelWidthMm = widget.labelWidthMm;
+    final labelHeightMm = widget.labelHeightMm;
+    final zoom = widget.zoom;
+    final showGrid = widget.showGrid;
+    final mirrorFront = widget.mirrorFront;
+    final mirrorBack = widget.mirrorBack;
+    final isPreviewMode = widget.isPreviewMode;
+    final editorLabelFieldPreview = widget.editorLabelFieldPreview;
+    final selectedElement = widget.selectedElement;
+    final inlineCanvasCustomKey = widget.inlineCanvasCustomKey;
+    final labelStackKey = widget.labelStackKey;
+    final labelPanGlobalDeltaToMm = widget.labelPanGlobalDeltaToMm;
+    final onClearSelection = widget.onClearSelection;
+    final onSelectElement = widget.onSelectElement;
+    final onScheduleTemplateImageUpdate = widget.onScheduleTemplateImageUpdate;
+    final onRemoveCustomImage = widget.onRemoveCustomImage;
+    final onScheduleTemplateTextPositionUpdate =
+        widget.onScheduleTemplateTextPositionUpdate;
+    final onInlineEditingComplete = widget.onInlineEditingComplete;
+    final onInlineTextInsertBinding = widget.onInlineTextInsertBinding;
+    final onScheduleTemplateLineUpdate = widget.onScheduleTemplateLineUpdate;
+    final onRemoveCustomLine = widget.onRemoveCustomLine;
+    final onScheduleTemplateShapeUpdate = widget.onScheduleTemplateShapeUpdate;
+    final onRemoveCustomShape = widget.onRemoveCustomShape;
+
     final page = page1 ? template.page1 : template.page2;
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -103,7 +130,6 @@ class LabelCanvasEditor extends StatelessWidget {
       final stackW = canvasW + _kLabelCanvasHitPadPx;
       final stackH = canvasH + 2 * _kLabelCanvasHitPadPx;
 
-
       Offset? labelPanToMmDelta(Offset globalPosition, Offset globalDelta) {
         return labelPanGlobalDeltaToMm(
           labelStackKey,
@@ -113,32 +139,43 @@ class LabelCanvasEditor extends StatelessWidget {
         );
       }
 
+      void onDragStateChanged(bool dragging) {
+        setState(() {
+          _canvasPanEnabled = !dragging;
+        });
+      }
+
       return InteractiveViewer(
         constrained: false,
         scaleEnabled: false,
-        panEnabled: true,
+        panEnabled: _canvasPanEnabled,
         clipBehavior: Clip.none,
         boundaryMargin: const EdgeInsets.all(double.infinity),
         child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              0,
-              edgePadH,
-              edgePadCanvasEnd,
-              edgePadH,
+          padding: const EdgeInsets.fromLTRB(
+            0,
+            edgePadH,
+            edgePadCanvasEnd,
+            edgePadH,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: availW,
+              minHeight: availH,
             ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: availW,
-                minHeight: availH,
-              ),
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: onClearSelection,
-                child: Container(
+            child: Stack(
+              fit: StackFit.loose,
+              children: [
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (_) => onClearSelection(),
+                  ),
+                ),
+                Container(
                   width: availW,
                   height: availH,
                   alignment: Alignment.center,
-                  color: Colors.transparent,
                   child: Transform.rotate(
                     angle: (page1 ? mirrorFront : mirrorBack) ? math.pi : 0,
                     child: SizedBox(
@@ -213,15 +250,12 @@ class LabelCanvasEditor extends StatelessWidget {
                                       'image:${page1 ? '1' : '2'}:${element.id}',
                                   onTap: () => onSelectElement(
                                       'image:${page1 ? '1' : '2'}:${element.id}'),
+                                  onDragStateChanged: onDragStateChanged,
                                   onMoved: (pos) {
-                                    final maxX = math.max(
-                                        0.0, labelWidthMm - element.widthMm);
-                                    final maxY = math.max(
-                                        0.0, labelHeightMm - element.heightMm);
                                     onScheduleTemplateImageUpdate(
                                       element.copyWith(
-                                        xMm: _clampMm(pos.dx, 0, maxX),
-                                        yMm: _clampMm(pos.dy, 0, maxY),
+                                        xMm: pos.dx,
+                                        yMm: pos.dy,
                                       ),
                                     );
                                   },
@@ -270,19 +304,12 @@ class LabelCanvasEditor extends StatelessWidget {
                                         'custom:${page1 ? '1' : '2'}:${element.id}',
                                     onTap: () => onSelectElement(
                                         'custom:${page1 ? '1' : '2'}:${element.id}'),
+                                    onDragStateChanged: onDragStateChanged,
                                     onMoved: (pos) {
-                                      final wMm = element.iconWidthMm ??
-                                          kLabelGenderIconDefaultWidthMm;
-                                      final hMm = element.iconHeightMm ??
-                                          kLabelGenderIconDefaultHeightMm;
-                                      final maxX =
-                                          math.max(0.0, labelWidthMm - wMm);
-                                      final maxY =
-                                          math.max(0.0, labelHeightMm - hMm);
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
-                                          xMm: _clampMm(pos.dx, 0, maxX),
-                                          yMm: _clampMm(pos.dy, 0, maxY),
+                                          xMm: pos.dx,
+                                          yMm: pos.dy,
                                         ),
                                       );
                                     },
@@ -352,6 +379,7 @@ class LabelCanvasEditor extends StatelessWidget {
                                       onSelectElement(
                                           'custom:${page1 ? '1' : '2'}:${element.id}');
                                     },
+                                    onDragStateChanged: onDragStateChanged,
                                     onMoved: (pos) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
@@ -379,6 +407,7 @@ class LabelCanvasEditor extends StatelessWidget {
                                       'line:${page1 ? '1' : '2'}:${element.id}',
                                   onTap: () => onSelectElement(
                                       'line:${page1 ? '1' : '2'}:${element.id}'),
+                                  onDragStateChanged: onDragStateChanged,
                                   onMoved: (pos) {
                                     onScheduleTemplateLineUpdate(element
                                         .copyWith(xMm: pos.dx, yMm: pos.dy));
@@ -416,6 +445,7 @@ class LabelCanvasEditor extends StatelessWidget {
                                       'shape:${page1 ? '1' : '2'}:${element.id}',
                                   onTap: () => onSelectElement(
                                       'shape:${page1 ? '1' : '2'}:${element.id}'),
+                                  onDragStateChanged: onDragStateChanged,
                                   onMoved: (pos) {
                                     onScheduleTemplateShapeUpdate(element
                                         .copyWith(xMm: pos.dx, yMm: pos.dy));
@@ -444,9 +474,10 @@ class LabelCanvasEditor extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
+        ),
       );
     });
   }

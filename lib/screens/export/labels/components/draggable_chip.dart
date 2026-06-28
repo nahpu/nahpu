@@ -41,6 +41,7 @@ class DraggableChip extends StatefulWidget {
     this.maxWidthMm,
     this.onMaxWidthChanged,
     this.colorArgb = 0xFF000000,
+    this.onDragStateChanged,
   });
 
   final String label;
@@ -80,6 +81,7 @@ class DraggableChip extends StatefulWidget {
   final double? maxWidthMm;
   final ValueChanged<double>? onMaxWidthChanged;
   final int colorArgb;
+  final ValueChanged<bool>? onDragStateChanged;
 
   @override
   State<DraggableChip> createState() => DraggableChipState();
@@ -129,6 +131,7 @@ class DraggableChipState extends State<DraggableChip> {
   }
 
   void _onResizePanStart(DragStartDetails d, _TextCorner corner) {
+    widget.onDragStateChanged?.call(true);
     final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
     final textStyle = customLabelCanvasTextStyle(
       fontFamilyRaw: widget.fontFamily,
@@ -197,6 +200,7 @@ class DraggableChipState extends State<DraggableChip> {
   }
 
   void _onResizePanEnd() {
+    widget.onDragStateChanged?.call(false);
     if (_resizeLiveWidthMm != null) {
       widget.onMaxWidthChanged?.call(_resizeLiveWidthMm!);
     }
@@ -214,6 +218,7 @@ class DraggableChipState extends State<DraggableChip> {
   }
 
   void _onLabelPanStart(DragStartDetails d) {
+    widget.onDragStateChanged?.call(true);
     if (widget.isCustom && !widget.isSelected) {
       widget.onSelect?.call();
     }
@@ -242,6 +247,7 @@ class DraggableChipState extends State<DraggableChip> {
   void _onLabelPanEnd() {
     _deferSetState(() => _dragging = false);
     _finishLabelPanGesture();
+    widget.onDragStateChanged?.call(false);
   }
 
   void _panMoveClampedToHitInset(DragUpdateDetails details) {
@@ -519,6 +525,10 @@ class DraggableChipState extends State<DraggableChip> {
           alignment: Alignment.topLeft,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
+            onTapDown: (_) {
+              widget.onTap?.call();
+              widget.onSelect?.call();
+            },
             onTap: widget.onTap,
             onPanStart: _onLabelPanStart,
             onPanUpdate: _panMoveClampedToHitInset,
@@ -651,6 +661,10 @@ class DraggableChipState extends State<DraggableChip> {
         alignment: Alignment.center,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
+          onTapDown: (_) {
+            widget.onTap?.call();
+            widget.onSelect?.call();
+          },
           onTap: widget.onTap,
           onPanStart: _onLabelPanStart,
           onPanUpdate: _panMoveClampedToHitInset,
