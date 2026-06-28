@@ -46,6 +46,8 @@ class CustomTextElement {
     this.rotationDegrees = 0,
     this.iconWidthMm,
     this.iconHeightMm,
+    this.maxWidthMm,
+    this.zIndex = 0,
   });
 
   final String id;
@@ -57,10 +59,14 @@ class CustomTextElement {
   final bool bold;
   final bool italic;
   final int rotationDegrees;
+  final int zIndex;
 
   /// For [isLabelBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
   final double? iconHeightMm;
+
+  /// If non-null, text wraps to this width.
+  final double? maxWidthMm;
 
   CustomTextElement copyWith({
     String? id,
@@ -74,6 +80,9 @@ class CustomTextElement {
     int? rotationDegrees,
     double? iconWidthMm,
     double? iconHeightMm,
+    double? maxWidthMm,
+    int? zIndex,
+    bool clearMaxWidthMm = false,
   }) {
     return CustomTextElement(
       id: id ?? this.id,
@@ -87,6 +96,8 @@ class CustomTextElement {
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
       iconWidthMm: iconWidthMm ?? this.iconWidthMm,
       iconHeightMm: iconHeightMm ?? this.iconHeightMm,
+      maxWidthMm: clearMaxWidthMm ? null : (maxWidthMm ?? this.maxWidthMm),
+      zIndex: zIndex ?? this.zIndex,
     );
   }
 
@@ -102,6 +113,8 @@ class CustomTextElement {
         'rotationDegrees': rotationDegrees,
         if (iconWidthMm != null) 'iconWidthMm': iconWidthMm,
         if (iconHeightMm != null) 'iconHeightMm': iconHeightMm,
+        if (maxWidthMm != null) 'maxWidthMm': maxWidthMm,
+        'zIndex': zIndex,
       };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
@@ -117,6 +130,8 @@ class CustomTextElement {
       rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,
       iconWidthMm: (json['iconWidthMm'] as num?)?.toDouble(),
       iconHeightMm: (json['iconHeightMm'] as num?)?.toDouble(),
+      maxWidthMm: (json['maxWidthMm'] as num?)?.toDouble(),
+      zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -130,6 +145,7 @@ class CustomImageElement {
     required this.widthMm,
     required this.heightMm,
     this.rotationDegrees = 0,
+    this.zIndex = 0,
   });
 
   final String id;
@@ -139,6 +155,7 @@ class CustomImageElement {
   final double widthMm;
   final double heightMm;
   final int rotationDegrees;
+  final int zIndex;
 
   CustomImageElement copyWith({
     String? id,
@@ -148,6 +165,7 @@ class CustomImageElement {
     double? widthMm,
     double? heightMm,
     int? rotationDegrees,
+    int? zIndex,
   }) {
     return CustomImageElement(
       id: id ?? this.id,
@@ -157,6 +175,7 @@ class CustomImageElement {
       widthMm: widthMm ?? this.widthMm,
       heightMm: heightMm ?? this.heightMm,
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
+      zIndex: zIndex ?? this.zIndex,
     );
   }
 
@@ -168,6 +187,7 @@ class CustomImageElement {
         'widthMm': widthMm,
         'heightMm': heightMm,
         'rotationDegrees': rotationDegrees,
+        'zIndex': zIndex,
       };
 
   factory CustomImageElement.fromJson(Map<String, dynamic> json) {
@@ -179,6 +199,7 @@ class CustomImageElement {
       widthMm: (json['widthMm'] as num?)?.toDouble() ?? 20,
       heightMm: (json['heightMm'] as num?)?.toDouble() ?? 20,
       rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,
+      zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -190,22 +211,185 @@ class CustomImageElement {
   }
 }
 
+class CustomLineElement {
+  const CustomLineElement({
+    required this.id,
+    required this.xMm,
+    required this.yMm,
+    required this.lengthMm,
+    this.rotationDegrees = 0,
+    this.thicknessPt = 1.0,
+    this.colorArgb = 0xFF000000,
+    this.zIndex = 0,
+  });
+
+  final String id;
+  final double xMm;
+  final double yMm;
+  final double lengthMm;
+  final int rotationDegrees;
+  final double thicknessPt;
+  final int colorArgb;
+  final int zIndex;
+
+  CustomLineElement copyWith({
+    String? id,
+    double? xMm,
+    double? yMm,
+    double? lengthMm,
+    int? rotationDegrees,
+    double? thicknessPt,
+    int? colorArgb,
+    int? zIndex,
+  }) {
+    return CustomLineElement(
+      id: id ?? this.id,
+      xMm: xMm ?? this.xMm,
+      yMm: yMm ?? this.yMm,
+      lengthMm: lengthMm ?? this.lengthMm,
+      rotationDegrees: rotationDegrees ?? this.rotationDegrees,
+      thicknessPt: thicknessPt ?? this.thicknessPt,
+      colorArgb: colorArgb ?? this.colorArgb,
+      zIndex: zIndex ?? this.zIndex,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'xMm': xMm,
+        'yMm': yMm,
+        'lengthMm': lengthMm,
+        'rotationDegrees': rotationDegrees,
+        'thicknessPt': thicknessPt,
+        'colorArgb': colorArgb,
+        'zIndex': zIndex,
+      };
+
+  factory CustomLineElement.fromJson(Map<String, dynamic> json) {
+    return CustomLineElement(
+      id: json['id'] as String,
+      xMm: (json['xMm'] as num?)?.toDouble() ?? 0,
+      yMm: (json['yMm'] as num?)?.toDouble() ?? 0,
+      lengthMm: (json['lengthMm'] as num?)?.toDouble() ?? 20,
+      rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,
+      thicknessPt: (json['thicknessPt'] as num?)?.toDouble() ?? 1.0,
+      colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF000000,
+      zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+class CustomShapeElement {
+  const CustomShapeElement({
+    required this.id,
+    required this.xMm,
+    required this.yMm,
+    required this.widthMm,
+    required this.heightMm,
+    required this.shapeType,
+    this.rotationDegrees = 0,
+    this.strokeThicknessPt = 1.0,
+    this.strokeColorArgb = 0xFF000000,
+    this.fillColorArgb,
+    this.zIndex = 0,
+  });
+
+  final String id;
+  final double xMm;
+  final double yMm;
+  final double widthMm;
+  final double heightMm;
+  final String shapeType; // 'rect', 'ellipse'
+  final int rotationDegrees;
+  final double strokeThicknessPt;
+  final int strokeColorArgb;
+  final int? fillColorArgb;
+  final int zIndex;
+
+  CustomShapeElement copyWith({
+    String? id,
+    double? xMm,
+    double? yMm,
+    double? widthMm,
+    double? heightMm,
+    String? shapeType,
+    int? rotationDegrees,
+    double? strokeThicknessPt,
+    int? strokeColorArgb,
+    int? fillColorArgb,
+    bool clearFillColor = false,
+    int? zIndex,
+  }) {
+    return CustomShapeElement(
+      id: id ?? this.id,
+      xMm: xMm ?? this.xMm,
+      yMm: yMm ?? this.yMm,
+      widthMm: widthMm ?? this.widthMm,
+      heightMm: heightMm ?? this.heightMm,
+      shapeType: shapeType ?? this.shapeType,
+      rotationDegrees: rotationDegrees ?? this.rotationDegrees,
+      strokeThicknessPt: strokeThicknessPt ?? this.strokeThicknessPt,
+      strokeColorArgb: strokeColorArgb ?? this.strokeColorArgb,
+      fillColorArgb: clearFillColor ? null : (fillColorArgb ?? this.fillColorArgb),
+      zIndex: zIndex ?? this.zIndex,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'xMm': xMm,
+        'yMm': yMm,
+        'widthMm': widthMm,
+        'heightMm': heightMm,
+        'shapeType': shapeType,
+        'rotationDegrees': rotationDegrees,
+        'strokeThicknessPt': strokeThicknessPt,
+        'strokeColorArgb': strokeColorArgb,
+        if (fillColorArgb != null) 'fillColorArgb': fillColorArgb,
+        'zIndex': zIndex,
+      };
+
+  factory CustomShapeElement.fromJson(Map<String, dynamic> json) {
+    return CustomShapeElement(
+      id: json['id'] as String,
+      xMm: (json['xMm'] as num?)?.toDouble() ?? 0,
+      yMm: (json['yMm'] as num?)?.toDouble() ?? 0,
+      widthMm: (json['widthMm'] as num?)?.toDouble() ?? 20,
+      heightMm: (json['heightMm'] as num?)?.toDouble() ?? 20,
+      shapeType: json['shapeType'] as String? ?? 'rect',
+      rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,
+      strokeThicknessPt: (json['strokeThicknessPt'] as num?)?.toDouble() ?? 1.0,
+      strokeColorArgb: (json['strokeColorArgb'] as num?)?.toInt() ?? 0xFF000000,
+      fillColorArgb: (json['fillColorArgb'] as num?)?.toInt(),
+      zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
 class LabelPageTemplate {
   const LabelPageTemplate({
     this.customTexts = const [],
     this.customImages = const [],
+    this.customLines = const [],
+    this.customShapes = const [],
   });
 
   final List<CustomTextElement> customTexts;
   final List<CustomImageElement> customImages;
+  final List<CustomLineElement> customLines;
+  final List<CustomShapeElement> customShapes;
 
   LabelPageTemplate copyWith({
     List<CustomTextElement>? customTexts,
     List<CustomImageElement>? customImages,
+    List<CustomLineElement>? customLines,
+    List<CustomShapeElement>? customShapes,
   }) {
     return LabelPageTemplate(
       customTexts: customTexts ?? this.customTexts,
       customImages: customImages ?? this.customImages,
+      customLines: customLines ?? this.customLines,
+      customShapes: customShapes ?? this.customShapes,
     );
   }
 
@@ -240,9 +424,43 @@ class LabelPageTemplate {
         customImages: customImages.where((im) => im.id != id).toList());
   }
 
+  LabelPageTemplate withCustomLine(CustomLineElement e) {
+    final next = [...customLines];
+    final i = next.indexWhere((l) => l.id == e.id);
+    if (i >= 0) {
+      next[i] = e;
+    } else {
+      next.add(e);
+    }
+    return copyWith(customLines: next);
+  }
+
+  LabelPageTemplate withoutCustomLine(String id) {
+    return copyWith(
+        customLines: customLines.where((l) => l.id != id).toList());
+  }
+
+  LabelPageTemplate withCustomShape(CustomShapeElement e) {
+    final next = [...customShapes];
+    final i = next.indexWhere((s) => s.id == e.id);
+    if (i >= 0) {
+      next[i] = e;
+    } else {
+      next.add(e);
+    }
+    return copyWith(customShapes: next);
+  }
+
+  LabelPageTemplate withoutCustomShape(String id) {
+    return copyWith(
+        customShapes: customShapes.where((s) => s.id != id).toList());
+  }
+
   Map<String, dynamic> toJson() => {
         'customTexts': customTexts.map((e) => e.toJson()).toList(),
         'customImages': customImages.map((e) => e.toJson()).toList(),
+        'customLines': customLines.map((e) => e.toJson()).toList(),
+        'customShapes': customShapes.map((e) => e.toJson()).toList(),
       };
 
   factory LabelPageTemplate.fromJson(Map<String, dynamic> json) {
@@ -251,12 +469,22 @@ class LabelPageTemplate {
               ?.map(
                   (e) => CustomTextElement.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          [],
+          const [],
       customImages: (json['customImages'] as List<dynamic>?)
               ?.map(
                   (e) => CustomImageElement.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          [],
+          const [],
+      customLines: (json['customLines'] as List<dynamic>?)
+              ?.map(
+                  (e) => CustomLineElement.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      customShapes: (json['customShapes'] as List<dynamic>?)
+              ?.map(
+                  (e) => CustomShapeElement.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
   }
 }

@@ -37,6 +37,12 @@ class AvailableFieldsPanel extends ConsumerWidget {
     return out;
   }
 
+  String _getDisplayLabel(String label) {
+    final stripped = label.replaceAll('[', '').replaceAll(']', '');
+    final parts = stripped.split('::');
+    return parts.length > 1 ? parts.last : stripped;
+  }
+
   Widget _buildExpansionGroup(
     BuildContext context,
     String title,
@@ -64,7 +70,7 @@ class AvailableFieldsPanel extends ConsumerWidget {
           contentPadding: const EdgeInsets.fromLTRB(16, 2, 5, 2),
           onTap: () => onAddField(label),
           title: Text(
-            label,
+            _getDisplayLabel(label),
             style: fieldStyle,
             maxLines: 1,
             softWrap: false,

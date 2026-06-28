@@ -38,6 +38,8 @@ class DraggableChip extends StatefulWidget {
     this.onInlineTextInsertBinding,
     this.onTap,
     this.onSelect,
+    this.maxWidthMm,
+    this.onMaxWidthChanged,
   });
 
   final String label;
@@ -74,9 +76,14 @@ class DraggableChip extends StatefulWidget {
   /// this to select so the attributes bar appears immediately.
   final VoidCallback? onSelect;
 
+  final double? maxWidthMm;
+  final ValueChanged<double>? onMaxWidthChanged;
+
   @override
   State<DraggableChip> createState() => DraggableChipState();
 }
+
+enum _TextCorner { tl, tr, bl, br }
 
 class DraggableChipState extends State<DraggableChip> {
   bool _dragging = false;
@@ -90,6 +97,13 @@ class DraggableChipState extends State<DraggableChip> {
       setState(fn);
     });
   }
+
+  _TextCorner? _resizeCorner;
+  double? _resizeStartWidthMm;
+  Offset? _resizeStartGlobal;
+  double? _resizeLiveWidthMm;
+  Offset? _resizeStartPosMm;
+  Offset? _resizeLivePosMm;
 
   /// [DragUpdateDetails.delta] is local; track global positions for label mm.
   Offset? _labelDragLastGlobal;
@@ -112,69 +126,89 @@ class DraggableChipState extends State<DraggableChip> {
     return Offset(gDelta.dx / s, gDelta.dy / s);
   }
 
-  Size _builtinChipSizePx() {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: widget.label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    final pt = TextPainter(
-      text: TextSpan(
-        text: '${widget.fontSize.toStringAsFixed(0)}pt',
-        style: const TextStyle(fontSize: 9),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    const hPad = 10.0 * 2;
-    const vPad = 8.0 * 2;
-    final rowW = 16 + 4 + tp.width + 4 + pt.width;
-    final rowH = math.max(16.0, math.max(tp.height, pt.height));
-    return Size(hPad + rowW, vPad + rowH);
-  }
-
-  /// Unrotated hit target size in mm (axis-aligned box for clamping).
-  Size _labelChipBoundsMm() {
-    final scale = widget.scale;
-    if (!widget.isCustom) {
-      final px = _builtinChipSizePx();
-      return Size(px.width / scale, px.height / scale);
-    }
-    final fontPx = widget.fontSize * scale / _kPdfPointsPerMm;
+  void _onResizePanStart(DragStartDetails d, _TextCorner corner) {
+    final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
     final textStyle = customLabelCanvasTextStyle(
       fontFamilyRaw: widget.fontFamily,
       fontSize: fontPx,
       fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
       fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
     ).copyWith(color: Colors.black);
-    final displayText =
-        widget.actualText.isEmpty ? widget.label : widget.actualText;
-
-    if (widget.isInlineEditing && _inlineCtrl != null) {
-      final posMm = _dragLiveMm ?? widget.position;
-      final handle = fontPx.clamp(18.0, 28.0);
-      final fieldW = ((widget.labelWidthMm - posMm.dx) * scale - handle - 6)
-          .clamp(48.0, 2000.0);
-      final editTp = TextPainter(
-        text: TextSpan(text: _inlineCtrl!.text, style: textStyle),
-        textDirection: TextDirection.ltr,
-        maxLines: 6,
-      )..layout(maxWidth: fieldW);
-      final wPx = handle + fieldW;
-      final hPx = math.max(handle + 4, editTp.height + 12);
-      return Size(wPx / scale, hPx / scale);
-    }
 
     final tp = TextPainter(
-      text: TextSpan(text: displayText, style: textStyle),
+      text: TextSpan(text: widget.label, style: textStyle),
       textDirection: TextDirection.ltr,
-      maxLines: 6,
-    )..layout(maxWidth: widget.labelWidthMm * scale);
-    final handleSize = fontPx.clamp(20.0, 32.0);
-    final wPx = handleSize + tp.width;
-    final hPx = math.max(handleSize, tp.height);
-    return Size(wPx / scale, hPx / scale);
+    )..layout();
+
+    _deferSetState(() {
+      _resizeCorner = corner;
+      _resizeStartWidthMm = widget.maxWidthMm ?? (tp.width / widget.scale);
+      _resizeLiveWidthMm = _resizeStartWidthMm;
+      _resizeStartPosMm = widget.position;
+      _resizeLivePosMm = widget.position;
+    });
+    _resizeStartGlobal = d.globalPosition;
+  }
+
+  void _onResizePanUpdate(DragUpdateDetails d) {
+    if (_resizeStartGlobal == null ||
+        _resizeStartWidthMm == null ||
+        _resizeCorner == null ||
+        _resizeStartPosMm == null) {
+      return;
+    }
+    final gDelta = d.globalPosition - _resizeStartGlobal!;
+    final s = _canvasScaleForMmMath(widget.scale);
+    final fromStack = widget.labelPanToMmDelta(d.globalPosition, gDelta);
+    final deltaMm = fromStack != null ? fromStack.dx : (gDelta.dx / s);
+
+    var newWidth = _resizeStartWidthMm!;
+    var newX = _resizeStartPosMm!.dx;
+
+    switch (_resizeCorner!) {
+      case _TextCorner.tl:
+      case _TextCorner.bl:
+        newWidth = _resizeStartWidthMm! - deltaMm;
+        if (newWidth < 5.0) {
+          newWidth = 5.0;
+          newX = _resizeStartPosMm!.dx + (_resizeStartWidthMm! - 5.0);
+        } else {
+          newX = _resizeStartPosMm!.dx + deltaMm;
+        }
+        break;
+      case _TextCorner.tr:
+      case _TextCorner.br:
+        newWidth = _resizeStartWidthMm! + deltaMm;
+        if (newWidth < 5.0) {
+          newWidth = 5.0;
+        }
+        break;
+    }
+
+    newWidth = newWidth.clamp(5.0, widget.labelWidthMm);
+    newX = newX.clamp(0.0, math.max(0.0, widget.labelWidthMm - 5.0));
+
+    setState(() {
+      _resizeLiveWidthMm = newWidth;
+      _resizeLivePosMm = Offset(newX, _resizeStartPosMm!.dy);
+    });
+  }
+
+  void _onResizePanEnd() {
+    if (_resizeLiveWidthMm != null) {
+      widget.onMaxWidthChanged?.call(_resizeLiveWidthMm!);
+    }
+    if (_resizeLivePosMm != null && _resizeLivePosMm != _resizeStartPosMm) {
+      widget.onMoved(_resizeLivePosMm!);
+    }
+    _deferSetState(() {
+      _resizeCorner = null;
+      _resizeStartGlobal = null;
+      _resizeStartWidthMm = null;
+      _resizeLiveWidthMm = null;
+      _resizeStartPosMm = null;
+      _resizeLivePosMm = null;
+    });
   }
 
   void _onLabelPanStart(DragStartDetails d) {
@@ -191,6 +225,9 @@ class DraggableChipState extends State<DraggableChip> {
 
   void _finishLabelPanGesture() {
     final session = _labelDragSession;
+    if (_dragLiveMm != null) {
+      widget.onMoved(_dragLiveMm!);
+    }
     _labelDragLastGlobal = null;
     _panOriginMm = null;
     _panAccumMm = Offset.zero;
@@ -215,9 +252,8 @@ class DraggableChipState extends State<DraggableChip> {
     }
     final origin = _panOriginMm ?? widget.position;
     _panAccumMm += dMm;
-    final bounds = _labelChipBoundsMm();
-    final maxX = math.max(0.0, widget.labelWidthMm - bounds.width);
-    final maxY = math.max(0.0, widget.labelHeightMm - bounds.height);
+    final maxX = math.max(0.0, widget.labelWidthMm);
+    final maxY = math.max(0.0, widget.labelHeightMm);
     final rawX = origin.dx + _panAccumMm.dx;
     final rawY = origin.dy + _panAccumMm.dy;
     final cx = _clampMm(rawX, 0, maxX);
@@ -228,7 +264,6 @@ class DraggableChipState extends State<DraggableChip> {
     }
     final clamped = Offset(cx, cy);
     setState(() => _dragLiveMm = clamped);
-    widget.onMoved(clamped);
   }
 
   void _startInlineEditing() {
@@ -352,6 +387,31 @@ class DraggableChipState extends State<DraggableChip> {
     super.dispose();
   }
 
+  Widget _cornerHandle(_TextCorner corner, ColorScheme scheme) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanStart: (d) => _onResizePanStart(d, corner),
+      onPanUpdate: _onResizePanUpdate,
+      onPanEnd: (_) => _onResizePanEnd(),
+      onPanCancel: _onResizePanEnd,
+      child: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          shape: BoxShape.circle,
+          border: Border.all(color: scheme.primary, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 2,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final insetX = widget.canvasInsetXPx;
@@ -436,9 +496,17 @@ class DraggableChipState extends State<DraggableChip> {
         );
       }
 
-      final text = Text(
-        widget.label,
-        style: textStyle,
+      final activeWidthMm = _resizeLiveWidthMm ?? widget.maxWidthMm;
+      final text = SizedBox(
+        width: activeWidthMm != null ? activeWidthMm * widget.scale : null,
+        child: Text(
+          widget.label,
+          style: textStyle,
+          softWrap: activeWidthMm != null,
+          maxLines: activeWidthMm != null ? null : 1,
+          overflow:
+              activeWidthMm != null ? TextOverflow.clip : TextOverflow.visible,
+        ),
       );
       final handleSize = fontPx.clamp(20.0, 32.0);
       return Positioned(
@@ -454,29 +522,58 @@ class DraggableChipState extends State<DraggableChip> {
             onPanUpdate: _panMoveClampedToHitInset,
             onPanEnd: (_) => _onLabelPanEnd(),
             onPanCancel: _onLabelPanEnd,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                SizedBox(
-                  width: handleSize,
-                  height: handleSize,
-                  child: Center(
-                    child: Icon(
-                      Icons.drag_indicator,
-                      size: handleSize * 0.65,
-                      color: scheme.primary.withValues(alpha: 0.5),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: handleSize,
+                      height: handleSize,
+                      child: Center(
+                        child: Icon(
+                          Icons.drag_indicator,
+                          size: handleSize * 0.65,
+                          color: scheme.primary.withValues(alpha: 0.5),
+                        ),
+                      ),
                     ),
+                    Container(
+                      foregroundDecoration: (widget.isSelected || _dragging)
+                          ? BoxDecoration(
+                              border:
+                                  Border.all(color: scheme.primary, width: 2),
+                            )
+                          : null,
+                      child: text,
+                    ),
+                  ],
+                ),
+                if ((widget.isSelected || _resizeCorner != null) &&
+                    widget.onMaxWidthChanged != null) ...[
+                  Positioned(
+                    left: handleSize - 8,
+                    top: -8,
+                    child: _cornerHandle(_TextCorner.tl, scheme),
                   ),
-                ),
-                Container(
-                  foregroundDecoration: (widget.isSelected || _dragging)
-                      ? BoxDecoration(
-                          border: Border.all(color: scheme.primary, width: 2),
-                        )
-                      : null,
-                  child: text,
-                ),
+                  Positioned(
+                    right: -8,
+                    top: -8,
+                    child: _cornerHandle(_TextCorner.tr, scheme),
+                  ),
+                  Positioned(
+                    left: handleSize - 8,
+                    bottom: -8,
+                    child: _cornerHandle(_TextCorner.bl, scheme),
+                  ),
+                  Positioned(
+                    right: -8,
+                    bottom: -8,
+                    child: _cornerHandle(_TextCorner.br, scheme),
+                  ),
+                ]
               ],
             ),
           ),

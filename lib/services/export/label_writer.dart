@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:io';
@@ -425,8 +426,20 @@ class LabelWriter {
     typst.writeln('#box(width: ${wPt}pt, height: ${hPt}pt, clip: false)[');
 
     _writeOutline(typst, outline, wPt, hPt);
-    _writeCustomTexts(typst, page.customTexts, data);
-    _writeCustomImages(typst, page.customImages);
+
+    final allElements = sortElementsForTesting(page);
+
+    for (final el in allElements) {
+      if (el is CustomImageElement) {
+        _writeSingleCustomImage(typst, el);
+      } else if (el is CustomTextElement) {
+        _writeSingleCustomText(typst, el, data);
+      } else if (el is CustomLineElement) {
+        _writeSingleCustomLine(typst, el);
+      } else if (el is CustomShapeElement) {
+        _writeSingleCustomShape(typst, el);
+      }
+    }
 
     typst.writeln(']'); // close box
     if (mirror) typst.writeln(']'); // close rotate
@@ -460,24 +473,26 @@ class LabelWriter {
     }
   }
 
-  void _writeCustomTexts(StringBuffer typst, List<CustomTextElement> texts,
-      Map<String, String> data) {
-    for (final t in texts) {
-      final gKey = labelGenderIconFieldKeyFromBracketText(t.text);
-      if (gKey != null) {
-        _writeGenderIcon(typst, t, data, gKey);
-        continue;
-      }
-
-      String content = t.text.replaceAll(RegExp(r'["\\]'), r'\\$0');
-      String textProps = 'size: ${t.fontSizePt}pt';
-      if (t.bold) textProps += ', weight: "bold"';
-      if (t.italic) textProps += ', style: "italic"';
-      if (t.fontFamily.isNotEmpty) textProps += ', font: "${t.fontFamily}"';
-
-      typst.writeln(
-          '  #place(dx: ${labelPdfMmToPt(t.xMm)}pt, dy: ${labelPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[#text($textProps)["$content"]]]');
+  void _writeSingleCustomText(StringBuffer typst, CustomTextElement t, Map<String, String> data) {
+    final gKey = labelGenderIconFieldKeyFromBracketText(t.text);
+    if (gKey != null) {
+      _writeGenderIcon(typst, t, data, gKey);
+      return;
     }
+
+    String content = t.text.replaceAll(RegExp(r'["\\]'), r'\\$0');
+    String textProps = 'size: ${t.fontSizePt}pt';
+    if (t.bold) textProps += ', weight: "bold"';
+    if (t.italic) textProps += ', style: "italic"';
+    if (t.fontFamily.isNotEmpty) textProps += ', font: "${t.fontFamily}"';
+
+    String textElem = '#text($textProps)["$content"]';
+    if (t.maxWidthMm != null) {
+      textElem = '#box(width: ${labelPdfMmToPt(t.maxWidthMm!)}pt)[$textElem]';
+    }
+
+    typst.writeln(
+        '  #place(dx: ${labelPdfMmToPt(t.xMm)}pt, dy: ${labelPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[$textElem]]');
   }
 
   void _writeGenderIcon(StringBuffer typst, CustomTextElement t,
@@ -509,14 +524,54 @@ class LabelWriter {
     return '';
   }
 
-  void _writeCustomImages(StringBuffer typst, List<CustomImageElement> images) {
-    for (final im in images) {
-      if (!isLabelImagePathUsable(im.imagePath)) continue;
-      String path = im.imagePath.replaceAll(r'\', r'\\');
 
-      typst.writeln(
-          '  #place(dx: ${labelPdfMmToPt(im.xMm)}pt, dy: ${labelPdfMmToPt(im.yMm)}pt)[#rotate(${im.rotationDegrees}deg)[#image("$path", width: ${labelPdfMmToPt(im.widthMm)}pt, height: ${labelPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
+  @visibleForTesting
+  static List<dynamic> sortElementsForTesting(LabelPageTemplate page) {
+    return <dynamic>[
+      ...page.customImages,
+      ...page.customTexts,
+      ...page.customLines,
+      ...page.customShapes,
+    ]..sort((a, b) => (a.zIndex as int).compareTo(b.zIndex as int));
+  }
+
+  void _writeSingleCustomImage(StringBuffer typst, CustomImageElement im) {
+    if (!isLabelImagePathUsable(im.imagePath)) return;
+    String path = im.imagePath.replaceAll(r'\', r'\\');
+
+    typst.writeln(
+        '  #place(dx: ${labelPdfMmToPt(im.xMm)}pt, dy: ${labelPdfMmToPt(im.yMm)}pt)[#rotate(${im.rotationDegrees}deg)[#image("$path", width: ${labelPdfMmToPt(im.widthMm)}pt, height: ${labelPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
+  }
+
+  void _writeSingleCustomLine(StringBuffer typst, CustomLineElement line) {
+    final hexColor = line.colorArgb.toRadixString(16).padLeft(8, '0');
+    final colorStr = 'rgb("${hexColor.substring(2)}")'; // ignores alpha for now, assuming 100%
+
+    final lengthPt = labelPdfMmToPt(line.lengthMm);
+    final elem = '#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)';
+
+    typst.writeln(
+        '  #place(dx: ${labelPdfMmToPt(line.xMm)}pt, dy: ${labelPdfMmToPt(line.yMm)}pt)[#rotate(${line.rotationDegrees}deg)[$elem]]');
+  }
+
+  void _writeSingleCustomShape(StringBuffer typst, CustomShapeElement shape) {
+    final strokeHex = shape.strokeColorArgb.toRadixString(16).padLeft(8, '0');
+    final strokeColor = 'rgb("${strokeHex.substring(2)}")';
+
+    String fillOpt = '';
+    if (shape.fillColorArgb != null) {
+      final fillHex = shape.fillColorArgb!.toRadixString(16).padLeft(8, '0');
+      fillOpt = ', fill: rgb("${fillHex.substring(2)}")';
     }
+
+    final wPt = labelPdfMmToPt(shape.widthMm);
+    final hPt = labelPdfMmToPt(shape.heightMm);
+
+    final kind = shape.shapeType == 'ellipse' ? 'ellipse' : 'rect';
+    final elem = '#$kind(width: ${wPt}pt, height: ${hPt}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor$fillOpt)';
+
+    typst.writeln(
+        '  #place(dx: ${labelPdfMmToPt(shape.xMm)}pt, dy: ${labelPdfMmToPt(shape.yMm)}pt)[#rotate(${shape.rotationDegrees}deg)[$elem]]');
   }
 
   void _fillRemainingGridSpaces(StringBuffer typst, int pagesLength, int cols) {

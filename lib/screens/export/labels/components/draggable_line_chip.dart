@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/export/labels/label_template_editor_screen.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
 
-enum _ImageCorner { tl, tr, bl, br }
+enum _ShapeCorner { tl, tr, bl, br }
+
+const double _kPdfPointsPerMm = 72.0 / 25.4;
 
 double _canvasScaleForMmMath(double scale) => scale < 1e-9 ? 1e-9 : scale;
 
@@ -15,14 +17,14 @@ double _clampMm(double value, double bound1, double bound2) {
   return value.clamp(lo, hi);
 }
 
-class DraggableImageChip extends StatefulWidget {
-  const DraggableImageChip({
+class DraggableLineChip extends StatefulWidget {
+  const DraggableLineChip({
     super.key,
-    required this.imagePath,
     required this.position,
-    required this.widthMm,
-    required this.heightMm,
+    required this.lengthMm,
     this.rotationDegrees = 0,
+    this.thicknessPt = 1.0,
+    this.colorArgb = 0xFF000000,
     required this.scale,
     required this.labelWidthMm,
     required this.labelHeightMm,
@@ -35,14 +37,13 @@ class DraggableImageChip extends StatefulWidget {
     this.onDelete,
     this.isSelected = false,
     this.onTap,
-    this.vectorChild,
   });
 
-  final String imagePath;
   final Offset position;
-  final double widthMm;
-  final double heightMm;
+  final double lengthMm;
   final int rotationDegrees;
+  final double thicknessPt;
+  final int colorArgb;
   final double scale;
   final double labelWidthMm;
   final double labelHeightMm;
@@ -60,14 +61,13 @@ class DraggableImageChip extends StatefulWidget {
   final bool isSelected;
   final VoidCallback? onTap;
 
-  /// When set, drawn instead of [imagePath] (e.g. sex icon for `[*.sex]-img`).
-  final Widget? vectorChild;
+
 
   @override
-  State<DraggableImageChip> createState() => DraggableImageChipState();
+  State<DraggableLineChip> createState() => DraggableLineChipState();
 }
 
-class DraggableImageChipState extends State<DraggableImageChip> {
+class DraggableLineChipState extends State<DraggableLineChip> {
   static const double _handleVisual = 10;
   static const double _handleHit = 24;
 
@@ -81,7 +81,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
   final GlobalKey _measureKey = GlobalKey();
 
   bool _moving = false;
-  _ImageCorner? _resizeCorner;
+  _ShapeCorner? _resizeCorner;
   Rect? _resizeStart;
   Offset _resizeAccum = Offset.zero;
 
@@ -120,18 +120,18 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     return Offset(dlx, dly);
   }
 
-  void _onResizePanStart(DragStartDetails d, _ImageCorner c) {
+  void _onResizePanStart(DragStartDetails d, _ShapeCorner c) {
     _beginResize(c);
     _resizePanLastGlobal = d.globalPosition;
   }
 
-  void _beginResize(_ImageCorner c) {
+  void _beginResize(_ShapeCorner c) {
     _resizeCorner = c;
     _resizeStart = Rect.fromLTWH(
       widget.position.dx,
       widget.position.dy,
-      widget.widthMm,
-      widget.heightMm,
+      widget.lengthMm,
+      math.max(2.0, widget.thicknessPt * 0.3527), // convert pt to mm approx for bounds
     );
     _resizeAccum = Offset.zero;
   }
@@ -150,25 +150,25 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     late double rw;
     late double rh;
     switch (_resizeCorner!) {
-      case _ImageCorner.br:
+      case _ShapeCorner.br:
         x = s.left;
         y = s.top;
         rw = s.width + a.dx;
         rh = s.height + a.dy;
         break;
-      case _ImageCorner.tr:
+      case _ShapeCorner.tr:
         x = s.left;
         y = s.top + a.dy;
         rw = s.width + a.dx;
         rh = s.height - a.dy;
         break;
-      case _ImageCorner.bl:
+      case _ShapeCorner.bl:
         x = s.left + a.dx;
         y = s.top;
         rw = s.width - a.dx;
         rh = s.height + a.dy;
         break;
-      case _ImageCorner.tl:
+      case _ShapeCorner.tl:
         x = s.left + a.dx;
         y = s.top + a.dy;
         rw = s.width - a.dx;
@@ -237,8 +237,8 @@ class DraggableImageChipState extends State<DraggableImageChip> {
 
   /// [innerLeft]/[innerTop] = top-left of the image rect inside the padded stack.
   Widget _cornerHandle(
-    ColorScheme scheme,
-    _ImageCorner corner, {
+    _ShapeCorner corner,
+    ColorScheme scheme, {
     required double innerLeft,
     required double innerTop,
     required double innerW,
@@ -248,19 +248,19 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     late final double left;
     late final double top;
     switch (corner) {
-      case _ImageCorner.tl:
+      case _ShapeCorner.tl:
         left = innerLeft - o;
         top = innerTop - o;
         break;
-      case _ImageCorner.tr:
+      case _ShapeCorner.tr:
         left = innerLeft + innerW - o;
         top = innerTop - o;
         break;
-      case _ImageCorner.bl:
+      case _ShapeCorner.bl:
         left = innerLeft - o;
         top = innerTop + innerH - o;
         break;
-      case _ImageCorner.br:
+      case _ShapeCorner.br:
         left = innerLeft + innerW - o;
         top = innerTop + innerH - o;
         break;
@@ -319,12 +319,11 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     final posMm = liveR != null
         ? Offset(liveR.left, liveR.top)
         : (_imageDragLiveMm ?? widget.position);
-    final effWmm = liveR?.width ?? widget.widthMm;
-    final effHmm = liveR?.height ?? widget.heightMm;
+    final effWmm = liveR?.width ?? widget.lengthMm;
     final left = posMm.dx * widget.scale + insetX;
     final top = posMm.dy * widget.scale + insetY;
-    final w = effWmm * widget.scale;
-    final h = effHmm * widget.scale;
+    final w = (widget.lengthMm * widget.scale).clamp(0.0, double.infinity);
+    final h = math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
     final scheme = Theme.of(context).colorScheme;
 
     final borderColor = _moving
@@ -383,13 +382,12 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                         _imageMovePanLastGlobal ?? details.globalPosition;
                     final gDelta = details.globalPosition - last;
                     _imageMovePanLastGlobal = details.globalPosition;
-                    final dMm =
-                        _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
+                    final dMm = _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
                     final origin = _imagePanOriginMm ?? widget.position;
                     _imagePanAccumMm += dMm;
                     final lr = _resizeLiveRect;
-                    final w = lr?.width ?? widget.widthMm;
-                    final h = lr?.height ?? widget.heightMm;
+                    final w = lr?.width ?? widget.lengthMm;
+                    final h = lr?.height ?? math.max(1.0, widget.thicknessPt * 0.3527);
                     final maxX = math.max(0.0, widget.labelWidthMm - w);
                     final maxY = math.max(0.0, widget.labelHeightMm - h);
                     final rawX = origin.dx + _imagePanAccumMm.dx;
@@ -441,53 +439,33 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                       clipBehavior: Clip.none,
                       fit: StackFit.expand,
                       children: [
-                        if (widget.vectorChild != null)
-                          Center(
-                            child: IconTheme(
-                              data: IconThemeData(
-                                size: math.min(w, h) * 0.88,
-                                color: scheme.onSurface,
-                              ),
-                              child: widget.vectorChild!,
-                            ),
-                          )
-                        else if (isLabelImagePathUsable(widget.imagePath))
-                          Image.file(
-                            File(widget.imagePath),
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child:
-                                  Icon(Icons.broken_image_outlined, size: 28),
-                            ),
-                          )
-                        else
-                          const Center(
-                            child: Icon(Icons.image_not_supported_outlined,
-                                size: 28),
+                        Container(
+                          width: w,
+                          height: h,
+                          color: Color(widget.colorArgb),
+                        ),
+                        Positioned(
+                          left: 2,
+                          top: 2,
+                          child: Icon(
+                            Icons.drag_indicator,
+                            size: 14,
+                            color: scheme.onSurface.withValues(alpha: 0.5),
                           ),
-                        if (widget.vectorChild == null)
-                          Positioned(
-                            left: 2,
-                            top: 2,
-                            child: Icon(
-                              Icons.drag_indicator,
-                              size: 14,
-                              color: scheme.onSurface.withValues(alpha: 0.5),
-                            ),
-                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
               if (widget.isSelected) ...[
-                _cornerHandle(scheme, _ImageCorner.tl,
+                _cornerHandle(_ShapeCorner.tl, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.tr,
+                _cornerHandle(_ShapeCorner.tr, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.bl,
+                _cornerHandle(_ShapeCorner.bl, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.br,
+                _cornerHandle(_ShapeCorner.br, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
                 Positioned(
                   left: padL + w / 2 - 20,
@@ -501,7 +479,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                     children: [
                       if (widget.onDelete != null) ...[
                         IconButton.filled(
-                          tooltip: 'Remove image',
+                          tooltip: 'Remove shape',
                           onPressed: widget.onDelete,
                           icon: const Icon(Icons.close, size: 13),
                           style: IconButton.styleFrom(

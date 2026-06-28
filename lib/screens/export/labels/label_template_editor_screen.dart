@@ -10,7 +10,6 @@ import 'package:nahpu/screens/export/labels/label_canvas_stack.dart';
 import 'package:nahpu/screens/export/labels/label_outline.dart';
 import 'package:nahpu/screens/export/labels/label_size_selector.dart';
 import 'package:nahpu/screens/export/labels/label_template_fonts.dart';
-import 'package:nahpu/screens/export/labels/label_template_live_preview.dart';
 import 'package:nahpu/screens/export/labels/label_gender_icon.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
 import 'package:nahpu/services/label_settings_services.dart';
@@ -19,6 +18,8 @@ import 'package:nahpu/services/label_template_editor_service.dart';
 import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/services/label_logo_service.dart';
 import 'package:nahpu/screens/export/labels/components/draggable_image_chip.dart';
+import 'package:nahpu/screens/export/labels/components/draggable_line_chip.dart';
+import 'package:nahpu/screens/export/labels/components/draggable_shape_chip.dart';
 import 'package:nahpu/screens/export/labels/components/draggable_chip.dart';
 import 'package:nahpu/screens/export/labels/components/synced_font_size_field.dart';
 import 'package:nahpu/screens/export/labels/components/grid_painter.dart';
@@ -97,6 +98,8 @@ class _LabelTemplateEditorScreenState
   Map<String, String> _editorLabelFieldPreview = {};
 
   bool _fieldsPanelExpanded = false;
+  bool _isPreviewMode = true;
+
 
   /// Non-null while a custom text box is in canvas inline edit; inserts at caret.
   void Function(String)? _inlineCustomTextPaste;
@@ -173,6 +176,68 @@ class _LabelTemplateEditorScreenState
         } else {
           _template = _template.copyWith(
             page2: _template.page2.withCustomText(el),
+          );
+        }
+      });
+    });
+  }
+
+  CustomLineElement? _pendingLineTemplate;
+  bool? _pendingLineTemplatePage1;
+  bool _lineTemplateFlushScheduled = false;
+
+  void _scheduleTemplateLineUpdate(bool page1, CustomLineElement element) {
+    _pendingLineTemplate = element;
+    _pendingLineTemplatePage1 = page1;
+    if (_lineTemplateFlushScheduled) return;
+    _lineTemplateFlushScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _lineTemplateFlushScheduled = false;
+      if (!mounted) return;
+      final el = _pendingLineTemplate;
+      final p = _pendingLineTemplatePage1;
+      _pendingLineTemplate = null;
+      _pendingLineTemplatePage1 = null;
+      if (el == null || p == null) return;
+      setState(() {
+        if (p) {
+          _template = _template.copyWith(
+            page1: _template.page1.withCustomLine(el),
+          );
+        } else {
+          _template = _template.copyWith(
+            page2: _template.page2.withCustomLine(el),
+          );
+        }
+      });
+    });
+  }
+
+  CustomShapeElement? _pendingShapeTemplate;
+  bool? _pendingShapeTemplatePage1;
+  bool _shapeTemplateFlushScheduled = false;
+
+  void _scheduleTemplateShapeUpdate(bool page1, CustomShapeElement element) {
+    _pendingShapeTemplate = element;
+    _pendingShapeTemplatePage1 = page1;
+    if (_shapeTemplateFlushScheduled) return;
+    _shapeTemplateFlushScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _shapeTemplateFlushScheduled = false;
+      if (!mounted) return;
+      final el = _pendingShapeTemplate;
+      final p = _pendingShapeTemplatePage1;
+      _pendingShapeTemplate = null;
+      _pendingShapeTemplatePage1 = null;
+      if (el == null || p == null) return;
+      setState(() {
+        if (p) {
+          _template = _template.copyWith(
+            page1: _template.page1.withCustomShape(el),
+          );
+        } else {
+          _template = _template.copyWith(
+            page2: _template.page2.withCustomShape(el),
           );
         }
       });
@@ -512,6 +577,18 @@ class _LabelTemplateEditorScreenState
                                   tooltip: 'Add image',
                                 ),
                                 const SizedBox(width: 4),
+                                IconButton.filledTonal(
+                                  onPressed: () => _addCustomLine(_isPage1),
+                                  icon: const Icon(Icons.horizontal_rule),
+                                  tooltip: 'Add line',
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton.filledTonal(
+                                  onPressed: () => _addCustomShape(_isPage1),
+                                  icon: const Icon(Icons.crop_square),
+                                  tooltip: 'Add shape',
+                                ),
+                                const SizedBox(width: 4),
                                 MirrorToggleButton(
                                   isMirrorActive:
                                       _isPage1 ? _mirrorFront : _mirrorBack,
@@ -532,9 +609,11 @@ class _LabelTemplateEditorScreenState
                                 ),
                                 const SizedBox(width: 4),
                                 IconButton.filledTonal(
-                                  onPressed: _showPrintPreviewDialog,
-                                  icon: const Icon(Icons.print_outlined),
-                                  tooltip: 'Print preview',
+                                  onPressed: () {
+                                    _deferSetState(() => _isPreviewMode = !_isPreviewMode);
+                                  },
+                                  icon: Icon(_isPreviewMode ? Icons.edit_outlined : Icons.visibility_outlined),
+                                  tooltip: _isPreviewMode ? 'Edit' : 'Preview',
                                 ),
                                 const SizedBox(width: 16),
                                 IconButton(
@@ -589,12 +668,10 @@ class _LabelTemplateEditorScreenState
                     curve: Curves.easeOutCubic,
                     alignment: Alignment.topCenter,
                     clipBehavior: Clip.hardEdge,
-                    child: _selectedElement != null &&
-                            _selectedElement!.startsWith('custom:')
+                    child: _selectedElement != null
                         ? Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: _buildCustomTextPanel(_selectedElement!,
-                                inToolbar: true),
+                            child: _buildElementPanel(_selectedElement!, inToolbar: true),
                           )
                         : const SizedBox(width: double.infinity, height: 0),
                   ),
@@ -677,6 +754,54 @@ class _LabelTemplateEditorScreenState
     });
   }
 
+  void _addCustomLine(bool page1) {
+    final id = 'line_$_customIdCounter';
+    _customIdCounter++;
+    final element = CustomLineElement(
+      id: id,
+      xMm: 5,
+      yMm: 5,
+      lengthMm: 10,
+    );
+    final sel = 'line:${page1 ? '1' : '2'}:$id';
+    setState(() {
+      if (page1) {
+        _template =
+            _template.copyWith(page1: _template.page1.withCustomLine(element));
+      } else {
+        _template =
+            _template.copyWith(page2: _template.page2.withCustomLine(element));
+      }
+      _selectedElement = sel;
+      _inlineCanvasCustomKey = sel;
+    });
+  }
+
+  void _addCustomShape(bool page1) {
+    final id = 'shape_$_customIdCounter';
+    _customIdCounter++;
+    final element = CustomShapeElement(
+      id: id,
+      xMm: 5,
+      yMm: 5,
+      widthMm: 10,
+      heightMm: 10,
+      shapeType: 'rect',
+    );
+    final sel = 'shape:${page1 ? '1' : '2'}:$id';
+    setState(() {
+      if (page1) {
+        _template =
+            _template.copyWith(page1: _template.page1.withCustomShape(element));
+      } else {
+        _template =
+            _template.copyWith(page2: _template.page2.withCustomShape(element));
+      }
+      _selectedElement = sel;
+      _inlineCanvasCustomKey = sel;
+    });
+  }
+
   void _updateCustomText(bool page1, CustomTextElement element) {
     setState(() {
       if (page1) {
@@ -705,9 +830,69 @@ class _LabelTemplateEditorScreenState
     });
   }
 
+  void _removeCustomLine(bool page1, String id) {
+    _deferSetState(() {
+      if (page1) {
+        _template = _template.copyWith(
+          page1: _template.page1.withoutCustomLine(id),
+        );
+      } else {
+        _template = _template.copyWith(
+          page2: _template.page2.withoutCustomLine(id),
+        );
+      }
+      if (_selectedElement == 'line:${page1 ? '1' : '2'}:$id') {
+        _selectedElement = null;
+        _inlineCanvasCustomKey = null;
+      }
+    });
+  }
+
+  void _removeCustomShape(bool page1, String id) {
+    _deferSetState(() {
+      if (page1) {
+        _template = _template.copyWith(
+          page1: _template.page1.withoutCustomShape(id),
+        );
+      } else {
+        _template = _template.copyWith(
+          page2: _template.page2.withoutCustomShape(id),
+        );
+      }
+      if (_selectedElement == 'shape:${page1 ? '1' : '2'}:$id') {
+        _selectedElement = null;
+        _inlineCanvasCustomKey = null;
+      }
+    });
+  }
+
   CustomTextElement? _findCustomText(bool page1, String id) {
     final page = page1 ? _template.page1 : _template.page2;
     for (final ct in page.customTexts) {
+      if (ct.id == id) return ct;
+    }
+    return null;
+  }
+
+  CustomImageElement? _findCustomImage(bool page1, String id) {
+    final page = page1 ? _template.page1 : _template.page2;
+    for (final ct in page.customImages) {
+      if (ct.id == id) return ct;
+    }
+    return null;
+  }
+
+  CustomLineElement? _findCustomLine(bool page1, String id) {
+    final page = page1 ? _template.page1 : _template.page2;
+    for (final ct in page.customLines) {
+      if (ct.id == id) return ct;
+    }
+    return null;
+  }
+
+  CustomShapeElement? _findCustomShape(bool page1, String id) {
+    final page = page1 ? _template.page1 : _template.page2;
+    for (final ct in page.customShapes) {
       if (ct.id == id) return ct;
     }
     return null;
@@ -1047,81 +1232,7 @@ class _LabelTemplateEditorScreenState
 
   /// Mirror for the side currently being edited (front tab or single-sided).
 
-  Future<void> _showPrintPreviewDialog() async {
-    Map<String, String> sample = {};
-    try {
-      final list = await SpecimenServices(ref: ref).getSpecimenList();
-      if (list.isNotEmpty) {
-        final db = ref.read(databaseProvider);
-        sample = await fieldValuesForSpecimen(db, list.first, ref);
-      }
-    } catch (_) {}
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        final sz = MediaQuery.sizeOf(ctx);
-        final w = sz.width * 0.8;
-        final h = sz.height * 0.8;
-        return Dialog(
-          clipBehavior: Clip.antiAlias,
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: SizedBox(
-            width: w,
-            height: h,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text(
-                          'Print preview',
-                          style: Theme.of(ctx).textTheme.titleLarge,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        tooltip: 'Close',
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (ctx, constraints) {
-                      return LabelTemplateLivePreview(
-                        viewportSize: Size(
-                          constraints.maxWidth,
-                          constraints.maxHeight,
-                        ),
-                        showHeading: false,
-                        template: _template,
-                        isDuplex: _isDuplex,
-                        mirrorFront: _mirrorFront,
-                        mirrorBack: _mirrorBack,
-                        labelWidthMm: _labelWidthMm,
-                        labelHeightMm: _labelHeightMm,
-                        placeholderValues: sample,
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+
 
   /// Portrait rows 3+4: page/label on one line, tool buttons on next.
 
@@ -1232,205 +1343,247 @@ class _LabelTemplateEditorScreenState
                               ),
                             ),
                           ),
-                          for (final im in page.customImages)
-                            DraggableImageChip(
-                              key: ValueKey(
-                                  'p${page1 ? '1' : '2'}_img_${im.id}'),
-                              imagePath: im.imagePath,
-                              position: Offset(im.xMm, im.yMm),
-                              widthMm: im.widthMm,
-                              heightMm: im.heightMm,
-                              rotationDegrees: im.rotationDegrees,
-                              scale: scale,
-                              labelWidthMm: _labelWidthMm,
-                              labelHeightMm: _labelHeightMm,
-                              canvasInsetXPx: 0,
-                              canvasInsetYPx: _kLabelCanvasHitPadPx,
-                              labelPanToMmDelta: labelPanToMmDelta,
-                              isSelected: _selectedElement ==
-                                  'image:${page1 ? '1' : '2'}:${im.id}',
-                              onTap: () => _deferSetState(() {
-                                _selectedElement =
-                                    'image:${page1 ? '1' : '2'}:${im.id}';
-                                _inlineCanvasCustomKey = null;
-                              }),
-                              onMoved: (pos) {
-                                final maxX =
-                                    math.max(0.0, _labelWidthMm - im.widthMm);
-                                final maxY =
-                                    math.max(0.0, _labelHeightMm - im.heightMm);
-                                _scheduleTemplateImageUpdate(
-                                  page1,
-                                  im.copyWith(
-                                    xMm: _clampMm(pos.dx, 0, maxX),
-                                    yMm: _clampMm(pos.dy, 0, maxY),
-                                  ),
-                                );
-                              },
-                              onBoundsChanged: (x, y, w, h) {
-                                _scheduleTemplateImageUpdate(
-                                  page1,
-                                  im.copyWith(
-                                    xMm: x,
-                                    yMm: y,
-                                    widthMm: w,
-                                    heightMm: h,
-                                  ),
-                                );
-                              },
-                              onRotationChanged: (deg) {
-                                _scheduleTemplateImageUpdate(
-                                  page1,
-                                  im.copyWith(rotationDegrees: deg),
-                                );
-                              },
-                              onDelete: () => _removeCustomImage(page1, im.id),
-                            ),
-                          for (final ct in page.customTexts)
-                            if (labelGenderIconFieldKeyFromBracketText(ct.text)
-                                case final gKey?)
-                              DraggableImageChip(
-                                key: ValueKey(
-                                  'p${page1 ? '1' : '2'}_gct_${ct.id}',
-                                ),
-                                imagePath: '',
-                                vectorChild: Icon(
-                                  labelGenderIconForFieldKey(
-                                    _editorLabelFieldPreview,
-                                    gKey,
-                                  ),
-                                ),
-                                position: Offset(ct.xMm, ct.yMm),
-                                widthMm: ct.iconWidthMm ??
-                                    kLabelGenderIconDefaultWidthMm,
-                                heightMm: ct.iconHeightMm ??
-                                    kLabelGenderIconDefaultHeightMm,
-                                rotationDegrees: ct.rotationDegrees,
-                                scale: scale,
-                                labelWidthMm: _labelWidthMm,
-                                labelHeightMm: _labelHeightMm,
-                                canvasInsetXPx: 0,
-                                canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                labelPanToMmDelta: labelPanToMmDelta,
-                                isSelected: _selectedElement ==
-                                    'custom:${page1 ? '1' : '2'}:${ct.id}',
-                                onTap: () => _deferSetState(() {
-                                  _selectedElement =
-                                      'custom:${page1 ? '1' : '2'}:${ct.id}';
-                                  _inlineCanvasCustomKey = null;
-                                }),
-                                onMoved: (pos) {
-                                  final wMm = ct.iconWidthMm ??
-                                      kLabelGenderIconDefaultWidthMm;
-                                  final hMm = ct.iconHeightMm ??
-                                      kLabelGenderIconDefaultHeightMm;
-                                  final maxX =
-                                      math.max(0.0, _labelWidthMm - wMm);
-                                  final maxY =
-                                      math.max(0.0, _labelHeightMm - hMm);
-                                  _scheduleTemplateTextPositionUpdate(
-                                    page1,
-                                    ct.copyWith(
-                                      xMm: _clampMm(pos.dx, 0, maxX),
-                                      yMm: _clampMm(pos.dy, 0, maxY),
-                                    ),
-                                  );
-                                },
-                                onBoundsChanged: (x, y, w, h) {
-                                  _scheduleTemplateTextPositionUpdate(
-                                    page1,
-                                    ct.copyWith(
-                                      xMm: x,
-                                      yMm: y,
-                                      iconWidthMm: w,
-                                      iconHeightMm: h,
-                                    ),
-                                  );
-                                },
-                                onRotationChanged: (deg) {
-                                  _scheduleTemplateTextPositionUpdate(
-                                    page1,
-                                    ct.copyWith(rotationDegrees: deg),
-                                  );
-                                },
-                                onDelete: null,
-                              )
-                            else
-                              DraggableChip(
-                                key: ValueKey(
-                                    'p${page1 ? '1' : '2'}_ct_${ct.id}_${ct.rotationDegrees}_${ct.fontFamily}'),
-                                label: ct.text.isEmpty ? '(empty)' : ct.text,
-                                actualText: ct.text,
-                                position: Offset(ct.xMm, ct.yMm),
-                                fontSize: ct.fontSizePt,
-                                fontFamily: ct.fontFamily,
-                                bold: ct.bold,
-                                italic: ct.italic,
-                                rotationDegrees: ct.rotationDegrees,
-                                scale: scale,
-                                labelWidthMm: _labelWidthMm,
-                                labelHeightMm: _labelHeightMm,
-                                canvasInsetXPx: 0,
-                                canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                labelPanToMmDelta: labelPanToMmDelta,
-                                isCustom: true,
-                                isInlineEditing: _inlineCanvasCustomKey ==
-                                    'custom:${page1 ? '1' : '2'}:${ct.id}',
-                                isSelected: _selectedElement ==
-                                    'custom:${page1 ? '1' : '2'}:${ct.id}',
-                                onInlineEditingComplete: (v) {
-                                  if (!mounted) return;
-                                  setState(() {
-                                    if (page1) {
-                                      _template = _template.copyWith(
-                                        page1: _template.page1.withCustomText(
-                                          ct.copyWith(text: v),
-                                        ),
-                                      );
-                                    } else {
-                                      _template = _template.copyWith(
-                                        page2: _template.page2.withCustomText(
-                                          ct.copyWith(text: v),
-                                        ),
-                                      );
-                                    }
+                          ...(() {
+                            final allElements = <dynamic>[
+                              ...page.customImages,
+                              ...page.customTexts,
+                              ...page.customLines,
+                              ...page.customShapes,
+                            ]..sort((a, b) => (a.zIndex as int).compareTo(b.zIndex as int));
+
+                            return allElements.map<Widget>((element) {
+                              if (element is CustomImageElement) {
+                                return DraggableImageChip(
+                                  key: ValueKey('p${page1 ? '1' : '2'}_img_${element.id}'),
+                                  imagePath: element.imagePath,
+                                  position: Offset(element.xMm, element.yMm),
+                                  widthMm: element.widthMm,
+                                  heightMm: element.heightMm,
+                                  rotationDegrees: element.rotationDegrees,
+                                  scale: scale,
+                                  labelWidthMm: _labelWidthMm,
+                                  labelHeightMm: _labelHeightMm,
+                                  canvasInsetXPx: 0,
+                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
+                                  labelPanToMmDelta: labelPanToMmDelta,
+                                  isSelected: _selectedElement == 'image:${page1 ? '1' : '2'}:${element.id}',
+                                  onTap: () => _deferSetState(() {
+                                    _selectedElement = 'image:${page1 ? '1' : '2'}:${element.id}';
                                     _inlineCanvasCustomKey = null;
-                                    _inlineCustomTextPaste = null;
-                                  });
-                                },
-                                onInlineTextInsertBinding: (fn) =>
-                                    _deferSetState(
-                                        () => _inlineCustomTextPaste = fn),
-                                onTap: () {
-                                  final k =
-                                      'custom:${page1 ? '1' : '2'}:${ct.id}';
-                                  setState(() {
-                                    if (_selectedElement == k) {
-                                      _inlineCanvasCustomKey = k;
-                                    } else {
-                                      _selectedElement = k;
+                                  }),
+                                  onMoved: (pos) {
+                                    final maxX = math.max(0.0, _labelWidthMm - element.widthMm);
+                                    final maxY = math.max(0.0, _labelHeightMm - element.heightMm);
+                                    _scheduleTemplateImageUpdate(
+                                      page1,
+                                      element.copyWith(
+                                        xMm: _clampMm(pos.dx, 0, maxX),
+                                        yMm: _clampMm(pos.dy, 0, maxY),
+                                      ),
+                                    );
+                                  },
+                                  onBoundsChanged: (x, y, w, h) {
+                                    _scheduleTemplateImageUpdate(
+                                      page1,
+                                      element.copyWith(
+                                        xMm: x,
+                                        yMm: y,
+                                        widthMm: w,
+                                        heightMm: h,
+                                      ),
+                                    );
+                                  },
+                                  onRotationChanged: (deg) {
+                                    _scheduleTemplateImageUpdate(
+                                      page1,
+                                      element.copyWith(rotationDegrees: deg),
+                                    );
+                                  },
+                                  onDelete: () => _removeCustomImage(page1, element.id),
+                                );
+                              } else if (element is CustomTextElement) {
+                                if (labelGenderIconFieldKeyFromBracketText(element.text) case final gKey?) {
+                                  return DraggableImageChip(
+                                    key: ValueKey('p${page1 ? '1' : '2'}_gct_${element.id}'),
+                                    imagePath: '',
+                                    vectorChild: Icon(labelGenderIconForFieldKey(_editorLabelFieldPreview, gKey)),
+                                    position: Offset(element.xMm, element.yMm),
+                                    widthMm: element.iconWidthMm ?? kLabelGenderIconDefaultWidthMm,
+                                    heightMm: element.iconHeightMm ?? kLabelGenderIconDefaultHeightMm,
+                                    rotationDegrees: element.rotationDegrees,
+                                    scale: scale,
+                                    labelWidthMm: _labelWidthMm,
+                                    labelHeightMm: _labelHeightMm,
+                                    canvasInsetXPx: 0,
+                                    canvasInsetYPx: _kLabelCanvasHitPadPx,
+                                    labelPanToMmDelta: labelPanToMmDelta,
+                                    isSelected: _selectedElement == 'custom:${page1 ? '1' : '2'}:${element.id}',
+                                    onTap: () => _deferSetState(() {
+                                      _selectedElement = 'custom:${page1 ? '1' : '2'}:${element.id}';
                                       _inlineCanvasCustomKey = null;
-                                    }
-                                  });
-                                },
-                                onSelect: () {
-                                  final k =
-                                      'custom:${page1 ? '1' : '2'}:${ct.id}';
-                                  setState(() {
-                                    _selectedElement = k;
-                                    _inlineCanvasCustomKey = null;
-                                  });
-                                },
-                                onMoved: (pos) {
-                                  _scheduleTemplateTextPositionUpdate(
-                                    page1,
-                                    ct.copyWith(
-                                      xMm: pos.dx,
-                                      yMm: pos.dy,
-                                    ),
+                                    }),
+                                    onMoved: (pos) {
+                                      final wMm = element.iconWidthMm ?? kLabelGenderIconDefaultWidthMm;
+                                      final hMm = element.iconHeightMm ?? kLabelGenderIconDefaultHeightMm;
+                                      final maxX = math.max(0.0, _labelWidthMm - wMm);
+                                      final maxY = math.max(0.0, _labelHeightMm - hMm);
+                                      _scheduleTemplateTextPositionUpdate(
+                                        page1,
+                                        element.copyWith(
+                                          xMm: _clampMm(pos.dx, 0, maxX),
+                                          yMm: _clampMm(pos.dy, 0, maxY),
+                                        ),
+                                      );
+                                    },
+                                    onBoundsChanged: (x, y, w, h) {
+                                      _scheduleTemplateTextPositionUpdate(
+                                        page1,
+                                        element.copyWith(
+                                          xMm: x,
+                                          yMm: y,
+                                          iconWidthMm: w,
+                                          iconHeightMm: h,
+                                        ),
+                                      );
+                                    },
+                                    onRotationChanged: (deg) {
+                                      _scheduleTemplateTextPositionUpdate(
+                                        page1,
+                                        element.copyWith(rotationDegrees: deg),
+                                      );
+                                    },
+                                    onDelete: null,
                                   );
-                                },
-                              ),
+                                } else {
+                                  return DraggableChip(
+                                    key: ValueKey('p${page1 ? '1' : '2'}_ct_${element.id}_${element.rotationDegrees}_${element.fontFamily}'),
+                                    label: element.text.isEmpty ? '(empty)' : (_isPreviewMode ? substituteLabelPlaceholders(element.text, _editorLabelFieldPreview) : element.text),
+                                    actualText: element.text,
+                                    position: Offset(element.xMm, element.yMm),
+                                    fontSize: element.fontSizePt,
+                                    fontFamily: element.fontFamily,
+                                    bold: element.bold,
+                                    italic: element.italic,
+                                    rotationDegrees: element.rotationDegrees,
+                                    scale: scale,
+                                    labelWidthMm: _labelWidthMm,
+                                    labelHeightMm: _labelHeightMm,
+                                    canvasInsetXPx: 0,
+                                    canvasInsetYPx: _kLabelCanvasHitPadPx,
+                                    labelPanToMmDelta: labelPanToMmDelta,
+                                    isCustom: true,
+                                    isInlineEditing: _inlineCanvasCustomKey == 'custom:${page1 ? '1' : '2'}:${element.id}',
+                                    isSelected: _selectedElement == 'custom:${page1 ? '1' : '2'}:${element.id}',
+                                    onInlineEditingComplete: (v) {
+                                      if (!mounted) return;
+                                      setState(() {
+                                        if (page1) {
+                                          _template = _template.copyWith(
+                                            page1: _template.page1.withCustomText(element.copyWith(text: v)),
+                                          );
+                                        } else {
+                                          _template = _template.copyWith(
+                                            page2: _template.page2.withCustomText(element.copyWith(text: v)),
+                                          );
+                                        }
+                                        _inlineCanvasCustomKey = null;
+                                        _inlineCustomTextPaste = null;
+                                      });
+                                    },
+                                    onInlineTextInsertBinding: (fn) => _deferSetState(() => _inlineCustomTextPaste = fn),
+                                    onTap: () {
+                                      final k = 'custom:${page1 ? '1' : '2'}:${element.id}';
+                                      setState(() {
+                                        if (_selectedElement == k) {
+                                          _inlineCanvasCustomKey = k;
+                                        } else {
+                                          _selectedElement = k;
+                                          _inlineCanvasCustomKey = null;
+                                        }
+                                      });
+                                    },
+                                    onSelect: () {
+                                      final k = 'custom:${page1 ? '1' : '2'}:${element.id}';
+                                      setState(() {
+                                        _selectedElement = k;
+                                        _inlineCanvasCustomKey = null;
+                                      });
+                                    },
+                                    onMoved: (pos) {
+                                      _scheduleTemplateTextPositionUpdate(
+                                        page1,
+                                        element.copyWith(xMm: pos.dx, yMm: pos.dy),
+                                      );
+                                    },
+                                  );
+                                }
+                              } else if (element is CustomLineElement) {
+                                return DraggableLineChip(
+                                  key: ValueKey('p${page1 ? '1' : '2'}_line_${element.id}'),
+                                  position: Offset(element.xMm, element.yMm),
+                                  lengthMm: element.lengthMm,
+                                  thicknessPt: element.thicknessPt,
+                                  colorArgb: element.colorArgb,
+                                  rotationDegrees: element.rotationDegrees,
+                                  scale: scale,
+                                  labelWidthMm: _labelWidthMm,
+                                  labelHeightMm: _labelHeightMm,
+                                  canvasInsetXPx: 0,
+                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
+                                  labelPanToMmDelta: labelPanToMmDelta,
+                                  isSelected: _selectedElement == 'line:${page1 ? '1' : '2'}:${element.id}',
+                                  onTap: () => _deferSetState(() {
+                                    _selectedElement = 'line:${page1 ? '1' : '2'}:${element.id}';
+                                    _inlineCanvasCustomKey = null;
+                                  }),
+                                  onMoved: (pos) {
+                                    _scheduleTemplateLineUpdate(page1, element.copyWith(xMm: pos.dx, yMm: pos.dy));
+                                  },
+                                  onBoundsChanged: (x, y, w, h) {
+                                    _scheduleTemplateLineUpdate(page1, element.copyWith(xMm: x, yMm: y, lengthMm: w));
+                                  },
+                                  onRotationChanged: (deg) {
+                                    _scheduleTemplateLineUpdate(page1, element.copyWith(rotationDegrees: deg));
+                                  },
+                                  onDelete: () => _removeCustomLine(page1, element.id),
+                                );
+                              } else if (element is CustomShapeElement) {
+                                return DraggableShapeChip(
+                                  key: ValueKey('p${page1 ? '1' : '2'}_shape_${element.id}'),
+                                  shapeType: element.shapeType,
+                                  position: Offset(element.xMm, element.yMm),
+                                  widthMm: element.widthMm,
+                                  heightMm: element.heightMm,
+                                  strokeThicknessPt: element.strokeThicknessPt,
+                                  strokeColorArgb: element.strokeColorArgb,
+                                  fillColorArgb: element.fillColorArgb,
+                                  rotationDegrees: element.rotationDegrees,
+                                  scale: scale,
+                                  labelWidthMm: _labelWidthMm,
+                                  labelHeightMm: _labelHeightMm,
+                                  canvasInsetXPx: 0,
+                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
+                                  labelPanToMmDelta: labelPanToMmDelta,
+                                  isSelected: _selectedElement == 'shape:${page1 ? '1' : '2'}:${element.id}',
+                                  onTap: () => _deferSetState(() {
+                                    _selectedElement = 'shape:${page1 ? '1' : '2'}:${element.id}';
+                                    _inlineCanvasCustomKey = null;
+                                  }),
+                                  onMoved: (pos) {
+                                    _scheduleTemplateShapeUpdate(page1, element.copyWith(xMm: pos.dx, yMm: pos.dy));
+                                  },
+                                  onBoundsChanged: (x, y, w, h) {
+                                    _scheduleTemplateShapeUpdate(page1, element.copyWith(xMm: x, yMm: y, widthMm: w, heightMm: h));
+                                  },
+                                  onRotationChanged: (deg) {
+                                    _scheduleTemplateShapeUpdate(page1, element.copyWith(rotationDegrees: deg));
+                                  },
+                                  onDelete: () => _removeCustomShape(page1, element.id),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            }).toList();
+                          })(),
                         ],
                       ),
                     ),
@@ -1475,6 +1628,195 @@ class _LabelTemplateEditorScreenState
     );
   }
 
+
+  void _updateZIndex(String sel, int delta) {
+    final parts = sel.split(':');
+    final type = parts[0];
+    final page1 = parts[1] == '1';
+    final id = parts[2];
+    setState(() {
+      if (type == 'custom') {
+        final ct = _findCustomText(page1, id);
+        if (ct != null) _updateCustomText(page1, ct.copyWith(zIndex: ct.zIndex + delta));
+      } else if (type == 'image') {
+        final im = _findCustomImage(page1, id);
+        if (im != null) _scheduleTemplateImageUpdate(page1, im.copyWith(zIndex: im.zIndex + delta));
+      } else if (type == 'line') {
+        final ln = _findCustomLine(page1, id);
+        if (ln != null) _scheduleTemplateLineUpdate(page1, ln.copyWith(zIndex: ln.zIndex + delta));
+      } else if (type == 'shape') {
+        final sh = _findCustomShape(page1, id);
+        if (sh != null) _scheduleTemplateShapeUpdate(page1, sh.copyWith(zIndex: sh.zIndex + delta));
+      }
+    });
+  }
+
+  Widget _buildElementPanel(String sel, {bool inToolbar = false}) {
+    if (sel.startsWith('custom:')) {
+      return _buildCustomTextPanel(sel, inToolbar: inToolbar);
+    } else if (sel.startsWith('image:')) {
+      return _buildImagePanel(sel, inToolbar: inToolbar);
+    } else if (sel.startsWith('line:')) {
+      return _buildLinePanel(sel, inToolbar: inToolbar);
+    } else if (sel.startsWith('shape:')) {
+      return _buildShapePanel(sel, inToolbar: inToolbar);
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildPanelContainer({required Widget child, required bool inToolbar}) {
+    final scheme = Theme.of(context).colorScheme;
+    if (inToolbar) {
+      return Material(
+        elevation: 0,
+        color: scheme.surfaceContainerHighest,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: child,
+      );
+    }
+    return Material(
+      elevation: 2,
+      color: scheme.surfaceContainerHigh,
+      child: SafeArea(
+        top: false,
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildZIndexControls(String sel) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.keyboard_double_arrow_down, size: 20),
+          tooltip: 'Send to back',
+          onPressed: () => _updateZIndex(sel, -1), // Simplistic, could be improved to find min/max
+        ),
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+          tooltip: 'Send backward',
+          onPressed: () => _updateZIndex(sel, -1),
+        ),
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_up, size: 20),
+          tooltip: 'Bring forward',
+          onPressed: () => _updateZIndex(sel, 1),
+        ),
+        IconButton(
+          icon: const Icon(Icons.keyboard_double_arrow_up, size: 20),
+          tooltip: 'Bring to front',
+          onPressed: () => _updateZIndex(sel, 1),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImagePanel(String sel, {bool inToolbar = false}) {
+    final parts = sel.split(':');
+    final page1 = parts[1] == '1';
+    final id = parts[2];
+    
+    final scheme = Theme.of(context).colorScheme;
+    final deleteButton = IconButton(
+      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
+      tooltip: 'Delete image',
+      onPressed: () => _removeCustomImage(page1, id),
+    );
+
+    return _buildPanelContainer(
+      inToolbar: inToolbar,
+      child: Padding(
+        padding: inToolbar
+            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildZIndexControls(sel),
+            const Spacer(),
+            deleteButton,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLinePanel(String sel, {bool inToolbar = false}) {
+    final parts = sel.split(':');
+    final page1 = parts[1] == '1';
+    final id = parts[2];
+    final ln = _findCustomLine(page1, id);
+    if (ln == null) return const SizedBox.shrink();
+
+    final scheme = Theme.of(context).colorScheme;
+    final deleteButton = IconButton(
+      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
+      tooltip: 'Delete line',
+      onPressed: () => _removeCustomLine(page1, id),
+    );
+
+    // TODO: Add Stroke width/color selectors
+
+    return _buildPanelContainer(
+      inToolbar: inToolbar,
+      child: Padding(
+        padding: inToolbar
+            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildZIndexControls(sel),
+            const Spacer(),
+            deleteButton,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShapePanel(String sel, {bool inToolbar = false}) {
+    final parts = sel.split(':');
+    final page1 = parts[1] == '1';
+    final id = parts[2];
+    final sh = _findCustomShape(page1, id);
+    if (sh == null) return const SizedBox.shrink();
+
+    final scheme = Theme.of(context).colorScheme;
+    final deleteButton = IconButton(
+      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
+      tooltip: 'Delete shape',
+      onPressed: () => _removeCustomShape(page1, id),
+    );
+
+    // TODO: Add Fill/Stroke selectors
+
+    return _buildPanelContainer(
+      inToolbar: inToolbar,
+      child: Padding(
+        padding: inToolbar
+            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildZIndexControls(sel),
+            const Spacer(),
+            deleteButton,
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCustomTextPanel(String sel, {bool inToolbar = false}) {
     final parts = sel.split(':');
     if (parts.length != 3) return const SizedBox.shrink();
@@ -1498,29 +1840,10 @@ class _LabelTemplateEditorScreenState
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [deleteButton],
+          children: [_buildZIndexControls(sel), const Spacer(), deleteButton],
         ),
       );
-      if (inToolbar) {
-        return Material(
-          elevation: 0,
-          color: scheme.surfaceContainerHighest,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: BorderSide(color: scheme.outlineVariant),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: content,
-        );
-      }
-      return Material(
-        elevation: 2,
-        color: scheme.surfaceContainerHigh,
-        child: SafeArea(
-          top: false,
-          child: content,
-        ),
-      );
+      return _buildPanelContainer(child: content, inToolbar: inToolbar);
     }
 
     final fontKey = normalizeLabelFontFamily(ct.fontFamily);
