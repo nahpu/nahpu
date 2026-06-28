@@ -5,12 +5,14 @@ import 'package:nahpu/screens/projects/taxonomy/import_taxa.dart';
 import 'package:nahpu/screens/projects/taxonomy/new_taxa.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/projects/taxonomy/specimen_list.dart';
+import 'package:nahpu/screens/projects/collection_records.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/statistics/captures.dart';
 
 class TaxonRegistryViewer extends ConsumerStatefulWidget {
   const TaxonRegistryViewer({
@@ -25,7 +27,7 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
   @override
   Widget build(BuildContext context) {
     return FormCard(
-      title: 'Taxon Registry',
+      title: 'Project Registry',
       infoContent: const TaxonRegistryInfoContent(),
       mainAxisAlignment: MainAxisAlignment.start,
       child: Center(
@@ -178,32 +180,9 @@ class RegisteredTaxa extends StatelessWidget {
   }
 }
 
-class RecordedTaxa extends ConsumerWidget {
+class RecordedTaxa extends StatelessWidget {
   const RecordedTaxa({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(specimenEntryProvider).when(
-          data: (data) => RecordedTaxaView(data: data),
-          loading: () => const CommonProgressIndicator(),
-          error: (error, stack) => Text('Error: $error'),
-        );
-  }
-}
-
-class RecordedTaxaView extends ConsumerStatefulWidget {
-  const RecordedTaxaView({
-    super.key,
-    required this.data,
-  });
-
-  final List<SpecimenData> data;
-
-  @override
-  RecordedTaxaViewState createState() => RecordedTaxaViewState();
-}
-
-class RecordedTaxaViewState extends ConsumerState<RecordedTaxaView> {
   @override
   Widget build(BuildContext context) {
     return TaxonDataContainer(
@@ -212,105 +191,79 @@ class RecordedTaxaViewState extends ConsumerState<RecordedTaxaView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const TaxonStatText(
-            text: 'Recorded',
+            text: 'Collection Records',
           ),
-          widget.data.isEmpty
-              ? Text(
-                  'No record found',
-                  style: Theme.of(context).textTheme.labelLarge,
-                )
-              : const FittedBox(
-                  fit: BoxFit.fill,
-                  child: RecordedCounts(),
+          const Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: CollectionRecordCounts(),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const CollectionRecordsPage(),
                 ),
-          widget.data.isEmpty
-              ? const SizedBox.shrink()
-              : TextButton(
-                  onPressed: () async {
-                    if (context.mounted) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => SpecimenListPage()),
-                      );
-                    }
-                  },
-                  child: const Text('View all'),
-                )
+              );
+            },
+            child: const Text('View all'),
+          ),
         ],
       ),
     );
   }
 }
 
-class RecordedCounts extends ConsumerWidget {
-  const RecordedCounts({
+/// Counts of each collection record type, shown in the Collection Records
+/// container. Reads the entry providers directly so the numbers update when
+/// records are added or removed.
+class CollectionRecordCounts extends ConsumerWidget {
+  const CollectionRecordCounts({
     super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder(
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: RichText(
-                  text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${snapshot.data!.specimenCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' specimens\n',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  TextSpan(
-                    text: '${snapshot.data!.speciesCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' species\n',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  TextSpan(
-                    text: '${snapshot.data!.familyCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' families',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              )),
-            );
-          } else {
-            return const CommonProgressIndicator();
-          }
-        },
-        future: _getStats(ref));
+    final sites = ref.watch(siteEntryProvider).value?.length;
+    final events = ref.watch(collEventEntryProvider).value?.length;
+    final specimens = ref.watch(specimenEntryProvider).value?.length;
+    final narrative = ref.watch(narrativeEntryProvider).value?.length;
+
+    if (sites == null ||
+        events == null ||
+        specimens == null ||
+        narrative == null) {
+      return const CommonProgressIndicator();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: RichText(
+        text: TextSpan(
+          children: [
+            _countSpan(context, sites, ' sites\n'),
+            _countSpan(context, events, ' events\n'),
+            _countSpan(context, specimens, ' specimens\n'),
+            _countSpan(context, narrative, ' narrative'),
+          ],
+        ),
+      ),
+    );
   }
 
-  Future<({int specimenCount, int speciesCount, int familyCount})> _getStats(
-      WidgetRef ref) async {
-    final data = await CaptureRecordStats(ref: ref).countAll();
-    return data;
-  }
-}
-
-class CountText extends StatelessWidget {
-  const CountText({
-    super.key,
-    required this.text,
-  });
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.titleMedium,
+  TextSpan _countSpan(BuildContext context, int count, String label) {
+    return TextSpan(
+      children: [
+        TextSpan(
+          text: '$count',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        TextSpan(
+          text: label,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ],
     );
   }
 }
@@ -384,8 +337,9 @@ class TaxonRegistryInfoContent extends StatelessWidget {
           header: 'Term definitions',
           content: 'Registered taxa - The number of taxa that are registered '
               'in the project. '
-              '\nRecorded taxa - Information about recorded specimens/captures.'
-              ' It will update when you add a new specimen/capture.',
+              '\nCollection Records - Counts of sites, events, specimens, and '
+              'narrative recorded in the project. They update as you add or '
+              'remove records.',
         ),
       ],
     );
