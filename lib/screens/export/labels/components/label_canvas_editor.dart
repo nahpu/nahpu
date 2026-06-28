@@ -102,8 +102,7 @@ class LabelCanvasEditor extends StatelessWidget {
       final canvasH = labelHeightMm * scale;
       final stackW = canvasW + _kLabelCanvasHitPadPx;
       final stackH = canvasH + 2 * _kLabelCanvasHitPadPx;
-      final scrollW = math.max(availW, stackW);
-      final scrollH = math.max(availH, stackH);
+
 
       Offset? labelPanToMmDelta(Offset globalPosition, Offset globalDelta) {
         return labelPanGlobalDeltaToMm(
@@ -114,12 +113,13 @@ class LabelCanvasEditor extends StatelessWidget {
         );
       }
 
-      return SingleChildScrollView(
-        primary: false,
-        scrollDirection: Axis.horizontal,
-        child: SingleChildScrollView(
-          primary: false,
-          child: Padding(
+      return InteractiveViewer(
+        constrained: false,
+        scaleEnabled: false,
+        panEnabled: true,
+        clipBehavior: Clip.none,
+        boundaryMargin: const EdgeInsets.all(double.infinity),
+        child: Padding(
             padding: const EdgeInsets.fromLTRB(
               0,
               edgePadH,
@@ -135,8 +135,8 @@ class LabelCanvasEditor extends StatelessWidget {
                 behavior: HitTestBehavior.translucent,
                 onTap: onClearSelection,
                 child: Container(
-                  width: scrollW,
-                  height: scrollH,
+                  width: availW,
+                  height: availH,
                   alignment: Alignment.center,
                   color: Colors.transparent,
                   child: Transform.rotate(
@@ -447,7 +447,6 @@ class LabelCanvasEditor extends StatelessWidget {
               ),
             ),
           ),
-        ),
       );
     });
   }
