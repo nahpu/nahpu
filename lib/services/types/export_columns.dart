@@ -24,6 +24,7 @@ List<String> getAvailableExportColumns({
       if (specimenRecordType != null) {
         switch (specimenRecordType) {
           case SpecimenRecordType.generalMammals:
+          case SpecimenRecordType.fossils: // TODO: Placeholder
             measurementList = mammalMeasurementExportList;
             break;
           case SpecimenRecordType.birds:
