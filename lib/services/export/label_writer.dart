@@ -487,8 +487,13 @@ class LabelWriter {
       return;
     }
 
-    String content =
-        _escapeTypstMarkup(formatTextWithCase(t.text, t.caseFormat));
+    final formatted = formatLabelText(
+      t.text,
+      t.textType,
+      t.formatOption,
+      t.caseFormat,
+    );
+    String content = _escapeTypstMarkup(formatted);
     final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
     final colorStr = 'rgb("${hexColor.substring(2)}")';
     String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';

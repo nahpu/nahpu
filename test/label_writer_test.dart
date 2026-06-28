@@ -128,6 +128,100 @@ void main() {
       final deserialized = CustomTextElement.fromJson(json);
       expect(deserialized.textAlign, 'left');
       expect(deserialized.caseFormat, 'normal');
+      expect(deserialized.textType, 'normal');
+      expect(deserialized.formatOption, 'normal');
+    });
+
+    test(
+        'CustomTextElement JSON serialization retains textType and formatOption',
+        () {
+      final ct = CustomTextElement(
+        id: 'txt1',
+        text: 'hello',
+        xMm: 10,
+        yMm: 20,
+        textType: 'coordinates',
+        formatOption: 'dms',
+      );
+      final json = ct.toJson();
+      expect(json['textType'], 'coordinates');
+      expect(json['formatOption'], 'dms');
+
+      final deserialized = CustomTextElement.fromJson(json);
+      expect(deserialized.textType, 'coordinates');
+      expect(deserialized.formatOption, 'dms');
+    });
+
+    test('Coordinates formatting handles DMS and cardinal directions correctly',
+        () {
+      const text = '45.12345, -122.54321';
+      final dms = formatLabelText(text, 'coordinates', 'dms');
+      expect(dms, '45° 7\' 24.4" N, 122° 32\' 35.6" W');
+
+      final ddm = formatLabelText(text, 'coordinates', 'ddm');
+      expect(ddm, '45° 7.407\' N, 122° 32.593\' W');
+
+      final cardinal = formatLabelText(text, 'coordinates', 'cardinalDecimal');
+      expect(cardinal, '45.12345° N, 122.54321° W');
+    });
+
+    test('List formatting handles normal separators and custom separators', () {
+      const listText = 'mammal | bird | reptile';
+      final commaList = formatLabelText(listText, 'list', 'comma');
+      expect(commaList, 'mammal, bird, reptile');
+
+      final customList = formatLabelText(listText, 'list', 'custom: - ');
+      expect(customList, 'mammal - bird - reptile');
+    });
+
+    test('Date formatting parses and formats ISO dates correctly', () {
+      const dateText = '2026-06-28';
+      final formatted = formatLabelText(dateText, 'date', 'month-dd-yyyy');
+      expect(formatted, 'June 28, 2026');
+
+      final abbr = formatLabelText(dateText, 'date', 'dd-month-abbr-yyyy');
+      expect(abbr, '28 Jun 2026');
+    });
+
+    test('Sex formatting parses Male/Female/Unknown indices and text', () {
+      expect(formatLabelText('0', 'sex', 'symbol:unknown'), '\u2642');
+      expect(formatLabelText('Male', 'sex', 'letter:na'), 'M');
+      expect(formatLabelText('m', 'sex', 'text:none'), 'Male');
+
+      expect(formatLabelText('1', 'sex', 'symbol:unknown'), '\u2640');
+      expect(formatLabelText('Female', 'sex', 'letter:na'), 'F');
+      expect(formatLabelText('f', 'sex', 'text:none'), 'Female');
+
+      expect(formatLabelText('2', 'sex', 'symbol:unknown'), '?');
+      expect(formatLabelText('', 'sex', 'letter:na'), 'N/A');
+      expect(formatLabelText('Unknown', 'sex', 'text:none'), '');
+    });
+
+    test('Field display formatting displays full/field-only placeholders', () {
+      const text = '[specimen::catalogNum] [site::locality]';
+      expect(
+        formatFieldPlaceholderText(text, false),
+        '[specimen::catalogNum] [site::locality]',
+      );
+      expect(
+        formatFieldPlaceholderText(text, true),
+        '[catalogNum] [locality]',
+      );
+    });
+
+    test('Number formatting formats double values to specified decimals', () {
+      const pureFloat = '12.3456';
+      expect(formatLabelText(pureFloat, 'number', 'original'), '12.3456');
+      expect(formatLabelText(pureFloat, 'number', '0'), '12');
+      expect(formatLabelText(pureFloat, 'number', '1'), '12.3');
+      expect(formatLabelText(pureFloat, 'number', '2'), '12.35');
+      expect(formatLabelText(pureFloat, 'number', '3'), '12.346');
+
+      const integerText = '12';
+      expect(formatLabelText(integerText, 'number', '1'), '12.0');
+
+      const textWithUnits = 'Weight: 12.34 g';
+      expect(formatLabelText(textWithUnits, 'number', '1'), 'Weight: 12.3 g');
     });
   });
 }

@@ -134,24 +134,59 @@ flutter:
     - family: "Merriweather"
       fonts:
         - asset: assets/fonts/Merriweather-Regular.ttf
+        - asset: assets/fonts/Merriweather-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Merriweather-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Merriweather-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Merriweather-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Merriweather-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Merriweather-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Merriweather-BlackItalic.ttf
+          weight: 900
+          style: italic
     - family: "NahpuIcons"
       fonts:
         - asset: assets/fonts/nahpu_font.ttf
     - family: "DejaVuSans"
       fonts:
         - asset: assets/fonts/DejaVuSans.ttf
+        - asset: assets/fonts/DejaVuSans-Bold.ttf
+          weight: 700
     - family: "DejaVuSerif"
       fonts:
         - asset: assets/fonts/DejaVuSerif.ttf
+        - asset: assets/fonts/DejaVuSerif-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/DejaVuSerif-Italic.ttf
+          style: italic
     - family: "LibertinusSans"
       fonts:
         - asset: assets/fonts/LibertinusSans-Regular.ttf
+        - asset: assets/fonts/LibertinusSans-Italic.ttf
+          style: italic
+        - asset: assets/fonts/LibertinusSans-Bold.ttf
+          weight: 700
     - family: "LibertinusSerif"
       fonts:
         - asset: assets/fonts/LibertinusSerif-Regular.ttf
+        - asset: assets/fonts/LibertinusSerif-Italic.ttf
+          style: italic
+        - asset: assets/fonts/LibertinusSerif-Bold.ttf
+          weight: 700
     - family: "PlusJakartaSans"
       fonts:
         - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Italic.ttf
+          style: italic
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

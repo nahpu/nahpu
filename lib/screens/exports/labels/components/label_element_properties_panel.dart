@@ -21,12 +21,14 @@ class LabelElementPropertiesPanel extends StatelessWidget {
     required this.onUpdateCustomShape,
     required this.onDeleteCustomShape,
     this.onDismiss,
+    this.onInsertScientificSymbol,
   });
 
   final String selectedElement;
   final bool page1;
   final LabelTemplate template;
   final VoidCallback? onDismiss;
+  final void Function(String)? onInsertScientificSymbol;
 
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
   final void Function(bool page1, String id) onDeleteCustomText;
@@ -729,6 +731,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
     }
 
     final content = _CustomTextToolbar(
+      key: ValueKey(ct.id),
       ct: ct,
       page1: page1,
       inToolbar: inToolbar,
@@ -736,6 +739,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
       zIndexControls: _buildZIndexControls(context, sel),
       deleteButton: deleteButton,
       buildOptionSlider: _buildOptionSlider,
+      onInsertScientificSymbol: onInsertScientificSymbol,
     );
 
     return _buildPanelContainer(
@@ -748,6 +752,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
 
 class _CustomTextToolbar extends StatefulWidget {
   const _CustomTextToolbar({
+    super.key,
     required this.ct,
     required this.page1,
     required this.inToolbar,
@@ -755,6 +760,7 @@ class _CustomTextToolbar extends StatefulWidget {
     required this.zIndexControls,
     required this.deleteButton,
     required this.buildOptionSlider,
+    this.onInsertScientificSymbol,
   });
 
   final CustomTextElement ct;
@@ -772,6 +778,7 @@ class _CustomTextToolbar extends StatefulWidget {
     required String label,
     required ValueChanged<double> onChanged,
   }) buildOptionSlider;
+  final void Function(String)? onInsertScientificSymbol;
 
   @override
   State<_CustomTextToolbar> createState() => _CustomTextToolbarState();
@@ -779,6 +786,187 @@ class _CustomTextToolbar extends StatefulWidget {
 
 class _CustomTextToolbarState extends State<_CustomTextToolbar> {
   bool _showFormattingRow = false;
+  late TextEditingController _separatorController;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialSep = widget.ct.formatOption.startsWith('custom:')
+        ? widget.ct.formatOption.substring(7)
+        : '';
+    _separatorController = TextEditingController(text: initialSep);
+  }
+
+  @override
+  void didUpdateWidget(covariant _CustomTextToolbar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.ct.id != oldWidget.ct.id ||
+        widget.ct.formatOption != oldWidget.ct.formatOption) {
+      final sep = widget.ct.formatOption.startsWith('custom:')
+          ? widget.ct.formatOption.substring(7)
+          : '';
+      if (_separatorController.text != sep) {
+        _separatorController.text = sep;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _separatorController.dispose();
+    super.dispose();
+  }
+
+  String _getSexPresentation(String formatOption) {
+    final parts = formatOption.split(':');
+    return parts.isNotEmpty ? parts[0] : 'text';
+  }
+
+  String _getSexMissing(String formatOption) {
+    final parts = formatOption.split(':');
+    return parts.length > 1 ? parts[1] : 'unknown';
+  }
+
+  List<DropdownMenuItem<String>> _getFormatDropdownItems(String textType) {
+    switch (textType) {
+      case 'coordinates':
+        return const [
+          DropdownMenuItem(
+            value: 'decimal',
+            child: Text('Decimal (45.123, -122.543)'),
+          ),
+          DropdownMenuItem(
+            value: 'cardinalDecimal',
+            child: Text(
+              'Cardinal Dec (45.123° N, 122.543° W)',
+            ),
+          ),
+          DropdownMenuItem(
+            value: 'dms',
+            child: Text('DMS (45° 7\' 24" N, 122° 32\' 35" W)'),
+          ),
+          DropdownMenuItem(
+            value: 'ddm',
+            child: Text('DDM (45° 7.407\' N, 122° 32.592\' W)'),
+          ),
+        ];
+      case 'list':
+        return const [
+          DropdownMenuItem(
+            value: 'pipe',
+            child: Text('Pipe separated (A | B | C)'),
+          ),
+          DropdownMenuItem(
+            value: 'comma',
+            child: Text('Comma separated (A, B, C)'),
+          ),
+          DropdownMenuItem(
+            value: 'semicolon',
+            child: Text('Semicolon separated (A; B; C)'),
+          ),
+          DropdownMenuItem(
+            value: 'slash',
+            child: Text('Slash separated (A / B / C)'),
+          ),
+          DropdownMenuItem(
+            value: 'newline',
+            child: Text('New line (A\\nB\\nC)'),
+          ),
+          DropdownMenuItem(
+            value: 'bullet',
+            child: Text('Bulleted (• A\\n• B)'),
+          ),
+          DropdownMenuItem(
+            value: 'custom',
+            child: Text('Custom separator...'),
+          ),
+        ];
+      case 'date':
+        return const [
+          DropdownMenuItem(
+            value: 'yyyy-mm-dd',
+            child: Text('YYYY-MM-DD (2026-06-28)'),
+          ),
+          DropdownMenuItem(
+            value: 'dd-mm-yyyy',
+            child: Text('DD-MM-YYYY (28-06-2026)'),
+          ),
+          DropdownMenuItem(
+            value: 'mm-dd-yyyy',
+            child: Text('MM-DD-YYYY (06-28-2026)'),
+          ),
+          DropdownMenuItem(
+            value: 'dd/mm/yyyy',
+            child: Text('DD/MM/YYYY (28/06/2026)'),
+          ),
+          DropdownMenuItem(
+            value: 'mm/dd/yyyy',
+            child: Text('MM/DD/YYYY (06/28/2026)'),
+          ),
+          DropdownMenuItem(
+            value: 'month-dd-yyyy',
+            child: Text(
+              'Month DD, YYYY (June 28, 2026)',
+            ),
+          ),
+          DropdownMenuItem(
+            value: 'dd-month-yyyy',
+            child: Text(
+              'DD Month YYYY (28 June 2026)',
+            ),
+          ),
+          DropdownMenuItem(
+            value: 'dd-month-abbr-yyyy',
+            child: Text(
+              'DD Month (Abbr) (28 Jun 2026)',
+            ),
+          ),
+        ];
+      case 'number':
+        return const [
+          DropdownMenuItem(
+            value: 'original',
+            child: Text('Original'),
+          ),
+          DropdownMenuItem(
+            value: '0',
+            child: Text('0 decimal places (e.g. 12)'),
+          ),
+          DropdownMenuItem(
+            value: '1',
+            child: Text('1 decimal place (e.g. 12.3)'),
+          ),
+          DropdownMenuItem(
+            value: '2',
+            child: Text('2 decimal places (e.g. 12.34)'),
+          ),
+          DropdownMenuItem(
+            value: '3',
+            child: Text('3 decimal places (e.g. 12.345)'),
+          ),
+        ];
+      case 'normal':
+      default:
+        return const [
+          DropdownMenuItem(
+            value: 'normal',
+            child: Text('Normal'),
+          ),
+          DropdownMenuItem(
+            value: 'uppercase',
+            child: Text('Uppercase'),
+          ),
+          DropdownMenuItem(
+            value: 'lowercase',
+            child: Text('Lowercase'),
+          ),
+          DropdownMenuItem(
+            value: 'capitalize',
+            child: Text('Capitalize'),
+          ),
+        ];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -839,7 +1027,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 ? () => onUpdateCustomText(
                       page1,
                       ct.copyWith(
-                          fontSizePt: (ct.fontSizePt - 0.5).clamp(4.0, 72.0)),
+                        fontSizePt: (ct.fontSizePt - 0.5).clamp(4.0, 72.0),
+                      ),
                     )
                 : null,
           ),
@@ -850,13 +1039,14 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 ? () => onUpdateCustomText(
                       page1,
                       ct.copyWith(
-                          fontSizePt: (ct.fontSizePt + 0.5).clamp(4.0, 72.0)),
+                        fontSizePt: (ct.fontSizePt + 0.5).clamp(4.0, 72.0),
+                      ),
                     )
                 : null,
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.text_format, size: 24),
+            icon: const Icon(Icons.text_format, size: 24),
             isSelected: _showFormattingRow,
             tooltip: 'Text formatting options',
             onPressed: () {
@@ -900,7 +1090,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               ).showPickerDialog(context);
               if (picked) {
                 onUpdateCustomText(
-                    page1, ct.copyWith(colorArgb: selectedColor.toARGB32()));
+                  page1,
+                  ct.copyWith(
+                    colorArgb: selectedColor.toARGB32(),
+                  ),
+                );
               }
             },
             child: Container(
@@ -941,7 +1135,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                   : '${ct.maxWidthMm!.toStringAsFixed(1)} mm',
               onChanged: (v) {
                 onUpdateCustomText(
-                    page1, ct.copyWith(maxWidthMm: v == 0.0 ? null : v));
+                  page1,
+                  ct.copyWith(
+                    maxWidthMm: v == 0.0 ? null : v,
+                  ),
+                );
               },
             ),
           ),
@@ -967,6 +1165,9 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         ],
       ),
     );
+
+    final isCustomSep =
+        ct.formatOption.startsWith('custom:') || ct.formatOption == 'custom';
 
     return Padding(
       padding: inToolbar
@@ -1038,32 +1239,237 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           ),
                           tooltip: 'Italic',
                         ),
-                        const SizedBox(width: 12),
-                        Text('Case',
-                            style: Theme.of(context).textTheme.labelMedium),
+                        const SizedBox(width: 16),
+                        Text(
+                          'Type',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         const SizedBox(width: 8),
                         DropdownButton<String>(
-                          value: ct.caseFormat,
+                          value: ct.textType,
                           isDense: true,
                           underline: const SizedBox.shrink(),
                           items: const [
                             DropdownMenuItem(
-                                value: 'normal', child: Text('Normal')),
+                              value: 'normal',
+                              child: Text('Normal Text'),
+                            ),
                             DropdownMenuItem(
-                                value: 'uppercase', child: Text('Uppercase')),
+                              value: 'coordinates',
+                              child: Text('Coordinates'),
+                            ),
                             DropdownMenuItem(
-                                value: 'lowercase', child: Text('Lowercase')),
+                              value: 'list',
+                              child: Text('List Values'),
+                            ),
                             DropdownMenuItem(
-                                value: 'capitalize', child: Text('Capitalize')),
+                              value: 'date',
+                              child: Text('Dates'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'sex',
+                              child: Text('Sex'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'number',
+                              child: Text('Number'),
+                            ),
                           ],
                           onChanged: (v) {
                             if (v == null) return;
+                            String defaultOpt = 'normal';
+                            if (v == 'coordinates') {
+                              defaultOpt = 'decimal';
+                            } else if (v == 'list') {
+                              defaultOpt = 'pipe';
+                            } else if (v == 'date') {
+                              defaultOpt = 'yyyy-mm-dd';
+                            } else if (v == 'sex') {
+                              defaultOpt = 'text:unknown';
+                            } else if (v == 'number') {
+                              defaultOpt = 'original';
+                            }
                             onUpdateCustomText(
                               page1,
-                              ct.copyWith(caseFormat: v),
+                              ct.copyWith(
+                                textType: v,
+                                formatOption: defaultOpt,
+                              ),
                             );
                           },
                         ),
+                        if (ct.textType != 'sex') ...[
+                          const SizedBox(width: 16),
+                          Text(
+                            'Format',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 8),
+                          DropdownButton<String>(
+                            value: isCustomSep ? 'custom' : ct.formatOption,
+                            isDense: true,
+                            underline: const SizedBox.shrink(),
+                            items: _getFormatDropdownItems(ct.textType),
+                            onChanged: (v) {
+                              if (v == null) return;
+                              final nextOpt = v == 'custom' ? 'custom:' : v;
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(formatOption: nextOpt),
+                              );
+                            },
+                          ),
+                        ] else ...[
+                          const SizedBox(width: 16),
+                          Text(
+                            'Format',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 8),
+                          DropdownButton<String>(
+                            value: _getSexPresentation(ct.formatOption),
+                            isDense: true,
+                            underline: const SizedBox.shrink(),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'symbol',
+                                child: Text('Symbol (♂/♀)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'letter',
+                                child: Text('Letter (M/F)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'text',
+                                child: Text('Text (Male/Female)'),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              if (v == null) return;
+                              final missing = _getSexMissing(ct.formatOption);
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(
+                                  formatOption: '$v:$missing',
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            'Missing',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 8),
+                          DropdownButton<String>(
+                            value: _getSexMissing(ct.formatOption),
+                            isDense: true,
+                            underline: const SizedBox.shrink(),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'unknown',
+                                child: Text('Unknown'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'na',
+                                child: Text('N/A'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'none',
+                                child: Text('None'),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              if (v == null) return;
+                              final presentation =
+                                  _getSexPresentation(ct.formatOption);
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(
+                                  formatOption: '$presentation:$v',
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                        if (ct.textType == 'list' && isCustomSep) ...[
+                          const SizedBox(width: 12),
+                          Text(
+                            'Separator',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 60,
+                            child: TextField(
+                              controller: _separatorController,
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 8,
+                                ),
+                              ),
+                              onChanged: (val) {
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(
+                                    formatOption: 'custom:$val',
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                        if (widget.onInsertScientificSymbol != null) ...[
+                          const SizedBox(width: 16),
+                          Text(
+                            'Symbols',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 8),
+                          for (final sym in const [
+                            '♂',
+                            '♀',
+                            '±',
+                            '×',
+                            '≈',
+                            '≡',
+                            '°',
+                            'µ',
+                            '≥',
+                            '≤'
+                          ]) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                onPressed: () =>
+                                    widget.onInsertScientificSymbol!(sym),
+                                child: Text(
+                                  sym,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ],
                     ),
                   ),

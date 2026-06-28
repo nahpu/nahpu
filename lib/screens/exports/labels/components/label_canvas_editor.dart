@@ -58,6 +58,7 @@ class LabelCanvasEditor extends StatefulWidget {
     required this.onRemoveCustomLine,
     required this.onScheduleTemplateShapeUpdate,
     required this.onRemoveCustomShape,
+    this.fieldDisplayOption = 'short',
   });
 
   final bool page1;
@@ -73,6 +74,7 @@ class LabelCanvasEditor extends StatefulWidget {
   final String? selectedElement;
   final String? inlineCanvasCustomKey;
   final GlobalKey labelStackKey;
+  final String fieldDisplayOption;
 
   final Offset? Function(GlobalKey stackKey, Offset globalPosition,
       Offset globalDelta, double scale) labelPanGlobalDeltaToMm;
@@ -350,12 +352,19 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                         'p${page1 ? '1' : '2'}_ct_${element.id}_${element.rotationDegrees}_${element.fontFamily}'),
                                     label: element.text.isEmpty
                                         ? '(empty)'
-                                        : formatTextWithCase(
+                                        : formatLabelText(
                                             isPreviewMode
                                                 ? substituteLabelPlaceholders(
                                                     element.text,
-                                                    editorLabelFieldPreview)
-                                                : element.text,
+                                                    editorLabelFieldPreview,
+                                                  )
+                                                : formatFieldPlaceholderText(
+                                                    element.text,
+                                                    widget.fieldDisplayOption ==
+                                                        'short',
+                                                  ),
+                                            element.textType,
+                                            element.formatOption,
                                             element.caseFormat,
                                           ),
                                     actualText: element.text,

@@ -211,13 +211,15 @@ class _PreviewPage extends StatelessWidget {
                       child: Text(
                         ct.text.isEmpty
                             ? ' '
-                            : formatTextWithCase(
+                            : formatLabelText(
                                 placeholderValues.isEmpty
                                     ? ct.text
                                     : substituteLabelPlaceholders(
                                         ct.text,
                                         placeholderValues,
                                       ),
+                                ct.textType,
+                                ct.formatOption,
                                 ct.caseFormat,
                               ),
                         style: customLabelCanvasTextStyle(

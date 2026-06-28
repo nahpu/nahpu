@@ -7,10 +7,14 @@ class AvailableFieldsPanel extends ConsumerWidget {
     super.key,
     required this.isExpanded,
     required this.onAddField,
+    required this.fieldDisplayOption,
+    required this.onFieldDisplayOptionChanged,
   });
 
   final bool isExpanded;
   final void Function(String) onAddField;
+  final String fieldDisplayOption;
+  final ValueChanged<String> onFieldDisplayOptionChanged;
 
   Map<String, List<String>> _getAllGroups(WidgetRef ref) {
     final db = ref.read(databaseProvider);
@@ -39,8 +43,11 @@ class AvailableFieldsPanel extends ConsumerWidget {
 
   String _getDisplayLabel(String label) {
     final stripped = label.replaceAll('[', '').replaceAll(']', '');
-    final parts = stripped.split('::');
-    return parts.length > 1 ? parts.last : stripped;
+    if (fieldDisplayOption == 'short') {
+      final parts = stripped.split('::');
+      return parts.length > 1 ? parts.last : stripped;
+    }
+    return stripped;
   }
 
   Widget _buildExpansionGroup(
@@ -112,10 +119,41 @@ class AvailableFieldsPanel extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-                          child: Text(
-                            'Available fields',
-                            style: Theme.of(context).textTheme.titleSmall,
+                          padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Available fields',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              DropdownButton<String>(
+                                value: fieldDisplayOption,
+                                isDense: true,
+                                underline: const SizedBox.shrink(),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'full',
+                                    child: Text(
+                                      'Table::Field',
+                                      style: TextStyle(fontSize: 11),
+                                    ),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'short',
+                                    child: Text(
+                                      'Field Only',
+                                      style: TextStyle(fontSize: 11),
+                                    ),
+                                  ),
+                                ],
+                                onChanged: (v) {
+                                  if (v != null) {
+                                    onFieldDisplayOptionChanged(v);
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ),
                         const Divider(height: 1),

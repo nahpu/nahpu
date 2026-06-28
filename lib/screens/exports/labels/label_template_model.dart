@@ -50,6 +50,264 @@ String formatTextWithCase(String rawText, String caseFormat) {
   }
 }
 
+String formatCoordinatesText(String text, String format) {
+  final pairRegex = RegExp(
+    r'(-?\d+\.\d+|-?\d+)\s*[\s,;/|]\s*(-?\d+\.\d+|-?\d+)',
+  );
+  final match = pairRegex.firstMatch(text);
+  if (match != null) {
+    final latStr = match.group(1)!;
+    final lngStr = match.group(2)!;
+    final lat = double.tryParse(latStr);
+    final lng = double.tryParse(lngStr);
+    if (lat != null && lng != null) {
+      final formatted = _formatPair(lat, lng, format);
+      return text.replaceFirst(pairRegex, formatted);
+    }
+  }
+  return text;
+}
+
+String _formatSingle(double value, String type, String format) {
+  final isLat = type == 'lat';
+  final cardinal = isLat ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
+  final absVal = value.abs();
+
+  if (format == 'cardinalDecimal') {
+    return "${absVal.toStringAsFixed(5)}° $cardinal";
+  } else if (format == 'dms') {
+    final d = absVal.floor();
+    final mVal = (absVal - d) * 60;
+    final m = mVal.floor();
+    final s = ((mVal - m) * 60).toStringAsFixed(1);
+    return "$d° $m' $s\" $cardinal";
+  } else if (format == 'ddm') {
+    final d = absVal.floor();
+    final mVal = (absVal - d) * 60;
+    final m = mVal.toStringAsFixed(3);
+    return "$d° $m' $cardinal";
+  } else {
+    return value.toStringAsFixed(5);
+  }
+}
+
+String _formatPair(double lat, double lng, String format) {
+  if (format == 'decimal') {
+    return "${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)}";
+  }
+  final latFmt = _formatSingle(lat, 'lat', format);
+  final lngFmt = _formatSingle(lng, 'lng', format);
+  return "$latFmt, $lngFmt";
+}
+
+String formatDateText(String text, String formatOption) {
+  final dateRegex = RegExp(r'(\d{4})-(\d{2})-(\d{2})');
+  final match = dateRegex.firstMatch(text);
+  if (match != null) {
+    final year = int.tryParse(match.group(1)!);
+    final month = int.tryParse(match.group(2)!);
+    final day = int.tryParse(match.group(3)!);
+    if (year != null && month != null && day != null) {
+      final dt = DateTime(year, month, day);
+      final formatted = _formatDate(dt, formatOption);
+      return text.replaceFirst(dateRegex, formatted);
+    }
+  }
+
+  final dt = DateTime.tryParse(text);
+  if (dt != null) {
+    return _formatDate(dt, formatOption);
+  }
+
+  return text;
+}
+
+String _formatDate(DateTime dt, String format) {
+  final months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+  final monthAbbr = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+
+  final y = dt.year.toString();
+  final m = dt.month.toString().padLeft(2, '0');
+  final d = dt.day.toString().padLeft(2, '0');
+
+  switch (format) {
+    case 'yyyy-mm-dd':
+      return "$y-$m-$d";
+    case 'dd-mm-yyyy':
+      return "$d-$m-$y";
+    case 'mm-dd-yyyy':
+      return "$m-$d-$y";
+    case 'dd/mm/yyyy':
+      return "$d/$m/$y";
+    case 'mm/dd/yyyy':
+      return "$m/$d/$y";
+    case 'month-dd-yyyy':
+      return "${months[dt.month - 1]} ${dt.day}, $y";
+    case 'dd-month-yyyy':
+      return "${dt.day} ${months[dt.month - 1]} $y";
+    case 'dd-month-abbr-yyyy':
+      return "${dt.day} ${monthAbbr[dt.month - 1]} $y";
+    default:
+      return "$y-$m-$d";
+  }
+}
+
+String formatListText(String text, String formatOption) {
+  List<String> items;
+  if (text.contains(' | ')) {
+    items = text.split(' | ').map((s) => s.trim()).toList();
+  } else if (text.contains('; ')) {
+    items = text.split('; ').map((s) => s.trim()).toList();
+  } else {
+    items = [text];
+  }
+
+  items = items.where((item) => item.isNotEmpty).toList();
+  if (items.isEmpty) return text;
+
+  if (formatOption.startsWith('custom:')) {
+    final customSep = formatOption.substring(7);
+    return items.join(customSep);
+  }
+
+  switch (formatOption) {
+    case 'comma':
+      return items.join(', ');
+    case 'semicolon':
+      return items.join('; ');
+    case 'slash':
+      return items.join(' / ');
+    case 'newline':
+      return items.join('\n');
+    case 'bullet':
+      return items.map((e) => '• $e').join('\n');
+    default:
+      return text;
+  }
+}
+
+String formatSexText(String text, String formatOption) {
+  final cleanText = text.trim().toLowerCase();
+
+  final parts = formatOption.split(':');
+  final presentation = parts.isNotEmpty ? parts[0] : 'text';
+  final missingOpt = parts.length > 1 ? parts[1] : 'unknown';
+
+  final isMale = cleanText == '0' || cleanText == 'male' || cleanText == 'm';
+  final isFemale =
+      cleanText == '1' || cleanText == 'female' || cleanText == 'f';
+
+  if (isMale) {
+    if (presentation == 'symbol') return '\u2642'; // ♂
+    if (presentation == 'letter') return 'M';
+    return 'Male';
+  } else if (isFemale) {
+    if (presentation == 'symbol') return '\u2640'; // ♀
+    if (presentation == 'letter') return 'F';
+    return 'Female';
+  } else {
+    switch (missingOpt) {
+      case 'na':
+        return 'N/A';
+      case 'none':
+        return '';
+      case 'unknown':
+      default:
+        if (presentation == 'symbol') return '?';
+        if (presentation == 'letter') return 'U';
+        return 'Unknown';
+    }
+  }
+}
+
+String formatNumberText(String text, String formatOption) {
+  if (formatOption == 'original' || formatOption == 'normal') return text;
+
+  final decimals = int.tryParse(formatOption);
+  if (decimals == null) return text;
+
+  final numRegex = RegExp(r'\b\d+\.\d+\b|\b\d+\b');
+  return text.replaceAllMapped(numRegex, (match) {
+    final valStr = match.group(0)!;
+    final val = double.tryParse(valStr);
+    if (val != null) {
+      return val.toStringAsFixed(decimals);
+    }
+    return valStr;
+  });
+}
+
+String formatFieldPlaceholderText(String text, bool showFieldOnly) {
+  if (!showFieldOnly) return text;
+  final regex = RegExp(r'\[([^\]\s]+)::([^\]\s]+)\]');
+  return text.replaceAllMapped(regex, (match) => '[${match.group(2)}]');
+}
+
+String formatLabelText(
+  String rawText,
+  String textType,
+  String formatOption, [
+  String? oldCaseFormat,
+]) {
+  if (rawText.isEmpty && textType != 'sex') return rawText;
+
+  String result;
+  switch (textType) {
+    case 'coordinates':
+      result = formatCoordinatesText(rawText, formatOption);
+      break;
+    case 'date':
+      result = formatDateText(rawText, formatOption);
+      break;
+    case 'list':
+      result = formatListText(rawText, formatOption);
+      break;
+    case 'sex':
+      result = formatSexText(rawText, formatOption);
+      break;
+    case 'number':
+      result = formatNumberText(rawText, formatOption);
+      break;
+    case 'normal':
+    default:
+      String currentCase = formatOption;
+      if (currentCase == 'normal' &&
+          oldCaseFormat != null &&
+          oldCaseFormat != 'normal') {
+        currentCase = oldCaseFormat;
+      }
+      result = formatTextWithCase(rawText, currentCase);
+      break;
+  }
+  return result;
+}
+
 class CustomTextElement {
   const CustomTextElement({
     required this.id,
@@ -68,6 +326,8 @@ class CustomTextElement {
     this.maxWidthMm,
     this.zIndex = 0,
     this.colorArgb = 0xFF000000,
+    this.textType = 'normal',
+    this.formatOption = 'normal',
   });
 
   final String id;
@@ -83,6 +343,8 @@ class CustomTextElement {
   final int rotationDegrees;
   final int zIndex;
   final int colorArgb;
+  final String textType;
+  final String formatOption;
 
   /// For [isLabelBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
@@ -109,6 +371,8 @@ class CustomTextElement {
     int? zIndex,
     int? colorArgb,
     bool clearMaxWidthMm = false,
+    String? textType,
+    String? formatOption,
   }) {
     return CustomTextElement(
       id: id ?? this.id,
@@ -127,6 +391,8 @@ class CustomTextElement {
       maxWidthMm: clearMaxWidthMm ? null : (maxWidthMm ?? this.maxWidthMm),
       zIndex: zIndex ?? this.zIndex,
       colorArgb: colorArgb ?? this.colorArgb,
+      textType: textType ?? this.textType,
+      formatOption: formatOption ?? this.formatOption,
     );
   }
 
@@ -147,6 +413,8 @@ class CustomTextElement {
         if (maxWidthMm != null) 'maxWidthMm': maxWidthMm,
         'zIndex': zIndex,
         'colorArgb': colorArgb,
+        'textType': textType,
+        'formatOption': formatOption,
       };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
@@ -167,6 +435,8 @@ class CustomTextElement {
       maxWidthMm: (json['maxWidthMm'] as num?)?.toDouble(),
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
       colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF000000,
+      textType: json['textType'] as String? ?? 'normal',
+      formatOption: json['formatOption'] as String? ?? 'normal',
     );
   }
 }

@@ -81,6 +81,7 @@ class _LabelTemplateEditorScreenState
 
   bool _fieldsPanelExpanded = false;
   bool _isPreviewMode = true;
+  String _fieldDisplayOption = 'short';
 
   /// Non-null while a custom text box is in canvas inline edit; inserts at caret.
   void Function(String)? _inlineCustomTextPaste;
@@ -685,6 +686,27 @@ class _LabelTemplateEditorScreenState
                                 _selectedElement = null;
                                 _inlineCanvasCustomKey = null;
                               }),
+                              onInsertScientificSymbol: (sym) {
+                                if (_inlineCustomTextPaste != null) {
+                                  _inlineCustomTextPaste!(sym);
+                                } else {
+                                  final parts = _selectedElement!.split(':');
+                                  if (parts.length == 3 &&
+                                      parts[0] == 'custom') {
+                                    final p1 = parts[1] == '1';
+                                    final id = parts[2];
+                                    final page =
+                                        p1 ? _template.page1 : _template.page2;
+                                    final ct = page.customTexts.firstWhere(
+                                      (element) => element.id == id,
+                                    );
+                                    _updateCustomText(
+                                      p1,
+                                      ct.copyWith(text: ct.text + sym),
+                                    );
+                                  }
+                                }
+                              },
                             ),
                           )
                         : const SizedBox(width: double.infinity, height: 0),
@@ -716,6 +738,7 @@ class _LabelTemplateEditorScreenState
                                       labelStackKey: _labelStackKeyPage1,
                                       labelPanGlobalDeltaToMm:
                                           _labelPanGlobalDeltaToMm,
+                                      fieldDisplayOption: _fieldDisplayOption,
                                       onClearSelection: () =>
                                           _deferSetState(() {
                                         _selectedElement = null;
@@ -786,6 +809,7 @@ class _LabelTemplateEditorScreenState
                                       labelStackKey: _labelStackKeyPage2,
                                       labelPanGlobalDeltaToMm:
                                           _labelPanGlobalDeltaToMm,
+                                      fieldDisplayOption: _fieldDisplayOption,
                                       onClearSelection: () =>
                                           _deferSetState(() {
                                         _selectedElement = null;
@@ -857,6 +881,7 @@ class _LabelTemplateEditorScreenState
                                   labelStackKey: _labelStackKeyPage1,
                                   labelPanGlobalDeltaToMm:
                                       _labelPanGlobalDeltaToMm,
+                                  fieldDisplayOption: _fieldDisplayOption,
                                   onClearSelection: () => _deferSetState(() {
                                     _selectedElement = null;
                                     _inlineCanvasCustomKey = null;
@@ -924,6 +949,12 @@ class _LabelTemplateEditorScreenState
           ),
           AvailableFieldsPanel(
             isExpanded: _fieldsPanelExpanded,
+            fieldDisplayOption: _fieldDisplayOption,
+            onFieldDisplayOptionChanged: (v) {
+              setState(() {
+                _fieldDisplayOption = v;
+              });
+            },
             onAddField: (label) {
               final paste = _inlineCustomTextPaste;
               if (paste != null) {

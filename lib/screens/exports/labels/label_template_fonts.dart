@@ -72,12 +72,11 @@ Set<String> collectCustomTextFontKeys(LabelTemplate? template) {
 const List<String> kLabelFontDropdownKeys = [
   '',
   'Merriweather',
-  'Roboto',
-  'Open Sans',
-  'Lato',
-  'Montserrat',
-  'Source Sans 3',
-  'Noto Sans',
+  'DejaVuSans',
+  'DejaVuSerif',
+  'LibertinusSans',
+  'LibertinusSerif',
+  'PlusJakartaSans',
 ];
 
 String labelFontDropdownLabel(String key) {
