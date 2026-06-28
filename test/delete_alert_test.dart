@@ -59,8 +59,8 @@ void main() {
 
     TextButton deleteButton =
         tester.widget<TextButton>(find.widgetWithText(TextButton, 'Delete'));
-    final disabledColor = deleteButton.style?.foregroundColor
-        ?.resolve({WidgetState.disabled});
+    final disabledColor =
+        deleteButton.style?.foregroundColor?.resolve({WidgetState.disabled});
     expect(disabledColor, isNotNull);
 
     await tester.enterText(find.byType(TextField), 'abcde');

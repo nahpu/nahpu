@@ -177,7 +177,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
       if (target != -1) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
-            .state = null;
+            .updateState(null);
         return target;
       }
     }

@@ -12,6 +12,8 @@ import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/settings/application_settings.dart';
 import 'package:nahpu/screens/settings/specimen_settings.dart';
+import 'package:nahpu/screens/settings/export_presets.dart';
+import 'package:nahpu/screens/settings/document_exports.dart';
 
 class AppSettings extends ConsumerStatefulWidget {
   const AppSettings({super.key});
@@ -36,6 +38,7 @@ class ProjectSettingState extends ConsumerState<AppSettings> {
                   error: (e, s) => const Text('Error'),
                 ),
             const DatabaseSettingSections(),
+            const ExportSettingsSection(),
             const ApplicationSettings(),
           ],
         ),
@@ -193,6 +196,46 @@ class CollEventSection extends StatelessWidget {
           builder: (context) => const CollEventSelection(),
         ),
       ),
+    );
+  }
+}
+
+class ExportSettingsSection extends StatelessWidget {
+  const ExportSettingsSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CommonSettingSection(
+      title: 'Exports',
+      isDivided: true,
+      children: [
+        CommonSettingTile(
+            title: 'Collection records',
+            label: 'Create and edit presets for exporting records',
+            isNavigation: true,
+            icon: Icons.table_view_outlined,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ExportPresetsScreen(),
+                ),
+              );
+            }),
+        CommonSettingTile(
+            title: 'Document exports',
+            label: 'Import custom fonts and icons for document generation',
+            isNavigation: true,
+            icon: Icons.picture_as_pdf_outlined,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DocumentExportSettings(),
+                ),
+              );
+            }),
+      ],
     );
   }
 }

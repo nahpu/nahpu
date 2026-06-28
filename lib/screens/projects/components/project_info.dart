@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/utility_services.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:nahpu/screens/shared/qr.dart';
 
 class ProjectInfo extends ConsumerWidget {
   const ProjectInfo({super.key, required this.projectData});
@@ -35,7 +35,7 @@ class ProjectInfo extends ConsumerWidget {
         ProjectInfoText(
           title: 'Time zone: ',
           text: projectData?.timeZone,
-        ),        
+        ),
         ProjectInfoText(
           title: 'Start date: ',
           text: dateStdToDateDisplay(projectData?.startDate),
@@ -193,16 +193,8 @@ class ProjectQrCode extends StatelessWidget {
   Widget build(BuildContext context) {
     return QrImageView(
       data: data,
-      version: QrVersions.auto,
       backgroundColor: backgroundColor ?? Colors.transparent,
-      eyeStyle: QrEyeStyle(
-        eyeShape: QrEyeShape.circle,
-        color: color,
-      ),
-      dataModuleStyle: QrDataModuleStyle(
-        dataModuleShape: QrDataModuleShape.circle,
-        color: color,
-      ),
+      color: color,
     );
   }
 }

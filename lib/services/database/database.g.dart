@@ -13642,8 +13642,7 @@ final class $PersonnelReferences
   static MultiTypedResultKey<Specimen, List<SpecimenData>> _specimenRefsTable(
           _$Database db) =>
       MultiTypedResultKey.fromTable(db.specimen,
-          aliasName: $_aliasNameGenerator(
-              db.personnel.uuid, db.specimen.preparatorID));
+          aliasName: 'personnel__uuid__specimen__preparatorID');
 
   $SpecimenProcessedTableManager get specimenRefs {
     final manager = $SpecimenTableManager($_db, $_db.specimen).filter(
@@ -13981,10 +13980,9 @@ final class $MediaReferences
   $MediaReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static MultiTypedResultKey<Narrative, List<NarrativeData>>
-      _narrativeRefsTable(_$Database db) => MultiTypedResultKey.fromTable(
-          db.narrative,
-          aliasName:
-              $_aliasNameGenerator(db.media.primaryId, db.narrative.mediaID));
+      _narrativeRefsTable(_$Database db) =>
+          MultiTypedResultKey.fromTable(db.narrative,
+              aliasName: 'media__primaryId__narrative__mediaID');
 
   $NarrativeProcessedTableManager get narrativeRefs {
     final manager = $NarrativeTableManager($_db, $_db.narrative).filter(
@@ -14334,7 +14332,7 @@ final class $SiteReferences extends BaseReferences<_$Database, Site, SiteData> {
   static MultiTypedResultKey<CollEvent, List<CollEventData>>
       _collEventRefsTable(_$Database db) =>
           MultiTypedResultKey.fromTable(db.collEvent,
-              aliasName: $_aliasNameGenerator(db.site.id, db.collEvent.siteID));
+              aliasName: 'site__id__collEvent__siteID');
 
   $CollEventProcessedTableManager get collEventRefs {
     final manager = $CollEventTableManager($_db, $_db.collEvent)
@@ -14954,8 +14952,8 @@ final class $CollEventReferences
     extends BaseReferences<_$Database, CollEvent, CollEventData> {
   $CollEventReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static Site _siteIDTable(_$Database db) => db.site
-      .createAlias($_aliasNameGenerator(db.collEvent.siteID, db.site.id));
+  static Site _siteIDTable(_$Database db) =>
+      db.site.createAlias('collEvent__siteID__site__id');
 
   $SiteProcessedTableManager? get siteID {
     final $_column = $_itemColumn<int>('siteID');
@@ -15901,8 +15899,8 @@ final class $NarrativeReferences
     extends BaseReferences<_$Database, Narrative, NarrativeData> {
   $NarrativeReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static Media _mediaIDTable(_$Database db) => db.media.createAlias(
-      $_aliasNameGenerator(db.narrative.mediaID, db.media.primaryId));
+  static Media _mediaIDTable(_$Database db) =>
+      db.media.createAlias('narrative__mediaID__media__primaryId');
 
   $MediaProcessedTableManager? get mediaID {
     final $_column = $_itemColumn<int>('mediaID');
@@ -16789,8 +16787,7 @@ final class $SpecimenReferences
   $SpecimenReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static Personnel _preparatorIDTable(_$Database db) =>
-      db.personnel.createAlias(
-          $_aliasNameGenerator(db.specimen.preparatorID, db.personnel.uuid));
+      db.personnel.createAlias('specimen__preparatorID__personnel__uuid');
 
   $PersonnelProcessedTableManager? get preparatorID {
     final $_column = $_itemColumn<String>('preparatorID');

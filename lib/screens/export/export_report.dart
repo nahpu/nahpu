@@ -18,8 +18,8 @@ class ReportForm extends ConsumerStatefulWidget {
 }
 
 class ReportFormState extends ConsumerState<ReportForm> {
-  // ReportFmt reportFmt = ReportFmt.csv;
   ReportType _reportType = ReportType.speciesCount;
+  ReportFmt _reportFmt = ReportFmt.csv;
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   String _fileStem = 'export';
   Directory? _selectedDir;
@@ -67,25 +67,50 @@ class ReportFormState extends ConsumerState<ReportForm> {
               if (value != null) {
                 setState(() {
                   _reportType = value;
+                  if (_reportType == ReportType.coordinate) {
+                    _reportFmt = ReportFmt.kml;
+                  } else {
+                    _reportFmt = ReportFmt.csv;
+                  }
                   _hasSaved = false;
                 });
               }
             },
           ),
           DropdownButtonFormField<ReportFmt>(
-            initialValue: _reportType == ReportType.coordinate
-                ? ReportFmt.kml
-                : ReportFmt.csv,
+            key: ValueKey(_reportType),
+            initialValue: _reportFmt,
             decoration: const InputDecoration(
               labelText: 'Format',
             ),
-            items: reportFmtList
-                .map((e) => DropdownMenuItem(
-                      value: ReportFmt.values[reportFmtList.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ))
-                .toList(),
-            onChanged: null,
+            items: _reportType == ReportType.coordinate
+                ? [
+                    ReportFmt.kml,
+                    ReportFmt.geojson,
+                    ReportFmt.topojson,
+                    ReportFmt.shp
+                  ]
+                    .map((e) => DropdownMenuItem(
+                          value: e,
+                          child:
+                              CommonDropdownText(text: reportFmtList[e.index]),
+                        ))
+                    .toList()
+                : [ReportFmt.csv]
+                    .map((e) => DropdownMenuItem(
+                          value: e,
+                          child:
+                              CommonDropdownText(text: reportFmtList[e.index]),
+                        ))
+                    .toList(),
+            onChanged: (ReportFmt? value) {
+              if (value != null) {
+                setState(() {
+                  _reportFmt = value;
+                  _hasSaved = false;
+                });
+              }
+            },
           ),
           FileNameField(
             controller: exportCtr,
@@ -158,14 +183,32 @@ class ReportFormState extends ConsumerState<ReportForm> {
 
   Future<void> _createReport() async {
     try {
-      String ext = _reportType == ReportType.coordinate ? 'kml' : 'csv';
+      String ext = 'csv';
+      if (_reportType == ReportType.coordinate) {
+        switch (_reportFmt) {
+          case ReportFmt.geojson:
+            ext = 'geojson';
+            break;
+          case ReportFmt.topojson:
+            ext = 'topojson';
+            break;
+          case ReportFmt.shp:
+            ext = 'zip';
+            break;
+          case ReportFmt.kml:
+          default:
+            ext = 'kml';
+            break;
+        }
+      }
       _savePath = await AppIOServices(
         dir: _selectedDir,
         fileStem: _fileStem,
         ext: ext,
       ).getSavePath();
 
-      await ReportServices(ref: ref).writeReport(_savePath, _reportType);
+      await ReportServices(ref: ref)
+          .writeReport(_savePath, _reportType, _reportFmt);
       setState(() {
         _hasSaved = true;
       });

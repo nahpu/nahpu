@@ -1,26 +1,20 @@
 PODS:
   - Flutter (1.0.0)
-  - printing (1.0.0):
-    - Flutter
   - rust_lib_nahpu (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - printing (from `.symlinks/plugins/printing/ios`)
   - rust_lib_nahpu (from `.symlinks/plugins/rust_lib_nahpu/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
-  printing:
-    :path: ".symlinks/plugins/printing/ios"
   rust_lib_nahpu:
     :path: ".symlinks/plugins/rust_lib_nahpu/ios"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  printing: 54ff03f28fe9ba3aa93358afb80a8595a071dd07
   rust_lib_nahpu: 0bbd60141d65c60ffc60b017838a7c0b30f35e9e
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e

@@ -21,40 +21,45 @@ class MammalianMeasurements extends AppServices {
   Future<List<String>> getMeasurements() async {
     data =
         await SpecimenServices(ref: ref).getMammalMeasurementData(specimenUuid);
-    List<String> standardMeasurement = _getStdMeasurement();
-    List<String> measurement = isBatRecord
-        ? [...standardMeasurement, _getForearm()]
-        : standardMeasurement;
-    String age = data.age != null ? specimenAgeList[data.age!] : '';
-    List<String> sexData = _getSexData();
-    String remarks = data.remark ?? '';
-    return [...measurement, age, ...sexData, remarks];
-  }
 
-  String _getForearm() {
-    return data.forearm != null ? data.forearm.toString() : '';
-  }
+    MeasurementAccuracy accuracyEnum = matchAccuracy(data.accuracy);
 
-  List<String> _getStdMeasurement() {
-    String accuracy = data.accuracy ?? '';
-    MeasurementAccuracy accuracyEnum = matchAccuracy(accuracy);
-    String totalLength = _getTotalLength(data.totalLength, accuracyEnum);
-    String tailLength = _getTailLength(data.tailLength, accuracyEnum);
-    String hindFootLength =
-        _getHindFootLength(data.hindFootLength, accuracyEnum);
-    String earLength = _getEarLength(data.earLength, accuracyEnum);
-    String weight = _getWeight(data.weight, accuracyEnum);
-
-    List<String> measurements = [
-      totalLength,
-      tailLength,
-      hindFootLength,
-      earLength,
-      weight,
-      accuracy,
+    List<String> coreMeasurements = [
+      _getTotalLength(data.totalLength, accuracyEnum),
+      _getTailLength(data.tailLength, accuracyEnum),
+      _getHindFootLength(data.hindFootLength, accuracyEnum),
+      _getEarLength(data.earLength, accuracyEnum),
     ];
 
-    return measurements;
+    List<String> batMeasurements = isBatRecord
+        ? [
+            data.forearm?.toString() ?? '',
+            data.tibia?.toString() ?? '',
+            data.echolocation != null
+                ? echolocationList[data.echolocation!]
+                : '',
+            data.frequencyMax?.toString() ?? '',
+            data.frequencyMin?.toString() ?? '',
+            data.frequencyAtMaxEnergy?.toString() ?? '',
+            data.duration?.toString() ?? '',
+          ]
+        : [];
+
+    List<String> remainingMeasurements = [
+      _getWeight(data.weight, accuracyEnum),
+      data.accuracy ?? '',
+      data.accuracySpecify ?? '',
+      data.sex != null ? specimenSexList[data.sex!] : '',
+      data.age != null ? specimenAgeList[data.age!] : '',
+      ..._getSexData(), // 16 items
+      data.remark ?? '',
+    ];
+
+    return [
+      ...coreMeasurements,
+      ...batMeasurements,
+      ...remainingMeasurements,
+    ];
   }
 
   String _getTotalLength(double? length, MeasurementAccuracy accuracy) {
@@ -160,71 +165,59 @@ class MammalianMeasurements extends AppServices {
     }
   }
 
-  /// Sex data contains:
-  /// 1. Sex
-  /// 2. Male gonads
-  /// 3. Female gonads
+  /// Sex data contains 16 items:
+  /// testisPosition, testisLength, testisWidth, epididymisAppearance,
+  /// reproductiveStage, leftPlacentalScars, rightPlacentalScars, mammaeCondition,
+  /// mammaeInguinalCount, mammaeAxillaryCount, mammaeAbdominalCount, vaginaOpening,
+  /// pubicSymphysis, embryoLeftCount, embryoRightCount, embryoCR
   List<String> _getSexData() {
     SpecimenSex? sexEnum = getSpecimenSex(data.sex);
-    String sex = data.sex != null ? specimenSexList[data.sex!] : '';
-    List<String> emptyMale = List.filled(2, '');
-    List<String> emptyFemale = List.filled(3, '');
+    List<String> emptyMale = List.filled(4, '');
+    List<String> emptyFemale = List.filled(12, '');
+
     switch (sexEnum) {
       case SpecimenSex.male:
-        List<String> maleGonad = _getMaleGonad();
-        return [sex, ...maleGonad, ...emptyFemale];
+        return [..._getMaleGonad(), ...emptyFemale];
       case SpecimenSex.female:
-        List<String> femaleGonad = _getFemaleGonad();
-        return [sex, ...emptyMale, ...femaleGonad];
+        return [...emptyMale, ..._getFemaleGonad()];
       case SpecimenSex.unknown:
-        return [sex, ...emptyMale, ...emptyFemale];
       default:
-        return [sex, ...emptyMale, ...emptyFemale];
+        return [...emptyMale, ...emptyFemale];
     }
   }
 
   List<String> _getFemaleGonad() {
-    String vaginaOpening = data.vaginaOpening != null
-        ? vaginaOpeningList[data.vaginaOpening!]
-        : '';
-    if (data.mammaeCondition != null) {
-      String mammaeCondition = mammaeConditionList[data.mammaeCondition!];
-      String mammaeFormula = _getMammaeFormula();
-      return [vaginaOpening, mammaeCondition, mammaeFormula];
-    } else {
-      List<String> empty = List.filled(2, '');
-      return [vaginaOpening, ...empty];
-    }
-  }
-
-  String _getMammaeFormula() {
-    String ingCount = data.mammaeInguinalCount != null
-        ? '${data.mammaeInguinalCount} ing;'
-        : '';
-    String abdCount = data.mammaeAbdominalCount != null
-        ? '${data.mammaeAbdominalCount} abd;'
-        : '';
-    String axCount = data.mammaeAxillaryCount != null
-        ? '${data.mammaeAxillaryCount} ax'
-        : '';
-
-    return '$ingCount$abdCount$axCount';
+    return [
+      data.reproductiveStage != null
+          ? reproductiveStageList[data.reproductiveStage!]
+          : '',
+      data.leftPlacentalScars?.toString() ?? '',
+      data.rightPlacentalScars?.toString() ?? '',
+      data.mammaeCondition != null
+          ? mammaeConditionList[data.mammaeCondition!]
+          : '',
+      data.mammaeInguinalCount?.toString() ?? '',
+      data.mammaeAxillaryCount?.toString() ?? '',
+      data.mammaeAbdominalCount?.toString() ?? '',
+      data.vaginaOpening != null ? vaginaOpeningList[data.vaginaOpening!] : '',
+      data.pubicSymphysis != null
+          ? pubicSymphysisList[data.pubicSymphysis!]
+          : '',
+      data.embryoLeftCount?.toString() ?? '',
+      data.embryoRightCount?.toString() ?? '',
+      data.embryoCR?.toString() ?? '',
+    ];
   }
 
   List<String> _getMaleGonad() {
-    TestisPosition? posEnum = getTestisPosition(data.testisPosition);
-
-    if (posEnum == TestisPosition.scrotal) {
-      String testisPos = _matchTestisPos(data.testisPosition);
-      String testisLength =
-          data.testisLength != null ? '${data.testisLength}' : '';
-      String testisWidth =
-          data.testisWidth != null ? 'x${data.testisWidth}mm' : '';
-      String testisSize = '$testisLength$testisWidth';
-      return [testisPos, testisSize];
-    } else {
-      return ['', ''];
-    }
+    return [
+      _matchTestisPos(data.testisPosition),
+      data.testisLength?.toString() ?? '',
+      data.testisWidth?.toString() ?? '',
+      data.epididymisAppearance != null
+          ? epididymisAppearanceList[data.epididymisAppearance!]
+          : '',
+    ];
   }
 
   String _matchTestisPos(int? testisPos) {

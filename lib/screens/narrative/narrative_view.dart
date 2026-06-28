@@ -174,12 +174,12 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
     final pendingJump =
         ref.read(pendingRecordJumpProvider(RecordViewer.narrative));
     if (pendingJump != null) {
-      final target =
-          narrativeEntries.indexWhere((narrative) => narrative.id == pendingJump);
+      final target = narrativeEntries
+          .indexWhere((narrative) => narrative.id == pendingJump);
       if (target != -1) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.narrative).notifier)
-            .state = null;
+            .updateState(null);
         return target;
       }
     }

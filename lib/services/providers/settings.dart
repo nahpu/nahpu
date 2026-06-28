@@ -1,14 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/types/sites.dart';
-
-part 'settings.g.dart';
+import 'package:nahpu/services/types/export.dart';
 
 const String themeModePrefKey = 'themeMode';
 const String siteTypePrefKey = 'siteTypes';
@@ -24,14 +23,17 @@ const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
+const String exportPresetPrefKey = 'exportPresets';
+const String pdfExportFontPrefKey = 'pdfExportFont';
 
-@Riverpod(keepAlive: true)
-SharedPreferences setting(Ref ref) {
+final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
-}
+});
 
-@Riverpod(keepAlive: true)
-class ThemeSetting extends _$ThemeSetting {
+final themeSettingProvider =
+    AsyncNotifierProvider<ThemeSetting, ThemeMode>(ThemeSetting.new);
+
+class ThemeSetting extends AsyncNotifier<ThemeMode> {
   Future<ThemeMode> _fetchSetting() async {
     final prefs = ref.watch(settingProvider);
     final savedTheme = prefs.getString(themeModePrefKey);
@@ -47,7 +49,7 @@ class ThemeSetting extends _$ThemeSetting {
   }
 
   @override
-  FutureOr<ThemeMode> build() async {
+  Future<ThemeMode> build() async {
     return await _fetchSetting();
   }
 
@@ -112,9 +114,14 @@ Future<List<String>> getDefaultOptionsList(String prefKey) async {
   }
 }
 
-@riverpod
-class UserDefinedField extends _$UserDefinedField {
-  Future<List<String>> _fetchSettings(String prefKey) async {
+final userDefinedFieldProvider = AsyncNotifierProvider.family
+    .autoDispose<UserDefinedField, List<String>, String>(UserDefinedField.new);
+
+class UserDefinedField extends AsyncNotifier<List<String>> {
+  UserDefinedField(this.prefKey);
+  final String prefKey;
+
+  Future<List<String>> _fetchSettings() async {
     final prefs = ref.watch(settingProvider);
     final optionList = prefs.getStringList(prefKey);
 
@@ -129,8 +136,8 @@ class UserDefinedField extends _$UserDefinedField {
   }
 
   @override
-  FutureOr<List<String>> build(String prefKey) async {
-    return await _fetchSettings(prefKey);
+  Future<List<String>> build() async {
+    return await _fetchSettings();
   }
 
   Future<void> add(String newOption) async {
@@ -188,9 +195,15 @@ class UserDefinedField extends _$UserDefinedField {
   }
 }
 
-@riverpod
-class TextCaseFmtNotifier extends _$TextCaseFmtNotifier {
-  Future<TextCaseFmt> _fetchSettings(String prefKey) async {
+final textCaseFmtNotifierProvider = AsyncNotifierProvider.family
+    .autoDispose<TextCaseFmtNotifier, TextCaseFmt, String>(
+        TextCaseFmtNotifier.new);
+
+class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
+  TextCaseFmtNotifier(this.prefKey);
+  final String prefKey;
+
+  Future<TextCaseFmt> _fetchSettings() async {
     final prefs = ref.watch(settingProvider);
     final fmtString = prefs.getString(prefKey);
 
@@ -205,8 +218,8 @@ class TextCaseFmtNotifier extends _$TextCaseFmtNotifier {
   }
 
   @override
-  FutureOr<TextCaseFmt> build(String prefKey) async {
-    return await _fetchSettings(prefKey);
+  Future<TextCaseFmt> build() async {
+    return await _fetchSettings();
   }
 
   Future<void> set(String prefKey, TextCaseFmt fmt) async {
@@ -225,8 +238,37 @@ class TextCaseFmtNotifier extends _$TextCaseFmtNotifier {
   }
 }
 
-@riverpod
-class FieldIdModeNotifier extends _$FieldIdModeNotifier {
+final pdfExportFontNotifierProvider =
+    AsyncNotifierProvider.autoDispose<PdfExportFontNotifier, String>(
+        PdfExportFontNotifier.new);
+
+class PdfExportFontNotifier extends AsyncNotifier<String> {
+  Future<String> _fetchSettings() async {
+    final prefs = ref.watch(settingProvider);
+    final font = prefs.getString(pdfExportFontPrefKey);
+    return font ?? 'Merriweather';
+  }
+
+  @override
+  Future<String> build() async {
+    return await _fetchSettings();
+  }
+
+  Future<void> set(String font) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final prefs = ref.watch(settingProvider);
+      await prefs.setString(pdfExportFontPrefKey, font);
+      return font;
+    });
+  }
+}
+
+final fieldIdModeNotifierProvider =
+    AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(
+        FieldIdModeNotifier.new);
+
+class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   Future<FieldIdMode> _fetchSettings() async {
     final prefs = ref.watch(settingProvider);
     final fieldIdModeString = prefs.getString(fieldIdModePrefKey);
@@ -242,7 +284,7 @@ class FieldIdModeNotifier extends _$FieldIdModeNotifier {
   }
 
   @override
-  FutureOr<FieldIdMode> build() async {
+  Future<FieldIdMode> build() async {
     return await _fetchSettings();
   }
 
@@ -258,6 +300,69 @@ class FieldIdModeNotifier extends _$FieldIdModeNotifier {
 
       await prefs.setString(fieldIdModePrefKey, mode.name);
       return mode;
+    });
+  }
+}
+
+final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
+    ExportPresetNotifier,
+    Map<String, ExportPresetModel>>(ExportPresetNotifier.new);
+
+class ExportPresetNotifier
+    extends AsyncNotifier<Map<String, ExportPresetModel>> {
+  Future<Map<String, ExportPresetModel>> _fetchSettings() async {
+    final prefs = ref.watch(settingProvider);
+    final presetString = prefs.getString(exportPresetPrefKey);
+    if (presetString == null) {
+      return {};
+    }
+    try {
+      final decoded = jsonDecode(presetString) as Map<String, dynamic>;
+      final Map<String, ExportPresetModel> mapped = {};
+      for (var entry in decoded.entries) {
+        if (entry.value is Map<String, dynamic> &&
+            (entry.value as Map<String, dynamic>).containsKey('fields')) {
+          // Version 2 format
+          mapped[entry.key] =
+              ExportPresetModel.fromJson(entry.value as Map<String, dynamic>);
+        } else {
+          // Version 1 format (legacy)
+          mapped[entry.key] = ExportPresetModel(
+            fields: Map<String, String>.from(entry.value as Map),
+            combinedFields: [],
+          );
+        }
+      }
+      return mapped;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  @override
+  Future<Map<String, ExportPresetModel>> build() async {
+    return await _fetchSettings();
+  }
+
+  Future<void> savePreset(String name, ExportPresetModel preset) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final current = await _fetchSettings();
+      current[name] = preset;
+      final prefs = ref.watch(settingProvider);
+      await prefs.setString(exportPresetPrefKey, jsonEncode(current));
+      return current;
+    });
+  }
+
+  Future<void> deletePreset(String name) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final current = await _fetchSettings();
+      current.remove(name);
+      final prefs = ref.watch(settingProvider);
+      await prefs.setString(exportPresetPrefKey, jsonEncode(current));
+      return current;
     });
   }
 }

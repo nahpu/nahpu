@@ -6,8 +6,9 @@ import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/platform_services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:nahpu/screens/shared/qr.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const String nahpuWebsite = 'https://nahpu.app/';
@@ -22,13 +23,13 @@ class HomeMenuDrawer extends StatelessWidget {
         DrawerHeader(
           decoration: BoxDecoration(
             color: Color.lerp(
-              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primaryContainer,
               Theme.of(context).colorScheme.surface,
               0.2,
             ),
           ),
-          child: Image.asset(
-            'assets/images/logo_nobg.png',
+          child: SvgPicture.asset(
+            'assets/logo/nahpu-nobg.svg',
             fit: BoxFit.contain,
           ),
         ),
@@ -91,8 +92,8 @@ class HomeMenuDrawer extends StatelessWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.help_rounded),
-          title: const Text('Help and feedback'),
+          leading: const Icon(Icons.web_rounded),
+          title: const Text('NAHPU website'),
           onTap: () {
             _launchHelpUrl();
           },
@@ -174,17 +175,9 @@ class DocQrCode extends StatelessWidget {
       alignment: Alignment.center,
       child: QrImageView(
         data: nahpuWebsite,
-        version: QrVersions.auto,
         size: isPhone ? 80 : 120,
         backgroundColor: Colors.transparent,
-        eyeStyle: QrEyeStyle(
-          eyeShape: QrEyeShape.circle,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
-        dataModuleStyle: QrDataModuleStyle(
-          dataModuleShape: QrDataModuleShape.circle,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }

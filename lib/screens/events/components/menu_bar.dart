@@ -15,7 +15,7 @@ Future<void> createNewCollEvents(BuildContext context, WidgetRef ref) {
       // Refresh the always-mounted viewer in place and land on the new event.
       ref
           .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
-          .state = newId;
+          .updateState(newId);
       ref.invalidate(collEventEntryProvider);
     },
   );
@@ -143,7 +143,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       if (newId != null) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
-            .state = newId;
+            .updateState(newId);
       }
       ref.invalidate(collEventEntryProvider);
     } catch (e) {

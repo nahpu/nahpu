@@ -6,9 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart' as db;
 import 'package:nahpu/services/database/project_queries.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'projects.g.dart';
 
 final projectListProvider =
     FutureProvider.autoDispose<List<ListProjectResult>>((ref) {
@@ -30,8 +27,10 @@ final currProjInfoProvider =
   return await currProjectInfo;
 });
 
-@Riverpod(keepAlive: true)
-class ProjectUuid extends _$ProjectUuid {
+final projectUuidProvider =
+    NotifierProvider<ProjectUuid, String>(ProjectUuid.new);
+
+class ProjectUuid extends Notifier<String> {
   @override
   String build() {
     return '';
@@ -42,4 +41,15 @@ class ProjectUuid extends _$ProjectUuid {
   }
 }
 
-final projectNavbarIndexProvider = StateProvider.autoDispose<int>((ref) => 0);
+final projectNavbarIndexProvider =
+    NotifierProvider.autoDispose<ProjectNavbarIndex, int>(
+        ProjectNavbarIndex.new);
+
+class ProjectNavbarIndex extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void updateState(int index) {
+    state = index;
+  }
+}

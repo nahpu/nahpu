@@ -1,9 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:nahpu/services/providers/narrative.dart';
-import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
@@ -34,9 +31,9 @@ class MediaServices extends AppServices {
     return await MediaDbQuery(dbAccess).getMedia(primaryId);
   }
 
-  Future<bool> isImageUsed(File file) async {
+  Future<bool> isMediaUsed(File file) async {
     final String fileName = path.basename(file.path);
-    return await MediaDbQuery(dbAccess).isImageUsed(fileName);
+    return await MediaDbQuery(dbAccess).isMediaUsed(fileName);
   }
 
   Future<List<MediaData>> getAllMedia() {
@@ -109,13 +106,13 @@ class MediaServices extends AppServices {
   void _invalidateMedia(MediaCategory category) {
     switch (category) {
       case MediaCategory.narrative:
-        ref.invalidate(narrativeMediaProvider);
+        // ref.invalidate(narrativeMediaProvider);
         break;
       case MediaCategory.site:
-        ref.invalidate(siteMediaProvider);
+        // ref.invalidate(siteMediaProvider);
         break;
       case MediaCategory.specimen:
-        ref.invalidate(specimenMediaProvider);
+        // ref.invalidate(specimenMediaProvider);
         break;
       default:
         break;
@@ -159,8 +156,8 @@ class MediaFinder extends AppServices {
   }
 
   Future<List<File>> getAllPersonnelMediaByProject() async {
-    List<PersonnelData> personnelList =
-        await PersonnelServices(ref: ref).getPersonnelByProjectUuid(currentProjectUuid);
+    List<PersonnelData> personnelList = await PersonnelServices(ref: ref)
+        .getPersonnelByProjectUuid(currentProjectUuid);
     final List<File> mediaPaths = [];
     for (final personnel in personnelList) {
       if (personnel.photoPath != null &&
@@ -172,7 +169,7 @@ class MediaFinder extends AppServices {
       }
     }
     return mediaPaths;
-  }  
+  }
 
   Future<List<File>> getAllMediaFileByProject() async {
     final List<MediaData> mediaData =

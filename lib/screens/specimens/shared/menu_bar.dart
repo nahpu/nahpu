@@ -11,8 +11,9 @@ import 'package:nahpu/services/specimen_services.dart';
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {
   final newUuid = await SpecimenServices(ref: ref).createSpecimen();
   // Refresh the always-mounted viewer in place and land on the new specimen.
-  ref.read(pendingRecordJumpProvider(RecordViewer.specimen).notifier).state =
-      newUuid;
+  ref
+      .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
+      .updateState(newUuid);
   ref.invalidate(specimenEntryProvider);
 }
 
@@ -133,7 +134,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
       if (newUuid != null) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
-            .state = newUuid;
+            .updateState(newUuid);
       }
       ref.invalidate(specimenEntryProvider);
     } catch (e) {

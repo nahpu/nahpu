@@ -29,9 +29,7 @@ class SpecimenMediaFormState extends ConsumerState<SpecimenMediaForm> {
   @override
   Widget build(BuildContext context) {
     MediaCategory mediaCategory = MediaCategory.specimen;
-    return ref
-        .watch(specimenMediaProvider(specimenUuid: widget.specimenUuid))
-        .when(
+    return ref.watch(specimenMediaProvider(widget.specimenUuid)).when(
           data: (data) {
             return MediaViewer(
               images: List.from(data),
@@ -42,13 +40,39 @@ class SpecimenMediaFormState extends ConsumerState<SpecimenMediaForm> {
                     category: mediaCategory,
                   ).pickFromGallery();
                   if (images.isNotEmpty) {
-                    for (String path in images) {
-                      await SpecimenServices(ref: ref).createSpecimenMedia(
-                        widget.specimenUuid,
-                        path,
-                      );
-                    }
-                    setState(() {});
+                    await SpecimenServices(ref: ref)
+                        .createSpecimenMediaFromList(
+                      widget.specimenUuid,
+                      images,
+                    );
+                    _doneSelecting();
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          e.toString(),
+                        ),
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  }
+                }
+              },
+              onAddFromFiles: () async {
+                try {
+                  List<String> mediaFiles = await ImageServices(
+                    ref: ref,
+                    category: mediaCategory,
+                  ).pickMediaFromFiles();
+                  if (mediaFiles.isNotEmpty) {
+                    await SpecimenServices(ref: ref)
+                        .createSpecimenMediaFromList(
+                      widget.specimenUuid,
+                      mediaFiles,
+                    );
+                    _doneSelecting();
                   }
                 } catch (e) {
                   if (context.mounted) {
@@ -70,12 +94,13 @@ class SpecimenMediaFormState extends ConsumerState<SpecimenMediaForm> {
                     category: mediaCategory,
                   ).accessCamera();
                   if (image != null) {
-                    await SpecimenServices(ref: ref).createSpecimenMedia(
+                    await SpecimenServices(ref: ref)
+                        .createSpecimenMediaFromList(
                       widget.specimenUuid,
-                      image,
+                      [image],
                     );
                   }
-                  setState(() {});
+                  _doneSelecting();
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -99,5 +124,10 @@ class SpecimenMediaFormState extends ConsumerState<SpecimenMediaForm> {
             ),
           ),
         );
+  }
+
+  void _doneSelecting() {
+    if (!mounted) return;
+    ref.invalidate(specimenMediaProvider(widget.specimenUuid));
   }
 }

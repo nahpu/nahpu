@@ -72,7 +72,7 @@ class AssociatedDataListState extends ConsumerState<AssociatedDataList> {
   @override
   Widget build(BuildContext context) {
     final associatedDataList = ref.watch(
-      associatedDataProvider(specimenUuid: widget.specimenUuid),
+      associatedDataProvider(widget.specimenUuid),
     );
     return associatedDataList.when(
       data: (data) {

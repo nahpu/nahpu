@@ -124,7 +124,7 @@ class PersonnelQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteProjectPersonnel(
-      {required projectUuid, required personnelUuid}) {
+      {required String projectUuid, required String personnelUuid}) {
     return (delete(personnelList)
           ..where((t) =>
               t.projectUuid.equals(projectUuid) &

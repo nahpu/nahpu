@@ -5,7 +5,7 @@ enum PlatformType { mobile, desktop, unknown }
 
 enum ScreenType { phone, tablet, desktop }
 
-get systemIcon {
+IconData get systemIcon {
   if (Platform.isAndroid) {
     return Icons.phone_android_rounded;
   } else if (Platform.isIOS) {
