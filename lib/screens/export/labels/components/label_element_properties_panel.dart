@@ -856,10 +856,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: Icon(
-              _showFormattingRow ? Icons.keyboard_arrow_up : Icons.text_format,
-              size: 20,
-            ),
+            icon: Icon(Icons.text_format, size: 24),
             isSelected: _showFormattingRow,
             tooltip: 'Text formatting options',
             onPressed: () {
@@ -981,7 +978,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 row1,
                 if (_showFormattingRow) ...[
