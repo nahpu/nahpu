@@ -1,29 +1,21 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
-import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:nahpu/screens/export/labels/label_border_sheet.dart';
-import 'package:nahpu/screens/export/labels/label_canvas_stack.dart';
-import 'package:nahpu/screens/export/labels/label_outline.dart';
 import 'package:nahpu/screens/export/labels/label_size_selector.dart';
 import 'package:nahpu/screens/export/labels/label_template_fonts.dart';
-import 'package:nahpu/screens/export/labels/label_gender_icon.dart';
 import 'package:nahpu/screens/export/labels/label_template_model.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 import 'package:nahpu/services/label_template_service.dart';
 import 'package:nahpu/services/label_template_editor_service.dart';
 import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/services/label_logo_service.dart';
-import 'package:nahpu/screens/export/labels/components/draggable_image_chip.dart';
-import 'package:nahpu/screens/export/labels/components/draggable_line_chip.dart';
-import 'package:nahpu/screens/export/labels/components/draggable_shape_chip.dart';
-import 'package:nahpu/screens/export/labels/components/draggable_chip.dart';
-import 'package:nahpu/screens/export/labels/components/synced_font_size_field.dart';
-import 'package:nahpu/screens/export/labels/components/grid_painter.dart';
+import 'package:nahpu/screens/export/labels/components/label_canvas_editor.dart';
+import 'package:nahpu/screens/export/labels/components/label_element_properties_panel.dart';
+
 import 'package:nahpu/screens/export/labels/components/available_fields_panel.dart';
 import 'package:nahpu/screens/export/labels/components/front_back_page_pickers.dart';
 import 'package:nahpu/screens/export/labels/components/zoom_controls.dart';
@@ -35,9 +27,7 @@ import 'package:path/path.dart' as path;
 
 /// PDF points per mm (72 / 25.4); keep in sync with `labelPdfMmToPt`.
 
-/// Invisible margin around the label so resize/rotate controls that paint outside
-/// the white rect still receive hit tests (tight [SizedBox] would drop them).
-const double _kLabelCanvasHitPadPx = 72.0;
+
 
 /// Pixels → mm along label axes (mirror, scroll, nested transforms).
 /// [globalDelta] must be in **global** logical pixels (not [DragUpdateDetails.delta],
@@ -47,12 +37,7 @@ typedef LabelPanMmDeltaCallback = Offset? Function(
 
 /// Logical px → mm along label axes; avoids div-by-zero before layout settles.
 
-double _clampMm(double value, double bound1, double bound2) {
-  final lo = bound1 <= bound2 ? bound1 : bound2;
-  final hi = bound1 <= bound2 ? bound2 : bound1;
-  if (value.isNaN || value.isInfinite) return lo;
-  return value.clamp(lo, hi);
-}
+
 
 class LabelTemplateEditorScreen extends ConsumerStatefulWidget {
   const LabelTemplateEditorScreen({super.key});
@@ -100,7 +85,6 @@ class _LabelTemplateEditorScreenState
 
   bool _fieldsPanelExpanded = false;
   bool _isPreviewMode = true;
-
 
   /// Non-null while a custom text box is in canvas inline edit; inserts at caret.
   void Function(String)? _inlineCustomTextPaste;
@@ -467,11 +451,13 @@ class _LabelTemplateEditorScreenState
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               DropdownMenu<String>(
-                                initialSelection: _savedNames.contains(_template.name)
-                                    ? _template.name
-                                    : null,
+                                initialSelection:
+                                    _savedNames.contains(_template.name)
+                                        ? _template.name
+                                        : null,
                                 label: const Text('Preset label'),
-                                inputDecorationTheme: const InputDecorationTheme(
+                                inputDecorationTheme:
+                                    const InputDecorationTheme(
                                   isDense: true,
                                   border: OutlineInputBorder(),
                                 ),
@@ -611,9 +597,12 @@ class _LabelTemplateEditorScreenState
                                 const SizedBox(width: 4),
                                 IconButton.filledTonal(
                                   onPressed: () {
-                                    _deferSetState(() => _isPreviewMode = !_isPreviewMode);
+                                    _deferSetState(
+                                        () => _isPreviewMode = !_isPreviewMode);
                                   },
-                                  icon: Icon(_isPreviewMode ? Icons.edit_outlined : Icons.visibility_outlined),
+                                  icon: Icon(_isPreviewMode
+                                      ? Icons.edit_outlined
+                                      : Icons.visibility_outlined),
                                   tooltip: _isPreviewMode ? 'Edit' : 'Preview',
                                 ),
                                 const SizedBox(width: 16),
@@ -672,7 +661,20 @@ class _LabelTemplateEditorScreenState
                     child: _selectedElement != null
                         ? Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: _buildElementPanel(_selectedElement!, inToolbar: true),
+                            child: LabelElementPropertiesPanel(
+                              selectedElement: _selectedElement!,
+                              page1: _isPage1,
+                              template: _template,
+                              onUpdateCustomText: _updateCustomText,
+                              onDeleteCustomText: _deleteCustomText,
+                              onUpdateCustomImage: (page1, el) =>
+                                  _scheduleTemplateImageUpdate(page1, el),
+                              onDeleteCustomImage: _removeCustomImage,
+                              onUpdateCustomLine: _updateCustomLine,
+                              onDeleteCustomLine: _removeCustomLine,
+                              onUpdateCustomShape: _updateCustomShape,
+                              onDeleteCustomShape: _removeCustomShape,
+                            ),
                           )
                         : const SizedBox(width: double.infinity, height: 0),
                   ),
@@ -685,11 +687,197 @@ class _LabelTemplateEditorScreenState
                               ? TabBarView(
                                   controller: _tabController,
                                   children: [
-                                    _buildCanvas(page1: true),
-                                    _buildCanvas(page1: false),
+                                    LabelCanvasEditor(
+                                      page1: true,
+                                      template: _template,
+                                      labelWidthMm: _labelWidthMm,
+                                      labelHeightMm: _labelHeightMm,
+                                      zoom: _zoom,
+                                      showGrid: _showGrid,
+                                      mirrorFront: _mirrorFront,
+                                      mirrorBack: _mirrorBack,
+                                      isPreviewMode: _isPreviewMode,
+                                      editorLabelFieldPreview:
+                                          _editorLabelFieldPreview,
+                                      selectedElement: _selectedElement,
+                                      inlineCanvasCustomKey:
+                                          _inlineCanvasCustomKey,
+                                      labelStackKey: _labelStackKeyPage1,
+                                      labelPanGlobalDeltaToMm:
+                                          _labelPanGlobalDeltaToMm,
+                                      onClearSelection: () =>
+                                          _deferSetState(() {
+                                        _selectedElement = null;
+                                        _inlineCanvasCustomKey = null;
+                                      }),
+                                      onSelectElement: (id) =>
+                                          _deferSetState(() {
+                                        _selectedElement = id;
+                                        _inlineCanvasCustomKey = null;
+                                      }),
+                                      onScheduleTemplateImageUpdate:
+                                          (element) =>
+                                              _scheduleTemplateImageUpdate(
+                                                  true, element),
+                                      onRemoveCustomImage: (id) =>
+                                          _removeCustomImage(true, id),
+                                      onScheduleTemplateTextPositionUpdate:
+                                          (element) =>
+                                              _scheduleTemplateTextPositionUpdate(
+                                                  true, element),
+                                      onInlineEditingComplete: (element, text) {
+                                        if (!mounted) return;
+                                        setState(() {
+                                          _template = _template.copyWith(
+                                            page1: _template.page1
+                                                .withCustomText(element
+                                                    .copyWith(text: text)),
+                                          );
+                                          _inlineCanvasCustomKey = null;
+                                          _inlineCustomTextPaste = null;
+                                        });
+                                      },
+                                      onInlineTextInsertBinding: (fn) =>
+                                          _deferSetState(() =>
+                                              _inlineCustomTextPaste = fn),
+                                      onScheduleTemplateLineUpdate: (element) =>
+                                          _scheduleTemplateLineUpdate(
+                                              true, element),
+                                      onRemoveCustomLine: (id) =>
+                                          _removeCustomLine(true, id),
+                                      onScheduleTemplateShapeUpdate:
+                                          (element) =>
+                                              _scheduleTemplateShapeUpdate(
+                                                  true, element),
+                                      onRemoveCustomShape: (id) =>
+                                          _removeCustomShape(true, id),
+                                    ),
+                                    LabelCanvasEditor(
+                                      page1: false,
+                                      template: _template,
+                                      labelWidthMm: _labelWidthMm,
+                                      labelHeightMm: _labelHeightMm,
+                                      zoom: _zoom,
+                                      showGrid: _showGrid,
+                                      mirrorFront: _mirrorFront,
+                                      mirrorBack: _mirrorBack,
+                                      isPreviewMode: _isPreviewMode,
+                                      editorLabelFieldPreview:
+                                          _editorLabelFieldPreview,
+                                      selectedElement: _selectedElement,
+                                      inlineCanvasCustomKey:
+                                          _inlineCanvasCustomKey,
+                                      labelStackKey: _labelStackKeyPage2,
+                                      labelPanGlobalDeltaToMm:
+                                          _labelPanGlobalDeltaToMm,
+                                      onClearSelection: () =>
+                                          _deferSetState(() {
+                                        _selectedElement = null;
+                                        _inlineCanvasCustomKey = null;
+                                      }),
+                                      onSelectElement: (id) =>
+                                          _deferSetState(() {
+                                        _selectedElement = id;
+                                        _inlineCanvasCustomKey = null;
+                                      }),
+                                      onScheduleTemplateImageUpdate:
+                                          (element) =>
+                                              _scheduleTemplateImageUpdate(
+                                                  false, element),
+                                      onRemoveCustomImage: (id) =>
+                                          _removeCustomImage(false, id),
+                                      onScheduleTemplateTextPositionUpdate:
+                                          (element) =>
+                                              _scheduleTemplateTextPositionUpdate(
+                                                  false, element),
+                                      onInlineEditingComplete: (element, text) {
+                                        if (!mounted) return;
+                                        setState(() {
+                                          _template = _template.copyWith(
+                                            page2: _template.page2
+                                                .withCustomText(element
+                                                    .copyWith(text: text)),
+                                          );
+                                          _inlineCanvasCustomKey = null;
+                                          _inlineCustomTextPaste = null;
+                                        });
+                                      },
+                                      onInlineTextInsertBinding: (fn) =>
+                                          _deferSetState(() =>
+                                              _inlineCustomTextPaste = fn),
+                                      onScheduleTemplateLineUpdate: (element) =>
+                                          _scheduleTemplateLineUpdate(
+                                              false, element),
+                                      onRemoveCustomLine: (id) =>
+                                          _removeCustomLine(false, id),
+                                      onScheduleTemplateShapeUpdate:
+                                          (element) =>
+                                              _scheduleTemplateShapeUpdate(
+                                                  false, element),
+                                      onRemoveCustomShape: (id) =>
+                                          _removeCustomShape(false, id),
+                                    ),
                                   ],
                                 )
-                              : _buildCanvas(page1: true),
+                              : LabelCanvasEditor(
+                                  page1: true,
+                                  template: _template,
+                                  labelWidthMm: _labelWidthMm,
+                                  labelHeightMm: _labelHeightMm,
+                                  zoom: _zoom,
+                                  showGrid: _showGrid,
+                                  mirrorFront: _mirrorFront,
+                                  mirrorBack: _mirrorBack,
+                                  isPreviewMode: _isPreviewMode,
+                                  editorLabelFieldPreview:
+                                      _editorLabelFieldPreview,
+                                  selectedElement: _selectedElement,
+                                  inlineCanvasCustomKey: _inlineCanvasCustomKey,
+                                  labelStackKey: _labelStackKeyPage1,
+                                  labelPanGlobalDeltaToMm:
+                                      _labelPanGlobalDeltaToMm,
+                                  onClearSelection: () => _deferSetState(() {
+                                    _selectedElement = null;
+                                    _inlineCanvasCustomKey = null;
+                                  }),
+                                  onSelectElement: (id) => _deferSetState(() {
+                                    _selectedElement = id;
+                                    _inlineCanvasCustomKey = null;
+                                  }),
+                                  onScheduleTemplateImageUpdate: (element) =>
+                                      _scheduleTemplateImageUpdate(
+                                          true, element),
+                                  onRemoveCustomImage: (id) =>
+                                      _removeCustomImage(true, id),
+                                  onScheduleTemplateTextPositionUpdate:
+                                      (element) =>
+                                          _scheduleTemplateTextPositionUpdate(
+                                              true, element),
+                                  onInlineEditingComplete: (element, text) {
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _template = _template.copyWith(
+                                        page1: _template.page1.withCustomText(
+                                            element.copyWith(text: text)),
+                                      );
+                                      _inlineCanvasCustomKey = null;
+                                      _inlineCustomTextPaste = null;
+                                    });
+                                  },
+                                  onInlineTextInsertBinding: (fn) =>
+                                      _deferSetState(
+                                          () => _inlineCustomTextPaste = fn),
+                                  onScheduleTemplateLineUpdate: (element) =>
+                                      _scheduleTemplateLineUpdate(
+                                          true, element),
+                                  onRemoveCustomLine: (id) =>
+                                      _removeCustomLine(true, id),
+                                  onScheduleTemplateShapeUpdate: (element) =>
+                                      _scheduleTemplateShapeUpdate(
+                                          true, element),
+                                  onRemoveCustomShape: (id) =>
+                                      _removeCustomShape(true, id),
+                                ),
                         ),
                         Positioned(
                           right: 16,
@@ -891,37 +1079,6 @@ class _LabelTemplateEditorScreenState
     });
   }
 
-  CustomTextElement? _findCustomText(bool page1, String id) {
-    final page = page1 ? _template.page1 : _template.page2;
-    for (final ct in page.customTexts) {
-      if (ct.id == id) return ct;
-    }
-    return null;
-  }
-
-  CustomImageElement? _findCustomImage(bool page1, String id) {
-    final page = page1 ? _template.page1 : _template.page2;
-    for (final ct in page.customImages) {
-      if (ct.id == id) return ct;
-    }
-    return null;
-  }
-
-  CustomLineElement? _findCustomLine(bool page1, String id) {
-    final page = page1 ? _template.page1 : _template.page2;
-    for (final ct in page.customLines) {
-      if (ct.id == id) return ct;
-    }
-    return null;
-  }
-
-  CustomShapeElement? _findCustomShape(bool page1, String id) {
-    final page = page1 ? _template.page1 : _template.page2;
-    for (final ct in page.customShapes) {
-      if (ct.id == id) return ct;
-    }
-    return null;
-  }
 
   void _removeCustomImage(bool page1, String imageId) {
     _deferSetState(() {
@@ -1257,370 +1414,9 @@ class _LabelTemplateEditorScreenState
 
   /// Mirror for the side currently being edited (front tab or single-sided).
 
-
-
   /// Portrait rows 3+4: page/label on one line, tool buttons on next.
 
   /// Landscape: page/label + tool buttons merged into one row.
-
-  Widget _buildCanvas({required bool page1}) {
-    final page = page1 ? _template.page1 : _template.page2;
-
-    return LayoutBuilder(builder: (context, constraints) {
-      const edgePadH = 16.0;
-      const edgePadCanvasEnd = 0.0;
-      final availW =
-          (constraints.maxWidth - edgePadCanvasEnd).clamp(0.0, double.infinity);
-      final availH =
-          (constraints.maxHeight - 2 * edgePadH).clamp(0.0, double.infinity);
-      final baseScale =
-          (availW / _labelWidthMm).clamp(1.0, availH / _labelHeightMm);
-      final scale = baseScale * _zoom;
-      final canvasW = _labelWidthMm * scale;
-      final canvasH = _labelHeightMm * scale;
-      final stackW = canvasW + _kLabelCanvasHitPadPx;
-      final stackH = canvasH + 2 * _kLabelCanvasHitPadPx;
-      final scrollW = math.max(availW, stackW);
-      final scrollH = math.max(availH, stackH);
-
-      Offset? labelPanToMmDelta(Offset globalPosition, Offset globalDelta) {
-        return _labelPanGlobalDeltaToMm(
-          page1 ? _labelStackKeyPage1 : _labelStackKeyPage2,
-          globalPosition,
-          globalDelta,
-          scale,
-        );
-      }
-
-      return SingleChildScrollView(
-        primary: false,
-        scrollDirection: Axis.horizontal,
-        child: SingleChildScrollView(
-          primary: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              0,
-              edgePadH,
-              edgePadCanvasEnd,
-              edgePadH,
-            ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: availW,
-                minHeight: availH,
-              ),
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                  _deferSetState(() {
-                    _selectedElement = null;
-                    _inlineCanvasCustomKey = null;
-                  });
-                },
-                child: Container(
-                  width: scrollW,
-                  height: scrollH,
-                  alignment: Alignment.topLeft,
-                  color: Colors.transparent,
-                  child: Transform.rotate(
-                    angle: (page1 ? _mirrorFront : _mirrorBack) ? math.pi : 0,
-                    child: SizedBox(
-                      width: stackW,
-                      height: stackH,
-                      child: LabelCanvasStack(
-                        key: page1 ? _labelStackKeyPage1 : _labelStackKeyPage2,
-                        clipBehavior: Clip.none,
-                        fit: StackFit.expand,
-                        children: [
-                          Positioned(
-                            left: 0,
-                            top: _kLabelCanvasHitPadPx,
-                            width: canvasW,
-                            height: canvasH,
-                            child: IgnorePointer(
-                              child: Stack(
-                                fit: StackFit.expand,
-                                clipBehavior: Clip.none,
-                                children: [
-                                  DecoratedBox(
-                                    decoration: labelAreaStackDecoration(),
-                                    child: _showGrid
-                                        ? CustomPaint(
-                                            painter: GridPainter(
-                                              labelWidthMm: _labelWidthMm,
-                                              labelHeightMm: _labelHeightMm,
-                                              scale: scale,
-                                            ),
-                                            child: const SizedBox.expand(),
-                                          )
-                                        : const SizedBox.expand(),
-                                  ),
-                                  if (_template.outline != null)
-                                    CustomPaint(
-                                      painter: LabelOutlineOverlayPainter(
-                                        outline: _template.outline!,
-                                        scaleMmToPx: scale,
-                                      ),
-                                      child: const SizedBox.expand(),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          ...(() {
-                            final allElements = <dynamic>[
-                              ...page.customImages,
-                              ...page.customTexts,
-                              ...page.customLines,
-                              ...page.customShapes,
-                            ]..sort((a, b) => (a.zIndex as int).compareTo(b.zIndex as int));
-
-                            return allElements.map<Widget>((element) {
-                              if (element is CustomImageElement) {
-                                return DraggableImageChip(
-                                  key: ValueKey('p${page1 ? '1' : '2'}_img_${element.id}'),
-                                  imagePath: element.imagePath,
-                                  position: Offset(element.xMm, element.yMm),
-                                  widthMm: element.widthMm,
-                                  heightMm: element.heightMm,
-                                  rotationDegrees: element.rotationDegrees,
-                                  scale: scale,
-                                  labelWidthMm: _labelWidthMm,
-                                  labelHeightMm: _labelHeightMm,
-                                  canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                  labelPanToMmDelta: labelPanToMmDelta,
-                                  isSelected: _selectedElement == 'image:${page1 ? '1' : '2'}:${element.id}',
-                                  onTap: () => _deferSetState(() {
-                                    _selectedElement = 'image:${page1 ? '1' : '2'}:${element.id}';
-                                    _inlineCanvasCustomKey = null;
-                                  }),
-                                  onMoved: (pos) {
-                                    final maxX = math.max(0.0, _labelWidthMm - element.widthMm);
-                                    final maxY = math.max(0.0, _labelHeightMm - element.heightMm);
-                                    _scheduleTemplateImageUpdate(
-                                      page1,
-                                      element.copyWith(
-                                        xMm: _clampMm(pos.dx, 0, maxX),
-                                        yMm: _clampMm(pos.dy, 0, maxY),
-                                      ),
-                                    );
-                                  },
-                                  onBoundsChanged: (x, y, w, h) {
-                                    _scheduleTemplateImageUpdate(
-                                      page1,
-                                      element.copyWith(
-                                        xMm: x,
-                                        yMm: y,
-                                        widthMm: w,
-                                        heightMm: h,
-                                      ),
-                                    );
-                                  },
-                                  onRotationChanged: (deg) {
-                                    _scheduleTemplateImageUpdate(
-                                      page1,
-                                      element.copyWith(rotationDegrees: deg),
-                                    );
-                                  },
-                                  onDelete: () => _removeCustomImage(page1, element.id),
-                                );
-                              } else if (element is CustomTextElement) {
-                                if (labelGenderIconFieldKeyFromBracketText(element.text) case final gKey?) {
-                                  return DraggableImageChip(
-                                    key: ValueKey('p${page1 ? '1' : '2'}_gct_${element.id}'),
-                                    imagePath: '',
-                                    vectorChild: Icon(labelGenderIconForFieldKey(_editorLabelFieldPreview, gKey)),
-                                    position: Offset(element.xMm, element.yMm),
-                                    widthMm: element.iconWidthMm ?? kLabelGenderIconDefaultWidthMm,
-                                    heightMm: element.iconHeightMm ?? kLabelGenderIconDefaultHeightMm,
-                                    rotationDegrees: element.rotationDegrees,
-                                    scale: scale,
-                                    labelWidthMm: _labelWidthMm,
-                                    labelHeightMm: _labelHeightMm,
-                                    canvasInsetXPx: 0,
-                                    canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                    labelPanToMmDelta: labelPanToMmDelta,
-                                    isSelected: _selectedElement == 'custom:${page1 ? '1' : '2'}:${element.id}',
-                                    onTap: () => _deferSetState(() {
-                                      _selectedElement = 'custom:${page1 ? '1' : '2'}:${element.id}';
-                                      _inlineCanvasCustomKey = null;
-                                    }),
-                                    onMoved: (pos) {
-                                      final wMm = element.iconWidthMm ?? kLabelGenderIconDefaultWidthMm;
-                                      final hMm = element.iconHeightMm ?? kLabelGenderIconDefaultHeightMm;
-                                      final maxX = math.max(0.0, _labelWidthMm - wMm);
-                                      final maxY = math.max(0.0, _labelHeightMm - hMm);
-                                      _scheduleTemplateTextPositionUpdate(
-                                        page1,
-                                        element.copyWith(
-                                          xMm: _clampMm(pos.dx, 0, maxX),
-                                          yMm: _clampMm(pos.dy, 0, maxY),
-                                        ),
-                                      );
-                                    },
-                                    onBoundsChanged: (x, y, w, h) {
-                                      _scheduleTemplateTextPositionUpdate(
-                                        page1,
-                                        element.copyWith(
-                                          xMm: x,
-                                          yMm: y,
-                                          iconWidthMm: w,
-                                          iconHeightMm: h,
-                                        ),
-                                      );
-                                    },
-                                    onRotationChanged: (deg) {
-                                      _scheduleTemplateTextPositionUpdate(
-                                        page1,
-                                        element.copyWith(rotationDegrees: deg),
-                                      );
-                                    },
-                                    onDelete: null,
-                                  );
-                                } else {
-                                  return DraggableChip(
-                                    key: ValueKey('p${page1 ? '1' : '2'}_ct_${element.id}_${element.rotationDegrees}_${element.fontFamily}'),
-                                    label: element.text.isEmpty ? '(empty)' : (_isPreviewMode ? substituteLabelPlaceholders(element.text, _editorLabelFieldPreview) : element.text),
-                                    actualText: element.text,
-                                    position: Offset(element.xMm, element.yMm),
-                                    fontSize: element.fontSizePt,
-                                    fontFamily: element.fontFamily,
-                                    bold: element.bold,
-                                    italic: element.italic,
-                                    rotationDegrees: element.rotationDegrees,
-                                    scale: scale,
-                                    labelWidthMm: _labelWidthMm,
-                                    labelHeightMm: _labelHeightMm,
-                                    canvasInsetXPx: 0,
-                                    canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                    labelPanToMmDelta: labelPanToMmDelta,
-                                    isCustom: true,
-                                    isInlineEditing: _inlineCanvasCustomKey == 'custom:${page1 ? '1' : '2'}:${element.id}',
-                                    isSelected: _selectedElement == 'custom:${page1 ? '1' : '2'}:${element.id}',
-                                    onInlineEditingComplete: (v) {
-                                      if (!mounted) return;
-                                      setState(() {
-                                        if (page1) {
-                                          _template = _template.copyWith(
-                                            page1: _template.page1.withCustomText(element.copyWith(text: v)),
-                                          );
-                                        } else {
-                                          _template = _template.copyWith(
-                                            page2: _template.page2.withCustomText(element.copyWith(text: v)),
-                                          );
-                                        }
-                                        _inlineCanvasCustomKey = null;
-                                        _inlineCustomTextPaste = null;
-                                      });
-                                    },
-                                    onInlineTextInsertBinding: (fn) => _deferSetState(() => _inlineCustomTextPaste = fn),
-                                    onTap: () {
-                                      final k = 'custom:${page1 ? '1' : '2'}:${element.id}';
-                                      setState(() {
-                                        if (_selectedElement == k) {
-                                          _inlineCanvasCustomKey = k;
-                                        } else {
-                                          _selectedElement = k;
-                                          _inlineCanvasCustomKey = null;
-                                        }
-                                      });
-                                    },
-                                    onSelect: () {
-                                      final k = 'custom:${page1 ? '1' : '2'}:${element.id}';
-                                      setState(() {
-                                        _selectedElement = k;
-                                        _inlineCanvasCustomKey = null;
-                                      });
-                                    },
-                                    onMoved: (pos) {
-                                      _scheduleTemplateTextPositionUpdate(
-                                        page1,
-                                        element.copyWith(xMm: pos.dx, yMm: pos.dy),
-                                      );
-                                    },
-                                  );
-                                }
-                              } else if (element is CustomLineElement) {
-                                return DraggableLineChip(
-                                  key: ValueKey('p${page1 ? '1' : '2'}_line_${element.id}'),
-                                  position: Offset(element.xMm, element.yMm),
-                                  lengthMm: element.lengthMm,
-                                  thicknessPt: element.thicknessPt,
-                                  colorArgb: element.colorArgb,
-                                  rotationDegrees: element.rotationDegrees,
-                                  scale: scale,
-                                  labelWidthMm: _labelWidthMm,
-                                  labelHeightMm: _labelHeightMm,
-                                  canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                  labelPanToMmDelta: labelPanToMmDelta,
-                                  isSelected: _selectedElement == 'line:${page1 ? '1' : '2'}:${element.id}',
-                                  onTap: () => _deferSetState(() {
-                                    _selectedElement = 'line:${page1 ? '1' : '2'}:${element.id}';
-                                    _inlineCanvasCustomKey = null;
-                                  }),
-                                  onMoved: (pos) {
-                                    _scheduleTemplateLineUpdate(page1, element.copyWith(xMm: pos.dx, yMm: pos.dy));
-                                  },
-                                  onBoundsChanged: (x, y, w, h) {
-                                    _scheduleTemplateLineUpdate(page1, element.copyWith(xMm: x, yMm: y, lengthMm: w));
-                                  },
-                                  onRotationChanged: (deg) {
-                                    _scheduleTemplateLineUpdate(page1, element.copyWith(rotationDegrees: deg));
-                                  },
-                                  onDelete: () => _removeCustomLine(page1, element.id),
-                                );
-                              } else if (element is CustomShapeElement) {
-                                return DraggableShapeChip(
-                                  key: ValueKey('p${page1 ? '1' : '2'}_shape_${element.id}'),
-                                  shapeType: element.shapeType,
-                                  position: Offset(element.xMm, element.yMm),
-                                  widthMm: element.widthMm,
-                                  heightMm: element.heightMm,
-                                  strokeThicknessPt: element.strokeThicknessPt,
-                                  strokeColorArgb: element.strokeColorArgb,
-                                  fillColorArgb: element.fillColorArgb,
-                                  rotationDegrees: element.rotationDegrees,
-                                  scale: scale,
-                                  labelWidthMm: _labelWidthMm,
-                                  labelHeightMm: _labelHeightMm,
-                                  canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                  labelPanToMmDelta: labelPanToMmDelta,
-                                  isSelected: _selectedElement == 'shape:${page1 ? '1' : '2'}:${element.id}',
-                                  onTap: () => _deferSetState(() {
-                                    _selectedElement = 'shape:${page1 ? '1' : '2'}:${element.id}';
-                                    _inlineCanvasCustomKey = null;
-                                  }),
-                                  onMoved: (pos) {
-                                    _scheduleTemplateShapeUpdate(page1, element.copyWith(xMm: pos.dx, yMm: pos.dy));
-                                  },
-                                  onBoundsChanged: (x, y, w, h) {
-                                    _scheduleTemplateShapeUpdate(page1, element.copyWith(xMm: x, yMm: y, widthMm: w, heightMm: h));
-                                  },
-                                  onRotationChanged: (deg) {
-                                    _scheduleTemplateShapeUpdate(page1, element.copyWith(rotationDegrees: deg));
-                                  },
-                                  onDelete: () => _removeCustomShape(page1, element.id),
-                                );
-                              }
-                              return const SizedBox.shrink();
-                            }).toList();
-                          })(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
 
   Widget _buildLabelBorderPanel() {
     final scheme = Theme.of(context).colorScheme;
@@ -1651,533 +1447,4 @@ class _LabelTemplateEditorScreenState
         ],
       ),
     );
-  }
-
-
-  void _updateZIndex(String sel, int delta) {
-    final parts = sel.split(':');
-    final type = parts[0];
-    final page1 = parts[1] == '1';
-    final id = parts[2];
-    setState(() {
-      if (type == 'custom') {
-        final ct = _findCustomText(page1, id);
-        if (ct != null) _updateCustomText(page1, ct.copyWith(zIndex: ct.zIndex + delta));
-      } else if (type == 'image') {
-        final im = _findCustomImage(page1, id);
-        if (im != null) _scheduleTemplateImageUpdate(page1, im.copyWith(zIndex: im.zIndex + delta));
-      } else if (type == 'line') {
-        final ln = _findCustomLine(page1, id);
-        if (ln != null) _scheduleTemplateLineUpdate(page1, ln.copyWith(zIndex: ln.zIndex + delta));
-      } else if (type == 'shape') {
-        final sh = _findCustomShape(page1, id);
-        if (sh != null) _scheduleTemplateShapeUpdate(page1, sh.copyWith(zIndex: sh.zIndex + delta));
-      }
-    });
-  }
-
-  Widget _buildElementPanel(String sel, {bool inToolbar = false}) {
-    if (sel.startsWith('custom:')) {
-      return _buildCustomTextPanel(sel, inToolbar: inToolbar);
-    } else if (sel.startsWith('image:')) {
-      return _buildImagePanel(sel, inToolbar: inToolbar);
-    } else if (sel.startsWith('line:')) {
-      return _buildLinePanel(sel, inToolbar: inToolbar);
-    } else if (sel.startsWith('shape:')) {
-      return _buildShapePanel(sel, inToolbar: inToolbar);
-    }
-    return const SizedBox.shrink();
-  }
-
-  Widget _buildPanelContainer({required Widget child, required bool inToolbar}) {
-    final scheme = Theme.of(context).colorScheme;
-    if (inToolbar) {
-      return Material(
-        elevation: 0,
-        color: scheme.surfaceContainerHighest,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: scheme.outlineVariant),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: child,
-      );
-    }
-    return Material(
-      elevation: 2,
-      color: scheme.surfaceContainerHigh,
-      child: SafeArea(
-        top: false,
-        child: child,
-      ),
-    );
-  }
-
-  Widget _buildZIndexControls(String sel) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.keyboard_double_arrow_down, size: 20),
-          tooltip: 'Send to back',
-          onPressed: () => _updateZIndex(sel, -1), // Simplistic, could be improved to find min/max
-        ),
-        IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
-          tooltip: 'Send backward',
-          onPressed: () => _updateZIndex(sel, -1),
-        ),
-        IconButton(
-          icon: const Icon(Icons.keyboard_arrow_up, size: 20),
-          tooltip: 'Bring forward',
-          onPressed: () => _updateZIndex(sel, 1),
-        ),
-        IconButton(
-          icon: const Icon(Icons.keyboard_double_arrow_up, size: 20),
-          tooltip: 'Bring to front',
-          onPressed: () => _updateZIndex(sel, 1),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImagePanel(String sel, {bool inToolbar = false}) {
-    final parts = sel.split(':');
-    final page1 = parts[1] == '1';
-    final id = parts[2];
-    
-    final scheme = Theme.of(context).colorScheme;
-    final deleteButton = IconButton(
-      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-      tooltip: 'Delete image',
-      onPressed: () => _removeCustomImage(page1, id),
-    );
-
-    return _buildPanelContainer(
-      inToolbar: inToolbar,
-      child: Padding(
-        padding: inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildZIndexControls(sel),
-            const Spacer(),
-            deleteButton,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLinePanel(String sel, {bool inToolbar = false}) {
-    final parts = sel.split(':');
-    final page1 = parts[1] == '1';
-    final id = parts[2];
-    final ln = _findCustomLine(page1, id);
-    if (ln == null) return const SizedBox.shrink();
-
-    final scheme = Theme.of(context).colorScheme;
-    final deleteButton = IconButton(
-      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-      tooltip: 'Delete line',
-      onPressed: () => _removeCustomLine(page1, id),
-    );
-
-    final content = Padding(
-      padding: inToolbar
-          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildZIndexControls(sel),
-          const SizedBox(width: 16),
-          Text('Thickness', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          DropdownButton<double>(
-            value: [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0].contains(ln.thicknessPt) ? ln.thicknessPt : 1.0,
-            isDense: true,
-            underline: const SizedBox.shrink(),
-            items: [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0].map((t) => DropdownMenuItem(value: t, child: Text('${t}pt'))).toList(),
-            onChanged: (v) {
-              if (v != null) {
-                _updateCustomLine(page1, ln.copyWith(thicknessPt: v));
-              }
-            },
-          ),
-          const SizedBox(width: 16),
-          Text('Color', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () async {
-              Color selectedColor = Color(ln.colorArgb);
-              final picked = await ColorPicker(
-                color: selectedColor,
-                onColorChanged: (c) => selectedColor = c,
-                heading: Text('Select color', style: Theme.of(context).textTheme.titleSmall),
-                subheading: Text('Select color shade', style: Theme.of(context).textTheme.titleSmall),
-                wheelSubheading: Text('Selected color and its shades', style: Theme.of(context).textTheme.titleSmall),
-                showColorName: true,
-                showColorCode: false,
-                copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                  copyButton: true,
-                  pasteButton: true,
-                  longPressMenu: true,
-                ),
-                colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-                colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-                pickersEnabled: const <ColorPickerType, bool>{
-                  ColorPickerType.both: false,
-                  ColorPickerType.primary: true,
-                  ColorPickerType.accent: true,
-                  ColorPickerType.bw: false,
-                  ColorPickerType.custom: true,
-                  ColorPickerType.wheel: true,
-                },
-              ).showPickerDialog(context);
-              if (picked) {
-                _updateCustomLine(page1, ln.copyWith(colorArgb: selectedColor.toARGB32()));
-              }
-            },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Color(ln.colorArgb),
-                border: Border.all(color: scheme.outline),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ),
-          const Spacer(),
-          deleteButton,
-        ],
-      ),
-    );
-
-    return _buildPanelContainer(
-      inToolbar: inToolbar,
-      child: content,
-    );
-  }
-
-  Widget _buildShapePanel(String sel, {bool inToolbar = false}) {
-    final parts = sel.split(':');
-    final page1 = parts[1] == '1';
-    final id = parts[2];
-    final sh = _findCustomShape(page1, id);
-    if (sh == null) return const SizedBox.shrink();
-
-    final scheme = Theme.of(context).colorScheme;
-    final deleteButton = IconButton(
-      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-      tooltip: 'Delete shape',
-      onPressed: () => _removeCustomShape(page1, id),
-    );
-
-    final content = Padding(
-      padding: inToolbar
-          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildZIndexControls(sel),
-          const SizedBox(width: 16),
-          Text('Stroke', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          DropdownButton<double>(
-            value: [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0].contains(sh.strokeThicknessPt) ? sh.strokeThicknessPt : 1.0,
-            isDense: true,
-            underline: const SizedBox.shrink(),
-            items: [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0].map((t) => DropdownMenuItem(value: t, child: Text('${t}pt'))).toList(),
-            onChanged: (v) {
-              if (v != null) {
-                _updateCustomShape(page1, sh.copyWith(strokeThicknessPt: v));
-              }
-            },
-          ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () async {
-              Color selectedColor = Color(sh.strokeColorArgb);
-              final picked = await ColorPicker(
-                color: selectedColor,
-                onColorChanged: (c) => selectedColor = c,
-                heading: Text('Select stroke color', style: Theme.of(context).textTheme.titleSmall),
-                subheading: Text('Select color shade', style: Theme.of(context).textTheme.titleSmall),
-                wheelSubheading: Text('Selected color and its shades', style: Theme.of(context).textTheme.titleSmall),
-                showColorName: true,
-                showColorCode: false,
-                copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                  copyButton: true,
-                  pasteButton: true,
-                  longPressMenu: true,
-                ),
-                colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-                colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-                pickersEnabled: const <ColorPickerType, bool>{
-                  ColorPickerType.both: false,
-                  ColorPickerType.primary: true,
-                  ColorPickerType.accent: true,
-                  ColorPickerType.bw: false,
-                  ColorPickerType.custom: true,
-                  ColorPickerType.wheel: true,
-                },
-              ).showPickerDialog(context);
-              if (picked) {
-                _updateCustomShape(page1, sh.copyWith(strokeColorArgb: selectedColor.toARGB32()));
-              }
-            },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Color(sh.strokeColorArgb),
-                border: Border.all(color: scheme.outline),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Text('Fill', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () async {
-              Color selectedColor = sh.fillColorArgb != null ? Color(sh.fillColorArgb!) : Colors.transparent;
-              final picked = await ColorPicker(
-                color: selectedColor,
-                onColorChanged: (c) => selectedColor = c,
-                enableShadesSelection: true,
-                heading: Text('Select fill color', style: Theme.of(context).textTheme.titleSmall),
-                subheading: Text('Select color shade', style: Theme.of(context).textTheme.titleSmall),
-                wheelSubheading: Text('Selected color and its shades', style: Theme.of(context).textTheme.titleSmall),
-                showColorName: true,
-                showColorCode: false,
-                copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                  copyButton: true,
-                  pasteButton: true,
-                  longPressMenu: true,
-                ),
-                colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-                colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-                pickersEnabled: const <ColorPickerType, bool>{
-                  ColorPickerType.both: false,
-                  ColorPickerType.primary: true,
-                  ColorPickerType.accent: true,
-                  ColorPickerType.bw: false,
-                  ColorPickerType.custom: true,
-                  ColorPickerType.wheel: true,
-                },
-              ).showPickerDialog(context);
-              if (picked) {
-                _updateCustomShape(page1, sh.copyWith(fillColorArgb: selectedColor.toARGB32()));
-              }
-            },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: sh.fillColorArgb != null ? Color(sh.fillColorArgb!) : Colors.transparent,
-                border: Border.all(color: scheme.outline),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: sh.fillColorArgb == null
-                  ? Icon(Icons.close, size: 16, color: scheme.onSurfaceVariant)
-                  : null,
-            ),
-          ),
-          const SizedBox(width: 4),
-          if (sh.fillColorArgb != null)
-            IconButton(
-              icon: const Icon(Icons.format_color_reset, size: 20),
-              tooltip: 'Clear fill',
-              onPressed: () => _updateCustomShape(page1, sh.copyWith(clearFillColor: true)),
-            ),
-          const Spacer(),
-          deleteButton,
-        ],
-      ),
-    );
-
-    return _buildPanelContainer(
-      inToolbar: inToolbar,
-      child: content,
-    );
-  }
-
-  Widget _buildCustomTextPanel(String sel, {bool inToolbar = false}) {
-    final parts = sel.split(':');
-    if (parts.length != 3) return const SizedBox.shrink();
-    final page1 = parts[1] == '1';
-    final id = parts[2];
-    final ct = _findCustomText(page1, id);
-    if (ct == null) return const SizedBox.shrink();
-
-    final scheme = Theme.of(context).colorScheme;
-    final deleteButton = IconButton(
-      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-      tooltip: 'Delete text box',
-      onPressed: () => _deleteCustomText(page1, id),
-    );
-
-    if (isLabelBracketGenderIconText(ct.text)) {
-      final content = Padding(
-        padding: inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [_buildZIndexControls(sel), const Spacer(), deleteButton],
-        ),
-      );
-      return _buildPanelContainer(child: content, inToolbar: inToolbar);
-    }
-
-    final fontKey = normalizeLabelFontFamily(ct.fontFamily);
-    final fontDropdownIds = List<String>.from(kLabelFontDropdownKeys);
-    if (fontKey.isNotEmpty && !fontDropdownIds.contains(fontKey)) {
-      fontDropdownIds.add(fontKey);
-    }
-    final content = Padding(
-      padding: inToolbar
-          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  Text('Font', style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  DropdownButton<String>(
-                    value: fontKey,
-                    isDense: true,
-                    underline: const SizedBox.shrink(),
-                    items: [
-                      for (final k in fontDropdownIds)
-                        DropdownMenuItem<String>(
-                          value: k,
-                          child: Text(labelFontDropdownLabel(k)),
-                        ),
-                    ],
-                    onChanged: (v) {
-                      if (v == null) return;
-                      _updateCustomText(page1, ct.copyWith(fontFamily: v));
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  Text('Size (pt)',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 64,
-                    child: SyncedFontSizeField(
-                      key: ValueKey('fs_$id'),
-                      fontSizePt: ct.fontSizePt,
-                      onValidSize: (p) => _updateCustomText(
-                        page1,
-                        ct.copyWith(fontSizePt: p),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.remove, size: 20),
-                    tooltip: 'Decrease font size',
-                    onPressed: ct.fontSizePt > 4
-                        ? () => _updateCustomText(
-                              page1,
-                              ct.copyWith(
-                                  fontSizePt:
-                                      (ct.fontSizePt - 0.5).clamp(4.0, 72.0)),
-                            )
-                        : null,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add, size: 20),
-                    tooltip: 'Increase font size',
-                    onPressed: ct.fontSizePt < 72
-                        ? () => _updateCustomText(
-                              page1,
-                              ct.copyWith(
-                                  fontSizePt:
-                                      (ct.fontSizePt + 0.5).clamp(4.0, 72.0)),
-                            )
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  FilterChip(
-                    label: const Text('Bold'),
-                    selected: ct.bold,
-                    onSelected: (v) =>
-                        _updateCustomText(page1, ct.copyWith(bold: v)),
-                  ),
-                  const SizedBox(width: 6),
-                  FilterChip(
-                    label: const Text('Italic'),
-                    selected: ct.italic,
-                    onSelected: (v) =>
-                        _updateCustomText(page1, ct.copyWith(italic: v)),
-                  ),
-                  const SizedBox(width: 12),
-                  Text('Rotation',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment(value: 0, label: Text('0°')),
-                      ButtonSegment(value: 90, label: Text('90°')),
-                      ButtonSegment(value: -90, label: Text('-90°')),
-                      ButtonSegment(value: 180, label: Text('180°')),
-                    ],
-                    selected: {ct.rotationDegrees},
-                    onSelectionChanged: (next) {
-                      if (next.isEmpty) return;
-                      _updateCustomText(
-                        page1,
-                        ct.copyWith(rotationDegrees: next.first),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          deleteButton,
-        ],
-      ),
-    );
-
-    if (inToolbar) {
-      return Material(
-        elevation: 0,
-        color: scheme.surfaceContainerHighest,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: scheme.outlineVariant),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: content,
-      );
-    }
-
-    return Material(
-      elevation: 2,
-      color: scheme.surfaceContainerHigh,
-      child: SafeArea(
-        top: false,
-        minimum: const EdgeInsets.only(bottom: 8),
-        child: content,
-      ),
-    );
-  }
-}
+  }}

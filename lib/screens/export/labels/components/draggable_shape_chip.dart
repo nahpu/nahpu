@@ -66,8 +66,6 @@ class DraggableShapeChip extends StatefulWidget {
   final bool isSelected;
   final VoidCallback? onTap;
 
-
-
   @override
   State<DraggableShapeChip> createState() => DraggableShapeChipState();
 }
@@ -455,7 +453,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                                 : null,
                             border: Border.all(
                               color: Color(widget.strokeColorArgb),
-                              width: widget.strokeThicknessPt * widget.scale / _kPdfPointsPerMm,
+                              width: widget.strokeThicknessPt *
+                                  widget.scale /
+                                  _kPdfPointsPerMm,
                             ),
                             shape: widget.shapeType == 'ellipse'
                                 ? BoxShape.circle

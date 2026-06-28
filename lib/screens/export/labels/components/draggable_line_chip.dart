@@ -60,8 +60,6 @@ class DraggableLineChip extends StatefulWidget {
   final bool isSelected;
   final VoidCallback? onTap;
 
-
-
   @override
   State<DraggableLineChip> createState() => DraggableLineChipState();
 }
@@ -130,7 +128,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       widget.position.dx,
       widget.position.dy,
       widget.lengthMm,
-      math.max(2.0, widget.thicknessPt * 0.3527), // convert pt to mm approx for bounds
+      math.max(2.0,
+          widget.thicknessPt * 0.3527), // convert pt to mm approx for bounds
     );
     _resizeAccum = Offset.zero;
   }
@@ -322,7 +321,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final left = posMm.dx * widget.scale + insetX;
     final top = posMm.dy * widget.scale + insetY;
     final w = (effWmm * widget.scale).clamp(0.0, double.infinity);
-    final h = math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
+    final h =
+        math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
     final scheme = Theme.of(context).colorScheme;
 
     final borderColor = _moving
@@ -381,12 +381,14 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                         _imageMovePanLastGlobal ?? details.globalPosition;
                     final gDelta = details.globalPosition - last;
                     _imageMovePanLastGlobal = details.globalPosition;
-                    final dMm = _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
+                    final dMm =
+                        _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
                     final origin = _imagePanOriginMm ?? widget.position;
                     _imagePanAccumMm += dMm;
                     final lr = _resizeLiveRect;
                     final w = lr?.width ?? widget.lengthMm;
-                    final h = lr?.height ?? math.max(1.0, widget.thicknessPt * 0.3527);
+                    final h = lr?.height ??
+                        math.max(1.0, widget.thicknessPt * 0.3527);
                     final maxX = math.max(0.0, widget.labelWidthMm - w);
                     final maxY = math.max(0.0, widget.labelHeightMm - h);
                     final rawX = origin.dx + _imagePanAccumMm.dx;

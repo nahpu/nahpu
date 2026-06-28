@@ -330,7 +330,8 @@ class CustomShapeElement {
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
       strokeThicknessPt: strokeThicknessPt ?? this.strokeThicknessPt,
       strokeColorArgb: strokeColorArgb ?? this.strokeColorArgb,
-      fillColorArgb: clearFillColor ? null : (fillColorArgb ?? this.fillColorArgb),
+      fillColorArgb:
+          clearFillColor ? null : (fillColorArgb ?? this.fillColorArgb),
       zIndex: zIndex ?? this.zIndex,
     );
   }
@@ -436,8 +437,7 @@ class LabelPageTemplate {
   }
 
   LabelPageTemplate withoutCustomLine(String id) {
-    return copyWith(
-        customLines: customLines.where((l) => l.id != id).toList());
+    return copyWith(customLines: customLines.where((l) => l.id != id).toList());
   }
 
   LabelPageTemplate withCustomShape(CustomShapeElement e) {
