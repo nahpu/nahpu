@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/export/label_writer.dart';
-import 'package:nahpu/screens/export/labels/label_template_model.dart';
+import 'package:nahpu/screens/exports/labels/label_template_model.dart';
 
 void main() {
   group('LabelWriter text substitutions', () {
@@ -39,38 +39,49 @@ void main() {
 
   group('LabelWriter z-index tests', () {
     test('Elements are correctly sorted by zIndex', () {
-      final page = LabelPageTemplate(
-        customImages: [
-          CustomImageElement(id: 'img1', imagePath: 'path1.png', xMm: 0, yMm: 0, widthMm: 10, heightMm: 10, zIndex: 10),
-        ],
-        customTexts: [
-          CustomTextElement(id: 'txt1', text: 'Top text', xMm: 0, yMm: 0, zIndex: 20),
-          CustomTextElement(id: 'txt2', text: 'Bottom text', xMm: 0, yMm: 0, zIndex: -10),
-        ],
-        customLines: [
-          CustomLineElement(id: 'line1', xMm: 0, yMm: 0, lengthMm: 10, zIndex: 5),
-        ],
-        customShapes: [
-          CustomShapeElement(id: 'shape1', shapeType: 'rect', xMm: 0, yMm: 0, widthMm: 10, heightMm: 10, zIndex: 0),
-        ]
-      );
-      
+      final page = LabelPageTemplate(customImages: [
+        CustomImageElement(
+            id: 'img1',
+            imagePath: 'path1.png',
+            xMm: 0,
+            yMm: 0,
+            widthMm: 10,
+            heightMm: 10,
+            zIndex: 10),
+      ], customTexts: [
+        CustomTextElement(
+            id: 'txt1', text: 'Top text', xMm: 0, yMm: 0, zIndex: 20),
+        CustomTextElement(
+            id: 'txt2', text: 'Bottom text', xMm: 0, yMm: 0, zIndex: -10),
+      ], customLines: [
+        CustomLineElement(id: 'line1', xMm: 0, yMm: 0, lengthMm: 10, zIndex: 5),
+      ], customShapes: [
+        CustomShapeElement(
+            id: 'shape1',
+            shapeType: 'rect',
+            xMm: 0,
+            yMm: 0,
+            widthMm: 10,
+            heightMm: 10,
+            zIndex: 0),
+      ]);
+
       final sortedElements = LabelWriter.sortElementsForTesting(page);
-      
+
       expect(sortedElements.length, 5);
-      
+
       expect(sortedElements[0] is CustomTextElement, isTrue);
       expect((sortedElements[0] as CustomTextElement).id, 'txt2');
-      
+
       expect(sortedElements[1] is CustomShapeElement, isTrue);
       expect((sortedElements[1] as CustomShapeElement).id, 'shape1');
-      
+
       expect(sortedElements[2] is CustomLineElement, isTrue);
       expect((sortedElements[2] as CustomLineElement).id, 'line1');
-      
+
       expect(sortedElements[3] is CustomImageElement, isTrue);
       expect((sortedElements[3] as CustomImageElement).id, 'img1');
-      
+
       expect(sortedElements[4] is CustomTextElement, isTrue);
       expect((sortedElements[4] as CustomTextElement).id, 'txt1');
     });
@@ -85,7 +96,9 @@ void main() {
       expect(formatTextWithCase(text, 'normal'), 'hello world test');
     });
 
-    test('CustomTextElement JSON serialization retains textAlign and caseFormat', () {
+    test(
+        'CustomTextElement JSON serialization retains textAlign and caseFormat',
+        () {
       final ct = CustomTextElement(
         id: 'txt1',
         text: 'hello',
@@ -103,7 +116,9 @@ void main() {
       expect(deserialized.caseFormat, 'uppercase');
     });
 
-    test('CustomTextElement defaults textAlign and caseFormat on missing json keys', () {
+    test(
+        'CustomTextElement defaults textAlign and caseFormat on missing json keys',
+        () {
       final json = {
         'id': 'txt1',
         'text': 'hello',

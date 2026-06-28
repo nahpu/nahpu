@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/export/labels/components/end_sidebar_panel_icon.dart';
+import 'package:nahpu/screens/exports/labels/components/end_sidebar_panel_icon.dart';
 
 class FieldsPanelToggleButton extends StatelessWidget {
   const FieldsPanelToggleButton({

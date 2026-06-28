@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/export/labels/label_template_editor_screen.dart';
-import 'package:nahpu/screens/export/labels/label_template_model.dart';
+import 'package:nahpu/screens/exports/labels/label_template_editor_screen.dart';
+import 'package:nahpu/screens/exports/labels/label_template_model.dart';
 
-enum _LineHandle { left, right }
+enum _ShapeCorner { tl, tr, bl, br }
 
 const double _kPdfPointsPerMm = 72.0 / 25.4;
 
@@ -16,14 +16,17 @@ double _clampMm(double value, double bound1, double bound2) {
   return value.clamp(lo, hi);
 }
 
-class DraggableLineChip extends StatefulWidget {
-  const DraggableLineChip({
+class DraggableShapeChip extends StatefulWidget {
+  const DraggableShapeChip({
     super.key,
+    required this.shapeType,
     required this.position,
-    required this.lengthMm,
+    required this.widthMm,
+    required this.heightMm,
     this.rotationDegrees = 0,
-    this.thicknessPt = 1.0,
-    this.colorArgb = 0xFF000000,
+    this.strokeThicknessPt = 1.0,
+    this.strokeColorArgb = 0xFF000000,
+    this.fillColorArgb,
     required this.scale,
     required this.labelWidthMm,
     required this.labelHeightMm,
@@ -39,11 +42,14 @@ class DraggableLineChip extends StatefulWidget {
     this.onDragStateChanged,
   });
 
+  final String shapeType; // 'rect' or 'ellipse'
   final Offset position;
-  final double lengthMm;
+  final double widthMm;
+  final double heightMm;
   final int rotationDegrees;
-  final double thicknessPt;
-  final int colorArgb;
+  final double strokeThicknessPt;
+  final int strokeColorArgb;
+  final int? fillColorArgb;
   final double scale;
   final double labelWidthMm;
   final double labelHeightMm;
@@ -63,10 +69,10 @@ class DraggableLineChip extends StatefulWidget {
   final ValueChanged<bool>? onDragStateChanged;
 
   @override
-  State<DraggableLineChip> createState() => DraggableLineChipState();
+  State<DraggableShapeChip> createState() => DraggableShapeChipState();
 }
 
-class DraggableLineChipState extends State<DraggableLineChip> {
+class DraggableShapeChipState extends State<DraggableShapeChip> {
   static const double _handleVisual = 10;
   static const double _handleHit = 24;
 
@@ -80,7 +86,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   final GlobalKey _measureKey = GlobalKey();
 
   bool _moving = false;
-  _LineHandle? _resizeHandle;
+  _ShapeCorner? _resizeCorner;
   Rect? _resizeStart;
   Offset _resizeAccum = Offset.zero;
 
@@ -119,26 +125,25 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     return Offset(dlx, dly);
   }
 
-  void _onResizePanStart(DragStartDetails d, _LineHandle h) {
+  void _onResizePanStart(DragStartDetails d, _ShapeCorner c) {
     widget.onDragStateChanged?.call(true);
-    _beginResize(h);
+    _beginResize(c);
     _resizePanLastGlobal = d.globalPosition;
   }
 
-  void _beginResize(_LineHandle h) {
-    _resizeHandle = h;
+  void _beginResize(_ShapeCorner c) {
+    _resizeCorner = c;
     _resizeStart = Rect.fromLTWH(
       widget.position.dx,
       widget.position.dy,
-      widget.lengthMm,
-      math.max(2.0,
-          widget.thicknessPt * 0.3527), // convert pt to mm approx for bounds
+      widget.widthMm,
+      widget.heightMm,
     );
     _resizeAccum = Offset.zero;
   }
 
   void _onResizePanUpdate(DragUpdateDetails d) {
-    if (_resizeHandle == null || _resizeStart == null) return;
+    if (_resizeCorner == null || _resizeStart == null) return;
     final last = _resizePanLastGlobal ?? d.globalPosition;
     final gDelta = d.globalPosition - last;
     _resizePanLastGlobal = d.globalPosition;
@@ -151,36 +156,56 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final cosT = math.cos(rad);
     final sinT = math.sin(rad);
 
-    final hMm = math.max(2.0, widget.thicknessPt * 0.3527);
-    final lStart = s.width;
-
     late double rw;
+    late double rh;
     late double x;
     late double y;
 
-    switch (_resizeHandle!) {
-      case _LineHandle.right:
-        final startXFixed = s.left + lStart / 2 * (1 - cosT);
-        final startYFixed = s.top + hMm / 2 - lStart / 2 * sinT;
+    switch (_resizeCorner!) {
+      case _ShapeCorner.br:
+        final fixedX = s.left + s.width / 2 * (1 - cosT) + s.height / 2 * sinT;
+        final fixedY = s.top + s.height / 2 * (1 - cosT) - s.width / 2 * sinT;
 
         rw = (s.width + a.dx).clamp(2.0, widget.labelWidthMm);
+        rh = (s.height + a.dy).clamp(2.0, widget.labelHeightMm);
 
-        x = startXFixed - rw / 2 * (1 - cosT);
-        y = startYFixed - hMm / 2 + rw / 2 * sinT;
+        x = fixedX - rw / 2 * (1 - cosT) - rh / 2 * sinT;
+        y = fixedY - rh / 2 * (1 - cosT) + rw / 2 * sinT;
         break;
 
-      case _LineHandle.left:
-        final endXFixed = s.left + lStart / 2 * (1 + cosT);
-        final endYFixed = s.top + hMm / 2 + lStart / 2 * sinT;
+      case _ShapeCorner.bl:
+        final fixedX = s.left + s.width / 2 * (1 + cosT) + s.height / 2 * sinT;
+        final fixedY = s.top + s.height / 2 * (1 - cosT) + s.width / 2 * sinT;
 
         rw = (s.width - a.dx).clamp(2.0, widget.labelWidthMm);
+        rh = (s.height + a.dy).clamp(2.0, widget.labelHeightMm);
 
-        x = endXFixed - rw / 2 * (1 + cosT);
-        y = endYFixed - hMm / 2 - rw / 2 * sinT;
+        x = fixedX - rw / 2 * (1 + cosT) - rh / 2 * sinT;
+        y = fixedY - rh / 2 * (1 - cosT) - rw / 2 * sinT;
+        break;
+
+      case _ShapeCorner.tr:
+        final fixedX = s.left + s.width / 2 * (1 - cosT) - s.height / 2 * sinT;
+        final fixedY = s.top + s.height / 2 * (1 + cosT) - s.width / 2 * sinT;
+
+        rw = (s.width + a.dx).clamp(2.0, widget.labelWidthMm);
+        rh = (s.height - a.dy).clamp(2.0, widget.labelHeightMm);
+
+        x = fixedX - rw / 2 * (1 - cosT) + rh / 2 * sinT;
+        y = fixedY - rh / 2 * (1 + cosT) + rw / 2 * sinT;
+        break;
+
+      case _ShapeCorner.tl:
+        final fixedX = s.left + s.width / 2 * (1 + cosT) - s.height / 2 * sinT;
+        final fixedY = s.top + s.height / 2 * (1 + cosT) + s.width / 2 * sinT;
+
+        rw = (s.width - a.dx).clamp(2.0, widget.labelWidthMm);
+        rh = (s.height - a.dy).clamp(2.0, widget.labelHeightMm);
+
+        x = fixedX - rw / 2 * (1 + cosT) + rh / 2 * sinT;
+        y = fixedY - rh / 2 * (1 + cosT) - rw / 2 * sinT;
         break;
     }
-
-    final rh = s.height;
 
     final cosTAbs = cosT.abs();
     final sinTAbs = sinT.abs();
@@ -208,7 +233,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
         _resizeLiveRect!.height,
       );
     }
-    _resizeHandle = null;
+    _resizeCorner = null;
     _resizeStart = null;
     _resizeAccum = Offset.zero;
     _resizePanLastGlobal = null;
@@ -255,8 +280,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   }
 
   /// [innerLeft]/[innerTop] = top-left of the image rect inside the padded stack.
-  Widget _lineHandle(
-    _LineHandle handle,
+  Widget _cornerHandle(
+    _ShapeCorner corner,
     ColorScheme scheme, {
     required double innerLeft,
     required double innerTop,
@@ -265,13 +290,23 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   }) {
     final o = _handleHit / 2;
     late final double left;
-    final double top = innerTop + innerH / 2 - o;
-    switch (handle) {
-      case _LineHandle.left:
+    late final double top;
+    switch (corner) {
+      case _ShapeCorner.tl:
         left = innerLeft - o;
+        top = innerTop - o;
         break;
-      case _LineHandle.right:
+      case _ShapeCorner.tr:
         left = innerLeft + innerW - o;
+        top = innerTop - o;
+        break;
+      case _ShapeCorner.bl:
+        left = innerLeft - o;
+        top = innerTop + innerH - o;
+        break;
+      case _ShapeCorner.br:
+        left = innerLeft + innerW - o;
+        top = innerTop + innerH - o;
         break;
     }
     return Positioned(
@@ -281,7 +316,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       height: _handleHit,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onPanStart: (d) => _onResizePanStart(d, handle),
+        onPanStart: (d) => _onResizePanStart(d, corner),
         onPanUpdate: _onResizePanUpdate,
         onPanEnd: (_) => _deferSetState(_endResize),
         onPanCancel: () => _deferSetState(_endResize),
@@ -328,12 +363,12 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final posMm = liveR != null
         ? Offset(liveR.left, liveR.top)
         : (_imageDragLiveMm ?? widget.position);
-    final effWmm = liveR?.width ?? widget.lengthMm;
+    final effWmm = liveR?.width ?? widget.widthMm;
+    final effHmm = liveR?.height ?? widget.heightMm;
     final left = posMm.dx * widget.scale + insetX;
     final top = posMm.dy * widget.scale + insetY;
-    final w = (effWmm * widget.scale).clamp(0.0, double.infinity);
-    final h =
-        math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
+    final w = effWmm * widget.scale;
+    final h = effHmm * widget.scale;
     final scheme = Theme.of(context).colorScheme;
 
     final borderColor = _moving
@@ -399,9 +434,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                     final origin = _imagePanOriginMm ?? widget.position;
                     _imagePanAccumMm += dMm;
                     final lr = _resizeLiveRect;
-                    final w = lr?.width ?? widget.lengthMm;
-                    final h = lr?.height ??
-                        math.max(1.0, widget.thicknessPt * 0.3527);
+                    final w = lr?.width ?? widget.widthMm;
+                    final h = lr?.height ?? widget.heightMm;
                     final rad = _effectiveRotationDeg * math.pi / 180;
                     final cosT = math.cos(rad).abs();
                     final sinT = math.sin(rad).abs();
@@ -433,7 +467,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                     widget.onDragStateChanged?.call(false);
                   },
                   child: AnimatedContainer(
-                    duration: (_resizeHandle != null ||
+                    duration: (_resizeCorner != null ||
                             _rotateStartFingerRad != null ||
                             _moving)
                         ? Duration.zero
@@ -465,7 +499,20 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                         Container(
                           width: w,
                           height: h,
-                          color: Color(widget.colorArgb),
+                          decoration: BoxDecoration(
+                            color: widget.fillColorArgb != null
+                                ? Color(widget.fillColorArgb!)
+                                : null,
+                            border: Border.all(
+                              color: Color(widget.strokeColorArgb),
+                              width: widget.strokeThicknessPt *
+                                  widget.scale /
+                                  _kPdfPointsPerMm,
+                            ),
+                            shape: widget.shapeType == 'ellipse'
+                                ? BoxShape.circle
+                                : BoxShape.rectangle,
+                          ),
                         ),
                         Positioned(
                           left: 2,
@@ -482,9 +529,13 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                 ),
               ),
               if (widget.isSelected) ...[
-                _lineHandle(_LineHandle.left, scheme,
+                _cornerHandle(_ShapeCorner.tl, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _lineHandle(_LineHandle.right, scheme,
+                _cornerHandle(_ShapeCorner.tr, scheme,
+                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
+                _cornerHandle(_ShapeCorner.bl, scheme,
+                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
+                _cornerHandle(_ShapeCorner.br, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
                 Positioned(
                   left: padL + w / 2 - 20,

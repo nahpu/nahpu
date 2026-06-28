@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/export/export_db.dart';
-import 'package:nahpu/screens/export/export_settings.dart';
+import 'package:nahpu/screens/exports/export_db.dart';
+import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/home/components/learning_resources.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';

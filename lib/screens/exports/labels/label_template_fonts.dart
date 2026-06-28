@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nahpu/screens/export/labels/label_template_model.dart';
+import 'package:nahpu/screens/exports/labels/label_template_model.dart';
 
 bool labelCanvasFontUsesGoogle(String fontFamilyRaw) {
   final f = fontFamilyRaw.trim().toLowerCase();

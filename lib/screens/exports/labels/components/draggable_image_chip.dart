@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/export/labels/label_template_editor_screen.dart';
-import 'package:nahpu/screens/export/labels/label_template_model.dart';
+import 'package:nahpu/screens/exports/labels/label_template_editor_screen.dart';
+import 'package:nahpu/screens/exports/labels/label_template_model.dart';
 
 enum _ImageCorner { tl, tr, bl, br }
 
