@@ -14,14 +14,28 @@ import 'package:nahpu/services/utility_services.dart';
 /// to the always-mounted viewer when a list entry is tapped.
 const int _collEventViewerIndex = 2;
 
-class CollEventListPage extends ConsumerStatefulWidget {
+/// Standalone Event list screen. The same list body is also embedded in the
+/// Collection Records segmented view.
+class CollEventListPage extends StatelessWidget {
   const CollEventListPage({super.key});
 
   @override
-  CollEventListPageState createState() => CollEventListPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Event Records')),
+      body: const CollEventListBody(),
+    );
+  }
 }
 
-class CollEventListPageState extends ConsumerState<CollEventListPage> {
+class CollEventListBody extends ConsumerStatefulWidget {
+  const CollEventListBody({super.key});
+
+  @override
+  CollEventListBodyState createState() => CollEventListBodyState();
+}
+
+class CollEventListBodyState extends ConsumerState<CollEventListBody> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focus = FocusNode();
   List<CollEventData> _filteredEventData = [];
@@ -37,11 +51,7 @@ class CollEventListPageState extends ConsumerState<CollEventListPage> {
   @override
   Widget build(BuildContext context) {
     return ref.watch(collEventEntryProvider).when(
-          data: (eventData) => Scaffold(
-            appBar: AppBar(
-              title: const Text('Event Records'),
-            ),
-            body: SafeArea(
+          data: (eventData) => SafeArea(
               child: ScrollableConstrainedLayout(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -96,7 +106,6 @@ class CollEventListPageState extends ConsumerState<CollEventListPage> {
                 ),
               ),
             ),
-          ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
         );

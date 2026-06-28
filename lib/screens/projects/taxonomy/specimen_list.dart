@@ -14,16 +14,28 @@ import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/utility_services.dart';
 
-class SpecimenListPage extends ConsumerStatefulWidget {
-  const SpecimenListPage({
-    super.key,
-  });
+/// Standalone Specimen list screen. The same list body is also embedded in the
+/// Collection Records segmented view.
+class SpecimenListPage extends StatelessWidget {
+  const SpecimenListPage({super.key});
 
   @override
-  SpecimenListPageState createState() => SpecimenListPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Specimen Records')),
+      body: const SpecimenListBody(),
+    );
+  }
 }
 
-class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
+class SpecimenListBody extends ConsumerStatefulWidget {
+  const SpecimenListBody({super.key});
+
+  @override
+  SpecimenListBodyState createState() => SpecimenListBodyState();
+}
+
+class SpecimenListBodyState extends ConsumerState<SpecimenListBody> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedSearchValue = 0;
   List<SpecimenData> _filteredSpecimenData = [];
@@ -46,11 +58,7 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
   @override
   Widget build(BuildContext context) {
     return ref.watch(specimenEntryProvider).when(
-          data: (specimenData) => Scaffold(
-            appBar: AppBar(
-              title: const Text('Specimen Records'),
-            ),
-            body: SafeArea(
+          data: (specimenData) => SafeArea(
                 child: ScrollableConstrainedLayout(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -127,7 +135,6 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
                 ],
               ),
             )),
-          ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
         );

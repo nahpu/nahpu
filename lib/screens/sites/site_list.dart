@@ -14,14 +14,28 @@ import 'package:nahpu/services/utility_services.dart';
 /// the always-mounted viewer when a list entry is tapped.
 const int _siteViewerIndex = 1;
 
-class SiteListPage extends ConsumerStatefulWidget {
+/// Standalone Site list screen. The same list body is also embedded in the
+/// Collection Records segmented view.
+class SiteListPage extends StatelessWidget {
   const SiteListPage({super.key});
 
   @override
-  SiteListPageState createState() => SiteListPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Site Records')),
+      body: const SiteListBody(),
+    );
+  }
 }
 
-class SiteListPageState extends ConsumerState<SiteListPage> {
+class SiteListBody extends ConsumerStatefulWidget {
+  const SiteListBody({super.key});
+
+  @override
+  SiteListBodyState createState() => SiteListBodyState();
+}
+
+class SiteListBodyState extends ConsumerState<SiteListBody> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focus = FocusNode();
   List<SiteData> _filteredSiteData = [];
@@ -37,11 +51,7 @@ class SiteListPageState extends ConsumerState<SiteListPage> {
   @override
   Widget build(BuildContext context) {
     return ref.watch(siteEntryProvider).when(
-          data: (siteData) => Scaffold(
-            appBar: AppBar(
-              title: const Text('Site Records'),
-            ),
-            body: SafeArea(
+          data: (siteData) => SafeArea(
               child: ScrollableConstrainedLayout(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -95,7 +105,6 @@ class SiteListPageState extends ConsumerState<SiteListPage> {
                 ),
               ),
             ),
-          ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
         );

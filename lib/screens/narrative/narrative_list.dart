@@ -13,14 +13,28 @@ import 'package:nahpu/services/providers/page_jump.dart';
 /// to the always-mounted viewer when a list entry is tapped.
 const int _narrativeViewerIndex = 4;
 
-class NarrativeListPage extends ConsumerStatefulWidget {
+/// Standalone Narrative list screen. The same list body is also embedded in
+/// the Collection Records segmented view.
+class NarrativeListPage extends StatelessWidget {
   const NarrativeListPage({super.key});
 
   @override
-  NarrativeListPageState createState() => NarrativeListPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Narrative Records')),
+      body: const NarrativeListBody(),
+    );
+  }
 }
 
-class NarrativeListPageState extends ConsumerState<NarrativeListPage> {
+class NarrativeListBody extends ConsumerStatefulWidget {
+  const NarrativeListBody({super.key});
+
+  @override
+  NarrativeListBodyState createState() => NarrativeListBodyState();
+}
+
+class NarrativeListBodyState extends ConsumerState<NarrativeListBody> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focus = FocusNode();
   List<NarrativeData> _filteredNarrativeData = [];
@@ -36,11 +50,7 @@ class NarrativeListPageState extends ConsumerState<NarrativeListPage> {
   @override
   Widget build(BuildContext context) {
     return ref.watch(narrativeEntryProvider).when(
-          data: (narrativeData) => Scaffold(
-            appBar: AppBar(
-              title: const Text('Narrative Records'),
-            ),
-            body: SafeArea(
+          data: (narrativeData) => SafeArea(
               child: ScrollableConstrainedLayout(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -95,7 +105,6 @@ class NarrativeListPageState extends ConsumerState<NarrativeListPage> {
                 ),
               ),
             ),
-          ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
         );
