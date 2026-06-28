@@ -52,60 +52,65 @@ class CollEventListBodyState extends ConsumerState<CollEventListBody> {
   Widget build(BuildContext context) {
     return ref.watch(collEventEntryProvider).when(
           data: (eventData) => SafeArea(
-              child: ScrollableConstrainedLayout(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CommonSearchBar(
-                      controller: _searchController,
-                      focusNode: _focus,
-                      hintText: 'Search events',
-                      trailing: [
-                        _searchController.text.isNotEmpty
-                            ? IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _searchController.clear();
-                                    _isSearching = false;
-                                  });
-                                },
-                                icon: const Icon(Icons.clear_rounded))
-                            : const SizedBox.shrink(),
-                      ],
-                      onChanged: (String query) {
-                        setState(() {
-                          if (query.isEmpty) {
-                            _isSearching = false;
-                          } else {
-                            _isSearching = true;
-                            _filteredEventData =
-                                CollEventSearchServices(collEvents: eventData)
-                                    .search(query.toLowerCase());
-                          }
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    eventData.isEmpty
-                        ? const Text('No events found')
-                        : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _eventCount(eventData),
-                                style: Theme.of(context).textTheme.labelLarge,
-                              ),
-                              CollEventList(
-                                data: _isSearching
-                                    ? _filteredEventData
-                                    : eventData,
-                              ),
-                            ],
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                  child: Column(
+                    children: [
+                      CommonSearchBar(
+                        controller: _searchController,
+                        focusNode: _focus,
+                        hintText: 'Search events',
+                        trailing: [
+                          _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                      _isSearching = false;
+                                    });
+                                  },
+                                  icon: const Icon(Icons.clear_rounded))
+                              : const SizedBox.shrink(),
+                        ],
+                        onChanged: (String query) {
+                          setState(() {
+                            if (query.isEmpty) {
+                              _isSearching = false;
+                            } else {
+                              _isSearching = true;
+                              _filteredEventData =
+                                  CollEventSearchServices(collEvents: eventData)
+                                      .search(query.toLowerCase());
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      if (eventData.isEmpty)
+                        const Expanded(
+                          child: Center(child: Text('No events found')),
+                        )
+                      else ...[
+                        Text(
+                          _eventCount(eventData),
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        const SizedBox(height: 4),
+                        Expanded(
+                          child: CollEventList(
+                            data: _isSearching ? _filteredEventData : eventData,
                           ),
-                  ],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ),
+          ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
         );
@@ -134,39 +139,33 @@ class CollEventList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ScrollController scrollController = ScrollController();
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.7,
-      ),
-      child: CommonScrollbar(
-        scrollController: scrollController,
-        child: ListView.builder(
-          shrinkWrap: true,
-          controller: scrollController,
-          itemCount: data.length,
-          itemBuilder: (context, index) {
-            final event = data[index];
-            return ListTile(
-              leading: const Icon(Icons.calendar_month_outlined),
-              title: CollEventListTitle(event: event),
-              subtitle: Text(
-                _eventSubtitle(event),
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                // Hand the tapped record to the always-mounted CollEventViewer
-                // and switch to its tab; the viewer lands on it via _reconcile.
-                ref
-                    .read(pendingRecordJumpProvider(RecordViewer.collEvent)
-                        .notifier)
-                    .updateState(event.id);
-                ref.invalidate(collEventEntryProvider);
-                ProjectShell.returnToTab(context, ref, _collEventViewerIndex);
-              },
-            );
-          },
-        ),
+    return CommonScrollbar(
+      scrollController: scrollController,
+      child: ListView.builder(
+        controller: scrollController,
+        itemCount: data.length,
+        itemBuilder: (context, index) {
+          final event = data[index];
+          return ListTile(
+            leading: const Icon(Icons.calendar_month_outlined),
+            title: CollEventListTitle(event: event),
+            subtitle: Text(
+              _eventSubtitle(event),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // Hand the tapped record to the always-mounted CollEventViewer
+              // and switch to its tab; the viewer lands on it via _reconcile.
+              ref
+                  .read(pendingRecordJumpProvider(RecordViewer.collEvent)
+                      .notifier)
+                  .updateState(event.id);
+              ref.invalidate(collEventEntryProvider);
+              ProjectShell.returnToTab(context, ref, _collEventViewerIndex);
+            },
+          );
+        },
       ),
     );
   }
