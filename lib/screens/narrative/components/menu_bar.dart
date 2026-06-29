@@ -1,3 +1,4 @@
+import 'package:nahpu/screens/projects/collection_records.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/narrative_services.dart';
@@ -19,8 +20,9 @@ Future<void> createNewNarrative(BuildContext context, WidgetRef ref) {
   return NarrativeServices(ref: ref).createNewNarrative().then((newId) {
     // Refresh the always-mounted viewer in place and land on the new
     // narrative.
-    ref.read(pendingRecordJumpProvider(RecordViewer.narrative).notifier).state =
-        newId;
+    ref
+        .read(pendingRecordJumpProvider(RecordViewer.narrative).notifier)
+        .updateState(newId);
     ref.invalidate(narrativeEntryProvider);
   });
 }
@@ -83,6 +85,17 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
   Widget build(BuildContext context) {
     return PopupMenuButton<MenuSelection>(
         itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuSelection>>[
+              PopupMenuItem<MenuSelection>(
+                child: const ViewListMenuButton(text: 'View narrative list'),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CollectionRecordsPage(
+                      initialView: CollectionView.narrative,
+                    ),
+                  ),
+                ),
+              ),
+              const PopupMenuDivider(height: 10),
               PopupMenuItem<MenuSelection>(
                 value: MenuSelection.newNarrative,
                 child: const CreateMenuButton(text: 'Create narrative'),

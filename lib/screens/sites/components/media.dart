@@ -30,7 +30,7 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
   @override
   Widget build(BuildContext context) {
     MediaCategory mediaCategory = MediaCategory.site;
-    return ref.watch(siteMediaProvider(siteId: widget.siteId)).when(
+    return ref.watch(siteMediaProvider(widget.siteId)).when(
           data: (data) {
             return MediaViewer(
               images: List.from(data),
@@ -59,6 +59,31 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
                   }
                 }
               },
+              onAddFromFiles: () async {
+                try {
+                  List<String> mediaFiles = await ImageServices(
+                    ref: ref,
+                    category: mediaCategory,
+                  ).pickMediaFromFiles();
+                  if (mediaFiles.isNotEmpty) {
+                    await SiteServices(ref: ref).createSiteMediaFromList(
+                      widget.siteId,
+                      mediaFiles,
+                    );
+                    _doneSelecting();
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          e.toString(),
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
               onAccessingCamera: () async {
                 try {
                   String? image = await ImageServices(
@@ -71,7 +96,7 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
                       image,
                     );
                   }
-                  setState(() {});
+                  _doneSelecting();
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -94,6 +119,7 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
   }
 
   void _doneSelecting() {
-    setState(() {});
+    if (!mounted) return;
+    ref.invalidate(siteMediaProvider(widget.siteId));
   }
 }

@@ -76,7 +76,7 @@ class StatLabelServices {
       List<String> splitAtSpace = value.split(' ');
       if (splitAtSpace.length > 1 && splitAtSpace[1].isNotEmpty) {
         String genus = splitAtSpace[0].substring(0, 1);
-         String species = splitAtSpace[1].length > 3
+        String species = splitAtSpace[1].length > 3
             ? splitAtSpace[1].substring(0, 3)
             : splitAtSpace[1];
         return '$genus. $species';

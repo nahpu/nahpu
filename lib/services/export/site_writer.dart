@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/common.dart';
@@ -6,27 +7,62 @@ import 'package:nahpu/services/export/media_writer.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/src/rust/api/export.dart';
 
 class SiteWriterServices extends AppServices {
   const SiteWriterServices({
     required super.ref,
+    this.useFieldNamesOnly = false,
+    this.selectedColumns,
+    this.customColumnNames,
   });
 
-  Future<void> writeSiteDelimited(File filePath, bool isCsv) async {
-    String delimiter = isCsv ? csvDelimiter : tsvDelimiter;
-    final file = await filePath.create(recursive: true);
-    final writer = file.openWrite();
-    List<String> header = [...siteExportList, 'media'];
-    writer.writeln(header.join(delimiter));
+  final bool useFieldNamesOnly;
+  final List<String>? selectedColumns;
+  final Map<String, String>? customColumnNames;
+
+  Future<void> writeSiteDelimited(File filePath, ExportFmt format) async {
+    List<String> header = [...siteExportList, 'media::media'];
 
     List<SiteData> siteList = await SiteServices(ref: ref).getAllSites();
+    List<Map<String, dynamic>> jsonList = [];
+
     for (var site in siteList) {
       List<String> siteDetails = await getSiteDetails(site.id);
       String mediaDetails = await _getSiteMedia(site.id);
       List<String> content = [...siteDetails, mediaDetails];
 
-      writer.writeln(content.toDelimitedText(delimiter));
+      Map<String, dynamic> row = {};
+      for (int i = 0; i < header.length; i++) {
+        if (selectedColumns == null || selectedColumns!.contains(header[i])) {
+          String key = customColumnNames?.containsKey(header[i]) == true
+              ? customColumnNames![header[i]]!
+              : useFieldNamesOnly
+                  ? header[i].split('::').last
+                  : header[i];
+          row[key] = content[i];
+        }
+      }
+      jsonList.add(row);
     }
+
+    String jsonContent = jsonEncode(jsonList);
+    List<String> filteredHeader = selectedColumns == null
+        ? header
+        : header.where((h) => selectedColumns!.contains(h)).toList();
+
+    final writer = RecordWriter(
+      jsonContent: jsonContent,
+      outputPath: filePath.path,
+      columnNames: customColumnNames != null
+          ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
+          : useFieldNamesOnly
+              ? filteredHeader.map((e) => e.split('::').last).toList()
+              : filteredHeader,
+      exportFormat: format.name,
+      concatenateMultiEntries: true,
+    );
+    await writer.write();
   }
 
   Future<String> _getSiteMedia(int? siteID) async {

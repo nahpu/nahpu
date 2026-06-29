@@ -14,16 +14,28 @@ import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/utility_services.dart';
 
-class SpecimenListPage extends ConsumerStatefulWidget {
-  const SpecimenListPage({
-    super.key,
-  });
+/// Standalone Specimen list screen. The same list body is also embedded in the
+/// Collection Records segmented view.
+class SpecimenListPage extends StatelessWidget {
+  const SpecimenListPage({super.key});
 
   @override
-  SpecimenListPageState createState() => SpecimenListPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Specimen Records')),
+      body: const SpecimenListBody(),
+    );
+  }
 }
 
-class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
+class SpecimenListBody extends ConsumerStatefulWidget {
+  const SpecimenListBody({super.key});
+
+  @override
+  SpecimenListBodyState createState() => SpecimenListBodyState();
+}
+
+class SpecimenListBodyState extends ConsumerState<SpecimenListBody> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedSearchValue = 0;
   List<SpecimenData> _filteredSpecimenData = [];
@@ -46,87 +58,89 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
   @override
   Widget build(BuildContext context) {
     return ref.watch(specimenEntryProvider).when(
-          data: (specimenData) => Scaffold(
-            appBar: AppBar(
-              title: const Text('Specimen Records'),
-            ),
-            body: SafeArea(
-                child: ScrollableConstrainedLayout(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CommonSearchBar(
-                    controller: _searchController,
-                    focusNode: _focus,
-                    hintText: 'Search specimens',
-                    trailing: [
-                      _searchController.text.isNotEmpty
-                          ? IconButton(
+          data: (specimenData) => SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                  child: Column(
+                    children: [
+                      CommonSearchBar(
+                        controller: _searchController,
+                        focusNode: _focus,
+                        hintText: 'Search specimens',
+                        trailing: [
+                          _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                      ref.invalidate(specimenEntryProvider);
+                                    });
+                                  },
+                                  icon: const Icon(Icons.clear_rounded))
+                              : const SizedBox.shrink(),
+                          IconButton(
                               onPressed: () {
                                 setState(() {
-                                  _searchController.clear();
-                                  ref.invalidate(specimenEntryProvider);
+                                  _isSearchOptionVisible =
+                                      !_isSearchOptionVisible;
                                 });
                               },
-                              icon: const Icon(Icons.clear_rounded))
-                          : const SizedBox.shrink(),
-                      IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _isSearchOptionVisible = !_isSearchOptionVisible;
-                            });
-                          },
-                          icon: const Icon(Icons.tune_rounded)),
-                    ],
-                    onChanged: (String query) async {
-                      _filteredSpecimenData = await SpecimenSearchServices(
-                        db: ref.read(databaseProvider),
-                        specimenEntries: specimenData,
-                        searchOption:
-                            SpecimenSearchOption.values[_selectedSearchValue],
-                      ).search(query.toLowerCase());
-                      setState(() {
-                        if (_searchController.text.isNotEmpty) {
-                          _isSearching = true;
-                        } else {
-                          _isSearching = false;
-                        }
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  Visibility(
-                      visible: _isSearchOptionVisible,
-                      child: SpecimenSearchChips(
-                        selectedValue: _selectedSearchValue,
-                        onSelected: (int index) {
+                              icon: const Icon(Icons.tune_rounded)),
+                        ],
+                        onChanged: (String query) async {
+                          _filteredSpecimenData = await SpecimenSearchServices(
+                            db: ref.read(databaseProvider),
+                            specimenEntries: specimenData,
+                            searchOption: SpecimenSearchOption
+                                .values[_selectedSearchValue],
+                          ).search(query.toLowerCase());
                           setState(() {
-                            _selectedSearchValue = index;
+                            if (_searchController.text.isNotEmpty) {
+                              _isSearching = true;
+                            } else {
+                              _isSearching = false;
+                            }
                           });
                         },
-                      )),
-                  const SizedBox(height: 8),
-                  specimenData.isEmpty
-                      ? const Text('No specimens found')
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              specimenCount(specimenData),
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                            SpecimenList(
-                              data: _isSearching
-                                  ? _filteredSpecimenData
-                                  : specimenData,
-                              additionalHeight: _isSearchOptionVisible ? 0 : 86,
-                            ),
-                          ],
+                      ),
+                      const SizedBox(height: 4),
+                      Visibility(
+                          visible: _isSearchOptionVisible,
+                          child: SpecimenSearchChips(
+                            selectedValue: _selectedSearchValue,
+                            onSelected: (int index) {
+                              setState(() {
+                                _selectedSearchValue = index;
+                              });
+                            },
+                          )),
+                      const SizedBox(height: 8),
+                      if (specimenData.isEmpty)
+                        const Expanded(
+                          child: Center(child: Text('No specimens found')),
+                        )
+                      else ...[
+                        Text(
+                          specimenCount(specimenData),
+                          style: Theme.of(context).textTheme.labelLarge,
                         ),
-                ],
+                        const SizedBox(height: 4),
+                        Expanded(
+                          child: SpecimenList(
+                            data: _isSearching
+                                ? _filteredSpecimenData
+                                : specimenData,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            )),
+            ),
           ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
@@ -156,48 +170,41 @@ class SpecimenList extends StatelessWidget {
   const SpecimenList({
     super.key,
     required this.data,
-    required this.additionalHeight,
   });
 
   final List<SpecimenData> data;
-  final int additionalHeight;
 
   @override
   Widget build(BuildContext context) {
     ScrollController scrollController = ScrollController();
-    return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.7 + additionalHeight,
-        ),
-        child: CommonScrollbar(
-          scrollController: scrollController,
-          child: ListView.builder(
-            shrinkWrap: true,
-            controller: scrollController,
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                leading: _getLeadingIcon(data[index].taxonGroup),
-                title: SpecimenListTitle(
-                    catalogerID: data[index].catalogerID,
-                    fieldNumber: data[index].fieldNumber),
-                subtitle: SpecimenListSubtitle(
-                  data: data[index],
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => SpecimenFormView(
-                              specimenUuid: data[index].uuid,
-                            )),
-                  );
-                },
+    return CommonScrollbar(
+      scrollController: scrollController,
+      child: ListView.builder(
+        controller: scrollController,
+        itemCount: data.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: _getLeadingIcon(data[index].taxonGroup),
+            title: SpecimenListTitle(
+                catalogerID: data[index].catalogerID,
+                fieldNumber: data[index].fieldNumber),
+            subtitle: SpecimenListSubtitle(
+              data: data[index],
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => SpecimenFormView(
+                          specimenUuid: data[index].uuid,
+                        )),
               );
             },
-          ),
-        ));
+          );
+        },
+      ),
+    );
   }
 
   Icon _getLeadingIcon(String? taxonGroup) {
@@ -220,14 +227,14 @@ class SpecimenListTitle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder(
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return Text(
-            '${snapshot.data} ${fieldNumber ?? ''}',
-            style: Theme.of(context).textTheme.titleMedium,
-          );
-        } else {
-          return const CommonProgressIndicator();
-        }
+        // Render a stable Text regardless of the async state so recycled rows
+        // don't flash a progress indicator while scrolling. The field number is
+        // known synchronously; the cataloger name fills in once resolved.
+        final name = snapshot.data ?? '';
+        return Text(
+          '$name ${fieldNumber ?? ''}'.trim(),
+          style: Theme.of(context).textTheme.titleMedium,
+        );
       },
       future: _getPersonnelName(catalogerID, ref),
     );
@@ -256,14 +263,12 @@ class SpecimenListSubtitle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder(
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return Text(
-            snapshot.data ?? '',
-            style: Theme.of(context).textTheme.titleSmall,
-          );
-        } else {
-          return const Text('Loading...');
-        }
+        // Keep a blank, same-style placeholder while loading so fast scrolling
+        // doesn't flash 'Loading...' as rows are recycled.
+        return Text(
+          snapshot.data ?? '',
+          style: Theme.of(context).textTheme.titleSmall,
+        );
       },
       future: _getTaxonData(data?.speciesID, ref),
     );

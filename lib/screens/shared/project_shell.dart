@@ -45,7 +45,7 @@ class ProjectShell extends ConsumerWidget {
 
   /// Selects [index] on the shell's navbar and returns to the shell.
   static void returnToTab(BuildContext context, WidgetRef ref, int index) {
-    ref.read(projectNavbarIndexProvider.notifier).state = index;
+    ref.read(projectNavbarIndexProvider.notifier).updateState(index);
     popToShell(context);
   }
 

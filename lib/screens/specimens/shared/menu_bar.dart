@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/projects/collection_records.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
@@ -11,8 +12,9 @@ import 'package:nahpu/services/specimen_services.dart';
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {
   final newUuid = await SpecimenServices(ref: ref).createSpecimen();
   // Refresh the always-mounted viewer in place and land on the new specimen.
-  ref.read(pendingRecordJumpProvider(RecordViewer.specimen).notifier).state =
-      newUuid;
+  ref
+      .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
+      .updateState(newUuid);
   ref.invalidate(specimenEntryProvider);
 }
 
@@ -95,6 +97,17 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
     return PopupMenuButton(
         itemBuilder: (BuildContext context) => <PopupMenuEntry>[
               PopupMenuItem(
+                child: const ViewListMenuButton(text: 'View specimen list'),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CollectionRecordsPage(
+                      initialView: CollectionView.specimens,
+                    ),
+                  ),
+                ),
+              ),
+              const PopupMenuDivider(height: 10),
+              PopupMenuItem(
                 child: CreateMenuButton(text: _getNewSpecimenLabel()),
                 onTap: () => createNewSpecimens(context, ref),
               ),
@@ -133,7 +146,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
       if (newUuid != null) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
-            .state = newUuid;
+            .updateState(newUuid);
       }
       ref.invalidate(specimenEntryProvider);
     } catch (e) {

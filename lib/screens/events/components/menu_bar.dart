@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/projects/collection_records.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/services/collevent_services.dart';
@@ -15,7 +16,7 @@ Future<void> createNewCollEvents(BuildContext context, WidgetRef ref) {
       // Refresh the always-mounted viewer in place and land on the new event.
       ref
           .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
-          .state = newId;
+          .updateState(newId);
       ref.invalidate(collEventEntryProvider);
     },
   );
@@ -90,6 +91,17 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
     return PopupMenuButton(
       itemBuilder: (BuildContext context) => <PopupMenuEntry>[
         PopupMenuItem(
+          child: const ViewListMenuButton(text: 'View event list'),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const CollectionRecordsPage(
+                initialView: CollectionView.events,
+              ),
+            ),
+          ),
+        ),
+        const PopupMenuDivider(height: 10),
+        PopupMenuItem(
           child: const CreateMenuButton(text: 'Create event'),
           onTap: () => createNewCollEvents(context, ref),
         ),
@@ -143,7 +155,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       if (newId != null) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
-            .state = newId;
+            .updateState(newId);
       }
       ref.invalidate(collEventEntryProvider);
     } catch (e) {

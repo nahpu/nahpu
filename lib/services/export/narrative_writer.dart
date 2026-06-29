@@ -1,31 +1,69 @@
 import 'dart:io';
+import 'dart:convert';
 
-import 'package:nahpu/services/export/common.dart';
 import 'package:nahpu/services/export/media_writer.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/export/site_writer.dart';
+import 'package:nahpu/src/rust/api/export.dart';
 
 class NarrativeRecordWriter extends AppServices {
-  NarrativeRecordWriter({required super.ref});
+  NarrativeRecordWriter({
+    required super.ref,
+    this.useFieldNamesOnly = false,
+    this.selectedColumns,
+    this.customColumnNames,
+  });
 
-  Future<void> writeNarrativeDelimited(File filePath, bool isCsv) async {
-    String delimiter = isCsv ? csvDelimiter : tsvDelimiter;
-    final file = await filePath.create(recursive: true);
-    final writer = file.openWrite();
-    String narrativeHeader = narrativeExportList.join(delimiter);
-    writer.writeln(narrativeHeader);
+  final bool useFieldNamesOnly;
+  final List<String>? selectedColumns;
+  final Map<String, String>? customColumnNames;
+
+  Future<void> writeNarrativeDelimited(File filePath, ExportFmt format) async {
     List<NarrativeData> narrativeList =
         await NarrativeServices(ref: ref).getAllNarrative();
+
+    List<Map<String, dynamic>> jsonList = [];
+
     for (var narrative in narrativeList) {
-      List<String> narrativeList = await getNarrative(narrative);
-      String narrativeDelimited = narrativeList.toDelimitedText(delimiter);
-      writer.writeln(narrativeDelimited);
+      List<String> rowDetails = await getNarrative(narrative);
+      Map<String, dynamic> row = {};
+      for (int i = 0; i < narrativeExportList.length; i++) {
+        if (selectedColumns == null ||
+            selectedColumns!.contains(narrativeExportList[i])) {
+          String key =
+              customColumnNames?.containsKey(narrativeExportList[i]) == true
+                  ? customColumnNames![narrativeExportList[i]]!
+                  : useFieldNamesOnly
+                      ? narrativeExportList[i].split('::').last
+                      : narrativeExportList[i];
+          row[key] = rowDetails[i];
+        }
+      }
+      jsonList.add(row);
     }
 
-    await writer.close();
+    String jsonContent = jsonEncode(jsonList);
+    List<String> filteredHeader = selectedColumns == null
+        ? narrativeExportList
+        : narrativeExportList
+            .where((h) => selectedColumns!.contains(h))
+            .toList();
+
+    final writer = RecordWriter(
+      jsonContent: jsonContent,
+      outputPath: filePath.path,
+      columnNames: customColumnNames != null
+          ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
+          : useFieldNamesOnly
+              ? filteredHeader.map((e) => e.split('::').last).toList()
+              : filteredHeader,
+      exportFormat: format.name,
+      concatenateMultiEntries: true,
+    );
+    await writer.write();
   }
 
   Future<List<String>> getNarrative(NarrativeData narrative) async {

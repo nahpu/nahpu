@@ -134,23 +134,22 @@ class SpecimenServices extends AppServices {
     String specimenUuid,
     String filePath,
   ) async {
-    ExifData exifData = ExifData.empty();
-    await exifData.readExif(File(filePath));
+    final metadata = await MediaMetadataServices().extract(File(filePath));
     int mediaId = await MediaDbQuery(dbAccess).createMedia(MediaCompanion(
       projectUuid: db.Value(currentProjectUuid),
       fileName: db.Value(basename(filePath)),
       category: db.Value(matchMediaCategory(MediaCategory.specimen)),
-      taken: db.Value(exifData.dateTaken),
-      camera: db.Value(exifData.camera),
-      lenses: db.Value(exifData.lenseModel),
-      additionalExif: db.Value(exifData.additionalExif),
+      taken: db.Value(metadata.taken),
+      camera: db.Value(metadata.camera),
+      lenses: db.Value(metadata.lenses),
+      additionalExif: db.Value(metadata.additionalExif),
     ));
     SpecimenMediaCompanion entries = SpecimenMediaCompanion(
       specimenUuid: db.Value(specimenUuid),
       mediaId: db.Value(mediaId),
     );
     await SpecimenQuery(dbAccess).createSpecimenMedia(entries);
-    ref.invalidate(specimenMediaProvider);
+    // ref.invalidate(specimenMediaProvider);
   }
 
   Future<SpecimenMediaData> getSpecimenMediaByMediaId(int mediaId) async {
@@ -274,7 +273,7 @@ class SpecimenServices extends AppServices {
   }
 
   Future<void> updateSpecimen(String uuid, SpecimenCompanion entries) async {
-    _updateSpecimen(uuid, entries);
+    await _updateSpecimen(uuid, entries);
     invalidateSpecimenList();
   }
 
@@ -363,12 +362,12 @@ class SpecimenServices extends AppServices {
 
   Future<void> deleteSpecimenPart(int partId) async {
     await SpecimenPartQuery(dbAccess).deleteSpecimenPart(partId);
-    ref.invalidate(partBySpecimenProvider);
+    // ref.invalidate(partBySpecimenProvider);
   }
 
   Future<void> deleteSpecimenPartsFromList(List<int> partIds) async {
     await SpecimenPartQuery(dbAccess).deleteSpecimenPartsFromList(partIds);
-    ref.invalidate(partBySpecimenProvider);
+    // ref.invalidate(partBySpecimenProvider);
   }
 
   void invalidateSpecimenList() {
@@ -623,8 +622,8 @@ class SpecimenPartServices extends AppServices {
   const SpecimenPartServices({required super.ref});
 
   Future<void> createSpecimenPart(SpecimenPartCompanion form) async {
-    SpecimenPartQuery(dbAccess).createSpecimenPart(form);
-    ref.invalidate(partBySpecimenProvider);
+    await SpecimenPartQuery(dbAccess).createSpecimenPart(form);
+    // ref.invalidate(partBySpecimenProvider);
   }
 
   Future<List<SpecimenPartData>> getSpecimenParts(String specimenUuid) {
@@ -633,8 +632,8 @@ class SpecimenPartServices extends AppServices {
 
   Future<void> updateSpecimenPart(
       int partId, SpecimenPartCompanion form) async {
-    SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
-    ref.invalidate(partBySpecimenProvider);
+    await SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
+    // ref.invalidate(partBySpecimenProvider);
   }
 }
 
@@ -698,7 +697,7 @@ class AssociatedDataServices extends AppServices {
   }
 
   void _invalidateData() {
-    ref.invalidate(associatedDataProvider);
+    // ref.invalidate(associatedDataProvider);
   }
 }
 

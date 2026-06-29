@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/common.dart';
+import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/media_services.dart';
 import 'package:nahpu/services/narrative_services.dart';
@@ -11,7 +13,7 @@ import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/src/rust/api/export.dart';
 
 class MediaWriterServices {
   MediaWriterServices({
@@ -21,26 +23,32 @@ class MediaWriterServices {
   final WidgetRef ref;
 
   Future<void> writeAllMediaDelimited(File filePath, bool isCsv) async {
-    String delimiter = isCsv ? csvDelimiter : tsvDelimiter;
-
-    final file = await filePath.create(recursive: true);
-    final writer = file.openWrite();
-
-    String header = allMediaExportList.toDelimitedText(delimiter);
-    writer.writeln(header);
-
     List<MediaData> mediaList =
         await MediaServices(ref: ref).getAllMediaByProject();
+
+    List<Map<String, dynamic>> mediaDataList = [];
 
     for (var media in mediaList) {
       List<String> mediaDetails = await _getMedia(media);
       String linkedData = await MediaCategoryServices(ref: ref)
           .getLinkedData(media.primaryId, media.category);
       mediaDetails.insert(1, linkedData);
-      writer.writeln(mediaDetails.toDelimitedText(delimiter));
+
+      Map<String, dynamic> mediaMap = {};
+      for (int i = 0; i < allMediaExportList.length; i++) {
+        mediaMap[allMediaExportList[i]] = mediaDetails[i];
+      }
+      mediaDataList.add(mediaMap);
     }
 
-    writer.close();
+    String exportFormat = isCsv ? 'csv' : 'tsv';
+    await RecordWriter(
+      jsonContent: jsonEncode(mediaDataList),
+      outputPath: filePath.path,
+      columnNames: allMediaExportList,
+      exportFormat: exportFormat,
+      concatenateMultiEntries: true,
+    ).write();
   }
 
   Future<String> getSpecimenMedias(String specimenUuid) async {
@@ -137,11 +145,7 @@ class MediaWriterServices {
   }
 
   String _cleanAdditionalExif(String? addExif) {
-    if (addExif == null) {
-      return '';
-    }
-    String addExifClean = addExif.replaceAll(listTileSeparator, ' ');
-    return addExifClean;
+    return MediaMetadataServices().formatAdditionalMetadataForExport(addExif);
   }
 }
 

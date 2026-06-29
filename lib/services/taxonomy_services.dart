@@ -2,6 +2,7 @@ import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/io_services.dart';
+import 'package:flutter/material.dart';
 
 class TaxonomyServices extends AppServices {
   const TaxonomyServices({required super.ref});
@@ -105,6 +106,51 @@ String getSpeciesName(TaxonomyData data) {
 //     }
 //   }
 // }
+
+String getKingdom(String? taxonClass) {
+  return 'Animalia';
+}
+
+String getPhylum(String? taxonClass) {
+  if (taxonClass == null || taxonClass.isEmpty) return '';
+  switch (taxonClass.toLowerCase()) {
+    case 'insecta':
+    case 'arachnida':
+    case 'chilopoda':
+    case 'diplopoda':
+      return 'Arthropoda';
+    case 'gastropoda':
+    case 'bivalvia':
+    case 'cephalopoda':
+      return 'Mollusca';
+    default:
+      return 'Chordata';
+  }
+}
+
+Color matchRedListCategoryColor(String category) {
+  final lowerCategory = category.toLowerCase();
+  if (RegExp(r'\b(ex|extinct)\b').hasMatch(lowerCategory)) {
+    return Colors.black;
+  } else if (RegExp(r'\b(ew|extinct in the wild)\b').hasMatch(lowerCategory)) {
+    return Colors.brown;
+  } else if (RegExp(r'\b(cr|critically endangered)\b')
+      .hasMatch(lowerCategory)) {
+    return Colors.red[900]!;
+  } else if (RegExp(r'\b(en|endangered)\b').hasMatch(lowerCategory)) {
+    return Colors.red;
+  } else if (RegExp(r'\b(vu|vulnerable)\b').hasMatch(lowerCategory)) {
+    return Colors.orange;
+  } else if (RegExp(r'\b(nt|near threatened)\b').hasMatch(lowerCategory)) {
+    return Colors.yellow[700]!;
+  } else if (RegExp(r'\b(lc|least concern)\b').hasMatch(lowerCategory)) {
+    return Colors.green;
+  } else if (RegExp(r'\b(dd|data deficient)\b').hasMatch(lowerCategory)) {
+    return Colors.grey;
+  } else {
+    return Colors.grey;
+  }
+}
 
 class TaxonData {
   TaxonData({

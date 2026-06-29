@@ -376,6 +376,26 @@ class DuplicateMenuButton extends StatelessWidget {
   }
 }
 
+class ViewListMenuButton extends StatelessWidget {
+  const ViewListMenuButton({
+    super.key,
+    required this.text,
+  });
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.list_alt_outlined),
+      title: Text(
+        text,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
 class PdfExportMenuButton extends StatelessWidget {
   const PdfExportMenuButton({super.key});
 
@@ -383,7 +403,7 @@ class PdfExportMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return const ListTile(
       leading: Icon(Icons.picture_as_pdf_outlined),
-      title: Text('Export to PDF'),
+      title: Text('Export As ...'),
     );
   }
 }
