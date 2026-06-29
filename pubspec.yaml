@@ -63,7 +63,7 @@ dependencies:
   timezone: ^0.11.0
   kdl: ^2.0.2
   material_ui: ^0.0.1
-  qr: ^3.0.0
+  qr: ^4.0.0
   flutter_markdown_plus: ^1.0.7
   flex_color_picker: ^3.8.0
   google_fonts: ^8.1.0

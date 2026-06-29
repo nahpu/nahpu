@@ -409,9 +409,9 @@ class LabelWriter {
     String bgColorHex,
     String shape,
   ) {
-    final qrCode = QrCode.fromData(
-      data: data.isEmpty ? ' ' : data,
-      errorCorrectLevel: QrErrorCorrectLevel.L,
+    final qrCode = QrCode(
+      payload: QrPayload.fromString(data.isEmpty ? ' ' : data),
+      errorCorrectLevel: QrErrorCorrectLevel.low,
     );
     final qrImage = QrImage(qrCode);
     final moduleCount = qrImage.moduleCount;

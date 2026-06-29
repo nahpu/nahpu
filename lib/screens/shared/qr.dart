@@ -108,9 +108,9 @@ class _QrPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final qrCode = QrCode.fromData(
-      data: data,
-      errorCorrectLevel: QrErrorCorrectLevel.L,
+    final qrCode = QrCode(
+      payload: QrPayload.fromString(data),
+      errorCorrectLevel: QrErrorCorrectLevel.low,
     );
     final qrImage = QrImage(qrCode);
     final moduleCount = qrImage.moduleCount;
