@@ -223,5 +223,50 @@ void main() {
       const textWithUnits = 'Weight: 12.34 g';
       expect(formatLabelText(textWithUnits, 'number', '1'), 'Weight: 12.3 g');
     });
+
+    group('Integrated Text-to-QR tests', () {
+      test(
+          'CustomTextElement JSON serialization retains isQrCode, qrSizeMm, qrBgColorArgb, and qrShape',
+          () {
+        final ct = CustomTextElement(
+          id: 'ct_1',
+          text: '[catalogNum]',
+          xMm: 10,
+          yMm: 20,
+          isQrCode: true,
+          qrSizeMm: 18.5,
+          qrBgColorArgb: 0xFF000000,
+          qrShape: 'circle',
+        );
+        final json = ct.toJson();
+        expect(json['id'], 'ct_1');
+        expect(json['text'], '[catalogNum]');
+        expect(json['isQrCode'], true);
+        expect(json['qrSizeMm'], 18.5);
+        expect(json['qrBgColorArgb'], 0xFF000000);
+        expect(json['qrShape'], 'circle');
+
+        final deserialized = CustomTextElement.fromJson(json);
+        expect(deserialized.id, 'ct_1');
+        expect(deserialized.text, '[catalogNum]');
+        expect(deserialized.isQrCode, true);
+        expect(deserialized.qrSizeMm, 18.5);
+        expect(deserialized.qrBgColorArgb, 0xFF000000);
+        expect(deserialized.qrShape, 'circle');
+      });
+
+      test('CustomTextElement default properties on missing json keys', () {
+        final ct = CustomTextElement.fromJson({
+          'id': 'ct_2',
+          'text': 'Hello',
+          'xMm': 0,
+          'yMm': 0,
+        });
+        expect(ct.isQrCode, false);
+        expect(ct.qrSizeMm, 15.0);
+        expect(ct.qrBgColorArgb, 0xFFFFFFFF);
+        expect(ct.qrShape, 'square');
+      });
+    });
   });
 }

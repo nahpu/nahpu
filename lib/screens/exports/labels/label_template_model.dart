@@ -328,6 +328,11 @@ class CustomTextElement {
     this.colorArgb = 0xFF000000,
     this.textType = 'normal',
     this.formatOption = 'normal',
+    this.isQrCode = false,
+    this.qrSizeMm = 15.0,
+    this.qrBgColorArgb = 0xFFFFFFFF,
+    this.qrShape = 'square',
+    this.tempPath,
   });
 
   final String id;
@@ -353,6 +358,12 @@ class CustomTextElement {
   /// If non-null, text wraps to this width.
   final double? maxWidthMm;
 
+  final bool isQrCode;
+  final double qrSizeMm;
+  final int qrBgColorArgb;
+  final String qrShape;
+  final String? tempPath;
+
   CustomTextElement copyWith({
     String? id,
     String? text,
@@ -373,6 +384,12 @@ class CustomTextElement {
     bool clearMaxWidthMm = false,
     String? textType,
     String? formatOption,
+    bool? isQrCode,
+    double? qrSizeMm,
+    int? qrBgColorArgb,
+    String? qrShape,
+    String? tempPath,
+    bool clearTempPath = false,
   }) {
     return CustomTextElement(
       id: id ?? this.id,
@@ -393,6 +410,11 @@ class CustomTextElement {
       colorArgb: colorArgb ?? this.colorArgb,
       textType: textType ?? this.textType,
       formatOption: formatOption ?? this.formatOption,
+      isQrCode: isQrCode ?? this.isQrCode,
+      qrSizeMm: qrSizeMm ?? this.qrSizeMm,
+      qrBgColorArgb: qrBgColorArgb ?? this.qrBgColorArgb,
+      qrShape: qrShape ?? this.qrShape,
+      tempPath: clearTempPath ? null : (tempPath ?? this.tempPath),
     );
   }
 
@@ -415,6 +437,10 @@ class CustomTextElement {
         'colorArgb': colorArgb,
         'textType': textType,
         'formatOption': formatOption,
+        'isQrCode': isQrCode,
+        'qrSizeMm': qrSizeMm,
+        'qrBgColorArgb': qrBgColorArgb,
+        'qrShape': qrShape,
       };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
@@ -437,6 +463,10 @@ class CustomTextElement {
       colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF000000,
       textType: json['textType'] as String? ?? 'normal',
       formatOption: json['formatOption'] as String? ?? 'normal',
+      isQrCode: json['isQrCode'] as bool? ?? false,
+      qrSizeMm: (json['qrSizeMm'] as num?)?.toDouble() ?? 15.0,
+      qrBgColorArgb: (json['qrBgColorArgb'] as num?)?.toInt() ?? 0xFFFFFFFF,
+      qrShape: json['qrShape'] as String? ?? 'square',
     );
   }
 }

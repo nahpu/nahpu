@@ -972,7 +972,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
   Widget build(BuildContext context) {
     final ct = widget.ct;
     final page1 = widget.page1;
-    final inToolbar = widget.inToolbar;
     final onUpdateCustomText = widget.onUpdateCustomText;
     final scheme = Theme.of(context).colorScheme;
 
@@ -988,180 +987,258 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         children: [
           widget.zIndexControls,
           const SizedBox(width: 12),
-          Text('Font', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          DropdownButton<String>(
-            value: fontKey,
-            isDense: true,
-            underline: const SizedBox.shrink(),
-            items: [
-              for (final k in fontDropdownIds)
-                DropdownMenuItem<String>(
-                  value: k,
-                  child: Text(labelFontDropdownLabel(k)),
-                ),
-            ],
-            onChanged: (v) {
-              if (v == null) return;
-              onUpdateCustomText(page1, ct.copyWith(fontFamily: v));
+          FilterChip(
+            label: const Text('QR Code'),
+            selected: ct.isQrCode,
+            onSelected: (selected) {
+              onUpdateCustomText(page1, ct.copyWith(isQrCode: selected));
             },
           ),
           const SizedBox(width: 12),
-          Text('Size (pt)', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 64,
-            child: SyncedFontSizeField(
-              key: ValueKey('fs_${ct.id}'),
-              fontSizePt: ct.fontSizePt,
-              onValidSize: (p) => onUpdateCustomText(
-                page1,
-                ct.copyWith(fontSizePt: p),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.remove, size: 20),
-            tooltip: 'Decrease font size',
-            onPressed: ct.fontSizePt > 4
-                ? () => onUpdateCustomText(
-                      page1,
-                      ct.copyWith(
-                        fontSizePt: (ct.fontSizePt - 0.5).clamp(4.0, 72.0),
-                      ),
-                    )
-                : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add, size: 20),
-            tooltip: 'Increase font size',
-            onPressed: ct.fontSizePt < 72
-                ? () => onUpdateCustomText(
-                      page1,
-                      ct.copyWith(
-                        fontSizePt: (ct.fontSizePt + 0.5).clamp(4.0, 72.0),
-                      ),
-                    )
-                : null,
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.text_format, size: 24),
-            isSelected: _showFormattingRow,
-            tooltip: 'Text formatting options',
-            onPressed: () {
-              setState(() {
-                _showFormattingRow = !_showFormattingRow;
-              });
-            },
-          ),
-          const SizedBox(width: 12),
-          Text('Color', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () async {
-              Color selectedColor = Color(ct.colorArgb);
-              final picked = await ColorPicker(
-                color: selectedColor,
-                onColorChanged: (c) => selectedColor = c,
-                heading: Text('Select text color',
-                    style: Theme.of(context).textTheme.titleSmall),
-                subheading: Text('Select color shade',
-                    style: Theme.of(context).textTheme.titleSmall),
-                wheelSubheading: Text('Selected color and its shades',
-                    style: Theme.of(context).textTheme.titleSmall),
-                showColorName: true,
-                showColorCode: false,
-                copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                  copyButton: true,
-                  pasteButton: true,
-                  longPressMenu: true,
-                ),
-                colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-                colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-                pickersEnabled: const <ColorPickerType, bool>{
-                  ColorPickerType.both: false,
-                  ColorPickerType.primary: true,
-                  ColorPickerType.accent: true,
-                  ColorPickerType.bw: false,
-                  ColorPickerType.custom: true,
-                  ColorPickerType.wheel: true,
+          if (ct.isQrCode) ...[
+            Text('QR Size (mm)',
+                style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 100,
+              child: widget.buildOptionSlider(
+                context,
+                value: ct.qrSizeMm,
+                min: 5.0,
+                max: 100.0,
+                divisions: 95,
+                label: '${ct.qrSizeMm.toStringAsFixed(1)} mm',
+                onChanged: (v) {
+                  onUpdateCustomText(
+                    page1,
+                    ct.copyWith(qrSizeMm: v),
+                  );
                 },
-              ).showPickerDialog(context);
-              if (picked) {
-                onUpdateCustomText(
-                  page1,
-                  ct.copyWith(
-                    colorArgb: selectedColor.toARGB32(),
-                  ),
-                );
-              }
-            },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Color(ct.colorArgb),
-                border: Border.all(color: scheme.outline),
-                borderRadius: BorderRadius.circular(4),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text('Max Width (mm)',
-              style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 64,
-            child: SyncedMaxWidthField(
-              key: ValueKey('mw_${ct.id}'),
-              maxWidthMm: ct.maxWidthMm,
-              onValidSize: (p) => onUpdateCustomText(
-                page1,
-                ct.copyWith(maxWidthMm: p),
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 100,
-            child: widget.buildOptionSlider(
-              context,
-              value: ct.maxWidthMm ?? 0.0,
-              min: 0.0,
-              max: 200.0,
-              divisions: 40,
-              label: ct.maxWidthMm == null || ct.maxWidthMm! == 0.0
-                  ? 'Auto'
-                  : '${ct.maxWidthMm!.toStringAsFixed(1)} mm',
-              onChanged: (v) {
+            const SizedBox(width: 12),
+            Text('Shape', style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(width: 8),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'square', label: Text('Square')),
+                ButtonSegment(value: 'circle', label: Text('Circle')),
+              ],
+              selected: {ct.qrShape},
+              onSelectionChanged: (next) {
+                if (next.isEmpty) return;
                 onUpdateCustomText(
                   page1,
-                  ct.copyWith(
-                    maxWidthMm: v == 0.0 ? null : v,
-                  ),
+                  ct.copyWith(qrShape: next.first),
                 );
               },
             ),
-          ),
-          const SizedBox(width: 12),
-          Text('Rotation', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-          SegmentedButton<int>(
-            segments: const [
-              ButtonSegment(value: 0, label: Text('0°')),
-              ButtonSegment(value: 90, label: Text('90°')),
-              ButtonSegment(value: -90, label: Text('-90°')),
-              ButtonSegment(value: 180, label: Text('180°')),
-            ],
-            selected: {ct.rotationDegrees},
-            onSelectionChanged: (next) {
-              if (next.isEmpty) return;
-              onUpdateCustomText(
-                page1,
-                ct.copyWith(rotationDegrees: next.first),
-              );
-            },
-          ),
+            const SizedBox(width: 12),
+            Text('Rotation', style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(width: 8),
+            SegmentedButton<int>(
+              segments: const [
+                ButtonSegment(value: 0, label: Text('0°')),
+                ButtonSegment(value: 90, label: Text('90°')),
+                ButtonSegment(value: -90, label: Text('-90°')),
+                ButtonSegment(value: 180, label: Text('180°')),
+              ],
+              selected: {ct.rotationDegrees},
+              onSelectionChanged: (next) {
+                if (next.isEmpty) return;
+                onUpdateCustomText(
+                  page1,
+                  ct.copyWith(rotationDegrees: next.first),
+                );
+              },
+            ),
+            const SizedBox(width: 12),
+            IconButton(
+              icon: const Icon(Icons.settings_outlined, size: 24),
+              isSelected: _showFormattingRow,
+              tooltip: 'Content formatting options',
+              onPressed: () {
+                setState(() {
+                  _showFormattingRow = !_showFormattingRow;
+                });
+              },
+            ),
+          ] else ...[
+            Text('Font', style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(width: 8),
+            DropdownButton<String>(
+              value: fontKey,
+              isDense: true,
+              underline: const SizedBox.shrink(),
+              items: [
+                for (final k in fontDropdownIds)
+                  DropdownMenuItem<String>(
+                    value: k,
+                    child: Text(labelFontDropdownLabel(k)),
+                  ),
+              ],
+              onChanged: (v) {
+                if (v == null) return;
+                onUpdateCustomText(page1, ct.copyWith(fontFamily: v));
+              },
+            ),
+            const SizedBox(width: 12),
+            Text('Size (pt)', style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 64,
+              child: SyncedFontSizeField(
+                key: ValueKey('fs_${ct.id}'),
+                fontSizePt: ct.fontSizePt,
+                onValidSize: (p) => onUpdateCustomText(
+                  page1,
+                  ct.copyWith(fontSizePt: p),
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.remove, size: 20),
+              tooltip: 'Decrease font size',
+              onPressed: ct.fontSizePt > 4
+                  ? () => onUpdateCustomText(
+                        page1,
+                        ct.copyWith(
+                          fontSizePt: (ct.fontSizePt - 0.5).clamp(4.0, 72.0),
+                        ),
+                      )
+                  : null,
+            ),
+            IconButton(
+              icon: const Icon(Icons.add, size: 20),
+              tooltip: 'Increase font size',
+              onPressed: ct.fontSizePt < 72
+                  ? () => onUpdateCustomText(
+                        page1,
+                        ct.copyWith(
+                          fontSizePt: (ct.fontSizePt + 0.5).clamp(4.0, 72.0),
+                        ),
+                      )
+                  : null,
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.text_format, size: 24),
+              isSelected: _showFormattingRow,
+              tooltip: 'Text formatting options',
+              onPressed: () {
+                setState(() {
+                  _showFormattingRow = !_showFormattingRow;
+                });
+              },
+            ),
+            const SizedBox(width: 12),
+            Text('Color', style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: () async {
+                Color selectedColor = Color(ct.colorArgb);
+                final picked = await ColorPicker(
+                  color: selectedColor,
+                  onColorChanged: (c) => selectedColor = c,
+                  heading: Text('Select text color',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  subheading: Text('Select color shade',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  wheelSubheading: Text('Selected color and its shades',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  showColorName: true,
+                  showColorCode: false,
+                  copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                    copyButton: true,
+                    pasteButton: true,
+                    longPressMenu: true,
+                  ),
+                  colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
+                  colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
+                  pickersEnabled: const <ColorPickerType, bool>{
+                    ColorPickerType.both: false,
+                    ColorPickerType.primary: true,
+                    ColorPickerType.accent: true,
+                    ColorPickerType.bw: false,
+                    ColorPickerType.custom: true,
+                    ColorPickerType.wheel: true,
+                  },
+                ).showPickerDialog(context);
+                if (picked) {
+                  onUpdateCustomText(
+                    page1,
+                    ct.copyWith(
+                      colorArgb: selectedColor.toARGB32(),
+                    ),
+                  );
+                }
+              },
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Color(ct.colorArgb),
+                  border: Border.all(color: scheme.outline),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text('Max Width (mm)',
+                style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 64,
+              child: SyncedMaxWidthField(
+                key: ValueKey('mw_${ct.id}'),
+                maxWidthMm: ct.maxWidthMm,
+                onValidSize: (p) => onUpdateCustomText(
+                  page1,
+                  ct.copyWith(maxWidthMm: p),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 100,
+              child: widget.buildOptionSlider(
+                context,
+                value: ct.maxWidthMm ?? 0.0,
+                min: 0.0,
+                max: 200.0,
+                divisions: 40,
+                label: ct.maxWidthMm == null || ct.maxWidthMm! == 0.0
+                    ? 'Auto'
+                    : '${ct.maxWidthMm!.toStringAsFixed(1)} mm',
+                onChanged: (v) {
+                  onUpdateCustomText(
+                    page1,
+                    ct.copyWith(
+                      maxWidthMm: v == 0.0 ? null : v,
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text('Rotation', style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(width: 8),
+            SegmentedButton<int>(
+              segments: const [
+                ButtonSegment(value: 0, label: Text('0°')),
+                ButtonSegment(value: 90, label: Text('90°')),
+                ButtonSegment(value: -90, label: Text('-90°')),
+                ButtonSegment(value: 180, label: Text('180°')),
+              ],
+              selected: {ct.rotationDegrees},
+              onSelectionChanged: (next) {
+                if (next.isEmpty) return;
+                onUpdateCustomText(
+                  page1,
+                  ct.copyWith(rotationDegrees: next.first),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -1170,7 +1247,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         ct.formatOption.startsWith('custom:') || ct.formatOption == 'custom';
 
     return Padding(
-      padding: inToolbar
+      padding: widget.inToolbar
           ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
           : const EdgeInsets.fromLTRB(12, 10, 12, 10),
       child: Row(
@@ -1188,58 +1265,162 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        SegmentedButton<String>(
-                          segments: const [
-                            ButtonSegment(
-                              value: 'left',
-                              icon: Icon(Icons.format_align_left, size: 20),
-                              tooltip: 'Align left',
-                            ),
-                            ButtonSegment(
-                              value: 'center',
-                              icon: Icon(Icons.format_align_center, size: 20),
-                              tooltip: 'Align center',
-                            ),
-                            ButtonSegment(
-                              value: 'right',
-                              icon: Icon(Icons.format_align_right, size: 20),
-                              tooltip: 'Align right',
-                            ),
-                          ],
-                          selected: {ct.textAlign},
-                          onSelectionChanged: (next) {
-                            if (next.isEmpty) return;
-                            onUpdateCustomText(
+                        if (!ct.isQrCode) ...[
+                          SegmentedButton<String>(
+                            segments: const [
+                              ButtonSegment(
+                                value: 'left',
+                                icon: Icon(Icons.format_align_left, size: 20),
+                                tooltip: 'Align left',
+                              ),
+                              ButtonSegment(
+                                value: 'center',
+                                icon: Icon(Icons.format_align_center, size: 20),
+                                tooltip: 'Align center',
+                              ),
+                              ButtonSegment(
+                                value: 'right',
+                                icon: Icon(Icons.format_align_right, size: 20),
+                                tooltip: 'Align right',
+                              ),
+                            ],
+                            selected: {ct.textAlign},
+                            onSelectionChanged: (next) {
+                              if (next.isEmpty) return;
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(textAlign: next.first),
+                              );
+                            },
+                            showSelectedIcon: false,
+                          ),
+                          const SizedBox(width: 12),
+                          IconButton(
+                            isSelected: ct.bold,
+                            icon: const Icon(Icons.format_bold, size: 20),
+                            selectedIcon: Icon(Icons.format_bold,
+                                color: scheme.primary, size: 20),
+                            onPressed: () => onUpdateCustomText(
                               page1,
-                              ct.copyWith(textAlign: next.first),
-                            );
-                          },
-                          showSelectedIcon: false,
-                        ),
-                        const SizedBox(width: 12),
-                        IconButton(
-                          isSelected: ct.bold,
-                          icon: const Icon(Icons.format_bold, size: 20),
-                          selectedIcon: Icon(Icons.format_bold,
-                              color: scheme.primary, size: 20),
-                          onPressed: () => onUpdateCustomText(
-                            page1,
-                            ct.copyWith(bold: !ct.bold),
+                              ct.copyWith(bold: !ct.bold),
+                            ),
+                            tooltip: 'Bold',
                           ),
-                          tooltip: 'Bold',
-                        ),
-                        IconButton(
-                          isSelected: ct.italic,
-                          icon: const Icon(Icons.format_italic, size: 20),
-                          selectedIcon: Icon(Icons.format_italic,
-                              color: scheme.primary, size: 20),
-                          onPressed: () => onUpdateCustomText(
-                            page1,
-                            ct.copyWith(italic: !ct.italic),
+                          IconButton(
+                            isSelected: ct.italic,
+                            icon: const Icon(Icons.format_italic, size: 20),
+                            selectedIcon: Icon(Icons.format_italic,
+                                color: scheme.primary, size: 20),
+                            onPressed: () => onUpdateCustomText(
+                              page1,
+                              ct.copyWith(italic: !ct.italic),
+                            ),
+                            tooltip: 'Italic',
                           ),
-                          tooltip: 'Italic',
-                        ),
-                        const SizedBox(width: 16),
+                          const SizedBox(width: 16),
+                        ],
+                        if (ct.isQrCode) ...[
+                          Text('Foreground',
+                              style: Theme.of(context).textTheme.labelMedium),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () async {
+                              Color selectedColor = Color(ct.colorArgb);
+                              final picked = await ColorPicker(
+                                color: selectedColor,
+                                onColorChanged: (c) => selectedColor = c,
+                                heading: Text('Select QR foreground color',
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall),
+                                subheading: Text('Select color shade',
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall),
+                                wheelSubheading: Text(
+                                    'Selected color and its shades',
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall),
+                                showColorName: true,
+                                showColorCode: false,
+                                pickersEnabled: const <ColorPickerType, bool>{
+                                  ColorPickerType.both: false,
+                                  ColorPickerType.primary: true,
+                                  ColorPickerType.accent: true,
+                                  ColorPickerType.bw: false,
+                                  ColorPickerType.custom: true,
+                                  ColorPickerType.wheel: true,
+                                },
+                              ).showPickerDialog(context);
+                              if (picked) {
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(
+                                    colorArgb: selectedColor.toARGB32(),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: Color(ct.colorArgb),
+                                border: Border.all(color: scheme.outline),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text('Background',
+                              style: Theme.of(context).textTheme.labelMedium),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () async {
+                              Color selectedColor = Color(ct.qrBgColorArgb);
+                              final picked = await ColorPicker(
+                                color: selectedColor,
+                                onColorChanged: (c) => selectedColor = c,
+                                heading: Text('Select QR background color',
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall),
+                                subheading: Text('Select color shade',
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall),
+                                wheelSubheading: Text(
+                                    'Selected color and its shades',
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall),
+                                showColorName: true,
+                                showColorCode: false,
+                                pickersEnabled: const <ColorPickerType, bool>{
+                                  ColorPickerType.both: false,
+                                  ColorPickerType.primary: true,
+                                  ColorPickerType.accent: true,
+                                  ColorPickerType.bw: true,
+                                  ColorPickerType.custom: true,
+                                  ColorPickerType.wheel: true,
+                                },
+                              ).showPickerDialog(context);
+                              if (picked) {
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(
+                                    qrBgColorArgb: selectedColor.toARGB32(),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: Color(ct.qrBgColorArgb),
+                                border: Border.all(color: scheme.outline),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                        ],
                         Text(
                           'Type',
                           style: Theme.of(context).textTheme.labelMedium,
@@ -1421,7 +1602,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             ),
                           ),
                         ],
-                        if (widget.onInsertScientificSymbol != null) ...[
+                        if (!ct.isQrCode &&
+                            widget.onInsertScientificSymbol != null) ...[
                           const SizedBox(width: 16),
                           Text(
                             'Symbols',

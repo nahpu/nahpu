@@ -10,6 +10,7 @@ import 'package:nahpu/screens/exports/labels/components/draggable_chip.dart';
 import 'package:nahpu/screens/exports/labels/components/draggable_image_chip.dart';
 import 'package:nahpu/screens/exports/labels/components/draggable_line_chip.dart';
 import 'package:nahpu/screens/exports/labels/components/draggable_shape_chip.dart';
+import 'package:nahpu/screens/shared/qr.dart' show QrImageView;
 
 import 'dart:math' as math;
 import 'package:nahpu/screens/exports/labels/label_canvas_stack.dart';
@@ -294,7 +295,75 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                       onRemoveCustomImage(element.id),
                                 );
                               } else if (element is CustomTextElement) {
-                                if (labelGenderIconFieldKeyFromBracketText(
+                                if (element.isQrCode) {
+                                  final rawText = element.text;
+                                  final textVal = formatLabelText(
+                                    isPreviewMode
+                                        ? substituteLabelPlaceholders(
+                                            rawText,
+                                            editorLabelFieldPreview,
+                                          )
+                                        : formatFieldPlaceholderText(
+                                            rawText,
+                                            widget.fieldDisplayOption ==
+                                                'short',
+                                          ),
+                                    element.textType,
+                                    element.formatOption,
+                                    element.caseFormat,
+                                  );
+                                  return DraggableImageChip(
+                                    key: ValueKey(
+                                        'p${page1 ? '1' : '2'}_qr_${element.id}'),
+                                    imagePath: '',
+                                    vectorChild: QrImageView(
+                                      data: textVal.isEmpty ? ' ' : textVal,
+                                      size: element.qrSizeMm * scale,
+                                      color: Color(element.colorArgb),
+                                      backgroundColor:
+                                          Color(element.qrBgColorArgb),
+                                      shape: element.qrShape,
+                                    ),
+                                    position: Offset(element.xMm, element.yMm),
+                                    widthMm: element.qrSizeMm,
+                                    heightMm: element.qrSizeMm,
+                                    rotationDegrees: element.rotationDegrees,
+                                    scale: scale,
+                                    labelWidthMm: labelWidthMm,
+                                    labelHeightMm: labelHeightMm,
+                                    canvasInsetXPx: 0,
+                                    canvasInsetYPx: _kLabelCanvasHitPadPx,
+                                    labelPanToMmDelta: labelPanToMmDelta,
+                                    isSelected: selectedElement ==
+                                        'custom:${page1 ? '1' : '2'}:${element.id}',
+                                    onTap: () => onSelectElement(
+                                        'custom:${page1 ? '1' : '2'}:${element.id}'),
+                                    onDragStateChanged: onDragStateChanged,
+                                    onMoved: (pos) {
+                                      onScheduleTemplateTextPositionUpdate(
+                                        element.copyWith(
+                                          xMm: pos.dx,
+                                          yMm: pos.dy,
+                                        ),
+                                      );
+                                    },
+                                    onBoundsChanged: (x, y, w, h) {
+                                      onScheduleTemplateTextPositionUpdate(
+                                        element.copyWith(
+                                          xMm: x,
+                                          yMm: y,
+                                          qrSizeMm: w,
+                                        ),
+                                      );
+                                    },
+                                    onRotationChanged: (deg) {
+                                      onScheduleTemplateTextPositionUpdate(
+                                        element.copyWith(rotationDegrees: deg),
+                                      );
+                                    },
+                                    onDelete: null,
+                                  );
+                                } else if (labelGenderIconFieldKeyFromBracketText(
                                         element.text)
                                     case final gKey?) {
                                   return DraggableImageChip(

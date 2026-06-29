@@ -70,12 +70,14 @@ class QrImageView extends StatelessWidget {
     this.size,
     this.color,
     this.backgroundColor = Colors.transparent,
+    this.shape = 'square',
   });
 
   final String data;
   final double? size;
   final Color? color;
   final Color backgroundColor;
+  final String shape;
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +87,7 @@ class QrImageView extends StatelessWidget {
         data: data,
         color: color ?? Theme.of(context).colorScheme.onSurface,
         backgroundColor: backgroundColor,
+        shape: shape,
       ),
     );
   }
@@ -94,11 +97,13 @@ class _QrPainter extends CustomPainter {
   final String data;
   final Color color;
   final Color backgroundColor;
+  final String shape;
 
   _QrPainter({
     required this.data,
     required this.color,
     required this.backgroundColor,
+    required this.shape,
   });
 
   @override
@@ -118,11 +123,19 @@ class _QrPainter extends CustomPainter {
     for (int x = 0; x < moduleCount; x++) {
       for (int y = 0; y < moduleCount; y++) {
         if (qrImage.isDark(y, x)) {
-          canvas.drawRect(
-            Rect.fromLTWH(
-                x * moduleSize, y * moduleSize, moduleSize, moduleSize),
-            paint,
-          );
+          if (shape == 'circle') {
+            canvas.drawCircle(
+              Offset((x + 0.5) * moduleSize, (y + 0.5) * moduleSize),
+              moduleSize / 2,
+              paint,
+            );
+          } else {
+            canvas.drawRect(
+              Rect.fromLTWH(
+                  x * moduleSize, y * moduleSize, moduleSize, moduleSize),
+              paint,
+            );
+          }
         }
       }
     }
@@ -132,6 +145,7 @@ class _QrPainter extends CustomPainter {
   bool shouldRepaint(covariant _QrPainter oldDelegate) {
     return oldDelegate.data != data ||
         oldDelegate.color != color ||
-        oldDelegate.backgroundColor != backgroundColor;
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.shape != shape;
   }
 }
