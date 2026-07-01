@@ -44,7 +44,6 @@ class LabelCanvasEditor extends StatefulWidget {
     required this.isPreviewMode,
     required this.editorLabelFieldPreview,
     required this.selectedElement,
-    required this.inlineCanvasCustomKey,
     required this.labelStackKey,
     required this.labelPanGlobalDeltaToMm,
     required this.onClearSelection,
@@ -53,8 +52,6 @@ class LabelCanvasEditor extends StatefulWidget {
     required this.onScheduleTemplateImageUpdate,
     required this.onRemoveCustomImage,
     required this.onScheduleTemplateTextPositionUpdate,
-    required this.onInlineEditingComplete,
-    required this.onInlineTextInsertBinding,
     required this.onScheduleTemplateLineUpdate,
     required this.onRemoveCustomLine,
     required this.onScheduleTemplateShapeUpdate,
@@ -73,7 +70,6 @@ class LabelCanvasEditor extends StatefulWidget {
   final bool isPreviewMode;
   final Map<String, String> editorLabelFieldPreview;
   final String? selectedElement;
-  final String? inlineCanvasCustomKey;
   final GlobalKey labelStackKey;
   final String fieldDisplayOption;
 
@@ -86,9 +82,6 @@ class LabelCanvasEditor extends StatefulWidget {
   final void Function(String id) onRemoveCustomImage;
   final void Function(CustomTextElement element)
       onScheduleTemplateTextPositionUpdate;
-  final void Function(CustomTextElement element, String text)
-      onInlineEditingComplete;
-  final void Function(void Function(String)?) onInlineTextInsertBinding;
   final void Function(CustomLineElement element) onScheduleTemplateLineUpdate;
   final void Function(String id) onRemoveCustomLine;
   final void Function(CustomShapeElement element) onScheduleTemplateShapeUpdate;
@@ -114,7 +107,6 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
     final isPreviewMode = widget.isPreviewMode;
     final editorLabelFieldPreview = widget.editorLabelFieldPreview;
     final selectedElement = widget.selectedElement;
-    final inlineCanvasCustomKey = widget.inlineCanvasCustomKey;
     final labelStackKey = widget.labelStackKey;
     final labelPanGlobalDeltaToMm = widget.labelPanGlobalDeltaToMm;
     final onClearSelection = widget.onClearSelection;
@@ -123,8 +115,6 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
     final onRemoveCustomImage = widget.onRemoveCustomImage;
     final onScheduleTemplateTextPositionUpdate =
         widget.onScheduleTemplateTextPositionUpdate;
-    final onInlineEditingComplete = widget.onInlineEditingComplete;
-    final onInlineTextInsertBinding = widget.onInlineTextInsertBinding;
     final onScheduleTemplateLineUpdate = widget.onScheduleTemplateLineUpdate;
     final onRemoveCustomLine = widget.onRemoveCustomLine;
     final onScheduleTemplateShapeUpdate = widget.onScheduleTemplateShapeUpdate;
@@ -459,15 +449,8 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                         element.copyWith(maxWidthMm: w),
                                       );
                                     },
-                                    isInlineEditing: inlineCanvasCustomKey ==
-                                        'custom:${page1 ? '1' : '2'}:${element.id}',
                                     isSelected: selectedElement ==
                                         'custom:${page1 ? '1' : '2'}:${element.id}',
-                                    onInlineEditingComplete: (v) {
-                                      onInlineEditingComplete(element, v);
-                                    },
-                                    onInlineTextInsertBinding:
-                                        onInlineTextInsertBinding,
                                     onTap: () {
                                       onSelectElement(
                                           'custom:${page1 ? '1' : '2'}:${element.id}');

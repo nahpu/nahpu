@@ -34,9 +34,6 @@ class DraggableChip extends StatefulWidget {
     required this.onMoved,
     this.isCustom = false,
     this.isSelected = false,
-    this.isInlineEditing = false,
-    this.onInlineEditingComplete,
-    this.onInlineTextInsertBinding,
     this.onTap,
     this.onSelect,
     this.maxWidthMm,
@@ -68,13 +65,6 @@ class DraggableChip extends StatefulWidget {
   final void Function(Offset newPosMm) onMoved;
   final bool isCustom;
   final bool isSelected;
-  final bool isInlineEditing;
-
-  /// Called once when inline editing ends (focus lost or Enter); updates template text.
-  final ValueChanged<String>? onInlineEditingComplete;
-
-  /// Active while inline editing: non-null inserts at caret; null when edit ends.
-  final ValueChanged<void Function(String)?>? onInlineTextInsertBinding;
   final VoidCallback? onTap;
 
   /// When pan wins over tap (slight movement), [onTap] may not run; parent uses
@@ -95,9 +85,6 @@ enum _TextCorner { tl, tr, bl, br }
 
 class DraggableChipState extends State<DraggableChip> {
   bool _dragging = false;
-  TextEditingController? _inlineCtrl;
-  FocusNode? _inlineFocus;
-  bool _inlineEditCommitted = false;
 
   void _deferSetState(VoidCallback fn) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -278,52 +265,9 @@ class DraggableChipState extends State<DraggableChip> {
     setState(() => _dragLiveMm = clamped);
   }
 
-  void _startInlineEditing() {
-    _inlineEditCommitted = false;
-    _inlineCtrl?.dispose();
-    _inlineFocus?.removeListener(_onInlineFocusChange);
-    _inlineFocus?.dispose();
-    _inlineCtrl = TextEditingController(text: widget.actualText);
-    _inlineFocus = FocusNode();
-    _inlineFocus!.addListener(_onInlineFocusChange);
-    widget.onInlineTextInsertBinding?.call(_pasteIntoInlineField);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !widget.isInlineEditing) return;
-      _inlineFocus?.requestFocus();
-      final t = _inlineCtrl?.text ?? '';
-      _inlineCtrl?.selection = TextSelection.collapsed(offset: t.length);
-    });
-  }
-
-  void _pasteIntoInlineField(String insertion) {
-    final c = _inlineCtrl;
-    if (c == null || !widget.isInlineEditing) return;
-    final text = c.text;
-    final sel = c.selection;
-    var start = sel.isValid ? sel.start : text.length;
-    var end = sel.isValid ? sel.end : text.length;
-    if (start < 0 || start > text.length) start = text.length;
-    if (end < 0 || end > text.length) end = text.length;
-    if (start > end) {
-      final t = start;
-      start = end;
-      end = t;
-    }
-    final newText = text.replaceRange(start, end, insertion);
-    final newOffset = start + insertion.length;
-    c.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-    _inlineFocus?.requestFocus();
-  }
-
   @override
   void initState() {
     super.initState();
-    if (widget.isCustom && widget.isInlineEditing) {
-      _startInlineEditing();
-    }
     if (widget.isCustom) {
       _scheduleCanvasGoogleFontPrime();
     }
@@ -356,46 +300,10 @@ class DraggableChipState extends State<DraggableChip> {
         oldWidget.italic != widget.italic) {
       _scheduleCanvasGoogleFontPrime();
     }
-    if (widget.isInlineEditing && !oldWidget.isInlineEditing) {
-      _startInlineEditing();
-    } else if (!widget.isInlineEditing && oldWidget.isInlineEditing) {
-      widget.onInlineTextInsertBinding?.call(null);
-      if (!_inlineEditCommitted) {
-        _commitInlineToParent();
-      }
-      _inlineEditCommitted = false;
-      _inlineFocus?.removeListener(_onInlineFocusChange);
-      _inlineFocus?.dispose();
-      _inlineFocus = null;
-      _inlineCtrl?.dispose();
-      _inlineCtrl = null;
-    } else if (widget.isInlineEditing &&
-        _inlineCtrl != null &&
-        widget.actualText != _inlineCtrl!.text &&
-        !(_inlineFocus?.hasFocus ?? false)) {
-      _inlineCtrl!.text = widget.actualText;
-    }
-  }
-
-  void _onInlineFocusChange() {
-    if (_inlineFocus == null || _inlineFocus!.hasFocus) return;
-    _commitInlineToParent();
-  }
-
-  void _commitInlineToParent() {
-    if (_inlineEditCommitted) return;
-    _inlineEditCommitted = true;
-    widget.onInlineEditingComplete?.call(_inlineCtrl?.text ?? '');
   }
 
   @override
   void dispose() {
-    if (widget.isInlineEditing) {
-      widget.onInlineTextInsertBinding?.call(null);
-    }
-    _inlineFocus?.removeListener(_onInlineFocusChange);
-    _inlineFocus?.dispose();
-    _inlineCtrl?.dispose();
     super.dispose();
   }
 
@@ -442,72 +350,6 @@ class DraggableChipState extends State<DraggableChip> {
         fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
         fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
       ).copyWith(color: Color(widget.colorArgb));
-
-      if (widget.isInlineEditing &&
-          _inlineCtrl != null &&
-          _inlineFocus != null) {
-        final handle = fontPx.clamp(18.0, 28.0);
-        final fieldW =
-            ((widget.labelWidthMm - posMm.dx) * widget.scale - handle - 6)
-                .clamp(48.0, 2000.0);
-        final editor = Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onPanStart: _onLabelPanStart,
-              onPanUpdate: _panMoveClampedToHitInset,
-              onPanEnd: (_) => _onLabelPanEnd(),
-              onPanCancel: _onLabelPanEnd,
-              child: SizedBox(
-                width: handle,
-                height: handle + 4,
-                child: Icon(
-                  Icons.drag_indicator,
-                  size: handle,
-                  color: scheme.primary,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: fieldW,
-              child: TextField(
-                controller: _inlineCtrl,
-                focusNode: _inlineFocus,
-                autofocus: true,
-                style: textStyle,
-                maxLines: 6,
-                minLines: 1,
-                cursorColor: Colors.black,
-                textAlign: widget.textAlign,
-                decoration: InputDecoration(
-                  isDense: true,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 6,
-                  ),
-                ),
-                onSubmitted: (_) => _inlineFocus?.unfocus(),
-              ),
-            ),
-          ],
-        );
-        return Positioned(
-          left: left,
-          top: top,
-          child: Transform.rotate(
-            angle: widget.rotationDegrees * math.pi / 180,
-            alignment: Alignment.topLeft,
-            child: editor,
-          ),
-        );
-      }
 
       final activeWidthMm = _resizeLiveWidthMm ?? widget.maxWidthMm;
       final text = SizedBox(

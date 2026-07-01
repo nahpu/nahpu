@@ -21,14 +21,12 @@ class LabelElementPropertiesPanel extends StatelessWidget {
     required this.onUpdateCustomShape,
     required this.onDeleteCustomShape,
     this.onDismiss,
-    this.onInsertScientificSymbol,
   });
 
   final String selectedElement;
   final bool page1;
   final LabelTemplate template;
   final VoidCallback? onDismiss;
-  final void Function(String)? onInsertScientificSymbol;
 
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
   final void Function(bool page1, String id) onDeleteCustomText;
@@ -739,7 +737,6 @@ class LabelElementPropertiesPanel extends StatelessWidget {
       zIndexControls: _buildZIndexControls(context, sel),
       deleteButton: deleteButton,
       buildOptionSlider: _buildOptionSlider,
-      onInsertScientificSymbol: onInsertScientificSymbol,
     );
 
     return _buildPanelContainer(
@@ -760,7 +757,6 @@ class _CustomTextToolbar extends StatefulWidget {
     required this.zIndexControls,
     required this.deleteButton,
     required this.buildOptionSlider,
-    this.onInsertScientificSymbol,
   });
 
   final CustomTextElement ct;
@@ -778,7 +774,6 @@ class _CustomTextToolbar extends StatefulWidget {
     required String label,
     required ValueChanged<double> onChanged,
   }) buildOptionSlider;
-  final void Function(String)? onInsertScientificSymbol;
 
   @override
   State<_CustomTextToolbar> createState() => _CustomTextToolbarState();
@@ -1601,56 +1596,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               },
                             ),
                           ),
-                        ],
-                        if (!ct.isQrCode &&
-                            widget.onInsertScientificSymbol != null) ...[
-                          const SizedBox(width: 16),
-                          Text(
-                            'Symbols',
-                            style: Theme.of(context).textTheme.labelMedium,
-                          ),
-                          const SizedBox(width: 8),
-                          for (final sym in const [
-                            '♂',
-                            '♀',
-                            '±',
-                            '×',
-                            '≈',
-                            '≡',
-                            '°',
-                            'µ',
-                            '≥',
-                            '≤'
-                          ]) ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 2,
-                              ),
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                                onPressed: () =>
-                                    widget.onInsertScientificSymbol!(sym),
-                                child: Text(
-                                  sym,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ],
                     ),
