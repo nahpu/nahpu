@@ -52,7 +52,7 @@ class _LabelPreviewSpecimenSelectionScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Specimen for Preview'),
+        title: const Text('Specimen Selection for Preview'),
       ),
       body: SafeArea(
         child: SpecimenSelectionView(
