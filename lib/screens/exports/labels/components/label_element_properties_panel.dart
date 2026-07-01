@@ -1242,7 +1242,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                     child: Row(
                       children: [
                         if (!ct.isQrCode) ...[
-                          Text('Font', style: Theme.of(context).textTheme.labelMedium),
+                          Text('Font',
+                              style: Theme.of(context).textTheme.labelMedium),
                           const SizedBox(width: 8),
                           DropdownButton<String>(
                             value: fontKey,
@@ -1257,7 +1258,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             ],
                             onChanged: (v) {
                               if (v == null) return;
-                              onUpdateCustomText(page1, ct.copyWith(fontFamily: v));
+                              onUpdateCustomText(
+                                  page1, ct.copyWith(fontFamily: v));
                             },
                           ),
                           const SizedBox(width: 12),

@@ -14,12 +14,14 @@ class SpecimenSelectionView extends ConsumerStatefulWidget {
     required this.onSelectionChanged,
     required this.visibleColumnIds,
     required this.onColumnsChanged,
+    this.isSingleSelection = false,
   });
 
   final Set<String> selectedUuidList;
   final ValueChanged<Set<String>> onSelectionChanged;
   final List<String> visibleColumnIds;
   final VoidCallback onColumnsChanged;
+  final bool isSingleSelection;
 
   @override
   ConsumerState<SpecimenSelectionView> createState() =>
@@ -145,10 +147,72 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
   }
 
   Future<void> _pickDateRange(bool isCollection) async {
+    DateTimeRange? initialRange;
+    if (isCollection) {
+      if (_hasCollectionDate &&
+          _collectionStartDate.isNotEmpty &&
+          _collectionEndDate.isNotEmpty) {
+        try {
+          initialRange = DateTimeRange(
+            start: DateTime.parse(_collectionStartDate),
+            end: DateTime.parse(_collectionEndDate),
+          );
+        } catch (_) {}
+      }
+    } else {
+      if (_hasPrepDate &&
+          _prepStartDate.isNotEmpty &&
+          _prepEndDate.isNotEmpty) {
+        try {
+          initialRange = DateTimeRange(
+            start: DateTime.parse(_prepStartDate),
+            end: DateTime.parse(_prepEndDate),
+          );
+        } catch (_) {}
+      }
+    }
+
+    if (initialRange == null) {
+      String? dateStr;
+      if (widget.selectedUuidList.isNotEmpty) {
+        for (final uuid in widget.selectedUuidList) {
+          try {
+            final specimen = _currentPageData.firstWhere((s) => s.uuid == uuid);
+            dateStr = isCollection
+                ? (specimen.collectionDate ?? specimen.captureDate)
+                : specimen.prepDate;
+            if (dateStr != null && dateStr.isNotEmpty) {
+              break;
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (dateStr == null || dateStr.isEmpty) {
+        for (final specimen in _currentPageData) {
+          final sDate = isCollection
+              ? (specimen.collectionDate ?? specimen.captureDate)
+              : specimen.prepDate;
+          if (sDate != null && sDate.isNotEmpty) {
+            dateStr = sDate;
+            break;
+          }
+        }
+      }
+
+      if (dateStr != null && dateStr.isNotEmpty) {
+        try {
+          final date = DateTime.parse(dateStr);
+          initialRange = DateTimeRange(start: date, end: date);
+        } catch (_) {}
+      }
+    }
+
     final range = await showDateRangePicker(
       context: context,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      initialDateRange: initialRange,
     );
     if (range != null) {
       setState(() {
@@ -268,28 +332,32 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
               : LayoutBuilder(
                   builder: (context, constraints) {
                     return Scrollbar(
-                      controller: _hScrollController,
+                      controller: _vScrollController,
                       child: SingleChildScrollView(
-                        controller: _hScrollController,
-                        scrollDirection: Axis.horizontal,
-                        child: ConstrainedBox(
-                          constraints:
-                              BoxConstraints(minWidth: constraints.maxWidth),
-                          child: Scrollbar(
-                            controller: _vScrollController,
-                            child: SingleChildScrollView(
-                              controller: _vScrollController,
+                        controller: _vScrollController,
+                        scrollDirection: Axis.vertical,
+                        child: Scrollbar(
+                          controller: _hScrollController,
+                          child: SingleChildScrollView(
+                            controller: _hScrollController,
+                            scrollDirection: Axis.horizontal,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: constraints.maxWidth,
+                              ),
                               child: DataTable(
                                 columnSpacing: 16,
                                 horizontalMargin: 12,
                                 dataRowMinHeight: 40,
                                 columns: [
                                   DataColumn(
-                                    label: Checkbox(
-                                      tristate: true,
-                                      value: _headerCheckboxValue,
-                                      onChanged: _onHeaderCheckbox,
-                                    ),
+                                    label: widget.isSingleSelection
+                                        ? const SizedBox.shrink()
+                                        : Checkbox(
+                                            tristate: true,
+                                            value: _headerCheckboxValue,
+                                            onChanged: _onHeaderCheckbox,
+                                          ),
                                   ),
                                   for (final col in widget.visibleColumnIds)
                                     DataColumn(
@@ -320,6 +388,9 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                                                   Set<String>.from(
                                                       widget.selectedUuidList);
                                               if (v == true) {
+                                                if (widget.isSingleSelection) {
+                                                  newSelected.clear();
+                                                }
                                                 newSelected.add(s.uuid);
                                               } else {
                                                 newSelected.remove(s.uuid);

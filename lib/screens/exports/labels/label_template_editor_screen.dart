@@ -22,6 +22,7 @@ import 'package:nahpu/screens/exports/labels/components/zoom_controls.dart';
 import 'package:nahpu/screens/exports/labels/components/mirror_toggle_button.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/screens/exports/labels/label_preview_specimen_selection.dart';
 import 'package:path/path.dart' as path;
 
 /// PDF points per mm (72 / 25.4); keep in sync with `labelPdfMmToPt`.
@@ -72,6 +73,8 @@ class _LabelTemplateEditorScreenState
 
   /// Bumps when the logo folder gains a file so [FutureBuilder] strips reload.
   int _logoLibraryEpoch = 0;
+
+  String? _selectedSpecimenUuid;
 
   /// First specimen’s `[field]` map for canvas preview (sex icons, etc.).
   Map<String, String> _editorLabelFieldPreview = {};
@@ -291,8 +294,14 @@ class _LabelTemplateEditorScreenState
       final list = await SpecimenServices(ref: ref).getSpecimenList();
       if (list.isEmpty) return;
       final db = ref.read(databaseProvider);
-      final m = await fieldValuesForSpecimen(db, list.first, ref);
-      if (mounted) setState(() => _editorLabelFieldPreview = m);
+      final firstSpecimen = list.first;
+      final m = await fieldValuesForSpecimen(db, firstSpecimen, ref);
+      if (mounted) {
+        setState(() {
+          _selectedSpecimenUuid = firstSpecimen.uuid;
+          _editorLabelFieldPreview = m;
+        });
+      }
     } catch (_) {}
   }
 
@@ -439,8 +448,11 @@ class _LabelTemplateEditorScreenState
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 16,
+                      runSpacing: 8,
                       children: [
                         DropdownMenu<String>(
                           initialSelection: _savedNames.contains(_template.name)
@@ -461,7 +473,6 @@ class _LabelTemplateEditorScreenState
                             }
                           },
                         ),
-                        const SizedBox(width: 16),
                         SegmentedButton<bool>(
                           showSelectedIcon: false,
                           segments: const [
@@ -608,6 +619,17 @@ class _LabelTemplateEditorScreenState
                                 _deferSetState(() => _showGrid = !_showGrid),
                             icon: Icon(
                               _showGrid ? Icons.grid_on : Icons.grid_off,
+                              size: 22,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Select specimen for text preview',
+                            style: IconButton.styleFrom(
+                              foregroundColor: scheme.onSurfaceVariant,
+                            ),
+                            onPressed: _selectSpecimenForPreview,
+                            icon: const Icon(
+                              Icons.manage_search,
                               size: 22,
                             ),
                           ),
@@ -1389,5 +1411,28 @@ class _LabelTemplateEditorScreenState
         ],
       ),
     );
+  }
+
+  Future<void> _selectSpecimenForPreview() async {
+    final result = await Navigator.push<String?>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LabelPreviewSpecimenSelectionScreen(
+          selectedUuid: _selectedSpecimenUuid,
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      final db = ref.read(databaseProvider);
+      try {
+        final s = await SpecimenServices(ref: ref).getSpecimen(result);
+        final m = await fieldValuesForSpecimen(db, s, ref);
+        setState(() {
+          _selectedSpecimenUuid = result;
+          _editorLabelFieldPreview = m;
+        });
+      } catch (_) {}
+    }
   }
 }
