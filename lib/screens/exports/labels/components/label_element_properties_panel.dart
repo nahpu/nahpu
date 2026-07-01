@@ -1059,25 +1059,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               },
             ),
           ] else ...[
-            Text('Font', style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(width: 8),
-            DropdownButton<String>(
-              value: fontKey,
-              isDense: true,
-              underline: const SizedBox.shrink(),
-              items: [
-                for (final k in fontDropdownIds)
-                  DropdownMenuItem<String>(
-                    value: k,
-                    child: Text(labelFontDropdownLabel(k)),
-                  ),
-              ],
-              onChanged: (v) {
-                if (v == null) return;
-                onUpdateCustomText(page1, ct.copyWith(fontFamily: v));
-              },
-            ),
-            const SizedBox(width: 12),
             Text('Size (pt)', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(width: 8),
             SizedBox(
@@ -1261,6 +1242,25 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                     child: Row(
                       children: [
                         if (!ct.isQrCode) ...[
+                          Text('Font', style: Theme.of(context).textTheme.labelMedium),
+                          const SizedBox(width: 8),
+                          DropdownButton<String>(
+                            value: fontKey,
+                            isDense: true,
+                            underline: const SizedBox.shrink(),
+                            items: [
+                              for (final k in fontDropdownIds)
+                                DropdownMenuItem<String>(
+                                  value: k,
+                                  child: Text(labelFontDropdownLabel(k)),
+                                ),
+                            ],
+                            onChanged: (v) {
+                              if (v == null) return;
+                              onUpdateCustomText(page1, ct.copyWith(fontFamily: v));
+                            },
+                          ),
+                          const SizedBox(width: 12),
                           SegmentedButton<String>(
                             segments: const [
                               ButtonSegment(
