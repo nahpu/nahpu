@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/export/export_label_service.dart';
+import 'package:nahpu/services/export/export_label.dart';
 
 void main() {
   group('ExportLabelService', () {

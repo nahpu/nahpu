@@ -17,7 +17,7 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/exports/components/specimen_selection.dart';
 import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/export/export_label_service.dart';
+import 'package:nahpu/services/export/export_label.dart';
 import 'package:nahpu/screens/exports/labels/components/column_picker.dart';
 import 'package:nahpu/screens/exports/labels/components/label_preview_pane.dart';
 import 'package:nahpu/screens/exports/labels/components/label_settings_pane.dart';
