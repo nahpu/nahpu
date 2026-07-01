@@ -1224,7 +1224,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
 
     return Padding(
       padding: widget.inToolbar
-          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+          ? const EdgeInsets.all(8)
           : const EdgeInsets.fromLTRB(12, 10, 12, 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

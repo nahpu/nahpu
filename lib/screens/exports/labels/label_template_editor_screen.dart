@@ -448,30 +448,30 @@ class _LabelTemplateEditorScreenState
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 16,
-                      runSpacing: 8,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        DropdownMenu<String>(
-                          initialSelection: _savedNames.contains(_template.name)
-                              ? _template.name
-                              : null,
-                          label: const Text('Preset label'),
-                          inputDecorationTheme: const InputDecorationTheme(
-                            isDense: true,
-                            border: OutlineInputBorder(),
+                        Expanded(
+                          child: DropdownMenu<String>(
+                            initialSelection:
+                                _savedNames.contains(_template.name)
+                                    ? _template.name
+                                    : null,
+                            label: const Text('Preset label'),
+                            inputDecorationTheme: const InputDecorationTheme(
+                              isDense: true,
+                              border: OutlineInputBorder(),
+                            ),
+                            dropdownMenuEntries: [
+                              for (final n in _savedNames)
+                                DropdownMenuEntry(value: n, label: n),
+                            ],
+                            onSelected: (value) {
+                              if (value != null) {
+                                _loadTemplate(value);
+                              }
+                            },
                           ),
-                          dropdownMenuEntries: [
-                            for (final n in _savedNames)
-                              DropdownMenuEntry(value: n, label: n),
-                          ],
-                          onSelected: (value) {
-                            if (value != null) {
-                              _loadTemplate(value);
-                            }
-                          },
                         ),
                         SegmentedButton<bool>(
                           showSelectedIcon: false,
