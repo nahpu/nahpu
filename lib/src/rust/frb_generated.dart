@@ -6,6 +6,7 @@
 import 'api/archive.dart';
 import 'api/common.dart';
 import 'api/export.dart';
+import 'api/gis.dart';
 import 'api/import.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -73,7 +74,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 737816028;
+  int get rustContentHash => 567138892;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -90,6 +91,26 @@ abstract class RustLibApi extends BaseApi {
   Future<Uint8List> crateApiExportCompileTypstToPdf(
       {required String typstContent, required List<Uint8List> fontBytes});
 
+  Future<DdmCoordinateFfi> crateApiGisDdToDdm(
+      {required double dd, required bool isLatitude});
+
+  Future<DmsCoordinateFfi> crateApiGisDdToDms(
+      {required double dd, required bool isLatitude});
+
+  Future<UtmCoordinateFfi> crateApiGisDdToUtm(
+      {required double latitude, required double longitude});
+
+  Future<double> crateApiGisDdmToDd(
+      {required int degrees,
+      required double minutes,
+      required CardinalDirection direction});
+
+  Future<double> crateApiGisDmsToDd(
+      {required int degrees,
+      required int minutes,
+      required double seconds,
+      required CardinalDirection direction});
+
   Future<void> crateApiExportExportCoordinates(
       {required String jsonContent,
       required String outputPath,
@@ -101,6 +122,8 @@ abstract class RustLibApi extends BaseApi {
       required List<Uint8List> fontBytes});
 
   Future<void> crateApiCommonInitApp();
+
+  Future<double> crateApiGisParseCoordinateString({required String s});
 
   Future<List<String>> crateApiImportRecordReaderGetExcelSheetNames(
       {required RecordReader that});
@@ -122,6 +145,12 @@ abstract class RustLibApi extends BaseApi {
       required bool concatenateMultiEntries});
 
   Future<void> crateApiExportRecordWriterWrite({required RecordWriter that});
+
+  Future<(double, double)> crateApiGisUtmToDd(
+      {required int zone,
+      required CardinalDirection hemisphere,
+      required double easting,
+      required double northing});
 
   Future<void> crateApiArchiveZipExtractorExtract({required ZipExtractor that});
 
@@ -195,6 +224,144 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<DdmCoordinateFfi> crateApiGisDdToDdm(
+      {required double dd, required bool isLatitude}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_f_64(dd, serializer);
+        sse_encode_bool(isLatitude, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 3, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_ddm_coordinate_ffi,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiGisDdToDdmConstMeta,
+      argValues: [dd, isLatitude],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGisDdToDdmConstMeta => const TaskConstMeta(
+        debugName: "dd_to_ddm",
+        argNames: ["dd", "isLatitude"],
+      );
+
+  @override
+  Future<DmsCoordinateFfi> crateApiGisDdToDms(
+      {required double dd, required bool isLatitude}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_f_64(dd, serializer);
+        sse_encode_bool(isLatitude, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 4, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_dms_coordinate_ffi,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiGisDdToDmsConstMeta,
+      argValues: [dd, isLatitude],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGisDdToDmsConstMeta => const TaskConstMeta(
+        debugName: "dd_to_dms",
+        argNames: ["dd", "isLatitude"],
+      );
+
+  @override
+  Future<UtmCoordinateFfi> crateApiGisDdToUtm(
+      {required double latitude, required double longitude}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_f_64(latitude, serializer);
+        sse_encode_f_64(longitude, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 5, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_utm_coordinate_ffi,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiGisDdToUtmConstMeta,
+      argValues: [latitude, longitude],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGisDdToUtmConstMeta => const TaskConstMeta(
+        debugName: "dd_to_utm",
+        argNames: ["latitude", "longitude"],
+      );
+
+  @override
+  Future<double> crateApiGisDdmToDd(
+      {required int degrees,
+      required double minutes,
+      required CardinalDirection direction}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_32(degrees, serializer);
+        sse_encode_f_64(minutes, serializer);
+        sse_encode_cardinal_direction(direction, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 6, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_f_64,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiGisDdmToDdConstMeta,
+      argValues: [degrees, minutes, direction],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGisDdmToDdConstMeta => const TaskConstMeta(
+        debugName: "ddm_to_dd",
+        argNames: ["degrees", "minutes", "direction"],
+      );
+
+  @override
+  Future<double> crateApiGisDmsToDd(
+      {required int degrees,
+      required int minutes,
+      required double seconds,
+      required CardinalDirection direction}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_32(degrees, serializer);
+        sse_encode_u_32(minutes, serializer);
+        sse_encode_f_64(seconds, serializer);
+        sse_encode_cardinal_direction(direction, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 7, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_f_64,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiGisDmsToDdConstMeta,
+      argValues: [degrees, minutes, seconds, direction],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGisDmsToDdConstMeta => const TaskConstMeta(
+        debugName: "dms_to_dd",
+        argNames: ["degrees", "minutes", "seconds", "direction"],
+      );
+
+  @override
   Future<void> crateApiExportExportCoordinates(
       {required String jsonContent,
       required String outputPath,
@@ -206,7 +373,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(outputPath, serializer);
         sse_encode_String(exportFormat, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 3, port: port_);
+            funcId: 8, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -236,7 +403,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(exportFormat, serializer);
         sse_encode_list_list_prim_u_8_strict(fontBytes, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 4, port: port_);
+            funcId: 9, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -260,7 +427,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 5, port: port_);
+            funcId: 10, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -278,6 +445,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<double> crateApiGisParseCoordinateString({required String s}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(s, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 11, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_f_64,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiGisParseCoordinateStringConstMeta,
+      argValues: [s],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGisParseCoordinateStringConstMeta =>
+      const TaskConstMeta(
+        debugName: "parse_coordinate_string",
+        argNames: ["s"],
+      );
+
+  @override
   Future<List<String>> crateApiImportRecordReaderGetExcelSheetNames(
       {required RecordReader that}) {
     return handler.executeNormal(NormalTask(
@@ -285,7 +477,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_record_reader(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 6, port: port_);
+            funcId: 12, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -312,7 +504,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_box_autoadd_record_reader(that, serializer);
         sse_encode_String(delimiter, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 7, port: port_);
+            funcId: 13, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_list_String,
@@ -339,7 +531,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_box_autoadd_record_reader(that, serializer);
         sse_encode_String(sheetName, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 8, port: port_);
+            funcId: 14, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_list_String,
@@ -365,7 +557,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(filePath, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 9, port: port_);
+            funcId: 15, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_record_reader,
@@ -399,7 +591,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(exportFormat, serializer);
         sse_encode_bool(concatenateMultiEntries, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 10, port: port_);
+            funcId: 16, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_record_writer,
@@ -436,7 +628,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_record_writer(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 11, port: port_);
+            funcId: 17, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -455,6 +647,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<(double, double)> crateApiGisUtmToDd(
+      {required int zone,
+      required CardinalDirection hemisphere,
+      required double easting,
+      required double northing}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_8(zone, serializer);
+        sse_encode_cardinal_direction(hemisphere, serializer);
+        sse_encode_f_64(easting, serializer);
+        sse_encode_f_64(northing, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 18, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_record_f_64_f_64,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiGisUtmToDdConstMeta,
+      argValues: [zone, hemisphere, easting, northing],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGisUtmToDdConstMeta => const TaskConstMeta(
+        debugName: "utm_to_dd",
+        argNames: ["zone", "hemisphere", "easting", "northing"],
+      );
+
+  @override
   Future<void> crateApiArchiveZipExtractorExtract(
       {required ZipExtractor that}) {
     return handler.executeNormal(NormalTask(
@@ -462,7 +685,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_zip_extractor(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 12, port: port_);
+            funcId: 19, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -489,7 +712,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(archivePath, serializer);
         sse_encode_String(outputDir, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 13, port: port_);
+            funcId: 20, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_zip_extractor,
@@ -519,7 +742,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_list_String(files, serializer);
         sse_encode_String(outputPath, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 14, port: port_);
+            funcId: 21, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_zip_writer,
@@ -544,7 +767,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_zip_writer(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 15, port: port_);
+            funcId: 22, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -599,6 +822,51 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CardinalDirection dco_decode_cardinal_direction(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CardinalDirection.values[raw as int];
+  }
+
+  @protected
+  DdmCoordinateFfi dco_decode_ddm_coordinate_ffi(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return DdmCoordinateFfi(
+      degrees: dco_decode_u_32(arr[0]),
+      minutes: dco_decode_f_64(arr[1]),
+      direction: dco_decode_cardinal_direction(arr[2]),
+    );
+  }
+
+  @protected
+  DmsCoordinateFfi dco_decode_dms_coordinate_ffi(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return DmsCoordinateFfi(
+      degrees: dco_decode_u_32(arr[0]),
+      minutes: dco_decode_u_32(arr[1]),
+      seconds: dco_decode_f_64(arr[2]),
+      direction: dco_decode_cardinal_direction(arr[3]),
+    );
+  }
+
+  @protected
+  double dco_decode_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
+  }
+
+  @protected
+  int dco_decode_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_String).toList();
@@ -629,6 +897,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  (double, double) dco_decode_record_f_64_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2) {
+      throw Exception('Expected 2 elements, got ${arr.length}');
+    }
+    return (
+      dco_decode_f_64(arr[0]),
+      dco_decode_f_64(arr[1]),
+    );
+  }
+
+  @protected
   RecordReader dco_decode_record_reader(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -655,6 +936,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int dco_decode_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
   int dco_decode_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -664,6 +951,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void dco_decode_unit(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return;
+  }
+
+  @protected
+  UtmCoordinateFfi dco_decode_utm_coordinate_ffi(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return UtmCoordinateFfi(
+      zone: dco_decode_u_8(arr[0]),
+      hemisphere: dco_decode_cardinal_direction(arr[1]),
+      easting: dco_decode_f_64(arr[2]),
+      northing: dco_decode_f_64(arr[3]),
+    );
   }
 
   @protected
@@ -733,6 +1034,50 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CardinalDirection sse_decode_cardinal_direction(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return CardinalDirection.values[inner];
+  }
+
+  @protected
+  DdmCoordinateFfi sse_decode_ddm_coordinate_ffi(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_degrees = sse_decode_u_32(deserializer);
+    var var_minutes = sse_decode_f_64(deserializer);
+    var var_direction = sse_decode_cardinal_direction(deserializer);
+    return DdmCoordinateFfi(
+        degrees: var_degrees, minutes: var_minutes, direction: var_direction);
+  }
+
+  @protected
+  DmsCoordinateFfi sse_decode_dms_coordinate_ffi(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_degrees = sse_decode_u_32(deserializer);
+    var var_minutes = sse_decode_u_32(deserializer);
+    var var_seconds = sse_decode_f_64(deserializer);
+    var var_direction = sse_decode_cardinal_direction(deserializer);
+    return DmsCoordinateFfi(
+        degrees: var_degrees,
+        minutes: var_minutes,
+        seconds: var_seconds,
+        direction: var_direction);
+  }
+
+  @protected
+  double sse_decode_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getFloat64();
+  }
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
+  }
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -788,6 +1133,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_field0 = sse_decode_f_64(deserializer);
+    var var_field1 = sse_decode_f_64(deserializer);
+    return (var_field0, var_field1);
+  }
+
+  @protected
   RecordReader sse_decode_record_reader(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_filePath = sse_decode_String(deserializer);
@@ -811,6 +1164,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int sse_decode_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint32();
+  }
+
+  @protected
   int sse_decode_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8();
@@ -819,6 +1178,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_decode_unit(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  UtmCoordinateFfi sse_decode_utm_coordinate_ffi(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_zone = sse_decode_u_8(deserializer);
+    var var_hemisphere = sse_decode_cardinal_direction(deserializer);
+    var var_easting = sse_decode_f_64(deserializer);
+    var var_northing = sse_decode_f_64(deserializer);
+    return UtmCoordinateFfi(
+        zone: var_zone,
+        hemisphere: var_hemisphere,
+        easting: var_easting,
+        northing: var_northing);
   }
 
   @protected
@@ -841,12 +1214,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         altParentDir: var_altParentDir,
         files: var_files,
         outputPath: var_outputPath);
-  }
-
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
   }
 
   @protected
@@ -887,6 +1254,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ZipWriter self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_zip_writer(self, serializer);
+  }
+
+  @protected
+  void sse_encode_cardinal_direction(
+      CardinalDirection self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_ddm_coordinate_ffi(
+      DdmCoordinateFfi self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.degrees, serializer);
+    sse_encode_f_64(self.minutes, serializer);
+    sse_encode_cardinal_direction(self.direction, serializer);
+  }
+
+  @protected
+  void sse_encode_dms_coordinate_ffi(
+      DmsCoordinateFfi self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.degrees, serializer);
+    sse_encode_u_32(self.minutes, serializer);
+    sse_encode_f_64(self.seconds, serializer);
+    sse_encode_cardinal_direction(self.direction, serializer);
+  }
+
+  @protected
+  void sse_encode_f_64(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putFloat64(self);
+  }
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
   }
 
   @protected
@@ -937,6 +1342,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_record_f_64_f_64(
+      (double, double) self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.$1, serializer);
+    sse_encode_f_64(self.$2, serializer);
+  }
+
+  @protected
   void sse_encode_record_reader(RecordReader self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.filePath, serializer);
@@ -953,6 +1366,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint32(self);
+  }
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self);
@@ -961,6 +1380,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_utm_coordinate_ffi(
+      UtmCoordinateFfi self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_8(self.zone, serializer);
+    sse_encode_cardinal_direction(self.hemisphere, serializer);
+    sse_encode_f_64(self.easting, serializer);
+    sse_encode_f_64(self.northing, serializer);
   }
 
   @protected
@@ -977,11 +1406,5 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.altParentDir, serializer);
     sse_encode_list_String(self.files, serializer);
     sse_encode_String(self.outputPath, serializer);
-  }
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putInt32(self);
   }
 }

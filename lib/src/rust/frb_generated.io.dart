@@ -6,6 +6,7 @@
 import 'api/archive.dart';
 import 'api/common.dart';
 import 'api/export.dart';
+import 'api/gis.dart';
 import 'api/import.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -40,6 +41,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ZipWriter dco_decode_box_autoadd_zip_writer(dynamic raw);
 
   @protected
+  CardinalDirection dco_decode_cardinal_direction(dynamic raw);
+
+  @protected
+  DdmCoordinateFfi dco_decode_ddm_coordinate_ffi(dynamic raw);
+
+  @protected
+  DmsCoordinateFfi dco_decode_dms_coordinate_ffi(dynamic raw);
+
+  @protected
+  double dco_decode_f_64(dynamic raw);
+
+  @protected
+  int dco_decode_i_32(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
@@ -55,16 +71,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
+  (double, double) dco_decode_record_f_64_f_64(dynamic raw);
+
+  @protected
   RecordReader dco_decode_record_reader(dynamic raw);
 
   @protected
   RecordWriter dco_decode_record_writer(dynamic raw);
 
   @protected
+  int dco_decode_u_32(dynamic raw);
+
+  @protected
   int dco_decode_u_8(dynamic raw);
 
   @protected
   void dco_decode_unit(dynamic raw);
+
+  @protected
+  UtmCoordinateFfi dco_decode_utm_coordinate_ffi(dynamic raw);
 
   @protected
   ZipExtractor dco_decode_zip_extractor(dynamic raw);
@@ -94,6 +119,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ZipWriter sse_decode_box_autoadd_zip_writer(SseDeserializer deserializer);
 
   @protected
+  CardinalDirection sse_decode_cardinal_direction(SseDeserializer deserializer);
+
+  @protected
+  DdmCoordinateFfi sse_decode_ddm_coordinate_ffi(SseDeserializer deserializer);
+
+  @protected
+  DmsCoordinateFfi sse_decode_dms_coordinate_ffi(SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
@@ -110,10 +150,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
+  (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer);
+
+  @protected
   RecordReader sse_decode_record_reader(SseDeserializer deserializer);
 
   @protected
   RecordWriter sse_decode_record_writer(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -122,13 +168,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  UtmCoordinateFfi sse_decode_utm_coordinate_ffi(SseDeserializer deserializer);
+
+  @protected
   ZipExtractor sse_decode_zip_extractor(SseDeserializer deserializer);
 
   @protected
   ZipWriter sse_decode_zip_writer(SseDeserializer deserializer);
-
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
@@ -153,6 +199,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ZipWriter self, SseSerializer serializer);
 
   @protected
+  void sse_encode_cardinal_direction(
+      CardinalDirection self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_ddm_coordinate_ffi(
+      DdmCoordinateFfi self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_dms_coordinate_ffi(
+      DmsCoordinateFfi self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
@@ -171,10 +235,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_record_f_64_f_64(
+      (double, double) self, SseSerializer serializer);
+
+  @protected
   void sse_encode_record_reader(RecordReader self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_writer(RecordWriter self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
@@ -183,13 +254,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_unit(void self, SseSerializer serializer);
 
   @protected
+  void sse_encode_utm_coordinate_ffi(
+      UtmCoordinateFfi self, SseSerializer serializer);
+
+  @protected
   void sse_encode_zip_extractor(ZipExtractor self, SseSerializer serializer);
 
   @protected
   void sse_encode_zip_writer(ZipWriter self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
 }
 
 // Section: wire_class

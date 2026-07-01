@@ -2201,9 +2201,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_export"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8811a94cf60d804554736412a374ea47de9e62d988e582551375d52c67d1855d"
+checksum = "54694350bd85008236e2bc6742a8f2f3ac8cdffc751781b526fbd550239ffb98"
 dependencies = [
  "chrono",
  "nahpu_db",
