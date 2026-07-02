@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
 /// Line style, thickness, and color for the template outline. Updates
 /// [onOutlineChanged] on every change; `null` means no border.

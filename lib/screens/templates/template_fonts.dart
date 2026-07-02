@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
 bool templateCanvasFontUsesGoogle(String fontFamilyRaw) {
   final f = fontFamilyRaw.trim().toLowerCase();

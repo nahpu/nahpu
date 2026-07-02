@@ -1,15 +1,15 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/components/properties/property_panel_shell.dart';
-import 'package:nahpu/screens/template_editor/components/properties/synced_dim_field.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
+import 'package:nahpu/screens/templates/components/properties/synced_dim_field.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
-class LinePropertiesPanel extends StatelessWidget {
-  const LinePropertiesPanel({
+class ShapePropertiesPanel extends StatelessWidget {
+  const ShapePropertiesPanel({
     super.key,
     required this.page1,
     required this.id,
-    required this.line,
+    required this.shape,
     required this.zIndexControls,
     required this.onUpdate,
     required this.onDelete,
@@ -19,9 +19,9 @@ class LinePropertiesPanel extends StatelessWidget {
 
   final bool page1;
   final String id;
-  final CustomLineElement line;
+  final CustomShapeElement shape;
   final Widget zIndexControls;
-  final void Function(bool page1, CustomLineElement element) onUpdate;
+  final void Function(bool page1, CustomShapeElement element) onUpdate;
   final void Function(bool page1, String id) onDelete;
   final bool inToolbar;
   final VoidCallback? onDismiss;
@@ -46,71 +46,73 @@ class LinePropertiesPanel extends StatelessWidget {
                   children: [
                     zIndexControls,
                     const SizedBox(width: 16),
-                    Text(
-                      'Thickness',
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
+                    Text('Stroke',
+                        style: Theme.of(context).textTheme.labelMedium),
                     const SizedBox(width: 8),
-                    _ThicknessPicker(
-                      value: line.thicknessPt,
-                      onChanged: (v) =>
-                          onUpdate(page1, line.copyWith(thicknessPt: v)),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      'Color',
-                      style: Theme.of(context).textTheme.labelMedium,
+                    _StrokePicker(
+                      value: shape.strokeThicknessPt,
+                      onChanged: (v) => onUpdate(
+                        page1,
+                        shape.copyWith(strokeThicknessPt: v),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     _ColorSwatch(
-                      color: Color(line.colorArgb),
+                      color: Color(shape.strokeColorArgb),
                       borderColor: scheme.outline,
-                      title: 'Select color',
+                      title: 'Select stroke color',
                       onPicked: (color) => onUpdate(
                         page1,
-                        line.copyWith(colorArgb: color.toARGB32()),
+                        shape.copyWith(strokeColorArgb: color.toARGB32()),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Text(
-                      'Length (mm)',
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
+                    Text('Fill',
+                        style: Theme.of(context).textTheme.labelMedium),
                     const SizedBox(width: 8),
-                    SizedBox(
-                      width: 64,
-                      child: SyncedDimField(
-                        key: ValueKey('line_len_$id'),
-                        value: line.lengthMm,
-                        min: 2.0,
-                        max: 200.0,
-                        onValidValue: (p) =>
-                            onUpdate(page1, line.copyWith(lengthMm: p)),
+                    _NullableFillSwatch(
+                      colorArgb: shape.fillColorArgb,
+                      borderColor: scheme.outline,
+                      onPicked: (color) => onUpdate(
+                        page1,
+                        shape.copyWith(fillColorArgb: color.toARGB32()),
                       ),
                     ),
-                    SizedBox(
-                      width: 100,
-                      child: TemplateOptionSlider(
-                        value: line.lengthMm.clamp(2.0, 200.0),
-                        min: 2.0,
-                        max: 200.0,
-                        divisions: 198,
-                        label: '${line.lengthMm.toStringAsFixed(1)} mm',
-                        onChanged: (v) =>
-                            onUpdate(page1, line.copyWith(lengthMm: v)),
+                    const SizedBox(width: 4),
+                    if (shape.fillColorArgb != null)
+                      IconButton(
+                        icon: const Icon(Icons.format_color_reset, size: 20),
+                        tooltip: 'Clear fill',
+                        onPressed: () => onUpdate(
+                          page1,
+                          shape.copyWith(clearFillColor: true),
+                        ),
                       ),
+                    const SizedBox(width: 16),
+                    _DimensionControl(
+                      id: 'shape_w_$id',
+                      label: 'Width (mm)',
+                      value: shape.widthMm,
+                      onChanged: (v) =>
+                          onUpdate(page1, shape.copyWith(widthMm: v)),
                     ),
                     const SizedBox(width: 16),
-                    Text(
-                      'Rotation',
-                      style: Theme.of(context).textTheme.labelMedium,
+                    _DimensionControl(
+                      id: 'shape_h_$id',
+                      label: 'Height (mm)',
+                      value: shape.heightMm,
+                      onChanged: (v) =>
+                          onUpdate(page1, shape.copyWith(heightMm: v)),
                     ),
+                    const SizedBox(width: 16),
+                    Text('Rotation',
+                        style: Theme.of(context).textTheme.labelMedium),
                     const SizedBox(width: 8),
                     _RotationPicker(
-                      value: line.rotationDegrees,
+                      value: shape.rotationDegrees,
                       onChanged: (v) => onUpdate(
                         page1,
-                        line.copyWith(rotationDegrees: v),
+                        shape.copyWith(rotationDegrees: v),
                       ),
                     ),
                   ],
@@ -120,7 +122,7 @@ class LinePropertiesPanel extends StatelessWidget {
             const SizedBox(width: 16),
             IconButton(
               icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-              tooltip: 'Delete line',
+              tooltip: 'Delete shape',
               onPressed: () => onDelete(page1, id),
             ),
           ],
@@ -130,13 +132,69 @@ class LinePropertiesPanel extends StatelessWidget {
   }
 }
 
-class _ThicknessPicker extends StatelessWidget {
-  const _ThicknessPicker({
+class _DimensionControl extends StatelessWidget {
+  const _DimensionControl({
+    required this.id,
+    required this.label,
     required this.value,
     required this.onChanged,
   });
 
-  static const values = [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0];
+  final String id;
+  final String label;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 64,
+          child: SyncedDimField(
+            key: ValueKey(id),
+            value: value,
+            min: 2.0,
+            max: 200.0,
+            onValidValue: onChanged,
+          ),
+        ),
+        SizedBox(
+          width: 100,
+          child: TemplateOptionSlider(
+            value: value.clamp(2.0, 200.0),
+            min: 2.0,
+            max: 200.0,
+            divisions: 198,
+            label: '${value.toStringAsFixed(1)} mm',
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StrokePicker extends StatelessWidget {
+  const _StrokePicker({
+    required this.value,
+    required this.onChanged,
+  });
+
+  static const values = [
+    0.0,
+    0.25,
+    0.5,
+    1.0,
+    1.5,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    6.0,
+  ];
 
   final double value;
   final ValueChanged<double> onChanged;
@@ -186,18 +244,46 @@ class _RotationPicker extends StatelessWidget {
   }
 }
 
+class _NullableFillSwatch extends StatelessWidget {
+  const _NullableFillSwatch({
+    required this.colorArgb,
+    required this.borderColor,
+    required this.onPicked,
+  });
+
+  final int? colorArgb;
+  final Color borderColor;
+  final ValueChanged<Color> onPicked;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return _ColorSwatch(
+      color: colorArgb != null ? Color(colorArgb!) : Colors.white,
+      borderColor: borderColor,
+      title: 'Select fill color',
+      onPicked: onPicked,
+      child: colorArgb == null
+          ? Icon(Icons.close, size: 16, color: scheme.onSurfaceVariant)
+          : null,
+    );
+  }
+}
+
 class _ColorSwatch extends StatelessWidget {
   const _ColorSwatch({
     required this.color,
     required this.borderColor,
     required this.title,
     required this.onPicked,
+    this.child,
   });
 
   final Color color;
   final Color borderColor;
   final String title;
   final ValueChanged<Color> onPicked;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +293,7 @@ class _ColorSwatch extends StatelessWidget {
         final picked = await ColorPicker(
           color: selectedColor,
           onColorChanged: (c) => selectedColor = c,
+          enableShadesSelection: true,
           heading: Text(title, style: Theme.of(context).textTheme.titleSmall),
           subheading: Text(
             'Select color shade',
@@ -240,10 +327,11 @@ class _ColorSwatch extends StatelessWidget {
         width: 24,
         height: 24,
         decoration: BoxDecoration(
-          color: color,
+          color: child == null ? color : Colors.transparent,
           border: Border.all(color: borderColor),
           borderRadius: BorderRadius.circular(4),
         ),
+        child: child,
       ),
     );
   }

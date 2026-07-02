@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/components/canvas/template_canvas_editor.dart';
-import 'package:nahpu/screens/template_editor/components/controls/zoom_controls.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/components/canvas/template_canvas_editor.dart';
+import 'package:nahpu/screens/templates/components/controls/zoom_controls.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
 class TemplateCanvasWorkspace extends StatelessWidget {
   const TemplateCanvasWorkspace({

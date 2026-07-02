@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/components/properties/property_panel_shell.dart';
+import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 
 class ImagePropertiesPanel extends StatelessWidget {
   const ImagePropertiesPanel({

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/template_editor_screen.dart';
+import 'package:nahpu/screens/templates/template_editor_screen.dart';
 
 class TemplateEditorSettingsScreen extends StatelessWidget {
   const TemplateEditorSettingsScreen({super.key});

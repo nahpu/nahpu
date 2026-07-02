@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/template_border_sheet.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/template_border_sheet.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
 class TemplateBorderPanel extends StatelessWidget {
   const TemplateBorderPanel({

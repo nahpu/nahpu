@@ -5,7 +5,7 @@ import 'package:nahpu/services/io_services.dart';
 
 import 'package:flutter/services.dart' show rootBundle, AssetManifest;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/label_settings_services.dart';

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/template_editor_math.dart';
-import 'package:nahpu/screens/template_editor/template_fonts.dart';
+import 'package:nahpu/screens/templates/template_editor_math.dart';
+import 'package:nahpu/screens/templates/template_fonts.dart';
 
 const double _kPdfPointsPerMm = 72.0 / 25.4;
 

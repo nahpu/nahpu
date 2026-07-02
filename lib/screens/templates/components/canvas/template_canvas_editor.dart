@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/template_outline.dart'
+import 'package:nahpu/screens/templates/template_outline.dart'
     show templateAreaStackDecoration, TemplateOutlineOverlayPainter;
-import 'package:nahpu/screens/template_editor/template_gender_icon.dart'
+import 'package:nahpu/screens/templates/template_gender_icon.dart'
     show templateGenderIconForFieldKey;
 import 'package:nahpu/services/export/label_writer.dart'
     show substituteLabelPlaceholders;
-import 'package:nahpu/screens/template_editor/template_model.dart';
-import 'package:nahpu/screens/template_editor/components/canvas/draggable_chip.dart';
-import 'package:nahpu/screens/template_editor/components/canvas/draggable_image_chip.dart';
-import 'package:nahpu/screens/template_editor/components/canvas/draggable_line_chip.dart';
-import 'package:nahpu/screens/template_editor/components/canvas/draggable_shape_chip.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
+import 'package:nahpu/screens/templates/components/canvas/draggable_image_chip.dart';
+import 'package:nahpu/screens/templates/components/canvas/draggable_line_chip.dart';
+import 'package:nahpu/screens/templates/components/canvas/draggable_shape_chip.dart';
 import 'package:nahpu/screens/shared/qr.dart' show QrImageView;
 
 import 'dart:math' as math;
-import 'package:nahpu/screens/template_editor/template_canvas_stack.dart';
-import 'package:nahpu/screens/template_editor/components/canvas/grid_painter.dart';
+import 'package:nahpu/screens/templates/template_canvas_stack.dart';
+import 'package:nahpu/screens/templates/components/canvas/grid_painter.dart';
 
 const double _kTemplateCanvasHitPadPx = 72.0;
 

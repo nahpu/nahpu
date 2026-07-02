@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/components/properties/image_properties_panel.dart';
-import 'package:nahpu/screens/template_editor/components/properties/line_properties_panel.dart';
-import 'package:nahpu/screens/template_editor/components/properties/shape_properties_panel.dart';
-import 'package:nahpu/screens/template_editor/components/properties/text_properties_panel.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/components/properties/image_properties_panel.dart';
+import 'package:nahpu/screens/templates/components/properties/line_properties_panel.dart';
+import 'package:nahpu/screens/templates/components/properties/shape_properties_panel.dart';
+import 'package:nahpu/screens/templates/components/properties/text_properties_panel.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
 class TemplateElementPropertiesPanel extends StatelessWidget {
   const TemplateElementPropertiesPanel({

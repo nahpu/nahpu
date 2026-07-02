@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/components/canvas/template_canvas_workspace.dart';
-import 'package:nahpu/screens/template_editor/components/controls/template_editor_toolbar.dart';
-import 'package:nahpu/screens/template_editor/components/properties/template_element_properties_panel.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/components/canvas/template_canvas_workspace.dart';
+import 'package:nahpu/screens/templates/components/controls/template_editor_toolbar.dart';
+import 'package:nahpu/screens/templates/components/properties/template_element_properties_panel.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
 class TemplateEditorScaffold extends StatelessWidget {
   const TemplateEditorScaffold({

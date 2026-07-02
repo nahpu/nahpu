@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/exports/components/label_page_preview.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/export/label_writer.dart';
 
 class LabelPreviewPane extends StatelessWidget {

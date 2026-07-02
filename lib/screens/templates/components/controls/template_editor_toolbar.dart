@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/components/controls/front_back_page_pickers.dart';
-import 'package:nahpu/screens/template_editor/components/controls/mirror_toggle_button.dart';
-import 'package:nahpu/screens/template_editor/template_size_selector.dart';
+import 'package:nahpu/screens/templates/components/controls/front_back_page_pickers.dart';
+import 'package:nahpu/screens/templates/components/controls/mirror_toggle_button.dart';
+import 'package:nahpu/screens/templates/template_size_selector.dart';
 
 class TemplateEditorToolbar extends StatelessWidget {
   const TemplateEditorToolbar({

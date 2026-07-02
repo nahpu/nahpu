@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
 /// PDF points per mm (same as template PDF helpers).
 const double kTemplateOutlinePdfPointsPerMm = 72.0 / 25.4;

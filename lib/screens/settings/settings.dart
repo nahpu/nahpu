@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/template_editor/template_editor_settings.dart';
+import 'package:nahpu/screens/templates/template_editor_settings.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';

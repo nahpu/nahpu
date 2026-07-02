@@ -3,23 +3,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:nahpu/screens/template_editor/components/dialogs/template_exists_dialog.dart';
-import 'package:nahpu/screens/template_editor/components/dialogs/template_image_picker_dialog.dart';
-import 'package:nahpu/screens/template_editor/components/layout/template_border_panel.dart';
-import 'package:nahpu/screens/template_editor/components/layout/template_editor_loading.dart';
-import 'package:nahpu/screens/template_editor/template_editor_math.dart';
-import 'package:nahpu/screens/template_editor/template_fonts.dart';
-import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/templates/components/dialogs/template_exists_dialog.dart';
+import 'package:nahpu/screens/templates/components/dialogs/template_image_picker_dialog.dart';
+import 'package:nahpu/screens/templates/components/layout/template_border_panel.dart';
+import 'package:nahpu/screens/templates/components/layout/template_editor_loading.dart';
+import 'package:nahpu/screens/templates/template_editor_math.dart';
+import 'package:nahpu/screens/templates/template_fonts.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/template_editor_service.dart';
 import 'package:nahpu/services/export/label_writer.dart';
-import 'package:nahpu/screens/template_editor/components/layout/template_editor_scaffold.dart';
-import 'package:nahpu/screens/template_editor/components/properties/text_element_editor.dart';
+import 'package:nahpu/screens/templates/components/layout/template_editor_scaffold.dart';
+import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/screens/template_editor/template_preview_specimen_selection.dart';
+import 'package:nahpu/screens/templates/template_preview_specimen_selection.dart';
 
 class TemplateEditorScreen extends ConsumerStatefulWidget {
   const TemplateEditorScreen({super.key});
