@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/exports/labels/label_outline.dart'
+import 'package:nahpu/screens/template_editor/label_outline.dart'
     show labelAreaStackDecoration, LabelOutlineOverlayPainter;
-import 'package:nahpu/screens/exports/labels/label_gender_icon.dart'
+import 'package:nahpu/screens/template_editor/label_gender_icon.dart'
     show labelGenderIconForFieldKey;
 import 'package:nahpu/services/export/label_writer.dart'
     show substituteLabelPlaceholders;
-import 'package:nahpu/screens/exports/labels/label_template_model.dart';
-import 'package:nahpu/screens/exports/labels/components/draggable_chip.dart';
-import 'package:nahpu/screens/exports/labels/components/draggable_image_chip.dart';
-import 'package:nahpu/screens/exports/labels/components/draggable_line_chip.dart';
-import 'package:nahpu/screens/exports/labels/components/draggable_shape_chip.dart';
+import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/components/draggable_chip.dart';
+import 'package:nahpu/screens/template_editor/components/draggable_image_chip.dart';
+import 'package:nahpu/screens/template_editor/components/draggable_line_chip.dart';
+import 'package:nahpu/screens/template_editor/components/draggable_shape_chip.dart';
 import 'package:nahpu/screens/shared/qr.dart' show QrImageView;
 
 import 'dart:math' as math;
-import 'package:nahpu/screens/exports/labels/label_canvas_stack.dart';
-import 'package:nahpu/screens/exports/labels/components/grid_painter.dart';
+import 'package:nahpu/screens/template_editor/label_canvas_stack.dart';
+import 'package:nahpu/screens/template_editor/components/grid_painter.dart';
 
 const double _kLabelCanvasHitPadPx = 72.0;
 

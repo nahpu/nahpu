@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as path;
-import 'package:nahpu/screens/exports/labels/label_template_model.dart';
-import 'package:nahpu/screens/exports/labels/label_template_editor_screen.dart';
+import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/label_template_editor_screen.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/label_page_setup_service.dart';
@@ -18,9 +18,9 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/exports/components/specimen_selection.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/export/export_label.dart';
-import 'package:nahpu/screens/exports/labels/components/column_picker.dart';
-import 'package:nahpu/screens/exports/labels/components/label_preview_pane.dart';
-import 'package:nahpu/screens/exports/labels/components/label_settings_pane.dart';
+import 'package:nahpu/screens/exports/components/column_picker.dart';
+import 'package:nahpu/screens/exports/components/label_preview_pane.dart';
+import 'package:nahpu/screens/exports/components/label_settings_pane.dart';
 
 class ExportLabelsView extends ConsumerStatefulWidget {
   const ExportLabelsView({super.key});

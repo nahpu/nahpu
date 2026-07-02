@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/exports/labels/label_template_editor_screen.dart';
+import 'package:nahpu/screens/template_editor/label_template_editor_screen.dart';
 
-class LabelSettingsScreen extends StatelessWidget {
-  const LabelSettingsScreen({super.key});
+class TemplateEditorSettingsScreen extends StatelessWidget {
+  const TemplateEditorSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class LabelSettingsScreen extends StatelessWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.edit_note_outlined),
-            title: const Text('Label template editor'),
+            title: const Text('Template editor'),
             subtitle: const Text('Design front/back layouts and placeholders'),
             onTap: () {
               Navigator.push<void>(

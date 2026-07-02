@@ -4,25 +4,25 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:nahpu/screens/exports/labels/label_border_sheet.dart';
-import 'package:nahpu/screens/exports/labels/label_size_selector.dart';
-import 'package:nahpu/screens/exports/labels/label_template_fonts.dart';
-import 'package:nahpu/screens/exports/labels/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/label_border_sheet.dart';
+import 'package:nahpu/screens/template_editor/label_size_selector.dart';
+import 'package:nahpu/screens/template_editor/label_template_fonts.dart';
+import 'package:nahpu/screens/template_editor/label_template_model.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 import 'package:nahpu/services/label_template_service.dart';
 import 'package:nahpu/services/label_template_editor_service.dart';
 import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/services/label_logo_service.dart';
-import 'package:nahpu/screens/exports/labels/components/label_canvas_editor.dart';
-import 'package:nahpu/screens/exports/labels/components/label_element_properties_panel.dart';
-import 'package:nahpu/screens/exports/labels/components/text_element_editor.dart';
+import 'package:nahpu/screens/template_editor/components/label_canvas_editor.dart';
+import 'package:nahpu/screens/template_editor/components/label_element_properties_panel.dart';
+import 'package:nahpu/screens/template_editor/components/text_element_editor.dart';
 
-import 'package:nahpu/screens/exports/labels/components/front_back_page_pickers.dart';
-import 'package:nahpu/screens/exports/labels/components/zoom_controls.dart';
-import 'package:nahpu/screens/exports/labels/components/mirror_toggle_button.dart';
+import 'package:nahpu/screens/template_editor/components/front_back_page_pickers.dart';
+import 'package:nahpu/screens/template_editor/components/zoom_controls.dart';
+import 'package:nahpu/screens/template_editor/components/mirror_toggle_button.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/screens/exports/labels/label_preview_specimen_selection.dart';
+import 'package:nahpu/screens/template_editor/label_preview_specimen_selection.dart';
 import 'package:path/path.dart' as path;
 
 /// PDF points per mm (72 / 25.4); keep in sync with `labelPdfMmToPt`.
@@ -387,7 +387,7 @@ class _LabelTemplateEditorScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Label Editor'),
+        title: const Text('Template Editor'),
         actions: [
           IconButton(
             onPressed: _promptSaveTemplate,

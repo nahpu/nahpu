@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/export/label_writer.dart';
-import 'package:nahpu/screens/exports/labels/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/label_template_model.dart';
 
 void main() {
   group('LabelWriter text substitutions', () {

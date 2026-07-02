@@ -2,11 +2,11 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/exports/labels/label_gender_icon.dart';
-import 'package:nahpu/screens/exports/labels/label_outline.dart';
+import 'package:nahpu/screens/template_editor/label_gender_icon.dart';
+import 'package:nahpu/screens/template_editor/label_outline.dart';
 import 'package:nahpu/services/export/label_writer.dart';
-import 'package:nahpu/screens/exports/labels/label_template_fonts.dart';
-import 'package:nahpu/screens/exports/labels/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/label_template_fonts.dart';
+import 'package:nahpu/screens/template_editor/label_template_model.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;

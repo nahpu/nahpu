@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/exports/labels/label_settings.dart';
+import 'package:nahpu/screens/template_editor/template_editor_settings.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
@@ -244,7 +244,7 @@ class ExportSettingsSection extends StatelessWidget {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute<void>(
-              builder: (context) => const LabelSettingsScreen(),
+              builder: (context) => const TemplateEditorSettingsScreen(),
             ),
           ),
         ),

@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:nahpu/screens/exports/labels/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/label_template_model.dart';
 import 'package:nahpu/services/label_logo_service.dart';
 
 class LabelTemplateEditorService {

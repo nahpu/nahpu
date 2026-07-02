@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/exports/labels/label_template_model.dart';
-import 'package:nahpu/screens/exports/labels/label_template_fonts.dart';
-import 'package:nahpu/screens/exports/labels/components/synced_font_size_field.dart';
-import 'package:nahpu/screens/exports/labels/components/synced_max_width_field.dart';
-import 'package:nahpu/screens/exports/labels/components/synced_dim_field.dart';
+import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/label_template_fonts.dart';
+import 'package:nahpu/screens/template_editor/components/synced_font_size_field.dart';
+import 'package:nahpu/screens/template_editor/components/synced_max_width_field.dart';
+import 'package:nahpu/screens/template_editor/components/synced_dim_field.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
 class LabelElementPropertiesPanel extends StatelessWidget {

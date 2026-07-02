@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/exports/labels/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/label_template_model.dart';
 import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:pdfrx/pdfrx.dart';
