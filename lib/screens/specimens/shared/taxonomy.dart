@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/platform_services.dart';
@@ -10,6 +11,7 @@ import 'package:nahpu/screens/shared/layout.dart';
 
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/utility_services.dart';
 
 class TaxonomicForm extends ConsumerWidget {
   const TaxonomicForm({
@@ -71,7 +73,12 @@ class TaxonomicForm extends ConsumerWidget {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Taxon Info'),
+          title: TaxonInfoTitle(
+            genus: taxonData.genus,
+            specificEpithet: taxonData.specificEpithet,
+            authors: taxonData.authors,
+            commonName: taxonData.commonName,
+          ),
           content: TaxonDetailsView(taxonData: taxonData),
           actions: [
             TextButton(
@@ -87,16 +94,17 @@ class TaxonomicForm extends ConsumerWidget {
         isScrollControlled: true,
         builder: (context) => SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Taxon Info',
-                  style: Theme.of(context).textTheme.titleLarge,
+                TaxonInfoTitle(
+                  genus: taxonData.genus,
+                  specificEpithet: taxonData.specificEpithet,
+                  authors: taxonData.authors,
+                  commonName: taxonData.commonName,
                 ),
-                const SizedBox(height: 16),
                 Flexible(
                   child: TaxonDetailsView(taxonData: taxonData),
                 ),
@@ -106,6 +114,50 @@ class TaxonomicForm extends ConsumerWidget {
         ),
       );
     }
+  }
+}
+
+class TaxonInfoTitle extends StatelessWidget {
+  const TaxonInfoTitle({
+    super.key,
+    required this.genus,
+    required this.specificEpithet,
+    required this.authors,
+    required this.commonName,
+  });
+
+  final String? genus;
+  final String? specificEpithet;
+  final String? authors;
+  final String? commonName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '${genus ?? "N/A"} ${specificEpithet ?? "N/A"}',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w400,
+              fontStyle: FontStyle.italic,
+              fontFamily: "Merriweather"),
+        ),
+        if (authors != null && authors!.isNotEmpty)
+          Text(
+            '${authors!}, ',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        if (commonName != null && commonName!.isNotEmpty)
+          Text(
+            commonName!.toCommonName(),
+            style: Theme.of(context).textTheme.bodyMedium,
+            overflow: TextOverflow.visible,
+          ),
+        Divider(color: Theme.of(context).dividerColor, thickness: 1)
+      ],
+    );
   }
 }
 
@@ -122,7 +174,7 @@ class TaxonDetailsView extends StatelessWidget {
     return SingleChildScrollView(
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         Text(
           'Classification',
@@ -141,7 +193,6 @@ class TaxonDetailsView extends StatelessWidget {
           isItalic: true,
         ),
         TaxonDetailRow(label: 'Authors', value: taxonData.authors),
-        TaxonDetailRow(label: 'Common name', value: taxonData.commonName),
         const SizedBox(height: 8),
         if (taxonData.redListCategory != null &&
             taxonData.redListCategory!.isNotEmpty)

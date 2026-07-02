@@ -200,6 +200,15 @@ extension StringExtension on String {
     }
   }
 
+  /// Replace any "|", ";", "/", "," with middot "·"
+  String toCommonName() {
+    final spacedMiddot = ' · ';
+    return replaceAll('|', spacedMiddot)
+        .replaceAll(';', spacedMiddot)
+        .replaceAll('/', spacedMiddot)
+        .replaceAll(',', spacedMiddot);
+  }
+
   String toTitleCase() {
     try {
       return split(' ').map((word) => word.toSentenceCase()).join(' ');
