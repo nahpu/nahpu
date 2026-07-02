@@ -24,7 +24,7 @@ class TaxonomicForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
-      title: 'Taxonomy',
+      title: 'Taxon Info',
       infoContent: const TaxonomyInfoContent(),
       mainAxisAlignment: MainAxisAlignment.center,
       child: ref.watch(taxonDataProvider(specimenUuid)).when(
@@ -71,7 +71,7 @@ class TaxonomicForm extends ConsumerWidget {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Taxonomy'),
+          title: const Text('Taxon Info'),
           content: TaxonDetailsView(taxonData: taxonData),
           actions: [
             TextButton(
@@ -93,7 +93,7 @@ class TaxonomicForm extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Taxonomy',
+                  'Taxon Info',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 16),
@@ -120,56 +120,49 @@ class TaxonDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            ),
-            child: Column(
-              children: [
-                TaxonDetailRow(
-                    label: 'Kingdom', value: getKingdom(taxonData.taxonClass)),
-                TaxonDetailRow(
-                    label: 'Phylum', value: getPhylum(taxonData.taxonClass)),
-                TaxonDetailRow(label: 'Class', value: taxonData.taxonClass),
-                TaxonDetailRow(label: 'Order', value: taxonData.taxonOrder),
-                TaxonDetailRow(label: 'Family', value: taxonData.taxonFamily),
-                TaxonDetailRow(
-                    label: 'Genus', value: taxonData.genus, isItalic: true),
-                TaxonDetailRow(
-                  label: 'Species',
-                  value: '${taxonData.genus} ${taxonData.specificEpithet}',
-                  isItalic: true,
-                ),
-                TaxonDetailRow(label: 'Authors', value: taxonData.authors),
-                TaxonDetailRow(
-                    label: 'Common name', value: taxonData.commonName),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (taxonData.redListCategory != null &&
-              taxonData.redListCategory!.isNotEmpty)
-            TaxonDetailRow(
-              label: 'Red List category:',
-              isStacked: true,
-              customValue:
-                  RedListCategoryPill(category: taxonData.redListCategory!),
-            ),
-          TaxonDetailRow(label: 'CITES status:', value: taxonData.citesStatus),
+        child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Classification',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        TaxonDetailRow(
+            label: 'Kingdom', value: getKingdom(taxonData.taxonClass)),
+        TaxonDetailRow(label: 'Phylum', value: getPhylum(taxonData.taxonClass)),
+        TaxonDetailRow(label: 'Class', value: taxonData.taxonClass),
+        TaxonDetailRow(label: 'Order', value: taxonData.taxonOrder),
+        TaxonDetailRow(label: 'Family', value: taxonData.taxonFamily),
+        TaxonDetailRow(label: 'Genus', value: taxonData.genus, isItalic: true),
+        TaxonDetailRow(
+          label: 'Species',
+          value: '${taxonData.genus} ${taxonData.specificEpithet}',
+          isItalic: true,
+        ),
+        TaxonDetailRow(label: 'Authors', value: taxonData.authors),
+        TaxonDetailRow(label: 'Common name', value: taxonData.commonName),
+        const SizedBox(height: 8),
+        if (taxonData.redListCategory != null &&
+            taxonData.redListCategory!.isNotEmpty)
           TaxonDetailRow(
-              label: 'Country status:',
-              value: taxonData.countryStatus,
-              isStacked: true),
-          TaxonDetailRow(label: 'Notes:', value: taxonData.notes),
-        ],
-      ),
-    );
+            label: 'Red List category',
+            isStacked: true,
+            customValue:
+                RedListCategoryPill(category: taxonData.redListCategory!),
+          ),
+        TaxonDetailRow(label: 'CITES status', value: taxonData.citesStatus),
+        TaxonDetailRow(
+            label: 'Country status',
+            isStacked: true,
+            value: taxonData.countryStatus),
+        TaxonDetailRow(
+          label: 'Notes',
+          isStacked: true,
+          value: taxonData.notes,
+        ),
+      ],
+    ));
   }
 }
 
@@ -184,7 +177,7 @@ class RedListCategoryPill extends StatelessWidget {
     final textColor =
         bgColor.computeLuminance() > 0.3 ? Colors.black : Colors.white;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(20),
@@ -300,7 +293,7 @@ class TaxonText extends StatelessWidget {
       children: [
         Text(
           rank,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
