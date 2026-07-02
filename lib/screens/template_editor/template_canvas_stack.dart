@@ -3,8 +3,8 @@ import 'package:flutter/widgets.dart';
 
 /// [RenderStack] that hit-tests children when [clipBehavior] is [Clip.none],
 /// even if [position] lies outside the stack’s layout size (overflow chips).
-class RenderLabelCanvasStack extends RenderStack {
-  RenderLabelCanvasStack({
+class RenderTemplateCanvasStack extends RenderStack {
+  RenderTemplateCanvasStack({
     super.children,
     super.alignment,
     super.textDirection,
@@ -26,9 +26,9 @@ class RenderLabelCanvasStack extends RenderStack {
   }
 }
 
-/// Stack for label chips; use [Clip.none] so overflow stays interactive.
-class LabelCanvasStack extends MultiChildRenderObjectWidget {
-  const LabelCanvasStack({
+/// Stack for template chips; use [Clip.none] so overflow stays interactive.
+class TemplateCanvasStack extends MultiChildRenderObjectWidget {
+  const TemplateCanvasStack({
     super.key,
     this.alignment = AlignmentDirectional.topStart,
     this.textDirection,
@@ -43,8 +43,8 @@ class LabelCanvasStack extends MultiChildRenderObjectWidget {
   final Clip clipBehavior;
 
   @override
-  RenderLabelCanvasStack createRenderObject(BuildContext context) {
-    return RenderLabelCanvasStack(
+  RenderTemplateCanvasStack createRenderObject(BuildContext context) {
+    return RenderTemplateCanvasStack(
       alignment: alignment,
       textDirection: textDirection ?? Directionality.maybeOf(context),
       fit: fit,
@@ -55,7 +55,7 @@ class LabelCanvasStack extends MultiChildRenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    covariant RenderLabelCanvasStack renderObject,
+    covariant RenderTemplateCanvasStack renderObject,
   ) {
     renderObject
       ..alignment = alignment

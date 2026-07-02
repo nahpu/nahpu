@@ -1,17 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/label_template_editor_screen.dart';
-import 'package:nahpu/screens/template_editor/label_template_fonts.dart';
+import 'package:nahpu/screens/template_editor/template_editor_math.dart';
+import 'package:nahpu/screens/template_editor/template_fonts.dart';
 
 const double _kPdfPointsPerMm = 72.0 / 25.4;
-double _canvasScaleForMmMath(double scale) => scale < 1e-9 ? 1e-9 : scale;
-
-double _clampMm(double value, double bound1, double bound2) {
-  final lo = bound1 <= bound2 ? bound1 : bound2;
-  final hi = bound1 <= bound2 ? bound2 : bound1;
-  if (value.isNaN || value.isInfinite) return lo;
-  return value.clamp(lo, hi);
-}
 
 class DraggableChip extends StatefulWidget {
   const DraggableChip({
@@ -26,11 +18,11 @@ class DraggableChip extends StatefulWidget {
     this.textAlign = TextAlign.left,
     this.rotationDegrees = 0,
     required this.scale,
-    required this.labelWidthMm,
-    required this.labelHeightMm,
+    required this.templateWidthMm,
+    required this.templateHeightMm,
     this.canvasInsetXPx = 0,
     this.canvasInsetYPx = 0,
-    required this.labelPanToMmDelta,
+    required this.templatePanToMmDelta,
     required this.onMoved,
     this.isCustom = false,
     this.isSelected = false,
@@ -55,13 +47,13 @@ class DraggableChip extends StatefulWidget {
   final TextAlign textAlign;
   final int rotationDegrees;
   final double scale;
-  final double labelWidthMm;
-  final double labelHeightMm;
+  final double templateWidthMm;
+  final double templateHeightMm;
 
   /// See [_DraggableImageChip.canvasInsetXPx].
   final double canvasInsetXPx;
   final double canvasInsetYPx;
-  final LabelPanMmDeltaCallback labelPanToMmDelta;
+  final TemplatePanMmDeltaCallback templatePanToMmDelta;
   final void Function(Offset newPosMm) onMoved;
   final bool isCustom;
   final bool isSelected;
@@ -100,8 +92,8 @@ class DraggableChipState extends State<DraggableChip> {
   Offset? _resizeStartPosMm;
   Offset? _resizeLivePosMm;
 
-  /// [DragUpdateDetails.delta] is local; track global positions for label mm.
-  Offset? _labelDragLastGlobal;
+  /// [DragUpdateDetails.delta] is local; track global positions for template mm.
+  Offset? _templateDragLastGlobal;
 
   /// Parent template updates are deferred to post-frame; [widget.position] stays
   /// stale across multiple [onPanUpdate] calls, so we accumulate from drag start
@@ -109,22 +101,21 @@ class DraggableChipState extends State<DraggableChip> {
   Offset? _panOriginMm;
   Offset _panAccumMm = Offset.zero;
   Offset? _dragLiveMm;
-  int _labelDragSession = 0;
+  int _templateDragSession = 0;
 
-  Offset _mmDeltaForLabelPan(DragUpdateDetails d) {
-    final last = _labelDragLastGlobal ?? d.globalPosition;
+  Offset _mmDeltaForTemplatePan(DragUpdateDetails d) {
+    final last = _templateDragLastGlobal ?? d.globalPosition;
     final gDelta = d.globalPosition - last;
-    _labelDragLastGlobal = d.globalPosition;
-    final s = _canvasScaleForMmMath(widget.scale);
-    final fromStack = widget.labelPanToMmDelta(d.globalPosition, gDelta);
+    _templateDragLastGlobal = d.globalPosition;
+    final fromStack = widget.templatePanToMmDelta(d.globalPosition, gDelta);
     if (fromStack != null) return fromStack;
-    return Offset(gDelta.dx / s, gDelta.dy / s);
+    return pixelsToTemplateMm(gDelta, widget.scale);
   }
 
   void _onResizePanStart(DragStartDetails d, _TextCorner corner) {
     widget.onDragStateChanged?.call(true);
     final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
-    final textStyle = customLabelCanvasTextStyle(
+    final textStyle = customTemplateCanvasTextStyle(
       fontFamilyRaw: widget.fontFamily,
       fontSize: fontPx,
       fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
@@ -154,9 +145,9 @@ class DraggableChipState extends State<DraggableChip> {
       return;
     }
     final gDelta = d.globalPosition - _resizeStartGlobal!;
-    final s = _canvasScaleForMmMath(widget.scale);
-    final fromStack = widget.labelPanToMmDelta(d.globalPosition, gDelta);
-    final deltaMm = fromStack != null ? fromStack.dx : (gDelta.dx / s);
+    final fromStack = widget.templatePanToMmDelta(d.globalPosition, gDelta);
+    final deltaMm =
+        fromStack?.dx ?? pixelsToTemplateMm(gDelta, widget.scale).dx;
 
     var newWidth = _resizeStartWidthMm!;
     var newX = _resizeStartPosMm!.dx;
@@ -181,8 +172,8 @@ class DraggableChipState extends State<DraggableChip> {
         break;
     }
 
-    newWidth = newWidth.clamp(5.0, widget.labelWidthMm);
-    newX = newX.clamp(0.0, math.max(0.0, widget.labelWidthMm - 5.0));
+    newWidth = newWidth.clamp(5.0, widget.templateWidthMm);
+    newX = newX.clamp(0.0, math.max(0.0, widget.templateWidthMm - 5.0));
 
     setState(() {
       _resizeLiveWidthMm = newWidth;
@@ -208,41 +199,41 @@ class DraggableChipState extends State<DraggableChip> {
     });
   }
 
-  void _onLabelPanStart(DragStartDetails d) {
+  void _onTemplatePanStart(DragStartDetails d) {
     widget.onDragStateChanged?.call(true);
     if (widget.isCustom && !widget.isSelected) {
       widget.onSelect?.call();
     }
-    _labelDragSession++;
+    _templateDragSession++;
     _panOriginMm = widget.position;
     _panAccumMm = Offset.zero;
     _dragLiveMm = null;
     _deferSetState(() => _dragging = true);
-    _labelDragLastGlobal = d.globalPosition;
+    _templateDragLastGlobal = d.globalPosition;
   }
 
-  void _finishLabelPanGesture() {
-    final session = _labelDragSession;
+  void _finishTemplatePanGesture() {
+    final session = _templateDragSession;
     if (_dragLiveMm != null) {
       widget.onMoved(_dragLiveMm!);
     }
-    _labelDragLastGlobal = null;
+    _templateDragLastGlobal = null;
     _panOriginMm = null;
     _panAccumMm = Offset.zero;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || session != _labelDragSession) return;
+      if (!mounted || session != _templateDragSession) return;
       setState(() => _dragLiveMm = null);
     });
   }
 
-  void _onLabelPanEnd() {
+  void _onTemplatePanEnd() {
     _deferSetState(() => _dragging = false);
-    _finishLabelPanGesture();
+    _finishTemplatePanGesture();
     widget.onDragStateChanged?.call(false);
   }
 
   void _panMoveClampedToHitInset(DragUpdateDetails details) {
-    final dMm = _mmDeltaForLabelPan(details);
+    final dMm = _mmDeltaForTemplatePan(details);
     if (dMm.dx.isNaN ||
         dMm.dy.isNaN ||
         dMm.dx.isInfinite ||
@@ -251,12 +242,12 @@ class DraggableChipState extends State<DraggableChip> {
     }
     final origin = _panOriginMm ?? widget.position;
     _panAccumMm += dMm;
-    final maxX = math.max(0.0, widget.labelWidthMm);
-    final maxY = math.max(0.0, widget.labelHeightMm);
+    final maxX = math.max(0.0, widget.templateWidthMm);
+    final maxY = math.max(0.0, widget.templateHeightMm);
     final rawX = origin.dx + _panAccumMm.dx;
     final rawY = origin.dy + _panAccumMm.dy;
-    final cx = _clampMm(rawX, 0, maxX);
-    final cy = _clampMm(rawY, 0, maxY);
+    final cx = clampFiniteMm(rawX, 0, maxX);
+    final cy = clampFiniteMm(rawY, 0, maxY);
     if (cx != rawX || cy != rawY) {
       _panOriginMm = Offset(cx, cy);
       _panAccumMm = Offset.zero;
@@ -274,7 +265,7 @@ class DraggableChipState extends State<DraggableChip> {
   }
 
   void _scheduleCanvasGoogleFontPrime() {
-    if (!labelCanvasFontUsesGoogle(widget.fontFamily)) return;
+    if (!templateCanvasFontUsesGoogle(widget.fontFamily)) return;
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _loadCanvasGoogleFontIfNeeded());
   }
@@ -282,7 +273,7 @@ class DraggableChipState extends State<DraggableChip> {
   Future<void> _loadCanvasGoogleFontIfNeeded() async {
     if (!mounted || !widget.isCustom) return;
     try {
-      await preloadGoogleFontForLabelCanvas(
+      await preloadGoogleFontForTemplateCanvas(
         widget.fontFamily,
         widget.bold ? FontWeight.bold : FontWeight.normal,
         widget.italic ? FontStyle.italic : FontStyle.normal,
@@ -344,7 +335,7 @@ class DraggableChipState extends State<DraggableChip> {
     if (widget.isCustom) {
       // Match PDF: pw.Text at (xMm,yMm), fontSize in pt, rotateZ about top-left.
       final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
-      final textStyle = customLabelCanvasTextStyle(
+      final textStyle = customTemplateCanvasTextStyle(
         fontFamilyRaw: widget.fontFamily,
         fontSize: fontPx,
         fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
@@ -369,7 +360,7 @@ class DraggableChipState extends State<DraggableChip> {
         left: left,
         top: top,
         child: Transform.rotate(
-          angle: widget.rotationDegrees * math.pi / 180,
+          angle: degreesToRadians(widget.rotationDegrees),
           alignment: Alignment.topLeft,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -379,10 +370,10 @@ class DraggableChipState extends State<DraggableChip> {
             },
             onTap: widget.onTap,
             onDoubleTap: widget.onDoubleTap,
-            onPanStart: _onLabelPanStart,
+            onPanStart: _onTemplatePanStart,
             onPanUpdate: _panMoveClampedToHitInset,
-            onPanEnd: (_) => _onLabelPanEnd(),
-            onPanCancel: _onLabelPanEnd,
+            onPanEnd: (_) => _onTemplatePanEnd(),
+            onPanCancel: _onTemplatePanEnd,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -506,7 +497,7 @@ class DraggableChipState extends State<DraggableChip> {
       left: left,
       top: top,
       child: Transform.rotate(
-        angle: widget.rotationDegrees * math.pi / 180,
+        angle: degreesToRadians(widget.rotationDegrees),
         alignment: Alignment.center,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -515,10 +506,10 @@ class DraggableChipState extends State<DraggableChip> {
             widget.onSelect?.call();
           },
           onTap: widget.onTap,
-          onPanStart: _onLabelPanStart,
+          onPanStart: _onTemplatePanStart,
           onPanUpdate: _panMoveClampedToHitInset,
-          onPanEnd: (_) => _onLabelPanEnd(),
-          onPanCancel: _onLabelPanEnd,
+          onPanEnd: (_) => _onTemplatePanEnd(),
+          onPanCancel: _onTemplatePanEnd,
           child: chip,
         ),
       ),

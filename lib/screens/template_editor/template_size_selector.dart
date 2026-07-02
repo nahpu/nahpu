@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 
-/// Avery-style presets (mm). Round labels use [diameter × diameter] bounding box.
+/// Avery-style presets (mm). Round templates use [diameter × diameter] bounding box.
 const List<(String label, double w, double h)> _kMailingAddressPresets = [
   ('5160 / 8160 — Standard address', 66.7, 25.4),
   ('5167 / 8167 — Return address', 44.4, 12.7),
@@ -71,8 +71,8 @@ List<PopupMenuEntry<String>> _labelSizePresetMenuEntries() {
   ];
 }
 
-class LabelSizeSelector extends ConsumerStatefulWidget {
-  const LabelSizeSelector({
+class TemplateSizeSelector extends ConsumerStatefulWidget {
+  const TemplateSizeSelector({
     super.key,
     this.compact = false,
     this.onDimensionsApplied,
@@ -93,10 +93,11 @@ class LabelSizeSelector extends ConsumerStatefulWidget {
       onControlledDimensionsApplied;
 
   @override
-  ConsumerState<LabelSizeSelector> createState() => _LabelSizeSelectorState();
+  ConsumerState<TemplateSizeSelector> createState() =>
+      _TemplateSizeSelectorState();
 }
 
-class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
+class _TemplateSizeSelectorState extends ConsumerState<TemplateSizeSelector> {
   double _w = 50;
   double _h = 25;
   bool _loaded = false;
@@ -114,7 +115,7 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
   }
 
   @override
-  void didUpdateWidget(LabelSizeSelector oldWidget) {
+  void didUpdateWidget(TemplateSizeSelector oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controlledWidthMm != null && widget.controlledHeightMm != null) {
       final nw = widget.controlledWidthMm!;
@@ -161,7 +162,7 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Label size (mm)'),
+        title: const Text('Template size (mm)'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -233,7 +234,7 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
 
     if (widget.compact) {
       return PopupMenuButton<String>(
-        tooltip: 'Label size',
+        tooltip: 'Template size',
         padding: EdgeInsets.zero,
         itemBuilder: (ctx) => menuItems,
         onSelected: onMenuSelected,
@@ -255,7 +256,7 @@ class _LabelSizeSelectorState extends ConsumerState<LabelSizeSelector> {
     }
 
     return PopupMenuButton<String>(
-      tooltip: 'Label size',
+      tooltip: 'Template size',
       itemBuilder: (ctx) => menuItems,
       onSelected: onMenuSelected,
       child: Padding(

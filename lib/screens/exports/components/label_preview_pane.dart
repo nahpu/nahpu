@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/exports/components/label_page_preview.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 import 'package:nahpu/services/export/label_writer.dart';
 
 class LabelPreviewPane extends StatelessWidget {
@@ -25,7 +25,7 @@ class LabelPreviewPane extends StatelessWidget {
   });
 
   final bool showPreview;
-  final LabelTemplate? template;
+  final Template? template;
   final List<String> selectedUuidList;
   final int rowsPerPage;
   final int colsPerPage;

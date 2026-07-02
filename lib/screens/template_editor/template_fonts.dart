@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 
-bool labelCanvasFontUsesGoogle(String fontFamilyRaw) {
+bool templateCanvasFontUsesGoogle(String fontFamilyRaw) {
   final f = fontFamilyRaw.trim().toLowerCase();
   if (f.isEmpty) return false;
   return !['merriweather', 'serif', 'sans-serif', 'monospace'].contains(f);
 }
 
-TextStyle customLabelCanvasTextStyle({
+TextStyle customTemplateCanvasTextStyle({
   required String fontFamilyRaw,
   required double fontSize,
   FontWeight fontWeight = FontWeight.normal,
@@ -41,12 +41,12 @@ TextStyle customLabelCanvasTextStyle({
   }
 }
 
-Future<void> preloadGoogleFontForLabelCanvas(
+Future<void> preloadGoogleFontForTemplateCanvas(
   String fontFamilyRaw,
   FontWeight weight,
   FontStyle style,
 ) async {
-  if (!labelCanvasFontUsesGoogle(fontFamilyRaw)) return;
+  if (!templateCanvasFontUsesGoogle(fontFamilyRaw)) return;
   try {
     await GoogleFonts.pendingFonts([
       GoogleFonts.getFont(
@@ -57,7 +57,7 @@ Future<void> preloadGoogleFontForLabelCanvas(
   } catch (_) {}
 }
 
-Set<String> collectCustomTextFontKeys(LabelTemplate? template) {
+Set<String> collectTemplateTextFontKeys(Template? template) {
   final keys = <String>{};
   if (template == null) return keys;
   for (final p in [template.page1, template.page2]) {
@@ -69,7 +69,7 @@ Set<String> collectCustomTextFontKeys(LabelTemplate? template) {
 }
 
 /// Keys shown in the template editor font dropdown (empty = platform default).
-const List<String> kLabelFontDropdownKeys = [
+const List<String> kTemplateFontDropdownKeys = [
   '',
   'Merriweather',
   'DejaVuSans',
@@ -79,16 +79,16 @@ const List<String> kLabelFontDropdownKeys = [
   'PlusJakartaSans',
 ];
 
-String labelFontDropdownLabel(String key) {
+String templateFontDropdownLabel(String key) {
   if (key.isEmpty) return 'Default';
   return key;
 }
 
-/// Maps stored [fontFamily] to a [kLabelFontDropdownKeys] entry when possible.
-String normalizeLabelFontFamily(String raw) {
+/// Maps stored [fontFamily] to a [kTemplateFontDropdownKeys] entry when possible.
+String normalizeTemplateFontFamily(String raw) {
   final t = raw.trim();
   if (t.isEmpty) return '';
-  for (final k in kLabelFontDropdownKeys) {
+  for (final k in kTemplateFontDropdownKeys) {
     if (k.isNotEmpty && k.toLowerCase() == t.toLowerCase()) return k;
   }
   return t;

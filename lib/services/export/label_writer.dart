@@ -5,9 +5,9 @@ import 'package:nahpu/services/io_services.dart';
 
 import 'package:flutter/services.dart' show rootBundle, AssetManifest;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/label_template_service.dart';
+import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/export/dynamic_record_exporter.dart';
@@ -58,7 +58,7 @@ class LabelWriter {
   /// [picked] The list of specimens to print labels for.
   /// [selectedDir] The destination directory for the generated PDF.
   /// [fileStem] The base name (without extension) of the output file.
-  /// [template] The label template containing design specifications.
+  /// [template] The template containing design specifications.
   /// [pageSizeKey] The selected page size preset (e.g. 'A4', 'Letter', 'Custom').
   /// [pageOrientation] The orientation of the page ('portrait' or 'landscape').
   /// [customPageWidthMm] The custom width in millimeters if pageSizeKey is 'Custom'.
@@ -68,7 +68,7 @@ class LabelWriter {
     required List<SpecimenData> picked,
     required Directory selectedDir,
     required String fileStem,
-    required LabelTemplate? template,
+    required Template? template,
     required String pageSizeKey,
     required String pageOrientation,
     required double? customPageWidthMm,
@@ -160,14 +160,13 @@ class LabelWriter {
 
   Future<Uint8List> generateLabelsPdf(
     List<SpecimenData> specimens, {
-    LabelTemplate? template,
+    Template? template,
     required double sheetWidthPt,
     required double sheetHeightPt,
     required LabelPrintLayoutOptions layout,
   }) async {
     final settings = LabelSettingsServices();
-    final tmpl =
-        template ?? await const LabelTemplateService().getCurrentTemplate();
+    final tmpl = template ?? await const TemplateService().getCurrentTemplate();
 
     final wPt = labelPdfMmToPt(await settings.getLabelWidthMm());
     final hPt = labelPdfMmToPt(await settings.getLabelHeightMm());
@@ -265,7 +264,7 @@ class LabelWriter {
   Future<void> _writeSpecimenLabels({
     required StringBuffer typst,
     required List<SpecimenData> specimens,
-    required LabelTemplate tmpl,
+    required Template tmpl,
     required LabelPrintLayoutOptions layout,
     required int cols,
     required int rows,
@@ -319,7 +318,7 @@ class LabelWriter {
   Future<void> _writeLabelSide({
     required StringBuffer typst,
     required List<SpecimenData> batch,
-    required LabelPageTemplate pageTemplate,
+    required TemplatePage pageTemplate,
     required LabelPrintLayoutOptions layout,
     required int cols,
     required int rows,
@@ -328,10 +327,10 @@ class LabelWriter {
     required double wPt,
     required double hPt,
     required bool mirror,
-    LabelTemplateOutline? outline,
+    TemplateOutline? outline,
   }) async {
     final dataList = <Map<String, String>>[];
-    final pages = <LabelPageTemplate>[];
+    final pages = <TemplatePage>[];
 
     for (final specimen in batch) {
       final data = await fieldValuesForSpecimen(_db, specimen, ref);
@@ -355,8 +354,8 @@ class LabelWriter {
     );
   }
 
-  Future<LabelPageTemplate> _substitutePage(
-    LabelPageTemplate page,
+  Future<TemplatePage> _substitutePage(
+    TemplatePage page,
     Map<String, String> data,
   ) async {
     final texts = <CustomTextElement>[];
@@ -364,7 +363,7 @@ class LabelWriter {
     for (final ct in page.customTexts) {
       final subbedText = substituteLabelPlaceholders(ct.text, data);
       if (ct.isQrCode) {
-        final formattedText = formatLabelText(
+        final formattedText = formatTemplateText(
           subbedText,
           ct.textType,
           ct.formatOption,
@@ -448,7 +447,7 @@ class LabelWriter {
 
   void _writeTiledLabelSheet({
     required StringBuffer typst,
-    required List<LabelPageTemplate> pages,
+    required List<TemplatePage> pages,
     required List<Map<String, String>> dataList,
     required int cols,
     required int rows,
@@ -458,7 +457,7 @@ class LabelWriter {
     required double hPt,
     required LabelPrintLayoutOptions layout,
     required bool mirror,
-    LabelTemplateOutline? outline,
+    TemplateOutline? outline,
   }) {
     typst.writeln('#grid(');
     typst.writeln('  columns: (${cellW}pt, ) * $cols,');
@@ -486,13 +485,13 @@ class LabelWriter {
 
   void _writeSingleLabelCell({
     required StringBuffer typst,
-    required LabelPageTemplate page,
+    required TemplatePage page,
     required Map<String, String> data,
     required double wPt,
     required double hPt,
     required LabelPrintLayoutOptions layout,
     required bool mirror,
-    LabelTemplateOutline? outline,
+    TemplateOutline? outline,
   }) {
     final padTop = labelPdfMmToPt(layout.labelPadTopMm);
     final padBottom = labelPdfMmToPt(layout.labelPadBottomMm);
@@ -528,13 +527,13 @@ class LabelWriter {
     typst.writeln('],'); // close grid item
   }
 
-  void _writeOutline(StringBuffer typst, LabelTemplateOutline? outline,
-      double wPt, double hPt) {
+  void _writeOutline(
+      StringBuffer typst, TemplateOutline? outline, double wPt, double hPt) {
     if (outline == null) return;
 
-    String strokeStyle = outline.style == LabelTemplateOutlineStyle.dashed
+    String strokeStyle = outline.style == TemplateOutlineStyle.dashed
         ? '"dashed"'
-        : outline.style == LabelTemplateOutlineStyle.dotted
+        : outline.style == TemplateOutlineStyle.dotted
             ? '"dotted"'
             : '"solid"';
 
@@ -542,7 +541,7 @@ class LabelWriter {
     final g = (outline.colorArgb >> 8) & 0xFF;
     final b = outline.colorArgb & 0xFF;
 
-    if (outline.style == LabelTemplateOutlineStyle.doubleLine) {
+    if (outline.style == TemplateOutlineStyle.doubleLine) {
       typst.writeln(
           '  #place(dx: 0pt, dy: 0pt)[#rect(width: 100%, height: 100%, stroke: ${outline.widthPt}pt + rgb($r, $g, $b))]');
       final inset = outline.widthPt + math.max(1.0, outline.widthPt * 1.25);
@@ -572,13 +571,13 @@ class LabelWriter {
       return;
     }
 
-    final gKey = labelGenderIconFieldKeyFromBracketText(t.text);
+    final gKey = templateGenderIconFieldKeyFromBracketText(t.text);
     if (gKey != null) {
       _writeGenderIcon(typst, t, data, gKey);
       return;
     }
 
-    final formatted = formatLabelText(
+    final formatted = formatTemplateText(
       t.text,
       t.textType,
       t.formatOption,
@@ -615,9 +614,9 @@ class LabelWriter {
             : '?';
 
     final iconWPt =
-        labelPdfMmToPt(t.iconWidthMm ?? kLabelGenderIconDefaultWidthMm);
+        labelPdfMmToPt(t.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm);
     final iconHPt =
-        labelPdfMmToPt(t.iconHeightMm ?? kLabelGenderIconDefaultHeightMm);
+        labelPdfMmToPt(t.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm);
     final fs = math.min(iconWPt, iconHPt) * 0.88;
 
     typst.writeln(
@@ -634,7 +633,7 @@ class LabelWriter {
   }
 
   @visibleForTesting
-  static List<dynamic> sortElementsForTesting(LabelPageTemplate page) {
+  static List<dynamic> sortElementsForTesting(TemplatePage page) {
     return <dynamic>[
       ...page.customImages,
       ...page.customTexts,
@@ -644,7 +643,7 @@ class LabelWriter {
   }
 
   void _writeSingleCustomImage(StringBuffer typst, CustomImageElement im) {
-    if (!isLabelImagePathUsable(im.imagePath)) return;
+    if (!isTemplateImagePathUsable(im.imagePath)) return;
     String path = im.imagePath.replaceAll(r'\', r'\\');
 
     typst.writeln(
@@ -704,7 +703,7 @@ double labelPdfMmToPt(double mm) => mm * 72.0 / 25.4;
 /// If a placeholder key (e.g. `[catalogNum]`) is found in [data], it is replaced
 /// with the associated value. Matches are performed case-insensitively.
 String substituteLabelPlaceholders(String input, Map<String, String> data) {
-  if (isLabelBracketGenderIconText(input)) return input;
+  if (isTemplateBracketGenderIconText(input)) return input;
   return input.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (m) {
     final k = m.group(1)!.trim();
     if (data.containsKey(k)) return data[k]!;
@@ -720,7 +719,7 @@ String substituteLabelPlaceholders(String input, Map<String, String> data) {
 /// for a specific [s] SpecimenData record from the [db] database.
 ///
 /// The returned map contains key-value pairs representing data fields (e.g.,
-/// 'catalogNum', 'species', 'locality') ready to be injected into a label template.
+/// 'catalogNum', 'species', 'locality') ready to be injected into a template.
 Future<Map<String, String>> fieldValuesForSpecimen(
   Database db,
   SpecimenData s,

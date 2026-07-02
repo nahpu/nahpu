@@ -4,11 +4,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
-import 'package:nahpu/services/label_logo_service.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/services/template_image_service.dart';
 
-class LabelTemplateEditorService {
-  final LabelLogoService _logoService = const LabelLogoService();
+class TemplateEditorService {
+  final TemplateImageService _logoService = const TemplateImageService();
 
   Future<String?> promptSaveTemplate(
       BuildContext context, String currentName) async {
@@ -126,12 +126,11 @@ class LabelTemplateEditorService {
     }
   }
 
-  Future<void> exportTemplate(
-      BuildContext context, LabelTemplate template) async {
+  Future<void> exportTemplate(BuildContext context, Template template) async {
     final raw = template.name.trim();
     final safe =
         raw.isEmpty ? 'template' : raw.replaceAll(RegExp(r'[^\w.\-]'), '_');
-    final suggested = 'label_template_$safe.json';
+    final suggested = 'template_$safe.json';
     final location = await getSaveLocation(suggestedName: suggested);
     if (location == null || !context.mounted) return;
     final savePath = location.path;

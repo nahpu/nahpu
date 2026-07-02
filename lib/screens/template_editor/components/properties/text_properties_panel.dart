@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
-import 'package:nahpu/screens/template_editor/label_template_fonts.dart';
-import 'package:nahpu/screens/template_editor/components/synced_font_size_field.dart';
-import 'package:nahpu/screens/template_editor/components/synced_max_width_field.dart';
-import 'package:nahpu/screens/template_editor/components/synced_dim_field.dart';
+import 'package:nahpu/screens/template_editor/components/properties/synced_font_size_field.dart';
+import 'package:nahpu/screens/template_editor/components/properties/synced_max_width_field.dart';
+import 'package:nahpu/screens/template_editor/template_fonts.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
-class LabelElementPropertiesPanel extends StatelessWidget {
-  const LabelElementPropertiesPanel({
+class TextPropertiesPanel extends StatelessWidget {
+  const TextPropertiesPanel({
     super.key,
     required this.selectedElement,
     required this.page1,
@@ -25,7 +24,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
 
   final String selectedElement;
   final bool page1;
-  final LabelTemplate template;
+  final Template template;
   final VoidCallback? onDismiss;
 
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
@@ -73,16 +72,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (selectedElement.startsWith('custom:')) {
-      return _buildCustomTextPanel(context, selectedElement, inToolbar: true);
-    } else if (selectedElement.startsWith('image:')) {
-      return _buildImagePanel(context, selectedElement, inToolbar: true);
-    } else if (selectedElement.startsWith('line:')) {
-      return _buildLinePanel(context, selectedElement, inToolbar: true);
-    } else if (selectedElement.startsWith('shape:')) {
-      return _buildShapePanel(context, selectedElement, inToolbar: true);
-    }
-    return const SizedBox.shrink();
+    return _buildCustomTextPanel(context, selectedElement, inToolbar: true);
   }
 
   Widget _buildPanelContainer(BuildContext context,
@@ -225,474 +215,6 @@ class LabelElementPropertiesPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildImagePanel(BuildContext context, String sel,
-      {bool inToolbar = false}) {
-    final parts = sel.split(':');
-    final page1 = parts[1] == '1';
-    final id = parts[2];
-
-    final scheme = Theme.of(context).colorScheme;
-    final deleteButton = IconButton(
-      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-      tooltip: 'Delete image',
-      onPressed: () => onDeleteCustomImage(page1, id),
-    );
-
-    return _buildPanelContainer(
-      context,
-      inToolbar: inToolbar,
-      child: Padding(
-        padding: inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildZIndexControls(context, sel),
-            const Spacer(),
-            deleteButton,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLinePanel(BuildContext context, String sel,
-      {bool inToolbar = false}) {
-    final parts = sel.split(':');
-    final page1 = parts[1] == '1';
-    final id = parts[2];
-    final ln = _findCustomLine(page1, id);
-    if (ln == null) return const SizedBox.shrink();
-
-    final scheme = Theme.of(context).colorScheme;
-    final deleteButton = IconButton(
-      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-      tooltip: 'Delete line',
-      onPressed: () => onDeleteCustomLine(page1, id),
-    );
-
-    final content = Padding(
-      padding: inToolbar
-          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildZIndexControls(context, sel),
-                  const SizedBox(width: 16),
-                  Text('Thickness',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  DropdownButton<double>(
-                    value: [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0]
-                            .contains(ln.thicknessPt)
-                        ? ln.thicknessPt
-                        : 1.0,
-                    isDense: true,
-                    underline: const SizedBox.shrink(),
-                    items: [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0]
-                        .map((t) =>
-                            DropdownMenuItem(value: t, child: Text('${t}pt')))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        onUpdateCustomLine(page1, ln.copyWith(thicknessPt: v));
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 16),
-                  Text('Color', style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () async {
-                      Color selectedColor = Color(ln.colorArgb);
-                      final picked = await ColorPicker(
-                        color: selectedColor,
-                        onColorChanged: (c) => selectedColor = c,
-                        heading: Text('Select color',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        subheading: Text('Select color shade',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        wheelSubheading: Text('Selected color and its shades',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        showColorName: true,
-                        showColorCode: false,
-                        copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                          copyButton: true,
-                          pasteButton: true,
-                          longPressMenu: true,
-                        ),
-                        colorNameTextStyle:
-                            Theme.of(context).textTheme.bodySmall,
-                        colorCodeTextStyle:
-                            Theme.of(context).textTheme.bodySmall,
-                        pickersEnabled: const <ColorPickerType, bool>{
-                          ColorPickerType.both: false,
-                          ColorPickerType.primary: true,
-                          ColorPickerType.accent: true,
-                          ColorPickerType.bw: false,
-                          ColorPickerType.custom: true,
-                          ColorPickerType.wheel: true,
-                        },
-                      ).showPickerDialog(context);
-                      if (picked) {
-                        onUpdateCustomLine(page1,
-                            ln.copyWith(colorArgb: selectedColor.toARGB32()));
-                      }
-                    },
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Color(ln.colorArgb),
-                        border: Border.all(color: scheme.outline),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text('Length (mm)',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 64,
-                    child: SyncedDimField(
-                      key: ValueKey('line_len_$id'),
-                      value: ln.lengthMm,
-                      min: 2.0,
-                      max: 200.0,
-                      onValidValue: (p) => onUpdateCustomLine(
-                        page1,
-                        ln.copyWith(lengthMm: p),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 100,
-                    child: _buildOptionSlider(
-                      context,
-                      value: ln.lengthMm.clamp(2.0, 200.0),
-                      min: 2.0,
-                      max: 200.0,
-                      divisions: 198,
-                      label: '${ln.lengthMm.toStringAsFixed(1)} mm',
-                      onChanged: (v) {
-                        onUpdateCustomLine(page1, ln.copyWith(lengthMm: v));
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text('Rotation',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment(value: 0, label: Text('0°')),
-                      ButtonSegment(value: 90, label: Text('90°')),
-                      ButtonSegment(value: -90, label: Text('-90°')),
-                      ButtonSegment(value: 180, label: Text('180°')),
-                    ],
-                    selected: {ln.rotationDegrees},
-                    onSelectionChanged: (next) {
-                      if (next.isEmpty) return;
-                      onUpdateCustomLine(
-                        page1,
-                        ln.copyWith(rotationDegrees: next.first),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          deleteButton,
-        ],
-      ),
-    );
-
-    return _buildPanelContainer(
-      context,
-      inToolbar: inToolbar,
-      child: content,
-    );
-  }
-
-  Widget _buildShapePanel(BuildContext context, String sel,
-      {bool inToolbar = false}) {
-    final parts = sel.split(':');
-    final page1 = parts[1] == '1';
-    final id = parts[2];
-    final sh = _findCustomShape(page1, id);
-    if (sh == null) return const SizedBox.shrink();
-
-    final scheme = Theme.of(context).colorScheme;
-    final deleteButton = IconButton(
-      icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-      tooltip: 'Delete shape',
-      onPressed: () => onDeleteCustomShape(page1, id),
-    );
-
-    final content = Padding(
-      padding: inToolbar
-          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildZIndexControls(context, sel),
-                  const SizedBox(width: 16),
-                  Text('Stroke',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  DropdownButton<double>(
-                    value: [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0]
-                            .contains(sh.strokeThicknessPt)
-                        ? sh.strokeThicknessPt
-                        : 1.0,
-                    isDense: true,
-                    underline: const SizedBox.shrink(),
-                    items: [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0]
-                        .map((t) =>
-                            DropdownMenuItem(value: t, child: Text('${t}pt')))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        onUpdateCustomShape(
-                            page1, sh.copyWith(strokeThicknessPt: v));
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () async {
-                      Color selectedColor = Color(sh.strokeColorArgb);
-                      final picked = await ColorPicker(
-                        color: selectedColor,
-                        onColorChanged: (c) => selectedColor = c,
-                        heading: Text('Select stroke color',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        subheading: Text('Select color shade',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        wheelSubheading: Text('Selected color and its shades',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        showColorName: true,
-                        showColorCode: false,
-                        copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                          copyButton: true,
-                          pasteButton: true,
-                          longPressMenu: true,
-                        ),
-                        colorNameTextStyle:
-                            Theme.of(context).textTheme.bodySmall,
-                        colorCodeTextStyle:
-                            Theme.of(context).textTheme.bodySmall,
-                        pickersEnabled: const <ColorPickerType, bool>{
-                          ColorPickerType.both: false,
-                          ColorPickerType.primary: true,
-                          ColorPickerType.accent: true,
-                          ColorPickerType.bw: false,
-                          ColorPickerType.custom: true,
-                          ColorPickerType.wheel: true,
-                        },
-                      ).showPickerDialog(context);
-                      if (picked) {
-                        onUpdateCustomShape(
-                            page1,
-                            sh.copyWith(
-                                strokeColorArgb: selectedColor.toARGB32()));
-                      }
-                    },
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Color(sh.strokeColorArgb),
-                        border: Border.all(color: scheme.outline),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text('Fill', style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () async {
-                      Color selectedColor = sh.fillColorArgb != null
-                          ? Color(sh.fillColorArgb!)
-                          : Colors.white;
-                      final picked = await ColorPicker(
-                        color: selectedColor,
-                        onColorChanged: (c) => selectedColor = c,
-                        enableShadesSelection: true,
-                        heading: Text('Select fill color',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        subheading: Text('Select color shade',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        wheelSubheading: Text('Selected color and its shades',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        showColorName: true,
-                        showColorCode: false,
-                        copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                          copyButton: true,
-                          pasteButton: true,
-                          longPressMenu: true,
-                        ),
-                        colorNameTextStyle:
-                            Theme.of(context).textTheme.bodySmall,
-                        colorCodeTextStyle:
-                            Theme.of(context).textTheme.bodySmall,
-                        pickersEnabled: const <ColorPickerType, bool>{
-                          ColorPickerType.both: false,
-                          ColorPickerType.primary: true,
-                          ColorPickerType.accent: true,
-                          ColorPickerType.bw: false,
-                          ColorPickerType.custom: true,
-                          ColorPickerType.wheel: true,
-                        },
-                      ).showPickerDialog(context);
-                      if (picked) {
-                        onUpdateCustomShape(
-                            page1,
-                            sh.copyWith(
-                                fillColorArgb: selectedColor.toARGB32()));
-                      }
-                    },
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: sh.fillColorArgb != null
-                            ? Color(sh.fillColorArgb!)
-                            : Colors.transparent,
-                        border: Border.all(color: scheme.outline),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: sh.fillColorArgb == null
-                          ? Icon(Icons.close,
-                              size: 16, color: scheme.onSurfaceVariant)
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  if (sh.fillColorArgb != null)
-                    IconButton(
-                      icon: const Icon(Icons.format_color_reset, size: 20),
-                      tooltip: 'Clear fill',
-                      onPressed: () => onUpdateCustomShape(
-                          page1, sh.copyWith(clearFillColor: true)),
-                    ),
-                  const SizedBox(width: 16),
-                  Text('Width (mm)',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 64,
-                    child: SyncedDimField(
-                      key: ValueKey('shape_w_$id'),
-                      value: sh.widthMm,
-                      min: 2.0,
-                      max: 200.0,
-                      onValidValue: (p) => onUpdateCustomShape(
-                        page1,
-                        sh.copyWith(widthMm: p),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 100,
-                    child: _buildOptionSlider(
-                      context,
-                      value: sh.widthMm.clamp(2.0, 200.0),
-                      min: 2.0,
-                      max: 200.0,
-                      divisions: 198,
-                      label: '${sh.widthMm.toStringAsFixed(1)} mm',
-                      onChanged: (v) {
-                        onUpdateCustomShape(page1, sh.copyWith(widthMm: v));
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text('Height (mm)',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 64,
-                    child: SyncedDimField(
-                      key: ValueKey('shape_h_$id'),
-                      value: sh.heightMm,
-                      min: 2.0,
-                      max: 200.0,
-                      onValidValue: (p) => onUpdateCustomShape(
-                        page1,
-                        sh.copyWith(heightMm: p),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 100,
-                    child: _buildOptionSlider(
-                      context,
-                      value: sh.heightMm.clamp(2.0, 200.0),
-                      min: 2.0,
-                      max: 200.0,
-                      divisions: 198,
-                      label: '${sh.heightMm.toStringAsFixed(1)} mm',
-                      onChanged: (v) {
-                        onUpdateCustomShape(page1, sh.copyWith(heightMm: v));
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text('Rotation',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(width: 8),
-                  SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment(value: 0, label: Text('0°')),
-                      ButtonSegment(value: 90, label: Text('90°')),
-                      ButtonSegment(value: -90, label: Text('-90°')),
-                      ButtonSegment(value: 180, label: Text('180°')),
-                    ],
-                    selected: {sh.rotationDegrees},
-                    onSelectionChanged: (next) {
-                      if (next.isEmpty) return;
-                      onUpdateCustomShape(
-                        page1,
-                        sh.copyWith(rotationDegrees: next.first),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          deleteButton,
-        ],
-      ),
-    );
-
-    return _buildPanelContainer(
-      context,
-      inToolbar: inToolbar,
-      child: content,
-    );
-  }
-
   Widget _buildCustomTextPanel(BuildContext context, String sel,
       {bool inToolbar = false}) {
     final parts = sel.split(':');
@@ -709,7 +231,7 @@ class LabelElementPropertiesPanel extends StatelessWidget {
       onPressed: () => onDeleteCustomText(page1, id),
     );
 
-    if (isLabelBracketGenderIconText(ct.text)) {
+    if (isTemplateBracketGenderIconText(ct.text)) {
       final content = Padding(
         padding: inToolbar
             ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
@@ -970,8 +492,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
     final onUpdateCustomText = widget.onUpdateCustomText;
     final scheme = Theme.of(context).colorScheme;
 
-    final fontKey = normalizeLabelFontFamily(ct.fontFamily);
-    final fontDropdownIds = List<String>.from(kLabelFontDropdownKeys);
+    final fontKey = normalizeTemplateFontFamily(ct.fontFamily);
+    final fontDropdownIds = List<String>.from(kTemplateFontDropdownKeys);
     if (fontKey.isNotEmpty && !fontDropdownIds.contains(fontKey)) {
       fontDropdownIds.add(fontKey);
     }
@@ -1253,7 +775,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               for (final k in fontDropdownIds)
                                 DropdownMenuItem<String>(
                                   value: k,
-                                  child: Text(labelFontDropdownLabel(k)),
+                                  child: Text(templateFontDropdownLabel(k)),
                                 ),
                             ],
                             onChanged: (v) {

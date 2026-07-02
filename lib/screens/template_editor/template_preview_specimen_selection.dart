@@ -7,8 +7,8 @@ import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 
-class LabelPreviewSpecimenSelectionScreen extends ConsumerStatefulWidget {
-  const LabelPreviewSpecimenSelectionScreen({
+class TemplatePreviewSpecimenSelectionScreen extends ConsumerStatefulWidget {
+  const TemplatePreviewSpecimenSelectionScreen({
     super.key,
     required this.selectedUuid,
   });
@@ -16,12 +16,12 @@ class LabelPreviewSpecimenSelectionScreen extends ConsumerStatefulWidget {
   final String? selectedUuid;
 
   @override
-  ConsumerState<LabelPreviewSpecimenSelectionScreen> createState() =>
-      _LabelPreviewSpecimenSelectionScreenState();
+  ConsumerState<TemplatePreviewSpecimenSelectionScreen> createState() =>
+      _TemplatePreviewSpecimenSelectionScreenState();
 }
 
-class _LabelPreviewSpecimenSelectionScreenState
-    extends ConsumerState<LabelPreviewSpecimenSelectionScreen> {
+class _TemplatePreviewSpecimenSelectionScreenState
+    extends ConsumerState<TemplatePreviewSpecimenSelectionScreen> {
   List<String> _visibleColumnIds = [];
 
   @override

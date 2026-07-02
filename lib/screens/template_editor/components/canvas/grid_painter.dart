@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 class GridPainter extends CustomPainter {
   GridPainter({
-    required this.labelWidthMm,
-    required this.labelHeightMm,
+    required this.templateWidthMm,
+    required this.templateHeightMm,
     required this.scale,
   });
 
-  final double labelWidthMm;
-  final double labelHeightMm;
+  final double templateWidthMm;
+  final double templateHeightMm;
   final double scale;
 
   @override
@@ -23,13 +23,13 @@ class GridPainter extends CustomPainter {
     const smallStep = 1.0;
     const bigStep = 5.0;
 
-    for (double x = 0; x <= labelWidthMm; x += smallStep) {
+    for (double x = 0; x <= templateWidthMm; x += smallStep) {
       final px = x * scale;
       final isMajor = (x % bigStep) < 0.01;
       canvas.drawLine(Offset(px, 0), Offset(px, size.height),
           isMajor ? thickPaint : thinPaint);
     }
-    for (double y = 0; y <= labelHeightMm; y += smallStep) {
+    for (double y = 0; y <= templateHeightMm; y += smallStep) {
       final py = y * scale;
       final isMajor = (y % bigStep) < 0.01;
       canvas.drawLine(Offset(0, py), Offset(size.width, py),
@@ -37,14 +37,14 @@ class GridPainter extends CustomPainter {
     }
 
     final textStyle = TextStyle(color: Colors.grey.shade500, fontSize: 9);
-    for (double x = 0; x <= labelWidthMm; x += 10) {
+    for (double x = 0; x <= templateWidthMm; x += 10) {
       final tp = TextPainter(
         text: TextSpan(text: '${x.toInt()}', style: textStyle),
         textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(canvas, Offset(x * scale + 2, 2));
     }
-    for (double y = 10; y <= labelHeightMm; y += 10) {
+    for (double y = 10; y <= templateHeightMm; y += 10) {
       final tp = TextPainter(
         text: TextSpan(text: '${y.toInt()}', style: textStyle),
         textDirection: TextDirection.ltr,
@@ -56,6 +56,6 @@ class GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant GridPainter old) =>
       old.scale != scale ||
-      old.labelWidthMm != labelWidthMm ||
-      old.labelHeightMm != labelHeightMm;
+      old.templateWidthMm != templateWidthMm ||
+      old.templateHeightMm != templateHeightMm;
 }

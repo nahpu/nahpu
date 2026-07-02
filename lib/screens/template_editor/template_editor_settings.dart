@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/label_template_editor_screen.dart';
+import 'package:nahpu/screens/template_editor/template_editor_screen.dart';
 
 class TemplateEditorSettingsScreen extends StatelessWidget {
   const TemplateEditorSettingsScreen({super.key});
@@ -20,7 +20,7 @@ class TemplateEditorSettingsScreen extends StatelessWidget {
               Navigator.push<void>(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (context) => const LabelTemplateEditorScreen(),
+                  builder: (context) => const TemplateEditorScreen(),
                 ),
               );
             },

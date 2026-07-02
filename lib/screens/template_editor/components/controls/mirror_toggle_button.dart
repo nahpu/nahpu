@@ -18,7 +18,7 @@ class MirrorToggleButton extends StatelessWidget {
       icon: const Icon(Icons.rotate_right),
       tooltip: isMirrorActive
           ? '$sideLabel: rotated 180° for print (tap to turn off)'
-          : '$sideLabel: tap to rotate label 180° for print',
+          : '$sideLabel: tap to rotate template 180° for print',
       onPressed: onToggle,
     );
   }

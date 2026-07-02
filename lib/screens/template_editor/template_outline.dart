@@ -1,15 +1,15 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 
-/// PDF points per mm (same as label PDF helpers).
-const double kLabelOutlinePdfPointsPerMm = 72.0 / 25.4;
+/// PDF points per mm (same as template PDF helpers).
+const double kTemplateOutlinePdfPointsPerMm = 72.0 / 25.4;
 
-double labelOutlineStrokeWidthPx(double widthPt, double scaleMmToPx) =>
-    widthPt * scaleMmToPx / kLabelOutlinePdfPointsPerMm;
+double templateOutlineStrokeWidthPx(double widthPt, double scaleMmToPx) =>
+    widthPt * scaleMmToPx / kTemplateOutlinePdfPointsPerMm;
 
-List<BoxShadow> labelAreaBoxShadows() => [
+List<BoxShadow> templateAreaBoxShadows() => [
       BoxShadow(
         color: Colors.black.withValues(alpha: 0.12),
         blurRadius: 8,
@@ -17,11 +17,11 @@ List<BoxShadow> labelAreaBoxShadows() => [
       ),
     ];
 
-/// White fill; when an outline is configured, stroke is drawn by [LabelOutlineOverlayPainter].
-BoxDecoration labelAreaStackDecoration() {
+/// White fill; when an outline is configured, stroke is drawn by [TemplateOutlineOverlayPainter].
+BoxDecoration templateAreaStackDecoration() {
   return BoxDecoration(
     color: Colors.white,
-    boxShadow: labelAreaBoxShadows(),
+    boxShadow: templateAreaBoxShadows(),
   );
 }
 
@@ -47,19 +47,19 @@ void _strokeRectDashed(
   }
 }
 
-/// Paints the configured outline on top of the label rectangle.
-class LabelOutlineOverlayPainter extends CustomPainter {
-  LabelOutlineOverlayPainter({
+/// Paints the configured outline on top of the template rectangle.
+class TemplateOutlineOverlayPainter extends CustomPainter {
+  TemplateOutlineOverlayPainter({
     required this.outline,
     required this.scaleMmToPx,
   });
 
-  final LabelTemplateOutline outline;
+  final TemplateOutline outline;
   final double scaleMmToPx;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final w = labelOutlineStrokeWidthPx(outline.widthPt, scaleMmToPx)
+    final w = templateOutlineStrokeWidthPx(outline.widthPt, scaleMmToPx)
         .clamp(0.25, 24.0);
     final paint = Paint()
       ..color = Color(outline.colorArgb)
@@ -75,10 +75,10 @@ class LabelOutlineOverlayPainter extends CustomPainter {
     );
 
     switch (outline.style) {
-      case LabelTemplateOutlineStyle.solid:
+      case TemplateOutlineStyle.solid:
         _strokeRectSolid(canvas, outer, paint);
         break;
-      case LabelTemplateOutlineStyle.dashed:
+      case TemplateOutlineStyle.dashed:
         _strokeRectDashed(
           canvas,
           outer,
@@ -87,7 +87,7 @@ class LabelOutlineOverlayPainter extends CustomPainter {
           gapLen: w * 2.5,
         );
         break;
-      case LabelTemplateOutlineStyle.dotted:
+      case TemplateOutlineStyle.dotted:
         _strokeRectDashed(
           canvas,
           outer,
@@ -96,7 +96,7 @@ class LabelOutlineOverlayPainter extends CustomPainter {
           gapLen: w * 2,
         );
         break;
-      case LabelTemplateOutlineStyle.doubleLine:
+      case TemplateOutlineStyle.doubleLine:
         _strokeRectSolid(canvas, outer, paint);
         final gap = (w * 1.25).clamp(1.0, 10.0);
         final inset = w + gap;
@@ -111,7 +111,7 @@ class LabelOutlineOverlayPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant LabelOutlineOverlayPainter oldDelegate) {
+  bool shouldRepaint(covariant TemplateOutlineOverlayPainter oldDelegate) {
     return oldDelegate.outline != outline ||
         oldDelegate.scaleMmToPx != scaleMmToPx;
   }

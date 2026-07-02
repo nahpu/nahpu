@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 
-/// Line style, thickness, and color for the label outline. Updates
+/// Line style, thickness, and color for the template outline. Updates
 /// [onOutlineChanged] on every change; `null` means no border.
-class LabelBorderEditorSheet extends StatefulWidget {
-  const LabelBorderEditorSheet({
+class TemplateBorderEditorSheet extends StatefulWidget {
+  const TemplateBorderEditorSheet({
     super.key,
     required this.initialOutline,
     required this.onOutlineChanged,
@@ -15,9 +15,9 @@ class LabelBorderEditorSheet extends StatefulWidget {
   });
 
   /// Snapshot when first built (e.g. panel session key in parent).
-  final LabelTemplateOutline? initialOutline;
+  final TemplateOutline? initialOutline;
 
-  final ValueChanged<LabelTemplateOutline?> onOutlineChanged;
+  final ValueChanged<TemplateOutline?> onOutlineChanged;
 
   /// Max height as a fraction of screen height; embedded layout fills this height (no scroll).
   final double maxHeightFraction;
@@ -26,15 +26,16 @@ class LabelBorderEditorSheet extends StatefulWidget {
   final bool embeddedPanel;
 
   @override
-  State<LabelBorderEditorSheet> createState() => _LabelBorderEditorSheetState();
+  State<TemplateBorderEditorSheet> createState() =>
+      _TemplateBorderEditorSheetState();
 }
 
-class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
-  static const _lineStyles = <LabelTemplateOutlineStyle>[
-    LabelTemplateOutlineStyle.solid,
-    LabelTemplateOutlineStyle.dashed,
-    LabelTemplateOutlineStyle.dotted,
-    LabelTemplateOutlineStyle.doubleLine,
+class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
+  static const _lineStyles = <TemplateOutlineStyle>[
+    TemplateOutlineStyle.solid,
+    TemplateOutlineStyle.dashed,
+    TemplateOutlineStyle.dotted,
+    TemplateOutlineStyle.doubleLine,
   ];
 
   static const _widthMin = 0.25;
@@ -42,7 +43,7 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
   static const _widthStep = 0.25;
 
   /// Null = no border (no style chip selected).
-  LabelTemplateOutlineStyle? _style;
+  TemplateOutlineStyle? _style;
   late double _widthPt;
   late int _colorArgb;
   late final TextEditingController _widthCtrl;
@@ -112,10 +113,10 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
     _syncHexField();
   }
 
-  LabelTemplateOutline? _currentOutline() {
+  TemplateOutline? _currentOutline() {
     final s = _style;
     if (s == null) return null;
-    return LabelTemplateOutline(
+    return TemplateOutline(
       style: s,
       widthPt: _widthPt,
       colorArgb: _colorArgb,
@@ -126,7 +127,7 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
     widget.onOutlineChanged(_currentOutline());
   }
 
-  void _onChipSelected(LabelTemplateOutlineStyle e, bool selected) {
+  void _onChipSelected(TemplateOutlineStyle e, bool selected) {
     if (selected) {
       setState(() => _style = e);
       _pushOutline();
@@ -394,15 +395,15 @@ class _LabelBorderEditorSheetState extends State<LabelBorderEditorSheet> {
     );
   }
 
-  static String _styleLabel(LabelTemplateOutlineStyle s) {
+  static String _styleLabel(TemplateOutlineStyle s) {
     switch (s) {
-      case LabelTemplateOutlineStyle.solid:
+      case TemplateOutlineStyle.solid:
         return 'Solid';
-      case LabelTemplateOutlineStyle.dashed:
+      case TemplateOutlineStyle.dashed:
         return 'Dashed';
-      case LabelTemplateOutlineStyle.dotted:
+      case TemplateOutlineStyle.dotted:
         return 'Dotted';
-      case LabelTemplateOutlineStyle.doubleLine:
+      case TemplateOutlineStyle.doubleLine:
         return 'Double';
     }
   }

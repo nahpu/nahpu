@@ -5,13 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as path;
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
-import 'package:nahpu/screens/template_editor/label_template_editor_screen.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/template_editor/template_editor_screen.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/label_page_setup_service.dart';
 import 'package:nahpu/services/label_settings_services.dart';
-import 'package:nahpu/services/label_template_service.dart';
+import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -38,7 +38,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   bool _loading = true;
   String? _error;
   bool _showPreview = false;
-  LabelTemplate? _template;
+  Template? _template;
   List<String> _setupNames = const [];
   String _selectedSetupName = 'Default';
   String _pageSizeKey = 'Letter';
@@ -214,7 +214,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
               Navigator.push<void>(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (context) => const LabelTemplateEditorScreen(),
+                  builder: (context) => const TemplateEditorScreen(),
                 ),
               );
             },
@@ -330,7 +330,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     final currentSetupName = await _pageSetupService.getCurrentSetupName();
     final currentSetup = await _pageSetupService.getCurrentSetup();
 
-    final templateService = const LabelTemplateService();
+    final templateService = const TemplateService();
     final currentTemplateName = await _settings.getCurrentTemplateName();
     final pickedTemplate = currentTemplateName == null
         ? null
@@ -634,7 +634,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     });
 
     try {
-      final templateService = const LabelTemplateService();
+      final templateService = const TemplateService();
       final currentTemplateName = await _settings.getCurrentTemplateName();
       final pickedTemplate = currentTemplateName == null
           ? null

@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 import 'package:nahpu/services/label_settings_services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-const String _templatesDirName = 'label_templates';
+const String _templatesDirName = 'templates';
 
-class LabelTemplateService {
-  const LabelTemplateService();
+class TemplateService {
+  const TemplateService();
 
   Future<Directory> _templatesDir() async {
     final root = await getApplicationDocumentsDirectory();
@@ -30,14 +30,14 @@ class LabelTemplateService {
       ..sort();
   }
 
-  Future<LabelTemplate?> getTemplate(String name) async {
+  Future<Template?> getTemplate(String name) async {
     final dir = await _templatesDir();
     final file = File(p.join(dir.path, '$name.json'));
     if (!file.existsSync()) return null;
-    return LabelTemplate.fromJsonString(await file.readAsString());
+    return Template.fromJsonString(await file.readAsString());
   }
 
-  Future<void> saveTemplate(LabelTemplate template) async {
+  Future<void> saveTemplate(Template template) async {
     final dir = await _templatesDir();
     final file = File(p.join(dir.path, '${template.name}.json'));
     await file.writeAsString(template.toJsonString());
@@ -50,21 +50,20 @@ class LabelTemplateService {
     if (file.existsSync()) await file.delete();
   }
 
-  Future<LabelTemplate> getCurrentTemplate() async {
+  Future<Template> getCurrentTemplate() async {
     final names = await listTemplateNames();
-    if (names.isEmpty) return DefaultLabelTemplate.defaultTemplate();
+    if (names.isEmpty) return DefaultTemplate.defaultTemplate();
     final prefsName = await LabelSettingsServices().getCurrentTemplateName();
     final pick = (prefsName != null && names.contains(prefsName))
         ? prefsName
         : names.first;
-    return (await getTemplate(pick)) ??
-        DefaultLabelTemplate.defaultTemplate(pick);
+    return (await getTemplate(pick)) ?? DefaultTemplate.defaultTemplate(pick);
   }
 
-  Future<LabelTemplate?> importFromPath(String path) async {
+  Future<Template?> importFromPath(String path) async {
     try {
       final text = await File(path).readAsString();
-      return LabelTemplate.fromJsonString(text);
+      return Template.fromJsonString(text);
     } catch (_) {
       return null;
     }

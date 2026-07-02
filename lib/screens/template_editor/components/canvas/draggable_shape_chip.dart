@@ -1,20 +1,11 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/label_template_editor_screen.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_editor_math.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 
 enum _ShapeCorner { tl, tr, bl, br }
 
 const double _kPdfPointsPerMm = 72.0 / 25.4;
-
-double _canvasScaleForMmMath(double scale) => scale < 1e-9 ? 1e-9 : scale;
-
-double _clampMm(double value, double bound1, double bound2) {
-  final lo = bound1 <= bound2 ? bound1 : bound2;
-  final hi = bound1 <= bound2 ? bound2 : bound1;
-  if (value.isNaN || value.isInfinite) return lo;
-  return value.clamp(lo, hi);
-}
 
 class DraggableShapeChip extends StatefulWidget {
   const DraggableShapeChip({
@@ -28,11 +19,11 @@ class DraggableShapeChip extends StatefulWidget {
     this.strokeColorArgb = 0xFF000000,
     this.fillColorArgb,
     required this.scale,
-    required this.labelWidthMm,
-    required this.labelHeightMm,
+    required this.templateWidthMm,
+    required this.templateHeightMm,
     this.canvasInsetXPx = 0,
     this.canvasInsetYPx = 0,
-    required this.labelPanToMmDelta,
+    required this.templatePanToMmDelta,
     required this.onMoved,
     required this.onBoundsChanged,
     required this.onRotationChanged,
@@ -51,14 +42,14 @@ class DraggableShapeChip extends StatefulWidget {
   final int strokeColorArgb;
   final int? fillColorArgb;
   final double scale;
-  final double labelWidthMm;
-  final double labelHeightMm;
+  final double templateWidthMm;
+  final double templateHeightMm;
 
-  /// Pixels added to [position] so chips align with the white label when the
+  /// Pixels added to [position] so chips align with the white template when the
   /// interactive stack is asymmetrically padded (e.g. hit area on one side).
   final double canvasInsetXPx;
   final double canvasInsetYPx;
-  final LabelPanMmDeltaCallback labelPanToMmDelta;
+  final TemplatePanMmDeltaCallback templatePanToMmDelta;
   final void Function(Offset newPosMm) onMoved;
   final void Function(double xMm, double yMm, double widthMm, double heightMm)
       onBoundsChanged;
@@ -107,23 +98,12 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   int _imageMoveSession = 0;
 
   Offset _mmDeltaFromGlobalDrag(Offset globalPos, Offset globalDelta) {
-    final s = _canvasScaleForMmMath(widget.scale);
-    final fromStack = widget.labelPanToMmDelta(globalPos, globalDelta);
+    final fromStack = widget.templatePanToMmDelta(globalPos, globalDelta);
     if (fromStack != null) return fromStack;
-    return Offset(globalDelta.dx / s, globalDelta.dy / s);
+    return pixelsToTemplateMm(globalDelta, widget.scale);
   }
 
   int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
-
-  /// Drag in label mm → delta along image unrotated width/height (mm).
-  Offset _labelDeltaToImageLocalMm(Offset dLabelMm) {
-    final rad = _effectiveRotationDeg * math.pi / 180;
-    final cosT = math.cos(rad);
-    final sinT = math.sin(rad);
-    final dlx = dLabelMm.dx * cosT - dLabelMm.dy * sinT;
-    final dly = dLabelMm.dx * sinT + dLabelMm.dy * cosT;
-    return Offset(dlx, dly);
-  }
 
   void _onResizePanStart(DragStartDetails d, _ShapeCorner c) {
     widget.onDragStateChanged?.call(true);
@@ -148,79 +128,20 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
     final gDelta = d.globalPosition - last;
     _resizePanLastGlobal = d.globalPosition;
     final dLabelMm = _mmDeltaFromGlobalDrag(d.globalPosition, gDelta);
-    _resizeAccum += _labelDeltaToImageLocalMm(dLabelMm);
-    final s = _resizeStart!;
-    final a = _resizeAccum;
-
-    final rad = _effectiveRotationDeg * math.pi / 180;
-    final cosT = math.cos(rad);
-    final sinT = math.sin(rad);
-
-    late double rw;
-    late double rh;
-    late double x;
-    late double y;
-
-    switch (_resizeCorner!) {
-      case _ShapeCorner.br:
-        final fixedX = s.left + s.width / 2 * (1 - cosT) + s.height / 2 * sinT;
-        final fixedY = s.top + s.height / 2 * (1 - cosT) - s.width / 2 * sinT;
-
-        rw = (s.width + a.dx).clamp(2.0, widget.labelWidthMm);
-        rh = (s.height + a.dy).clamp(2.0, widget.labelHeightMm);
-
-        x = fixedX - rw / 2 * (1 - cosT) - rh / 2 * sinT;
-        y = fixedY - rh / 2 * (1 - cosT) + rw / 2 * sinT;
-        break;
-
-      case _ShapeCorner.bl:
-        final fixedX = s.left + s.width / 2 * (1 + cosT) + s.height / 2 * sinT;
-        final fixedY = s.top + s.height / 2 * (1 - cosT) + s.width / 2 * sinT;
-
-        rw = (s.width - a.dx).clamp(2.0, widget.labelWidthMm);
-        rh = (s.height + a.dy).clamp(2.0, widget.labelHeightMm);
-
-        x = fixedX - rw / 2 * (1 + cosT) - rh / 2 * sinT;
-        y = fixedY - rh / 2 * (1 - cosT) - rw / 2 * sinT;
-        break;
-
-      case _ShapeCorner.tr:
-        final fixedX = s.left + s.width / 2 * (1 - cosT) - s.height / 2 * sinT;
-        final fixedY = s.top + s.height / 2 * (1 + cosT) - s.width / 2 * sinT;
-
-        rw = (s.width + a.dx).clamp(2.0, widget.labelWidthMm);
-        rh = (s.height - a.dy).clamp(2.0, widget.labelHeightMm);
-
-        x = fixedX - rw / 2 * (1 - cosT) + rh / 2 * sinT;
-        y = fixedY - rh / 2 * (1 + cosT) + rw / 2 * sinT;
-        break;
-
-      case _ShapeCorner.tl:
-        final fixedX = s.left + s.width / 2 * (1 + cosT) - s.height / 2 * sinT;
-        final fixedY = s.top + s.height / 2 * (1 + cosT) + s.width / 2 * sinT;
-
-        rw = (s.width - a.dx).clamp(2.0, widget.labelWidthMm);
-        rh = (s.height - a.dy).clamp(2.0, widget.labelHeightMm);
-
-        x = fixedX - rw / 2 * (1 + cosT) + rh / 2 * sinT;
-        y = fixedY - rh / 2 * (1 + cosT) - rw / 2 * sinT;
-        break;
-    }
-
-    final cosTAbs = cosT.abs();
-    final sinTAbs = sinT.abs();
-    final halfBoundX = (rw * cosTAbs + rh * sinTAbs) / 2;
-    final halfBoundY = (rw * sinTAbs + rh * cosTAbs) / 2;
-
-    final minX = halfBoundX - rw / 2;
-    final maxX = widget.labelWidthMm - rw / 2 - halfBoundX;
-    final minY = halfBoundY - rh / 2;
-    final maxY = widget.labelHeightMm - rh / 2 - halfBoundY;
-
-    final cx = _clampMm(x, minX, maxX);
-    final cy = _clampMm(y, minY, maxY);
-
-    setState(() => _resizeLiveRect = Rect.fromLTWH(cx, cy, rw, rh));
+    _resizeAccum += templateDeltaToElementLocalMm(
+      dLabelMm,
+      _effectiveRotationDeg,
+    );
+    setState(() {
+      _resizeLiveRect = resizedRotatedRectFromCorner(
+        startMm: _resizeStart!,
+        localDeltaMm: _resizeAccum,
+        corner: _resizeCorner!.name,
+        rotationDegrees: _effectiveRotationDeg,
+        maxWidthMm: widget.templateWidthMm,
+        maxHeightMm: widget.templateHeightMm,
+      );
+    });
   }
 
   void _endResize() {
@@ -259,13 +180,10 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
         box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
     final cur =
         math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
-    var delta = cur - _rotateStartFingerRad!;
-    if (delta > math.pi) delta -= 2 * math.pi;
-    if (delta < -math.pi) delta += 2 * math.pi;
+    final delta = normalizeRadiansDelta(cur - _rotateStartFingerRad!);
     final deg = CustomImageElement.normalizeImageRotationDegrees(
-      _rotateStartElemDeg! + delta * 180 / math.pi,
+      _rotateStartElemDeg! + radiansToDegrees(delta),
     );
-    setState(() => _rotateLiveDeg = deg);
     setState(() => _rotateLiveDeg = deg);
   }
 
@@ -386,7 +304,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
     final outerW = w + padL + padR;
     final outerH = h + padT + padB;
 
-    final rad = _effectiveRotationDeg * math.pi / 180;
+    final rad = degreesToRadians(_effectiveRotationDeg);
     final pivotX = padL + w / 2;
     final pivotY = padT + h / 2;
     final rot = Matrix4.identity()
@@ -436,24 +354,22 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                     final lr = _resizeLiveRect;
                     final w = lr?.width ?? widget.widthMm;
                     final h = lr?.height ?? widget.heightMm;
-                    final rad = _effectiveRotationDeg * math.pi / 180;
-                    final cosT = math.cos(rad).abs();
-                    final sinT = math.sin(rad).abs();
-                    final halfBoundX = (w * cosT + h * sinT) / 2;
-                    final halfBoundY = (w * sinT + h * cosT) / 2;
-                    final minX = halfBoundX - w / 2;
-                    final maxX = widget.labelWidthMm - w / 2 - halfBoundX;
-                    final minY = halfBoundY - h / 2;
-                    final maxY = widget.labelHeightMm - h / 2 - halfBoundY;
                     final rawX = origin.dx + _imagePanAccumMm.dx;
                     final rawY = origin.dy + _imagePanAccumMm.dy;
-                    final cx = _clampMm(rawX, minX, maxX);
-                    final cy = _clampMm(rawY, minY, maxY);
+                    final clamped = clampRotatedRectTopLeft(
+                      positionMm: Offset(rawX, rawY),
+                      widthMm: w,
+                      heightMm: h,
+                      rotationDegrees: _effectiveRotationDeg,
+                      canvasWidthMm: widget.templateWidthMm,
+                      canvasHeightMm: widget.templateHeightMm,
+                    );
+                    final cx = clamped.dx;
+                    final cy = clamped.dy;
                     if (cx != rawX || cy != rawY) {
                       _imagePanOriginMm = Offset(cx, cy);
                       _imagePanAccumMm = Offset.zero;
                     }
-                    final clamped = Offset(cx, cy);
                     setState(() => _imageDragLiveMm = clamped);
                   },
                   onPanEnd: (_) {

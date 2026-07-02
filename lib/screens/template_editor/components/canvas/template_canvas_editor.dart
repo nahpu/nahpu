@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/label_outline.dart'
-    show labelAreaStackDecoration, LabelOutlineOverlayPainter;
-import 'package:nahpu/screens/template_editor/label_gender_icon.dart'
-    show labelGenderIconForFieldKey;
+import 'package:nahpu/screens/template_editor/template_outline.dart'
+    show templateAreaStackDecoration, TemplateOutlineOverlayPainter;
+import 'package:nahpu/screens/template_editor/template_gender_icon.dart'
+    show templateGenderIconForFieldKey;
 import 'package:nahpu/services/export/label_writer.dart'
     show substituteLabelPlaceholders;
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
-import 'package:nahpu/screens/template_editor/components/draggable_chip.dart';
-import 'package:nahpu/screens/template_editor/components/draggable_image_chip.dart';
-import 'package:nahpu/screens/template_editor/components/draggable_line_chip.dart';
-import 'package:nahpu/screens/template_editor/components/draggable_shape_chip.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
+import 'package:nahpu/screens/template_editor/components/canvas/draggable_chip.dart';
+import 'package:nahpu/screens/template_editor/components/canvas/draggable_image_chip.dart';
+import 'package:nahpu/screens/template_editor/components/canvas/draggable_line_chip.dart';
+import 'package:nahpu/screens/template_editor/components/canvas/draggable_shape_chip.dart';
 import 'package:nahpu/screens/shared/qr.dart' show QrImageView;
 
 import 'dart:math' as math;
-import 'package:nahpu/screens/template_editor/label_canvas_stack.dart';
-import 'package:nahpu/screens/template_editor/components/grid_painter.dart';
+import 'package:nahpu/screens/template_editor/template_canvas_stack.dart';
+import 'package:nahpu/screens/template_editor/components/canvas/grid_painter.dart';
 
-const double _kLabelCanvasHitPadPx = 72.0;
+const double _kTemplateCanvasHitPadPx = 72.0;
 
 TextAlign _parseTextAlign(String align) {
   switch (align) {
@@ -30,22 +30,22 @@ TextAlign _parseTextAlign(String align) {
   }
 }
 
-class LabelCanvasEditor extends StatefulWidget {
-  const LabelCanvasEditor({
+class TemplateCanvasEditor extends StatefulWidget {
+  const TemplateCanvasEditor({
     super.key,
     required this.page1,
     required this.template,
-    required this.labelWidthMm,
-    required this.labelHeightMm,
+    required this.templateWidthMm,
+    required this.templateHeightMm,
     required this.zoom,
     required this.showGrid,
     required this.mirrorFront,
     required this.mirrorBack,
     required this.isPreviewMode,
-    required this.editorLabelFieldPreview,
+    required this.editorTemplateFieldPreview,
     required this.selectedElement,
-    required this.labelStackKey,
-    required this.labelPanGlobalDeltaToMm,
+    required this.templateStackKey,
+    required this.templatePanGlobalDeltaToMm,
     required this.onClearSelection,
     required this.onSelectElement,
     required this.onStartInlineEditing,
@@ -60,21 +60,21 @@ class LabelCanvasEditor extends StatefulWidget {
   });
 
   final bool page1;
-  final LabelTemplate template;
-  final double labelWidthMm;
-  final double labelHeightMm;
+  final Template template;
+  final double templateWidthMm;
+  final double templateHeightMm;
   final double zoom;
   final bool showGrid;
   final bool mirrorFront;
   final bool mirrorBack;
   final bool isPreviewMode;
-  final Map<String, String> editorLabelFieldPreview;
+  final Map<String, String> editorTemplateFieldPreview;
   final String? selectedElement;
-  final GlobalKey labelStackKey;
+  final GlobalKey templateStackKey;
   final String fieldDisplayOption;
 
   final Offset? Function(GlobalKey stackKey, Offset globalPosition,
-      Offset globalDelta, double scale) labelPanGlobalDeltaToMm;
+      Offset globalDelta, double scale) templatePanGlobalDeltaToMm;
   final VoidCallback onClearSelection;
   final void Function(String id) onSelectElement;
   final void Function(String id) onStartInlineEditing;
@@ -88,27 +88,27 @@ class LabelCanvasEditor extends StatefulWidget {
   final void Function(String id) onRemoveCustomShape;
 
   @override
-  State<LabelCanvasEditor> createState() => _LabelCanvasEditorState();
+  State<TemplateCanvasEditor> createState() => _TemplateCanvasEditorState();
 }
 
-class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
+class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
   bool _canvasPanEnabled = true;
 
   @override
   Widget build(BuildContext context) {
     final page1 = widget.page1;
     final template = widget.template;
-    final labelWidthMm = widget.labelWidthMm;
-    final labelHeightMm = widget.labelHeightMm;
+    final templateWidthMm = widget.templateWidthMm;
+    final templateHeightMm = widget.templateHeightMm;
     final zoom = widget.zoom;
     final showGrid = widget.showGrid;
     final mirrorFront = widget.mirrorFront;
     final mirrorBack = widget.mirrorBack;
     final isPreviewMode = widget.isPreviewMode;
-    final editorLabelFieldPreview = widget.editorLabelFieldPreview;
+    final editorTemplateFieldPreview = widget.editorTemplateFieldPreview;
     final selectedElement = widget.selectedElement;
-    final labelStackKey = widget.labelStackKey;
-    final labelPanGlobalDeltaToMm = widget.labelPanGlobalDeltaToMm;
+    final templateStackKey = widget.templateStackKey;
+    final templatePanGlobalDeltaToMm = widget.templatePanGlobalDeltaToMm;
     final onClearSelection = widget.onClearSelection;
     final onSelectElement = widget.onSelectElement;
     final onScheduleTemplateImageUpdate = widget.onScheduleTemplateImageUpdate;
@@ -130,16 +130,16 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
       final availH =
           (constraints.maxHeight - 2 * edgePadH).clamp(0.0, double.infinity);
       final baseScale =
-          (availW / labelWidthMm).clamp(1.0, availH / labelHeightMm);
+          (availW / templateWidthMm).clamp(1.0, availH / templateHeightMm);
       final scale = baseScale * zoom;
-      final canvasW = labelWidthMm * scale;
-      final canvasH = labelHeightMm * scale;
-      final stackW = canvasW + _kLabelCanvasHitPadPx;
-      final stackH = canvasH + 2 * _kLabelCanvasHitPadPx;
+      final canvasW = templateWidthMm * scale;
+      final canvasH = templateHeightMm * scale;
+      final stackW = canvasW + _kTemplateCanvasHitPadPx;
+      final stackH = canvasH + 2 * _kTemplateCanvasHitPadPx;
 
-      Offset? labelPanToMmDelta(Offset globalPosition, Offset globalDelta) {
-        return labelPanGlobalDeltaToMm(
-          labelStackKey,
+      Offset? templatePanToMmDelta(Offset globalPosition, Offset globalDelta) {
+        return templatePanGlobalDeltaToMm(
+          templateStackKey,
           globalPosition,
           globalDelta,
           scale,
@@ -188,14 +188,14 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                     child: SizedBox(
                       width: stackW,
                       height: stackH,
-                      child: LabelCanvasStack(
-                        key: labelStackKey,
+                      child: TemplateCanvasStack(
+                        key: templateStackKey,
                         clipBehavior: Clip.none,
                         fit: StackFit.expand,
                         children: [
                           Positioned(
                             left: 0,
-                            top: _kLabelCanvasHitPadPx,
+                            top: _kTemplateCanvasHitPadPx,
                             width: canvasW,
                             height: canvasH,
                             child: IgnorePointer(
@@ -204,12 +204,13 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                 clipBehavior: Clip.none,
                                 children: [
                                   DecoratedBox(
-                                    decoration: labelAreaStackDecoration(),
+                                    decoration: templateAreaStackDecoration(),
                                     child: showGrid
                                         ? CustomPaint(
                                             painter: GridPainter(
-                                              labelWidthMm: labelWidthMm,
-                                              labelHeightMm: labelHeightMm,
+                                              templateWidthMm: templateWidthMm,
+                                              templateHeightMm:
+                                                  templateHeightMm,
                                               scale: scale,
                                             ),
                                             child: const SizedBox.expand(),
@@ -218,7 +219,7 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                   ),
                                   if (template.outline != null)
                                     CustomPaint(
-                                      painter: LabelOutlineOverlayPainter(
+                                      painter: TemplateOutlineOverlayPainter(
                                         outline: template.outline!,
                                         scaleMmToPx: scale,
                                       ),
@@ -248,11 +249,11 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                   heightMm: element.heightMm,
                                   rotationDegrees: element.rotationDegrees,
                                   scale: scale,
-                                  labelWidthMm: labelWidthMm,
-                                  labelHeightMm: labelHeightMm,
+                                  templateWidthMm: templateWidthMm,
+                                  templateHeightMm: templateHeightMm,
                                   canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                  labelPanToMmDelta: labelPanToMmDelta,
+                                  canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                  templatePanToMmDelta: templatePanToMmDelta,
                                   isSelected: selectedElement ==
                                       'image:${page1 ? '1' : '2'}:${element.id}',
                                   onTap: () => onSelectElement(
@@ -287,11 +288,11 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                               } else if (element is CustomTextElement) {
                                 if (element.isQrCode) {
                                   final rawText = element.text;
-                                  final textVal = formatLabelText(
+                                  final textVal = formatTemplateText(
                                     isPreviewMode
                                         ? substituteLabelPlaceholders(
                                             rawText,
-                                            editorLabelFieldPreview,
+                                            editorTemplateFieldPreview,
                                           )
                                         : formatFieldPlaceholderText(
                                             rawText,
@@ -319,11 +320,11 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                     heightMm: element.qrSizeMm,
                                     rotationDegrees: element.rotationDegrees,
                                     scale: scale,
-                                    labelWidthMm: labelWidthMm,
-                                    labelHeightMm: labelHeightMm,
+                                    templateWidthMm: templateWidthMm,
+                                    templateHeightMm: templateHeightMm,
                                     canvasInsetXPx: 0,
-                                    canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                    labelPanToMmDelta: labelPanToMmDelta,
+                                    canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                    templatePanToMmDelta: templatePanToMmDelta,
                                     isSelected: selectedElement ==
                                         'custom:${page1 ? '1' : '2'}:${element.id}',
                                     onTap: () => onSelectElement(
@@ -353,7 +354,7 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                     },
                                     onDelete: null,
                                   );
-                                } else if (labelGenderIconFieldKeyFromBracketText(
+                                } else if (templateGenderIconFieldKeyFromBracketText(
                                         element.text)
                                     case final gKey?) {
                                   return DraggableImageChip(
@@ -361,20 +362,20 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                         'p${page1 ? '1' : '2'}_gct_${element.id}'),
                                     imagePath: '',
                                     vectorChild: Icon(
-                                        labelGenderIconForFieldKey(
-                                            editorLabelFieldPreview, gKey)),
+                                        templateGenderIconForFieldKey(
+                                            editorTemplateFieldPreview, gKey)),
                                     position: Offset(element.xMm, element.yMm),
                                     widthMm: element.iconWidthMm ??
-                                        kLabelGenderIconDefaultWidthMm,
+                                        kTemplateGenderIconDefaultWidthMm,
                                     heightMm: element.iconHeightMm ??
-                                        kLabelGenderIconDefaultHeightMm,
+                                        kTemplateGenderIconDefaultHeightMm,
                                     rotationDegrees: element.rotationDegrees,
                                     scale: scale,
-                                    labelWidthMm: labelWidthMm,
-                                    labelHeightMm: labelHeightMm,
+                                    templateWidthMm: templateWidthMm,
+                                    templateHeightMm: templateHeightMm,
                                     canvasInsetXPx: 0,
-                                    canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                    labelPanToMmDelta: labelPanToMmDelta,
+                                    canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                    templatePanToMmDelta: templatePanToMmDelta,
                                     isSelected: selectedElement ==
                                         'custom:${page1 ? '1' : '2'}:${element.id}',
                                     onTap: () => onSelectElement(
@@ -411,11 +412,11 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                         'p${page1 ? '1' : '2'}_ct_${element.id}_${element.rotationDegrees}_${element.fontFamily}'),
                                     label: element.text.isEmpty
                                         ? '(empty)'
-                                        : formatLabelText(
+                                        : formatTemplateText(
                                             isPreviewMode
                                                 ? substituteLabelPlaceholders(
                                                     element.text,
-                                                    editorLabelFieldPreview,
+                                                    editorTemplateFieldPreview,
                                                   )
                                                 : formatFieldPlaceholderText(
                                                     element.text,
@@ -436,11 +437,11 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                         _parseTextAlign(element.textAlign),
                                     rotationDegrees: element.rotationDegrees,
                                     scale: scale,
-                                    labelWidthMm: labelWidthMm,
-                                    labelHeightMm: labelHeightMm,
+                                    templateWidthMm: templateWidthMm,
+                                    templateHeightMm: templateHeightMm,
                                     canvasInsetXPx: 0,
-                                    canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                    labelPanToMmDelta: labelPanToMmDelta,
+                                    canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                    templatePanToMmDelta: templatePanToMmDelta,
                                     isCustom: true,
                                     maxWidthMm: element.maxWidthMm,
                                     colorArgb: element.colorArgb,
@@ -482,11 +483,11 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                   colorArgb: element.colorArgb,
                                   rotationDegrees: element.rotationDegrees,
                                   scale: scale,
-                                  labelWidthMm: labelWidthMm,
-                                  labelHeightMm: labelHeightMm,
+                                  templateWidthMm: templateWidthMm,
+                                  templateHeightMm: templateHeightMm,
                                   canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                  labelPanToMmDelta: labelPanToMmDelta,
+                                  canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                  templatePanToMmDelta: templatePanToMmDelta,
                                   isSelected: selectedElement ==
                                       'line:${page1 ? '1' : '2'}:${element.id}',
                                   onTap: () => onSelectElement(
@@ -520,11 +521,11 @@ class _LabelCanvasEditorState extends State<LabelCanvasEditor> {
                                   fillColorArgb: element.fillColorArgb,
                                   rotationDegrees: element.rotationDegrees,
                                   scale: scale,
-                                  labelWidthMm: labelWidthMm,
-                                  labelHeightMm: labelHeightMm,
+                                  templateWidthMm: templateWidthMm,
+                                  templateHeightMm: templateHeightMm,
                                   canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kLabelCanvasHitPadPx,
-                                  labelPanToMmDelta: labelPanToMmDelta,
+                                  canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                  templatePanToMmDelta: templatePanToMmDelta,
                                   isSelected: selectedElement ==
                                       'shape:${page1 ? '1' : '2'}:${element.id}',
                                   onTap: () => onSelectElement(

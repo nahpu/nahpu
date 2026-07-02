@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/export/label_writer.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 
 void main() {
   group('LabelWriter text substitutions', () {
@@ -39,7 +39,7 @@ void main() {
 
   group('LabelWriter z-index tests', () {
     test('Elements are correctly sorted by zIndex', () {
-      final page = LabelPageTemplate(customImages: [
+      final page = TemplatePage(customImages: [
         CustomImageElement(
             id: 'img1',
             imagePath: 'path1.png',
@@ -155,46 +155,47 @@ void main() {
     test('Coordinates formatting handles DMS and cardinal directions correctly',
         () {
       const text = '45.12345, -122.54321';
-      final dms = formatLabelText(text, 'coordinates', 'dms');
+      final dms = formatTemplateText(text, 'coordinates', 'dms');
       expect(dms, '45° 7\' 24.4" N, 122° 32\' 35.6" W');
 
-      final ddm = formatLabelText(text, 'coordinates', 'ddm');
+      final ddm = formatTemplateText(text, 'coordinates', 'ddm');
       expect(ddm, '45° 7.407\' N, 122° 32.593\' W');
 
-      final cardinal = formatLabelText(text, 'coordinates', 'cardinalDecimal');
+      final cardinal =
+          formatTemplateText(text, 'coordinates', 'cardinalDecimal');
       expect(cardinal, '45.12345° N, 122.54321° W');
     });
 
     test('List formatting handles normal separators and custom separators', () {
       const listText = 'mammal | bird | reptile';
-      final commaList = formatLabelText(listText, 'list', 'comma');
+      final commaList = formatTemplateText(listText, 'list', 'comma');
       expect(commaList, 'mammal, bird, reptile');
 
-      final customList = formatLabelText(listText, 'list', 'custom: - ');
+      final customList = formatTemplateText(listText, 'list', 'custom: - ');
       expect(customList, 'mammal - bird - reptile');
     });
 
     test('Date formatting parses and formats ISO dates correctly', () {
       const dateText = '2026-06-28';
-      final formatted = formatLabelText(dateText, 'date', 'month-dd-yyyy');
+      final formatted = formatTemplateText(dateText, 'date', 'month-dd-yyyy');
       expect(formatted, 'June 28, 2026');
 
-      final abbr = formatLabelText(dateText, 'date', 'dd-month-abbr-yyyy');
+      final abbr = formatTemplateText(dateText, 'date', 'dd-month-abbr-yyyy');
       expect(abbr, '28 Jun 2026');
     });
 
     test('Sex formatting parses Male/Female/Unknown indices and text', () {
-      expect(formatLabelText('0', 'sex', 'symbol:unknown'), '\u2642');
-      expect(formatLabelText('Male', 'sex', 'letter:na'), 'M');
-      expect(formatLabelText('m', 'sex', 'text:none'), 'Male');
+      expect(formatTemplateText('0', 'sex', 'symbol:unknown'), '\u2642');
+      expect(formatTemplateText('Male', 'sex', 'letter:na'), 'M');
+      expect(formatTemplateText('m', 'sex', 'text:none'), 'Male');
 
-      expect(formatLabelText('1', 'sex', 'symbol:unknown'), '\u2640');
-      expect(formatLabelText('Female', 'sex', 'letter:na'), 'F');
-      expect(formatLabelText('f', 'sex', 'text:none'), 'Female');
+      expect(formatTemplateText('1', 'sex', 'symbol:unknown'), '\u2640');
+      expect(formatTemplateText('Female', 'sex', 'letter:na'), 'F');
+      expect(formatTemplateText('f', 'sex', 'text:none'), 'Female');
 
-      expect(formatLabelText('2', 'sex', 'symbol:unknown'), '?');
-      expect(formatLabelText('', 'sex', 'letter:na'), 'N/A');
-      expect(formatLabelText('Unknown', 'sex', 'text:none'), '');
+      expect(formatTemplateText('2', 'sex', 'symbol:unknown'), '?');
+      expect(formatTemplateText('', 'sex', 'letter:na'), 'N/A');
+      expect(formatTemplateText('Unknown', 'sex', 'text:none'), '');
     });
 
     test('Field display formatting displays full/field-only placeholders', () {
@@ -211,17 +212,18 @@ void main() {
 
     test('Number formatting formats double values to specified decimals', () {
       const pureFloat = '12.3456';
-      expect(formatLabelText(pureFloat, 'number', 'original'), '12.3456');
-      expect(formatLabelText(pureFloat, 'number', '0'), '12');
-      expect(formatLabelText(pureFloat, 'number', '1'), '12.3');
-      expect(formatLabelText(pureFloat, 'number', '2'), '12.35');
-      expect(formatLabelText(pureFloat, 'number', '3'), '12.346');
+      expect(formatTemplateText(pureFloat, 'number', 'original'), '12.3456');
+      expect(formatTemplateText(pureFloat, 'number', '0'), '12');
+      expect(formatTemplateText(pureFloat, 'number', '1'), '12.3');
+      expect(formatTemplateText(pureFloat, 'number', '2'), '12.35');
+      expect(formatTemplateText(pureFloat, 'number', '3'), '12.346');
 
       const integerText = '12';
-      expect(formatLabelText(integerText, 'number', '1'), '12.0');
+      expect(formatTemplateText(integerText, 'number', '1'), '12.0');
 
       const textWithUnits = 'Weight: 12.34 g';
-      expect(formatLabelText(textWithUnits, 'number', '1'), 'Weight: 12.3 g');
+      expect(
+          formatTemplateText(textWithUnits, 'number', '1'), 'Weight: 12.3 g');
     });
 
     group('Integrated Text-to-QR tests', () {

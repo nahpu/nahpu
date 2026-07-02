@@ -2,11 +2,12 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/template_editor/label_gender_icon.dart';
-import 'package:nahpu/screens/template_editor/label_outline.dart';
+import 'package:nahpu/screens/template_editor/template_gender_icon.dart';
+import 'package:nahpu/screens/template_editor/template_editor_math.dart';
+import 'package:nahpu/screens/template_editor/template_outline.dart';
 import 'package:nahpu/services/export/label_writer.dart';
-import 'package:nahpu/screens/template_editor/label_template_fonts.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_fonts.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;
@@ -23,9 +24,9 @@ TextAlign _parseTextAlign(String align) {
   }
 }
 
-/// Read-only scaled preview of one or both label pages (for print preview dialog).
-class LabelTemplateLivePreview extends StatelessWidget {
-  const LabelTemplateLivePreview({
+/// Read-only scaled preview of one or both template pages (for print preview dialog).
+class TemplateLivePreview extends StatelessWidget {
+  const TemplateLivePreview({
     super.key,
     required this.viewportSize,
     required this.showHeading,
@@ -33,19 +34,19 @@ class LabelTemplateLivePreview extends StatelessWidget {
     required this.isDuplex,
     required this.mirrorFront,
     required this.mirrorBack,
-    required this.labelWidthMm,
-    required this.labelHeightMm,
+    required this.templateWidthMm,
+    required this.templateHeightMm,
     this.placeholderValues = const {},
   });
 
   final Size viewportSize;
   final bool showHeading;
-  final LabelTemplate template;
+  final Template template;
   final bool isDuplex;
   final bool mirrorFront;
   final bool mirrorBack;
-  final double labelWidthMm;
-  final double labelHeightMm;
+  final double templateWidthMm;
+  final double templateHeightMm;
 
   /// When non-empty, `[field]` text is replaced (e.g. first specimen for editor preview).
   final Map<String, String> placeholderValues;
@@ -53,11 +54,11 @@ class LabelTemplateLivePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pages = isDuplex
-        ? <(bool, LabelPageTemplate, bool)>[
+        ? <(bool, TemplatePage, bool)>[
             (true, template.page1, mirrorFront),
             (false, template.page2, mirrorBack),
           ]
-        : <(bool, LabelPageTemplate, bool)>[
+        : <(bool, TemplatePage, bool)>[
             (true, template.page1, mirrorFront),
           ];
 
@@ -84,8 +85,8 @@ class LabelTemplateLivePreview extends StatelessWidget {
                 page: pages[i].$2,
                 mirror: pages[i].$3,
                 outline: template.outline,
-                labelWidthMm: labelWidthMm,
-                labelHeightMm: labelHeightMm,
+                templateWidthMm: templateWidthMm,
+                templateHeightMm: templateHeightMm,
                 maxWidth: maxW,
                 placeholderValues: placeholderValues,
               ),
@@ -103,25 +104,25 @@ class _PreviewPage extends StatelessWidget {
     required this.page,
     required this.mirror,
     required this.outline,
-    required this.labelWidthMm,
-    required this.labelHeightMm,
+    required this.templateWidthMm,
+    required this.templateHeightMm,
     required this.maxWidth,
     required this.placeholderValues,
   });
 
-  final LabelPageTemplate page;
+  final TemplatePage page;
   final bool mirror;
-  final LabelTemplateOutline? outline;
-  final double labelWidthMm;
-  final double labelHeightMm;
+  final TemplateOutline? outline;
+  final double templateWidthMm;
+  final double templateHeightMm;
   final double maxWidth;
   final Map<String, String> placeholderValues;
 
   @override
   Widget build(BuildContext context) {
-    final scale = (maxWidth / labelWidthMm).clamp(0.25, 12.0);
-    final w = labelWidthMm * scale;
-    final h = labelHeightMm * scale;
+    final scale = (maxWidth / templateWidthMm).clamp(0.25, 12.0);
+    final w = templateWidthMm * scale;
+    final h = templateHeightMm * scale;
     final outlinePaint = outline;
 
     return Transform.rotate(
@@ -134,12 +135,12 @@ class _PreviewPage extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           children: [
             DecoratedBox(
-              decoration: labelAreaStackDecoration(),
+              decoration: templateAreaStackDecoration(),
               child: const SizedBox.expand(),
             ),
             if (outlinePaint != null)
               CustomPaint(
-                painter: LabelOutlineOverlayPainter(
+                painter: TemplateOutlineOverlayPainter(
                   outline: outlinePaint,
                   scaleMmToPx: scale,
                 ),
@@ -152,8 +153,8 @@ class _PreviewPage extends StatelessWidget {
                 width: math.max(1.0, im.widthMm * scale),
                 height: math.max(1.0, im.heightMm * scale),
                 child: Transform.rotate(
-                  angle: im.rotationDegrees * math.pi / 180,
-                  child: isLabelImagePathUsable(im.imagePath)
+                  angle: degreesToRadians(im.rotationDegrees),
+                  child: isTemplateImagePathUsable(im.imagePath)
                       ? Image.file(
                           File(im.imagePath),
                           fit: BoxFit.fill,
@@ -164,37 +165,38 @@ class _PreviewPage extends StatelessWidget {
                 ),
               ),
             for (final ct in page.customTexts)
-              if (labelGenderIconFieldKeyFromBracketText(ct.text)
+              if (templateGenderIconFieldKeyFromBracketText(ct.text)
                   case final gKey?)
                 Positioned(
                   left: ct.xMm * scale,
                   top: ct.yMm * scale,
                   width: math.max(
                     1.0,
-                    (ct.iconWidthMm ?? kLabelGenderIconDefaultWidthMm) * scale,
+                    (ct.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm) *
+                        scale,
                   ),
                   height: math.max(
                     1.0,
-                    (ct.iconHeightMm ?? kLabelGenderIconDefaultHeightMm) *
+                    (ct.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm) *
                         scale,
                   ),
                   child: Transform.rotate(
-                    angle: ct.rotationDegrees * math.pi / 180,
+                    angle: degreesToRadians(ct.rotationDegrees),
                     child: IconTheme(
                       data: IconThemeData(
                         size: math.min(
                               (ct.iconWidthMm ??
-                                      kLabelGenderIconDefaultWidthMm) *
+                                      kTemplateGenderIconDefaultWidthMm) *
                                   scale,
                               (ct.iconHeightMm ??
-                                      kLabelGenderIconDefaultHeightMm) *
+                                      kTemplateGenderIconDefaultHeightMm) *
                                   scale,
                             ) *
                             0.88,
                         color: Colors.black,
                       ),
                       child: Icon(
-                        labelGenderIconForFieldKey(placeholderValues, gKey),
+                        templateGenderIconForFieldKey(placeholderValues, gKey),
                       ),
                     ),
                   ),
@@ -204,14 +206,14 @@ class _PreviewPage extends StatelessWidget {
                   left: ct.xMm * scale,
                   top: ct.yMm * scale,
                   child: Transform.rotate(
-                    angle: ct.rotationDegrees * math.pi / 180,
+                    angle: degreesToRadians(ct.rotationDegrees),
                     child: SizedBox(
                       width:
                           ct.maxWidthMm != null ? ct.maxWidthMm! * scale : null,
                       child: Text(
                         ct.text.isEmpty
                             ? ' '
-                            : formatLabelText(
+                            : formatTemplateText(
                                 placeholderValues.isEmpty
                                     ? ct.text
                                     : substituteLabelPlaceholders(
@@ -222,7 +224,7 @@ class _PreviewPage extends StatelessWidget {
                                 ct.formatOption,
                                 ct.caseFormat,
                               ),
-                        style: customLabelCanvasTextStyle(
+                        style: customTemplateCanvasTextStyle(
                           fontFamilyRaw: ct.fontFamily,
                           fontSize: _previewFontSizePx(ct.fontSizePt, scale),
                           fontWeight:

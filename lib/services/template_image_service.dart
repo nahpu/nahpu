@@ -4,12 +4,12 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
-class LabelLogoService {
-  const LabelLogoService();
+class TemplateImageService {
+  const TemplateImageService();
 
   Future<Directory> _logosDir() async {
     final root = await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(root.path, 'label_logos'));
+    final dir = Directory(p.join(root.path, 'template_images'));
     if (!dir.existsSync()) dir.createSync(recursive: true);
     return dir;
   }

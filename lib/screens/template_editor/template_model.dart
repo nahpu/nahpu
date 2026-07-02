@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
-bool isLabelImagePathUsable(String path) {
+bool isTemplateImagePathUsable(String path) {
   final p = path.trim();
   if (p.isEmpty) return false;
   try {
@@ -12,26 +12,26 @@ bool isLabelImagePathUsable(String path) {
   }
 }
 
-/// Whole-line text `[mammal.sex]-img` → show sex as a resizable icon (see [isLabelBracketGenderIconText]).
-final RegExp kLabelGenderIconBracketText = RegExp(
+/// Whole-line text `[mammal.sex]-img` → show sex as a resizable icon (see [isTemplateBracketGenderIconText]).
+final RegExp kTemplateGenderIconBracketText = RegExp(
   r'^\s*\[([^\]]+)\]-img\s*$',
   caseSensitive: false,
 );
 
 /// Field id inside brackets, e.g. `mammal.sex`, when [text] is `[mammal.sex]-img`.
-String? labelGenderIconFieldKeyFromBracketText(String text) {
-  final m = kLabelGenderIconBracketText.firstMatch(text.trim());
+String? templateGenderIconFieldKeyFromBracketText(String text) {
+  final m = kTemplateGenderIconBracketText.firstMatch(text.trim());
   if (m == null) return null;
   final key = m.group(1)!.trim();
   if (!key.toLowerCase().endsWith('.sex')) return null;
   return key;
 }
 
-bool isLabelBracketGenderIconText(String text) =>
-    labelGenderIconFieldKeyFromBracketText(text) != null;
+bool isTemplateBracketGenderIconText(String text) =>
+    templateGenderIconFieldKeyFromBracketText(text) != null;
 
-const double kLabelGenderIconDefaultWidthMm = 6.0;
-const double kLabelGenderIconDefaultHeightMm = 6.0;
+const double kTemplateGenderIconDefaultWidthMm = 6.0;
+const double kTemplateGenderIconDefaultHeightMm = 6.0;
 
 String formatTextWithCase(String rawText, String caseFormat) {
   switch (caseFormat) {
@@ -269,7 +269,7 @@ String formatFieldPlaceholderText(String text, bool showFieldOnly) {
   return text.replaceAllMapped(regex, (match) => '[${match.group(2)}]');
 }
 
-String formatLabelText(
+String formatTemplateText(
   String rawText,
   String textType,
   String formatOption, [
@@ -351,7 +351,7 @@ class CustomTextElement {
   final String textType;
   final String formatOption;
 
-  /// For [isLabelBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
+  /// For [isTemplateBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
   final double? iconHeightMm;
 
@@ -702,8 +702,8 @@ class CustomShapeElement {
   }
 }
 
-class LabelPageTemplate {
-  const LabelPageTemplate({
+class TemplatePage {
+  const TemplatePage({
     this.customTexts = const [],
     this.customImages = const [],
     this.customLines = const [],
@@ -715,13 +715,13 @@ class LabelPageTemplate {
   final List<CustomLineElement> customLines;
   final List<CustomShapeElement> customShapes;
 
-  LabelPageTemplate copyWith({
+  TemplatePage copyWith({
     List<CustomTextElement>? customTexts,
     List<CustomImageElement>? customImages,
     List<CustomLineElement>? customLines,
     List<CustomShapeElement>? customShapes,
   }) {
-    return LabelPageTemplate(
+    return TemplatePage(
       customTexts: customTexts ?? this.customTexts,
       customImages: customImages ?? this.customImages,
       customLines: customLines ?? this.customLines,
@@ -729,7 +729,7 @@ class LabelPageTemplate {
     );
   }
 
-  LabelPageTemplate withCustomText(CustomTextElement e) {
+  TemplatePage withCustomText(CustomTextElement e) {
     final next = [...customTexts];
     final i = next.indexWhere((t) => t.id == e.id);
     if (i >= 0) {
@@ -740,11 +740,11 @@ class LabelPageTemplate {
     return copyWith(customTexts: next);
   }
 
-  LabelPageTemplate withoutCustomText(String id) {
+  TemplatePage withoutCustomText(String id) {
     return copyWith(customTexts: customTexts.where((t) => t.id != id).toList());
   }
 
-  LabelPageTemplate withCustomImage(CustomImageElement e) {
+  TemplatePage withCustomImage(CustomImageElement e) {
     final next = [...customImages];
     final i = next.indexWhere((im) => im.id == e.id);
     if (i >= 0) {
@@ -755,12 +755,12 @@ class LabelPageTemplate {
     return copyWith(customImages: next);
   }
 
-  LabelPageTemplate withoutCustomImage(String id) {
+  TemplatePage withoutCustomImage(String id) {
     return copyWith(
         customImages: customImages.where((im) => im.id != id).toList());
   }
 
-  LabelPageTemplate withCustomLine(CustomLineElement e) {
+  TemplatePage withCustomLine(CustomLineElement e) {
     final next = [...customLines];
     final i = next.indexWhere((l) => l.id == e.id);
     if (i >= 0) {
@@ -771,11 +771,11 @@ class LabelPageTemplate {
     return copyWith(customLines: next);
   }
 
-  LabelPageTemplate withoutCustomLine(String id) {
+  TemplatePage withoutCustomLine(String id) {
     return copyWith(customLines: customLines.where((l) => l.id != id).toList());
   }
 
-  LabelPageTemplate withCustomShape(CustomShapeElement e) {
+  TemplatePage withCustomShape(CustomShapeElement e) {
     final next = [...customShapes];
     final i = next.indexWhere((s) => s.id == e.id);
     if (i >= 0) {
@@ -786,7 +786,7 @@ class LabelPageTemplate {
     return copyWith(customShapes: next);
   }
 
-  LabelPageTemplate withoutCustomShape(String id) {
+  TemplatePage withoutCustomShape(String id) {
     return copyWith(
         customShapes: customShapes.where((s) => s.id != id).toList());
   }
@@ -798,8 +798,8 @@ class LabelPageTemplate {
         'customShapes': customShapes.map((e) => e.toJson()).toList(),
       };
 
-  factory LabelPageTemplate.fromJson(Map<String, dynamic> json) {
-    return LabelPageTemplate(
+  factory TemplatePage.fromJson(Map<String, dynamic> json) {
+    return TemplatePage(
       customTexts: (json['customTexts'] as List<dynamic>?)
               ?.map(
                   (e) => CustomTextElement.fromJson(e as Map<String, dynamic>))
@@ -825,8 +825,8 @@ class LabelPageTemplate {
 }
 
 /// Duplex and 180° print rotation per side; stored in template JSON.
-class LabelTemplatePrintOptions {
-  const LabelTemplatePrintOptions({
+class TemplatePrintOptions {
+  const TemplatePrintOptions({
     required this.isDuplex,
     required this.mirrorFront,
     required this.mirrorBack,
@@ -875,8 +875,8 @@ class LabelTemplatePrintOptions {
         if (labelPadBottomMm != null) 'labelPadBottomMm': labelPadBottomMm,
       };
 
-  factory LabelTemplatePrintOptions.fromJson(Map<String, dynamic> json) {
-    return LabelTemplatePrintOptions(
+  factory TemplatePrintOptions.fromJson(Map<String, dynamic> json) {
+    return TemplatePrintOptions(
       isDuplex: json['isDuplex'] as bool? ?? false,
       mirrorFront: json['mirrorFront'] as bool? ?? false,
       mirrorBack: json['mirrorBack'] as bool? ?? false,
@@ -895,12 +895,12 @@ class LabelTemplatePrintOptions {
   }
 }
 
-LabelTemplatePrintOptions? labelTemplatePrintOptionsFromJson(
+TemplatePrintOptions? templatePrintOptionsFromJson(
   Map<String, dynamic> json,
 ) {
   final nested = json['printOptions'];
   if (nested is Map) {
-    return LabelTemplatePrintOptions.fromJson(
+    return TemplatePrintOptions.fromJson(
       Map<String, dynamic>.from(nested),
     );
   }
@@ -918,54 +918,54 @@ LabelTemplatePrintOptions? labelTemplatePrintOptionsFromJson(
       json.containsKey('labelPadLeftMm') ||
       json.containsKey('labelPadRightMm') ||
       json.containsKey('labelPadBottomMm')) {
-    return LabelTemplatePrintOptions.fromJson(json);
+    return TemplatePrintOptions.fromJson(json);
   }
   return null;
 }
 
-LabelTemplateOutlineStyle labelTemplateOutlineStyleFromJson(String? s) {
+TemplateOutlineStyle templateOutlineStyleFromJson(String? s) {
   switch (s) {
     case 'dashed':
-      return LabelTemplateOutlineStyle.dashed;
+      return TemplateOutlineStyle.dashed;
     case 'dotted':
-      return LabelTemplateOutlineStyle.dotted;
+      return TemplateOutlineStyle.dotted;
     case 'double':
-      return LabelTemplateOutlineStyle.doubleLine;
+      return TemplateOutlineStyle.doubleLine;
     default:
-      return LabelTemplateOutlineStyle.solid;
+      return TemplateOutlineStyle.solid;
   }
 }
 
-String labelTemplateOutlineStyleToJson(LabelTemplateOutlineStyle s) {
+String templateOutlineStyleToJson(TemplateOutlineStyle s) {
   switch (s) {
-    case LabelTemplateOutlineStyle.solid:
+    case TemplateOutlineStyle.solid:
       return 'solid';
-    case LabelTemplateOutlineStyle.dashed:
+    case TemplateOutlineStyle.dashed:
       return 'dashed';
-    case LabelTemplateOutlineStyle.dotted:
+    case TemplateOutlineStyle.dotted:
       return 'dotted';
-    case LabelTemplateOutlineStyle.doubleLine:
+    case TemplateOutlineStyle.doubleLine:
       return 'double';
   }
 }
 
 /// Line style for the optional rectangle drawn around the label in editor, preview, and PDF.
-enum LabelTemplateOutlineStyle {
+enum TemplateOutlineStyle {
   solid,
   dashed,
   dotted,
   doubleLine,
 }
 
-/// Per-template outline around the label area (saved with the template JSON).
-class LabelTemplateOutline {
-  const LabelTemplateOutline({
-    this.style = LabelTemplateOutlineStyle.solid,
+/// Per-template outline around the template area (saved with the template JSON).
+class TemplateOutline {
+  const TemplateOutline({
+    this.style = TemplateOutlineStyle.solid,
     this.widthPt = 1.5,
     this.colorArgb = 0xFF757575,
   });
 
-  final LabelTemplateOutlineStyle style;
+  final TemplateOutlineStyle style;
 
   /// Stroke width in PDF points (1 pt = 1/72 in).
   final double widthPt;
@@ -973,12 +973,12 @@ class LabelTemplateOutline {
   /// 0xAARRGGBB (same convention as [Color.value]).
   final int colorArgb;
 
-  LabelTemplateOutline copyWith({
-    LabelTemplateOutlineStyle? style,
+  TemplateOutline copyWith({
+    TemplateOutlineStyle? style,
     double? widthPt,
     int? colorArgb,
   }) {
-    return LabelTemplateOutline(
+    return TemplateOutline(
       style: style ?? this.style,
       widthPt: widthPt ?? this.widthPt,
       colorArgb: colorArgb ?? this.colorArgb,
@@ -986,22 +986,22 @@ class LabelTemplateOutline {
   }
 
   Map<String, dynamic> toJson() => {
-        'style': labelTemplateOutlineStyleToJson(style),
+        'style': templateOutlineStyleToJson(style),
         'widthPt': widthPt,
         'colorArgb': colorArgb,
       };
 
-  factory LabelTemplateOutline.fromJson(Map<String, dynamic> json) {
-    return LabelTemplateOutline(
-      style: labelTemplateOutlineStyleFromJson(json['style'] as String?),
+  factory TemplateOutline.fromJson(Map<String, dynamic> json) {
+    return TemplateOutline(
+      style: templateOutlineStyleFromJson(json['style'] as String?),
       widthPt: (json['widthPt'] as num?)?.toDouble() ?? 1.5,
       colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF757575,
     );
   }
 }
 
-class LabelTemplate {
-  const LabelTemplate({
+class Template {
+  const Template({
     required this.name,
     required this.page1,
     required this.page2,
@@ -1010,25 +1010,25 @@ class LabelTemplate {
   });
 
   final String name;
-  final LabelPageTemplate page1;
-  final LabelPageTemplate page2;
+  final TemplatePage page1;
+  final TemplatePage page2;
 
-  /// When null (legacy files), the editor uses app label settings instead.
-  final LabelTemplatePrintOptions? printOptions;
+  /// When null (legacy files), the editor uses app template settings instead.
+  final TemplatePrintOptions? printOptions;
 
   /// When null, no outline is drawn on the label.
-  final LabelTemplateOutline? outline;
+  final TemplateOutline? outline;
 
-  LabelTemplate copyWith({
+  Template copyWith({
     String? name,
-    LabelPageTemplate? page1,
-    LabelPageTemplate? page2,
-    LabelTemplatePrintOptions? printOptions,
+    TemplatePage? page1,
+    TemplatePage? page2,
+    TemplatePrintOptions? printOptions,
     bool clearPrintOptions = false,
-    LabelTemplateOutline? outline,
+    TemplateOutline? outline,
     bool clearOutline = false,
   }) {
-    return LabelTemplate(
+    return Template(
       name: name ?? this.name,
       page1: page1 ?? this.page1,
       page2: page2 ?? this.page2,
@@ -1046,24 +1046,24 @@ class LabelTemplate {
         if (outline != null) 'outline': outline!.toJson(),
       };
 
-  factory LabelTemplate.fromJson(Map<String, dynamic> json) {
-    final opts = labelTemplatePrintOptionsFromJson(json);
-    LabelTemplateOutline? outline;
+  factory Template.fromJson(Map<String, dynamic> json) {
+    final opts = templatePrintOptionsFromJson(json);
+    TemplateOutline? outline;
     final o = json['outline'];
     if (o is Map) {
       final m = Map<String, dynamic>.from(o);
       if (m['enabled'] == false) {
         outline = null;
       } else {
-        outline = LabelTemplateOutline.fromJson(m);
+        outline = TemplateOutline.fromJson(m);
       }
     }
-    return LabelTemplate(
+    return Template(
       name: json['name'] as String? ?? 'Default',
-      page1: LabelPageTemplate.fromJson(
+      page1: TemplatePage.fromJson(
         json['page1'] as Map<String, dynamic>? ?? {},
       ),
-      page2: LabelPageTemplate.fromJson(
+      page2: TemplatePage.fromJson(
         json['page2'] as Map<String, dynamic>? ?? {},
       ),
       printOptions: opts,
@@ -1073,21 +1073,21 @@ class LabelTemplate {
 
   String toJsonString() => const JsonEncoder.withIndent('  ').convert(toJson());
 
-  static LabelTemplate fromJsonString(String s) {
+  static Template fromJsonString(String s) {
     final decoded = jsonDecode(s);
     if (decoded is! Map) {
-      throw FormatException('Label template JSON must be an object');
+      throw FormatException('Template JSON must be an object');
     }
-    return LabelTemplate.fromJson(Map<String, dynamic>.from(decoded));
+    return Template.fromJson(Map<String, dynamic>.from(decoded));
   }
 }
 
-class DefaultLabelTemplate {
-  static LabelTemplate defaultTemplate([String name = 'Default']) {
-    return LabelTemplate(
+class DefaultTemplate {
+  static Template defaultTemplate([String name = 'Default']) {
+    return Template(
       name: name,
-      page1: const LabelPageTemplate(),
-      page2: const LabelPageTemplate(),
+      page1: const TemplatePage(),
+      page2: const TemplatePage(),
       printOptions: null,
     );
   }

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/template_editor/label_template_model.dart';
+import 'package:nahpu/screens/template_editor/template_model.dart';
 import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/specimen_services.dart';
@@ -34,7 +34,7 @@ class ExportLabelService {
     required Set<String> selectedSpecimens,
     required Directory selectedDir,
     required String fileStem,
-    required LabelTemplate? template,
+    required Template? template,
     required String pageSizeKey,
     required String pageOrientation,
     required double customPageWidthMm,
