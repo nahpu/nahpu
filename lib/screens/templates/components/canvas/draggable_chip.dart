@@ -30,6 +30,7 @@ class DraggableChip extends StatefulWidget {
     this.onSelect,
     this.maxWidthMm,
     this.onMaxWidthChanged,
+    this.onResizeChanged,
     this.colorArgb = 0xFF000000,
     this.onDragStateChanged,
     this.onDoubleTap,
@@ -66,6 +67,7 @@ class DraggableChip extends StatefulWidget {
 
   final double? maxWidthMm;
   final ValueChanged<double>? onMaxWidthChanged;
+  final void Function(Offset newPosMm, double maxWidthMm)? onResizeChanged;
   final int colorArgb;
   final ValueChanged<bool>? onDragStateChanged;
 
@@ -76,6 +78,9 @@ class DraggableChip extends StatefulWidget {
 enum _TextCorner { tl, tr, bl, br }
 
 class DraggableChipState extends State<DraggableChip> {
+  static const double _handleVisual = 18;
+  static const double _handleHit = 36;
+
   bool _dragging = false;
 
   void _deferSetState(VoidCallback fn) {
@@ -146,48 +151,59 @@ class DraggableChipState extends State<DraggableChip> {
     }
     final gDelta = d.globalPosition - _resizeStartGlobal!;
     final fromStack = widget.templatePanToMmDelta(d.globalPosition, gDelta);
-    final deltaMm =
-        fromStack?.dx ?? pixelsToTemplateMm(gDelta, widget.scale).dx;
+    final templateDeltaMm =
+        fromStack ?? pixelsToTemplateMm(gDelta, widget.scale);
+    final localDeltaMm = templateDeltaToElementLocalMm(
+      templateDeltaMm,
+      widget.rotationDegrees,
+    );
+    final deltaMm = localDeltaMm.dx;
 
     var newWidth = _resizeStartWidthMm!;
-    var newX = _resizeStartPosMm!.dx;
+    var newPos = _resizeStartPosMm!;
 
     switch (_resizeCorner!) {
       case _TextCorner.tl:
       case _TextCorner.bl:
-        newWidth = _resizeStartWidthMm! - deltaMm;
-        if (newWidth < 5.0) {
-          newWidth = 5.0;
-          newX = _resizeStartPosMm!.dx + (_resizeStartWidthMm! - 5.0);
-        } else {
-          newX = _resizeStartPosMm!.dx + deltaMm;
-        }
+        newWidth = (_resizeStartWidthMm! - deltaMm).clamp(
+          5.0,
+          widget.templateWidthMm,
+        );
+        final appliedDeltaMm = _resizeStartWidthMm! - newWidth;
+        final radians = degreesToRadians(widget.rotationDegrees);
+        newPos = _resizeStartPosMm! +
+            Offset(
+              appliedDeltaMm * math.cos(radians),
+              appliedDeltaMm * math.sin(radians),
+            );
         break;
       case _TextCorner.tr:
       case _TextCorner.br:
-        newWidth = _resizeStartWidthMm! + deltaMm;
-        if (newWidth < 5.0) {
-          newWidth = 5.0;
-        }
+        newWidth = (_resizeStartWidthMm! + deltaMm).clamp(
+          5.0,
+          widget.templateWidthMm,
+        );
         break;
     }
 
-    newWidth = newWidth.clamp(5.0, widget.templateWidthMm);
-    newX = newX.clamp(0.0, math.max(0.0, widget.templateWidthMm - 5.0));
-
     setState(() {
       _resizeLiveWidthMm = newWidth;
-      _resizeLivePosMm = Offset(newX, _resizeStartPosMm!.dy);
+      _resizeLivePosMm = newPos;
     });
   }
 
   void _onResizePanEnd() {
     widget.onDragStateChanged?.call(false);
     if (_resizeLiveWidthMm != null) {
-      widget.onMaxWidthChanged?.call(_resizeLiveWidthMm!);
-    }
-    if (_resizeLivePosMm != null && _resizeLivePosMm != _resizeStartPosMm) {
-      widget.onMoved(_resizeLivePosMm!);
+      final pos = _resizeLivePosMm ?? _resizeStartPosMm ?? widget.position;
+      if (widget.onResizeChanged != null) {
+        widget.onResizeChanged!(pos, _resizeLiveWidthMm!);
+      } else {
+        widget.onMaxWidthChanged?.call(_resizeLiveWidthMm!);
+        if (_resizeLivePosMm != null && _resizeLivePosMm != _resizeStartPosMm) {
+          widget.onMoved(_resizeLivePosMm!);
+        }
+      }
     }
     _deferSetState(() {
       _resizeCorner = null;
@@ -305,19 +321,25 @@ class DraggableChipState extends State<DraggableChip> {
       onPanUpdate: _onResizePanUpdate,
       onPanEnd: (_) => _onResizePanEnd(),
       onPanCancel: _onResizePanEnd,
-      child: Container(
-        width: 16,
-        height: 16,
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          shape: BoxShape.circle,
-          border: Border.all(color: scheme.primary, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 2,
+      child: SizedBox(
+        width: _handleHit,
+        height: _handleHit,
+        child: Center(
+          child: Container(
+            width: _handleVisual,
+            height: _handleVisual,
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 2,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -327,7 +349,7 @@ class DraggableChipState extends State<DraggableChip> {
   Widget build(BuildContext context) {
     final insetX = widget.canvasInsetXPx;
     final insetY = widget.canvasInsetYPx;
-    final posMm = _dragLiveMm ?? widget.position;
+    final posMm = _resizeLivePosMm ?? _dragLiveMm ?? widget.position;
     final left = posMm.dx * widget.scale + insetX;
     final top = posMm.dy * widget.scale + insetY;
     final scheme = Theme.of(context).colorScheme;
@@ -356,12 +378,16 @@ class DraggableChipState extends State<DraggableChip> {
         ),
       );
       final handleSize = fontPx.clamp(20.0, 32.0);
+      final handlePad = _handleHit / 2;
+      final rot = Matrix4.identity()
+        ..translateByDouble(handlePad, handlePad, 0, 1)
+        ..rotateZ(degreesToRadians(widget.rotationDegrees))
+        ..translateByDouble(-handlePad, -handlePad, 0, 1);
       return Positioned(
-        left: left,
-        top: top,
-        child: Transform.rotate(
-          angle: degreesToRadians(widget.rotationDegrees),
-          alignment: Alignment.topLeft,
+        left: left - handlePad,
+        top: top - handlePad,
+        child: Transform(
+          transform: rot,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapDown: (_) {
@@ -375,54 +401,58 @@ class DraggableChipState extends State<DraggableChip> {
             onPanEnd: (_) => _onTemplatePanEnd(),
             onPanCancel: _onTemplatePanEnd,
             child: Stack(
-              clipBehavior: Clip.none,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: handleSize,
-                      height: handleSize,
-                      child: Center(
-                        child: Icon(
-                          Icons.drag_indicator,
-                          size: handleSize * 0.65,
-                          color: scheme.primary.withValues(alpha: 0.5),
+                Padding(
+                  padding: EdgeInsets.all(handlePad),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: handleSize,
+                        height: handleSize,
+                        child: Center(
+                          child: Icon(
+                            Icons.drag_indicator,
+                            size: handleSize * 0.65,
+                            color: scheme.primary.withValues(alpha: 0.5),
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      foregroundDecoration: (widget.isSelected || _dragging)
-                          ? BoxDecoration(
-                              border:
-                                  Border.all(color: scheme.primary, width: 2),
-                            )
-                          : null,
-                      child: text,
-                    ),
-                  ],
+                      Container(
+                        foregroundDecoration: (widget.isSelected || _dragging)
+                            ? BoxDecoration(
+                                border: Border.all(
+                                  color: scheme.primary,
+                                  width: 2,
+                                ),
+                              )
+                            : null,
+                        child: text,
+                      ),
+                    ],
+                  ),
                 ),
                 if ((widget.isSelected || _resizeCorner != null) &&
                     widget.onMaxWidthChanged != null) ...[
                   Positioned(
-                    left: handleSize - 8,
-                    top: -8,
+                    left: handlePad + handleSize - _handleHit / 2,
+                    top: 0,
                     child: _cornerHandle(_TextCorner.tl, scheme),
                   ),
                   Positioned(
-                    right: -8,
-                    top: -8,
+                    right: 0,
+                    top: 0,
                     child: _cornerHandle(_TextCorner.tr, scheme),
                   ),
                   Positioned(
-                    left: handleSize - 8,
-                    bottom: -8,
+                    left: handlePad + handleSize - _handleHit / 2,
+                    bottom: 0,
                     child: _cornerHandle(_TextCorner.bl, scheme),
                   ),
                   Positioned(
-                    right: -8,
-                    bottom: -8,
+                    right: 0,
+                    bottom: 0,
                     child: _cornerHandle(_TextCorner.br, scheme),
                   ),
                 ]

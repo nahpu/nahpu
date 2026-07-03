@@ -60,8 +60,8 @@ class DraggableLineChip extends StatefulWidget {
 }
 
 class DraggableLineChipState extends State<DraggableLineChip> {
-  static const double _handleVisual = 10;
-  static const double _handleHit = 24;
+  static const double _handleVisual = 16;
+  static const double _handleHit = 36;
 
   void _deferSetState(VoidCallback fn) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -463,12 +463,12 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                 _lineHandle(_LineHandle.right, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
                 Positioned(
-                  left: padL + w / 2 - 20,
+                  left: padL + w / 2 - 24,
                   top: math.max(
                     0.0,
                     padT - 42 - (widget.onDelete != null ? 34.0 : 0.0),
                   ),
-                  width: 40,
+                  width: 48,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -489,8 +489,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                         const SizedBox(height: 4),
                       ],
                       SizedBox(
-                        width: 40,
-                        height: 40,
+                        width: 48,
+                        height: 48,
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onPanStart: _beginRotate,
@@ -500,7 +500,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                           child: Tooltip(
                             message: 'Drag to rotate',
                             child: Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: scheme.primaryContainer,
                                 shape: BoxShape.circle,
@@ -514,7 +514,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                               ),
                               child: Icon(
                                 Icons.rotate_right,
-                                size: 18,
+                                size: 22,
                                 color: scheme.onPrimaryContainer,
                               ),
                             ),

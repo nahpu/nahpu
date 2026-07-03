@@ -66,8 +66,8 @@ class DraggableShapeChip extends StatefulWidget {
 }
 
 class DraggableShapeChipState extends State<DraggableShapeChip> {
-  static const double _handleVisual = 10;
-  static const double _handleHit = 24;
+  static const double _handleVisual = 16;
+  static const double _handleHit = 36;
 
   void _deferSetState(VoidCallback fn) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -107,6 +107,21 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
 
   int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
 
+  Rect get _widgetRect => Rect.fromLTWH(
+        widget.position.dx,
+        widget.position.dy,
+        widget.widthMm,
+        widget.heightMm,
+      );
+
+  bool _isSameRect(Rect a, Rect b) {
+    const tolerance = 1e-6;
+    return (a.left - b.left).abs() < tolerance &&
+        (a.top - b.top).abs() < tolerance &&
+        (a.width - b.width).abs() < tolerance &&
+        (a.height - b.height).abs() < tolerance;
+  }
+
   void _onResizePanStart(DragStartDetails d, _ShapeCorner c) {
     widget.onDragStateChanged?.call(true);
     _beginResize(c);
@@ -115,12 +130,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
 
   void _beginResize(_ShapeCorner c) {
     _resizeCorner = c;
-    _resizeStart = Rect.fromLTWH(
-      widget.position.dx,
-      widget.position.dy,
-      widget.widthMm,
-      widget.heightMm,
-    );
+    _resizeStart = _resizeLiveRect ?? _widgetRect;
     _resizeAccum = Offset.zero;
   }
 
@@ -160,7 +170,29 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
     _resizeStart = null;
     _resizeAccum = Offset.zero;
     _resizePanLastGlobal = null;
-    _resizeLiveRect = null;
+  }
+
+  @override
+  void didUpdateWidget(covariant DraggableShapeChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final liveRect = _resizeLiveRect;
+    if (liveRect == null) return;
+
+    final currentRect = _widgetRect;
+    if (_isSameRect(liveRect, currentRect)) {
+      _resizeLiveRect = null;
+      return;
+    }
+
+    final oldRect = Rect.fromLTWH(
+      oldWidget.position.dx,
+      oldWidget.position.dy,
+      oldWidget.widthMm,
+      oldWidget.heightMm,
+    );
+    if (!_isSameRect(oldRect, currentRect)) {
+      _resizeLiveRect = null;
+    }
   }
 
   void _beginRotate(DragStartDetails d) {
@@ -238,8 +270,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
         behavior: HitTestBehavior.opaque,
         onPanStart: (d) => _onResizePanStart(d, corner),
         onPanUpdate: _onResizePanUpdate,
-        onPanEnd: (_) => _deferSetState(_endResize),
-        onPanCancel: () => _deferSetState(_endResize),
+        onPanEnd: (_) => setState(_endResize),
+        onPanCancel: () => setState(_endResize),
         child: Center(
           child: Container(
             width: _handleVisual,
@@ -452,12 +484,12 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                 _cornerHandle(_ShapeCorner.br, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
                 Positioned(
-                  left: padL + w / 2 - 20,
+                  left: padL + w / 2 - 24,
                   top: math.max(
                     0.0,
                     padT - 42 - (widget.onDelete != null ? 34.0 : 0.0),
                   ),
-                  width: 40,
+                  width: 48,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -478,8 +510,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                         const SizedBox(height: 4),
                       ],
                       SizedBox(
-                        width: 40,
-                        height: 40,
+                        width: 48,
+                        height: 48,
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onPanStart: _beginRotate,
@@ -489,7 +521,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                           child: Tooltip(
                             message: 'Drag to rotate',
                             child: Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: scheme.primaryContainer,
                                 shape: BoxShape.circle,
@@ -503,7 +535,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                               ),
                               child: Icon(
                                 Icons.rotate_right,
-                                size: 18,
+                                size: 22,
                                 color: scheme.onPrimaryContainer,
                               ),
                             ),

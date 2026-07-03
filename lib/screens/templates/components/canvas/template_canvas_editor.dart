@@ -450,6 +450,15 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                         element.copyWith(maxWidthMm: w),
                                       );
                                     },
+                                    onResizeChanged: (pos, w) {
+                                      onScheduleTemplateTextPositionUpdate(
+                                        element.copyWith(
+                                          xMm: pos.dx,
+                                          yMm: pos.dy,
+                                          maxWidthMm: w,
+                                        ),
+                                      );
+                                    },
                                     isSelected: selectedElement ==
                                         'custom:${page1 ? '1' : '2'}:${element.id}',
                                     onTap: () {
