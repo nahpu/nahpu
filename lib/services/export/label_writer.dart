@@ -277,6 +277,12 @@ class LabelWriter {
     required bool mirrorBack,
   }) async {
     final perSheet = cols * rows;
+    final pageBreakPlan = pageBreakPlanForTesting(
+      specimenCount: specimens.length,
+      labelsPerSheet: perSheet,
+      duplex: duplex,
+    );
+    var pageIndex = 0;
     for (var start = 0; start < specimens.length; start += perSheet) {
       final end = math.min(start + perSheet, specimens.length);
       final batch = specimens.sublist(start, end);
@@ -294,6 +300,7 @@ class LabelWriter {
         hPt: hPt,
         mirror: mirrorFront,
         outline: tmpl.outline,
+        pageBreakAfter: pageBreakPlan[pageIndex++],
       );
 
       if (duplex) {
@@ -310,9 +317,27 @@ class LabelWriter {
           hPt: hPt,
           mirror: mirrorBack,
           outline: tmpl.outline,
+          pageBreakAfter: pageBreakPlan[pageIndex++],
         );
       }
     }
+  }
+
+  @visibleForTesting
+  static List<bool> pageBreakPlanForTesting({
+    required int specimenCount,
+    required int labelsPerSheet,
+    required bool duplex,
+  }) {
+    if (specimenCount <= 0 || labelsPerSheet <= 0) return const [];
+    final breaks = <bool>[];
+    for (var start = 0; start < specimenCount; start += labelsPerSheet) {
+      final end = math.min(start + labelsPerSheet, specimenCount);
+      final isLastBatch = end >= specimenCount;
+      breaks.add(duplex || !isLastBatch);
+      if (duplex) breaks.add(!isLastBatch);
+    }
+    return breaks;
   }
 
   Future<void> _writeLabelSide({
@@ -327,6 +352,7 @@ class LabelWriter {
     required double wPt,
     required double hPt,
     required bool mirror,
+    required bool pageBreakAfter,
     TemplateOutline? outline,
   }) async {
     final dataList = <Map<String, String>>[];
@@ -351,6 +377,7 @@ class LabelWriter {
       layout: layout,
       mirror: mirror,
       outline: outline,
+      pageBreakAfter: pageBreakAfter,
     );
   }
 
@@ -457,6 +484,7 @@ class LabelWriter {
     required double hPt,
     required LabelPrintLayoutOptions layout,
     required bool mirror,
+    required bool pageBreakAfter,
     TemplateOutline? outline,
   }) {
     typst.writeln('#grid(');
@@ -480,7 +508,9 @@ class LabelWriter {
 
     _fillRemainingGridSpaces(typst, pages.length, cols);
     typst.writeln(')');
-    typst.writeln('#pagebreak()');
+    if (pageBreakAfter) {
+      typst.writeln('#pagebreak()');
+    }
   }
 
   void _writeSingleLabelCell({

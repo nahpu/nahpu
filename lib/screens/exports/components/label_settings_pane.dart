@@ -8,6 +8,8 @@ import 'package:nahpu/services/types/controllers.dart';
 class LabelSettingsPane extends StatelessWidget {
   const LabelSettingsPane({
     super.key,
+    required this.templateNames,
+    required this.selectedTemplateName,
     required this.setupNames,
     required this.selectedSetupName,
     required this.pageSizeKey,
@@ -28,6 +30,7 @@ class LabelSettingsPane extends StatelessWidget {
     required this.selectedDir,
     required this.hasSaved,
     required this.isRunning,
+    required this.onTemplateSelected,
     required this.onSetupSelected,
     required this.onSaveSetupAs,
     required this.onDeleteSetup,
@@ -52,6 +55,8 @@ class LabelSettingsPane extends StatelessWidget {
     required this.onExportPressed,
   });
 
+  final List<String> templateNames;
+  final String? selectedTemplateName;
   final List<String> setupNames;
   final String selectedSetupName;
   final String pageSizeKey;
@@ -74,6 +79,7 @@ class LabelSettingsPane extends StatelessWidget {
   final bool hasSaved;
   final bool isRunning;
 
+  final ValueChanged<String?> onTemplateSelected;
   final ValueChanged<String> onSetupSelected;
   final VoidCallback onSaveSetupAs;
   final VoidCallback onDeleteSetup;
@@ -108,6 +114,8 @@ class LabelSettingsPane extends StatelessWidget {
             children: [
               const FileFormatIcon(path: 'assets/icons/pdf.svg'),
               PrintLayoutSection(
+                templateNames: templateNames,
+                selectedTemplateName: selectedTemplateName,
                 setupNames: setupNames,
                 selectedSetupName: selectedSetupName,
                 pageSizeKey: pageSizeKey,
@@ -124,6 +132,7 @@ class LabelSettingsPane extends StatelessWidget {
                 labelPadLeftMm: labelPadLeftMm,
                 labelPadRightMm: labelPadRightMm,
                 labelPadBottomMm: labelPadBottomMm,
+                onTemplateSelected: onTemplateSelected,
                 onSetupSelected: onSetupSelected,
                 onSaveSetupAs: onSaveSetupAs,
                 onDeleteSetup: onDeleteSetup,
@@ -190,6 +199,8 @@ class LabelSettingsPane extends StatelessWidget {
 class PrintLayoutSection extends StatelessWidget {
   const PrintLayoutSection({
     super.key,
+    required this.templateNames,
+    required this.selectedTemplateName,
     required this.setupNames,
     required this.selectedSetupName,
     required this.pageSizeKey,
@@ -206,6 +217,7 @@ class PrintLayoutSection extends StatelessWidget {
     required this.labelPadLeftMm,
     required this.labelPadRightMm,
     required this.labelPadBottomMm,
+    required this.onTemplateSelected,
     required this.onSetupSelected,
     required this.onSaveSetupAs,
     required this.onDeleteSetup,
@@ -227,6 +239,8 @@ class PrintLayoutSection extends StatelessWidget {
     required this.onLabelPadBottomChanged,
   });
 
+  final List<String> templateNames;
+  final String? selectedTemplateName;
   final List<String> setupNames;
   final String selectedSetupName;
   final String pageSizeKey;
@@ -244,6 +258,7 @@ class PrintLayoutSection extends StatelessWidget {
   final double labelPadRightMm;
   final double labelPadBottomMm;
 
+  final ValueChanged<String?> onTemplateSelected;
   final ValueChanged<String> onSetupSelected;
   final VoidCallback onSaveSetupAs;
   final VoidCallback onDeleteSetup;
@@ -317,6 +332,27 @@ class PrintLayoutSection extends StatelessWidget {
             runSpacing: 10,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
+              SizedBox(
+                width: 360,
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('template-$selectedTemplateName'),
+                  initialValue: selectedTemplateName,
+                  decoration: const InputDecoration(
+                    labelText: 'Template preset',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  items: templateNames
+                      .map(
+                        (name) => DropdownMenuItem<String>(
+                          value: name,
+                          child: Text(name),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: templateNames.isEmpty ? null : onTemplateSelected,
+                ),
+              ),
               SizedBox(
                 width: 360,
                 child: DropdownButtonFormField<String>(

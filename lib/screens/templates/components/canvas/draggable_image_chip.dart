@@ -102,6 +102,21 @@ class DraggableImageChipState extends State<DraggableImageChip> {
 
   int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
 
+  Rect get _widgetRect => Rect.fromLTWH(
+        widget.position.dx,
+        widget.position.dy,
+        widget.widthMm,
+        widget.heightMm,
+      );
+
+  bool _isSameRect(Rect a, Rect b) {
+    const tolerance = 1e-6;
+    return (a.left - b.left).abs() < tolerance &&
+        (a.top - b.top).abs() < tolerance &&
+        (a.width - b.width).abs() < tolerance &&
+        (a.height - b.height).abs() < tolerance;
+  }
+
   void _onResizePanStart(DragStartDetails d, _ImageCorner c) {
     widget.onDragStateChanged?.call(true);
     _beginResize(c);
@@ -110,12 +125,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
 
   void _beginResize(_ImageCorner c) {
     _resizeCorner = c;
-    _resizeStart = Rect.fromLTWH(
-      widget.position.dx,
-      widget.position.dy,
-      widget.widthMm,
-      widget.heightMm,
-    );
+    _resizeStart = _resizeLiveRect ?? _widgetRect;
     _resizeAccum = Offset.zero;
   }
 
@@ -155,7 +165,29 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     _resizeStart = null;
     _resizeAccum = Offset.zero;
     _resizePanLastGlobal = null;
-    _resizeLiveRect = null;
+  }
+
+  @override
+  void didUpdateWidget(covariant DraggableImageChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final liveRect = _resizeLiveRect;
+    if (liveRect == null) return;
+
+    final currentRect = _widgetRect;
+    if (_isSameRect(liveRect, currentRect)) {
+      _resizeLiveRect = null;
+      return;
+    }
+
+    final oldRect = Rect.fromLTWH(
+      oldWidget.position.dx,
+      oldWidget.position.dy,
+      oldWidget.widthMm,
+      oldWidget.heightMm,
+    );
+    if (!_isSameRect(oldRect, currentRect)) {
+      _resizeLiveRect = null;
+    }
   }
 
   void _beginRotate(DragStartDetails d) {
@@ -233,8 +265,8 @@ class DraggableImageChipState extends State<DraggableImageChip> {
         behavior: HitTestBehavior.opaque,
         onPanStart: (d) => _onResizePanStart(d, corner),
         onPanUpdate: _onResizePanUpdate,
-        onPanEnd: (_) => _deferSetState(_endResize),
-        onPanCancel: () => _deferSetState(_endResize),
+        onPanEnd: (_) => setState(_endResize),
+        onPanCancel: () => setState(_endResize),
         child: Center(
           child: Container(
             width: _handleVisual,

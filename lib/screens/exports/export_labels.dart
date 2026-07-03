@@ -38,7 +38,11 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   bool _loading = true;
   String? _error;
   bool _showPreview = false;
+  bool _previewStale = false;
+  int _previewVersion = 0;
   Template? _template;
+  List<String> _templateNames = const [];
+  String? _selectedTemplateName;
   List<String> _setupNames = const [];
   String _selectedSetupName = 'Default';
   String _pageSizeKey = 'Letter';
@@ -79,12 +83,28 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     super.dispose();
   }
 
+  void _markPreviewStale() {
+    if (_showPreview && !_previewStale) {
+      _previewStale = true;
+    }
+  }
+
+  void _updatePreview() {
+    setState(() {
+      _showPreview = true;
+      _previewStale = false;
+      _previewVersion++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(projectUuidProvider);
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     final settingsPane = LabelSettingsPane(
+      templateNames: _templateNames,
+      selectedTemplateName: _selectedTemplateName,
       setupNames: _setupNames,
       selectedSetupName: _selectedSetupName,
       pageSizeKey: _pageSizeKey,
@@ -105,65 +125,108 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       selectedDir: _selectedDir,
       hasSaved: _hasSaved,
       isRunning: _isRunning,
+      onTemplateSelected: _selectTemplate,
       onSetupSelected: _selectSetup,
       onSaveSetupAs: _saveSetupAs,
       onDeleteSetup: _deleteSetup,
       onExportSetup: _exportSetup,
       onImportSetup: _importSetup,
       onPageSizeKeyChanged: (v) async {
-        setState(() => _pageSizeKey = v);
+        setState(() {
+          _pageSizeKey = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onCustomPageWidthChanged: (v) async {
-        setState(() => _customPageWidthMm = v);
+        setState(() {
+          _customPageWidthMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onCustomPageHeightChanged: (v) async {
-        setState(() => _customPageHeightMm = v);
+        setState(() {
+          _customPageHeightMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onOrientationChanged: (v) async {
-        setState(() => _pageOrientation = v);
+        setState(() {
+          _pageOrientation = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onPagePadTopChanged: (v) async {
-        setState(() => _pagePadTopMm = v);
+        setState(() {
+          _pagePadTopMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onPagePadLeftChanged: (v) async {
-        setState(() => _pagePadLeftMm = v);
+        setState(() {
+          _pagePadLeftMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onPagePadRightChanged: (v) async {
-        setState(() => _pagePadRightMm = v);
+        setState(() {
+          _pagePadRightMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onPagePadBottomChanged: (v) async {
-        setState(() => _pagePadBottomMm = v);
+        setState(() {
+          _pagePadBottomMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onRowsPerPageChanged: (v) async {
-        setState(() => _rowsPerPage = v);
+        setState(() {
+          _rowsPerPage = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onColsPerPageChanged: (v) async {
-        setState(() => _colsPerPage = v);
+        setState(() {
+          _colsPerPage = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onLabelPadTopChanged: (v) async {
-        setState(() => _labelPadTopMm = v);
+        setState(() {
+          _labelPadTopMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onLabelPadLeftChanged: (v) async {
-        setState(() => _labelPadLeftMm = v);
+        setState(() {
+          _labelPadLeftMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onLabelPadRightChanged: (v) async {
-        setState(() => _labelPadRightMm = v);
+        setState(() {
+          _labelPadRightMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onLabelPadBottomChanged: (v) async {
-        setState(() => _labelPadBottomMm = v);
+        setState(() {
+          _labelPadBottomMm = v;
+          _markPreviewStale();
+        });
         await _persistCurrentSetup();
       },
       onFileNameChanged: (v) {
@@ -182,6 +245,8 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
 
     final previewPane = LabelPreviewPane(
       showPreview: _showPreview,
+      isPreviewStale: _previewStale,
+      previewVersion: _previewVersion,
       template: _template,
       selectedUuidList: _selected.toList(),
       rowsPerPage: _rowsPerPage,
@@ -196,11 +261,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       labelPadBottomMm: _labelPadBottomMm,
       customPageWidthMm: _customPageWidthMm,
       customPageHeightMm: _customPageHeightMm,
-      onGeneratePreview: () {
-        setState(() {
-          _showPreview = true;
-        });
-      },
+      onGeneratePreview: _updatePreview,
     );
 
     return Scaffold(
@@ -260,6 +321,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
                                           setState(() {
                                             _selected.clear();
                                             _selected.addAll(selected);
+                                            _markPreviewStale();
                                           });
                                         },
                                         onColumnsChanged: _pickColumns,
@@ -296,6 +358,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
                                   setState(() {
                                     _selected.clear();
                                     _selected.addAll(selected);
+                                    _markPreviewStale();
                                   });
                                 },
                                 onColumnsChanged: _pickColumns,
@@ -331,15 +394,22 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     final currentSetup = await _pageSetupService.getCurrentSetup();
 
     final templateService = const TemplateService();
+    final templateNames = await templateService.listTemplateNames();
     final currentTemplateName = await _settings.getCurrentTemplateName();
-    final pickedTemplate = currentTemplateName == null
+    final selectedTemplateName = templateNames.contains(currentTemplateName)
+        ? currentTemplateName
+        : null;
+    final pickedTemplate = selectedTemplateName == null
         ? null
-        : await templateService.getTemplate(currentTemplateName);
+        : await templateService.getTemplate(selectedTemplateName);
 
     if (mounted) {
       setState(() {
         _template = pickedTemplate;
         _showPreview = false;
+        _previewStale = false;
+        _templateNames = templateNames;
+        _selectedTemplateName = selectedTemplateName;
         _setupNames = setupNames;
         _selectedSetupName = currentSetupName;
         _pageSizeKey = currentSetup.pageSizeKey;
@@ -425,8 +495,24 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
         );
       }
       await _settings.setPrintSpecimenTableColumnIds(merged);
-      setState(() => _visibleColumnIds = merged);
+      setState(() {
+        _visibleColumnIds = merged;
+        _markPreviewStale();
+      });
     }
+  }
+
+  Future<void> _selectTemplate(String? name) async {
+    if (name == null || name.isEmpty) return;
+    final template = await const TemplateService().getTemplate(name);
+    if (template == null) return;
+    await _settings.setCurrentTemplateName(name);
+    if (!mounted) return;
+    setState(() {
+      _selectedTemplateName = name;
+      _template = template;
+      _markPreviewStale();
+    });
   }
 
   LabelPageSetup _currentSetup([String? name]) {
@@ -473,6 +559,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       _labelPadLeftMm = setup.labelPadLeftMm;
       _labelPadRightMm = setup.labelPadRightMm;
       _labelPadBottomMm = setup.labelPadBottomMm;
+      _markPreviewStale();
     });
   }
 

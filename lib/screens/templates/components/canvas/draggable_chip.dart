@@ -404,39 +404,35 @@ class DraggableChipState extends State<DraggableChip> {
               children: [
                 Padding(
                   padding: EdgeInsets.all(handlePad),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: handleSize,
-                        height: handleSize,
-                        child: Center(
-                          child: Icon(
-                            Icons.drag_indicator,
-                            size: handleSize * 0.65,
-                            color: scheme.primary.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        foregroundDecoration: (widget.isSelected || _dragging)
-                            ? BoxDecoration(
-                                border: Border.all(
-                                  color: scheme.primary,
-                                  width: 2,
-                                ),
-                              )
-                            : null,
-                        child: text,
-                      ),
-                    ],
+                  child: Container(
+                    foregroundDecoration: (widget.isSelected || _dragging)
+                        ? BoxDecoration(
+                            border: Border.all(
+                              color: scheme.primary,
+                              width: 2,
+                            ),
+                          )
+                        : null,
+                    child: text,
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: handlePad,
+                  width: handleSize,
+                  height: handleSize,
+                  child: Center(
+                    child: Icon(
+                      Icons.drag_indicator,
+                      size: handleSize * 0.65,
+                      color: scheme.primary.withValues(alpha: 0.5),
+                    ),
                   ),
                 ),
                 if ((widget.isSelected || _resizeCorner != null) &&
                     widget.onMaxWidthChanged != null) ...[
                   Positioned(
-                    left: handlePad + handleSize - _handleHit / 2,
+                    left: 0,
                     top: 0,
                     child: _cornerHandle(_TextCorner.tl, scheme),
                   ),
@@ -446,7 +442,7 @@ class DraggableChipState extends State<DraggableChip> {
                     child: _cornerHandle(_TextCorner.tr, scheme),
                   ),
                   Positioned(
-                    left: handlePad + handleSize - _handleHit / 2,
+                    left: 0,
                     bottom: 0,
                     child: _cornerHandle(_TextCorner.bl, scheme),
                   ),

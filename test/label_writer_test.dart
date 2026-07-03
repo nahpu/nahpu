@@ -114,6 +114,47 @@ void main() {
     });
   });
 
+  group('LabelWriter pagination tests', () {
+    test('does not add a trailing page break for simplex labels', () {
+      expect(
+        LabelWriter.pageBreakPlanForTesting(
+          specimenCount: 8,
+          labelsPerSheet: 8,
+          duplex: false,
+        ),
+        [false],
+      );
+      expect(
+        LabelWriter.pageBreakPlanForTesting(
+          specimenCount: 9,
+          labelsPerSheet: 8,
+          duplex: false,
+        ),
+        [true, false],
+      );
+    });
+
+    test('does not add a trailing page break after the last duplex back side',
+        () {
+      expect(
+        LabelWriter.pageBreakPlanForTesting(
+          specimenCount: 8,
+          labelsPerSheet: 8,
+          duplex: true,
+        ),
+        [true, false],
+      );
+      expect(
+        LabelWriter.pageBreakPlanForTesting(
+          specimenCount: 9,
+          labelsPerSheet: 8,
+          duplex: true,
+        ),
+        [true, true, true, false],
+      );
+    });
+  });
+
   group('Label text formatting tests', () {
     test('formatTextWithCase applies correct capitalization styles', () {
       const text = 'hello world test';

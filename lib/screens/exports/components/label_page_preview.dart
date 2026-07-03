@@ -81,43 +81,32 @@ class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        if (_isLoading)
-          const Center(child: CircularProgressIndicator())
-        else if (_error != null)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Error generating PDF:\n$_error',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          )
-        else if (_pdfBytes != null)
-          Positioned.fill(
-            child: PdfViewer.data(
-              _pdfBytes!,
-              sourceName: 'preview.pdf',
-              params: const PdfViewerParams(
-                backgroundColor: Colors.transparent,
-              ),
-            ),
-          )
-        else
-          const Center(child: Text('No preview available.')),
-        Positioned(
-          top: 16,
-          right: 16,
-          child: FloatingActionButton.small(
-            onPressed: _isLoading ? null : _generatePdf,
-            tooltip: 'Refresh Preview',
-            child: const Icon(Icons.refresh),
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'Error generating PDF:\n$_error',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red),
           ),
         ),
-      ],
-    );
+      );
+    }
+    if (_pdfBytes != null) {
+      return SizedBox.expand(
+        child: PdfViewer.data(
+          _pdfBytes!,
+          sourceName: 'preview.pdf',
+          params: const PdfViewerParams(
+            backgroundColor: Colors.transparent,
+          ),
+        ),
+      );
+    }
+    return const Center(child: Text('No preview available.'));
   }
 }

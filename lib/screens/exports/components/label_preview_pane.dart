@@ -21,6 +21,8 @@ class LabelPreviewPane extends StatelessWidget {
     required this.labelPadBottomMm,
     required this.customPageWidthMm,
     required this.customPageHeightMm,
+    required this.previewVersion,
+    required this.isPreviewStale,
     required this.onGeneratePreview,
   });
 
@@ -39,6 +41,8 @@ class LabelPreviewPane extends StatelessWidget {
   final double labelPadBottomMm;
   final double customPageWidthMm;
   final double customPageHeightMm;
+  final int previewVersion;
+  final bool isPreviewStale;
   final VoidCallback onGeneratePreview;
 
   @override
@@ -54,34 +58,72 @@ class LabelPreviewPane extends StatelessWidget {
               .surfaceContainerHighest
               .withValues(alpha: 0.4),
         ),
-        child: !showPreview
-            ? Center(
-                child: FilledButton.icon(
-                  onPressed: onGeneratePreview,
-                  icon: const Icon(Icons.visibility),
-                  label: const Text('Generate Preview'),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: !showPreview
+                  ? const Center(child: Text('Preview has not been generated.'))
+                  : template == null
+                      ? const Center(child: Text('No template selected.'))
+                      : LabelPageLivePreview(
+                          key: ValueKey(previewVersion),
+                          selectedUuidList: selectedUuidList,
+                          template: template!,
+                          layout: LabelPrintLayoutOptions(
+                            rowsPerPage: rowsPerPage,
+                            colsPerPage: colsPerPage,
+                            pagePadTopMm: pagePadTopMm,
+                            pagePadLeftMm: pagePadLeftMm,
+                            pagePadRightMm: pagePadRightMm,
+                            pagePadBottomMm: pagePadBottomMm,
+                            labelPadTopMm: labelPadTopMm,
+                            labelPadLeftMm: labelPadLeftMm,
+                            labelPadRightMm: labelPadRightMm,
+                            labelPadBottomMm: labelPadBottomMm,
+                          ),
+                          pageWidthMm: customPageWidthMm,
+                          pageHeightMm: customPageHeightMm,
+                        ),
+            ),
+            Positioned(
+              top: 12,
+              right: 12,
+              child: FilledButton.icon(
+                onPressed: onGeneratePreview,
+                icon: Icon(
+                  showPreview ? Icons.update : Icons.visibility_outlined,
                 ),
-              )
-            : template == null
-                ? const Center(child: Text('No template selected.'))
-                : LabelPageLivePreview(
-                    selectedUuidList: selectedUuidList,
-                    template: template!,
-                    layout: LabelPrintLayoutOptions(
-                      rowsPerPage: rowsPerPage,
-                      colsPerPage: colsPerPage,
-                      pagePadTopMm: pagePadTopMm,
-                      pagePadLeftMm: pagePadLeftMm,
-                      pagePadRightMm: pagePadRightMm,
-                      pagePadBottomMm: pagePadBottomMm,
-                      labelPadTopMm: labelPadTopMm,
-                      labelPadLeftMm: labelPadLeftMm,
-                      labelPadRightMm: labelPadRightMm,
-                      labelPadBottomMm: labelPadBottomMm,
-                    ),
-                    pageWidthMm: customPageWidthMm,
-                    pageHeightMm: customPageHeightMm,
+                label:
+                    Text(showPreview ? 'Update preview' : 'Generate preview'),
+              ),
+            ),
+            if (showPreview && isPreviewStale)
+              Positioned(
+                left: 12,
+                top: 12,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    child: Text(
+                      'Preview options changed',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSecondaryContainer,
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
