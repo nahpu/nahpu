@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/templates/template_editor_settings.dart';
+import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
@@ -238,13 +238,13 @@ class ExportSettingsSection extends StatelessWidget {
             }),
         CommonSettingTile(
           isNavigation: true,
-          icon: Icons.label_outline,
-          title: 'Labels',
-          label: 'Template editor and print settings',
+          icon: Icons.edit_document,
+          title: 'Template Editor',
+          label: 'Edit and create document templates',
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute<void>(
-              builder: (context) => const TemplateEditorSettingsScreen(),
+              builder: (context) => const TemplateEditorScreen(),
             ),
           ),
         ),
