@@ -456,6 +456,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _templateBorderPanelOpen = !_templateBorderPanelOpen;
       if (_templateBorderPanelOpen) {
         _templateBorderPanelSession++;
+        _selectedElement = null;
       }
     });
   }
@@ -469,6 +470,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   void _selectElement(String id) {
     _deferSetState(() {
       _selectedElement = id;
+      _templateBorderPanelOpen = false;
     });
   }
 
@@ -501,6 +503,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             _template.copyWith(page2: _template.page2.withCustomText(element));
       }
       _selectedElement = sel;
+      _templateBorderPanelOpen = false;
     });
   }
 
@@ -523,6 +526,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             _template.copyWith(page2: _template.page2.withCustomLine(element));
       }
       _selectedElement = sel;
+      _templateBorderPanelOpen = false;
     });
   }
 
@@ -547,6 +551,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             _template.copyWith(page2: _template.page2.withCustomShape(element));
       }
       _selectedElement = sel;
+      _templateBorderPanelOpen = false;
     });
   }
 
@@ -762,6 +767,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             _template.copyWith(page2: _template.page2.withCustomImage(element));
       }
       _selectedElement = 'image:${page1 ? '1' : '2'}:$id';
+      _templateBorderPanelOpen = false;
     });
   }
 
