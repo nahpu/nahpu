@@ -16,6 +16,7 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.templateHeightMm,
     required this.isBorderPanelOpen,
     required this.showGrid,
+    required this.onSaveTemplate,
     required this.onTemplateSelected,
     required this.onDuplexChanged,
     required this.onPageChanged,
@@ -40,6 +41,7 @@ class TemplateEditorToolbar extends StatelessWidget {
   final double templateHeightMm;
   final bool isBorderPanelOpen;
   final bool showGrid;
+  final VoidCallback onSaveTemplate;
   final ValueChanged<String> onTemplateSelected;
   final ValueChanged<bool> onDuplexChanged;
   final ValueChanged<int> onPageChanged;
@@ -151,7 +153,13 @@ class TemplateEditorToolbar extends StatelessWidget {
                         isDuplex ? (isPage1 ? 'Front' : 'Back') : 'Front',
                     onToggle: onMirrorToggled,
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
+                  _ToolbarIconButton(
+                    tooltip: 'Save template',
+                    icon: Icons.save_outlined,
+                    onPressed: onSaveTemplate,
+                  ),
+                  const SizedBox(width: 12),
                   IconButton(
                     tooltip: 'Template border',
                     style: IconButton.styleFrom(

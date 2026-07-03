@@ -29,6 +29,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.templatePanGlobalDeltaToMm,
     required this.fieldDisplayOption,
     required this.canDeleteSavedTemplate,
+    required this.onCreateNewTemplate,
     required this.onSaveTemplate,
     required this.onImportTemplate,
     required this.onExportTemplate,
@@ -90,6 +91,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   ) templatePanGlobalDeltaToMm;
   final String fieldDisplayOption;
   final bool canDeleteSavedTemplate;
+  final VoidCallback onCreateNewTemplate;
   final VoidCallback onSaveTemplate;
   final VoidCallback onImportTemplate;
   final VoidCallback onExportTemplate;
@@ -139,6 +141,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     return Scaffold(
       appBar: _TemplateEditorAppBar(
         canDeleteSavedTemplate: canDeleteSavedTemplate,
+        onCreateNewTemplate: onCreateNewTemplate,
         onSaveTemplate: onSaveTemplate,
         onImportTemplate: onImportTemplate,
         onExportTemplate: onExportTemplate,
@@ -166,6 +169,7 @@ class TemplateEditorScaffold extends StatelessWidget {
               templateHeightMm: templateHeightMm,
               isBorderPanelOpen: isBorderPanelOpen,
               showGrid: showGrid,
+              onSaveTemplate: onSaveTemplate,
               onTemplateSelected: onTemplateSelected,
               onDuplexChanged: onDuplexChanged,
               onPageChanged: onPageChanged,
@@ -238,6 +242,7 @@ class _TemplateEditorAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   const _TemplateEditorAppBar({
     required this.canDeleteSavedTemplate,
+    required this.onCreateNewTemplate,
     required this.onSaveTemplate,
     required this.onImportTemplate,
     required this.onExportTemplate,
@@ -245,6 +250,7 @@ class _TemplateEditorAppBar extends StatelessWidget
   });
 
   final bool canDeleteSavedTemplate;
+  final VoidCallback onCreateNewTemplate;
   final VoidCallback onSaveTemplate;
   final VoidCallback onImportTemplate;
   final VoidCallback onExportTemplate;
@@ -260,15 +266,18 @@ class _TemplateEditorAppBar extends StatelessWidget
       title: const Text('Template Editor'),
       actions: [
         IconButton(
-          onPressed: onSaveTemplate,
-          icon: const Icon(Icons.save_outlined),
-          tooltip: 'Save template',
+          onPressed: onCreateNewTemplate,
+          icon: const Icon(Icons.add_circle_outline_rounded),
+          tooltip: 'Create new template',
         ),
         PopupMenuButton<String>(
           tooltip: 'Template Options',
-          icon: const Icon(Icons.more_vert),
           onSelected: (action) {
-            if (action == 'import') {
+            if (action == 'create') {
+              onCreateNewTemplate();
+            } else if (action == 'save') {
+              onSaveTemplate();
+            } else if (action == 'import') {
               onImportTemplate();
             } else if (action == 'export') {
               onExportTemplate();
@@ -277,6 +286,14 @@ class _TemplateEditorAppBar extends StatelessWidget
             }
           },
           itemBuilder: (ctx) => [
+            const PopupMenuItem(
+              value: 'create',
+              child: Text('Create new template'),
+            ),
+            const PopupMenuItem(
+              value: 'save',
+              child: Text('Save template'),
+            ),
             const PopupMenuItem(
               value: 'import',
               child: Text('Import template'),

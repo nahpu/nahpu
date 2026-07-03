@@ -126,6 +126,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       templatePanGlobalDeltaToMm: _templatePanGlobalDeltaToMm,
       fieldDisplayOption: _fieldDisplayOption,
       canDeleteSavedTemplate: _canDeleteSavedTemplate,
+      onCreateNewTemplate: _createNewTemplate,
       onSaveTemplate: _promptSaveTemplate,
       onImportTemplate: _importTemplate,
       onExportTemplate: _exportTemplate,
@@ -768,6 +769,24 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       }
       _selectedElement = 'image:${page1 ? '1' : '2'}:$id';
       _templateBorderPanelOpen = false;
+    });
+  }
+
+  Future<void> _createNewTemplate() async {
+    final fresh = DefaultTemplate.defaultTemplate('New Template');
+    await _labelSettings.setCurrentTemplateName('New Template');
+    await _labelSettings.setMirrorFront(false);
+    await _labelSettings.setMirrorBack(false);
+    final duplex = await _labelSettings.getDuplex();
+    if (!mounted) return;
+    setState(() {
+      _template = fresh;
+      _mirrorFront = false;
+      _mirrorBack = false;
+      _isDuplex = duplex;
+      _selectedElement = null;
+      _syncIdCountersFromTemplate();
+      _syncDuplexTabIndex();
     });
   }
 
