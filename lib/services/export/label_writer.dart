@@ -656,8 +656,24 @@ class LabelWriter {
         'rgb("${hexColor.substring(2)}")'; // ignores alpha for now, assuming 100%
 
     final lengthPt = labelPdfMmToPt(line.lengthMm);
-    final elem =
-        '#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)';
+    String elem;
+    if (line.strokeStyle == 'double') {
+      final gap = line.thicknessPt * 1.25;
+      final halfOffset = (line.thicknessPt + gap) / 2;
+      final line1 =
+          '#place(dy: -${halfOffset}pt)[#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)]';
+      final line2 =
+          '#place(dy: ${halfOffset}pt)[#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)]';
+      elem = '[$line1$line2]';
+    } else {
+      final strokeDash = line.strokeStyle == 'dashed'
+          ? '"dashed"'
+          : line.strokeStyle == 'dotted'
+              ? '"dotted"'
+              : '"solid"';
+      elem =
+          '#line(length: ${lengthPt}pt, stroke: (paint: $colorStr, thickness: ${line.thicknessPt}pt, dash: $strokeDash))';
+    }
 
     typst.writeln(
         '  #place(dx: ${labelPdfMmToPt(line.xMm)}pt, dy: ${labelPdfMmToPt(line.yMm)}pt)[#rotate(${line.rotationDegrees}deg)[$elem]]');
@@ -677,8 +693,33 @@ class LabelWriter {
     final hPt = labelPdfMmToPt(shape.heightMm);
 
     final kind = shape.shapeType == 'ellipse' ? 'ellipse' : 'rect';
-    final elem =
-        '#$kind(width: ${wPt}pt, height: ${hPt}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor$fillOpt)';
+    String elem;
+    if (shape.strokeStyle == 'double') {
+      final outerStroke = '${shape.strokeThicknessPt}pt + $strokeColor';
+      final outerElem =
+          '#$kind(width: ${wPt}pt, height: ${hPt}pt, stroke: $outerStroke$fillOpt)';
+
+      final gap = (shape.strokeThicknessPt * 1.25).clamp(1.0, 10.0);
+      final doubleInset = shape.strokeThicknessPt + gap;
+      final innerWPt = wPt - 2 * doubleInset;
+      final innerHPt = hPt - 2 * doubleInset;
+
+      if (innerWPt > 0 && innerHPt > 0) {
+        final innerElem =
+            '#place(dx: ${doubleInset}pt, dy: ${doubleInset}pt)[#$kind(width: ${innerWPt}pt, height: ${innerHPt}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor)]';
+        elem = '[$outerElem$innerElem]';
+      } else {
+        elem = outerElem;
+      }
+    } else {
+      final strokeDash = shape.strokeStyle == 'dashed'
+          ? '"dashed"'
+          : shape.strokeStyle == 'dotted'
+              ? '"dotted"'
+              : '"solid"';
+      elem =
+          '#$kind(width: ${wPt}pt, height: ${hPt}pt, stroke: (paint: $strokeColor, thickness: ${shape.strokeThicknessPt}pt, dash: $strokeDash)$fillOpt)';
+    }
 
     typst.writeln(
         '  #place(dx: ${labelPdfMmToPt(shape.xMm)}pt, dy: ${labelPdfMmToPt(shape.yMm)}pt)[#rotate(${shape.rotationDegrees}deg)[$elem]]');

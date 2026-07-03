@@ -18,6 +18,7 @@ class DraggableShapeChip extends StatefulWidget {
     this.strokeThicknessPt = 1.0,
     this.strokeColorArgb = 0xFF000000,
     this.fillColorArgb,
+    this.strokeStyle = 'solid',
     required this.scale,
     required this.templateWidthMm,
     required this.templateHeightMm,
@@ -41,6 +42,7 @@ class DraggableShapeChip extends StatefulWidget {
   final double strokeThicknessPt;
   final int strokeColorArgb;
   final int? fillColorArgb;
+  final String strokeStyle;
   final double scale;
   final double templateWidthMm;
   final double templateHeightMm;
@@ -412,22 +414,18 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                       clipBehavior: Clip.none,
                       fit: StackFit.expand,
                       children: [
-                        Container(
-                          width: w,
-                          height: h,
-                          decoration: BoxDecoration(
-                            color: widget.fillColorArgb != null
+                        CustomPaint(
+                          size: Size(w, h),
+                          painter: ShapePainter(
+                            shapeType: widget.shapeType,
+                            strokeColor: Color(widget.strokeColorArgb),
+                            fillColor: widget.fillColorArgb != null
                                 ? Color(widget.fillColorArgb!)
                                 : null,
-                            border: Border.all(
-                              color: Color(widget.strokeColorArgb),
-                              width: widget.strokeThicknessPt *
-                                  widget.scale /
-                                  _kPdfPointsPerMm,
-                            ),
-                            shape: widget.shapeType == 'ellipse'
-                                ? BoxShape.circle
-                                : BoxShape.rectangle,
+                            strokeThicknessPx: widget.strokeThicknessPt *
+                                widget.scale /
+                                _kPdfPointsPerMm,
+                            strokeStyle: widget.strokeStyle,
                           ),
                         ),
                         Positioned(
@@ -521,5 +519,138 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
         ),
       ),
     );
+  }
+}
+
+class ShapePainter extends CustomPainter {
+  const ShapePainter({
+    required this.shapeType,
+    required this.strokeColor,
+    required this.fillColor,
+    required this.strokeThicknessPx,
+    required this.strokeStyle,
+  });
+
+  final String shapeType; // 'rect', 'ellipse'
+  final Color strokeColor;
+  final Color? fillColor;
+  final double strokeThicknessPx;
+  final String strokeStyle;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final fillPaint = Paint()
+      ..color = fillColor ?? Colors.transparent
+      ..style = PaintingStyle.fill;
+
+    final strokePaint = Paint()
+      ..color = strokeColor
+      ..strokeWidth = strokeThicknessPx
+      ..style = PaintingStyle.stroke
+      ..isAntiAlias = true;
+
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+
+    // 1. Draw fill
+    if (fillColor != null) {
+      if (shapeType == 'ellipse') {
+        canvas.drawOval(rect, fillPaint);
+      } else {
+        canvas.drawRect(rect, fillPaint);
+      }
+    }
+
+    // 2. Draw stroke
+    if (strokeThicknessPx > 0) {
+      final inset = strokeThicknessPx / 2;
+      final strokeRect = Rect.fromLTWH(
+        inset,
+        inset,
+        (size.width - strokeThicknessPx).clamp(0.0, double.infinity),
+        (size.height - strokeThicknessPx).clamp(0.0, double.infinity),
+      );
+
+      if (strokeStyle == 'solid') {
+        if (shapeType == 'ellipse') {
+          canvas.drawOval(strokeRect, strokePaint);
+        } else {
+          canvas.drawRect(strokeRect, strokePaint);
+        }
+      } else if (strokeStyle == 'dashed') {
+        _drawDashedBorder(
+          canvas,
+          strokeRect,
+          strokePaint,
+          strokeThicknessPx * 4,
+          strokeThicknessPx * 2.5,
+        );
+      } else if (strokeStyle == 'dotted') {
+        _drawDashedBorder(
+          canvas,
+          strokeRect,
+          strokePaint,
+          math.max(0.35, strokeThicknessPx * 0.35),
+          strokeThicknessPx * 2.0,
+        );
+      } else if (strokeStyle == 'double') {
+        // Outer stroke
+        if (shapeType == 'ellipse') {
+          canvas.drawOval(strokeRect, strokePaint);
+        } else {
+          canvas.drawRect(strokeRect, strokePaint);
+        }
+
+        // Inner stroke
+        final gap = (strokeThicknessPx * 1.25).clamp(1.0, 10.0);
+        final doubleInset = strokeThicknessPx + gap;
+        final innerRect = Rect.fromLTWH(
+          doubleInset + strokeThicknessPx / 2,
+          doubleInset + strokeThicknessPx / 2,
+          (size.width - 2 * doubleInset - strokeThicknessPx)
+              .clamp(0.0, double.infinity),
+          (size.height - 2 * doubleInset - strokeThicknessPx)
+              .clamp(0.0, double.infinity),
+        );
+        if (innerRect.width > 0 && innerRect.height > 0) {
+          if (shapeType == 'ellipse') {
+            canvas.drawOval(innerRect, strokePaint);
+          } else {
+            canvas.drawRect(innerRect, strokePaint);
+          }
+        }
+      }
+    }
+  }
+
+  void _drawDashedBorder(
+    Canvas canvas,
+    Rect r,
+    Paint paint,
+    double dashLen,
+    double gapLen,
+  ) {
+    final path = Path();
+    if (shapeType == 'ellipse') {
+      path.addOval(r);
+    } else {
+      path.addRect(r);
+    }
+    for (final metric in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        final len = math.min(dashLen, metric.length - d);
+        canvas.drawPath(metric.extractPath(d, d + len), paint);
+        d += len + gapLen;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant ShapePainter oldDelegate) {
+    return oldDelegate.shapeType != shapeType ||
+        oldDelegate.strokeColor != strokeColor ||
+        oldDelegate.fillColor != fillColor ||
+        oldDelegate.strokeThicknessPx != strokeThicknessPx ||
+        oldDelegate.strokeStyle != strokeStyle;
   }
 }

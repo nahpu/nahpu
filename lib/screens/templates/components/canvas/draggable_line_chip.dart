@@ -15,6 +15,7 @@ class DraggableLineChip extends StatefulWidget {
     this.rotationDegrees = 0,
     this.thicknessPt = 1.0,
     this.colorArgb = 0xFF000000,
+    this.strokeStyle = 'solid',
     required this.scale,
     required this.templateWidthMm,
     required this.templateHeightMm,
@@ -35,6 +36,7 @@ class DraggableLineChip extends StatefulWidget {
   final int rotationDegrees;
   final double thicknessPt;
   final int colorArgb;
+  final String strokeStyle;
   final double scale;
   final double templateWidthMm;
   final double templateHeightMm;
@@ -314,8 +316,12 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final left = posMm.dx * widget.scale + insetX;
     final top = posMm.dy * widget.scale + insetY;
     final w = (effWmm * widget.scale).clamp(0.0, double.infinity);
-    final h =
+    final lineThicknessPx =
         math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
+    final double gapPx = lineThicknessPx * 1.25;
+    final double h = widget.strokeStyle == 'double'
+        ? lineThicknessPx * 2.0 + gapPx
+        : lineThicknessPx;
     final scheme = Theme.of(context).colorScheme;
 
     final borderColor = _moving
@@ -444,10 +450,13 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                       clipBehavior: Clip.none,
                       fit: StackFit.expand,
                       children: [
-                        Container(
-                          width: w,
-                          height: h,
-                          color: Color(widget.colorArgb),
+                        CustomPaint(
+                          size: Size(w, h),
+                          painter: LinePainter(
+                            color: Color(widget.colorArgb),
+                            thicknessPx: lineThicknessPx,
+                            strokeStyle: widget.strokeStyle,
+                          ),
                         ),
                         Positioned(
                           left: 2,
@@ -536,5 +545,105 @@ class DraggableLineChipState extends State<DraggableLineChip> {
         ),
       ),
     );
+  }
+}
+
+class LinePainter extends CustomPainter {
+  const LinePainter({
+    required this.color,
+    required this.thicknessPx,
+    required this.strokeStyle,
+  });
+
+  final Color color;
+  final double thicknessPx;
+  final String strokeStyle;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thicknessPx
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.square;
+
+    final y = size.height / 2;
+    if (strokeStyle == 'solid') {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    } else if (strokeStyle == 'dashed') {
+      final dashLen = thicknessPx * 4;
+      final gapLen = thicknessPx * 2.5;
+      _drawDashedLine(
+        canvas,
+        Offset(0, y),
+        Offset(size.width, y),
+        paint,
+        dashLen,
+        gapLen,
+      );
+    } else if (strokeStyle == 'dotted') {
+      final dashLen = math.max(0.35, thicknessPx * 0.35);
+      final gapLen = thicknessPx * 2.0;
+      _drawDashedLine(
+        canvas,
+        Offset(0, y),
+        Offset(size.width, y),
+        paint,
+        dashLen,
+        gapLen,
+      );
+    } else if (strokeStyle == 'double') {
+      final gap = thicknessPx * 1.25;
+      final halfOffset = (thicknessPx + gap) / 2;
+
+      final paintDouble = Paint()
+        ..color = color
+        ..strokeWidth = thicknessPx
+        ..style = PaintingStyle.stroke;
+
+      canvas.drawLine(
+        Offset(0, y - halfOffset),
+        Offset(size.width, y - halfOffset),
+        paintDouble,
+      );
+      canvas.drawLine(
+        Offset(0, y + halfOffset),
+        Offset(size.width, y + halfOffset),
+        paintDouble,
+      );
+    }
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset p1,
+    Offset p2,
+    Paint paint,
+    double dashLen,
+    double gapLen,
+  ) {
+    final dx = p2.dx - p1.dx;
+    final dy = p2.dy - p1.dy;
+    final len = math.sqrt(dx * dx + dy * dy);
+    if (len == 0) return;
+    final ux = dx / len;
+    final uy = dy / len;
+    double d = 0.0;
+    while (d < len) {
+      final end = math.min(d + dashLen, len);
+      canvas.drawLine(
+        Offset(p1.dx + ux * d, p1.dy + uy * d),
+        Offset(p1.dx + ux * end, p1.dy + uy * end),
+        paint,
+      );
+      d += dashLen + gapLen;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant LinePainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.thicknessPx != thicknessPx ||
+        oldDelegate.strokeStyle != strokeStyle;
   }
 }

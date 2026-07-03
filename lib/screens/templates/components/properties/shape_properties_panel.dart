@@ -4,7 +4,7 @@ import 'package:nahpu/screens/templates/components/properties/property_panel_she
 import 'package:nahpu/screens/templates/components/properties/synced_dim_field.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
-class ShapePropertiesPanel extends StatelessWidget {
+class ShapePropertiesPanel extends StatefulWidget {
   const ShapePropertiesPanel({
     super.key,
     required this.page1,
@@ -27,103 +27,172 @@ class ShapePropertiesPanel extends StatelessWidget {
   final VoidCallback? onDismiss;
 
   @override
+  State<ShapePropertiesPanel> createState() => _ShapePropertiesPanelState();
+}
+
+class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
+  bool _showStrokeOptions = false;
+
+  @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return TemplatePropertyPanelShell(
-      inToolbar: inToolbar,
-      onDismiss: onDismiss,
+      inToolbar: widget.inToolbar,
+      onDismiss: widget.onDismiss,
       child: Padding(
-        padding: inToolbar
+        padding: widget.inToolbar
             ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
             : const EdgeInsets.fromLTRB(12, 10, 12, 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    zIndexControls,
-                    const SizedBox(width: 16),
-                    Text('Stroke',
-                        style: Theme.of(context).textTheme.labelMedium),
-                    const SizedBox(width: 8),
-                    _StrokePicker(
-                      value: shape.strokeThicknessPt,
-                      onChanged: (v) => onUpdate(
-                        page1,
-                        shape.copyWith(strokeThicknessPt: v),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          widget.zIndexControls,
+                          const SizedBox(width: 16),
+                          _DimensionControl(
+                            id: 'shape_w_${widget.id}',
+                            label: 'Width (mm)',
+                            value: widget.shape.widthMm,
+                            onChanged: (v) => widget.onUpdate(
+                              widget.page1,
+                              widget.shape.copyWith(widthMm: v),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          _DimensionControl(
+                            id: 'shape_h_${widget.id}',
+                            label: 'Height (mm)',
+                            value: widget.shape.heightMm,
+                            onChanged: (v) => widget.onUpdate(
+                              widget.page1,
+                              widget.shape.copyWith(heightMm: v),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            'Rotation',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 8),
+                          _RotationPicker(
+                            value: widget.shape.rotationDegrees,
+                            onChanged: (v) => widget.onUpdate(
+                              widget.page1,
+                              widget.shape.copyWith(rotationDegrees: v),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            icon: const Icon(Icons.settings_outlined, size: 22),
+                            isSelected: _showStrokeOptions,
+                            tooltip: 'Border and fill options',
+                            onPressed: () {
+                              setState(() {
+                                _showStrokeOptions = !_showStrokeOptions;
+                              });
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    _ColorSwatch(
-                      color: Color(shape.strokeColorArgb),
-                      borderColor: scheme.outline,
-                      title: 'Select stroke color',
-                      onPicked: (color) => onUpdate(
-                        page1,
-                        shape.copyWith(strokeColorArgb: color.toARGB32()),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text('Fill',
-                        style: Theme.of(context).textTheme.labelMedium),
-                    const SizedBox(width: 8),
-                    _NullableFillSwatch(
-                      colorArgb: shape.fillColorArgb,
-                      borderColor: scheme.outline,
-                      onPicked: (color) => onUpdate(
-                        page1,
-                        shape.copyWith(fillColorArgb: color.toARGB32()),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    if (shape.fillColorArgb != null)
-                      IconButton(
-                        icon: const Icon(Icons.format_color_reset, size: 20),
-                        tooltip: 'Clear fill',
-                        onPressed: () => onUpdate(
-                          page1,
-                          shape.copyWith(clearFillColor: true),
+                  ),
+                  if (_showStrokeOptions) ...[
+                    const SizedBox(height: 8),
+                    Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Stroke',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            _StrokePicker(
+                              value: widget.shape.strokeThicknessPt,
+                              onChanged: (v) => widget.onUpdate(
+                                widget.page1,
+                                widget.shape.copyWith(strokeThicknessPt: v),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _ColorSwatch(
+                              color: Color(widget.shape.strokeColorArgb),
+                              borderColor: scheme.outline,
+                              title: 'Select stroke color',
+                              onPicked: (color) => widget.onUpdate(
+                                widget.page1,
+                                widget.shape.copyWith(
+                                  strokeColorArgb: color.toARGB32(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Style',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            _StylePicker(
+                              value: widget.shape.strokeStyle,
+                              onChanged: (v) => widget.onUpdate(
+                                widget.page1,
+                                widget.shape.copyWith(strokeStyle: v),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Fill',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            _NullableFillSwatch(
+                              colorArgb: widget.shape.fillColorArgb,
+                              borderColor: scheme.outline,
+                              onPicked: (color) => widget.onUpdate(
+                                widget.page1,
+                                widget.shape.copyWith(
+                                  fillColorArgb: color.toARGB32(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            if (widget.shape.fillColorArgb != null)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.format_color_reset,
+                                  size: 20,
+                                ),
+                                tooltip: 'Clear fill',
+                                onPressed: () => widget.onUpdate(
+                                  widget.page1,
+                                  widget.shape.copyWith(clearFillColor: true),
+                                ),
+                              ),
+                          ],
                         ),
-                      ),
-                    const SizedBox(width: 16),
-                    _DimensionControl(
-                      id: 'shape_w_$id',
-                      label: 'Width (mm)',
-                      value: shape.widthMm,
-                      onChanged: (v) =>
-                          onUpdate(page1, shape.copyWith(widthMm: v)),
-                    ),
-                    const SizedBox(width: 16),
-                    _DimensionControl(
-                      id: 'shape_h_$id',
-                      label: 'Height (mm)',
-                      value: shape.heightMm,
-                      onChanged: (v) =>
-                          onUpdate(page1, shape.copyWith(heightMm: v)),
-                    ),
-                    const SizedBox(width: 16),
-                    Text('Rotation',
-                        style: Theme.of(context).textTheme.labelMedium),
-                    const SizedBox(width: 8),
-                    _RotationPicker(
-                      value: shape.rotationDegrees,
-                      onChanged: (v) => onUpdate(
-                        page1,
-                        shape.copyWith(rotationDegrees: v),
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
             ),
             const SizedBox(width: 16),
             IconButton(
               icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
               tooltip: 'Delete shape',
-              onPressed: () => onDelete(page1, id),
+              onPressed: () => widget.onDelete(widget.page1, widget.id),
             ),
           ],
         ),
@@ -334,5 +403,111 @@ class _ColorSwatch extends StatelessWidget {
         child: child,
       ),
     );
+  }
+}
+
+class _StylePicker extends StatelessWidget {
+  const _StylePicker({
+    required this.value,
+    required this.onChanged,
+  });
+
+  static const values = ['solid', 'dashed', 'dotted', 'double'];
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface;
+    return DropdownButton<String>(
+      value: values.contains(value) ? value : 'solid',
+      isDense: true,
+      underline: const SizedBox.shrink(),
+      items: [
+        for (final val in values)
+          DropdownMenuItem(
+            value: val,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 48,
+                  height: 20,
+                  child: CustomPaint(
+                    painter: _StylePreviewPainter(style: val, color: color),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(val[0].toUpperCase() + val.substring(1)),
+              ],
+            ),
+          ),
+      ],
+      onChanged: (value) {
+        if (value != null) onChanged(value);
+      },
+    );
+  }
+}
+
+class _StylePreviewPainter extends CustomPainter {
+  const _StylePreviewPainter({
+    required this.style,
+    required this.color,
+  });
+
+  final String style;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final y = size.height / 2;
+
+    if (style == 'solid') {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    } else if (style == 'dashed') {
+      _drawDashedLine(canvas, size.width, y, paint, 6.0, 3.0);
+    } else if (style == 'dotted') {
+      _drawDashedLine(canvas, size.width, y, paint, 1.5, 3.0);
+    } else if (style == 'double') {
+      final paintDouble = Paint()
+        ..color = color
+        ..strokeWidth = 1.0
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(Offset(0, y - 2), Offset(size.width, y - 2), paintDouble);
+      canvas.drawLine(Offset(0, y + 2), Offset(size.width, y + 2), paintDouble);
+    }
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    double width,
+    double y,
+    Paint paint,
+    double dashLen,
+    double gapLen,
+  ) {
+    double d = 0.0;
+    while (d < width) {
+      final end = (d + dashLen).clamp(0.0, width);
+      canvas.drawLine(
+        Offset(d, y),
+        Offset(end, y),
+        paint,
+      );
+      d += dashLen + gapLen;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _StylePreviewPainter oldDelegate) {
+    return oldDelegate.style != style || oldDelegate.color != color;
   }
 }

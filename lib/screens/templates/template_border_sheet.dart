@@ -54,16 +54,6 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
   static int _bChannel(int argb) => argb & 0xFF;
   static int _aChannel(int argb) => (argb >> 24) & 0xFF;
 
-  static String _rgbHexString(int argb) {
-    final r = _rChannel(argb);
-    final g = _gChannel(argb);
-    final b = _bChannel(argb);
-    return '#${r.toRadixString(16).padLeft(2, '0')}'
-            '${g.toRadixString(16).padLeft(2, '0')}'
-            '${b.toRadixString(16).padLeft(2, '0')}'
-        .toUpperCase();
-  }
-
   @override
   void initState() {
     super.initState();
@@ -87,75 +77,6 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
     if (_hexRgbCtrl.text.toUpperCase() != hex) {
       _hexRgbCtrl.text = hex;
     }
-  }
-
-  void _tryApplyHexRgbIfComplete() {
-    var h = _hexRgbCtrl.text.trim();
-    if (h.startsWith('#')) h = h.substring(1);
-    if (h.length == 3) {
-      h = h.split('').map((ch) => '$ch$ch').join();
-    }
-    if (h.length != 6) return;
-    final r = int.tryParse(h.substring(0, 2), radix: 16);
-    final g = int.tryParse(h.substring(2, 4), radix: 16);
-    final b = int.tryParse(h.substring(4, 6), radix: 16);
-    if (r == null || g == null || b == null) return;
-    final a = _aChannel(_colorArgb);
-    final next = (a << 24) | (r << 16) | (g << 8) | b;
-    if (next != _colorArgb) {
-      setState(() => _colorArgb = next);
-      if (_style != null) _pushOutline();
-    }
-  }
-
-  void _commitHexRgbField() {
-    _tryApplyHexRgbIfComplete();
-    _syncHexField();
-  }
-
-  TemplateOutline? _currentOutline() {
-    final s = _style;
-    if (s == null) return null;
-    return TemplateOutline(
-      style: s,
-      widthPt: _widthPt,
-      colorArgb: _colorArgb,
-    );
-  }
-
-  void _pushOutline() {
-    widget.onOutlineChanged(_currentOutline());
-  }
-
-  void _onChipSelected(TemplateOutlineStyle e, bool selected) {
-    if (selected) {
-      setState(() => _style = e);
-      _pushOutline();
-    } else if (_style == e) {
-      setState(() => _style = null);
-      widget.onOutlineChanged(null);
-    }
-  }
-
-  void _setWidthPt(double v) {
-    final clamped = v.clamp(_widthMin, _widthMax);
-    setState(() => _widthPt = clamped);
-    _widthCtrl.text = clamped.toStringAsFixed(2);
-    if (_style != null) _pushOutline();
-  }
-
-  void _bumpWidth(double delta) {
-    _setWidthPt(_widthPt + delta);
-  }
-
-  void _commitWidthFromField() {
-    final raw = _widthCtrl.text.trim().replaceAll(',', '.');
-    final v = double.tryParse(raw);
-    if (v == null) {
-      _widthCtrl.text = _widthPt.toStringAsFixed(2);
-      return;
-    }
-    _setWidthPt(v);
   }
 
   @override
@@ -393,6 +314,85 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
         ),
       ),
     );
+  }
+
+  static String _rgbHexString(int argb) {
+    final r = _rChannel(argb);
+    final g = _gChannel(argb);
+    final b = _bChannel(argb);
+    return '#${r.toRadixString(16).padLeft(2, '0')}'
+            '${g.toRadixString(16).padLeft(2, '0')}'
+            '${b.toRadixString(16).padLeft(2, '0')}'
+        .toUpperCase();
+  }
+
+  void _tryApplyHexRgbIfComplete() {
+    var h = _hexRgbCtrl.text.trim();
+    if (h.startsWith('#')) h = h.substring(1);
+    if (h.length == 3) {
+      h = h.split('').map((ch) => '$ch$ch').join();
+    }
+    if (h.length != 6) return;
+    final r = int.tryParse(h.substring(0, 2), radix: 16);
+    final g = int.tryParse(h.substring(2, 4), radix: 16);
+    final b = int.tryParse(h.substring(4, 6), radix: 16);
+    if (r == null || g == null || b == null) return;
+    final a = _aChannel(_colorArgb);
+    final next = (a << 24) | (r << 16) | (g << 8) | b;
+    if (next != _colorArgb) {
+      setState(() => _colorArgb = next);
+      if (_style != null) _pushOutline();
+    }
+  }
+
+  void _commitHexRgbField() {
+    _tryApplyHexRgbIfComplete();
+    _syncHexField();
+  }
+
+  TemplateOutline? _currentOutline() {
+    final s = _style;
+    if (s == null) return null;
+    return TemplateOutline(
+      style: s,
+      widthPt: _widthPt,
+      colorArgb: _colorArgb,
+    );
+  }
+
+  void _pushOutline() {
+    widget.onOutlineChanged(_currentOutline());
+  }
+
+  void _onChipSelected(TemplateOutlineStyle e, bool selected) {
+    if (selected) {
+      setState(() => _style = e);
+      _pushOutline();
+    } else if (_style == e) {
+      setState(() => _style = null);
+      widget.onOutlineChanged(null);
+    }
+  }
+
+  void _setWidthPt(double v) {
+    final clamped = v.clamp(_widthMin, _widthMax);
+    setState(() => _widthPt = clamped);
+    _widthCtrl.text = clamped.toStringAsFixed(2);
+    if (_style != null) _pushOutline();
+  }
+
+  void _bumpWidth(double delta) {
+    _setWidthPt(_widthPt + delta);
+  }
+
+  void _commitWidthFromField() {
+    final raw = _widthCtrl.text.trim().replaceAll(',', '.');
+    final v = double.tryParse(raw);
+    if (v == null) {
+      _widthCtrl.text = _widthPt.toStringAsFixed(2);
+      return;
+    }
+    _setWidthPt(v);
   }
 
   static String _styleLabel(TemplateOutlineStyle s) {

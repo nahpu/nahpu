@@ -556,6 +556,7 @@ class CustomLineElement {
     this.thicknessPt = 1.0,
     this.colorArgb = 0xFF000000,
     this.zIndex = 0,
+    this.strokeStyle = 'solid',
   });
 
   final String id;
@@ -566,6 +567,7 @@ class CustomLineElement {
   final double thicknessPt;
   final int colorArgb;
   final int zIndex;
+  final String strokeStyle;
 
   CustomLineElement copyWith({
     String? id,
@@ -576,6 +578,7 @@ class CustomLineElement {
     double? thicknessPt,
     int? colorArgb,
     int? zIndex,
+    String? strokeStyle,
   }) {
     return CustomLineElement(
       id: id ?? this.id,
@@ -586,6 +589,7 @@ class CustomLineElement {
       thicknessPt: thicknessPt ?? this.thicknessPt,
       colorArgb: colorArgb ?? this.colorArgb,
       zIndex: zIndex ?? this.zIndex,
+      strokeStyle: strokeStyle ?? this.strokeStyle,
     );
   }
 
@@ -598,6 +602,7 @@ class CustomLineElement {
         'thicknessPt': thicknessPt,
         'colorArgb': colorArgb,
         'zIndex': zIndex,
+        'strokeStyle': strokeStyle,
       };
 
   factory CustomLineElement.fromJson(Map<String, dynamic> json) {
@@ -610,6 +615,7 @@ class CustomLineElement {
       thicknessPt: (json['thicknessPt'] as num?)?.toDouble() ?? 1.0,
       colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF000000,
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
+      strokeStyle: json['strokeStyle'] as String? ?? 'solid',
     );
   }
 }
@@ -627,6 +633,7 @@ class CustomShapeElement {
     this.strokeColorArgb = 0xFF000000,
     this.fillColorArgb,
     this.zIndex = 0,
+    this.strokeStyle = 'solid',
   });
 
   final String id;
@@ -640,6 +647,7 @@ class CustomShapeElement {
   final int strokeColorArgb;
   final int? fillColorArgb;
   final int zIndex;
+  final String strokeStyle;
 
   CustomShapeElement copyWith({
     String? id,
@@ -654,6 +662,7 @@ class CustomShapeElement {
     int? fillColorArgb,
     bool clearFillColor = false,
     int? zIndex,
+    String? strokeStyle,
   }) {
     return CustomShapeElement(
       id: id ?? this.id,
@@ -668,6 +677,7 @@ class CustomShapeElement {
       fillColorArgb:
           clearFillColor ? null : (fillColorArgb ?? this.fillColorArgb),
       zIndex: zIndex ?? this.zIndex,
+      strokeStyle: strokeStyle ?? this.strokeStyle,
     );
   }
 
@@ -683,6 +693,7 @@ class CustomShapeElement {
         'strokeColorArgb': strokeColorArgb,
         if (fillColorArgb != null) 'fillColorArgb': fillColorArgb,
         'zIndex': zIndex,
+        'strokeStyle': strokeStyle,
       };
 
   factory CustomShapeElement.fromJson(Map<String, dynamic> json) {
@@ -698,6 +709,7 @@ class CustomShapeElement {
       strokeColorArgb: (json['strokeColorArgb'] as num?)?.toInt() ?? 0xFF000000,
       fillColorArgb: (json['fillColorArgb'] as num?)?.toInt(),
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
+      strokeStyle: json['strokeStyle'] as String? ?? 'solid',
     );
   }
 }
