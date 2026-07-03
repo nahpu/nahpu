@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/templates/template_border_sheet.dart';
+import 'package:nahpu/screens/templates/components/properties/template_border_sheet.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
 class TemplateBorderPanel extends StatelessWidget {
@@ -21,7 +21,7 @@ class TemplateBorderPanel extends StatelessWidget {
     return TemplateBorderEditorSheet(
       key: ValueKey<int>(session),
       initialOutline: outline,
-      inToolbar: false,
+      inToolbar: true,
       onOutlineChanged: onOutlineChanged,
       onDismiss: onDismiss,
     );

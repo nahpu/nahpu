@@ -94,64 +94,79 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
       onDismiss: widget.onDismiss,
       child: Padding(
         padding: widget.inToolbar
-            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 8)
-            : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Border',
-                style: Theme.of(context).textTheme.titleSmall,
+            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Border',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            'Style',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 8),
+                          _StylePicker(
+                            value:
+                                _style == null ? 'none' : _styleString(_style!),
+                            onChanged: _onStyleChanged,
+                          ),
+                          if (_style != null) ...[
+                            const SizedBox(width: 16),
+                            Text(
+                              'Thickness',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            _ThicknessPicker(
+                              value: _widthPt,
+                              onChanged: (v) {
+                                setState(() {
+                                  _widthPt = v;
+                                });
+                                _pushOutline();
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Color',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            _ColorSwatch(
+                              color: Color(_colorArgb),
+                              borderColor: scheme.outline,
+                              title: 'Select border color',
+                              onPicked: (color) {
+                                setState(() {
+                                  _colorArgb = color.toARGB32();
+                                });
+                                _pushOutline();
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Text(
-                'Style',
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
-              const SizedBox(width: 8),
-              _StylePicker(
-                value: _style == null ? 'none' : _styleString(_style!),
-                onChanged: _onStyleChanged,
-              ),
-              if (_style != null) ...[
-                const SizedBox(width: 16),
-                Text(
-                  'Thickness',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-                const SizedBox(width: 8),
-                _ThicknessPicker(
-                  value: _widthPt,
-                  onChanged: (v) {
-                    setState(() {
-                      _widthPt = v;
-                    });
-                    _pushOutline();
-                  },
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  'Color',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-                const SizedBox(width: 8),
-                _ColorSwatch(
-                  color: Color(_colorArgb),
-                  borderColor: scheme.outline,
-                  title: 'Select border color',
-                  onPicked: (color) {
-                    setState(() {
-                      _colorArgb = color.toARGB32();
-                    });
-                    _pushOutline();
-                  },
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

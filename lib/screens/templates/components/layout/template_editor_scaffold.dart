@@ -192,6 +192,8 @@ class TemplateEditorScaffold extends StatelessWidget {
               onUpdateCustomShape: onUpdateCustomShape,
               onDeleteCustomShape: onRemoveCustomShape,
               onDismiss: onDismissProperties,
+              isBorderPanelOpen: isBorderPanelOpen,
+              borderPanel: borderPanel,
             ),
             Expanded(
               child: TemplateCanvasWorkspace(
@@ -225,7 +227,6 @@ class TemplateEditorScaffold extends StatelessWidget {
                 onZoomChanged: onZoomChanged,
               ),
             ),
-            if (isBorderPanelOpen && borderPanel != null) borderPanel!,
           ],
         ),
       ),
@@ -313,47 +314,83 @@ class _TemplatePropertiesStrip extends StatelessWidget {
     required this.onUpdateCustomShape,
     required this.onDeleteCustomShape,
     required this.onDismiss,
+    required this.isBorderPanelOpen,
+    this.borderPanel,
   });
 
   final String? selectedElement;
   final bool isPage1;
   final Template template;
-  final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
-  final void Function(bool page1, String id) onDeleteCustomText;
-  final void Function(bool page1, CustomImageElement element)
-      onUpdateCustomImage;
-  final void Function(bool page1, String id) onDeleteCustomImage;
-  final void Function(bool page1, CustomLineElement element) onUpdateCustomLine;
-  final void Function(bool page1, String id) onDeleteCustomLine;
-  final void Function(bool page1, CustomShapeElement element)
-      onUpdateCustomShape;
-  final void Function(bool page1, String id) onDeleteCustomShape;
+  final void Function(
+    bool page1,
+    CustomTextElement element,
+  ) onUpdateCustomText;
+  final void Function(
+    bool page1,
+    String id,
+  ) onDeleteCustomText;
+  final void Function(
+    bool page1,
+    CustomImageElement element,
+  ) onUpdateCustomImage;
+  final void Function(
+    bool page1,
+    String id,
+  ) onDeleteCustomImage;
+  final void Function(
+    bool page1,
+    CustomLineElement element,
+  ) onUpdateCustomLine;
+  final void Function(
+    bool page1,
+    String id,
+  ) onDeleteCustomLine;
+  final void Function(
+    bool page1,
+    CustomShapeElement element,
+  ) onUpdateCustomShape;
+  final void Function(
+    bool page1,
+    String id,
+  ) onDeleteCustomShape;
   final VoidCallback onDismiss;
+  final bool isBorderPanelOpen;
+  final Widget? borderPanel;
 
   @override
   Widget build(BuildContext context) {
+    Widget? activeChild;
+    if (selectedElement != null) {
+      activeChild = TemplateElementPropertiesPanel(
+        selectedElement: selectedElement!,
+        page1: isPage1,
+        template: template,
+        onUpdateCustomText: onUpdateCustomText,
+        onDeleteCustomText: onDeleteCustomText,
+        onUpdateCustomImage: onUpdateCustomImage,
+        onDeleteCustomImage: onDeleteCustomImage,
+        onUpdateCustomLine: onUpdateCustomLine,
+        onDeleteCustomLine: onDeleteCustomLine,
+        onUpdateCustomShape: onUpdateCustomShape,
+        onDeleteCustomShape: onDeleteCustomShape,
+        onDismiss: onDismiss,
+      );
+    } else if (isBorderPanelOpen && borderPanel != null) {
+      activeChild = borderPanel;
+    }
+
     return AnimatedSize(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
       alignment: Alignment.topCenter,
       clipBehavior: Clip.hardEdge,
-      child: selectedElement != null
+      child: activeChild != null
           ? Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: TemplateElementPropertiesPanel(
-                selectedElement: selectedElement!,
-                page1: isPage1,
-                template: template,
-                onUpdateCustomText: onUpdateCustomText,
-                onDeleteCustomText: onDeleteCustomText,
-                onUpdateCustomImage: onUpdateCustomImage,
-                onDeleteCustomImage: onDeleteCustomImage,
-                onUpdateCustomLine: onUpdateCustomLine,
-                onDeleteCustomLine: onDeleteCustomLine,
-                onUpdateCustomShape: onUpdateCustomShape,
-                onDeleteCustomShape: onDeleteCustomShape,
-                onDismiss: onDismiss,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
               ),
+              child: activeChild,
             )
           : const SizedBox(width: double.infinity, height: 0),
     );
