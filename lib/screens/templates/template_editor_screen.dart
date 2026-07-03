@@ -772,9 +772,24 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     });
   }
 
+  Future<String?> _promptCreateNewTemplateName() async {
+    final taken = _savedNames.toSet();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => _CreateTemplateDialog(takenNames: taken),
+    );
+  }
+
   Future<void> _createNewTemplate() async {
-    final fresh = DefaultTemplate.defaultTemplate('New Template');
-    await _labelSettings.setCurrentTemplateName('New Template');
+    final name = await _promptCreateNewTemplateName();
+    if (name == null || name.isEmpty) return;
+
+    final fresh = DefaultTemplate.defaultTemplate(name).copyWith(
+      printOptions: _currentPrintOptions,
+    );
+    await _templateService.saveTemplate(fresh);
+    _savedNames = await _templateService.listTemplateNames();
+
     await _labelSettings.setMirrorFront(false);
     await _labelSettings.setMirrorBack(false);
     final duplex = await _labelSettings.getDuplex();
@@ -955,5 +970,78 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         });
       } catch (_) {}
     }
+  }
+}
+
+class _CreateTemplateDialog extends StatefulWidget {
+  const _CreateTemplateDialog({required this.takenNames});
+
+  final Set<String> takenNames;
+
+  @override
+  State<_CreateTemplateDialog> createState() => _CreateTemplateDialogState();
+}
+
+class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
+  late final TextEditingController _ctrl;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Create new template'),
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          controller: _ctrl,
+          decoration: const InputDecoration(
+            labelText: 'Template name',
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          validator: (v) {
+            final t = v?.trim() ?? '';
+            if (t.isEmpty) return 'Enter a name';
+            if (widget.takenNames.contains(t)) {
+              return 'A template with this name already exists';
+            }
+            return null;
+          },
+          onFieldSubmitted: (_) {
+            if (_formKey.currentState?.validate() ?? false) {
+              Navigator.pop(context, _ctrl.text.trim());
+            }
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (_formKey.currentState?.validate() ?? false) {
+              Navigator.pop(context, _ctrl.text.trim());
+            }
+          },
+          child: const Text('Create'),
+        ),
+      ],
+    );
   }
 }
