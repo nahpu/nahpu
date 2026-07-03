@@ -238,7 +238,7 @@ class ExportSettingsSection extends StatelessWidget {
             }),
         CommonSettingTile(
           isNavigation: true,
-          icon: Icons.edit_document,
+          icon: Icons.edit_note_outlined,
           title: 'Template Editor',
           label: 'Edit and create document templates',
           onTap: () => Navigator.push(
