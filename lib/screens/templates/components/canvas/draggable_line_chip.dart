@@ -167,22 +167,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
         break;
     }
 
-    final rh = s.height;
-
-    final cosTAbs = cosT.abs();
-    final sinTAbs = sinT.abs();
-    final halfBoundX = (rw * cosTAbs + rh * sinTAbs) / 2;
-    final halfBoundY = (rw * sinTAbs + rh * cosTAbs) / 2;
-
-    final minX = halfBoundX - rw / 2;
-    final maxX = widget.templateWidthMm - rw / 2 - halfBoundX;
-    final minY = halfBoundY - rh / 2;
-    final maxY = widget.templateHeightMm - rh / 2 - halfBoundY;
-
-    final cx = clampFiniteMm(x, minX, maxX);
-    final cy = clampFiniteMm(y, minY, maxY);
-
-    setState(() => _resizeLiveRect = Rect.fromLTWH(cx, cy, rw, rh));
+    setState(() => _resizeLiveRect = Rect.fromLTWH(x, y, rw, s.height));
   }
 
   void _endResize() {

@@ -82,15 +82,15 @@ Offset? globalDragDeltaToTemplateMm({
 /// system. Pointer motion arrives in template coordinates. For an element
 /// rotated by theta, the local delta is the inverse rotation:
 ///
-/// `localX = dx * cos(theta) - dy * sin(theta)`
-/// `localY = dx * sin(theta) + dy * cos(theta)`
+/// `localX = dx * cos(theta) + dy * sin(theta)`
+/// `localY = -dx * sin(theta) + dy * cos(theta)`
 Offset templateDeltaToElementLocalMm(Offset deltaMm, int rotationDegrees) {
   final radians = degreesToRadians(rotationDegrees);
   final cosTheta = math.cos(radians);
   final sinTheta = math.sin(radians);
   return Offset(
-    deltaMm.dx * cosTheta - deltaMm.dy * sinTheta,
-    deltaMm.dx * sinTheta + deltaMm.dy * cosTheta,
+    deltaMm.dx * cosTheta + deltaMm.dy * sinTheta,
+    -deltaMm.dx * sinTheta + deltaMm.dy * cosTheta,
   );
 }
 
@@ -243,17 +243,9 @@ Rect resizedRotatedRectFromCorner({
       break;
   }
 
-  final clampedPosition = clampRotatedRectTopLeft(
-    positionMm: Offset(x, y),
-    widthMm: width,
-    heightMm: height,
-    rotationDegrees: rotationDegrees,
-    canvasWidthMm: maxWidthMm,
-    canvasHeightMm: maxHeightMm,
-  );
   return Rect.fromLTWH(
-    clampedPosition.dx,
-    clampedPosition.dy,
+    x,
+    y,
     width,
     height,
   );

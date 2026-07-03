@@ -47,10 +47,25 @@ void main() {
     test('rotate template delta into local element axes', () {
       expectOffsetClose(
         templateDeltaToElementLocalMm(const Offset(10, 0), 90),
-        const Offset(0, 10),
+        const Offset(0, -10),
       );
       expectOffsetClose(
         templateDeltaToElementLocalMm(const Offset(0, 8), -90),
+        const Offset(-8, 0),
+      );
+    });
+
+    test('project rotated resize drag in the visual handle direction', () {
+      expectOffsetClose(
+        templateDeltaToElementLocalMm(const Offset(0, 8), 90),
+        const Offset(8, 0),
+      );
+      expectOffsetClose(
+        templateDeltaToElementLocalMm(const Offset(0, -8), 90),
+        const Offset(-8, 0),
+      );
+      expectOffsetClose(
+        templateDeltaToElementLocalMm(const Offset(0, -8), -90),
         const Offset(8, 0),
       );
     });
@@ -122,9 +137,12 @@ void main() {
       expectOffsetClose(actualFixedCorner, expectedFixedCorner);
     });
 
-    test('clamp resized rectangle position to canvas bounds', () {
+    test('preserve the fixed corner when resized past canvas bounds', () {
+      const start = Rect.fromLTWH(2, 2, 20, 20);
+      final expectedFixedCorner = rotatedRectCorner(start, 45, 'br');
+
       final resized = resizedRotatedRectFromCorner(
-        startMm: const Rect.fromLTWH(2, 2, 20, 20),
+        startMm: start,
         localDeltaMm: const Offset(50, 50),
         corner: 'tl',
         rotationDegrees: 45,
@@ -134,8 +152,8 @@ void main() {
 
       expect(resized.width, 2);
       expect(resized.height, 2);
-      expect(resized.left, greaterThanOrEqualTo(0));
-      expect(resized.top, greaterThanOrEqualTo(0));
+      expectOffsetClose(
+          rotatedRectCorner(resized, 45, 'br'), expectedFixedCorner);
     });
   });
 }
