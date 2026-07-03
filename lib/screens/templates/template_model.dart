@@ -628,6 +628,7 @@ class CustomShapeElement {
     required this.widthMm,
     required this.heightMm,
     required this.shapeType,
+    this.polygonSides = 5,
     this.rotationDegrees = 0,
     this.strokeThicknessPt = 1.0,
     this.strokeColorArgb = 0xFF000000,
@@ -641,7 +642,8 @@ class CustomShapeElement {
   final double yMm;
   final double widthMm;
   final double heightMm;
-  final String shapeType; // 'rect', 'ellipse'
+  final String shapeType; // 'rect', 'ellipse', 'circle', 'triangle', 'polygon'
+  final int polygonSides;
   final int rotationDegrees;
   final double strokeThicknessPt;
   final int strokeColorArgb;
@@ -656,6 +658,7 @@ class CustomShapeElement {
     double? widthMm,
     double? heightMm,
     String? shapeType,
+    int? polygonSides,
     int? rotationDegrees,
     double? strokeThicknessPt,
     int? strokeColorArgb,
@@ -671,6 +674,7 @@ class CustomShapeElement {
       widthMm: widthMm ?? this.widthMm,
       heightMm: heightMm ?? this.heightMm,
       shapeType: shapeType ?? this.shapeType,
+      polygonSides: polygonSides ?? this.polygonSides,
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
       strokeThicknessPt: strokeThicknessPt ?? this.strokeThicknessPt,
       strokeColorArgb: strokeColorArgb ?? this.strokeColorArgb,
@@ -688,6 +692,7 @@ class CustomShapeElement {
         'widthMm': widthMm,
         'heightMm': heightMm,
         'shapeType': shapeType,
+        'polygonSides': polygonSides,
         'rotationDegrees': rotationDegrees,
         'strokeThicknessPt': strokeThicknessPt,
         'strokeColorArgb': strokeColorArgb,
@@ -704,6 +709,7 @@ class CustomShapeElement {
       widthMm: (json['widthMm'] as num?)?.toDouble() ?? 20,
       heightMm: (json['heightMm'] as num?)?.toDouble() ?? 20,
       shapeType: json['shapeType'] as String? ?? 'rect',
+      polygonSides: ((json['polygonSides'] as num?)?.toInt() ?? 5).clamp(3, 12),
       rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,
       strokeThicknessPt: (json['strokeThicknessPt'] as num?)?.toDouble() ?? 1.0,
       strokeColorArgb: (json['strokeColorArgb'] as num?)?.toInt() ?? 0xFF000000,

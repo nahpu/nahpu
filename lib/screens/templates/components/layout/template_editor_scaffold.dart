@@ -396,20 +396,22 @@ class _TemplatePropertiesStrip extends StatelessWidget {
       activeChild = borderPanel;
     }
 
+    if (activeChild == null) {
+      return const SizedBox(width: double.infinity, height: 0);
+    }
+
     return AnimatedSize(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
       alignment: Alignment.topCenter,
       clipBehavior: Clip.hardEdge,
-      child: activeChild != null
-          ? Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              child: activeChild,
-            )
-          : const SizedBox(width: double.infinity, height: 0),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 8,
+        ),
+        child: activeChild,
+      ),
     );
   }
 }

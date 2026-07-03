@@ -463,7 +463,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _clearSelection() {
-    _deferSetState(() {
+    if (!mounted) return;
+    setState(() {
       _selectedElement = null;
     });
   }

@@ -694,7 +694,17 @@ class LabelWriter {
 
     final kind = shape.shapeType == 'ellipse' ? 'ellipse' : 'rect';
     String elem;
-    if (shape.strokeStyle == 'double') {
+    if (shape.shapeType == 'circle' ||
+        shape.shapeType == 'triangle' ||
+        shape.shapeType == 'polygon') {
+      elem = _typstCustomShapeElement(
+        shape,
+        strokeColor,
+        fillOpt,
+        wPt,
+        hPt,
+      );
+    } else if (shape.strokeStyle == 'double') {
       final outerStroke = '${shape.strokeThicknessPt}pt + $strokeColor';
       final outerElem =
           '#$kind(width: ${wPt}pt, height: ${hPt}pt, stroke: $outerStroke$fillOpt)';
@@ -723,6 +733,100 @@ class LabelWriter {
 
     typst.writeln(
         '  #place(dx: ${labelPdfMmToPt(shape.xMm)}pt, dy: ${labelPdfMmToPt(shape.yMm)}pt)[#rotate(${shape.rotationDegrees}deg)[$elem]]');
+  }
+
+  String _typstCustomShapeElement(
+    CustomShapeElement shape,
+    String strokeColor,
+    String fillOpt,
+    double wPt,
+    double hPt,
+  ) {
+    final strokeDash = shape.strokeStyle == 'dashed'
+        ? '"dashed"'
+        : shape.strokeStyle == 'dotted'
+            ? '"dotted"'
+            : '"solid"';
+    final stroke =
+        '(paint: $strokeColor, thickness: ${shape.strokeThicknessPt}pt, dash: $strokeDash)';
+
+    if (shape.shapeType == 'circle') {
+      final side = math.min(wPt, hPt);
+      final dx = (wPt - side) / 2;
+      final dy = (hPt - side) / 2;
+      if (shape.strokeStyle == 'double') {
+        final outerStroke = '${shape.strokeThicknessPt}pt + $strokeColor';
+        final outerElem =
+            '#place(dx: ${dx}pt, dy: ${dy}pt)[#ellipse(width: ${side}pt, height: ${side}pt, stroke: $outerStroke$fillOpt)]';
+        final gap = (shape.strokeThicknessPt * 1.25).clamp(1.0, 10.0);
+        final doubleInset = shape.strokeThicknessPt + gap;
+        final innerSide = side - 2 * doubleInset;
+        if (innerSide <= 0) return outerElem;
+        final innerDx = dx + doubleInset;
+        final innerDy = dy + doubleInset;
+        final innerElem =
+            '#place(dx: ${innerDx}pt, dy: ${innerDy}pt)[#ellipse(width: ${innerSide}pt, height: ${innerSide}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor)]';
+        return '[$outerElem$innerElem]';
+      }
+      return '#place(dx: ${dx}pt, dy: ${dy}pt)[#ellipse(width: ${side}pt, height: ${side}pt, stroke: $stroke$fillOpt)]';
+    }
+
+    if (shape.strokeStyle == 'double') {
+      final outerStroke = '${shape.strokeThicknessPt}pt + $strokeColor';
+      final outerVertices = _typstRegularPolygonVertices(
+        widthPt: wPt,
+        heightPt: hPt,
+        sides:
+            shape.shapeType == 'triangle' ? 3 : shape.polygonSides.clamp(3, 12),
+      );
+      final outerElem =
+          '#polygon(stroke: $outerStroke$fillOpt, $outerVertices)';
+      final gap = (shape.strokeThicknessPt * 1.25).clamp(1.0, 10.0);
+      final doubleInset = shape.strokeThicknessPt + gap;
+      final innerWPt = wPt - 2 * doubleInset;
+      final innerHPt = hPt - 2 * doubleInset;
+      if (innerWPt <= 0 || innerHPt <= 0) return outerElem;
+      final innerVertices = _typstRegularPolygonVertices(
+        widthPt: innerWPt,
+        heightPt: innerHPt,
+        offsetXPt: doubleInset,
+        offsetYPt: doubleInset,
+        sides:
+            shape.shapeType == 'triangle' ? 3 : shape.polygonSides.clamp(3, 12),
+      );
+      final innerElem =
+          '#polygon(stroke: ${shape.strokeThicknessPt}pt + $strokeColor, $innerVertices)';
+      return '[$outerElem$innerElem]';
+    }
+
+    final vertices = _typstRegularPolygonVertices(
+      widthPt: wPt,
+      heightPt: hPt,
+      sides:
+          shape.shapeType == 'triangle' ? 3 : shape.polygonSides.clamp(3, 12),
+    );
+    return '#polygon(stroke: $stroke$fillOpt, $vertices)';
+  }
+
+  String _typstRegularPolygonVertices({
+    required double widthPt,
+    required double heightPt,
+    required int sides,
+    double offsetXPt = 0,
+    double offsetYPt = 0,
+  }) {
+    final cx = offsetXPt + widthPt / 2;
+    final cy = offsetYPt + heightPt / 2;
+    final rx = widthPt / 2;
+    final ry = heightPt / 2;
+    final points = <String>[];
+    for (var i = 0; i < sides; i++) {
+      final angle = -math.pi / 2 + i * 2 * math.pi / sides;
+      final x = cx + rx * math.cos(angle);
+      final y = cy + ry * math.sin(angle);
+      points.add('(${x}pt, ${y}pt)');
+    }
+    return points.join(', ');
   }
 
   void _fillRemainingGridSpaces(StringBuffer typst, int pagesLength, int cols) {

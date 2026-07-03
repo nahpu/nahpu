@@ -523,6 +523,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   key: ValueKey(
                                       'p${page1 ? '1' : '2'}_shape_${element.id}'),
                                   shapeType: element.shapeType,
+                                  polygonSides: element.polygonSides,
                                   position: Offset(element.xMm, element.yMm),
                                   widthMm: element.widthMm,
                                   heightMm: element.heightMm,

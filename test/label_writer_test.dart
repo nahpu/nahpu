@@ -87,6 +87,33 @@ void main() {
     });
   });
 
+  group('Custom shape model tests', () {
+    test('polygon side count serializes and clamps on read', () {
+      const shape = CustomShapeElement(
+        id: 'shape_polygon',
+        shapeType: 'polygon',
+        polygonSides: 7,
+        xMm: 1,
+        yMm: 2,
+        widthMm: 10,
+        heightMm: 12,
+      );
+
+      final json = shape.toJson();
+      expect(json['polygonSides'], 7);
+
+      final decoded = CustomShapeElement.fromJson(json);
+      expect(decoded.shapeType, 'polygon');
+      expect(decoded.polygonSides, 7);
+
+      final clamped = CustomShapeElement.fromJson({
+        ...json,
+        'polygonSides': 99,
+      });
+      expect(clamped.polygonSides, 12);
+    });
+  });
+
   group('Label text formatting tests', () {
     test('formatTextWithCase applies correct capitalization styles', () {
       const text = 'hello world test';

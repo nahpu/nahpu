@@ -59,6 +59,29 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                         children: [
                           widget.zIndexControls,
                           const SizedBox(width: 16),
+                          Text(
+                            'Shape',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          const SizedBox(width: 8),
+                          _ShapeTypePicker(
+                            value: widget.shape.shapeType,
+                            onChanged: (v) => widget.onUpdate(
+                              widget.page1,
+                              widget.shape.copyWith(shapeType: v),
+                            ),
+                          ),
+                          if (widget.shape.shapeType == 'polygon') ...[
+                            const SizedBox(width: 16),
+                            _PolygonSidesControl(
+                              value: widget.shape.polygonSides,
+                              onChanged: (v) => widget.onUpdate(
+                                widget.page1,
+                                widget.shape.copyWith(polygonSides: v),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(width: 16),
                           _DimensionControl(
                             id: 'shape_w_${widget.id}',
                             label: 'Width (mm)',
@@ -197,6 +220,84 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ShapeTypePicker extends StatelessWidget {
+  const _ShapeTypePicker({
+    required this.value,
+    required this.onChanged,
+  });
+
+  static const values = [
+    ('rect', 'Rectangle'),
+    ('ellipse', 'Ellipse'),
+    ('circle', 'Circle'),
+    ('triangle', 'Triangle'),
+    ('polygon', 'Polygon'),
+  ];
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveValue =
+        values.any((entry) => entry.$1 == value) ? value : 'rect';
+    return DropdownButton<String>(
+      value: effectiveValue,
+      isDense: true,
+      underline: const SizedBox.shrink(),
+      items: [
+        for (final entry in values)
+          DropdownMenuItem(
+            value: entry.$1,
+            child: Text(entry.$2),
+          ),
+      ],
+      onChanged: (value) {
+        if (value != null) onChanged(value);
+      },
+    );
+  }
+}
+
+class _PolygonSidesControl extends StatelessWidget {
+  const _PolygonSidesControl({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text('Corners', style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 120,
+          child: Slider(
+            value: value.clamp(3, 12).toDouble(),
+            min: 3,
+            max: 12,
+            divisions: 9,
+            label: '${value.clamp(3, 12)}',
+            onChanged: (v) => onChanged(v.round()),
+          ),
+        ),
+        SizedBox(
+          width: 28,
+          child: Text(
+            '${value.clamp(3, 12)}',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+        ),
+      ],
     );
   }
 }

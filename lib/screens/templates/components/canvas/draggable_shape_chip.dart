@@ -11,6 +11,7 @@ class DraggableShapeChip extends StatefulWidget {
   const DraggableShapeChip({
     super.key,
     required this.shapeType,
+    required this.polygonSides,
     required this.position,
     required this.widthMm,
     required this.heightMm,
@@ -34,7 +35,8 @@ class DraggableShapeChip extends StatefulWidget {
     this.onDragStateChanged,
   });
 
-  final String shapeType; // 'rect' or 'ellipse'
+  final String shapeType; // 'rect', 'ellipse', 'circle', 'triangle', 'polygon'
+  final int polygonSides;
   final Offset position;
   final double widthMm;
   final double heightMm;
@@ -425,12 +427,11 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                     width: w,
                     height: h,
                     decoration: BoxDecoration(
-                      border: Border.all(
-                        color: borderColor,
-                        width: (widget.isSelected || _moving) ? 2.0 : 1.0,
-                      ),
+                      border: (widget.isSelected || _moving)
+                          ? Border.all(color: borderColor, width: 2.0)
+                          : null,
                       borderRadius: BorderRadius.circular(4),
-                      color: scheme.surfaceContainerHighest,
+                      color: Colors.transparent,
                       boxShadow: _moving
                           ? [
                               BoxShadow(
@@ -450,6 +451,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                           size: Size(w, h),
                           painter: ShapePainter(
                             shapeType: widget.shapeType,
+                            polygonSides: widget.polygonSides,
                             strokeColor: Color(widget.strokeColorArgb),
                             fillColor: widget.fillColorArgb != null
                                 ? Color(widget.fillColorArgb!)
@@ -557,13 +559,15 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
 class ShapePainter extends CustomPainter {
   const ShapePainter({
     required this.shapeType,
+    required this.polygonSides,
     required this.strokeColor,
     required this.fillColor,
     required this.strokeThicknessPx,
     required this.strokeStyle,
   });
 
-  final String shapeType; // 'rect', 'ellipse'
+  final String shapeType; // 'rect', 'ellipse', 'circle', 'triangle', 'polygon'
+  final int polygonSides;
   final Color strokeColor;
   final Color? fillColor;
   final double strokeThicknessPx;
@@ -585,11 +589,7 @@ class ShapePainter extends CustomPainter {
 
     // 1. Draw fill
     if (fillColor != null) {
-      if (shapeType == 'ellipse') {
-        canvas.drawOval(rect, fillPaint);
-      } else {
-        canvas.drawRect(rect, fillPaint);
-      }
+      canvas.drawPath(_shapePath(rect), fillPaint);
     }
 
     // 2. Draw stroke
@@ -603,11 +603,7 @@ class ShapePainter extends CustomPainter {
       );
 
       if (strokeStyle == 'solid') {
-        if (shapeType == 'ellipse') {
-          canvas.drawOval(strokeRect, strokePaint);
-        } else {
-          canvas.drawRect(strokeRect, strokePaint);
-        }
+        canvas.drawPath(_shapePath(strokeRect), strokePaint);
       } else if (strokeStyle == 'dashed') {
         _drawDashedBorder(
           canvas,
@@ -626,11 +622,7 @@ class ShapePainter extends CustomPainter {
         );
       } else if (strokeStyle == 'double') {
         // Outer stroke
-        if (shapeType == 'ellipse') {
-          canvas.drawOval(strokeRect, strokePaint);
-        } else {
-          canvas.drawRect(strokeRect, strokePaint);
-        }
+        canvas.drawPath(_shapePath(strokeRect), strokePaint);
 
         // Inner stroke
         final gap = (strokeThicknessPx * 1.25).clamp(1.0, 10.0);
@@ -644,14 +636,58 @@ class ShapePainter extends CustomPainter {
               .clamp(0.0, double.infinity),
         );
         if (innerRect.width > 0 && innerRect.height > 0) {
-          if (shapeType == 'ellipse') {
-            canvas.drawOval(innerRect, strokePaint);
-          } else {
-            canvas.drawRect(innerRect, strokePaint);
-          }
+          canvas.drawPath(_shapePath(innerRect), strokePaint);
         }
       }
     }
+  }
+
+  Path _shapePath(Rect rect) {
+    final path = Path();
+    switch (shapeType) {
+      case 'ellipse':
+        path.addOval(rect);
+        break;
+      case 'circle':
+        final side = math.min(rect.width, rect.height);
+        final circleRect = Rect.fromCenter(
+          center: rect.center,
+          width: side,
+          height: side,
+        );
+        path.addOval(circleRect);
+        break;
+      case 'triangle':
+        _addRegularPolygon(path, rect, 3);
+        break;
+      case 'polygon':
+        _addRegularPolygon(path, rect, polygonSides.clamp(3, 12));
+        break;
+      case 'rect':
+      default:
+        path.addRect(rect);
+        break;
+    }
+    return path;
+  }
+
+  void _addRegularPolygon(Path path, Rect rect, int sides) {
+    final radiusX = rect.width / 2;
+    final radiusY = rect.height / 2;
+    final center = rect.center;
+    for (var i = 0; i < sides; i++) {
+      final angle = -math.pi / 2 + i * 2 * math.pi / sides;
+      final point = Offset(
+        center.dx + radiusX * math.cos(angle),
+        center.dy + radiusY * math.sin(angle),
+      );
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    path.close();
   }
 
   void _drawDashedBorder(
@@ -661,12 +697,7 @@ class ShapePainter extends CustomPainter {
     double dashLen,
     double gapLen,
   ) {
-    final path = Path();
-    if (shapeType == 'ellipse') {
-      path.addOval(r);
-    } else {
-      path.addRect(r);
-    }
+    final path = _shapePath(r);
     for (final metric in path.computeMetrics()) {
       var d = 0.0;
       while (d < metric.length) {
@@ -680,6 +711,7 @@ class ShapePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant ShapePainter oldDelegate) {
     return oldDelegate.shapeType != shapeType ||
+        oldDelegate.polygonSides != polygonSides ||
         oldDelegate.strokeColor != strokeColor ||
         oldDelegate.fillColor != fillColor ||
         oldDelegate.strokeThicknessPx != strokeThicknessPx ||
