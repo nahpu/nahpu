@@ -113,17 +113,14 @@ class TemplateEditorToolbar extends StatelessWidget {
                           color: scheme.onSurface,
                         ),
                   ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 168,
-                    child: TemplateSizeSelector(
-                      compact: true,
-                      controlledWidthMm: templateWidthMm,
-                      controlledHeightMm: templateHeightMm,
-                      onControlledDimensionsApplied: onTemplateSizeChanged,
-                    ),
+                  const SizedBox(width: 4),
+                  TemplateSizeSelector(
+                    compact: true,
+                    controlledWidthMm: templateWidthMm,
+                    controlledHeightMm: templateHeightMm,
+                    onControlledDimensionsApplied: onTemplateSizeChanged,
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
                   _ToolbarIconButton(
                     icon: Icons.text_fields,
                     tooltip: 'Add text',

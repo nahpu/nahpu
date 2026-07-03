@@ -1,29 +1,22 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
-/// Line style, thickness, and color for the template outline. Updates
-/// [onOutlineChanged] on every change; `null` means no border.
+/// Line style, thickness, and color for the template outline.
 class TemplateBorderEditorSheet extends StatefulWidget {
   const TemplateBorderEditorSheet({
     super.key,
     required this.initialOutline,
     required this.onOutlineChanged,
-    this.maxHeightFraction = 0.85,
-    this.embeddedPanel = false,
+    this.inToolbar = false,
+    this.onDismiss,
   });
 
-  /// Snapshot when first built (e.g. panel session key in parent).
   final TemplateOutline? initialOutline;
-
   final ValueChanged<TemplateOutline?> onOutlineChanged;
-
-  /// Max height as a fraction of screen height; embedded layout fills this height (no scroll).
-  final double maxHeightFraction;
-
-  /// When true, omits modal-style bottom padding (used above the editor bottom bar).
-  final bool embeddedPanel;
+  final bool inToolbar;
+  final VoidCallback? onDismiss;
 
   @override
   State<TemplateBorderEditorSheet> createState() =>
@@ -31,380 +24,353 @@ class TemplateBorderEditorSheet extends StatefulWidget {
 }
 
 class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
-  static const _lineStyles = <TemplateOutlineStyle>[
-    TemplateOutlineStyle.solid,
-    TemplateOutlineStyle.dashed,
-    TemplateOutlineStyle.dotted,
-    TemplateOutlineStyle.doubleLine,
-  ];
-
-  static const _widthMin = 0.25;
-  static const _widthMax = 6.0;
-  static const _widthStep = 0.25;
-
-  /// Null = no border (no style chip selected).
   TemplateOutlineStyle? _style;
   late double _widthPt;
   late int _colorArgb;
-  late final TextEditingController _widthCtrl;
-  late final TextEditingController _hexRgbCtrl;
-
-  static int _rChannel(int argb) => (argb >> 16) & 0xFF;
-  static int _gChannel(int argb) => (argb >> 8) & 0xFF;
-  static int _bChannel(int argb) => argb & 0xFF;
-  static int _aChannel(int argb) => (argb >> 24) & 0xFF;
 
   @override
   void initState() {
     super.initState();
     final o = widget.initialOutline;
     _style = o?.style;
-    _widthPt = (o?.widthPt ?? 1.5).clamp(_widthMin, _widthMax);
+    _widthPt = o?.widthPt ?? 1.5;
     _colorArgb = o?.colorArgb ?? 0xFF757575;
-    _widthCtrl = TextEditingController(text: _widthPt.toStringAsFixed(2));
-    _hexRgbCtrl = TextEditingController(text: _rgbHexString(_colorArgb));
   }
 
-  @override
-  void dispose() {
-    _widthCtrl.dispose();
-    _hexRgbCtrl.dispose();
-    super.dispose();
+  void _pushOutline() {
+    final s = _style;
+    if (s == null) {
+      widget.onOutlineChanged(null);
+    } else {
+      widget.onOutlineChanged(
+        TemplateOutline(
+          style: s,
+          widthPt: _widthPt,
+          colorArgb: _colorArgb,
+        ),
+      );
+    }
   }
 
-  void _syncHexField() {
-    final hex = _rgbHexString(_colorArgb);
-    if (_hexRgbCtrl.text.toUpperCase() != hex) {
-      _hexRgbCtrl.text = hex;
+  void _onStyleChanged(String val) {
+    if (val == 'none') {
+      setState(() {
+        _style = null;
+      });
+      widget.onOutlineChanged(null);
+    } else {
+      final nextStyle = switch (val) {
+        'solid' => TemplateOutlineStyle.solid,
+        'dashed' => TemplateOutlineStyle.dashed,
+        'dotted' => TemplateOutlineStyle.dotted,
+        'double' => TemplateOutlineStyle.doubleLine,
+        _ => TemplateOutlineStyle.solid,
+      };
+      setState(() {
+        _style = nextStyle;
+      });
+      _pushOutline();
+    }
+  }
+
+  String _styleString(TemplateOutlineStyle s) {
+    switch (s) {
+      case TemplateOutlineStyle.solid:
+        return 'solid';
+      case TemplateOutlineStyle.dashed:
+        return 'dashed';
+      case TemplateOutlineStyle.dotted:
+        return 'dotted';
+      case TemplateOutlineStyle.doubleLine:
+        return 'double';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bottomPad = widget.embeddedPanel
-        ? 10.0
-        : (10.0 + MediaQuery.paddingOf(context).bottom);
-    final screenH = MediaQuery.sizeOf(context).height;
-    final panelH = screenH * widget.maxHeightFraction;
-
-    return SizedBox(
-      height: panelH,
-      width: MediaQuery.sizeOf(context).width,
+    final scheme = Theme.of(context).colorScheme;
+    return TemplatePropertyPanelShell(
+      inToolbar: widget.inToolbar,
+      onDismiss: widget.onDismiss,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 4, 16, bottomPad),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Border',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 6),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    flex: 46,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Style',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            for (final e in _lineStyles)
-                              ChoiceChip(
-                                label: Text(_styleLabel(e)),
-                                selected: _style == e,
-                                onSelected: (sel) => _onChipSelected(e, sel),
-                                visualDensity: VisualDensity.compact,
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 18),
-                        Text(
-                          'Thickness (pt)',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            IconButton.filledTonal(
-                              onPressed: () => _bumpWidth(-_widthStep),
-                              style: IconButton.styleFrom(
-                                minimumSize: const Size(40, 40),
-                                padding: const EdgeInsets.all(8),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              iconSize: 20,
-                              icon: const Icon(Icons.remove),
-                              tooltip: 'Decrease',
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 6),
-                              child: SizedBox(
-                                width: 76,
-                                child: TextField(
-                                  controller: _widthCtrl,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.copyWith(fontSize: 14),
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                    signed: false,
-                                  ),
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                      RegExp(r'[\d.]'),
-                                    ),
-                                  ],
-                                  textAlign: TextAlign.left,
-                                  decoration: const InputDecoration(
-                                    suffixText: 'pt',
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 6,
-                                    ),
-                                    border: OutlineInputBorder(),
-                                  ),
-                                  onEditingComplete: _commitWidthFromField,
-                                  onSubmitted: (_) => _commitWidthFromField,
-                                ),
-                              ),
-                            ),
-                            IconButton.filledTonal(
-                              onPressed: () => _bumpWidth(_widthStep),
-                              style: IconButton.styleFrom(
-                                minimumSize: const Size(40, 40),
-                                padding: const EdgeInsets.all(8),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              iconSize: 20,
-                              icon: const Icon(Icons.add),
-                              tooltip: 'Increase',
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 54,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Color',
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                            const Spacer(),
-                            SizedBox(
-                              width: 118,
-                              child: TextField(
-                                controller: _hexRgbCtrl,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(fontSize: 13),
-                                decoration: const InputDecoration(
-                                  labelText: 'Hex',
-                                  hintText: '#RRGGBB',
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 6,
-                                  ),
-                                  border: OutlineInputBorder(),
-                                ),
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                    RegExp(r'[0-9a-fA-F#]'),
-                                  ),
-                                  LengthLimitingTextInputFormatter(7),
-                                ],
-                                textCapitalization:
-                                    TextCapitalization.characters,
-                                onChanged: (_) => _tryApplyHexRgbIfComplete(),
-                                onEditingComplete: _commitHexRgbField,
-                                onSubmitted: (_) => _commitHexRgbField,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: ColorPicker(
-                              color: Color(_colorArgb),
-                              onColorChanged: (Color color) {
-                                setState(() {
-                                  _colorArgb = color.toARGB32();
-                                  _syncHexField();
-                                });
-                                if (_style != null) _pushOutline();
-                              },
-                              width: 32,
-                              height: 32,
-                              borderRadius: 4,
-                              spacing: 5,
-                              runSpacing: 5,
-                              wheelDiameter: 155,
-                              heading: Text(
-                                'Select color',
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                              subheading: Text(
-                                'Select color shade',
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                              wheelSubheading: Text(
-                                'Selected color and its shades',
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                              showMaterialName: true,
-                              showColorName: true,
-                              showColorCode: false,
-                              copyPasteBehavior:
-                                  const ColorPickerCopyPasteBehavior(
-                                longPressMenu: true,
-                              ),
-                              materialNameTextStyle:
-                                  Theme.of(context).textTheme.bodySmall,
-                              colorNameTextStyle:
-                                  Theme.of(context).textTheme.bodySmall,
-                              colorCodeTextStyle:
-                                  Theme.of(context).textTheme.bodySmall,
-                              pickersEnabled: const <ColorPickerType, bool>{
-                                ColorPickerType.both: false,
-                                ColorPickerType.primary: true,
-                                ColorPickerType.accent: true,
-                                ColorPickerType.bw: false,
-                                ColorPickerType.custom: true,
-                                ColorPickerType.wheel: true,
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+        padding: widget.inToolbar
+            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 8)
+            : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Border',
+                style: Theme.of(context).textTheme.titleSmall,
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Text(
+                'Style',
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              const SizedBox(width: 8),
+              _StylePicker(
+                value: _style == null ? 'none' : _styleString(_style!),
+                onChanged: _onStyleChanged,
+              ),
+              if (_style != null) ...[
+                const SizedBox(width: 16),
+                Text(
+                  'Thickness',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const SizedBox(width: 8),
+                _ThicknessPicker(
+                  value: _widthPt,
+                  onChanged: (v) {
+                    setState(() {
+                      _widthPt = v;
+                    });
+                    _pushOutline();
+                  },
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  'Color',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const SizedBox(width: 8),
+                _ColorSwatch(
+                  color: Color(_colorArgb),
+                  borderColor: scheme.outline,
+                  title: 'Select border color',
+                  onPicked: (color) {
+                    setState(() {
+                      _colorArgb = color.toARGB32();
+                    });
+                    _pushOutline();
+                  },
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  static String _rgbHexString(int argb) {
-    final r = _rChannel(argb);
-    final g = _gChannel(argb);
-    final b = _bChannel(argb);
-    return '#${r.toRadixString(16).padLeft(2, '0')}'
-            '${g.toRadixString(16).padLeft(2, '0')}'
-            '${b.toRadixString(16).padLeft(2, '0')}'
-        .toUpperCase();
-  }
+class _StylePicker extends StatelessWidget {
+  const _StylePicker({
+    required this.value,
+    required this.onChanged,
+  });
 
-  void _tryApplyHexRgbIfComplete() {
-    var h = _hexRgbCtrl.text.trim();
-    if (h.startsWith('#')) h = h.substring(1);
-    if (h.length == 3) {
-      h = h.split('').map((ch) => '$ch$ch').join();
-    }
-    if (h.length != 6) return;
-    final r = int.tryParse(h.substring(0, 2), radix: 16);
-    final g = int.tryParse(h.substring(2, 4), radix: 16);
-    final b = int.tryParse(h.substring(4, 6), radix: 16);
-    if (r == null || g == null || b == null) return;
-    final a = _aChannel(_colorArgb);
-    final next = (a << 24) | (r << 16) | (g << 8) | b;
-    if (next != _colorArgb) {
-      setState(() => _colorArgb = next);
-      if (_style != null) _pushOutline();
-    }
-  }
+  static const values = ['none', 'solid', 'dashed', 'dotted', 'double'];
 
-  void _commitHexRgbField() {
-    _tryApplyHexRgbIfComplete();
-    _syncHexField();
-  }
+  final String value;
+  final ValueChanged<String> onChanged;
 
-  TemplateOutline? _currentOutline() {
-    final s = _style;
-    if (s == null) return null;
-    return TemplateOutline(
-      style: s,
-      widthPt: _widthPt,
-      colorArgb: _colorArgb,
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface;
+    return DropdownButton<String>(
+      value: values.contains(value) ? value : 'none',
+      isDense: true,
+      underline: const SizedBox.shrink(),
+      items: [
+        for (final val in values)
+          DropdownMenuItem(
+            value: val,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (val == 'none')
+                  const Icon(Icons.block, size: 16)
+                else
+                  SizedBox(
+                    width: 48,
+                    height: 20,
+                    child: CustomPaint(
+                      painter: _StylePreviewPainter(
+                        style: val,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: 12),
+                Text(
+                  val == 'none'
+                      ? 'None'
+                      : val[0].toUpperCase() + val.substring(1),
+                ),
+              ],
+            ),
+          ),
+      ],
+      onChanged: (value) {
+        if (value != null) onChanged(value);
+      },
     );
   }
+}
 
-  void _pushOutline() {
-    widget.onOutlineChanged(_currentOutline());
-  }
+class _StylePreviewPainter extends CustomPainter {
+  const _StylePreviewPainter({
+    required this.style,
+    required this.color,
+  });
 
-  void _onChipSelected(TemplateOutlineStyle e, bool selected) {
-    if (selected) {
-      setState(() => _style = e);
-      _pushOutline();
-    } else if (_style == e) {
-      setState(() => _style = null);
-      widget.onOutlineChanged(null);
+  final String style;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final y = size.height / 2;
+
+    if (style == 'solid') {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    } else if (style == 'dashed') {
+      _drawDashedLine(canvas, size.width, y, paint, 6.0, 3.0);
+    } else if (style == 'dotted') {
+      _drawDashedLine(canvas, size.width, y, paint, 1.5, 3.0);
+    } else if (style == 'double') {
+      final paintDouble = Paint()
+        ..color = color
+        ..strokeWidth = 1.0
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(
+        Offset(0, y - 2),
+        Offset(size.width, y - 2),
+        paintDouble,
+      );
+      canvas.drawLine(
+        Offset(0, y + 2),
+        Offset(size.width, y + 2),
+        paintDouble,
+      );
     }
   }
 
-  void _setWidthPt(double v) {
-    final clamped = v.clamp(_widthMin, _widthMax);
-    setState(() => _widthPt = clamped);
-    _widthCtrl.text = clamped.toStringAsFixed(2);
-    if (_style != null) _pushOutline();
-  }
-
-  void _bumpWidth(double delta) {
-    _setWidthPt(_widthPt + delta);
-  }
-
-  void _commitWidthFromField() {
-    final raw = _widthCtrl.text.trim().replaceAll(',', '.');
-    final v = double.tryParse(raw);
-    if (v == null) {
-      _widthCtrl.text = _widthPt.toStringAsFixed(2);
-      return;
+  void _drawDashedLine(
+    Canvas canvas,
+    double width,
+    double y,
+    Paint paint,
+    double dashLen,
+    double gapLen,
+  ) {
+    double d = 0.0;
+    while (d < width) {
+      final end = (d + dashLen).clamp(0.0, width);
+      canvas.drawLine(
+        Offset(d, y),
+        Offset(end, y),
+        paint,
+      );
+      d += dashLen + gapLen;
     }
-    _setWidthPt(v);
   }
 
-  static String _styleLabel(TemplateOutlineStyle s) {
-    switch (s) {
-      case TemplateOutlineStyle.solid:
-        return 'Solid';
-      case TemplateOutlineStyle.dashed:
-        return 'Dashed';
-      case TemplateOutlineStyle.dotted:
-        return 'Dotted';
-      case TemplateOutlineStyle.doubleLine:
-        return 'Double';
-    }
+  @override
+  bool shouldRepaint(covariant _StylePreviewPainter oldDelegate) {
+    return oldDelegate.style != style || oldDelegate.color != color;
+  }
+}
+
+class _ThicknessPicker extends StatelessWidget {
+  const _ThicknessPicker({
+    required this.value,
+    required this.onChanged,
+  });
+
+  static const values = [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0];
+
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<double>(
+      value: values.contains(value) ? value : 1.0,
+      isDense: true,
+      underline: const SizedBox.shrink(),
+      items: values
+          .map((thickness) => DropdownMenuItem(
+                value: thickness,
+                child: Text('${thickness}pt'),
+              ))
+          .toList(),
+      onChanged: (value) {
+        if (value != null) onChanged(value);
+      },
+    );
+  }
+}
+
+class _ColorSwatch extends StatelessWidget {
+  const _ColorSwatch({
+    required this.color,
+    required this.borderColor,
+    required this.title,
+    required this.onPicked,
+  });
+
+  final Color color;
+  final Color borderColor;
+  final String title;
+  final ValueChanged<Color> onPicked;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        var selectedColor = color;
+        final picked = await ColorPicker(
+          color: selectedColor,
+          onColorChanged: (c) => selectedColor = c,
+          heading: Text(title, style: Theme.of(context).textTheme.titleSmall),
+          subheading: Text(
+            'Select color shade',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          wheelSubheading: Text(
+            'Selected color and its shades',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          showColorName: true,
+          showColorCode: false,
+          copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+            copyButton: true,
+            pasteButton: true,
+            longPressMenu: true,
+          ),
+          colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
+          colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
+          pickersEnabled: const <ColorPickerType, bool>{
+            ColorPickerType.both: false,
+            ColorPickerType.primary: true,
+            ColorPickerType.accent: true,
+            ColorPickerType.bw: false,
+            ColorPickerType.custom: true,
+            ColorPickerType.wheel: true,
+          },
+        ).showPickerDialog(context);
+        if (picked) onPicked(selectedColor);
+      },
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: color,
+          border: Border.all(color: borderColor),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+    );
   }
 }

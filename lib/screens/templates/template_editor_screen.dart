@@ -164,6 +164,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         session: _templateBorderPanelSession,
         outline: _template.outline,
         onOutlineChanged: _setTemplateOutline,
+        onDismiss: _toggleTemplateBorderPanel,
       ),
     );
   }

@@ -8,33 +8,22 @@ class TemplateBorderPanel extends StatelessWidget {
     required this.session,
     required this.outline,
     required this.onOutlineChanged,
+    required this.onDismiss,
   });
 
   final int session;
   final TemplateOutline? outline;
   final ValueChanged<TemplateOutline?> onOutlineChanged;
+  final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      elevation: 3,
-      surfaceTintColor: scheme.surfaceTint,
-      color: scheme.surfaceContainerHigh,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Divider(height: 1, color: scheme.outlineVariant),
-          TemplateBorderEditorSheet(
-            key: ValueKey<int>(session),
-            initialOutline: outline,
-            embeddedPanel: true,
-            maxHeightFraction: 0.36,
-            onOutlineChanged: onOutlineChanged,
-          ),
-        ],
-      ),
+    return TemplateBorderEditorSheet(
+      key: ValueKey<int>(session),
+      initialOutline: outline,
+      inToolbar: false,
+      onOutlineChanged: onOutlineChanged,
+      onDismiss: onDismiss,
     );
   }
 }
