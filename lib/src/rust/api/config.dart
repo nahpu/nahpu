@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Initializes the configuration database at the specified path.
 Future<void> initConfigDb({required String path}) =>
@@ -87,6 +87,24 @@ Future<void> exportTemplatePresetToFile(
     RustLib.instance.api.crateApiConfigExportTemplatePresetToFile(
         name: name, filePath: filePath);
 
+/// Saves a document layout.
+Future<void> setDocumentLayout(
+        {required String name, required DocumentLayoutPreset layout}) =>
+    RustLib.instance.api
+        .crateApiConfigSetDocumentLayout(name: name, layout: layout);
+
+/// Retrieves a document layout.
+Future<DocumentLayoutPreset?> getDocumentLayout({required String name}) =>
+    RustLib.instance.api.crateApiConfigGetDocumentLayout(name: name);
+
+/// Deletes a document layout.
+Future<void> deleteDocumentLayout({required String name}) =>
+    RustLib.instance.api.crateApiConfigDeleteDocumentLayout(name: name);
+
+/// Retrieves all document layouts.
+Future<List<DocumentLayoutPreset>> getAllDocumentLayouts() =>
+    RustLib.instance.api.crateApiConfigGetAllDocumentLayouts();
+
 /// Represents a combined export field configuration.
 class ConfigCombinedField {
   /// Unique identifier for the combined field.
@@ -160,4 +178,116 @@ class ConfigPresetEntry {
           runtimeType == other.runtimeType &&
           name == other.name &&
           preset == other.preset;
+}
+
+/// Represents a layout block within a document.
+class DocumentLayoutBlock {
+  final String templateName;
+  final int labelCount;
+  final int rows;
+  final int cols;
+  final double labelPadTopMm;
+  final double labelPadLeftMm;
+  final double labelPadRightMm;
+  final double labelPadBottomMm;
+  final bool pageBreakAfter;
+
+  const DocumentLayoutBlock({
+    required this.templateName,
+    required this.labelCount,
+    required this.rows,
+    required this.cols,
+    required this.labelPadTopMm,
+    required this.labelPadLeftMm,
+    required this.labelPadRightMm,
+    required this.labelPadBottomMm,
+    required this.pageBreakAfter,
+  });
+
+  @override
+  int get hashCode =>
+      templateName.hashCode ^
+      labelCount.hashCode ^
+      rows.hashCode ^
+      cols.hashCode ^
+      labelPadTopMm.hashCode ^
+      labelPadLeftMm.hashCode ^
+      labelPadRightMm.hashCode ^
+      labelPadBottomMm.hashCode ^
+      pageBreakAfter.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DocumentLayoutBlock &&
+          runtimeType == other.runtimeType &&
+          templateName == other.templateName &&
+          labelCount == other.labelCount &&
+          rows == other.rows &&
+          cols == other.cols &&
+          labelPadTopMm == other.labelPadTopMm &&
+          labelPadLeftMm == other.labelPadLeftMm &&
+          labelPadRightMm == other.labelPadRightMm &&
+          labelPadBottomMm == other.labelPadBottomMm &&
+          pageBreakAfter == other.pageBreakAfter;
+}
+
+/// Represents the overall configuration for document layouts.
+class DocumentLayoutPreset {
+  final String name;
+  final String layoutType;
+  final String pageSizeKey;
+  final String pageOrientation;
+  final double? customPageWidthMm;
+  final double? customPageHeightMm;
+  final double pagePadTopMm;
+  final double pagePadLeftMm;
+  final double pagePadRightMm;
+  final double pagePadBottomMm;
+  final List<DocumentLayoutBlock> blocks;
+
+  const DocumentLayoutPreset({
+    required this.name,
+    required this.layoutType,
+    required this.pageSizeKey,
+    required this.pageOrientation,
+    this.customPageWidthMm,
+    this.customPageHeightMm,
+    required this.pagePadTopMm,
+    required this.pagePadLeftMm,
+    required this.pagePadRightMm,
+    required this.pagePadBottomMm,
+    required this.blocks,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^
+      layoutType.hashCode ^
+      pageSizeKey.hashCode ^
+      pageOrientation.hashCode ^
+      customPageWidthMm.hashCode ^
+      customPageHeightMm.hashCode ^
+      pagePadTopMm.hashCode ^
+      pagePadLeftMm.hashCode ^
+      pagePadRightMm.hashCode ^
+      pagePadBottomMm.hashCode ^
+      blocks.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DocumentLayoutPreset &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          layoutType == other.layoutType &&
+          pageSizeKey == other.pageSizeKey &&
+          pageOrientation == other.pageOrientation &&
+          customPageWidthMm == other.customPageWidthMm &&
+          customPageHeightMm == other.customPageHeightMm &&
+          pagePadTopMm == other.pagePadTopMm &&
+          pagePadLeftMm == other.pagePadLeftMm &&
+          pagePadRightMm == other.pagePadRightMm &&
+          pagePadBottomMm == other.pagePadBottomMm &&
+          blocks == other.blocks;
 }

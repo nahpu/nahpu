@@ -36,6 +36,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ConfigExportPreset dco_decode_box_autoadd_config_export_preset(dynamic raw);
 
   @protected
+  DocumentLayoutPreset dco_decode_box_autoadd_document_layout_preset(
+      dynamic raw);
+
+  @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw);
+
+  @protected
   RecordReader dco_decode_box_autoadd_record_reader(dynamic raw);
 
   @protected
@@ -66,6 +73,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DmsCoordinateFfi dco_decode_dms_coordinate_ffi(dynamic raw);
 
   @protected
+  DocumentLayoutBlock dco_decode_document_layout_block(dynamic raw);
+
+  @protected
+  DocumentLayoutPreset dco_decode_document_layout_preset(dynamic raw);
+
+  @protected
   double dco_decode_f_64(dynamic raw);
 
   @protected
@@ -79,6 +92,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ConfigPresetEntry> dco_decode_list_config_preset_entry(dynamic raw);
+
+  @protected
+  List<DocumentLayoutBlock> dco_decode_list_document_layout_block(dynamic raw);
+
+  @protected
+  List<DocumentLayoutPreset> dco_decode_list_document_layout_preset(
+      dynamic raw);
 
   @protected
   List<List<String>> dco_decode_list_list_String(dynamic raw);
@@ -98,6 +118,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ConfigExportPreset? dco_decode_opt_box_autoadd_config_export_preset(
       dynamic raw);
+
+  @protected
+  DocumentLayoutPreset? dco_decode_opt_box_autoadd_document_layout_preset(
+      dynamic raw);
+
+  @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
 
   @protected
   List<String>? dco_decode_opt_list_String(dynamic raw);
@@ -147,6 +174,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  DocumentLayoutPreset sse_decode_box_autoadd_document_layout_preset(
+      SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
+
+  @protected
   RecordReader sse_decode_box_autoadd_record_reader(
       SseDeserializer deserializer);
 
@@ -183,6 +217,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DmsCoordinateFfi sse_decode_dms_coordinate_ffi(SseDeserializer deserializer);
 
   @protected
+  DocumentLayoutBlock sse_decode_document_layout_block(
+      SseDeserializer deserializer);
+
+  @protected
+  DocumentLayoutPreset sse_decode_document_layout_preset(
+      SseDeserializer deserializer);
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
@@ -197,6 +239,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ConfigPresetEntry> sse_decode_list_config_preset_entry(
+      SseDeserializer deserializer);
+
+  @protected
+  List<DocumentLayoutBlock> sse_decode_list_document_layout_block(
+      SseDeserializer deserializer);
+
+  @protected
+  List<DocumentLayoutPreset> sse_decode_list_document_layout_preset(
       SseDeserializer deserializer);
 
   @protected
@@ -219,6 +269,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ConfigExportPreset? sse_decode_opt_box_autoadd_config_export_preset(
       SseDeserializer deserializer);
+
+  @protected
+  DocumentLayoutPreset? sse_decode_opt_box_autoadd_document_layout_preset(
+      SseDeserializer deserializer);
+
+  @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
@@ -269,6 +326,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ConfigExportPreset self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_document_layout_preset(
+      DocumentLayoutPreset self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_record_reader(
       RecordReader self, SseSerializer serializer);
 
@@ -309,6 +373,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       DmsCoordinateFfi self, SseSerializer serializer);
 
   @protected
+  void sse_encode_document_layout_block(
+      DocumentLayoutBlock self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_document_layout_preset(
+      DocumentLayoutPreset self, SseSerializer serializer);
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
@@ -324,6 +396,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_config_preset_entry(
       List<ConfigPresetEntry> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_document_layout_block(
+      List<DocumentLayoutBlock> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_document_layout_preset(
+      List<DocumentLayoutPreset> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_list_String(
@@ -347,6 +427,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_config_export_preset(
       ConfigExportPreset? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_document_layout_preset(
+      DocumentLayoutPreset? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);

@@ -29,6 +29,102 @@ pub struct ConfigPresetEntry {
     pub preset: ConfigExportPreset,
 }
 
+/// Represents a layout block within a document.
+pub struct DocumentLayoutBlock {
+    pub template_name: String,
+    pub label_count: i32,
+    pub rows: i32,
+    pub cols: i32,
+    pub label_pad_top_mm: f64,
+    pub label_pad_left_mm: f64,
+    pub label_pad_right_mm: f64,
+    pub label_pad_bottom_mm: f64,
+    pub page_break_after: bool,
+}
+
+/// Represents the overall configuration for document layouts.
+pub struct DocumentLayoutPreset {
+    pub name: String,
+    pub layout_type: String, // "WholePage" or "Continuous"
+    pub page_size_key: String,
+    pub page_orientation: String,
+    pub custom_page_width_mm: Option<f64>,
+    pub custom_page_height_mm: Option<f64>,
+    pub page_pad_top_mm: f64,
+    pub page_pad_left_mm: f64,
+    pub page_pad_right_mm: f64,
+    pub page_pad_bottom_mm: f64,
+    pub blocks: Vec<DocumentLayoutBlock>,
+}
+
+impl From<nahpu_configs::DocumentLayoutBlock> for DocumentLayoutBlock {
+    fn from(b: nahpu_configs::DocumentLayoutBlock) -> Self {
+        Self {
+            template_name: b.template_name,
+            label_count: b.label_count,
+            rows: b.rows,
+            cols: b.cols,
+            label_pad_top_mm: b.label_pad_top_mm,
+            label_pad_left_mm: b.label_pad_left_mm,
+            label_pad_right_mm: b.label_pad_right_mm,
+            label_pad_bottom_mm: b.label_pad_bottom_mm,
+            page_break_after: b.page_break_after,
+        }
+    }
+}
+
+impl From<DocumentLayoutBlock> for nahpu_configs::DocumentLayoutBlock {
+    fn from(b: DocumentLayoutBlock) -> Self {
+        Self {
+            template_name: b.template_name,
+            label_count: b.label_count,
+            rows: b.rows,
+            cols: b.cols,
+            label_pad_top_mm: b.label_pad_top_mm,
+            label_pad_left_mm: b.label_pad_left_mm,
+            label_pad_right_mm: b.label_pad_right_mm,
+            label_pad_bottom_mm: b.label_pad_bottom_mm,
+            page_break_after: b.page_break_after,
+        }
+    }
+}
+
+impl From<nahpu_configs::DocumentLayoutPreset> for DocumentLayoutPreset {
+    fn from(p: nahpu_configs::DocumentLayoutPreset) -> Self {
+        Self {
+            name: p.name,
+            layout_type: p.layout_type,
+            page_size_key: p.page_size_key,
+            page_orientation: p.page_orientation,
+            custom_page_width_mm: p.custom_page_width_mm,
+            custom_page_height_mm: p.custom_page_height_mm,
+            page_pad_top_mm: p.page_pad_top_mm,
+            page_pad_left_mm: p.page_pad_left_mm,
+            page_pad_right_mm: p.page_pad_right_mm,
+            page_pad_bottom_mm: p.page_pad_bottom_mm,
+            blocks: p.blocks.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<DocumentLayoutPreset> for nahpu_configs::DocumentLayoutPreset {
+    fn from(p: DocumentLayoutPreset) -> Self {
+        Self {
+            name: p.name,
+            layout_type: p.layout_type,
+            page_size_key: p.page_size_key,
+            page_orientation: p.page_orientation,
+            custom_page_width_mm: p.custom_page_width_mm,
+            custom_page_height_mm: p.custom_page_height_mm,
+            page_pad_top_mm: p.page_pad_top_mm,
+            page_pad_left_mm: p.page_pad_left_mm,
+            page_pad_right_mm: p.page_pad_right_mm,
+            page_pad_bottom_mm: p.page_pad_bottom_mm,
+            blocks: p.blocks.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
 impl From<nahpu_configs::ConfigCombinedField> for ConfigCombinedField {
     fn from(c: nahpu_configs::ConfigCombinedField) -> Self {
         Self {
@@ -211,4 +307,30 @@ pub fn export_template_preset_to_file(name: String, file_path: String) -> Result
     let content = serde_json::to_string_pretty(&preset).map_err(|e| e.to_string())?;
     std::fs::write(&file_path, content).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// Saves a document layout.
+pub fn set_document_layout(name: String, layout: DocumentLayoutPreset) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.set_document_layout(&name, &layout.into())
+}
+
+/// Retrieves a document layout.
+pub fn get_document_layout(name: String) -> Result<Option<DocumentLayoutPreset>, String> {
+    let db = ConfigDb::get_instance()?;
+    let res = db.get_document_layout(&name)?;
+    Ok(res.map(Into::into))
+}
+
+/// Deletes a document layout.
+pub fn delete_document_layout(name: String) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.delete_document_layout(&name)
+}
+
+/// Retrieves all document layouts.
+pub fn get_all_document_layouts() -> Result<Vec<DocumentLayoutPreset>, String> {
+    let db = ConfigDb::get_instance()?;
+    let res = db.get_all_document_layouts()?;
+    Ok(res.into_iter().map(Into::into).collect())
 }

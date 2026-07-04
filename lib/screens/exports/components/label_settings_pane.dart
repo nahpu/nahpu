@@ -1,6 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file_operation.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -8,103 +9,49 @@ import 'package:nahpu/services/types/controllers.dart';
 class LabelSettingsPane extends StatelessWidget {
   const LabelSettingsPane({
     super.key,
-    required this.templateNames,
-    required this.selectedTemplateName,
+    required this.layout,
     required this.setupNames,
     required this.selectedSetupName,
-    required this.pageSizeKey,
-    required this.pageOrientation,
-    required this.customPageWidthMm,
-    required this.customPageHeightMm,
-    required this.rowsPerPage,
-    required this.colsPerPage,
-    required this.pagePadTopMm,
-    required this.pagePadLeftMm,
-    required this.pagePadRightMm,
-    required this.pagePadBottomMm,
-    required this.labelPadTopMm,
-    required this.labelPadLeftMm,
-    required this.labelPadRightMm,
-    required this.labelPadBottomMm,
+    required this.templateNames,
     required this.exportCtr,
     required this.selectedDir,
     required this.hasSaved,
     required this.isRunning,
-    required this.onTemplateSelected,
+    required this.onLayoutChanged,
     required this.onSetupSelected,
     required this.onSaveSetupAs,
     required this.onDeleteSetup,
     required this.onExportSetup,
     required this.onImportSetup,
-    required this.onPageSizeKeyChanged,
-    required this.onCustomPageWidthChanged,
-    required this.onCustomPageHeightChanged,
-    required this.onOrientationChanged,
-    required this.onPagePadTopChanged,
-    required this.onPagePadLeftChanged,
-    required this.onPagePadRightChanged,
-    required this.onPagePadBottomChanged,
-    required this.onRowsPerPageChanged,
-    required this.onColsPerPageChanged,
-    required this.onLabelPadTopChanged,
-    required this.onLabelPadLeftChanged,
-    required this.onLabelPadRightChanged,
-    required this.onLabelPadBottomChanged,
     required this.onFileNameChanged,
     required this.onSelectDir,
+    required this.onClearDir,
     required this.onExportPressed,
     required this.selectedCount,
     required this.totalCount,
     required this.onSelectSpecimens,
   });
 
-  final List<String> templateNames;
-  final String? selectedTemplateName;
+  final rust_config.DocumentLayoutPreset layout;
   final List<String> setupNames;
   final String selectedSetupName;
-  final String pageSizeKey;
-  final String pageOrientation;
-  final double customPageWidthMm;
-  final double customPageHeightMm;
-  final int rowsPerPage;
-  final int colsPerPage;
-  final double pagePadTopMm;
-  final double pagePadLeftMm;
-  final double pagePadRightMm;
-  final double pagePadBottomMm;
-  final double labelPadTopMm;
-  final double labelPadLeftMm;
-  final double labelPadRightMm;
-  final double labelPadBottomMm;
+  final List<String> templateNames;
 
   final FileOpCtrModel exportCtr;
   final Directory? selectedDir;
   final bool hasSaved;
   final bool isRunning;
 
-  final ValueChanged<String?> onTemplateSelected;
+  final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final ValueChanged<String> onSetupSelected;
   final VoidCallback onSaveSetupAs;
   final VoidCallback onDeleteSetup;
   final VoidCallback onExportSetup;
   final VoidCallback onImportSetup;
-  final ValueChanged<String> onPageSizeKeyChanged;
-  final ValueChanged<double> onCustomPageWidthChanged;
-  final ValueChanged<double> onCustomPageHeightChanged;
-  final ValueChanged<String> onOrientationChanged;
-  final ValueChanged<double> onPagePadTopChanged;
-  final ValueChanged<double> onPagePadLeftChanged;
-  final ValueChanged<double> onPagePadRightChanged;
-  final ValueChanged<double> onPagePadBottomChanged;
-  final ValueChanged<int> onRowsPerPageChanged;
-  final ValueChanged<int> onColsPerPageChanged;
-  final ValueChanged<double> onLabelPadTopChanged;
-  final ValueChanged<double> onLabelPadLeftChanged;
-  final ValueChanged<double> onLabelPadRightChanged;
-  final ValueChanged<double> onLabelPadBottomChanged;
 
   final ValueChanged<String?> onFileNameChanged;
   final Future<void> Function() onSelectDir;
+  final VoidCallback onClearDir;
   final VoidCallback? onExportPressed;
   final int selectedCount;
   final int totalCount;
@@ -119,45 +66,17 @@ class LabelSettingsPane extends StatelessWidget {
           FileOperationPage(
             children: [
               const FileFormatIcon(path: 'assets/icons/pdf.svg'),
-              PrintLayoutSection(
-                templateNames: templateNames,
-                selectedTemplateName: selectedTemplateName,
+              DocumentLayoutSection(
+                layout: layout,
                 setupNames: setupNames,
                 selectedSetupName: selectedSetupName,
-                pageSizeKey: pageSizeKey,
-                pageOrientation: pageOrientation,
-                customPageWidthMm: customPageWidthMm,
-                customPageHeightMm: customPageHeightMm,
-                rowsPerPage: rowsPerPage,
-                colsPerPage: colsPerPage,
-                pagePadTopMm: pagePadTopMm,
-                pagePadLeftMm: pagePadLeftMm,
-                pagePadRightMm: pagePadRightMm,
-                pagePadBottomMm: pagePadBottomMm,
-                labelPadTopMm: labelPadTopMm,
-                labelPadLeftMm: labelPadLeftMm,
-                labelPadRightMm: labelPadRightMm,
-                labelPadBottomMm: labelPadBottomMm,
-                onTemplateSelected: onTemplateSelected,
+                templateNames: templateNames,
+                onLayoutChanged: onLayoutChanged,
                 onSetupSelected: onSetupSelected,
                 onSaveSetupAs: onSaveSetupAs,
                 onDeleteSetup: onDeleteSetup,
                 onExportSetup: onExportSetup,
                 onImportSetup: onImportSetup,
-                onPageSizeKeyChanged: onPageSizeKeyChanged,
-                onCustomPageWidthChanged: onCustomPageWidthChanged,
-                onCustomPageHeightChanged: onCustomPageHeightChanged,
-                onOrientationChanged: onOrientationChanged,
-                onPagePadTopChanged: onPagePadTopChanged,
-                onPagePadLeftChanged: onPagePadLeftChanged,
-                onPagePadRightChanged: onPagePadRightChanged,
-                onPagePadBottomChanged: onPagePadBottomChanged,
-                onRowsPerPageChanged: onRowsPerPageChanged,
-                onColsPerPageChanged: onColsPerPageChanged,
-                onLabelPadTopChanged: onLabelPadTopChanged,
-                onLabelPadLeftChanged: onLabelPadLeftChanged,
-                onLabelPadRightChanged: onLabelPadRightChanged,
-                onLabelPadBottomChanged: onLabelPadBottomChanged,
               ),
               const SizedBox(height: 10),
               Container(
@@ -198,37 +117,36 @@ class LabelSettingsPane extends StatelessWidget {
                 controller: exportCtr,
                 onChanged: onFileNameChanged,
               ),
+              const SizedBox(height: 10),
               SelectDirField(
                 dirPath: selectedDir,
                 onPressed: onSelectDir,
-                onCanceled: () {
-                  // This callback would need to be handled carefully,
-                  // or we just call onSelectDir which could handle null if we change it,
-                  // but SelectDirField needs onCanceled. We'll pass it as a separate callback if needed,
-                  // or just define a handler.
-                },
+                onCanceled: onClearDir,
               ),
               const SizedBox(height: 24),
+              hasSaved
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                      child: Text(
+                        'Saved successfully to: ${selectedDir!.path}/${exportCtr.fileNameCtr.text}.pdf',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+              const SizedBox(height: 10),
               Wrap(
-                spacing: 20,
+                spacing: 12,
+                runSpacing: 12,
                 children: [
-                  SaveSecondaryButton(hasSaved: hasSaved),
-                  !hasSaved
-                      ? ProgressButton(
-                          label: 'Export PDF',
-                          isRunning: isRunning,
-                          icon: Icons.save_alt_outlined,
-                          onPressed: onExportPressed,
-                        )
-                      : Builder(
-                          builder: (BuildContext context) {
-                            return ShareButton(onPressed: () async {
-                              // Share functionality
-                            });
-                          },
-                        ),
+                  ProgressButton(
+                    label: 'Export Labels',
+                    icon: Icons.upload_outlined,
+                    isRunning: isRunning,
+                    onPressed: isRunning ? null : onExportPressed,
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ],
@@ -237,90 +155,33 @@ class LabelSettingsPane extends StatelessWidget {
   }
 }
 
-class PrintLayoutSection extends StatelessWidget {
-  const PrintLayoutSection({
+class DocumentLayoutSection extends StatelessWidget {
+  const DocumentLayoutSection({
     super.key,
-    required this.templateNames,
-    required this.selectedTemplateName,
+    required this.layout,
     required this.setupNames,
     required this.selectedSetupName,
-    required this.pageSizeKey,
-    required this.pageOrientation,
-    required this.customPageWidthMm,
-    required this.customPageHeightMm,
-    required this.rowsPerPage,
-    required this.colsPerPage,
-    required this.pagePadTopMm,
-    required this.pagePadLeftMm,
-    required this.pagePadRightMm,
-    required this.pagePadBottomMm,
-    required this.labelPadTopMm,
-    required this.labelPadLeftMm,
-    required this.labelPadRightMm,
-    required this.labelPadBottomMm,
-    required this.onTemplateSelected,
+    required this.templateNames,
+    required this.onLayoutChanged,
     required this.onSetupSelected,
     required this.onSaveSetupAs,
     required this.onDeleteSetup,
     required this.onExportSetup,
     required this.onImportSetup,
-    required this.onPageSizeKeyChanged,
-    required this.onCustomPageWidthChanged,
-    required this.onCustomPageHeightChanged,
-    required this.onOrientationChanged,
-    required this.onPagePadTopChanged,
-    required this.onPagePadLeftChanged,
-    required this.onPagePadRightChanged,
-    required this.onPagePadBottomChanged,
-    required this.onRowsPerPageChanged,
-    required this.onColsPerPageChanged,
-    required this.onLabelPadTopChanged,
-    required this.onLabelPadLeftChanged,
-    required this.onLabelPadRightChanged,
-    required this.onLabelPadBottomChanged,
   });
 
-  final List<String> templateNames;
-  final String? selectedTemplateName;
+  final rust_config.DocumentLayoutPreset layout;
   final List<String> setupNames;
   final String selectedSetupName;
-  final String pageSizeKey;
-  final String pageOrientation;
-  final double customPageWidthMm;
-  final double customPageHeightMm;
-  final int rowsPerPage;
-  final int colsPerPage;
-  final double pagePadTopMm;
-  final double pagePadLeftMm;
-  final double pagePadRightMm;
-  final double pagePadBottomMm;
-  final double labelPadTopMm;
-  final double labelPadLeftMm;
-  final double labelPadRightMm;
-  final double labelPadBottomMm;
-
-  final ValueChanged<String?> onTemplateSelected;
+  final List<String> templateNames;
+  final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final ValueChanged<String> onSetupSelected;
   final VoidCallback onSaveSetupAs;
   final VoidCallback onDeleteSetup;
   final VoidCallback onExportSetup;
   final VoidCallback onImportSetup;
-  final ValueChanged<String> onPageSizeKeyChanged;
-  final ValueChanged<double> onCustomPageWidthChanged;
-  final ValueChanged<double> onCustomPageHeightChanged;
-  final ValueChanged<String> onOrientationChanged;
-  final ValueChanged<double> onPagePadTopChanged;
-  final ValueChanged<double> onPagePadLeftChanged;
-  final ValueChanged<double> onPagePadRightChanged;
-  final ValueChanged<double> onPagePadBottomChanged;
-  final ValueChanged<int> onRowsPerPageChanged;
-  final ValueChanged<int> onColsPerPageChanged;
-  final ValueChanged<double> onLabelPadTopChanged;
-  final ValueChanged<double> onLabelPadLeftChanged;
-  final ValueChanged<double> onLabelPadRightChanged;
-  final ValueChanged<double> onLabelPadBottomChanged;
 
-  static const Map<String, String> _printPageSizeLabels = {
+  static const Map<String, String> _pageSizeLabels = {
     'A0': 'A0 (841 x 1188 mm)',
     'A1': 'A1 (594 x 841 mm)',
     'A2': 'A2 (420 x 594 mm)',
@@ -340,10 +201,15 @@ class PrintLayoutSection extends StatelessWidget {
     'landscape': 'Landscape',
   };
 
+  static const Map<String, String> _layoutTypeLabels = {
+    'WholePage': 'Whole Page',
+    'Continuous': 'Continuous Roll',
+  };
+
   double _parseMmOrCurrent(String value, double current) {
     final parsed = double.tryParse(value.replaceAll(',', '.'));
     if (parsed == null) return current;
-    return parsed.clamp(0.0, 200.0);
+    return parsed.clamp(0.0, 1000.0);
   }
 
   int _parseIntOrCurrent(String value, int current) {
@@ -352,8 +218,41 @@ class PrintLayoutSection extends StatelessWidget {
     return parsed.clamp(1, 200);
   }
 
+  void _addBlock() {
+    final newBlocks = List<rust_config.DocumentLayoutBlock>.from(layout.blocks);
+    final defaultTemplate =
+        templateNames.isNotEmpty ? templateNames.first : 'Default';
+    newBlocks.add(rust_config.DocumentLayoutBlock(
+      templateName: defaultTemplate,
+      labelCount: 1,
+      rows: 8,
+      cols: 4,
+      labelPadTopMm: 1.0,
+      labelPadLeftMm: 1.0,
+      labelPadRightMm: 1.0,
+      labelPadBottomMm: 1.0,
+      pageBreakAfter: false,
+    ));
+    onLayoutChanged(layout.copyWith(blocks: newBlocks));
+  }
+
+  void _updateBlock(int index, rust_config.DocumentLayoutBlock block) {
+    final newBlocks = List<rust_config.DocumentLayoutBlock>.from(layout.blocks);
+    newBlocks[index] = block;
+    onLayoutChanged(layout.copyWith(blocks: newBlocks));
+  }
+
+  void _deleteBlock(int index) {
+    if (layout.blocks.length <= 1) return;
+    final newBlocks = List<rust_config.DocumentLayoutBlock>.from(layout.blocks);
+    newBlocks.removeAt(index);
+    onLayoutChanged(layout.copyWith(blocks: newBlocks));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isContinuous = layout.layoutType == 'Continuous';
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -364,7 +263,7 @@ class PrintLayoutSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Print layout',
+            'Document Layout',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 10),
@@ -374,33 +273,12 @@ class PrintLayoutSection extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 360,
-                child: DropdownButtonFormField<String>(
-                  key: ValueKey('template-$selectedTemplateName'),
-                  initialValue: selectedTemplateName,
-                  decoration: const InputDecoration(
-                    labelText: 'Template preset',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  items: templateNames
-                      .map(
-                        (name) => DropdownMenuItem<String>(
-                          value: name,
-                          child: Text(name),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: templateNames.isEmpty ? null : onTemplateSelected,
-                ),
-              ),
-              SizedBox(
-                width: 360,
+                width: 240,
                 child: DropdownButtonFormField<String>(
                   key: ValueKey('setup-$selectedSetupName'),
                   initialValue: selectedSetupName,
                   decoration: const InputDecoration(
-                    labelText: 'Page setup',
+                    labelText: 'Layout profile',
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
@@ -420,10 +298,11 @@ class PrintLayoutSection extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onSaveSetupAs,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Save'),
+                label: const Text('Save As'),
               ),
               OutlinedButton.icon(
-                onPressed: onDeleteSetup,
+                onPressed:
+                    selectedSetupName == 'Default' ? null : onDeleteSetup,
                 icon: const Icon(Icons.delete_outline),
                 label: const Text('Delete'),
               ),
@@ -439,6 +318,13 @@ class PrintLayoutSection extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
+          Text(
+            'Page Setup',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           const SizedBox(height: 10),
           Wrap(
             spacing: 10,
@@ -446,16 +332,16 @@ class PrintLayoutSection extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 280,
+                width: 180,
                 child: DropdownButtonFormField<String>(
-                  key: ValueKey('page-size-$pageSizeKey'),
-                  initialValue: pageSizeKey,
+                  key: ValueKey('layout-type-${layout.layoutType}'),
+                  initialValue: layout.layoutType,
                   decoration: const InputDecoration(
-                    labelText: 'Page size',
+                    labelText: 'Layout style',
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
-                  items: _printPageSizeLabels.entries
+                  items: _layoutTypeLabels.entries
                       .map(
                         (e) => DropdownMenuItem<String>(
                           value: e.key,
@@ -464,136 +350,339 @@ class PrintLayoutSection extends StatelessWidget {
                       )
                       .toList(),
                   onChanged: (v) {
-                    if (v != null) onPageSizeKeyChanged(v);
+                    if (v != null) {
+                      onLayoutChanged(layout.copyWith(layoutType: v));
+                    }
                   },
                 ),
               ),
-              if (pageSizeKey == 'Custom') ...[
+              if (!isContinuous) ...[
+                SizedBox(
+                  width: 240,
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey('page-size-${layout.pageSizeKey}'),
+                    initialValue: layout.pageSizeKey,
+                    decoration: const InputDecoration(
+                      labelText: 'Page size',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: _pageSizeLabels.entries
+                        .map(
+                          (e) => DropdownMenuItem<String>(
+                            value: e.key,
+                            child: Text(e.value),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) {
+                        onLayoutChanged(layout.copyWith(pageSizeKey: v));
+                      }
+                    },
+                  ),
+                ),
+                if (layout.pageSizeKey == 'Custom') ...[
+                  NumberField(
+                    label: 'Width mm',
+                    initialValue:
+                        (layout.customPageWidthMm ?? 210.0).toStringAsFixed(1),
+                    onChanged: (value) {
+                      onLayoutChanged(layout.copyWith(
+                          customPageWidthMm: _parseMmOrCurrent(
+                              value, layout.customPageWidthMm ?? 210.0)));
+                    },
+                  ),
+                  NumberField(
+                    label: 'Height mm',
+                    initialValue:
+                        (layout.customPageHeightMm ?? 297.0).toStringAsFixed(1),
+                    onChanged: (value) {
+                      onLayoutChanged(layout.copyWith(
+                          customPageHeightMm: _parseMmOrCurrent(
+                              value, layout.customPageHeightMm ?? 297.0)));
+                    },
+                  ),
+                ],
+                SizedBox(
+                  width: 160,
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey('orientation-${layout.pageOrientation}'),
+                    initialValue: layout.pageOrientation,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Orientation',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: _pageOrientationLabels.entries
+                        .map(
+                          (e) => DropdownMenuItem<String>(
+                            value: e.key,
+                            child: Text(e.value),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) {
+                        onLayoutChanged(layout.copyWith(pageOrientation: v));
+                      }
+                    },
+                  ),
+                ),
                 NumberField(
-                  label: 'Width mm',
-                  initialValue: customPageWidthMm.toStringAsFixed(1),
+                  label: 'Page top',
+                  initialValue: layout.pagePadTopMm.toStringAsFixed(1),
                   onChanged: (value) {
-                    onCustomPageWidthChanged(
-                        _parseMmOrCurrent(value, customPageWidthMm));
+                    onLayoutChanged(layout.copyWith(
+                        pagePadTopMm:
+                            _parseMmOrCurrent(value, layout.pagePadTopMm)));
                   },
                 ),
                 NumberField(
-                  label: 'Height mm',
-                  initialValue: customPageHeightMm.toStringAsFixed(1),
+                  label: 'Page left',
+                  initialValue: layout.pagePadLeftMm.toStringAsFixed(1),
                   onChanged: (value) {
-                    onCustomPageHeightChanged(
-                        _parseMmOrCurrent(value, customPageHeightMm));
+                    onLayoutChanged(layout.copyWith(
+                        pagePadLeftMm:
+                            _parseMmOrCurrent(value, layout.pagePadLeftMm)));
+                  },
+                ),
+                NumberField(
+                  label: 'Page right',
+                  initialValue: layout.pagePadRightMm.toStringAsFixed(1),
+                  onChanged: (value) {
+                    onLayoutChanged(layout.copyWith(
+                        pagePadRightMm:
+                            _parseMmOrCurrent(value, layout.pagePadRightMm)));
+                  },
+                ),
+                NumberField(
+                  label: 'Page bottom',
+                  initialValue: layout.pagePadBottomMm.toStringAsFixed(1),
+                  onChanged: (value) {
+                    onLayoutChanged(layout.copyWith(
+                        pagePadBottomMm:
+                            _parseMmOrCurrent(value, layout.pagePadBottomMm)));
                   },
                 ),
               ],
-              SizedBox(
-                width: 160,
-                child: DropdownButtonFormField<String>(
-                  key: ValueKey('orientation-$pageOrientation'),
-                  initialValue: pageOrientation,
-                  decoration: const InputDecoration(
-                    labelText: 'Orientation',
-                    border: OutlineInputBorder(),
-                    isDense: true,
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Layout Blocks',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              TextButton.icon(
+                onPressed: _addBlock,
+                icon: const Icon(Icons.add_circle_outline),
+                label: const Text('Add Block'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...layout.blocks.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final block = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
                   ),
-                  items: _pageOrientationLabels.entries
-                      .map(
-                        (e) => DropdownMenuItem<String>(
-                          value: e.key,
-                          child: Text(e.value),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (v) {
-                    if (v != null) onOrientationChanged(v);
-                  },
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Block #${idx + 1}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          if (layout.blocks.length > 1)
+                            IconButton(
+                              onPressed: () => _deleteBlock(idx),
+                              icon: const Icon(Icons.delete_sweep_outlined,
+                                  color: Colors.red),
+                              tooltip: 'Delete Block',
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 200,
+                            child: DropdownButtonFormField<String>(
+                              key: ValueKey(
+                                  'block-template-$idx-${block.templateName}'),
+                              initialValue:
+                                  templateNames.contains(block.templateName)
+                                      ? block.templateName
+                                      : (templateNames.isNotEmpty
+                                          ? templateNames.first
+                                          : null),
+                              decoration: const InputDecoration(
+                                labelText: 'Template preset',
+                                border: OutlineInputBorder(),
+                                isDense: true,
+                              ),
+                              items: templateNames
+                                  .map(
+                                    (name) => DropdownMenuItem<String>(
+                                      value: name,
+                                      child: Text(name),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  _updateBlock(
+                                      idx, block.copyWith(templateName: v));
+                                }
+                              },
+                            ),
+                          ),
+                          NumberField(
+                            label: 'Copies',
+                            initialValue: '${block.labelCount}',
+                            onChanged: (value) {
+                              _updateBlock(
+                                idx,
+                                block.copyWith(
+                                  labelCount: _parseIntOrCurrent(
+                                      value, block.labelCount),
+                                ),
+                              );
+                            },
+                          ),
+                          if (!isContinuous) ...[
+                            NumberField(
+                              label: 'Rows',
+                              initialValue: '${block.rows}',
+                              onChanged: (value) {
+                                _updateBlock(
+                                  idx,
+                                  block.copyWith(
+                                    rows: _parseIntOrCurrent(value, block.rows),
+                                  ),
+                                );
+                              },
+                            ),
+                            NumberField(
+                              label: 'Cols',
+                              initialValue: '${block.cols}',
+                              onChanged: (value) {
+                                _updateBlock(
+                                  idx,
+                                  block.copyWith(
+                                    cols: _parseIntOrCurrent(value, block.cols),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                          NumberField(
+                            label: 'Label top',
+                            initialValue:
+                                block.labelPadTopMm.toStringAsFixed(1),
+                            onChanged: (value) {
+                              _updateBlock(
+                                idx,
+                                block.copyWith(
+                                  labelPadTopMm: _parseMmOrCurrent(
+                                      value, block.labelPadTopMm),
+                                ),
+                              );
+                            },
+                          ),
+                          NumberField(
+                            label: 'Label left',
+                            initialValue:
+                                block.labelPadLeftMm.toStringAsFixed(1),
+                            onChanged: (value) {
+                              _updateBlock(
+                                idx,
+                                block.copyWith(
+                                  labelPadLeftMm: _parseMmOrCurrent(
+                                      value, block.labelPadLeftMm),
+                                ),
+                              );
+                            },
+                          ),
+                          NumberField(
+                            label: 'Label right',
+                            initialValue:
+                                block.labelPadRightMm.toStringAsFixed(1),
+                            onChanged: (value) {
+                              _updateBlock(
+                                idx,
+                                block.copyWith(
+                                  labelPadRightMm: _parseMmOrCurrent(
+                                      value, block.labelPadRightMm),
+                                ),
+                              );
+                            },
+                          ),
+                          NumberField(
+                            label: 'Label bottom',
+                            initialValue:
+                                block.labelPadBottomMm.toStringAsFixed(1),
+                            onChanged: (value) {
+                              _updateBlock(
+                                idx,
+                                block.copyWith(
+                                  labelPadBottomMm: _parseMmOrCurrent(
+                                      value, block.labelPadBottomMm),
+                                ),
+                              );
+                            },
+                          ),
+                          if (!isContinuous)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('Page break after'),
+                                Checkbox(
+                                  value: block.pageBreakAfter,
+                                  onChanged: (v) {
+                                    if (v != null) {
+                                      _updateBlock(idx,
+                                          block.copyWith(pageBreakAfter: v));
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              NumberField(
-                label: 'Page top',
-                initialValue: pagePadTopMm.toStringAsFixed(1),
-                onChanged: (value) {
-                  onPagePadTopChanged(_parseMmOrCurrent(value, pagePadTopMm));
-                },
-              ),
-              NumberField(
-                label: 'Page left',
-                initialValue: pagePadLeftMm.toStringAsFixed(1),
-                onChanged: (value) {
-                  onPagePadLeftChanged(_parseMmOrCurrent(value, pagePadLeftMm));
-                },
-              ),
-              NumberField(
-                label: 'Page right',
-                initialValue: pagePadRightMm.toStringAsFixed(1),
-                onChanged: (value) {
-                  onPagePadRightChanged(
-                      _parseMmOrCurrent(value, pagePadRightMm));
-                },
-              ),
-              NumberField(
-                label: 'Page bottom',
-                initialValue: pagePadBottomMm.toStringAsFixed(1),
-                onChanged: (value) {
-                  onPagePadBottomChanged(
-                      _parseMmOrCurrent(value, pagePadBottomMm));
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              NumberField(
-                label: 'Rows / page',
-                initialValue: '$rowsPerPage',
-                onChanged: (value) {
-                  onRowsPerPageChanged(_parseIntOrCurrent(value, rowsPerPage));
-                },
-              ),
-              NumberField(
-                label: 'Cols / page',
-                initialValue: '$colsPerPage',
-                onChanged: (value) {
-                  onColsPerPageChanged(_parseIntOrCurrent(value, colsPerPage));
-                },
-              ),
-              NumberField(
-                label: 'Label top',
-                initialValue: labelPadTopMm.toStringAsFixed(1),
-                onChanged: (value) {
-                  onLabelPadTopChanged(_parseMmOrCurrent(value, labelPadTopMm));
-                },
-              ),
-              NumberField(
-                label: 'Label left',
-                initialValue: labelPadLeftMm.toStringAsFixed(1),
-                onChanged: (value) {
-                  onLabelPadLeftChanged(
-                      _parseMmOrCurrent(value, labelPadLeftMm));
-                },
-              ),
-              NumberField(
-                label: 'Label right',
-                initialValue: labelPadRightMm.toStringAsFixed(1),
-                onChanged: (value) {
-                  onLabelPadRightChanged(
-                      _parseMmOrCurrent(value, labelPadRightMm));
-                },
-              ),
-              NumberField(
-                label: 'Label bottom',
-                initialValue: labelPadBottomMm.toStringAsFixed(1),
-                onChanged: (value) {
-                  onLabelPadBottomChanged(
-                      _parseMmOrCurrent(value, labelPadBottomMm));
-                },
-              ),
-            ],
-          ),
+            );
+          }),
         ],
       ),
     );
@@ -646,7 +735,7 @@ class _NumberFieldState extends State<NumberField> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 112,
+      width: 104,
       child: TextFormField(
         controller: _controller,
         focusNode: _focusNode,

@@ -12,6 +12,7 @@ import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 import 'package:nahpu/src/rust/api/export.dart' as rust_export;
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:path/path.dart' as path;
 import 'package:qr/qr.dart';
 
@@ -54,31 +55,16 @@ class LabelWriter {
   Database get _db => ref.read(databaseProvider);
 
   /// Generates the Typst PDF and writes it to the designated output file.
-  ///
-  /// [picked] The list of specimens to print labels for.
-  /// [selectedDir] The destination directory for the generated PDF.
-  /// [fileStem] The base name (without extension) of the output file.
-  /// [template] The template containing design specifications.
-  /// [pageSizeKey] The selected page size preset (e.g. 'A4', 'Letter', 'Custom').
-  /// [pageOrientation] The orientation of the page ('portrait' or 'landscape').
-  /// [customPageWidthMm] The custom width in millimeters if pageSizeKey is 'Custom'.
-  /// [customPageHeightMm] The custom height in millimeters if pageSizeKey is 'Custom'.
-  /// [layout] The layout options defining rows, columns, and padding.
   Future<void> writeLabels({
     required List<SpecimenData> picked,
     required Directory selectedDir,
     required String fileStem,
-    required Template? template,
-    required String pageSizeKey,
-    required String pageOrientation,
-    required double? customPageWidthMm,
-    required double? customPageHeightMm,
-    required LabelPrintLayoutOptions layout,
+    required rust_config.DocumentLayoutPreset layout,
   }) async {
-    double w = _getPageWidth(pageSizeKey, customPageWidthMm);
-    double h = _getPageHeight(pageSizeKey, customPageHeightMm);
+    double w = _getPageWidth(layout.pageSizeKey, layout.customPageWidthMm);
+    double h = _getPageHeight(layout.pageSizeKey, layout.customPageHeightMm);
 
-    if (pageOrientation == 'landscape') {
+    if (layout.pageOrientation == 'landscape') {
       final tmp = w;
       w = h;
       h = tmp;
@@ -86,7 +72,6 @@ class LabelWriter {
 
     final pdfBytes = await generateLabelsPdf(
       picked,
-      template: template,
       sheetWidthPt: w * 72.0 / 25.4,
       sheetHeightPt: h * 72.0 / 25.4,
       layout: layout,
@@ -160,63 +145,190 @@ class LabelWriter {
 
   Future<Uint8List> generateLabelsPdf(
     List<SpecimenData> specimens, {
-    Template? template,
     required double sheetWidthPt,
     required double sheetHeightPt,
-    required LabelPrintLayoutOptions layout,
+    required rust_config.DocumentLayoutPreset layout,
   }) async {
     final settings = LabelSettingsServices();
-    final tmpl = template ?? await const TemplateService().getCurrentTemplate();
+    final templateService = const TemplateService();
 
     final wPt = labelPdfMmToPt(await settings.getLabelWidthMm());
     final hPt = labelPdfMmToPt(await settings.getLabelHeightMm());
     final duplex = await settings.getDuplex();
+    final mirrorFront = await settings.getMirrorFront();
+    final mirrorBack = await settings.getMirrorBack();
 
-    final usableW = math.max(
-        1.0,
-        sheetWidthPt -
-            labelPdfMmToPt(layout.pagePadLeftMm) -
-            labelPdfMmToPt(layout.pagePadRightMm));
-    final usableH = math.max(
-        1.0,
-        sheetHeightPt -
-            labelPdfMmToPt(layout.pagePadTopMm) -
-            labelPdfMmToPt(layout.pagePadBottomMm));
-
-    final s = _calculateScale(usableW, usableH, wPt, hPt);
-    final cellW =
-        layout.colsPerPage > 0 ? usableW / layout.colsPerPage : wPt * s;
-    final cellH =
-        layout.rowsPerPage > 0 ? usableH / layout.rowsPerPage : hPt * s;
-
-    final cols = layout.colsPerPage > 0
-        ? layout.colsPerPage
-        : math.max(1, (usableW / cellW).floor());
-    final rows = layout.rowsPerPage > 0
-        ? layout.rowsPerPage
-        : math.max(1, (usableH / cellH).floor());
+    // Preload templates
+    final templates = <String, Template>{};
+    for (final block in layout.blocks) {
+      if (!templates.containsKey(block.templateName)) {
+        final tmpl = await templateService.getTemplate(block.templateName);
+        templates[block.templateName] =
+            tmpl ?? DefaultTemplate.defaultTemplate(block.templateName);
+      }
+    }
 
     StringBuffer typst = StringBuffer();
-    _writePageSetup(typst, sheetWidthPt, sheetHeightPt, layout);
 
     if (specimens.isEmpty) {
+      typst.writeln(
+          '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt)');
       typst.writeln('#align(center + horizon)[No labels]');
+    } else if (layout.layoutType == 'Continuous') {
+      final List<_ContinuousPrintItem> continuousItems = [];
+
+      for (final specimen in specimens) {
+        for (final block in layout.blocks) {
+          final tmpl = templates[block.templateName]!;
+          for (var c = 0; c < block.labelCount; c++) {
+            continuousItems.add(_ContinuousPrintItem(
+              specimen: specimen,
+              template: tmpl,
+              pageTemplate: tmpl.page1,
+              block: block,
+              mirror: mirrorFront,
+            ));
+            if (duplex) {
+              continuousItems.add(_ContinuousPrintItem(
+                specimen: specimen,
+                template: tmpl,
+                pageTemplate: tmpl.page2,
+                block: block,
+                mirror: mirrorBack,
+              ));
+            }
+          }
+        }
+      }
+
+      for (var i = 0; i < continuousItems.length; i++) {
+        final item = continuousItems[i];
+        final cellWPt = wPt +
+            labelPdfMmToPt(item.block.labelPadLeftMm) +
+            labelPdfMmToPt(item.block.labelPadRightMm);
+        final cellHPt = hPt +
+            labelPdfMmToPt(item.block.labelPadTopMm) +
+            labelPdfMmToPt(item.block.labelPadBottomMm);
+
+        typst.writeln(
+            '#set page(width: ${cellWPt}pt, height: ${cellHPt}pt, margin: 0pt)');
+
+        final data = await fieldValuesForSpecimen(_db, item.specimen, ref);
+        final subbedPage = await _substitutePage(item.pageTemplate, data);
+
+        _writeSingleLabelCell(
+          typst: typst,
+          page: subbedPage,
+          data: data,
+          wPt: wPt,
+          hPt: hPt,
+          labelPadTopMm: item.block.labelPadTopMm,
+          labelPadLeftMm: item.block.labelPadLeftMm,
+          labelPadRightMm: item.block.labelPadRightMm,
+          labelPadBottomMm: item.block.labelPadBottomMm,
+          mirror: item.mirror,
+          outline: item.template.outline,
+        );
+
+        if (i < continuousItems.length - 1) {
+          typst.writeln('#pagebreak()');
+        }
+      }
     } else {
-      await _writeSpecimenLabels(
-        typst: typst,
-        specimens: specimens,
-        tmpl: tmpl,
-        layout: layout,
-        cols: cols,
-        rows: rows,
-        cellW: cellW,
-        cellH: cellH,
-        wPt: wPt,
-        hPt: hPt,
-        duplex: duplex,
-        mirrorFront: await settings.getMirrorFront(),
-        mirrorBack: await settings.getMirrorBack(),
-      );
+      final ptTop = labelPdfMmToPt(layout.pagePadTopMm);
+      final ptLeft = labelPdfMmToPt(layout.pagePadLeftMm);
+      final ptBottom = labelPdfMmToPt(layout.pagePadBottomMm);
+      final ptRight = labelPdfMmToPt(layout.pagePadRightMm);
+      typst.writeln(
+          '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt, margin: (top: ${ptTop}pt, left: ${ptLeft}pt, bottom: ${ptBottom}pt, right: ${ptRight}pt))');
+
+      final usableW = math.max(1.0, sheetWidthPt - ptLeft - ptRight);
+      final usableH = math.max(1.0, sheetHeightPt - ptTop - ptBottom);
+
+      for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+        final block = layout.blocks[bIdx];
+        final tmpl = templates[block.templateName]!;
+        final cols = block.cols > 0 ? block.cols : 4;
+        final rows = block.rows > 0 ? block.rows : 8;
+        final perSheet = cols * rows;
+
+        final cellW = usableW / cols;
+        final cellH = usableH / rows;
+
+        final List<SpecimenData> blockSpecimens = [];
+        for (final specimen in specimens) {
+          for (var c = 0; c < block.labelCount; c++) {
+            blockSpecimens.add(specimen);
+          }
+        }
+
+        for (var start = 0; start < blockSpecimens.length; start += perSheet) {
+          final end = math.min(start + perSheet, blockSpecimens.length);
+          final batch = blockSpecimens.sublist(start, end);
+          final isLastBatch = (start + perSheet) >= blockSpecimens.length;
+          final isLastBlock = bIdx == layout.blocks.length - 1;
+
+          final breakAfterFront = duplex ||
+              !isLastBatch ||
+              (isLastBatch && !isLastBlock && block.pageBreakAfter);
+          final breakAfterBack = !isLastBatch ||
+              (isLastBatch && !isLastBlock && block.pageBreakAfter);
+
+          final frontPages = <TemplatePage>[];
+          final frontDataList = <Map<String, String>>[];
+          for (final specimen in batch) {
+            final data = await fieldValuesForSpecimen(_db, specimen, ref);
+            frontDataList.add(data);
+            frontPages.add(await _substitutePage(tmpl.page1, data));
+          }
+          _writeTiledLabelSheet(
+            typst: typst,
+            pages: frontPages,
+            dataList: frontDataList,
+            cols: cols,
+            rows: rows,
+            cellW: cellW,
+            cellH: cellH,
+            wPt: wPt,
+            hPt: hPt,
+            labelPadTopMm: block.labelPadTopMm,
+            labelPadLeftMm: block.labelPadLeftMm,
+            labelPadRightMm: block.labelPadRightMm,
+            labelPadBottomMm: block.labelPadBottomMm,
+            mirror: mirrorFront,
+            outline: tmpl.outline,
+            pageBreakAfter: breakAfterFront,
+          );
+
+          if (duplex) {
+            final backPages = <TemplatePage>[];
+            final backDataList = <Map<String, String>>[];
+            for (final specimen in batch) {
+              final data = await fieldValuesForSpecimen(_db, specimen, ref);
+              backDataList.add(data);
+              backPages.add(await _substitutePage(tmpl.page2, data));
+            }
+            _writeTiledLabelSheet(
+              typst: typst,
+              pages: backPages,
+              dataList: backDataList,
+              cols: cols,
+              rows: rows,
+              cellW: cellW,
+              cellH: cellH,
+              wPt: wPt,
+              hPt: hPt,
+              labelPadTopMm: block.labelPadTopMm,
+              labelPadLeftMm: block.labelPadLeftMm,
+              labelPadRightMm: block.labelPadRightMm,
+              labelPadBottomMm: block.labelPadBottomMm,
+              mirror: mirrorBack,
+              outline: tmpl.outline,
+              pageBreakAfter: breakAfterBack,
+            );
+          }
+        }
+      }
     }
 
     final fontBytesList = await _loadFontBytes();
@@ -245,84 +357,6 @@ class LabelWriter {
     return fontBytesList;
   }
 
-  double _calculateScale(
-      double usableW, double usableH, double wPt, double hPt) {
-    final fitScale = math.min(1.0, math.min(usableW / wPt, usableH / hPt));
-    return fitScale <= 0 ? 1e-6 : fitScale;
-  }
-
-  void _writePageSetup(StringBuffer typst, double sheetWidthPt,
-      double sheetHeightPt, LabelPrintLayoutOptions layout) {
-    final ptTop = labelPdfMmToPt(layout.pagePadTopMm);
-    final ptLeft = labelPdfMmToPt(layout.pagePadLeftMm);
-    final ptBottom = labelPdfMmToPt(layout.pagePadBottomMm);
-    final ptRight = labelPdfMmToPt(layout.pagePadRightMm);
-    typst.writeln(
-        '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt, margin: (top: ${ptTop}pt, left: ${ptLeft}pt, bottom: ${ptBottom}pt, right: ${ptRight}pt))');
-  }
-
-  Future<void> _writeSpecimenLabels({
-    required StringBuffer typst,
-    required List<SpecimenData> specimens,
-    required Template tmpl,
-    required LabelPrintLayoutOptions layout,
-    required int cols,
-    required int rows,
-    required double cellW,
-    required double cellH,
-    required double wPt,
-    required double hPt,
-    required bool duplex,
-    required bool mirrorFront,
-    required bool mirrorBack,
-  }) async {
-    final perSheet = cols * rows;
-    final pageBreakPlan = pageBreakPlanForTesting(
-      specimenCount: specimens.length,
-      labelsPerSheet: perSheet,
-      duplex: duplex,
-    );
-    var pageIndex = 0;
-    for (var start = 0; start < specimens.length; start += perSheet) {
-      final end = math.min(start + perSheet, specimens.length);
-      final batch = specimens.sublist(start, end);
-
-      await _writeLabelSide(
-        typst: typst,
-        batch: batch,
-        pageTemplate: tmpl.page1,
-        layout: layout,
-        cols: cols,
-        rows: rows,
-        cellW: cellW,
-        cellH: cellH,
-        wPt: wPt,
-        hPt: hPt,
-        mirror: mirrorFront,
-        outline: tmpl.outline,
-        pageBreakAfter: pageBreakPlan[pageIndex++],
-      );
-
-      if (duplex) {
-        await _writeLabelSide(
-          typst: typst,
-          batch: batch,
-          pageTemplate: tmpl.page2,
-          layout: layout,
-          cols: cols,
-          rows: rows,
-          cellW: cellW,
-          cellH: cellH,
-          wPt: wPt,
-          hPt: hPt,
-          mirror: mirrorBack,
-          outline: tmpl.outline,
-          pageBreakAfter: pageBreakPlan[pageIndex++],
-        );
-      }
-    }
-  }
-
   @visibleForTesting
   static List<bool> pageBreakPlanForTesting({
     required int specimenCount,
@@ -338,47 +372,6 @@ class LabelWriter {
       if (duplex) breaks.add(!isLastBatch);
     }
     return breaks;
-  }
-
-  Future<void> _writeLabelSide({
-    required StringBuffer typst,
-    required List<SpecimenData> batch,
-    required TemplatePage pageTemplate,
-    required LabelPrintLayoutOptions layout,
-    required int cols,
-    required int rows,
-    required double cellW,
-    required double cellH,
-    required double wPt,
-    required double hPt,
-    required bool mirror,
-    required bool pageBreakAfter,
-    TemplateOutline? outline,
-  }) async {
-    final dataList = <Map<String, String>>[];
-    final pages = <TemplatePage>[];
-
-    for (final specimen in batch) {
-      final data = await fieldValuesForSpecimen(_db, specimen, ref);
-      dataList.add(data);
-      pages.add(await _substitutePage(pageTemplate, data));
-    }
-
-    _writeTiledLabelSheet(
-      typst: typst,
-      pages: pages,
-      dataList: dataList,
-      cols: cols,
-      rows: rows,
-      cellW: cellW,
-      cellH: cellH,
-      wPt: wPt,
-      hPt: hPt,
-      layout: layout,
-      mirror: mirror,
-      outline: outline,
-      pageBreakAfter: pageBreakAfter,
-    );
   }
 
   Future<TemplatePage> _substitutePage(
@@ -482,7 +475,10 @@ class LabelWriter {
     required double cellH,
     required double wPt,
     required double hPt,
-    required LabelPrintLayoutOptions layout,
+    required double labelPadTopMm,
+    required double labelPadLeftMm,
+    required double labelPadRightMm,
+    required double labelPadBottomMm,
     required bool mirror,
     required bool pageBreakAfter,
     TemplateOutline? outline,
@@ -500,7 +496,10 @@ class LabelWriter {
         data: dataList[i],
         wPt: wPt,
         hPt: hPt,
-        layout: layout,
+        labelPadTopMm: labelPadTopMm,
+        labelPadLeftMm: labelPadLeftMm,
+        labelPadRightMm: labelPadRightMm,
+        labelPadBottomMm: labelPadBottomMm,
         mirror: mirror,
         outline: outline,
       );
@@ -519,14 +518,17 @@ class LabelWriter {
     required Map<String, String> data,
     required double wPt,
     required double hPt,
-    required LabelPrintLayoutOptions layout,
+    required double labelPadTopMm,
+    required double labelPadLeftMm,
+    required double labelPadRightMm,
+    required double labelPadBottomMm,
     required bool mirror,
     TemplateOutline? outline,
   }) {
-    final padTop = labelPdfMmToPt(layout.labelPadTopMm);
-    final padBottom = labelPdfMmToPt(layout.labelPadBottomMm);
-    final padLeft = labelPdfMmToPt(layout.labelPadLeftMm);
-    final padRight = labelPdfMmToPt(layout.labelPadRightMm);
+    final padTop = labelPdfMmToPt(labelPadTopMm);
+    final padBottom = labelPdfMmToPt(labelPadBottomMm);
+    final padLeft = labelPdfMmToPt(labelPadLeftMm);
+    final padRight = labelPdfMmToPt(labelPadRightMm);
 
     typst.writeln('  [');
     typst.writeln(
@@ -912,4 +914,19 @@ Future<Map<String, String>> fieldValuesForSpecimen(
   } catch (_) {}
 
   return m;
+}
+
+class _ContinuousPrintItem {
+  _ContinuousPrintItem({
+    required this.specimen,
+    required this.template,
+    required this.pageTemplate,
+    required this.block,
+    required this.mirror,
+  });
+  final SpecimenData specimen;
+  final Template template;
+  final TemplatePage pageTemplate;
+  final rust_config.DocumentLayoutBlock block;
+  final bool mirror;
 }
