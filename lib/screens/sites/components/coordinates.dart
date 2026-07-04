@@ -31,7 +31,7 @@ class CoordinateFields extends StatelessWidget {
       infoContent: const CoordinateInfoContent(),
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
-          height: 324,
+          height: 484,
           child: CoordinateList(
             sideId: siteId,
           )),

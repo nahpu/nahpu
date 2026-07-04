@@ -43,7 +43,7 @@ class _CollEventTabBarState extends State<CollEventTabBar>
       child: CommonTabBars(
         length: _length,
         tabController: _tabController,
-        height: 421,
+        height: 502,
         tabs: [
           const Tab(
             icon: Icon(Icons.groups_2_outlined),

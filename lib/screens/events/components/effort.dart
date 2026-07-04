@@ -30,7 +30,7 @@ class CollEffort extends StatelessWidget {
       title: 'Effort',
       infoContent: const EffortInfoContent(),
       child: SizedBox(
-        height: 402,
+        height: 484,
         child: CollEffortList(collEventId: collEventId),
       ),
     );

@@ -406,11 +406,13 @@ class ListCheckBox extends StatelessWidget {
     required this.isDisabled,
     required this.value,
     required this.onChanged,
+    this.isDense = false,
   });
 
   final bool isDisabled;
   final bool value;
   final void Function(bool?) onChanged;
+  final bool isDense;
 
   @override
   Widget build(BuildContext context) {
@@ -424,6 +426,10 @@ class ListCheckBox extends StatelessWidget {
               : Theme.of(context).colorScheme.onSurface,
         ),
         value: value,
+        materialTapTargetSize: isDense
+            ? MaterialTapTargetSize.shrinkWrap
+            : MaterialTapTargetSize.padded,
+        visualDensity: isDense ? VisualDensity.compact : null,
         onChanged: isDisabled ? null : onChanged);
   }
 }

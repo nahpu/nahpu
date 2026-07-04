@@ -26,74 +26,79 @@ class Habitat extends ConsumerWidget {
       title: 'Habitat',
       infoContent: const HabitatInfoContent(),
       mainAxisAlignment: MainAxisAlignment.start,
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Column(
-          children: [
-            ref.watch(userDefinedFieldProvider(habitatTypePrefKey)).when(
-                  data: (data) {
-                    final items = data
-                        .map(
-                          (e) => DropdownMenuItem<String?>(
-                            value: e,
-                            child: CommonDropdownText(text: e),
+      child: SizedBox(
+        height: 484,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Column(
+              children: [
+                ref.watch(userDefinedFieldProvider(habitatTypePrefKey)).when(
+                      data: (data) {
+                        final items = data
+                            .map(
+                              (e) => DropdownMenuItem<String?>(
+                                value: e,
+                                child: CommonDropdownText(text: e),
+                              ),
+                            )
+                            .toList();
+
+                        final current = siteFormCtr.habitatTypeCtr.text;
+                        final initialValue =
+                            (current.isNotEmpty && data.contains(current))
+                                ? current
+                                : null;
+
+                        return DropdownButtonFormField<String?>(
+                          isExpanded: true,
+                          initialValue: initialValue,
+                          decoration: const InputDecoration(
+                            labelText: 'Type',
+                            hintText: 'Select a habitat type',
                           ),
-                        )
-                        .toList();
-
-                    final current = siteFormCtr.habitatTypeCtr.text;
-                    final initialValue =
-                        (current.isNotEmpty && data.contains(current))
-                            ? current
-                            : null;
-
-                    return DropdownButtonFormField<String?>(
-                      isExpanded: true,
-                      initialValue: initialValue,
-                      decoration: const InputDecoration(
-                        labelText: 'Type',
-                        hintText: 'Select a habitat type',
-                      ),
-                      items: items,
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          siteFormCtr.habitatTypeCtr.text = newValue;
-                          SiteServices(ref: ref).updateSite(
-                            id,
-                            SiteCompanion(habitatType: db.Value(newValue)),
-                          );
-                        }
+                          items: items,
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              siteFormCtr.habitatTypeCtr.text = newValue;
+                              SiteServices(ref: ref).updateSite(
+                                id,
+                                SiteCompanion(habitatType: db.Value(newValue)),
+                              );
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
-                  loading: () => const CommonProgressIndicator(),
-                  error: (e, __) => Text(e.toString()),
+                      loading: () => const CommonProgressIndicator(),
+                      error: (e, __) => Text(e.toString()),
+                    ),
+                TextFormField(
+                  controller: siteFormCtr.habitatConditionCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Condition',
+                    hintText: 'E.g. "Pristine", "Disturbed", "etc."',
+                  ),
+                  onChanged: (value) => SiteServices(ref: ref).updateSite(
+                    id,
+                    SiteCompanion(habitatCondition: db.Value(value)),
+                  ),
                 ),
-            TextFormField(
-              controller: siteFormCtr.habitatConditionCtr,
-              decoration: const InputDecoration(
-                labelText: 'Condition',
-                hintText: 'E.g. "Pristine", "Disturbed", "etc."',
-              ),
-              onChanged: (value) => SiteServices(ref: ref).updateSite(
-                id,
-                SiteCompanion(habitatCondition: db.Value(value)),
-              ),
+                TextFormField(
+                  maxLines: 15,
+                  controller: siteFormCtr.habitatDescriptionCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    hintText:
+                        'Describe the site, e.g. "A camp site in the middle of the forest."',
+                  ),
+                  onChanged: (value) => SiteServices(ref: ref).updateSite(
+                    id,
+                    SiteCompanion(habitatDescription: db.Value(value)),
+                  ),
+                ),
+              ],
             ),
-            TextFormField(
-              maxLines: 6,
-              controller: siteFormCtr.habitatDescriptionCtr,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText:
-                    'Describe the site, e.g. "A camp site in the middle of the forest."',
-              ),
-              onChanged: (value) => SiteServices(ref: ref).updateSite(
-                id,
-                SiteCompanion(habitatDescription: db.Value(value)),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
