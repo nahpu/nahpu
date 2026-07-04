@@ -65,7 +65,8 @@ final labelSpecimenSelectionProvider =
 class LabelSpecimenSelection extends Notifier<Set<String>> {
   @override
   Set<String> build() {
-    return {};
+    final specimens = ref.watch(specimenEntryProvider).value ?? [];
+    return specimens.map((e) => e.uuid).toSet();
   }
 
   void updateSelection(Set<String> selection) {

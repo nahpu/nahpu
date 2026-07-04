@@ -54,6 +54,7 @@ class LabelSettingsPane extends StatelessWidget {
     required this.onSelectDir,
     required this.onExportPressed,
     required this.selectedCount,
+    required this.totalCount,
     required this.onSelectSpecimens,
   });
 
@@ -106,6 +107,7 @@ class LabelSettingsPane extends StatelessWidget {
   final Future<void> Function() onSelectDir;
   final VoidCallback? onExportPressed;
   final int selectedCount;
+  final int totalCount;
   final VoidCallback onSelectSpecimens;
 
   @override
@@ -176,7 +178,7 @@ class LabelSettingsPane extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '$selectedCount selected',
+                            '$selectedCount of $totalCount selected',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],

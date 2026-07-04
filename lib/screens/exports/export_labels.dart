@@ -12,12 +12,10 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/template_page_setup_service.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/template_service.dart';
-import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/exports/components/specimen_selection.dart';
 import 'package:nahpu/services/export/export_label.dart';
-import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/screens/exports/components/label_preview_pane.dart';
 import 'package:nahpu/screens/exports/components/label_settings_pane.dart';
 
@@ -100,6 +98,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
         _markPreviewStale();
       }
     });
+    final totalCount = ref.watch(specimenEntryProvider).value?.length ?? 0;
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     final settingsPane = LabelSettingsPane(
@@ -242,6 +241,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       },
       onExportPressed: !exportCtr.isValid ? null : _exportLabels,
       selectedCount: selectedUuids.length,
+      totalCount: totalCount,
       onSelectSpecimens: () async {
         await Navigator.push(
           context,
@@ -337,7 +337,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       _loading = true;
       _error = null;
     });
-    final db = ref.read(databaseProvider);
     final setupNames = await _pageSetupService.listSetupNames();
     final currentSetupName = await _pageSetupService.getCurrentSetupName();
     final currentSetup = await _pageSetupService.getCurrentSetup();
@@ -351,14 +350,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     final pickedTemplate = selectedTemplateName == null
         ? null
         : await templateService.getTemplate(selectedTemplateName);
-
-    final projectUuid = ref.read(projectUuidProvider);
-    final specimenUuids =
-        await SpecimenQuery(db).getAllSpecimenUuids(projectUuid);
-
-    ref
-        .read(labelSpecimenSelectionProvider.notifier)
-        .updateSelection(specimenUuids.toSet());
 
     if (mounted) {
       setState(() {
