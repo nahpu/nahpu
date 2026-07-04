@@ -37,10 +37,25 @@ void main() {
   });
 
   test('Config export and import roundtrip (JSON)', () async {
-    // 1. Populate some configs
+    // 1. Populate some configs, template presets, and export presets
     const testKey = 'siteTypes';
     final testVal = ['Forest', 'Stream', 'Desert'];
     await rust_config.setUserConfigList(key: testKey, value: testVal);
+
+    const templateName = 'Test Template';
+    const templateVal =
+        '{"name":"Test Template","page1":{"customTexts":[]},"page2":{"customTexts":[]}}';
+    await rust_config.setTemplatePreset(name: templateName, value: templateVal);
+
+    const presetName = 'Test Preset';
+    final presetVal = rust_config.ConfigExportPreset(
+      fields: {'catalogNum': 'Catalog Number'},
+      combinedFields: [
+        rust_config.ConfigCombinedField(fieldId: 'comb', fields: ['f1', 'f2'])
+      ],
+    );
+    await rust_config.setRecordExportPreset(
+        name: presetName, preset: presetVal);
 
     // 2. Export to file
     final exportPath = '${tempDir.path}/configs.json';
@@ -53,6 +68,8 @@ void main() {
 
     // 3. Clear/change the values
     await rust_config.setUserConfigList(key: testKey, value: ['Ocean']);
+    await rust_config.deleteTemplatePreset(name: templateName);
+    await rust_config.deleteRecordExportPreset(name: presetName);
 
     // 4. Import from file
     await rust_config.importConfigFromFile(filePath: exportPath);
@@ -60,13 +77,42 @@ void main() {
     // 5. Verify restored
     final restoredVal = await rust_config.getUserConfigList(key: testKey);
     expect(restoredVal, testVal);
+
+    final restoredTemplates = await rust_config.listTemplatePresets();
+    expect(restoredTemplates, contains(templateName));
+    final restoredTmplVal =
+        await rust_config.getTemplatePreset(name: templateName);
+    expect(restoredTmplVal, templateVal);
+
+    final restoredPresets = await rust_config.getAllRecordExportPresets();
+    expect(restoredPresets.any((e) => e.name == presetName), true);
+    final restoredPreset =
+        restoredPresets.firstWhere((e) => e.name == presetName).preset;
+    expect(restoredPreset.fields['catalogNum'], 'Catalog Number');
+    expect(restoredPreset.combinedFields[0].fieldId, 'comb');
   });
 
   test('Config export and import roundtrip (KDL)', () async {
-    // 1. Populate some configs
+    // 1. Populate some configs, template presets, and export presets
     const testKey = 'siteTypeFmt';
     const testVal = 'anyCase';
     await rust_config.setUserConfigString(key: testKey, value: testVal);
+
+    const templateName = 'Test Template KDL';
+    const templateVal =
+        '{"name":"Test Template KDL","page1":{"customTexts":[]},"page2":{"customTexts":[]}}';
+    await rust_config.setTemplatePreset(name: templateName, value: templateVal);
+
+    const presetName = 'Test Preset KDL';
+    final presetVal = rust_config.ConfigExportPreset(
+      fields: {'catalogNum': 'Catalog Number KDL'},
+      combinedFields: [
+        rust_config.ConfigCombinedField(
+            fieldId: 'combKdl', fields: ['f1', 'f2'])
+      ],
+    );
+    await rust_config.setRecordExportPreset(
+        name: presetName, preset: presetVal);
 
     // 2. Export to file
     final exportPath = '${tempDir.path}/configs.kdl';
@@ -75,6 +121,8 @@ void main() {
 
     // 3. Clear/change the values
     await rust_config.setUserConfigString(key: testKey, value: 'otherCase');
+    await rust_config.deleteTemplatePreset(name: templateName);
+    await rust_config.deleteRecordExportPreset(name: presetName);
 
     // 4. Import from file
     await rust_config.importConfigFromFile(filePath: exportPath);
@@ -82,5 +130,18 @@ void main() {
     // 5. Verify restored
     final restoredVal = await rust_config.getUserConfigString(key: testKey);
     expect(restoredVal, testVal);
+
+    final restoredTemplates = await rust_config.listTemplatePresets();
+    expect(restoredTemplates, contains(templateName));
+    final restoredTmplVal =
+        await rust_config.getTemplatePreset(name: templateName);
+    expect(restoredTmplVal, templateVal);
+
+    final restoredPresets = await rust_config.getAllRecordExportPresets();
+    expect(restoredPresets.any((e) => e.name == presetName), true);
+    final restoredPreset =
+        restoredPresets.firstWhere((e) => e.name == presetName).preset;
+    expect(restoredPreset.fields['catalogNum'], 'Catalog Number KDL');
+    expect(restoredPreset.combinedFields[0].fieldId, 'combKdl');
   });
 }

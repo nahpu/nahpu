@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
@@ -6,6 +5,8 @@ import 'package:path/path.dart' as path;
 
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/template_image_service.dart';
+import 'package:nahpu/services/template_service.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class TemplateEditorService {
   final TemplateImageService _logoService = const TemplateImageService();
@@ -137,7 +138,11 @@ class TemplateEditorService {
     final out =
         savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
     try {
-      await File(out).writeAsString(template.toJsonString());
+      await const TemplateService().saveTemplate(template);
+      await rust_config.exportTemplatePresetToFile(
+        name: template.name,
+        filePath: out,
+      );
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Saved ${path.basename(out)}')),

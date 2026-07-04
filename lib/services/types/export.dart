@@ -50,7 +50,6 @@ const Map<ConfigExportFmt, String> configExportFmt = {
   ConfigExportFmt.kdl: 'KDL (.kdl)',
 };
 
-
 enum ReportFmt { csv, kml, geojson, topojson, shp }
 
 const List<String> reportFmtList = [

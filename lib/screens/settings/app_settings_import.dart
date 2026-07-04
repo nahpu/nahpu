@@ -108,7 +108,6 @@ class AppSettingsImportState extends ConsumerState<AppSettingsImport> {
     }
   }
 
-
   void _showSuccess() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

@@ -2,8 +2,8 @@
 //!
 //! Exposes APIs for configuring user project preferences and document export presets.
 
-use std::collections::HashMap;
 use nahpu_configs::ConfigDb;
+use std::collections::HashMap;
 
 /// Represents a combined export field configuration.
 pub struct ConfigCombinedField {
@@ -111,29 +111,29 @@ pub fn delete_user_config(key: String) -> Result<(), String> {
     db.delete_user_config(&key)
 }
 
-/// Saves a document export preset.
-pub fn set_document_preset(name: String, preset: ConfigExportPreset) -> Result<(), String> {
+/// Saves a record export preset.
+pub fn set_record_export_preset(name: String, preset: ConfigExportPreset) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
-    db.set_document_preset(&name, &preset.into())
+    db.set_record_export_preset(&name, &preset.into())
 }
 
-/// Retrieves a document export preset.
-pub fn get_document_preset(name: String) -> Result<Option<ConfigExportPreset>, String> {
+/// Retrieves a record export preset.
+pub fn get_record_export_preset(name: String) -> Result<Option<ConfigExportPreset>, String> {
     let db = ConfigDb::get_instance()?;
-    let res = db.get_document_preset(&name)?;
+    let res = db.get_record_export_preset(&name)?;
     Ok(res.map(Into::into))
 }
 
-/// Deletes a document export preset.
-pub fn delete_document_preset(name: String) -> Result<(), String> {
+/// Deletes a record export preset.
+pub fn delete_record_export_preset(name: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
-    db.delete_document_preset(&name)
+    db.delete_record_export_preset(&name)
 }
 
-/// Retrieves all document export presets.
-pub fn get_all_document_presets() -> Result<Vec<ConfigPresetEntry>, String> {
+/// Retrieves all record export presets.
+pub fn get_all_record_export_presets() -> Result<Vec<ConfigPresetEntry>, String> {
     let db = ConfigDb::get_instance()?;
-    let res = db.get_all_document_presets()?;
+    let res = db.get_all_record_export_presets()?;
     Ok(res.into_iter().map(Into::into).collect())
 }
 
@@ -170,3 +170,45 @@ pub fn import_config_from_file(file_path: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Saves a template preset JSON string to the config database.
+pub fn set_template_preset(name: String, value: String) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    let val: serde_json::Value = serde_json::from_str(&value).map_err(|e| e.to_string())?;
+    db.set_template_preset(&name, &val)
+}
+
+/// Retrieves a saved template preset as a JSON string.
+pub fn get_template_preset(name: String) -> Result<Option<String>, String> {
+    let db = ConfigDb::get_instance()?;
+    match db.get_template_preset(&name)? {
+        Some(val) => {
+            let s = serde_json::to_string(&val).map_err(|e| e.to_string())?;
+            Ok(Some(s))
+        }
+        None => Ok(None),
+    }
+}
+
+/// Deletes a template preset.
+pub fn delete_template_preset(name: String) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.delete_template_preset(&name)
+}
+
+/// Lists all template preset names stored in the database.
+pub fn list_template_presets() -> Result<Vec<String>, String> {
+    let db = ConfigDb::get_instance()?;
+    let presets = db.get_all_template_presets()?;
+    Ok(presets.into_iter().map(|p| p.name).collect())
+}
+
+/// Exports a single template preset to a file at the specified path.
+pub fn export_template_preset_to_file(name: String, file_path: String) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    let preset = db
+        .get_template_preset(&name)?
+        .ok_or_else(|| format!("Template preset '{}' not found", name))?;
+    let content = serde_json::to_string_pretty(&preset).map_err(|e| e.to_string())?;
+    std::fs::write(&file_path, content).map_err(|e| e.to_string())?;
+    Ok(())
+}

@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 2022806621;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1797028626;
 
 // Section: executor
 
@@ -258,7 +258,7 @@ fn wire__crate__api__gis__ddm_to_dd_impl(
         },
     )
 }
-fn wire__crate__api__config__delete_document_preset_impl(
+fn wire__crate__api__config__delete_record_export_preset_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -266,7 +266,7 @@ fn wire__crate__api__config__delete_document_preset_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "delete_document_preset",
+            debug_name: "delete_record_export_preset",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -284,7 +284,40 @@ fn wire__crate__api__config__delete_document_preset_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::api::config::delete_document_preset(api_name)?;
+                    let output_ok = crate::api::config::delete_record_export_preset(api_name)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__delete_template_preset_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "delete_template_preset",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_name = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::delete_template_preset(api_name)?;
                     Ok(output_ok)
                 })())
             }
@@ -439,6 +472,43 @@ fn wire__crate__api__export__export_coordinates_impl(
         },
     )
 }
+fn wire__crate__api__config__export_template_preset_to_file_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "export_template_preset_to_file",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_name = <String>::sse_decode(&mut deserializer);
+            let api_file_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::export_template_preset_to_file(
+                        api_name,
+                        api_file_path,
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__export__generate_document_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -478,7 +548,7 @@ fn wire__crate__api__export__generate_document_impl(
         },
     )
 }
-fn wire__crate__api__config__get_all_document_presets_impl(
+fn wire__crate__api__config__get_all_record_export_presets_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -486,7 +556,7 @@ fn wire__crate__api__config__get_all_document_presets_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "get_all_document_presets",
+            debug_name: "get_all_record_export_presets",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -503,14 +573,14 @@ fn wire__crate__api__config__get_all_document_presets_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::api::config::get_all_document_presets()?;
+                    let output_ok = crate::api::config::get_all_record_export_presets()?;
                     Ok(output_ok)
                 })())
             }
         },
     )
 }
-fn wire__crate__api__config__get_document_preset_impl(
+fn wire__crate__api__config__get_record_export_preset_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -518,7 +588,7 @@ fn wire__crate__api__config__get_document_preset_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "get_document_preset",
+            debug_name: "get_record_export_preset",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -536,7 +606,40 @@ fn wire__crate__api__config__get_document_preset_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::api::config::get_document_preset(api_name)?;
+                    let output_ok = crate::api::config::get_record_export_preset(api_name)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__get_template_preset_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_template_preset",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_name = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::get_template_preset(api_name)?;
                     Ok(output_ok)
                 })())
             }
@@ -703,6 +806,38 @@ fn wire__crate__api__config__init_config_db_impl(
             move |context| {
                 transform_result_sse::<_, String>((move || {
                     let output_ok = crate::api::config::init_config_db(api_path)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__list_template_presets_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "list_template_presets",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::list_template_presets()?;
                     Ok(output_ok)
                 })())
             }
@@ -960,7 +1095,7 @@ fn wire__crate__api__export__record_writer_write_impl(
         },
     )
 }
-fn wire__crate__api__config__set_document_preset_impl(
+fn wire__crate__api__config__set_record_export_preset_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -968,7 +1103,7 @@ fn wire__crate__api__config__set_document_preset_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "set_document_preset",
+            debug_name: "set_record_export_preset",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -988,7 +1123,42 @@ fn wire__crate__api__config__set_document_preset_impl(
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::api::config::set_document_preset(api_name, api_preset)?;
+                    let output_ok =
+                        crate::api::config::set_record_export_preset(api_name, api_preset)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__set_template_preset_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "set_template_preset",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_name = <String>::sse_decode(&mut deserializer);
+            let api_value = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::set_template_preset(api_name, api_value)?;
                     Ok(output_ok)
                 })())
             }
@@ -1619,75 +1789,102 @@ fn pde_ffi_dispatcher_primary_impl(
         4 => wire__crate__api__gis__dd_to_dms_impl(port, ptr, rust_vec_len, data_len),
         5 => wire__crate__api__gis__dd_to_utm_impl(port, ptr, rust_vec_len, data_len),
         6 => wire__crate__api__gis__ddm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        7 => {
-            wire__crate__api__config__delete_document_preset_impl(port, ptr, rust_vec_len, data_len)
+        7 => wire__crate__api__config__delete_record_export_preset_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        8 => {
+            wire__crate__api__config__delete_template_preset_impl(port, ptr, rust_vec_len, data_len)
         }
-        8 => wire__crate__api__config__delete_user_config_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__gis__dms_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        10 => {
+        9 => wire__crate__api__config__delete_user_config_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__gis__dms_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        11 => {
             wire__crate__api__config__export_config_to_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        11 => wire__crate__api__export__export_coordinates_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__config__get_all_document_presets_impl(
+        12 => wire__crate__api__export__export_coordinates_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__config__export_template_preset_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        14 => wire__crate__api__config__get_document_preset_impl(port, ptr, rust_vec_len, data_len),
-        15 => {
+        14 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__config__get_all_record_export_presets_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        16 => wire__crate__api__config__get_record_export_preset_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        17 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        18 => {
             wire__crate__api__config__get_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        16 => {
+        19 => {
             wire__crate__api__config__get_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        17 => wire__crate__api__config__import_config_from_file_impl(
+        20 => wire__crate__api__config__import_config_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        20 => {
+        21 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        23 => {
+            wire__crate__api__config__list_template_presets_impl(port, ptr, rust_vec_len, data_len)
+        }
+        24 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        21 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        25 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        26 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        27 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        24 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__config__set_document_preset_impl(port, ptr, rust_vec_len, data_len),
-        28 => {
+        28 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__config__set_record_export_preset_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        32 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        33 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        29 => {
+        34 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        30 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        31 => {
+        35 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        36 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

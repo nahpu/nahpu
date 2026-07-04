@@ -358,7 +358,7 @@ final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
 class ExportPresetNotifier
     extends AsyncNotifier<Map<String, ExportPresetModel>> {
   Future<Map<String, ExportPresetModel>> _fetchSettings() async {
-    final presets = await rust_config.getAllDocumentPresets();
+    final presets = await rust_config.getAllRecordExportPresets();
     final Map<String, ExportPresetModel> mapped = {};
     for (var entry in presets) {
       mapped[entry.name] = _mapConfigToModel(entry.preset);
@@ -374,7 +374,7 @@ class ExportPresetNotifier
   Future<void> savePreset(String name, ExportPresetModel preset) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await rust_config.setDocumentPreset(
+      await rust_config.setRecordExportPreset(
         name: name,
         preset: _mapModelToConfig(preset),
       );
@@ -385,7 +385,7 @@ class ExportPresetNotifier
   Future<void> deletePreset(String name) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await rust_config.deleteDocumentPreset(name: name);
+      await rust_config.deleteRecordExportPreset(name: name);
       return await _fetchSettings();
     });
   }

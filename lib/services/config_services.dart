@@ -90,7 +90,7 @@ class ConfigDbService {
               fields: fields,
               combinedFields: combinedFields,
             );
-            await rust_config.setDocumentPreset(name: name, preset: preset);
+            await rust_config.setRecordExportPreset(name: name, preset: preset);
           }
         } catch (_) {
           // Ignore json decoding/migration errors for invalid legacy formats

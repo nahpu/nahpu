@@ -36,23 +36,23 @@ Future<String?> getUserConfigString({required String key}) =>
 Future<void> deleteUserConfig({required String key}) =>
     RustLib.instance.api.crateApiConfigDeleteUserConfig(key: key);
 
-/// Saves a document export preset.
-Future<void> setDocumentPreset(
+/// Saves a record export preset.
+Future<void> setRecordExportPreset(
         {required String name, required ConfigExportPreset preset}) =>
     RustLib.instance.api
-        .crateApiConfigSetDocumentPreset(name: name, preset: preset);
+        .crateApiConfigSetRecordExportPreset(name: name, preset: preset);
 
-/// Retrieves a document export preset.
-Future<ConfigExportPreset?> getDocumentPreset({required String name}) =>
-    RustLib.instance.api.crateApiConfigGetDocumentPreset(name: name);
+/// Retrieves a record export preset.
+Future<ConfigExportPreset?> getRecordExportPreset({required String name}) =>
+    RustLib.instance.api.crateApiConfigGetRecordExportPreset(name: name);
 
-/// Deletes a document export preset.
-Future<void> deleteDocumentPreset({required String name}) =>
-    RustLib.instance.api.crateApiConfigDeleteDocumentPreset(name: name);
+/// Deletes a record export preset.
+Future<void> deleteRecordExportPreset({required String name}) =>
+    RustLib.instance.api.crateApiConfigDeleteRecordExportPreset(name: name);
 
-/// Retrieves all document export presets.
-Future<List<ConfigPresetEntry>> getAllDocumentPresets() =>
-    RustLib.instance.api.crateApiConfigGetAllDocumentPresets();
+/// Retrieves all record export presets.
+Future<List<ConfigPresetEntry>> getAllRecordExportPresets() =>
+    RustLib.instance.api.crateApiConfigGetAllRecordExportPresets();
 
 /// Exports all user configs and document presets to a file in either JSON or KDL format.
 Future<void> exportConfigToFile(
@@ -63,6 +63,29 @@ Future<void> exportConfigToFile(
 /// Imports and replaces all user configs and document presets from a file.
 Future<void> importConfigFromFile({required String filePath}) =>
     RustLib.instance.api.crateApiConfigImportConfigFromFile(filePath: filePath);
+
+/// Saves a template preset JSON string to the config database.
+Future<void> setTemplatePreset({required String name, required String value}) =>
+    RustLib.instance.api
+        .crateApiConfigSetTemplatePreset(name: name, value: value);
+
+/// Retrieves a saved template preset as a JSON string.
+Future<String?> getTemplatePreset({required String name}) =>
+    RustLib.instance.api.crateApiConfigGetTemplatePreset(name: name);
+
+/// Deletes a template preset.
+Future<void> deleteTemplatePreset({required String name}) =>
+    RustLib.instance.api.crateApiConfigDeleteTemplatePreset(name: name);
+
+/// Lists all template preset names stored in the database.
+Future<List<String>> listTemplatePresets() =>
+    RustLib.instance.api.crateApiConfigListTemplatePresets();
+
+/// Exports a single template preset to a file at the specified path.
+Future<void> exportTemplatePresetToFile(
+        {required String name, required String filePath}) =>
+    RustLib.instance.api.crateApiConfigExportTemplatePresetToFile(
+        name: name, filePath: filePath);
 
 /// Represents a combined export field configuration.
 class ConfigCombinedField {
