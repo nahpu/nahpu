@@ -109,6 +109,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             );
           },
         ),
+        const Divider(color: Colors.grey),
         ListTile(
           leading: const Icon(Icons.settings_rounded),
           title: const Text('Settings'),
@@ -117,7 +118,6 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
                 MaterialPageRoute(builder: (context) => const AppSettings()));
           },
         ),
-        const Divider(color: Colors.grey),
         ListTile(
           leading: const Icon(Icons.share_rounded),
           title: const Text('Export settings'),
@@ -140,7 +140,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             );
           },
         ),
-
+        const Divider(color: Colors.grey),
         ListTile(
           leading: const Icon(Icons.exit_to_app_rounded),
           title: const Text('Close project'),
