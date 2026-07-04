@@ -53,6 +53,8 @@ class LabelSettingsPane extends StatelessWidget {
     required this.onFileNameChanged,
     required this.onSelectDir,
     required this.onExportPressed,
+    required this.selectedCount,
+    required this.onSelectSpecimens,
   });
 
   final List<String> templateNames;
@@ -103,6 +105,8 @@ class LabelSettingsPane extends StatelessWidget {
   final ValueChanged<String?> onFileNameChanged;
   final Future<void> Function() onSelectDir;
   final VoidCallback? onExportPressed;
+  final int selectedCount;
+  final VoidCallback onSelectSpecimens;
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +156,41 @@ class LabelSettingsPane extends StatelessWidget {
                 onLabelPadLeftChanged: onLabelPadLeftChanged,
                 onLabelPadRightChanged: onLabelPadRightChanged,
                 onLabelPadBottomChanged: onLabelPadBottomChanged,
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Specimens',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$selectedCount selected',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: onSelectSpecimens,
+                      icon: const Icon(
+                        Icons.table_rows_outlined,
+                      ),
+                      label: const Text('Select'),
+                    ),
+                  ],
+                ),
               ),
               FileNameField(
                 controller: exportCtr,

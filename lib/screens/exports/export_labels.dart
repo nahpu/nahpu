@@ -12,13 +12,11 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/template_page_setup_service.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/template_service.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/exports/components/specimen_selection.dart';
-import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/export/export_label.dart';
-import 'package:nahpu/screens/exports/components/column_picker.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/screens/exports/components/label_preview_pane.dart';
 import 'package:nahpu/screens/exports/components/label_settings_pane.dart';
@@ -32,8 +30,6 @@ class ExportLabelsView extends ConsumerStatefulWidget {
 
 class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     with TickerProviderStateMixin {
-  final Set<String> _selected = {};
-  List<String> _visibleColumnIds = [];
   final LabelSettingsServices _settings = LabelSettingsServices();
   final LabelPageSetupService _pageSetupService = const LabelPageSetupService();
   bool _loading = true;
@@ -61,7 +57,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   double _labelPadRightMm = 1;
   double _labelPadBottomMm = 1;
 
-  late TabController _tabController;
   late TabController _mobileTabController;
 
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
@@ -72,14 +67,12 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _mobileTabController = TabController(length: 3, vsync: this);
+    _mobileTabController = TabController(length: 2, vsync: this);
     _load();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _mobileTabController.dispose();
     super.dispose();
   }
@@ -101,6 +94,12 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
   @override
   Widget build(BuildContext context) {
     ref.watch(projectUuidProvider);
+    final selectedUuids = ref.watch(labelSpecimenSelectionProvider);
+    ref.listen<Set<String>>(labelSpecimenSelectionProvider, (previous, next) {
+      if (previous != null && next != previous) {
+        _markPreviewStale();
+      }
+    });
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     final settingsPane = LabelSettingsPane(
@@ -242,6 +241,15 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
         });
       },
       onExportPressed: !exportCtr.isValid ? null : _exportLabels,
+      selectedCount: selectedUuids.length,
+      onSelectSpecimens: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SpecimenSelectionScreen(),
+          ),
+        );
+      },
     );
 
     final previewPane = LabelPreviewPane(
@@ -249,7 +257,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       isPreviewStale: _previewStale,
       previewVersion: _previewVersion,
       template: _template,
-      selectedUuidList: _selected.toList(),
+      selectedUuidList: selectedUuids.toList(),
       rowsPerPage: _rowsPerPage,
       colsPerPage: _colsPerPage,
       pagePadTopMm: _pagePadTopMm,
@@ -296,43 +304,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
                           Expanded(child: settingsPane),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: Column(
-                              children: [
-                                TabBar(
-                                  controller: _tabController,
-                                  tabs: const [
-                                    Tab(
-                                      icon: Icon(Icons.table_rows_outlined),
-                                      text: 'Specimens',
-                                    ),
-                                    Tab(
-                                      icon: Icon(Icons.preview_outlined),
-                                      text: 'Preview',
-                                    ),
-                                  ],
-                                ),
-                                Expanded(
-                                  child: TabBarView(
-                                    controller: _tabController,
-                                    children: [
-                                      SpecimenSelectionView(
-                                        selectedUuidList: _selected,
-                                        visibleColumnIds: _visibleColumnIds,
-                                        onSelectionChanged: (selected) {
-                                          setState(() {
-                                            _selected.clear();
-                                            _selected.addAll(selected);
-                                            _markPreviewStale();
-                                          });
-                                        },
-                                        onColumnsChanged: _pickColumns,
-                                      ),
-                                      previewPane,
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                            child: previewPane,
                           ),
                         ],
                       ),
@@ -343,7 +315,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
                           controller: _mobileTabController,
                           tabs: const [
                             Tab(icon: Icon(Icons.settings_outlined)),
-                            Tab(icon: Icon(Icons.table_rows_outlined)),
                             Tab(icon: Icon(Icons.preview_outlined)),
                           ],
                         ),
@@ -352,18 +323,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
                             controller: _mobileTabController,
                             children: [
                               settingsPane,
-                              SpecimenSelectionView(
-                                selectedUuidList: _selected,
-                                visibleColumnIds: _visibleColumnIds,
-                                onSelectionChanged: (selected) {
-                                  setState(() {
-                                    _selected.clear();
-                                    _selected.addAll(selected);
-                                    _markPreviewStale();
-                                  });
-                                },
-                                onColumnsChanged: _pickColumns,
-                              ),
                               previewPane,
                             ],
                           ),
@@ -378,18 +337,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       _loading = true;
       _error = null;
     });
-    final storedCols = await _settings.getPrintSpecimenTableColumnIds();
     final db = ref.read(databaseProvider);
-    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
-    if (visible.isEmpty) {
-      visible = normalizePrintSpecimenTableColumnIds(
-        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-        db,
-      );
-    }
-    if (mounted) {
-      setState(() => _visibleColumnIds = visible);
-    }
     final setupNames = await _pageSetupService.listSetupNames();
     final currentSetupName = await _pageSetupService.getCurrentSetupName();
     final currentSetup = await _pageSetupService.getCurrentSetup();
@@ -407,6 +355,10 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
     final projectUuid = ref.read(projectUuidProvider);
     final specimenUuids =
         await SpecimenQuery(db).getAllSpecimenUuids(projectUuid);
+
+    ref
+        .read(labelSpecimenSelectionProvider.notifier)
+        .updateSelection(specimenUuids.toSet());
 
     if (mounted) {
       setState(() {
@@ -431,8 +383,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
         _labelPadLeftMm = currentSetup.labelPadLeftMm;
         _labelPadRightMm = currentSetup.labelPadRightMm;
         _labelPadBottomMm = currentSetup.labelPadBottomMm;
-        _selected.clear();
-        _selected.addAll(specimenUuids);
       });
     }
     try {
@@ -445,66 +395,6 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
       setState(() {
         _error = e.toString();
         _loading = false;
-      });
-    }
-  }
-
-  Future<void> _pickColumns() async {
-    final db = ref.read(databaseProvider);
-    final order = List<String>.from(_visibleColumnIds);
-    List<String>? result;
-
-    if (systemPlatform == PlatformType.mobile) {
-      result = await showModalBottomSheet<List<String>>(
-        context: context,
-        isScrollControlled: true,
-        builder: (ctx) {
-          return FractionallySizedBox(
-            heightFactor: 0.9,
-            child: Scaffold(
-              appBar: AppBar(
-                title: const Text('Table columns'),
-                automaticallyImplyLeading: false,
-              ),
-              body: SpecimenTableColumnSelector(
-                selectedColumns: _visibleColumnIds,
-              ),
-            ),
-          );
-        },
-      );
-    } else {
-      result = await showDialog<List<String>>(
-        context: context,
-        builder: (ctx) {
-          return AlertDialog(
-            title: const Text('Table columns'),
-            content: SizedBox(
-              width: 420,
-              height: 420,
-              child: SpecimenTableColumnSelector(
-                selectedColumns: _visibleColumnIds,
-              ),
-            ),
-          );
-        },
-      );
-    }
-
-    if (result != null && mounted) {
-      var merged =
-          const ExportLabelService().mergeColumnOrder(order, result.toSet());
-      merged = normalizePrintSpecimenTableColumnIds(merged, db);
-      if (merged.isEmpty) {
-        merged = normalizePrintSpecimenTableColumnIds(
-          List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-          db,
-        );
-      }
-      await _settings.setPrintSpecimenTableColumnIds(merged);
-      setState(() {
-        _visibleColumnIds = merged;
-        _markPreviewStale();
       });
     }
   }
@@ -735,7 +625,7 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
           : await templateService.getTemplate(currentTemplateName);
 
       await ExportLabelService(ref: ref).exportLabels(
-        selectedSpecimens: _selected,
+        selectedSpecimens: ref.read(labelSpecimenSelectionProvider),
         selectedDir: _selectedDir!,
         fileStem: exportCtr.fileNameCtr.text,
         template: pickedTemplate,

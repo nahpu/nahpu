@@ -56,3 +56,19 @@ final specimenMediaProvider = FutureProvider.family
   }
   return mediaDataList;
 });
+
+final labelSpecimenSelectionProvider =
+    NotifierProvider.autoDispose<LabelSpecimenSelection, Set<String>>(
+  LabelSpecimenSelection.new,
+);
+
+class LabelSpecimenSelection extends Notifier<Set<String>> {
+  @override
+  Set<String> build() {
+    return {};
+  }
+
+  void updateSelection(Set<String> selection) {
+    state = selection;
+  }
+}

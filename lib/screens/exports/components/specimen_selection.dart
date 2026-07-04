@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/exports/components/column_picker.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/export/export_label.dart';
 import 'package:nahpu/services/export/label_writer.dart'
     show fieldValuesForSpecimen;
+import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/template_settings_services.dart';
 
 class SpecimenSelectionView extends ConsumerStatefulWidget {
   const SpecimenSelectionView({
@@ -75,208 +80,6 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
     _hScrollController.dispose();
     _vScrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _fetchPage() async {
-    setState(() => _isLoading = true);
-    final db = ref.read(databaseProvider);
-    final projectUuid = ref.read(projectUuidProvider);
-
-    try {
-      final totalResult = await db
-          .countSpecimens(
-            projectUuid,
-            _searchQuery.isEmpty ? '' : '%$_searchQuery%',
-            _hasCollectionDate,
-            _collectionStartDate,
-            _collectionEndDate,
-            _hasPrepDate,
-            _prepStartDate,
-            _prepEndDate,
-          )
-          .getSingleOrNull();
-
-      final data = await db
-          .searchSpecimens(
-            projectUuid,
-            _searchQuery.isEmpty ? '' : '%$_searchQuery%',
-            _hasCollectionDate,
-            _collectionStartDate,
-            _collectionEndDate,
-            _hasPrepDate,
-            _prepStartDate,
-            _prepEndDate,
-            _pageSize,
-            _currentPage * _pageSize,
-          )
-          .get();
-
-      final rowVals = <String, Map<String, String>>{};
-      for (final s in data) {
-        rowVals[s.uuid] = await fieldValuesForSpecimen(db, s, ref);
-      }
-
-      List<String> allUuids = [];
-      if (totalResult != null && totalResult > 0) {
-        final allMatching = await db
-            .searchSpecimens(
-              projectUuid,
-              _searchQuery.isEmpty ? '' : '%$_searchQuery%',
-              _hasCollectionDate,
-              _collectionStartDate,
-              _collectionEndDate,
-              _hasPrepDate,
-              _prepStartDate,
-              _prepEndDate,
-              totalResult,
-              0,
-            )
-            .get();
-        allUuids = allMatching.map((e) => e.uuid).toList();
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _totalCount = totalResult ?? 0;
-        _currentPageData = data;
-        _rowValues = rowVals;
-        _allMatchingUuids = allUuids;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-    }
-  }
-
-  String _cellText(Map<String, String> row, String columnId) {
-    if (row.containsKey(columnId)) return row[columnId]!;
-    final lower = columnId.toLowerCase();
-    for (final e in row.entries) {
-      if (e.key.toLowerCase() == lower) return e.value;
-    }
-    return '';
-  }
-
-  void _onHeaderCheckbox(bool? v) {
-    final newSelected = Set<String>.from(widget.selectedUuidList);
-    if (v == true) {
-      newSelected.addAll(_currentPageData.map((e) => e.uuid));
-    } else {
-      newSelected.removeAll(_currentPageData.map((e) => e.uuid));
-    }
-    widget.onSelectionChanged(newSelected);
-  }
-
-  bool? get _headerCheckboxValue {
-    if (_currentPageData.isEmpty) return false;
-    final n = _currentPageData
-        .where((s) => widget.selectedUuidList.contains(s.uuid))
-        .length;
-    if (n == 0) return false;
-    if (n == _currentPageData.length) return true;
-    return null;
-  }
-
-  Future<void> _pickDateRange(bool isCollection) async {
-    DateTimeRange? initialRange;
-    if (isCollection) {
-      if (_hasCollectionDate &&
-          _collectionStartDate.isNotEmpty &&
-          _collectionEndDate.isNotEmpty) {
-        try {
-          initialRange = DateTimeRange(
-            start: DateTime.parse(_collectionStartDate),
-            end: DateTime.parse(_collectionEndDate),
-          );
-        } catch (_) {}
-      }
-    } else {
-      if (_hasPrepDate &&
-          _prepStartDate.isNotEmpty &&
-          _prepEndDate.isNotEmpty) {
-        try {
-          initialRange = DateTimeRange(
-            start: DateTime.parse(_prepStartDate),
-            end: DateTime.parse(_prepEndDate),
-          );
-        } catch (_) {}
-      }
-    }
-
-    if (initialRange == null) {
-      String? dateStr;
-      if (widget.selectedUuidList.isNotEmpty) {
-        for (final uuid in widget.selectedUuidList) {
-          try {
-            final specimen = _currentPageData.firstWhere((s) => s.uuid == uuid);
-            dateStr = isCollection
-                ? (specimen.collectionDate ?? specimen.captureDate)
-                : specimen.prepDate;
-            if (dateStr != null && dateStr.isNotEmpty) {
-              break;
-            }
-          } catch (_) {}
-        }
-      }
-
-      if (dateStr == null || dateStr.isEmpty) {
-        for (final specimen in _currentPageData) {
-          final sDate = isCollection
-              ? (specimen.collectionDate ?? specimen.captureDate)
-              : specimen.prepDate;
-          if (sDate != null && sDate.isNotEmpty) {
-            dateStr = sDate;
-            break;
-          }
-        }
-      }
-
-      if (dateStr != null && dateStr.isNotEmpty) {
-        try {
-          final date = DateTime.parse(dateStr);
-          initialRange = DateTimeRange(start: date, end: date);
-        } catch (_) {}
-      }
-    }
-
-    final range = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      initialDateRange: initialRange,
-    );
-    if (range != null) {
-      setState(() {
-        if (isCollection) {
-          _hasCollectionDate = true;
-          _collectionStartDate = range.start.toIso8601String().split('T').first;
-          _collectionEndDate = range.end.toIso8601String().split('T').first;
-        } else {
-          _hasPrepDate = true;
-          _prepStartDate = range.start.toIso8601String().split('T').first;
-          _prepEndDate = range.end.toIso8601String().split('T').first;
-        }
-        _currentPage = 0;
-      });
-      _fetchPage();
-    }
-  }
-
-  void _clearDateFilter(bool isCollection) {
-    setState(() {
-      if (isCollection) {
-        _hasCollectionDate = false;
-        _collectionStartDate = '';
-        _collectionEndDate = '';
-      } else {
-        _hasPrepDate = false;
-        _prepStartDate = '';
-        _prepEndDate = '';
-      }
-      _currentPage = 0;
-    });
-    _fetchPage();
   }
 
   @override
@@ -524,5 +327,327 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
           ),
       ],
     );
+  }
+
+  Future<void> _fetchPage() async {
+    setState(() => _isLoading = true);
+    final db = ref.read(databaseProvider);
+    final projectUuid = ref.read(projectUuidProvider);
+
+    try {
+      final totalResult = await db
+          .countSpecimens(
+            projectUuid,
+            _searchQuery.isEmpty ? '' : '%$_searchQuery%',
+            _hasCollectionDate,
+            _collectionStartDate,
+            _collectionEndDate,
+            _hasPrepDate,
+            _prepStartDate,
+            _prepEndDate,
+          )
+          .getSingleOrNull();
+
+      final data = await db
+          .searchSpecimens(
+            projectUuid,
+            _searchQuery.isEmpty ? '' : '%$_searchQuery%',
+            _hasCollectionDate,
+            _collectionStartDate,
+            _collectionEndDate,
+            _hasPrepDate,
+            _prepStartDate,
+            _prepEndDate,
+            _pageSize,
+            _currentPage * _pageSize,
+          )
+          .get();
+
+      final rowVals = <String, Map<String, String>>{};
+      for (final s in data) {
+        rowVals[s.uuid] = await fieldValuesForSpecimen(db, s, ref);
+      }
+
+      List<String> allUuids = [];
+      if (totalResult != null && totalResult > 0) {
+        final allMatching = await db
+            .searchSpecimens(
+              projectUuid,
+              _searchQuery.isEmpty ? '' : '%$_searchQuery%',
+              _hasCollectionDate,
+              _collectionStartDate,
+              _collectionEndDate,
+              _hasPrepDate,
+              _prepStartDate,
+              _prepEndDate,
+              totalResult,
+              0,
+            )
+            .get();
+        allUuids = allMatching.map((e) => e.uuid).toList();
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _totalCount = totalResult ?? 0;
+        _currentPageData = data;
+        _rowValues = rowVals;
+        _allMatchingUuids = allUuids;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
+  }
+
+  String _cellText(Map<String, String> row, String columnId) {
+    if (row.containsKey(columnId)) return row[columnId]!;
+    final lower = columnId.toLowerCase();
+    for (final e in row.entries) {
+      if (e.key.toLowerCase() == lower) return e.value;
+    }
+    return '';
+  }
+
+  void _onHeaderCheckbox(bool? v) {
+    final newSelected = Set<String>.from(widget.selectedUuidList);
+    if (v == true) {
+      newSelected.addAll(_currentPageData.map((e) => e.uuid));
+    } else {
+      newSelected.removeAll(_currentPageData.map((e) => e.uuid));
+    }
+    widget.onSelectionChanged(newSelected);
+  }
+
+  bool? get _headerCheckboxValue {
+    if (_currentPageData.isEmpty) return false;
+    final n = _currentPageData
+        .where((s) => widget.selectedUuidList.contains(s.uuid))
+        .length;
+    if (n == 0) return false;
+    if (n == _currentPageData.length) return true;
+    return null;
+  }
+
+  Future<void> _pickDateRange(bool isCollection) async {
+    DateTimeRange? initialRange;
+    if (isCollection) {
+      if (_hasCollectionDate &&
+          _collectionStartDate.isNotEmpty &&
+          _collectionEndDate.isNotEmpty) {
+        try {
+          initialRange = DateTimeRange(
+            start: DateTime.parse(_collectionStartDate),
+            end: DateTime.parse(_collectionEndDate),
+          );
+        } catch (_) {}
+      }
+    } else {
+      if (_hasPrepDate &&
+          _prepStartDate.isNotEmpty &&
+          _prepEndDate.isNotEmpty) {
+        try {
+          initialRange = DateTimeRange(
+            start: DateTime.parse(_prepStartDate),
+            end: DateTime.parse(_prepEndDate),
+          );
+        } catch (_) {}
+      }
+    }
+
+    if (initialRange == null) {
+      String? dateStr;
+      if (widget.selectedUuidList.isNotEmpty) {
+        for (final uuid in widget.selectedUuidList) {
+          try {
+            final specimen = _currentPageData.firstWhere((s) => s.uuid == uuid);
+            dateStr = isCollection
+                ? (specimen.collectionDate ?? specimen.captureDate)
+                : specimen.prepDate;
+            if (dateStr != null && dateStr.isNotEmpty) {
+              break;
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (dateStr == null || dateStr.isEmpty) {
+        for (final specimen in _currentPageData) {
+          final sDate = isCollection
+              ? (specimen.collectionDate ?? specimen.captureDate)
+              : specimen.prepDate;
+          if (sDate != null && sDate.isNotEmpty) {
+            dateStr = sDate;
+            break;
+          }
+        }
+      }
+
+      if (dateStr != null && dateStr.isNotEmpty) {
+        try {
+          final date = DateTime.parse(dateStr);
+          initialRange = DateTimeRange(start: date, end: date);
+        } catch (_) {}
+      }
+    }
+
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      initialDateRange: initialRange,
+    );
+    if (range != null) {
+      setState(() {
+        if (isCollection) {
+          _hasCollectionDate = true;
+          _collectionStartDate = range.start.toIso8601String().split('T').first;
+          _collectionEndDate = range.end.toIso8601String().split('T').first;
+        } else {
+          _hasPrepDate = true;
+          _prepStartDate = range.start.toIso8601String().split('T').first;
+          _prepEndDate = range.end.toIso8601String().split('T').first;
+        }
+        _currentPage = 0;
+      });
+      _fetchPage();
+    }
+  }
+
+  void _clearDateFilter(bool isCollection) {
+    setState(() {
+      if (isCollection) {
+        _hasCollectionDate = false;
+        _collectionStartDate = '';
+        _collectionEndDate = '';
+      } else {
+        _hasPrepDate = false;
+        _prepStartDate = '';
+        _prepEndDate = '';
+      }
+      _currentPage = 0;
+    });
+    _fetchPage();
+  }
+}
+
+class SpecimenSelectionScreen extends ConsumerStatefulWidget {
+  const SpecimenSelectionScreen({super.key});
+
+  @override
+  ConsumerState<SpecimenSelectionScreen> createState() =>
+      _SpecimenSelectionScreenState();
+}
+
+class _SpecimenSelectionScreenState
+    extends ConsumerState<SpecimenSelectionScreen> {
+  List<String> _visibleColumnIds = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadColumns();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedUuidList = ref.watch(labelSpecimenSelectionProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Select specimens'),
+      ),
+      body: SafeArea(
+        child: SpecimenSelectionView(
+          selectedUuidList: selectedUuidList,
+          visibleColumnIds: _visibleColumnIds,
+          onSelectionChanged: (selected) {
+            ref
+                .read(labelSpecimenSelectionProvider.notifier)
+                .updateSelection(selected);
+          },
+          onColumnsChanged: _pickColumns,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _loadColumns() async {
+    final db = ref.read(databaseProvider);
+    final settings = LabelSettingsServices();
+    final storedCols = await settings.getPrintSpecimenTableColumnIds();
+    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
+    if (visible.isEmpty) {
+      visible = normalizePrintSpecimenTableColumnIds(
+        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+        db,
+      );
+    }
+    if (mounted) {
+      setState(() {
+        _visibleColumnIds = visible;
+      });
+    }
+  }
+
+  Future<void> _pickColumns() async {
+    final db = ref.read(databaseProvider);
+    final settings = LabelSettingsServices();
+    final order = List<String>.from(_visibleColumnIds);
+    List<String>? result;
+
+    if (systemPlatform == PlatformType.mobile) {
+      result = await showModalBottomSheet<List<String>>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) {
+          return FractionallySizedBox(
+            heightFactor: 0.9,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('Table columns'),
+                automaticallyImplyLeading: false,
+              ),
+              body: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      result = await showDialog<List<String>>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('Table columns'),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    if (result != null && mounted) {
+      var merged =
+          const ExportLabelService().mergeColumnOrder(order, result.toSet());
+      merged = normalizePrintSpecimenTableColumnIds(merged, db);
+      if (merged.isEmpty) {
+        merged = normalizePrintSpecimenTableColumnIds(
+          List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+          db,
+        );
+      }
+      await settings.setPrintSpecimenTableColumnIds(merged);
+      setState(() {
+        _visibleColumnIds = merged;
+      });
+    }
   }
 }
