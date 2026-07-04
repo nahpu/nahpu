@@ -537,7 +537,8 @@ class UserDefinedSettingField extends ConsumerWidget {
                   text: e,
                   primaryColor: Theme.of(context).colorScheme.tertiary,
                   onDeleted: () {
-                    UtilityServices(ref: ref).removeOption(typePrefKey, e);
+                    UtilityServices(ref: ref)
+                        .removeOption(context, typePrefKey, e);
                   },
                 );
               }).toList();
