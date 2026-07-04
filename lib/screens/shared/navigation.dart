@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/navigation_services.dart';
 import 'package:nahpu/services/platform_services.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/shared/features.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';

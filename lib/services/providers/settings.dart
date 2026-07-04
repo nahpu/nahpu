@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -105,6 +106,45 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultTreatment;
     default:
       return [];
+  }
+}
+
+const String catalogFmtPrefKey = 'catalogFmt';
+
+final catalogFmtNotifierProvider =
+    AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(
+        CatalogFmtNotifier.new);
+
+class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
+  Future<CatalogFmt> _fetchSetting() async {
+    final prefs = ref.watch(settingProvider);
+    final savedFmt = prefs.getString(catalogFmtPrefKey);
+
+    // Set to default general mammals if no setting is found
+    final CatalogFmt currentFmt = matchTaxonGroupToCatFmt(savedFmt);
+    if (savedFmt == null) {
+      await prefs.setString(
+          catalogFmtPrefKey, matchCatFmtToTaxonGroup(currentFmt));
+    }
+
+    return currentFmt;
+  }
+
+  @override
+  FutureOr<CatalogFmt> build() async {
+    return await _fetchSetting();
+  }
+
+  Future<void> set(CatalogFmt fmt) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final prefs = ref.watch(settingProvider);
+      final value = prefs.getString(catalogFmtPrefKey);
+      final setFmt = matchTaxonGroupToCatFmt(value);
+      if (setFmt == fmt) return fmt;
+      await prefs.setString(catalogFmtPrefKey, matchCatFmtToTaxonGroup(fmt));
+      return fmt;
+    });
   }
 }
 
