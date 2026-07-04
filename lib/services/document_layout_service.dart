@@ -164,3 +164,66 @@ extension DocumentLayoutPresetExtension on rust_config.DocumentLayoutPreset {
   }
 }
 
+extension DocumentLayoutBlockJson on rust_config.DocumentLayoutBlock {
+  Map<String, dynamic> toJson() => {
+        'templateName': templateName,
+        'templateCount': templateCount,
+        'rows': rows,
+        'cols': cols,
+        'templatePadTopMm': templatePadTopMm,
+        'templatePadLeftMm': templatePadLeftMm,
+        'templatePadRightMm': templatePadRightMm,
+        'templatePadBottomMm': templatePadBottomMm,
+        'pageBreakAfter': pageBreakAfter,
+      };
+
+  static rust_config.DocumentLayoutBlock fromJson(Map<String, dynamic> json) {
+    return rust_config.DocumentLayoutBlock(
+      templateName: json['templateName'] as String,
+      templateCount: json['templateCount'] as int,
+      rows: json['rows'] as int,
+      cols: json['cols'] as int,
+      templatePadTopMm: (json['templatePadTopMm'] as num).toDouble(),
+      templatePadLeftMm: (json['templatePadLeftMm'] as num).toDouble(),
+      templatePadRightMm: (json['templatePadRightMm'] as num).toDouble(),
+      templatePadBottomMm: (json['templatePadBottomMm'] as num).toDouble(),
+      pageBreakAfter: json['pageBreakAfter'] as bool,
+    );
+  }
+}
+
+extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'layoutType': layoutType,
+        'pageSizeKey': pageSizeKey,
+        'pageOrientation': pageOrientation,
+        'customPageWidthMm': customPageWidthMm,
+        'customPageHeightMm': customPageHeightMm,
+        'pagePadTopMm': pagePadTopMm,
+        'pagePadLeftMm': pagePadLeftMm,
+        'pagePadRightMm': pagePadRightMm,
+        'pagePadBottomMm': pagePadBottomMm,
+        'blocks': blocks.map((b) => b.toJson()).toList(),
+      };
+
+  static rust_config.DocumentLayoutPreset fromJson(Map<String, dynamic> json) {
+    return rust_config.DocumentLayoutPreset(
+      name: json['name'] as String,
+      layoutType: json['layoutType'] as String,
+      pageSizeKey: json['pageSizeKey'] as String,
+      pageOrientation: json['pageOrientation'] as String,
+      customPageWidthMm: (json['customPageWidthMm'] as num?)?.toDouble(),
+      customPageHeightMm: (json['customPageHeightMm'] as num?)?.toDouble(),
+      pagePadTopMm: (json['pagePadTopMm'] as num).toDouble(),
+      pagePadLeftMm: (json['pagePadLeftMm'] as num).toDouble(),
+      pagePadRightMm: (json['pagePadRightMm'] as num).toDouble(),
+      pagePadBottomMm: (json['pagePadBottomMm'] as num).toDouble(),
+      blocks: (json['blocks'] as List)
+          .map((b) => DocumentLayoutBlockJson.fromJson(
+              Map<String, dynamic>.from(b as Map)))
+          .toList(),
+    );
+  }
+}
+

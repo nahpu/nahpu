@@ -206,6 +206,7 @@ class DocumentLayoutSection extends StatefulWidget {
     this.showBlocks = true,
     this.onManagePresets,
     this.incompatibleSetupNames = const {},
+    this.showProfileDropdown = true,
   });
 
   final rust_config.DocumentLayoutPreset layout;
@@ -225,6 +226,7 @@ class DocumentLayoutSection extends StatefulWidget {
   final bool showBlocks;
   final VoidCallback? onManagePresets;
   final Set<String> incompatibleSetupNames;
+  final bool showProfileDropdown;
 
   @override
   State<DocumentLayoutSection> createState() => _DocumentLayoutSectionState();
@@ -319,95 +321,97 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Document Layout',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              SizedBox(
-                width: 240,
-                child: DropdownButtonFormField<String>(
-                  key: ValueKey('setup-${widget.selectedSetupName}'),
-                  initialValue: widget.selectedSetupName,
-                  decoration: const InputDecoration(
-                    labelText: 'Layout profile',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  items: widget.setupNames
-                      .map(
-                        (n) => DropdownMenuItem<String>(
-                          value: n,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (widget.incompatibleSetupNames
-                                  .contains(n)) ...[
-                                Icon(
-                                  Icons.warning_amber_outlined,
-                                  size: 18,
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                                const SizedBox(width: 6),
+          if (widget.showProfileDropdown) ...[
+            Text(
+              'Document Layout',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SizedBox(
+                  width: 240,
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey('setup-${widget.selectedSetupName}'),
+                    initialValue: widget.selectedSetupName,
+                    decoration: const InputDecoration(
+                      labelText: 'Layout profile',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: widget.setupNames
+                        .map(
+                          (n) => DropdownMenuItem<String>(
+                            value: n,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (widget.incompatibleSetupNames
+                                    .contains(n)) ...[
+                                  Icon(
+                                    Icons.warning_amber_outlined,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Flexible(child: Text(n)),
                               ],
-                              Flexible(child: Text(n)),
-                            ],
+                            ),
                           ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (v) {
-                    if (v != null) widget.onSetupSelected(v);
-                  },
+                        )
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) widget.onSetupSelected(v);
+                    },
+                  ),
                 ),
-              ),
-              if (widget.showPresetActions) ...[
-                OutlinedButton.icon(
-                  onPressed: widget.onCreatePreset,
-                  icon: const Icon(Icons.add),
-                  label: const Text('New'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: widget.onSaveSetupAs,
-                  icon: const Icon(Icons.save_outlined),
-                  label: const Text('Save As'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: widget.selectedSetupName == 'Default'
-                      ? null
-                      : widget.onDeleteSetup,
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('Delete'),
-                ),
-                if (widget.showFileActions) ...[
+                if (widget.showPresetActions) ...[
                   OutlinedButton.icon(
-                    onPressed: widget.onImportSetup,
-                    icon: const Icon(Icons.download_outlined),
-                    label: const Text('Import'),
+                    onPressed: widget.onCreatePreset,
+                    icon: const Icon(Icons.add),
+                    label: const Text('New'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: widget.onExportSetup,
-                    icon: const Icon(Icons.upload_file_outlined),
-                    label: const Text('Export'),
+                    onPressed: widget.onSaveSetupAs,
+                    icon: const Icon(Icons.save_outlined),
+                    label: const Text('Save As'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: widget.selectedSetupName == 'Default'
+                        ? null
+                        : widget.onDeleteSetup,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Delete'),
+                  ),
+                  if (widget.showFileActions) ...[
+                    OutlinedButton.icon(
+                      onPressed: widget.onImportSetup,
+                      icon: const Icon(Icons.download_outlined),
+                      label: const Text('Import'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: widget.onExportSetup,
+                      icon: const Icon(Icons.upload_file_outlined),
+                      label: const Text('Export'),
+                    ),
+                  ],
+                ] else if (widget.onManagePresets != null) ...[
+                  OutlinedButton.icon(
+                    onPressed: widget.onManagePresets,
+                    icon: const Icon(Icons.description_outlined),
+                    label: const Text('Presets'),
                   ),
                 ],
-              ] else if (widget.onManagePresets != null) ...[
-                OutlinedButton.icon(
-                  onPressed: widget.onManagePresets,
-                  icon: const Icon(Icons.description_outlined),
-                  label: const Text('Presets'),
-                ),
               ],
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 8),
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

@@ -1,11 +1,16 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:file_selector/file_selector.dart';
-import 'package:path/path.dart' as path;
 import 'package:nahpu/screens/exports/components/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/screens/shared/qr.dart';
+import 'package:nahpu/services/io_services.dart';
+import 'package:path/path.dart' as path;
 
 class DocumentPresetsScreen extends StatefulWidget {
   const DocumentPresetsScreen({super.key});
@@ -14,74 +19,133 @@ class DocumentPresetsScreen extends StatefulWidget {
   State<DocumentPresetsScreen> createState() => _DocumentPresetsScreenState();
 }
 
-class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
+class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
+    with SingleTickerProviderStateMixin {
   final DocumentLayoutService _layoutService = const DocumentLayoutService();
+  late TabController _tabController;
 
   bool _loading = true;
   String? _error;
   rust_config.DocumentLayoutPreset? _layout;
   List<rust_config.DocumentLayoutStatus> _layoutStatuses = const [];
-  List<String> _layoutNames = const [];
   List<String> _templateNames = const [];
   String _selectedLayoutName = 'Default';
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _load();
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Document presets'),
+        title: const Text('Document Presets'),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(child: Text(_error!))
               : SafeArea(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 900),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(8),
-                        child: _layout == null
-                            ? _IncompatibleDocumentPreset(
-                                statuses: _layoutStatuses,
-                                selectedName: _selectedLayoutName,
-                                onPresetSelected: _selectLayout,
-                                onDeletePreset: _deletePreset,
-                                onCreatePreset: _loading ? null : _addPreset,
-                              )
-                            : DocumentLayoutSection(
-                                layout: _layout!,
-                                setupNames: _layoutNames,
-                                selectedSetupName: _selectedLayoutName,
-                                templateNames: _templateNames,
-                                onLayoutChanged: _layoutChanged,
-                                onSetupSelected: _selectLayout,
-                                onCreatePreset: _loading ? null : _addPreset,
-                                onSaveSetupAs: _savePresetAs,
-                                onDeleteSetup: _deletePreset,
-                                onExportSetup: _exportPreset,
-                                onImportSetup: _importPreset,
-                                onCreateTemplate: _openTemplateEditor,
-                                showFileActions: true,
-                                incompatibleSetupNames: _incompatibleNames,
+                  child: isLargeScreen
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: DocumentPresetListColumn(
+                                  selectedPresetName: _selectedLayoutName,
+                                  statuses: _layoutStatuses,
+                                  onPresetSelected: (name) async {
+                                    await _selectLayout(name);
+                                    _tabController.animateTo(1);
+                                  },
+                                  onDeletePreset: _deletePreset,
+                                  onCreatePreset: _addPreset,
+                                  onScanQR: _importPresetFromQR,
+                                  onImport: _importPreset,
+                                  onExport: _exportPresetsToFile,
+                                  tabController: _tabController,
+                                ),
                               ),
-                      ),
-                    ),
-                  ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Material(
+                                  clipBehavior: Clip.hardEdge,
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest
+                                      .withValues(alpha: 0.4),
+                                  child: DocumentPresetEditColumn(
+                                    selectedPresetName: _selectedLayoutName,
+                                    layout: _layout,
+                                    templateNames: _templateNames,
+                                    layoutStatuses: _layoutStatuses,
+                                    onLayoutChanged: _layoutChanged,
+                                    onSaveSetupAs: _savePresetAs,
+                                    onCreateTemplate: _openTemplateEditor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            TabBar(
+                              controller: _tabController,
+                              tabs: const [
+                                Tab(text: 'Presets'),
+                                Tab(text: 'Edit Preset'),
+                              ],
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  DocumentPresetListColumn(
+                                    selectedPresetName: _selectedLayoutName,
+                                    statuses: _layoutStatuses,
+                                    onPresetSelected: (name) async {
+                                      await _selectLayout(name);
+                                      _tabController.animateTo(1);
+                                    },
+                                    onDeletePreset: _deletePreset,
+                                    onCreatePreset: _addPreset,
+                                    onScanQR: _importPresetFromQR,
+                                    onImport: _importPreset,
+                                    onExport: _exportPresetsToFile,
+                                    tabController: _tabController,
+                                  ),
+                                  DocumentPresetEditColumn(
+                                    selectedPresetName: _selectedLayoutName,
+                                    layout: _layout,
+                                    templateNames: _templateNames,
+                                    layoutStatuses: _layoutStatuses,
+                                    onLayoutChanged: _layoutChanged,
+                                    onSaveSetupAs: _savePresetAs,
+                                    onCreateTemplate: _openTemplateEditor,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
     );
   }
-
-  Set<String> get _incompatibleNames => _layoutStatuses
-      .where((status) => !status.isCompatible)
-      .map((status) => status.name)
-      .toSet();
 
   Future<void> _load() async {
     if (!mounted) return;
@@ -111,7 +175,6 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
       if (!mounted) return;
       setState(() {
         _layoutStatuses = statuses;
-        _layoutNames = names;
         _selectedLayoutName = selectedName;
         _layout = layout;
         _templateNames = templates;
@@ -191,16 +254,8 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
     await _load();
   }
 
-  Future<void> _deletePreset() async {
-    rust_config.DocumentLayoutStatus? selectedStatus;
-    for (final status in _layoutStatuses) {
-      if (status.name == _selectedLayoutName) {
-        selectedStatus = status;
-        break;
-      }
-    }
-    if (_selectedLayoutName == 'Default' &&
-        (selectedStatus?.isCompatible ?? true)) {
+  Future<void> _deletePreset(String name) async {
+    if (name == 'Default') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cannot delete Default preset')),
       );
@@ -210,23 +265,32 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete document preset'),
-        content: Text('Delete "$_selectedLayoutName"?'),
+        title: const Text('Delete Preset'),
+        content: Text('Delete "$name"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          FilledButton(
+          TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
     );
     if (ok != true) return;
 
-    await _layoutService.deleteLayout(_selectedLayoutName);
+    await _layoutService.deleteLayout(name);
+    final remaining = _layoutStatuses.where((s) => s.name != name).toList();
+    if (remaining.isNotEmpty) {
+      _selectedLayoutName = remaining.first.name;
+    } else {
+      _selectedLayoutName = 'Default';
+    }
     await _load();
   }
 
@@ -240,61 +304,165 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
     await _load();
   }
 
-  Future<void> _exportPreset() async {
-    final layout = _layout;
-    if (layout == null) return;
-    final safe = _selectedLayoutName.replaceAll(RegExp(r'[^\w.\-]'), '_');
-    final location = await getSaveLocation(
-      suggestedName: 'document_layout_$safe.json',
-    );
-    if (location == null) return;
-    final savePath = location.path;
-    final out =
-        savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
-
-    await rust_config.exportDocumentLayoutToFile(layout: layout, filePath: out);
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Saved ${path.basename(out)}')),
-    );
+  Future<void> _exportPresetsToFile() async {
+    try {
+      final layouts = await rust_config.getAllDocumentLayouts();
+      if (layouts.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No presets to export')),
+          );
+        }
+        return;
+      }
+      final Map<String, dynamic> exportedData = {};
+      for (final l in layouts) {
+        exportedData[l.name] = l.toJson();
+      }
+      final jsonString = jsonEncode(exportedData);
+      final dir = await FilePickerServices().selectDir();
+      if (dir != null) {
+        final savePath = File(path.join(dir.path, 'nahpu_document_presets.json'));
+        await savePath.writeAsString(jsonString);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Exported presets to ${savePath.path}')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to export presets: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _importPreset() async {
-    final picked = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-    final filePath = picked?.files.single.path;
-    if (filePath == null) return;
+    final file = await FilePickerServices().selectAnyFile();
+    if (file == null) return;
 
     try {
-      var imported =
-          await rust_config.importDocumentLayoutFromFile(filePath: filePath);
+      final content = await File(file.path).readAsString();
+      final decoded = jsonDecode(content);
 
-      final names = _layoutNames;
-      if (names.contains(imported.name)) {
-        final base = imported.name;
-        var i = 2;
-        while (names.contains('$base $i')) {
+      if (decoded is Map<String, dynamic>) {
+        if (decoded.containsKey('name') && decoded.containsKey('layoutType')) {
+          var imported = DocumentLayoutPresetJson.fromJson(decoded);
+          await _saveAndSetCurrentLayout(imported);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Imported layout "${imported.name}"')),
+            );
+          }
+        } else {
+          int importedCount = 0;
+          final existingNames = (await _layoutService.listLayoutStatuses())
+              .map((s) => s.name)
+              .toSet();
+
+          for (final entry in decoded.entries) {
+            final layoutMap = Map<String, dynamic>.from(entry.value as Map);
+            var layout = DocumentLayoutPresetJson.fromJson(layoutMap);
+
+            String finalName = entry.key;
+            int i = 1;
+            while (existingNames.contains(finalName)) {
+              finalName = '${entry.key}_$i';
+              i++;
+            }
+            existingNames.add(finalName);
+            layout = layout.copyWith(name: finalName);
+            await _layoutService.saveLayout(layout);
+            importedCount++;
+          }
+          await _load();
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Imported $importedCount presets')),
+            );
+          }
+        }
+      } else {
+        throw const FormatException('Invalid format');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invalid document layout file: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveAndSetCurrentLayout(
+      rust_config.DocumentLayoutPreset imported) async {
+    var nextLayout = imported;
+    final names = (await _layoutService.listLayoutStatuses())
+        .map((s) => s.name)
+        .toList();
+    if (names.contains(imported.name)) {
+      final base = imported.name;
+      var i = 2;
+      while (names.contains('$base $i')) {
+        i++;
+      }
+      nextLayout = imported.copyWith(name: '$base $i');
+    }
+    await _layoutService.saveLayout(nextLayout);
+    await _layoutService.setCurrentLayoutName(nextLayout.name);
+    await _load();
+  }
+
+  void _importPresetFromQR(String rawValue) async {
+    try {
+      final decoded = jsonDecode(rawValue) as Map<String, dynamic>;
+      if (decoded.containsKey('nahpu_document_preset') &&
+          decoded.containsKey('data')) {
+        String name = decoded['nahpu_document_preset'] as String;
+        final dataJson = Map<String, dynamic>.from(decoded['data'] as Map);
+        var layout = DocumentLayoutPresetJson.fromJson(dataJson);
+
+        if (_layoutStatuses.length >= 20) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content:
+                      Text('Maximum of 20 presets reached. Cannot import.')),
+            );
+          }
+          return;
+        }
+
+        String finalName = name;
+        int i = 1;
+        final existingNames = _layoutStatuses.map((s) => s.name).toSet();
+        while (existingNames.contains(finalName)) {
+          finalName = '${name}_$i';
           i++;
         }
-        imported = imported.copyWith(name: '$base $i');
+        layout = layout.copyWith(name: finalName);
+
+        await _layoutService.saveLayout(layout);
+        await _layoutService.setCurrentLayoutName(finalName);
+        await _load();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Imported preset "$finalName"')),
+          );
+        }
+      } else {
+        throw const FormatException('Invalid QR code format for preset.');
       }
-
-      await _layoutService.saveLayout(imported);
-      await _layoutService.setCurrentLayoutName(imported.name);
-      await _load();
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Imported layout "${imported.name}"')),
-      );
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid document layout file: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid or unrecognized QR code.')),
+        );
+      }
     }
   }
 
@@ -317,116 +485,325 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
   }
 }
 
-class _IncompatibleDocumentPreset extends StatelessWidget {
-  const _IncompatibleDocumentPreset({
+class DocumentPresetListColumn extends StatelessWidget {
+  const DocumentPresetListColumn({
+    super.key,
+    required this.selectedPresetName,
     required this.statuses,
-    required this.selectedName,
     required this.onPresetSelected,
     required this.onDeletePreset,
-    this.onCreatePreset,
+    required this.onCreatePreset,
+    required this.onScanQR,
+    required this.onImport,
+    required this.onExport,
+    required this.tabController,
   });
 
+  final String? selectedPresetName;
   final List<rust_config.DocumentLayoutStatus> statuses;
-  final String selectedName;
   final ValueChanged<String> onPresetSelected;
-  final VoidCallback onDeletePreset;
-  final VoidCallback? onCreatePreset;
+  final ValueChanged<String> onDeletePreset;
+  final VoidCallback onCreatePreset;
+  final ValueChanged<String> onScanQR;
+  final VoidCallback onImport;
+  final VoidCallback onExport;
+  final TabController tabController;
 
   @override
   Widget build(BuildContext context) {
-    final incompatibleNames = statuses
-        .where((status) => !status.isCompatible)
-        .map((status) => status.name)
-        .toSet();
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(16),
+    return FormCard(
+      title: 'Select Presets',
+      infoContent: const DocumentPresetInfoContent(),
+      isWithSidePadding: false,
+      isExpanded: true,
+      child: Column(
+        children: [
+          Expanded(
+            child: statuses.isEmpty
+                ? const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(child: Text('No presets found.')),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: statuses.length,
+                    itemBuilder: (context, index) {
+                      final status = statuses[index];
+                      final name = status.name;
+                      final isSelected = selectedPresetName == name;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 4, horizontal: 8),
+                        child: Material(
+                          borderRadius: BorderRadius.circular(16.0),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.8),
+                          child: ListTile(
+                            leading: isSelected
+                                ? const Icon(Icons.radio_button_checked)
+                                : const Icon(Icons.radio_button_unchecked),
+                            title: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (!status.isCompatible) ...[
+                                  Icon(
+                                    Icons.warning_amber_outlined,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Flexible(child: Text(name)),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (status.isCompatible)
+                                  IconButton(
+                                    icon: const Icon(Icons.qr_code),
+                                    tooltip: 'Show QR Code',
+                                    onPressed: () => _showQRCode(context, name),
+                                  ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  tooltip: 'Delete',
+                                  onPressed: () => onDeletePreset(name),
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              onPresetSelected(name);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          const CommonLineDivider(),
+          PresetActionButtons(
+            onAddNewPreset: onCreatePreset,
+            onScanQR: onScanQR,
+            onImport: onImport,
+            onExport: onExport,
+          ),
+        ],
       ),
+    );
+  }
+
+  void _showQRCode(BuildContext context, String name) async {
+    final layoutService = const DocumentLayoutService();
+    final layout = await layoutService.getLayout(name);
+    if (layout == null) return;
+    final payload = jsonEncode({
+      'nahpu_document_preset': name,
+      'data': layout.toJson(),
+    });
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(name),
+        content: SizedBox(
+          width: 300,
+          height: 300,
+          child: QrImageView(
+            data: payload,
+            backgroundColor: Colors.white,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PresetActionButtons extends StatelessWidget {
+  const PresetActionButtons({
+    super.key,
+    required this.onExport,
+    required this.onImport,
+    required this.onScanQR,
+    required this.onAddNewPreset,
+  });
+
+  final void Function() onExport;
+  final void Function() onImport;
+  final void Function(String) onScanQR;
+  final void Function() onAddNewPreset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SecondaryButton(
+                text: 'Scan QR',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ScannerScreen(
+                        onDetect: (barcode) {
+                          final String? rawValue =
+                              barcode.barcodes.first.rawValue;
+                          if (rawValue != null) {
+                            onScanQR(rawValue);
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+              PrimaryButton(
+                label: 'Create',
+                icon: Icons.add,
+                onPressed: onAddNewPreset,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          TextButton(
+            onPressed: onImport,
+            child: const Text('Import presets from file'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: onExport,
+            child: const Text('Export presets'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DocumentPresetEditColumn extends StatelessWidget {
+  const DocumentPresetEditColumn({
+    super.key,
+    required this.selectedPresetName,
+    required this.layout,
+    required this.templateNames,
+    required this.layoutStatuses,
+    required this.onLayoutChanged,
+    required this.onSaveSetupAs,
+    required this.onCreateTemplate,
+  });
+
+  final String? selectedPresetName;
+  final rust_config.DocumentLayoutPreset? layout;
+  final List<String> templateNames;
+  final List<rust_config.DocumentLayoutStatus> layoutStatuses;
+  final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
+  final VoidCallback onSaveSetupAs;
+  final VoidCallback onCreateTemplate;
+
+  @override
+  Widget build(BuildContext context) {
+    if (selectedPresetName == null) {
+      return const Center(
+        child: Text('Select a preset to edit'),
+      );
+    }
+
+    final status = layoutStatuses.firstWhere(
+      (s) => s.name == selectedPresetName,
+      orElse: () => rust_config.DocumentLayoutStatus(
+        name: selectedPresetName!,
+        isCompatible: false,
+      ),
+    );
+
+    if (!status.isCompatible) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.warning_amber_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Incompatible preset',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              status.error ??
+                  'This preset is not compatible with the current version.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (layout == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Document Layout',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              SizedBox(
-                width: 240,
-                child: DropdownButtonFormField<String>(
-                  initialValue: selectedName,
-                  decoration: const InputDecoration(
-                    labelText: 'Layout profile',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  items: statuses
-                      .map(
-                        (status) => DropdownMenuItem<String>(
-                          value: status.name,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (incompatibleNames.contains(status.name)) ...[
-                                Icon(
-                                  Icons.warning_amber_outlined,
-                                  size: 18,
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                                const SizedBox(width: 6),
-                              ],
-                              Flexible(child: Text(status.name)),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) onPresetSelected(value);
-                  },
-                ),
-              ),
-              OutlinedButton.icon(
-                onPressed: onCreatePreset,
-                icon: const Icon(Icons.add),
-                label: const Text('New'),
-              ),
-              OutlinedButton.icon(
-                onPressed: null,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Save As'),
-              ),
-              OutlinedButton.icon(
-                onPressed: onDeletePreset,
-                icon: const Icon(Icons.delete_outline),
-                label: const Text('Delete'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Icon(
-                Icons.warning_amber_outlined,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Incompatible preset',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.error,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  selectedPresetName!,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                 ),
+                OutlinedButton.icon(
+                  onPressed: onSaveSetupAs,
+                  icon: const Icon(Icons.copy_outlined),
+                  label: const Text('Duplicate'),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          const SizedBox(height: 8),
+          Expanded(
+            child: SingleChildScrollView(
+              child: DocumentLayoutSection(
+                layout: layout!,
+                setupNames: const [],
+                selectedSetupName: selectedPresetName!,
+                templateNames: templateNames,
+                onLayoutChanged: onLayoutChanged,
+                onSetupSelected: (_) {},
+                showPresetActions: false,
+                showFileActions: false,
+                showProfileDropdown: false,
+                onCreateTemplate: onCreateTemplate,
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -511,5 +888,23 @@ class _DocumentPresetNameDialogState extends State<_DocumentPresetNameDialog> {
     setState(() {
       _errorText = error;
     });
+  }
+}
+
+class DocumentPresetInfoContent extends StatelessWidget {
+  const DocumentPresetInfoContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const InfoContainer(
+      content: [
+        InfoContent(
+          header: 'Document Presets',
+          content:
+              'Create and manage custom configurations for exporting documents. '
+              'You can configure the page size, margins, and the template blocks to layout.',
+        ),
+      ],
+    );
   }
 }
