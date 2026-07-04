@@ -160,7 +160,7 @@ class SettingsFileInputField extends StatelessWidget {
             onPressed: onPressed,
             isLoading: isSelectingFile,
             onCleared: onCleared,
-            supportedFormat: '.json, .kdl',
+            supportedFormat: '.json, .json.nl',
             maxWidth: 460,
           ),
         ),

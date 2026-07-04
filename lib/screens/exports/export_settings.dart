@@ -130,7 +130,7 @@ class ExportSettingsFormState extends ConsumerState<ExportSettingsForm> {
       _savePath = await AppIOServices(
         dir: _selectedDir,
         fileStem: _fileStem,
-        ext: exportFmt == ConfigExportFmt.json ? 'json' : 'kdl',
+        ext: exportFmt == ConfigExportFmt.json ? 'json' : 'json.nl',
       ).getSavePath();
       await rust_config.exportConfigToFile(
         filePath: _savePath.path,

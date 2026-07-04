@@ -50,7 +50,7 @@ class DbExport extends AppServices {
       if (kDebugMode) print('Archiving files: ${allAppFiles.length}');
       await _archiveFiles(nahpuDir, allAppFiles, archivePath);
 
-      // Delete the newly created KDL app settings file, if it was created
+      // Delete the newly created app settings file, if it was created
       settingsFile?.deleteSync();
 
       // Delete the newly created database file
@@ -156,9 +156,10 @@ class DbWriter extends AppServices {
       File settingsFile = File(settingsFileEntity.path);
       await rust_config.importConfigFromFile(filePath: settingsFile.path);
       files.remove(settingsFileEntity);
-    } else if (files.any((file) => file.path.endsWith('.kdl'))) {
-      FileSystemEntity settingsFileEntity =
-          files.firstWhere((file) => file.path.endsWith('.kdl'));
+    } else if (files.any((file) =>
+        file.path.endsWith('.json.nl') || file.path.endsWith('.jsonl'))) {
+      FileSystemEntity settingsFileEntity = files.firstWhere((file) =>
+          file.path.endsWith('.json.nl') || file.path.endsWith('.jsonl'));
       File settingsFile = File(settingsFileEntity.path);
       await rust_config.importConfigFromFile(filePath: settingsFile.path);
       files.remove(settingsFileEntity);

@@ -54,7 +54,7 @@ Future<void> deleteRecordExportPreset({required String name}) =>
 Future<List<ConfigPresetEntry>> getAllRecordExportPresets() =>
     RustLib.instance.api.crateApiConfigGetAllRecordExportPresets();
 
-/// Exports all user configs and document presets to a file in either JSON or KDL format.
+/// Exports all user configs and document presets to a file in either JSON or JSON Lines format.
 Future<void> exportConfigToFile(
         {required String filePath, required bool isJson}) =>
     RustLib.instance.api

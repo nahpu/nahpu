@@ -92,30 +92,30 @@ void main() {
     expect(restoredPreset.combinedFields[0].fieldId, 'comb');
   });
 
-  test('Config export and import roundtrip (KDL)', () async {
+  test('Config export and import roundtrip (JSON Lines)', () async {
     // 1. Populate some configs, template presets, and export presets
     const testKey = 'siteTypeFmt';
     const testVal = 'anyCase';
     await rust_config.setUserConfigString(key: testKey, value: testVal);
 
-    const templateName = 'Test Template KDL';
+    const templateName = 'Test Template JSON Lines';
     const templateVal =
-        '{"name":"Test Template KDL","page1":{"customTexts":[]},"page2":{"customTexts":[]}}';
+        '{"name":"Test Template JSON Lines","page1":{"customTexts":[]},"page2":{"customTexts":[]}}';
     await rust_config.setTemplatePreset(name: templateName, value: templateVal);
 
-    const presetName = 'Test Preset KDL';
+    const presetName = 'Test Preset JSON Lines';
     final presetVal = rust_config.ConfigExportPreset(
-      fields: {'catalogNum': 'Catalog Number KDL'},
+      fields: {'catalogNum': 'Catalog Number JSON Lines'},
       combinedFields: [
         rust_config.ConfigCombinedField(
-            fieldId: 'combKdl', fields: ['f1', 'f2'])
+            fieldId: 'combJsonLines', fields: ['f1', 'f2'])
       ],
     );
     await rust_config.setRecordExportPreset(
         name: presetName, preset: presetVal);
 
     // 2. Export to file
-    final exportPath = '${tempDir.path}/configs.kdl';
+    final exportPath = '${tempDir.path}/configs.json.nl';
     await rust_config.exportConfigToFile(filePath: exportPath, isJson: false);
     expect(File(exportPath).existsSync(), true);
 
@@ -141,7 +141,7 @@ void main() {
     expect(restoredPresets.any((e) => e.name == presetName), true);
     final restoredPreset =
         restoredPresets.firstWhere((e) => e.name == presetName).preset;
-    expect(restoredPreset.fields['catalogNum'], 'Catalog Number KDL');
-    expect(restoredPreset.combinedFields[0].fieldId, 'combKdl');
+    expect(restoredPreset.fields['catalogNum'], 'Catalog Number JSON Lines');
+    expect(restoredPreset.combinedFields[0].fieldId, 'combJsonLines');
   });
 }
