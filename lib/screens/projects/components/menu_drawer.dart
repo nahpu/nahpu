@@ -12,7 +12,6 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/app_settings_import.dart';
-import 'package:nahpu/screens/settings/document_presets.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -69,6 +68,16 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           },
         ),
         ListTile(
+          leading: Icon(Icons.adaptive.share_rounded),
+          title: const Text('Export records'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ExportForm()),
+            );
+          },
+        ),
+        ListTile(
           leading: const Icon(Icons.picture_as_pdf_rounded),
           title: const Text('Export documents'),
           onTap: () {
@@ -76,27 +85,6 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
               context,
               MaterialPageRoute(
                   builder: (context) => const ExportDocumentsView()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.description_outlined),
-          title: const Text('Document presets'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const DocumentPresetsScreen()),
-            );
-          },
-        ),
-        ListTile(
-          leading: Icon(Icons.adaptive.share_rounded),
-          title: const Text('Export records'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ExportForm()),
             );
           },
         ),
@@ -164,6 +152,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
         const Divider(
           color: Colors.grey,
         ),
+        const SizedBox(height: 24),
         ListTile(
           leading: Icon(Icons.delete_rounded,
               color: Theme.of(context).colorScheme.error),

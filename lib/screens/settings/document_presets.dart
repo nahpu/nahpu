@@ -194,7 +194,15 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
   }
 
   Future<void> _deletePreset() async {
-    if (_selectedLayoutName == 'Default') {
+    rust_config.DocumentLayoutStatus? selectedStatus;
+    for (final status in _layoutStatuses) {
+      if (status.name == _selectedLayoutName) {
+        selectedStatus = status;
+        break;
+      }
+    }
+    if (_selectedLayoutName == 'Default' &&
+        (selectedStatus?.isCompatible ?? true)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cannot delete Default preset')),
       );
@@ -333,7 +341,7 @@ class _IncompatibleDocumentPreset extends StatelessWidget {
                 label: const Text('Save As'),
               ),
               OutlinedButton.icon(
-                onPressed: selectedName == 'Default' ? null : onDeletePreset,
+                onPressed: onDeletePreset,
                 icon: const Icon(Icons.delete_outline),
                 label: const Text('Delete'),
               ),
