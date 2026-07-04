@@ -35,6 +35,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   bool _showPreview = false;
   bool _previewStale = false;
   int _previewVersion = 0;
+  rust_config.DocumentLayoutPreset? _previewLayout;
+  List<String> _previewSelectedUuidList = const [];
 
   rust_config.DocumentLayoutPreset? _layout;
   List<String> _templateNames = const [];
@@ -132,8 +134,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
     final previewPane = DocumentPreviewPane(
       showPreview: _showPreview,
-      layout: _layout,
-      selectedUuidList: selectedUuids.toList(),
+      layout: _previewLayout,
+      selectedUuidList: _previewSelectedUuidList,
       previewVersion: _previewVersion,
       isPreviewStale: _previewStale,
       onGeneratePreview: _updatePreview,
@@ -187,15 +189,25 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   void _markPreviewStale() {
     if (_showPreview && !_previewStale) {
       setState(() {
-        _previewStale = true;
+        _setPreviewStale();
       });
     }
   }
 
+  void _setPreviewStale() {
+    if (_showPreview) {
+      _previewStale = true;
+    }
+  }
+
   void _updatePreview() {
+    if (_layout == null) return;
     setState(() {
       _showPreview = true;
       _previewStale = false;
+      _previewLayout = _layout;
+      _previewSelectedUuidList =
+          List.unmodifiable(ref.read(documentSpecimenSelectionProvider));
       _previewVersion++;
     });
   }
@@ -220,6 +232,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           _templateNames = templateNames;
           _showPreview = false;
           _previewStale = false;
+          _previewLayout = null;
+          _previewSelectedUuidList = const [];
           _loading = false;
         });
       }
@@ -246,7 +260,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       rust_config.DocumentLayoutPreset newLayout) async {
     setState(() {
       _layout = newLayout;
-      _markPreviewStale();
+      _setPreviewStale();
     });
     await _layoutService.saveLayout(newLayout);
   }
@@ -258,7 +272,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     setState(() {
       _layout = setup;
       _selectedSetupName = name;
-      _markPreviewStale();
+      _setPreviewStale();
     });
   }
 
