@@ -22,7 +22,8 @@ class ExportDocumentsView extends ConsumerStatefulWidget {
   const ExportDocumentsView({super.key});
 
   @override
-  ConsumerState<ExportDocumentsView> createState() => _ExportDocumentsViewState();
+  ConsumerState<ExportDocumentsView> createState() =>
+      _ExportDocumentsViewState();
 }
 
 class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
@@ -63,7 +64,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   Widget build(BuildContext context) {
     ref.watch(projectUuidProvider);
     final selectedUuids = ref.watch(documentSpecimenSelectionProvider);
-    ref.listen<Set<String>>(documentSpecimenSelectionProvider, (previous, next) {
+    ref.listen<Set<String>>(documentSpecimenSelectionProvider,
+        (previous, next) {
       if (previous != null && next != previous) {
         _markPreviewStale();
       }
@@ -116,6 +118,15 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
                 ),
               );
             },
+            onCreateTemplate: () async {
+              await Navigator.push<void>(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => const TemplateEditorScreen(),
+                ),
+              );
+              _load();
+            },
           );
 
     final previewPane = DocumentPreviewPane(
@@ -130,20 +141,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Export documents'),
-        actions: [
-          IconButton(
-            tooltip: 'Template editor',
-            icon: const Icon(Icons.edit_note_outlined),
-            onPressed: () {
-              Navigator.push<void>(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (context) => const TemplateEditorScreen(),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
