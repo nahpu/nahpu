@@ -1,7 +1,3 @@
-enum DocumentExportType { narrative, site, event, specimen }
-
-enum DocumentExportFmt { md, typ, pdf }
-
 enum ExportFmt { csv, tsv, excel, json }
 
 const List<String> supportedTaxonClass = [
@@ -16,19 +12,6 @@ const List<String> supportedTaxonClass = [
   // Jawless fishes
   'Agnatha',
 ];
-
-const Map<DocumentExportType, String> documentExport = {
-  DocumentExportType.narrative: 'Narrative',
-  DocumentExportType.site: 'Sites',
-  DocumentExportType.event: 'Events',
-  DocumentExportType.specimen: 'Specimen records',
-};
-
-const Map<DocumentExportFmt, String> documentExportFmt = {
-  DocumentExportFmt.md: 'Markdown (.md)',
-  DocumentExportFmt.typ: 'Typst (.typ)',
-  DocumentExportFmt.pdf: 'PDF (.pdf)',
-};
 
 const List<String> exportFormats = [
   'Comma-separated (.csv)',

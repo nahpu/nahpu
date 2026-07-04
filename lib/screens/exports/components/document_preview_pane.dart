@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
-import 'package:nahpu/screens/exports/components/label_page_preview.dart';
+import 'package:nahpu/screens/exports/components/document_page_preview.dart';
 
-class LabelPreviewPane extends StatelessWidget {
-  const LabelPreviewPane({
+class DocumentPreviewPane extends StatelessWidget {
+  const DocumentPreviewPane({
     super.key,
     required this.showPreview,
     required this.layout,
@@ -40,7 +40,7 @@ class LabelPreviewPane extends StatelessWidget {
                   ? const Center(child: Text('Preview has not been generated.'))
                   : layout == null
                       ? const Center(child: Text('No layout loaded.'))
-                      : LabelPageLivePreview(
+                      : DocumentPageLivePreview(
                           key: ValueKey(previewVersion),
                           selectedUuidList: selectedUuidList,
                           layout: layout!,

@@ -1,520 +1,442 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/export/document_exports.dart';
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:nahpu/services/providers/settings.dart';
-import 'package:pdfrx/pdfrx.dart';
 
-class ExportPdfForm extends ConsumerStatefulWidget {
-  const ExportPdfForm({super.key});
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:path/path.dart' as path;
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/services/document_layout_service.dart';
+import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/screens/exports/components/specimen_selection.dart';
+import 'package:nahpu/services/export/export_document.dart';
+import 'package:nahpu/screens/exports/components/document_preview_pane.dart';
+import 'package:nahpu/screens/exports/components/document_settings_pane.dart';
+import 'package:nahpu/screens/templates/template_editor_screen.dart';
+
+class ExportDocumentsView extends ConsumerStatefulWidget {
+  const ExportDocumentsView({super.key});
 
   @override
-  ExportPdfFormState createState() => ExportPdfFormState();
+  ConsumerState<ExportDocumentsView> createState() => _ExportDocumentsViewState();
 }
 
-class ExportPdfFormState extends ConsumerState<ExportPdfForm>
-    with SingleTickerProviderStateMixin {
+class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
+    with TickerProviderStateMixin {
+  final DocumentLayoutService _layoutService = const DocumentLayoutService();
+  bool _loading = true;
+  String? _error;
+  bool _showPreview = false;
+  bool _previewStale = false;
+  int _previewVersion = 0;
+
+  rust_config.DocumentLayoutPreset? _layout;
+  List<String> _templateNames = const [];
+  List<String> _setupNames = const [];
+  String _selectedSetupName = 'Default';
+
+  late TabController _mobileTabController;
+
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   Directory? _selectedDir;
-  DocumentExportType _exportType = DocumentExportType.narrative;
-  DocumentExportFmt _exportFmt = DocumentExportFmt.pdf;
-  String _fileStem = 'export';
-  bool _hasSaved = false;
-  bool _showPreview = false;
-  late File _savePath;
   bool _isRunning = false;
-
-  late TabController _tabController;
+  bool _hasSaved = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _mobileTabController = TabController(length: 2, vsync: this);
+    _load();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _mobileTabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(projectUuidProvider);
+    final selectedUuids = ref.watch(documentSpecimenSelectionProvider);
+    ref.listen<Set<String>>(documentSpecimenSelectionProvider, (previous, next) {
+      if (previous != null && next != previous) {
+        _markPreviewStale();
+      }
+    });
+    final totalCount = ref.watch(specimenEntryProvider).value?.length ?? 0;
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+
+    final settingsPane = _layout == null
+        ? const Center(child: CircularProgressIndicator())
+        : DocumentSettingsPane(
+            layout: _layout!,
+            setupNames: _setupNames,
+            selectedSetupName: _selectedSetupName,
+            templateNames: _templateNames,
+            exportCtr: exportCtr,
+            selectedDir: _selectedDir,
+            hasSaved: _hasSaved,
+            isRunning: _isRunning,
+            onLayoutChanged: _layoutChanged,
+            onSetupSelected: _selectSetup,
+            onSaveSetupAs: _saveSetupAs,
+            onDeleteSetup: _deleteSetup,
+            onExportSetup: _exportSetup,
+            onImportSetup: _importSetup,
+            onFileNameChanged: (v) {
+              setState(() {
+                _hasSaved = false;
+              });
+            },
+            onSelectDir: () async {
+              Directory? path = await FilePickerServices().selectDir();
+              setState(() {
+                _selectedDir = path;
+              });
+            },
+            onClearDir: () {
+              setState(() {
+                _selectedDir = null;
+                _hasSaved = false;
+              });
+            },
+            onExportPressed: !exportCtr.isValid ? null : _exportDocuments,
+            selectedCount: selectedUuids.length,
+            totalCount: totalCount,
+            onSelectSpecimens: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SpecimenSelectionScreen(),
+                ),
+              );
+            },
+          );
+
+    final previewPane = DocumentPreviewPane(
+      showPreview: _showPreview,
+      layout: _layout,
+      selectedUuidList: selectedUuids.toList(),
+      previewVersion: _previewVersion,
+      isPreviewStale: _previewStale,
+      onGeneratePreview: _updatePreview,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Document Export"),
-        automaticallyImplyLeading: false,
-      ),
-      body: isLargeScreen
-          ? Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: DocumentExportSettings(
-                      exportType: _exportType,
-                      exportFmt: _exportFmt,
-                      fileStem: _fileStem,
-                      hasSaved: _hasSaved,
-                      isRunning: _isRunning,
-                      selectedDir: _selectedDir,
-                      exportCtr: exportCtr,
-                      onExportTypeChanged: (DocumentExportType? value) {
-                        if (value != null) {
-                          setState(() {
-                            _exportType = value;
-                            _hasSaved = false;
-                            _showPreview = false;
-                          });
-                        }
-                      },
-                      onExportFmtChanged: (DocumentExportFmt? value) {
-                        if (value != null) {
-                          setState(() {
-                            _exportFmt = value;
-                            _hasSaved = false;
-                            _showPreview = false;
-                          });
-                        }
-                      },
-                      onFileStemChanged: (String? value) {
-                        if (value != null) {
-                          setState(() {
-                            _fileStem = value;
-                            _hasSaved = false;
-                          });
-                        }
-                      },
-                      onDirSelected: _getDir,
-                      onDirCleared: () {
-                        setState(() {
-                          _selectedDir = null;
-                          _hasSaved = false;
-                        });
-                      },
-                      onSave: () async {
-                        setState(() {
-                          _isRunning = true;
-                        });
-                        await _writeDocument();
-                        setState(() {
-                          _isRunning = false;
-                        });
-                      },
-                      onShare: (context) {
-                        _shareFile(context);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DocumentExportPreview(
-                      showPreview: _showPreview,
-                      exportFmt: _exportFmt,
-                      exportType: _exportType,
-                      onGeneratePreview: () {
-                        setState(() {
-                          _showPreview = true;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : Column(
-              children: [
-                TabBar(
-                  controller: _tabController,
-                  tabs: const [
-                    Tab(text: 'Settings'),
-                    Tab(text: 'Preview'),
-                  ],
+        title: const Text('Export documents'),
+        actions: [
+          IconButton(
+            tooltip: 'Template editor',
+            icon: const Icon(Icons.edit_note_outlined),
+            onPressed: () {
+              Navigator.push<void>(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => const TemplateEditorScreen(),
                 ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      DocumentExportSettings(
-                        exportType: _exportType,
-                        exportFmt: _exportFmt,
-                        fileStem: _fileStem,
-                        hasSaved: _hasSaved,
-                        isRunning: _isRunning,
-                        selectedDir: _selectedDir,
-                        exportCtr: exportCtr,
-                        onExportTypeChanged: (DocumentExportType? value) {
-                          if (value != null) {
-                            setState(() {
-                              _exportType = value;
-                              _hasSaved = false;
-                              _showPreview = false;
-                            });
-                          }
-                        },
-                        onExportFmtChanged: (DocumentExportFmt? value) {
-                          if (value != null) {
-                            setState(() {
-                              _exportFmt = value;
-                              _hasSaved = false;
-                              _showPreview = false;
-                            });
-                          }
-                        },
-                        onFileStemChanged: (String? value) {
-                          if (value != null) {
-                            setState(() {
-                              _fileStem = value;
-                              _hasSaved = false;
-                            });
-                          }
-                        },
-                        onDirSelected: _getDir,
-                        onDirCleared: () {
-                          setState(() {
-                            _selectedDir = null;
-                            _hasSaved = false;
-                          });
-                        },
-                        onSave: () async {
-                          setState(() {
-                            _isRunning = true;
-                          });
-                          await _writeDocument();
-                          setState(() {
-                            _isRunning = false;
-                          });
-                        },
-                        onShare: (context) {
-                          _shareFile(context);
-                        },
-                      ),
-                      DocumentExportPreview(
-                        showPreview: _showPreview,
-                        exportFmt: _exportFmt,
-                        exportType: _exportType,
-                        onGeneratePreview: () {
-                          setState(() {
-                            _showPreview = true;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Future<void> _writeDocument() async {
-    try {
-      _savePath = await AppIOServices(
-              dir: _selectedDir, fileStem: _fileStem, ext: _exportFmt.name)
-          .getSavePath();
-
-      await DocumentExportServices(ref: ref).exportDocument(
-        file: _savePath,
-        type: _exportType,
-        format: _exportFmt,
-      );
-
-      setState(() {
-        _hasSaved = true;
-      });
-    } catch (e) {
-      if (context.mounted) {
-        _showError(e.toString());
-      }
-    }
-  }
-
-  void _showError(String errors) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errors),
-      ),
-    );
-  }
-
-  Future<void> _shareFile(BuildContext context) async {
-    try {
-      await FilePickerServices().shareFile(context, _savePath);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            duration: const Duration(seconds: 5),
+              );
+            },
           ),
-        );
-      }
-    }
-  }
-
-  Future<void> _getDir() async {
-    Directory? path = await FilePickerServices().selectDir();
-    setState(() {
-      _selectedDir = path;
-    });
-  }
-}
-
-class DocumentExportSettings extends StatelessWidget {
-  const DocumentExportSettings({
-    super.key,
-    required this.exportType,
-    required this.exportFmt,
-    required this.fileStem,
-    required this.hasSaved,
-    required this.isRunning,
-    required this.selectedDir,
-    required this.exportCtr,
-    required this.onExportTypeChanged,
-    required this.onExportFmtChanged,
-    required this.onFileStemChanged,
-    required this.onDirSelected,
-    required this.onDirCleared,
-    required this.onSave,
-    required this.onShare,
-  });
-
-  final DocumentExportType exportType;
-  final DocumentExportFmt exportFmt;
-  final String fileStem;
-  final bool hasSaved;
-  final bool isRunning;
-  final Directory? selectedDir;
-  final FileOpCtrModel exportCtr;
-  final void Function(DocumentExportType?) onExportTypeChanged;
-  final void Function(DocumentExportFmt?) onExportFmtChanged;
-  final void Function(String?) onFileStemChanged;
-  final VoidCallback onDirSelected;
-  final VoidCallback onDirCleared;
-  final VoidCallback onSave;
-  final void Function(BuildContext) onShare;
-
-  @override
-  Widget build(BuildContext context) {
-    return FileOperationPage(
-      children: [
-        const FileFormatIcon(path: 'assets/icons/pdf.svg'),
-        DropdownButtonFormField(
-            initialValue: exportType,
-            decoration: const InputDecoration(
-              labelText: 'Record type',
-            ),
-            items: documentExport.keys
-                .map((e) => DropdownMenuItem(
-                      value: e,
-                      child: CommonDropdownText(
-                        text: documentExport[e] ?? '',
-                      ),
-                    ))
-                .toList(),
-            onChanged: onExportTypeChanged),
-        DropdownButtonFormField(
-            initialValue: exportFmt,
-            decoration: const InputDecoration(
-              labelText: 'Format',
-            ),
-            items: documentExportFmt.keys
-                .map((e) => DropdownMenuItem(
-                      value: e,
-                      child: CommonDropdownText(
-                        text: documentExportFmt[e] ?? '',
-                      ),
-                    ))
-                .toList(),
-            onChanged: onExportFmtChanged),
-        FileNameField(
-          controller: exportCtr,
-          onChanged: onFileStemChanged,
-        ),
-        SelectDirField(
-          dirPath: selectedDir,
-          onPressed: onDirSelected,
-          onCanceled: onDirCleared,
-        ),
-        const SizedBox(height: 24),
-        Wrap(
-          spacing: 20,
-          children: [
-            SaveSecondaryButton(hasSaved: hasSaved),
-            !hasSaved
-                ? ProgressButton(
-                    label: 'Save',
-                    isRunning: isRunning,
-                    icon: Icons.save_alt_outlined,
-                    onPressed: !exportCtr.isValid ? null : onSave,
-                  )
-                : Builder(
-                    builder: (BuildContext context) {
-                      return ShareButton(onPressed: () => onShare(context));
-                    },
-                  ),
-          ],
-        )
-      ],
-    );
-  }
-}
-
-class DocumentExportPreview extends ConsumerStatefulWidget {
-  const DocumentExportPreview({
-    super.key,
-    required this.showPreview,
-    required this.exportFmt,
-    required this.exportType,
-    required this.onGeneratePreview,
-  });
-
-  final bool showPreview;
-  final DocumentExportFmt exportFmt;
-  final DocumentExportType exportType;
-  final VoidCallback onGeneratePreview;
-
-  @override
-  ConsumerState<DocumentExportPreview> createState() =>
-      _DocumentExportPreviewState();
-}
-
-class _DocumentExportPreviewState extends ConsumerState<DocumentExportPreview> {
-  Future<Uint8List>? _bytesFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.showPreview) {
-      _fetchData();
-    }
-  }
-
-  @override
-  void didUpdateWidget(DocumentExportPreview oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.showPreview &&
-        (!oldWidget.showPreview ||
-            widget.exportFmt != oldWidget.exportFmt ||
-            widget.exportType != oldWidget.exportType)) {
-      _fetchData();
-    } else if (!widget.showPreview) {
-      _bytesFuture = null;
-    }
-  }
-
-  void _fetchData() {
-    _bytesFuture = DocumentExportServices(ref: ref)
-        .generateBytes(type: widget.exportType, format: widget.exportFmt);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        padding: EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.0),
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.4),
-        ),
-        child: !widget.showPreview
-            ? Center(
-                child: FilledButton.icon(
-                  onPressed: widget.onGeneratePreview,
-                  icon: const Icon(Icons.visibility),
-                  label: const Text('Generate Preview'),
-                ),
-              )
-            : FutureBuilder<Uint8List>(
-                future: _bytesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No data'));
-                  }
-
-                  final isPdfPreview =
-                      widget.exportFmt == DocumentExportFmt.pdf;
-
-                  if (isPdfPreview) {
-                    return Stack(
-                      children: [
-                        Positioned.fill(
-                          child: PdfViewer.data(
-                            snapshot.data!,
-                            sourceName: 'preview.pdf',
-                            params: const PdfViewerParams(
-                              backgroundColor: Colors.transparent,
-                            ),
+        ],
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!))
+              : isLargeScreen
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: settingsPane),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: previewPane,
                           ),
+                        ],
+                      ),
+                    )
+                  : Column(
+                      children: [
+                        TabBar(
+                          controller: _mobileTabController,
+                          tabs: const [
+                            Tab(icon: Icon(Icons.settings_outlined)),
+                            Tab(icon: Icon(Icons.preview_outlined)),
+                          ],
                         ),
-                        Positioned(
-                          top: 16,
-                          right: 16,
-                          child: FloatingActionButton.small(
-                            onPressed: _fetchData,
-                            tooltip: 'Refresh Preview',
-                            child: const Icon(Icons.refresh),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _mobileTabController,
+                            children: [
+                              settingsPane,
+                              previewPane,
+                            ],
                           ),
                         ),
                       ],
-                    );
-                  }
+                    ),
+    );
+  }
 
-                  final text = utf8.decode(snapshot.data!);
-                  final fontName =
-                      ref.watch(pdfExportFontNotifierProvider).value ??
-                          'Merriweather';
+  void _markPreviewStale() {
+    if (_showPreview && !_previewStale) {
+      setState(() {
+        _previewStale = true;
+      });
+    }
+  }
 
-                  final isMd = widget.exportFmt == DocumentExportFmt.md;
+  void _updatePreview() {
+    setState(() {
+      _showPreview = true;
+      _previewStale = false;
+      _previewVersion++;
+    });
+  }
 
-                  Widget content;
-                  if (isMd) {
-                    content = Markdown(
-                      data: text,
-                      styleSheet: MarkdownStyleSheet(
-                        p: TextStyle(fontFamily: fontName),
-                        h1: TextStyle(fontFamily: fontName),
-                        h2: TextStyle(fontFamily: fontName),
-                        h3: TextStyle(fontFamily: fontName),
-                        h4: TextStyle(fontFamily: fontName),
-                        h5: TextStyle(fontFamily: fontName),
-                        h6: TextStyle(fontFamily: fontName),
-                        listBullet: TextStyle(fontFamily: fontName),
-                      ),
-                    );
-                  } else {
-                    content = SingleChildScrollView(
-                      padding: const EdgeInsets.all(16.0),
-                      child: SelectableText(text),
-                    );
-                  }
+  Future<void> _load() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
-                  return content;
-                },
-              ),
+    try {
+      final layout = await _layoutService.getCurrentLayout();
+      final setupNames = await _layoutService.listLayoutNames();
+      final templateNames = await rust_config.listTemplatePresets();
+
+      if (mounted) {
+        setState(() {
+          _layout = layout;
+          _setupNames = setupNames;
+          _selectedSetupName = layout.name;
+          _templateNames = templateNames;
+          _showPreview = false;
+          _previewStale = false;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _layoutChanged(
+      rust_config.DocumentLayoutPreset newLayout) async {
+    setState(() {
+      _layout = newLayout;
+      _markPreviewStale();
+    });
+    await _layoutService.saveLayout(newLayout);
+  }
+
+  Future<void> _selectSetup(String name) async {
+    final setup = await _layoutService.getLayout(name);
+    if (setup == null) return;
+    await _layoutService.setCurrentLayoutName(name);
+    setState(() {
+      _layout = setup;
+      _selectedSetupName = name;
+      _markPreviewStale();
+    });
+  }
+
+  Future<void> _saveSetupAs() async {
+    if (_layout == null) return;
+    final ctrl = TextEditingController(text: _selectedSetupName);
+    try {
+      final name = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Save document layout'),
+          content: TextField(
+            controller: ctrl,
+            decoration: const InputDecoration(
+              labelText: 'Layout name',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      );
+      if (name == null || name.trim().isEmpty || !mounted) return;
+      final newName = name.trim();
+      final newLayout = _layout!.copyWith(name: newName);
+      await _layoutService.saveLayout(newLayout);
+      await _layoutService.setCurrentLayoutName(newName);
+      final names = await _layoutService.listLayoutNames();
+      setState(() {
+        _setupNames = names;
+        _selectedSetupName = newName;
+        _layout = newLayout;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved layout "$newName"')),
+      );
+    } finally {
+      ctrl.dispose();
+    }
+  }
+
+  Future<void> _deleteSetup() async {
+    if (_selectedSetupName == 'Default') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot delete Default layout')),
+      );
+      return;
+    }
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete document layout'),
+        content: Text('Delete "$_selectedSetupName"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
+    if (ok != true || !mounted) return;
+    await _layoutService.deleteLayout(_selectedSetupName);
+    await _load();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Deleted layout "$_selectedSetupName"')),
+    );
+  }
+
+  Future<void> _exportSetup() async {
+    if (_layout == null) return;
+    final safe = _selectedSetupName.replaceAll(RegExp(r'[^\w.\-]'), '_');
+    final location = await getSaveLocation(
+      suggestedName: 'document_layout_$safe.json',
+    );
+    if (location == null) return;
+    final savePath = location.path;
+    final out =
+        savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
+
+    final jsonMap = documentLayoutPresetToJson(_layout!);
+    final contents = const JsonEncoder.withIndent('  ').convert(jsonMap);
+    await File(out).writeAsString(contents);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Saved ${path.basename(out)}')),
+    );
+  }
+
+  Future<void> _importSetup() async {
+    final picked = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    final filePath = picked?.files.single.path;
+    if (filePath == null) return;
+
+    try {
+      final content = await File(filePath).readAsString();
+      final map = jsonDecode(content) as Map<String, dynamic>;
+      var imported = documentLayoutPresetFromJson(map);
+
+      final names = await _layoutService.listLayoutNames();
+      if (names.contains(imported.name)) {
+        final base = imported.name;
+        var i = 2;
+        while (names.contains('$base $i')) {
+          i++;
+        }
+        imported = imported.copyWith(name: '$base $i');
+      }
+
+      await _layoutService.saveLayout(imported);
+      await _layoutService.setCurrentLayoutName(imported.name);
+      await _load();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Imported layout "${imported.name}"')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid document layout file: $e')),
+      );
+    }
+  }
+
+  Future<void> _exportDocuments() async {
+    if (!exportCtr.isValid || _selectedDir == null || _layout == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Set valid file name and directory')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isRunning = true;
+      _hasSaved = false;
+    });
+
+    try {
+      await ExportDocumentService(ref: ref).exportDocuments(
+        selectedSpecimens: ref.read(documentSpecimenSelectionProvider),
+        selectedDir: _selectedDir!,
+        fileStem: exportCtr.fileNameCtr.text,
+        layout: _layout!,
+      );
+
+      if (mounted) {
+        setState(() {
+          _hasSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Saved documents successfully.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRunning = false;
+        });
+      }
+    }
   }
 }

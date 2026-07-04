@@ -6,8 +6,8 @@ import 'package:nahpu/screens/shared/file_operation.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/services/types/controllers.dart';
 
-class LabelSettingsPane extends StatelessWidget {
-  const LabelSettingsPane({
+class DocumentSettingsPane extends StatelessWidget {
+  const DocumentSettingsPane({
     super.key,
     required this.layout,
     required this.setupNames,
@@ -140,7 +140,7 @@ class LabelSettingsPane extends StatelessWidget {
                 runSpacing: 12,
                 children: [
                   ProgressButton(
-                    label: 'Export Labels',
+                    label: 'Export Documents',
                     icon: Icons.upload_outlined,
                     isRunning: isRunning,
                     onPressed: isRunning ? null : onExportPressed,

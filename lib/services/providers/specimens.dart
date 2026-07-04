@@ -57,12 +57,12 @@ final specimenMediaProvider = FutureProvider.family
   return mediaDataList;
 });
 
-final labelSpecimenSelectionProvider =
-    NotifierProvider.autoDispose<LabelSpecimenSelection, Set<String>>(
-  LabelSpecimenSelection.new,
+final documentSpecimenSelectionProvider =
+    NotifierProvider.autoDispose<DocumentSpecimenSelection, Set<String>>(
+  DocumentSpecimenSelection.new,
 );
 
-class LabelSpecimenSelection extends Notifier<Set<String>> {
+class DocumentSpecimenSelection extends Notifier<Set<String>> {
   @override
   Set<String> build() {
     final specimens = ref.watch(specimenEntryProvider).value ?? [];

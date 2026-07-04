@@ -37,7 +37,6 @@ const String fieldIdModePrefKey = 'fieldIdMode';
 // Document Export settings
 // User-configurable export presets and PDF document settings.
 const String exportPresetPrefKey = 'exportPresets';
-const String pdfExportFontPrefKey = 'pdfExportFont';
 
 final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
@@ -274,34 +273,7 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   }
 }
 
-final pdfExportFontNotifierProvider =
-    AsyncNotifierProvider.autoDispose<PdfExportFontNotifier, String>(
-        PdfExportFontNotifier.new);
 
-class PdfExportFontNotifier extends AsyncNotifier<String> {
-  Future<String> _fetchSettings() async {
-    final font = await rust_config.getUserConfigString(
-      key: pdfExportFontPrefKey,
-    );
-    return font ?? 'Merriweather';
-  }
-
-  @override
-  Future<String> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> set(String font) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await rust_config.setUserConfigString(
-        key: pdfExportFontPrefKey,
-        value: font,
-      );
-      return font;
-    });
-  }
-}
 
 final fieldIdModeNotifierProvider =
     AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(

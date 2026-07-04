@@ -14,7 +14,6 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/settings/application_settings.dart';
 import 'package:nahpu/screens/settings/specimen_settings.dart';
 import 'package:nahpu/screens/settings/export_presets.dart';
-import 'package:nahpu/screens/settings/document_exports.dart';
 
 class AppSettings extends ConsumerStatefulWidget {
   const AppSettings({super.key});
@@ -223,19 +222,7 @@ class ExportSettingsSection extends StatelessWidget {
                 ),
               );
             }),
-        CommonSettingTile(
-            title: 'Document exports',
-            label: 'Import custom fonts and icons for document generation',
-            isNavigation: true,
-            icon: Icons.picture_as_pdf_outlined,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DocumentExportSettings(),
-                ),
-              );
-            }),
+
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.edit_note_outlined,

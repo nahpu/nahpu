@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/export/export_label.dart';
+import 'package:nahpu/services/export/export_document.dart';
 
 void main() {
-  group('ExportLabelService', () {
+  group('ExportDocumentService', () {
     test(
         'mergeColumnOrder preserves previous order and appends new columns alphabetically',
         () {
-      final service = const ExportLabelService();
+      final service = const ExportDocumentService();
 
       final previousOrder = ['specimenUuid', 'catalogerID', 'fieldNumber'];
       final selected = {'specimenUuid', 'fieldNumber', 'species', 'family'};
@@ -33,7 +33,7 @@ void main() {
     });
 
     test('mergeColumnOrder removes unselected columns', () {
-      final service = const ExportLabelService();
+      final service = const ExportDocumentService();
 
       final previousOrder = ['specimenUuid', 'catalogerID', 'fieldNumber'];
       final selected = {'specimenUuid', 'fieldNumber'};

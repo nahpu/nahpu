@@ -6,8 +6,8 @@ import 'package:nahpu/services/export/label_writer.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:pdfrx/pdfrx.dart';
 
-class LabelPageLivePreview extends ConsumerStatefulWidget {
-  const LabelPageLivePreview({
+class DocumentPageLivePreview extends ConsumerStatefulWidget {
+  const DocumentPageLivePreview({
     super.key,
     required this.selectedUuidList,
     required this.layout,
@@ -17,11 +17,11 @@ class LabelPageLivePreview extends ConsumerStatefulWidget {
   final rust_config.DocumentLayoutPreset layout;
 
   @override
-  ConsumerState<LabelPageLivePreview> createState() =>
-      _LabelPageLivePreviewState();
+  ConsumerState<DocumentPageLivePreview> createState() =>
+      _DocumentPageLivePreviewState();
 }
 
-class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
+class _DocumentPageLivePreviewState extends ConsumerState<DocumentPageLivePreview> {
   bool _isLoading = true;
   String? _error;
   Uint8List? _pdfBytes;
@@ -33,7 +33,7 @@ class _LabelPageLivePreviewState extends ConsumerState<LabelPageLivePreview> {
   }
 
   @override
-  void didUpdateWidget(covariant LabelPageLivePreview oldWidget) {
+  void didUpdateWidget(covariant DocumentPageLivePreview oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.layout != oldWidget.layout ||
         widget.selectedUuidList != oldWidget.selectedUuidList) {

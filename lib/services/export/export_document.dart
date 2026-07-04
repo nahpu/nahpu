@@ -7,8 +7,8 @@ import 'package:nahpu/services/specimen_services.dart';
 
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
-class ExportLabelService {
-  const ExportLabelService({this.ref});
+class ExportDocumentService {
+  const ExportDocumentService({this.ref});
 
   final WidgetRef? ref;
 
@@ -30,8 +30,8 @@ class ExportLabelService {
     return out;
   }
 
-  /// Exports labels to PDF using the provided parameters.
-  Future<void> exportLabels({
+  /// Exports documents to PDF using the provided parameters.
+  Future<void> exportDocuments({
     required Set<String> selectedSpecimens,
     required Directory selectedDir,
     required String fileStem,

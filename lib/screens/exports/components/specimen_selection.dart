@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/column_picker.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/export/export_label.dart';
+import 'package:nahpu/services/export/export_document.dart';
 import 'package:nahpu/services/export/label_writer.dart'
     show fieldValuesForSpecimen;
 import 'package:nahpu/services/platform_services.dart';
@@ -552,7 +552,7 @@ class _SpecimenSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
-    final selectedUuidList = ref.watch(labelSpecimenSelectionProvider);
+    final selectedUuidList = ref.watch(documentSpecimenSelectionProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -564,7 +564,7 @@ class _SpecimenSelectionScreenState
           visibleColumnIds: _visibleColumnIds,
           onSelectionChanged: (selected) {
             ref
-                .read(labelSpecimenSelectionProvider.notifier)
+                .read(documentSpecimenSelectionProvider.notifier)
                 .updateSelection(selected);
           },
           onColumnsChanged: _pickColumns,
@@ -636,7 +636,7 @@ class _SpecimenSelectionScreenState
 
     if (result != null && mounted) {
       var merged =
-          const ExportLabelService().mergeColumnOrder(order, result.toSet());
+          const ExportDocumentService().mergeColumnOrder(order, result.toSet());
       merged = normalizePrintSpecimenTableColumnIds(merged, db);
       if (merged.isEmpty) {
         merged = normalizePrintSpecimenTableColumnIds(
