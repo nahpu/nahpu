@@ -42,6 +42,18 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
   final int _pageSize = 50;
   bool _isLoading = true;
 
+  List<String> _allMatchingUuids = [];
+
+  bool get _isSelectAllEnabled {
+    if (_allMatchingUuids.isEmpty) return false;
+    return _allMatchingUuids
+        .any((uuid) => !widget.selectedUuidList.contains(uuid));
+  }
+
+  bool get _isClearEnabled {
+    return widget.selectedUuidList.isNotEmpty;
+  }
+
   String _searchQuery = '';
   bool _hasCollectionDate = false;
   String _collectionStartDate = '';
@@ -104,11 +116,31 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
         rowVals[s.uuid] = await fieldValuesForSpecimen(db, s, ref);
       }
 
+      List<String> allUuids = [];
+      if (totalResult != null && totalResult > 0) {
+        final allMatching = await db
+            .searchSpecimens(
+              projectUuid,
+              _searchQuery.isEmpty ? '' : '%$_searchQuery%',
+              _hasCollectionDate,
+              _collectionStartDate,
+              _collectionEndDate,
+              _hasPrepDate,
+              _prepStartDate,
+              _prepEndDate,
+              totalResult,
+              0,
+            )
+            .get();
+        allUuids = allMatching.map((e) => e.uuid).toList();
+      }
+
       if (!mounted) return;
       setState(() {
         _totalCount = totalResult ?? 0;
         _currentPageData = data;
         _rowValues = rowVals;
+        _allMatchingUuids = allUuids;
         _isLoading = false;
       });
     } catch (e) {
@@ -256,10 +288,27 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
           padding: const EdgeInsets.all(8.0),
           child: Row(
             children: [
-              Text(
-                'Selected ${widget.selectedUuidList.length} of $_totalCount',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              if (!widget.isSingleSelection) ...[
+                TextButton(
+                  onPressed: _isClearEnabled
+                      ? () {
+                          widget.onSelectionChanged(<String>{});
+                        }
+                      : null,
+                  child: const Text('Clear all'),
+                ),
+                TextButton(
+                  onPressed: _isSelectAllEnabled
+                      ? () {
+                          final newSelected =
+                              Set<String>.from(widget.selectedUuidList);
+                          newSelected.addAll(_allMatchingUuids);
+                          widget.onSelectionChanged(newSelected);
+                        }
+                      : null,
+                  child: const Text('Select all'),
+                ),
+              ],
               const Spacer(),
               IconButton(
                 tooltip: 'Table columns',
@@ -270,7 +319,7 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -428,30 +477,37 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                 ),
         ),
         if (!_isLoading)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: _currentPage > 0
-                    ? () {
-                        setState(() => _currentPage--);
-                        _fetchPage();
-                      }
-                    : null,
-              ),
-              Text(
-                  'Page ${_currentPage + 1} of ${(_totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1)}'),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: (_currentPage + 1) * _pageSize < _totalCount
-                    ? () {
-                        setState(() => _currentPage++);
-                        _fetchPage();
-                      }
-                    : null,
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: Row(
+              children: [
+                Text(
+                  'Selected ${widget.selectedUuidList.length} of $_totalCount',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: _currentPage > 0
+                      ? () {
+                          setState(() => _currentPage--);
+                          _fetchPage();
+                        }
+                      : null,
+                ),
+                Text(
+                    'Page ${_currentPage + 1} of ${(_totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1)}'),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: (_currentPage + 1) * _pageSize < _totalCount
+                      ? () {
+                          setState(() => _currentPage++);
+                          _fetchPage();
+                        }
+                      : null,
+                ),
+              ],
+            ),
           ),
       ],
     );

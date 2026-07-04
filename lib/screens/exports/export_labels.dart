@@ -19,6 +19,7 @@ import 'package:nahpu/screens/exports/components/specimen_selection.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/export/export_label.dart';
 import 'package:nahpu/screens/exports/components/column_picker.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/screens/exports/components/label_preview_pane.dart';
 import 'package:nahpu/screens/exports/components/label_settings_pane.dart';
 
@@ -403,6 +404,10 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
         ? null
         : await templateService.getTemplate(selectedTemplateName);
 
+    final projectUuid = ref.read(projectUuidProvider);
+    final specimenUuids =
+        await SpecimenQuery(db).getAllSpecimenUuids(projectUuid);
+
     if (mounted) {
       setState(() {
         _template = pickedTemplate;
@@ -426,6 +431,8 @@ class _ExportLabelsViewState extends ConsumerState<ExportLabelsView>
         _labelPadLeftMm = currentSetup.labelPadLeftMm;
         _labelPadRightMm = currentSetup.labelPadRightMm;
         _labelPadBottomMm = currentSetup.labelPadBottomMm;
+        _selected.clear();
+        _selected.addAll(specimenUuids);
       });
     }
     try {
