@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:path/path.dart' as path;
 import 'package:nahpu/screens/exports/components/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/document_layout_service.dart';
@@ -33,13 +36,6 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Document presets'),
-        actions: [
-          IconButton(
-            tooltip: 'Add preset',
-            onPressed: _loading ? null : _addPreset,
-            icon: const Icon(Icons.add),
-          ),
-        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -57,6 +53,7 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
                                 selectedName: _selectedLayoutName,
                                 onPresetSelected: _selectLayout,
                                 onDeletePreset: _deletePreset,
+                                onCreatePreset: _loading ? null : _addPreset,
                               )
                             : DocumentLayoutSection(
                                 layout: _layout!,
@@ -65,12 +62,13 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
                                 templateNames: _templateNames,
                                 onLayoutChanged: _layoutChanged,
                                 onSetupSelected: _selectLayout,
+                                onCreatePreset: _loading ? null : _addPreset,
                                 onSaveSetupAs: _savePresetAs,
                                 onDeleteSetup: _deletePreset,
-                                onExportSetup: () {},
-                                onImportSetup: () {},
+                                onExportSetup: _exportPreset,
+                                onImportSetup: _importPreset,
                                 onCreateTemplate: _openTemplateEditor,
-                                showFileActions: false,
+                                showFileActions: true,
                                 incompatibleSetupNames: _incompatibleNames,
                               ),
                       ),
@@ -242,6 +240,64 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen> {
     await _load();
   }
 
+  Future<void> _exportPreset() async {
+    final layout = _layout;
+    if (layout == null) return;
+    final safe = _selectedLayoutName.replaceAll(RegExp(r'[^\w.\-]'), '_');
+    final location = await getSaveLocation(
+      suggestedName: 'document_layout_$safe.json',
+    );
+    if (location == null) return;
+    final savePath = location.path;
+    final out =
+        savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
+
+    await rust_config.exportDocumentLayoutToFile(layout: layout, filePath: out);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Saved ${path.basename(out)}')),
+    );
+  }
+
+  Future<void> _importPreset() async {
+    final picked = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    final filePath = picked?.files.single.path;
+    if (filePath == null) return;
+
+    try {
+      var imported =
+          await rust_config.importDocumentLayoutFromFile(filePath: filePath);
+
+      final names = _layoutNames;
+      if (names.contains(imported.name)) {
+        final base = imported.name;
+        var i = 2;
+        while (names.contains('$base $i')) {
+          i++;
+        }
+        imported = imported.copyWith(name: '$base $i');
+      }
+
+      await _layoutService.saveLayout(imported);
+      await _layoutService.setCurrentLayoutName(imported.name);
+      await _load();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Imported layout "${imported.name}"')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid document layout file: $e')),
+      );
+    }
+  }
+
   Future<String?> _promptPresetName({
     required String title,
     String? initialValue,
@@ -267,12 +323,14 @@ class _IncompatibleDocumentPreset extends StatelessWidget {
     required this.selectedName,
     required this.onPresetSelected,
     required this.onDeletePreset,
+    this.onCreatePreset,
   });
 
   final List<rust_config.DocumentLayoutStatus> statuses;
   final String selectedName;
   final ValueChanged<String> onPresetSelected;
   final VoidCallback onDeletePreset;
+  final VoidCallback? onCreatePreset;
 
   @override
   Widget build(BuildContext context) {
@@ -334,6 +392,11 @@ class _IncompatibleDocumentPreset extends StatelessWidget {
                     if (value != null) onPresetSelected(value);
                   },
                 ),
+              ),
+              OutlinedButton.icon(
+                onPressed: onCreatePreset,
+                icon: const Icon(Icons.add),
+                label: const Text('New'),
               ),
               OutlinedButton.icon(
                 onPressed: null,

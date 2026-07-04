@@ -109,6 +109,18 @@ Future<List<DocumentLayoutPreset>> getAllDocumentLayouts() =>
 Future<List<DocumentLayoutStatus>> getDocumentLayoutStatuses() =>
     RustLib.instance.api.crateApiConfigGetDocumentLayoutStatuses();
 
+/// Exports a single document layout preset to a JSON file at the specified path.
+Future<void> exportDocumentLayoutToFile(
+        {required DocumentLayoutPreset layout, required String filePath}) =>
+    RustLib.instance.api.crateApiConfigExportDocumentLayoutToFile(
+        layout: layout, filePath: filePath);
+
+/// Imports a single document layout preset from a JSON file.
+Future<DocumentLayoutPreset> importDocumentLayoutFromFile(
+        {required String filePath}) =>
+    RustLib.instance.api
+        .crateApiConfigImportDocumentLayoutFromFile(filePath: filePath);
+
 /// Represents a combined export field configuration.
 class ConfigCombinedField {
   /// Unique identifier for the combined field.

@@ -18,10 +18,6 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.isRunning,
     required this.onLayoutChanged,
     required this.onSetupSelected,
-    required this.onSaveSetupAs,
-    required this.onDeleteSetup,
-    required this.onExportSetup,
-    required this.onImportSetup,
     required this.onFileNameChanged,
     required this.onSelectDir,
     required this.onClearDir,
@@ -29,7 +25,7 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.selectedCount,
     required this.totalCount,
     required this.onSelectSpecimens,
-    required this.onCreateTemplate,
+    required this.onManagePresets,
   });
 
   final rust_config.DocumentLayoutPreset layout;
@@ -43,10 +39,6 @@ class DocumentSettingsPane extends StatelessWidget {
 
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final ValueChanged<String> onSetupSelected;
-  final VoidCallback onSaveSetupAs;
-  final VoidCallback onDeleteSetup;
-  final VoidCallback onExportSetup;
-  final VoidCallback onImportSetup;
 
   final ValueChanged<String?> onFileNameChanged;
   final Future<void> Function() onSelectDir;
@@ -55,7 +47,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final int selectedCount;
   final int totalCount;
   final VoidCallback onSelectSpecimens;
-  final VoidCallback onCreateTemplate;
+  final VoidCallback onManagePresets;
 
   @override
   Widget build(BuildContext context) {
@@ -108,11 +100,9 @@ class DocumentSettingsPane extends StatelessWidget {
                 templateNames: templateNames,
                 onLayoutChanged: onLayoutChanged,
                 onSetupSelected: onSetupSelected,
-                onSaveSetupAs: onSaveSetupAs,
-                onDeleteSetup: onDeleteSetup,
-                onExportSetup: onExportSetup,
-                onImportSetup: onImportSetup,
-                onCreateTemplate: onCreateTemplate,
+                showPresetActions: false,
+                showBlocks: false,
+                onManagePresets: onManagePresets,
               ),
               const SizedBox(height: 8),
               Container(
@@ -205,12 +195,16 @@ class DocumentLayoutSection extends StatefulWidget {
     required this.templateNames,
     required this.onLayoutChanged,
     required this.onSetupSelected,
-    required this.onSaveSetupAs,
-    required this.onDeleteSetup,
-    required this.onExportSetup,
-    required this.onImportSetup,
-    required this.onCreateTemplate,
+    this.onCreatePreset,
+    this.onSaveSetupAs,
+    this.onDeleteSetup,
+    this.onExportSetup,
+    this.onImportSetup,
+    this.onCreateTemplate,
     this.showFileActions = true,
+    this.showPresetActions = true,
+    this.showBlocks = true,
+    this.onManagePresets,
     this.incompatibleSetupNames = const {},
   });
 
@@ -220,12 +214,16 @@ class DocumentLayoutSection extends StatefulWidget {
   final List<String> templateNames;
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final ValueChanged<String> onSetupSelected;
-  final VoidCallback onSaveSetupAs;
-  final VoidCallback onDeleteSetup;
-  final VoidCallback onExportSetup;
-  final VoidCallback onImportSetup;
-  final VoidCallback onCreateTemplate;
+  final VoidCallback? onCreatePreset;
+  final VoidCallback? onSaveSetupAs;
+  final VoidCallback? onDeleteSetup;
+  final VoidCallback? onExportSetup;
+  final VoidCallback? onImportSetup;
+  final VoidCallback? onCreateTemplate;
   final bool showFileActions;
+  final bool showPresetActions;
+  final bool showBlocks;
+  final VoidCallback? onManagePresets;
   final Set<String> incompatibleSetupNames;
 
   @override
@@ -368,28 +366,41 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
                   },
                 ),
               ),
-              OutlinedButton.icon(
-                onPressed: widget.onSaveSetupAs,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Save As'),
-              ),
-              OutlinedButton.icon(
-                onPressed: widget.selectedSetupName == 'Default'
-                    ? null
-                    : widget.onDeleteSetup,
-                icon: const Icon(Icons.delete_outline),
-                label: const Text('Delete'),
-              ),
-              if (widget.showFileActions) ...[
+              if (widget.showPresetActions) ...[
                 OutlinedButton.icon(
-                  onPressed: widget.onImportSetup,
-                  icon: const Icon(Icons.download_outlined),
-                  label: const Text('Import'),
+                  onPressed: widget.onCreatePreset,
+                  icon: const Icon(Icons.add),
+                  label: const Text('New'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: widget.onExportSetup,
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('Export'),
+                  onPressed: widget.onSaveSetupAs,
+                  icon: const Icon(Icons.save_outlined),
+                  label: const Text('Save As'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: widget.selectedSetupName == 'Default'
+                      ? null
+                      : widget.onDeleteSetup,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete'),
+                ),
+                if (widget.showFileActions) ...[
+                  OutlinedButton.icon(
+                    onPressed: widget.onImportSetup,
+                    icon: const Icon(Icons.download_outlined),
+                    label: const Text('Import'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: widget.onExportSetup,
+                    icon: const Icon(Icons.upload_file_outlined),
+                    label: const Text('Export'),
+                  ),
+                ],
+              ] else if (widget.onManagePresets != null) ...[
+                OutlinedButton.icon(
+                  onPressed: widget.onManagePresets,
+                  icon: const Icon(Icons.description_outlined),
+                  label: const Text('Presets'),
                 ),
               ],
             ],
@@ -570,271 +581,274 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
               ],
             ],
           ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Layout Blocks',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              Wrap(
-                spacing: 8,
-                children: [
-                  TextButton.icon(
-                    onPressed: widget.onCreateTemplate,
-                    icon: const Icon(Icons.edit_note_outlined),
-                    label: const Text('Create Preset'),
-                  ),
-                  TextButton.icon(
-                    onPressed: _addBlock,
-                    icon: const Icon(Icons.add_circle_outline),
-                    label: const Text('Add Block'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...widget.layout.blocks.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final block = entry.value;
-            final isExpanded = _expandedBlocks[idx] ?? false;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+          if (widget.showBlocks) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Layout Blocks',
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Block #${idx + 1}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    _expandedBlocks[idx] = !isExpanded;
-                                  });
-                                },
-                                icon: Icon(isExpanded
-                                    ? Icons.expand_less
-                                    : Icons.expand_more),
-                                label: Text(
-                                    isExpanded ? 'Show less' : 'Show more'),
-                              ),
-                              if (widget.layout.blocks.length > 1)
-                                IconButton(
-                                  onPressed: () => _deleteBlock(idx),
-                                  icon: const Icon(Icons.delete_sweep_outlined,
-                                      color: Colors.red),
-                                  tooltip: 'Delete Block',
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 200,
-                            child: DropdownButtonFormField<String>(
-                              key: ValueKey(
-                                  'block-template-$idx-${block.templateName}'),
-                              initialValue: widget.templateNames
-                                      .contains(block.templateName)
-                                  ? block.templateName
-                                  : (widget.templateNames.isNotEmpty
-                                      ? widget.templateNames.first
-                                      : null),
-                              decoration: const InputDecoration(
-                                labelText: 'Template preset',
-                                border: OutlineInputBorder(),
-                                isDense: true,
-                              ),
-                              items: widget.templateNames
-                                  .map(
-                                    (name) => DropdownMenuItem<String>(
-                                      value: name,
-                                      child: Text(name),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (v) {
-                                if (v != null) {
-                                  _updateBlock(
-                                      idx, block.copyWith(templateName: v));
-                                }
-                              },
-                            ),
-                          ),
-                          NumberField(
-                            label: 'Copies',
-                            initialValue: '${block.templateCount}',
-                            onChanged: (value) {
-                              _updateBlock(
-                                idx,
-                                block.copyWith(
-                                  templateCount: _parseIntOrCurrent(
-                                      value, block.templateCount),
-                                ),
-                              );
-                            },
-                          ),
-                          if (isExpanded) ...[
-                            if (!isContinuous)
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  NumberField(
-                                    label: 'Rows',
-                                    initialValue: '${block.rows}',
-                                    onChanged: (value) {
-                                      _updateBlock(
-                                        idx,
-                                        block.copyWith(
-                                          rows: _parseIntOrCurrent(
-                                              value, block.rows),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(width: 10),
-                                  NumberField(
-                                    label: 'Cols',
-                                    initialValue: '${block.cols}',
-                                    onChanged: (value) {
-                                      _updateBlock(
-                                        idx,
-                                        block.copyWith(
-                                          cols: _parseIntOrCurrent(
-                                              value, block.cols),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            NumberField(
-                              label: 'Template top',
-                              initialValue:
-                                  block.templatePadTopMm.toStringAsFixed(1),
-                              onChanged: (value) {
-                                _updateBlock(
-                                  idx,
-                                  block.copyWith(
-                                    templatePadTopMm: _parseMmOrCurrent(
-                                        value, block.templatePadTopMm),
-                                  ),
-                                );
-                              },
-                            ),
-                            NumberField(
-                              label: 'Template left',
-                              initialValue:
-                                  block.templatePadLeftMm.toStringAsFixed(1),
-                              onChanged: (value) {
-                                _updateBlock(
-                                  idx,
-                                  block.copyWith(
-                                    templatePadLeftMm: _parseMmOrCurrent(
-                                        value, block.templatePadLeftMm),
-                                  ),
-                                );
-                              },
-                            ),
-                            NumberField(
-                              label: 'Template right',
-                              initialValue:
-                                  block.templatePadRightMm.toStringAsFixed(1),
-                              onChanged: (value) {
-                                _updateBlock(
-                                  idx,
-                                  block.copyWith(
-                                    templatePadRightMm: _parseMmOrCurrent(
-                                        value, block.templatePadRightMm),
-                                  ),
-                                );
-                              },
-                            ),
-                            NumberField(
-                              label: 'Template bottom',
-                              initialValue:
-                                  block.templatePadBottomMm.toStringAsFixed(1),
-                              onChanged: (value) {
-                                _updateBlock(
-                                  idx,
-                                  block.copyWith(
-                                    templatePadBottomMm: _parseMmOrCurrent(
-                                        value, block.templatePadBottomMm),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ],
-                      ),
-                      if (!isContinuous && isExpanded) ...[
-                        const SizedBox(height: 12),
-                        const Divider(),
-                        const SizedBox(height: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    TextButton.icon(
+                      onPressed: widget.onCreateTemplate,
+                      icon: const Icon(Icons.edit_note_outlined),
+                      label: const Text('Create Preset'),
+                    ),
+                    TextButton.icon(
+                      onPressed: _addBlock,
+                      icon: const Icon(Icons.add_circle_outline),
+                      label: const Text('Add Block'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...widget.layout.blocks.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final block = entry.value;
+              final isExpanded = _expandedBlocks[idx] ?? false;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Page break after',
-                              style: Theme.of(context).textTheme.titleSmall,
+                              'Block #${idx + 1}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
-                            const SizedBox(height: 4),
                             Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Checkbox(
-                                  value: block.pageBreakAfter,
-                                  onChanged: (v) {
-                                    if (v != null) {
-                                      _updateBlock(idx,
-                                          block.copyWith(pageBreakAfter: v));
-                                    }
+                                TextButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      _expandedBlocks[idx] = !isExpanded;
+                                    });
                                   },
+                                  icon: Icon(isExpanded
+                                      ? Icons.expand_less
+                                      : Icons.expand_more),
+                                  label: Text(
+                                      isExpanded ? 'Show less' : 'Show more'),
                                 ),
-                                const Text(
-                                    'Insert page break after this block'),
+                                if (widget.layout.blocks.length > 1)
+                                  IconButton(
+                                    onPressed: () => _deleteBlock(idx),
+                                    icon: const Icon(
+                                        Icons.delete_sweep_outlined,
+                                        color: Colors.red),
+                                    tooltip: 'Delete Block',
+                                  ),
                               ],
                             ),
                           ],
                         ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 200,
+                              child: DropdownButtonFormField<String>(
+                                key: ValueKey(
+                                    'block-template-$idx-${block.templateName}'),
+                                initialValue: widget.templateNames
+                                        .contains(block.templateName)
+                                    ? block.templateName
+                                    : (widget.templateNames.isNotEmpty
+                                        ? widget.templateNames.first
+                                        : null),
+                                decoration: const InputDecoration(
+                                  labelText: 'Template preset',
+                                  border: OutlineInputBorder(),
+                                  isDense: true,
+                                ),
+                                items: widget.templateNames
+                                    .map(
+                                      (name) => DropdownMenuItem<String>(
+                                        value: name,
+                                        child: Text(name),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v != null) {
+                                    _updateBlock(
+                                        idx, block.copyWith(templateName: v));
+                                  }
+                                },
+                              ),
+                            ),
+                            NumberField(
+                              label: 'Copies',
+                              initialValue: '${block.templateCount}',
+                              onChanged: (value) {
+                                _updateBlock(
+                                  idx,
+                                  block.copyWith(
+                                    templateCount: _parseIntOrCurrent(
+                                        value, block.templateCount),
+                                  ),
+                                );
+                              },
+                            ),
+                            if (isExpanded) ...[
+                              if (!isContinuous)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    NumberField(
+                                      label: 'Rows',
+                                      initialValue: '${block.rows}',
+                                      onChanged: (value) {
+                                        _updateBlock(
+                                          idx,
+                                          block.copyWith(
+                                            rows: _parseIntOrCurrent(
+                                                value, block.rows),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 10),
+                                    NumberField(
+                                      label: 'Cols',
+                                      initialValue: '${block.cols}',
+                                      onChanged: (value) {
+                                        _updateBlock(
+                                          idx,
+                                          block.copyWith(
+                                            cols: _parseIntOrCurrent(
+                                                value, block.cols),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              NumberField(
+                                label: 'Template top',
+                                initialValue:
+                                    block.templatePadTopMm.toStringAsFixed(1),
+                                onChanged: (value) {
+                                  _updateBlock(
+                                    idx,
+                                    block.copyWith(
+                                      templatePadTopMm: _parseMmOrCurrent(
+                                          value, block.templatePadTopMm),
+                                    ),
+                                  );
+                                },
+                              ),
+                              NumberField(
+                                label: 'Template left',
+                                initialValue:
+                                    block.templatePadLeftMm.toStringAsFixed(1),
+                                onChanged: (value) {
+                                  _updateBlock(
+                                    idx,
+                                    block.copyWith(
+                                      templatePadLeftMm: _parseMmOrCurrent(
+                                          value, block.templatePadLeftMm),
+                                    ),
+                                  );
+                                },
+                              ),
+                              NumberField(
+                                label: 'Template right',
+                                initialValue:
+                                    block.templatePadRightMm.toStringAsFixed(1),
+                                onChanged: (value) {
+                                  _updateBlock(
+                                    idx,
+                                    block.copyWith(
+                                      templatePadRightMm: _parseMmOrCurrent(
+                                          value, block.templatePadRightMm),
+                                    ),
+                                  );
+                                },
+                              ),
+                              NumberField(
+                                label: 'Template bottom',
+                                initialValue: block.templatePadBottomMm
+                                    .toStringAsFixed(1),
+                                onChanged: (value) {
+                                  _updateBlock(
+                                    idx,
+                                    block.copyWith(
+                                      templatePadBottomMm: _parseMmOrCurrent(
+                                          value, block.templatePadBottomMm),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (!isContinuous && isExpanded) ...[
+                          const SizedBox(height: 12),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Page break after',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: block.pageBreakAfter,
+                                    onChanged: (v) {
+                                      if (v != null) {
+                                        _updateBlock(idx,
+                                            block.copyWith(pageBreakAfter: v));
+                                      }
+                                    },
+                                  ),
+                                  const Text(
+                                      'Insert page break after this block'),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ],
         ],
       ),
     );

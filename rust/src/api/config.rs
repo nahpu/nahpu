@@ -357,3 +357,24 @@ pub fn get_document_layout_statuses() -> Result<Vec<DocumentLayoutStatus>, Strin
     let res = db.get_document_layout_statuses()?;
     Ok(res.into_iter().map(Into::into).collect())
 }
+
+/// Exports a single document layout preset to a JSON file at the specified path.
+pub fn export_document_layout_to_file(
+    layout: DocumentLayoutPreset,
+    file_path: String,
+) -> Result<(), String> {
+    let internal: nahpu_configs::models::DocumentLayoutPreset = layout.into();
+    let content = serde_json::to_string_pretty(&internal).map_err(|e| e.to_string())?;
+    std::fs::write(&file_path, content).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Imports a single document layout preset from a JSON file.
+pub fn import_document_layout_from_file(
+    file_path: String,
+) -> Result<DocumentLayoutPreset, String> {
+    let content = std::fs::read_to_string(&file_path).map_err(|e| e.to_string())?;
+    let layout: nahpu_configs::models::DocumentLayoutPreset =
+        serde_json::from_str(&content).map_err(|e| e.to_string())?;
+    Ok(layout.into())
+}

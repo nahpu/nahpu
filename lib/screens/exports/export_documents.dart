@@ -1,11 +1,7 @@
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:file_selector/file_selector.dart';
-import 'package:path/path.dart' as path;
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/services/io_services.dart';
@@ -19,7 +15,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:nahpu/screens/exports/components/document_preview_pane.dart';
 import 'package:nahpu/screens/exports/components/document_settings_pane.dart';
 import 'package:nahpu/screens/settings/document_presets.dart';
-import 'package:nahpu/screens/templates/template_editor_screen.dart';
 
 class ExportDocumentsView extends ConsumerStatefulWidget {
   const ExportDocumentsView({super.key});
@@ -90,10 +85,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
             isRunning: _isRunning,
             onLayoutChanged: _layoutChanged,
             onSetupSelected: _selectSetup,
-            onSaveSetupAs: _saveSetupAs,
-            onDeleteSetup: _deleteSetup,
-            onExportSetup: _exportSetup,
-            onImportSetup: _importSetup,
             onFileNameChanged: (v) {
               setState(() {
                 _savePath = null;
@@ -123,14 +114,14 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
                 ),
               );
             },
-            onCreateTemplate: () async {
+            onManagePresets: () async {
               await Navigator.push<void>(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (context) => const TemplateEditorScreen(),
+                  builder: (context) => const DocumentPresetsScreen(),
                 ),
               );
-              _load();
+              await _load();
             },
           );
 
@@ -146,21 +137,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Export documents'),
-        actions: [
-          IconButton(
-            tooltip: 'Document presets',
-            icon: const Icon(Icons.description_outlined),
-            onPressed: () async {
-              await Navigator.push<void>(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (context) => const DocumentPresetsScreen(),
-                ),
-              );
-              await _load();
-            },
-          ),
-        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -293,146 +269,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     });
   }
 
-  Future<void> _saveSetupAs() async {
-    if (_layout == null) return;
-    final ctrl = TextEditingController(text: _selectedSetupName);
-    try {
-      final name = await showDialog<String>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Save document layout'),
-          content: TextField(
-            controller: ctrl,
-            decoration: const InputDecoration(
-              labelText: 'Layout name',
-              border: OutlineInputBorder(),
-            ),
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-              child: const Text('Save'),
-            ),
-          ],
-        ),
-      );
-      if (name == null || name.trim().isEmpty || !mounted) return;
-      final newName = name.trim();
-      final newLayout = _layout!.copyWith(name: newName);
-      await _layoutService.saveLayout(newLayout);
-      await _layoutService.setCurrentLayoutName(newName);
-      final names = await _layoutService.listLayoutNames();
-      setState(() {
-        _setupNames = names;
-        _selectedSetupName = newName;
-        _layout = newLayout;
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved layout "$newName"')),
-      );
-    } finally {
-      ctrl.dispose();
-    }
-  }
-
-  Future<void> _deleteSetup() async {
-    if (_selectedSetupName == 'Default') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot delete Default layout')),
-      );
-      return;
-    }
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete document layout'),
-        content: Text('Delete "$_selectedSetupName"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) return;
-    await _layoutService.deleteLayout(_selectedSetupName);
-    await _load();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Deleted layout "$_selectedSetupName"')),
-    );
-  }
-
-  Future<void> _exportSetup() async {
-    if (_layout == null) return;
-    final safe = _selectedSetupName.replaceAll(RegExp(r'[^\w.\-]'), '_');
-    final location = await getSaveLocation(
-      suggestedName: 'document_layout_$safe.json',
-    );
-    if (location == null) return;
-    final savePath = location.path;
-    final out =
-        savePath.toLowerCase().endsWith('.json') ? savePath : '$savePath.json';
-
-    final jsonMap = documentLayoutPresetToJson(_layout!);
-    final contents = const JsonEncoder.withIndent('  ').convert(jsonMap);
-    await File(out).writeAsString(contents);
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Saved ${path.basename(out)}')),
-    );
-  }
-
-  Future<void> _importSetup() async {
-    final picked = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-    final filePath = picked?.files.single.path;
-    if (filePath == null) return;
-
-    try {
-      final content = await File(filePath).readAsString();
-      final map = jsonDecode(content) as Map<String, dynamic>;
-      var imported = documentLayoutPresetFromJson(map);
-
-      final names = await _layoutService.listLayoutNames();
-      if (names.contains(imported.name)) {
-        final base = imported.name;
-        var i = 2;
-        while (names.contains('$base $i')) {
-          i++;
-        }
-        imported = imported.copyWith(name: '$base $i');
-      }
-
-      await _layoutService.saveLayout(imported);
-      await _layoutService.setCurrentLayoutName(imported.name);
-      await _load();
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Imported layout "${imported.name}"')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid document layout file: $e')),
-      );
-    }
-  }
 
   Future<void> _exportDocuments() async {
     if (!exportCtr.isValid || _selectedDir == null || _layout == null) {

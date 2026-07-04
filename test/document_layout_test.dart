@@ -1,8 +1,27 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:nahpu/src/rust/frb_generated.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/document_layout_service.dart';
 
 void main() {
+  setUpAll(() async {
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+    if (isTest) {
+      final String dylibPath = Platform.isMacOS
+          ? 'rust/target/debug/librust_lib_nahpu.dylib'
+          : Platform.isWindows
+              ? 'rust/target/debug/rust_lib_nahpu.dll'
+              : 'rust/target/debug/librust_lib_nahpu.so';
+      await RustLib.init(
+        externalLibrary: ExternalLibrary.open(dylibPath),
+      );
+    } else {
+      await RustLib.init();
+    }
+  });
+
   group('DocumentLayoutPreset copyWith', () {
     test('copyWith copies and changes specified fields', () {
       final block = rust_config.DocumentLayoutBlock(
@@ -61,7 +80,19 @@ void main() {
   });
 
   group('DocumentLayoutPreset JSON Serialization', () {
-    test('roundtrip serialization matches exactly', () {
+    late Directory tempDir;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('nahpu_document_layout_test_');
+    });
+
+    tearDown(() {
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    test('roundtrip serialization matches exactly', () async {
       final block = rust_config.DocumentLayoutBlock(
         templateName: 'Mammal Skin',
         templateCount: 1,
@@ -88,8 +119,9 @@ void main() {
         blocks: [block],
       );
 
-      final json = documentLayoutPresetToJson(layout);
-      final deserialized = documentLayoutPresetFromJson(json);
+      final filePath = '${tempDir.path}/layout.json';
+      await rust_config.exportDocumentLayoutToFile(layout: layout, filePath: filePath);
+      final deserialized = await rust_config.importDocumentLayoutFromFile(filePath: filePath);
 
       expect(deserialized.name, layout.name);
       expect(deserialized.layoutType, layout.layoutType);
@@ -113,6 +145,63 @@ void main() {
       expect(deserializedBlock.templatePadRightMm, block.templatePadRightMm);
       expect(deserializedBlock.templatePadBottomMm, block.templatePadBottomMm);
       expect(deserializedBlock.pageBreakAfter, block.pageBreakAfter);
+    });
+
+    test('backward compatibility for legacy camelCase JSON fields', () async {
+      final legacyJson = '''
+      {
+        "name": "Legacy Layout",
+        "layoutType": "WholePage",
+        "pageSizeKey": "Letter",
+        "pageOrientation": "portrait",
+        "customPageWidthMm": 215.9,
+        "customPageHeightMm": 279.4,
+        "pagePadTopMm": 8.0,
+        "pagePadLeftMm": 8.0,
+        "pagePadRightMm": 8.0,
+        "pagePadBottomMm": 8.0,
+        "blocks": [
+          {
+            "templateName": "Mammal Skin",
+            "templateCount": 1,
+            "rows": 8,
+            "cols": 4,
+            "templatePadTopMm": 1.0,
+            "templatePadLeftMm": 1.0,
+            "templatePadRightMm": 1.0,
+            "templatePadBottomMm": 1.0,
+            "pageBreakAfter": false
+          }
+        ]
+      }
+      ''';
+
+      final filePath = '${tempDir.path}/legacy_layout.json';
+      await File(filePath).writeAsString(legacyJson);
+      final deserialized = await rust_config.importDocumentLayoutFromFile(filePath: filePath);
+
+      expect(deserialized.name, 'Legacy Layout');
+      expect(deserialized.layoutType, 'WholePage');
+      expect(deserialized.pageSizeKey, 'Letter');
+      expect(deserialized.pageOrientation, 'portrait');
+      expect(deserialized.customPageWidthMm, 215.9);
+      expect(deserialized.customPageHeightMm, 279.4);
+      expect(deserialized.pagePadTopMm, 8.0);
+      expect(deserialized.pagePadLeftMm, 8.0);
+      expect(deserialized.pagePadRightMm, 8.0);
+      expect(deserialized.pagePadBottomMm, 8.0);
+
+      expect(deserialized.blocks.length, 1);
+      final block = deserialized.blocks.first;
+      expect(block.templateName, 'Mammal Skin');
+      expect(block.templateCount, 1);
+      expect(block.rows, 8);
+      expect(block.cols, 4);
+      expect(block.templatePadTopMm, 1.0);
+      expect(block.templatePadLeftMm, 1.0);
+      expect(block.templatePadRightMm, 1.0);
+      expect(block.templatePadBottomMm, 1.0);
+      expect(block.pageBreakAfter, false);
     });
   });
 }
