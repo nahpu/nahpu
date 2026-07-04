@@ -210,6 +210,8 @@ class DocumentLayoutSection extends StatefulWidget {
     required this.onExportSetup,
     required this.onImportSetup,
     required this.onCreateTemplate,
+    this.showFileActions = true,
+    this.incompatibleSetupNames = const {},
   });
 
   final rust_config.DocumentLayoutPreset layout;
@@ -223,6 +225,8 @@ class DocumentLayoutSection extends StatefulWidget {
   final VoidCallback onExportSetup;
   final VoidCallback onImportSetup;
   final VoidCallback onCreateTemplate;
+  final bool showFileActions;
+  final Set<String> incompatibleSetupNames;
 
   @override
   State<DocumentLayoutSection> createState() => _DocumentLayoutSectionState();
@@ -341,7 +345,21 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
                       .map(
                         (n) => DropdownMenuItem<String>(
                           value: n,
-                          child: Text(n),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (widget.incompatibleSetupNames
+                                  .contains(n)) ...[
+                                Icon(
+                                  Icons.warning_amber_outlined,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              Flexible(child: Text(n)),
+                            ],
+                          ),
                         ),
                       )
                       .toList(),
@@ -362,16 +380,18 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
                 icon: const Icon(Icons.delete_outline),
                 label: const Text('Delete'),
               ),
-              OutlinedButton.icon(
-                onPressed: widget.onImportSetup,
-                icon: const Icon(Icons.download_outlined),
-                label: const Text('Import'),
-              ),
-              OutlinedButton.icon(
-                onPressed: widget.onExportSetup,
-                icon: const Icon(Icons.upload_file_outlined),
-                label: const Text('Export'),
-              ),
+              if (widget.showFileActions) ...[
+                OutlinedButton.icon(
+                  onPressed: widget.onImportSetup,
+                  icon: const Icon(Icons.download_outlined),
+                  label: const Text('Import'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: widget.onExportSetup,
+                  icon: const Icon(Icons.upload_file_outlined),
+                  label: const Text('Export'),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 16),

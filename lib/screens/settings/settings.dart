@@ -13,6 +13,7 @@ import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/settings/application_settings.dart';
 import 'package:nahpu/screens/settings/specimen_settings.dart';
+import 'package:nahpu/screens/settings/document_presets.dart';
 import 'package:nahpu/screens/settings/export_presets.dart';
 
 class AppSettings extends ConsumerStatefulWidget {
@@ -222,7 +223,20 @@ class ExportSettingsSection extends StatelessWidget {
                 ),
               );
             }),
-
+        CommonSettingTile(
+          title: 'Documents',
+          label: 'Create and edit document export presets',
+          isNavigation: true,
+          icon: Icons.picture_as_pdf_outlined,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DocumentPresetsScreen(),
+              ),
+            );
+          },
+        ),
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.edit_note_outlined,

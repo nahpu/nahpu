@@ -81,6 +81,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DocumentLayoutPreset dco_decode_document_layout_preset(dynamic raw);
 
   @protected
+  DocumentLayoutStatus dco_decode_document_layout_status(dynamic raw);
+
+  @protected
   double dco_decode_f_64(dynamic raw);
 
   @protected
@@ -100,6 +103,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<DocumentLayoutPreset> dco_decode_list_document_layout_preset(
+      dynamic raw);
+
+  @protected
+  List<DocumentLayoutStatus> dco_decode_list_document_layout_status(
       dynamic raw);
 
   @protected
@@ -227,6 +234,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  DocumentLayoutStatus sse_decode_document_layout_status(
+      SseDeserializer deserializer);
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
@@ -249,6 +260,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<DocumentLayoutPreset> sse_decode_list_document_layout_preset(
+      SseDeserializer deserializer);
+
+  @protected
+  List<DocumentLayoutStatus> sse_decode_list_document_layout_status(
       SseDeserializer deserializer);
 
   @protected
@@ -383,6 +398,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       DocumentLayoutPreset self, SseSerializer serializer);
 
   @protected
+  void sse_encode_document_layout_status(
+      DocumentLayoutStatus self, SseSerializer serializer);
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
@@ -406,6 +425,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_document_layout_preset(
       List<DocumentLayoutPreset> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_document_layout_status(
+      List<DocumentLayoutStatus> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_list_String(

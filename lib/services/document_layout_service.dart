@@ -11,9 +11,24 @@ class DocumentLayoutService {
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
+  Future<List<rust_config.DocumentLayoutStatus>> listLayoutStatuses() async {
+    final statuses = await rust_config.getDocumentLayoutStatuses();
+    statuses.sort((a, b) => a.name.compareTo(b.name));
+    return statuses;
+  }
+
+  Future<String?> getStoredCurrentLayoutName() async {
+    final prefs = await _prefs;
+    return prefs.getString(_kCurrentDocumentLayoutName) ??
+        prefs.getString(_legacyCurrentDocumentLayoutName);
+  }
+
   Future<List<String>> listLayoutNames() async {
-    final layouts = await rust_config.getAllDocumentLayouts();
-    final names = layouts.map((l) => l.name).toList()..sort();
+    final statuses = await listLayoutStatuses();
+    final names = statuses
+        .where((status) => status.isCompatible)
+        .map((status) => status.name)
+        .toList();
     if (!names.contains('Default')) {
       final defaultLayout = await getDefaultLayout('Default');
       await saveLayout(defaultLayout);
@@ -41,9 +56,7 @@ class DocumentLayoutService {
   }
 
   Future<String> getCurrentLayoutName() async {
-    final prefs = await _prefs;
-    final stored = prefs.getString(_kCurrentDocumentLayoutName) ??
-        prefs.getString(_legacyCurrentDocumentLayoutName);
+    final stored = await getStoredCurrentLayoutName();
     final names = await listLayoutNames();
     if (stored != null && names.contains(stored)) return stored;
     return names.first;

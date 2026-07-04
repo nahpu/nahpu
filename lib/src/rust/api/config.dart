@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Initializes the configuration database at the specified path.
 Future<void> initConfigDb({required String path}) =>
@@ -104,6 +104,10 @@ Future<void> deleteDocumentLayout({required String name}) =>
 /// Retrieves all document layouts.
 Future<List<DocumentLayoutPreset>> getAllDocumentLayouts() =>
     RustLib.instance.api.crateApiConfigGetAllDocumentLayouts();
+
+/// Retrieves compatibility status for every stored document layout.
+Future<List<DocumentLayoutStatus>> getDocumentLayoutStatuses() =>
+    RustLib.instance.api.crateApiConfigGetDocumentLayoutStatuses();
 
 /// Represents a combined export field configuration.
 class ConfigCombinedField {
@@ -290,4 +294,29 @@ class DocumentLayoutPreset {
           pagePadRightMm == other.pagePadRightMm &&
           pagePadBottomMm == other.pagePadBottomMm &&
           blocks == other.blocks;
+}
+
+/// Represents whether a stored document layout can be read by the current schema.
+class DocumentLayoutStatus {
+  final String name;
+  final bool isCompatible;
+  final String? error;
+
+  const DocumentLayoutStatus({
+    required this.name,
+    required this.isCompatible,
+    this.error,
+  });
+
+  @override
+  int get hashCode => name.hashCode ^ isCompatible.hashCode ^ error.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DocumentLayoutStatus &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          isCompatible == other.isCompatible &&
+          error == other.error;
 }

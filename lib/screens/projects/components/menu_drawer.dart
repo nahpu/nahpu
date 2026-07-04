@@ -12,6 +12,7 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/app_settings_import.dart';
+import 'package:nahpu/screens/settings/document_presets.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -73,7 +74,19 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ExportDocumentsView()),
+              MaterialPageRoute(
+                  builder: (context) => const ExportDocumentsView()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.description_outlined),
+          title: const Text('Document presets'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const DocumentPresetsScreen()),
             );
           },
         ),

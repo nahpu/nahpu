@@ -18,6 +18,7 @@ import 'package:nahpu/services/export/export_document.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:nahpu/screens/exports/components/document_preview_pane.dart';
 import 'package:nahpu/screens/exports/components/document_settings_pane.dart';
+import 'package:nahpu/screens/settings/document_presets.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 
 class ExportDocumentsView extends ConsumerStatefulWidget {
@@ -145,6 +146,21 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Export documents'),
+        actions: [
+          IconButton(
+            tooltip: 'Document presets',
+            icon: const Icon(Icons.description_outlined),
+            onPressed: () async {
+              await Navigator.push<void>(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => const DocumentPresetsScreen(),
+                ),
+              );
+              await _load();
+            },
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

@@ -57,6 +57,13 @@ pub struct DocumentLayoutPreset {
     pub blocks: Vec<DocumentLayoutBlock>,
 }
 
+/// Represents whether a stored document layout can be read by the current schema.
+pub struct DocumentLayoutStatus {
+    pub name: String,
+    pub is_compatible: bool,
+    pub error: Option<String>,
+}
+
 impl From<nahpu_configs::DocumentLayoutBlock> for DocumentLayoutBlock {
     fn from(b: nahpu_configs::DocumentLayoutBlock) -> Self {
         Self {
@@ -166,6 +173,16 @@ impl From<nahpu_configs::ConfigPresetEntry> for ConfigPresetEntry {
         Self {
             name: c.name,
             preset: c.preset.into(),
+        }
+    }
+}
+
+impl From<nahpu_configs::DocumentLayoutStatus> for DocumentLayoutStatus {
+    fn from(s: nahpu_configs::DocumentLayoutStatus) -> Self {
+        Self {
+            name: s.name,
+            is_compatible: s.is_compatible,
+            error: s.error,
         }
     }
 }
@@ -331,5 +348,12 @@ pub fn delete_document_layout(name: String) -> Result<(), String> {
 pub fn get_all_document_layouts() -> Result<Vec<DocumentLayoutPreset>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_all_document_layouts()?;
+    Ok(res.into_iter().map(Into::into).collect())
+}
+
+/// Retrieves compatibility status for every stored document layout.
+pub fn get_document_layout_statuses() -> Result<Vec<DocumentLayoutStatus>, String> {
+    let db = ConfigDb::get_instance()?;
+    let res = db.get_document_layout_statuses()?;
     Ok(res.into_iter().map(Into::into).collect())
 }
