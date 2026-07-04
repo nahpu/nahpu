@@ -56,6 +56,7 @@ class HomeMenuDrawer extends StatelessWidget {
             );
           },
         ),
+        const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.settings_rounded),
           title: const Text('Settings'),
@@ -66,7 +67,7 @@ class HomeMenuDrawer extends StatelessWidget {
             );
           },
         ),
-        const CommonLineDivider(),
+
         ListTile(
           leading: const Icon(Icons.share_rounded),
           title: const Text('Export settings'),
