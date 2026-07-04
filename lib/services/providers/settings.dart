@@ -9,7 +9,17 @@ import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 
+// App settings keys (UI/Device states)
+// Used for keeping track of user preferences and app states
+// Not required for research reproducibility. Cannot be exported/imported.
+// Internally, we call it `App Settings`
 const String themeModePrefKey = 'themeMode';
+const String catalogFmtPrefKey = 'catalogFmt';
+
+// User Configs keys (Project-level settings)
+// User defined fields, formats, presets, and other user-configured fields.
+// Required for research reproducibility. Can be exported/imported.
+// Internally, we call it `User Configs`
 const String siteTypePrefKey = 'siteTypes';
 const String siteTypeFmtPrefKey = 'siteTypeFmt';
 const String habitatTypePrefKey = 'habitatTypes';
@@ -23,6 +33,9 @@ const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
+
+// Document Export settings
+// User-configurable export presets and PDF document settings.
 const String exportPresetPrefKey = 'exportPresets';
 const String pdfExportFontPrefKey = 'pdfExportFont';
 
@@ -108,8 +121,6 @@ List<String> getDefaultOptionsList(String prefKey) {
       return [];
   }
 }
-
-const String catalogFmtPrefKey = 'catalogFmt';
 
 final catalogFmtNotifierProvider =
     AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(

@@ -10,7 +10,7 @@ import 'package:nahpu/screens/templates/components/layout/template_editor_loadin
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/label_settings_services.dart';
+import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/template_editor_service.dart';
 import 'package:nahpu/services/export/label_writer.dart';

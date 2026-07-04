@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/label_settings_services.dart';
+import 'package:nahpu/services/template_settings_services.dart';
 
 /// Avery-style presets (mm). Round templates use [diameter × diameter] bounding box.
 const List<(String label, double w, double h)> _kMailingAddressPresets = [
