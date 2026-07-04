@@ -68,20 +68,6 @@ class DocumentSettingsPane extends StatelessWidget {
           FileOperationPage(
             children: [
               const FileFormatIcon(path: 'assets/icons/pdf.svg'),
-              DocumentLayoutSection(
-                layout: layout,
-                setupNames: setupNames,
-                selectedSetupName: selectedSetupName,
-                templateNames: templateNames,
-                onLayoutChanged: onLayoutChanged,
-                onSetupSelected: onSetupSelected,
-                onSaveSetupAs: onSaveSetupAs,
-                onDeleteSetup: onDeleteSetup,
-                onExportSetup: onExportSetup,
-                onImportSetup: onImportSetup,
-                onCreateTemplate: onCreateTemplate,
-              ),
-              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -116,17 +102,82 @@ class DocumentSettingsPane extends StatelessWidget {
                   ],
                 ),
               ),
-              FileNameField(
-                controller: exportCtr,
-                onChanged: onFileNameChanged,
+              const SizedBox(height: 8),
+              DocumentLayoutSection(
+                layout: layout,
+                setupNames: setupNames,
+                selectedSetupName: selectedSetupName,
+                templateNames: templateNames,
+                onLayoutChanged: onLayoutChanged,
+                onSetupSelected: onSetupSelected,
+                onSaveSetupAs: onSaveSetupAs,
+                onDeleteSetup: onDeleteSetup,
+                onExportSetup: onExportSetup,
+                onImportSetup: onImportSetup,
+                onCreateTemplate: onCreateTemplate,
               ),
-              const SizedBox(height: 10),
-              SelectDirField(
-                dirPath: selectedDir,
-                onPressed: onSelectDir,
-                onCanceled: onClearDir,
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'File settings',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 10),
+                    FileNameField(
+                      controller: exportCtr,
+                      onChanged: onFileNameChanged,
+                    ),
+                    if (!Platform.isIOS && !Platform.isAndroid) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Save to',
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  selectedDir != null
+                                      ? selectedDir!.path
+                                      : 'Select directory',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          selectedDir == null
+                              ? OutlinedButton.icon(
+                                  onPressed: onSelectDir,
+                                  icon: const Icon(
+                                    Icons.folder_outlined,
+                                  ),
+                                  label: const Text('Browse'),
+                                )
+                              : IconButton(
+                                  onPressed: onClearDir,
+                                  icon: const Icon(Icons.clear_rounded),
+                                ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               hasSaved
                   ? Padding(
                       padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
@@ -137,7 +188,7 @@ class DocumentSettingsPane extends StatelessWidget {
                       ),
                     )
                   : const SizedBox.shrink(),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Wrap(
                 spacing: 12,
                 runSpacing: 12,

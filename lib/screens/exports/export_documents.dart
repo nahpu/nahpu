@@ -14,6 +14,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/exports/components/specimen_selection.dart';
 import 'package:nahpu/services/export/export_document.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:nahpu/screens/exports/components/document_preview_pane.dart';
 import 'package:nahpu/screens/exports/components/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
@@ -221,6 +222,15 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           _previewStale = false;
           _loading = false;
         });
+      }
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        final appDocDir = await getApplicationDocumentsDirectory();
+        if (mounted) {
+          setState(() {
+            _selectedDir = appDocDir;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
