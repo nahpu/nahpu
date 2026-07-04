@@ -273,8 +273,6 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   }
 }
 
-
-
 final fieldIdModeNotifierProvider =
     AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(
         FieldIdModeNotifier.new);

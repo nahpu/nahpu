@@ -83,7 +83,8 @@ void main() {
     late Directory tempDir;
 
     setUp(() {
-      tempDir = Directory.systemTemp.createTempSync('nahpu_document_layout_test_');
+      tempDir =
+          Directory.systemTemp.createTempSync('nahpu_document_layout_test_');
     });
 
     tearDown(() {
@@ -120,8 +121,10 @@ void main() {
       );
 
       final filePath = '${tempDir.path}/layout.json';
-      await rust_config.exportDocumentLayoutToFile(layout: layout, filePath: filePath);
-      final deserialized = await rust_config.importDocumentLayoutFromFile(filePath: filePath);
+      await rust_config.exportDocumentLayoutToFile(
+          layout: layout, filePath: filePath);
+      final deserialized =
+          await rust_config.importDocumentLayoutFromFile(filePath: filePath);
 
       expect(deserialized.name, layout.name);
       expect(deserialized.layoutType, layout.layoutType);
@@ -178,7 +181,8 @@ void main() {
 
       final filePath = '${tempDir.path}/legacy_layout.json';
       await File(filePath).writeAsString(legacyJson);
-      final deserialized = await rust_config.importDocumentLayoutFromFile(filePath: filePath);
+      final deserialized =
+          await rust_config.importDocumentLayoutFromFile(filePath: filePath);
 
       expect(deserialized.name, 'Legacy Layout');
       expect(deserialized.layoutType, 'WholePage');

@@ -108,7 +108,6 @@ class DocumentLayoutService {
   }
 }
 
-
 extension DocumentLayoutBlockExtension on rust_config.DocumentLayoutBlock {
   rust_config.DocumentLayoutBlock copyWith({
     String? templateName,

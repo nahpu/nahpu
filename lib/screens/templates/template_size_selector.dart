@@ -2,74 +2,149 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 
-/// Avery-style presets (mm). Round templates use [diameter × diameter] bounding box.
-const List<(String label, double w, double h)> _kMailingAddressPresets = [
-  ('5160 / 8160 — Standard address', 66.7, 25.4),
-  ('5167 / 8167 — Return address', 44.4, 12.7),
-  ('5161 / 8161 — Large address', 101.6, 25.4),
-  ('5162 / 8162 — Large address / shipping', 101.6, 33.9),
-  ('5195 / 8195 — Mini return address', 44.4, 16.9),
-  ('5366 / 8366 — File folder', 87.3, 16.9),
-];
+class TemplatePreset {
+  final String name;
+  final double widthMm;
+  final double heightMm;
+  final String dimensionsIn;
+  final String description;
 
-const List<(String label, double w, double h)> _kShippingPresets = [
-  ('5163 / 8163 — Standard shipping', 101.6, 50.8),
-  ('5164 / 8164 — Large shipping', 101.6, 84.7),
-  ('5165 / 8165 — Full sheet (letter)', 215.9, 279.4),
-  ('5168 / 8168 — Large shipping / wine', 127.0, 88.9),
-  ('5126 / 8126 — Half sheet shipping', 215.9, 139.7),
-];
-
-const List<(String label, double w, double h)> _kRoundSquarePresets = [
-  ('22807 / 94500 — Round Ø50.8 (bbox)', 50.8, 50.8),
-  ('22830 / 94501 — Round Ø63.5 (bbox)', 63.5, 63.5),
-  ('5293 / 94503 — Round Ø42.4 (bbox)', 42.4, 42.4),
-  ('22805 / 94107 — Square 38.1×38.1', 38.1, 38.1),
-  ('22806 / 94101 — Square 50.8×50.8', 50.8, 50.8),
-];
-
-const List<(String label, double w, double h)> _kSpecialtyPresets = [
-  ('5395 / 8395 — Name badges', 85.7, 59.3),
-  ('60505 — GHS chemical (full sheet)', 215.9, 279.4),
-  ('60517 — Durable asset tag', 38.1, 19.1),
-  ('5371 / 8371 — Business cards', 88.9, 50.8),
-];
-
-const List<(String label, double w, double h)> _kUkIntlPresets = [
-  ('L7160 / J8160 — Address (A4 family)', 63.5, 38.1),
-];
-
-const List<(String label, double w, double h)> _kOtherPresets = [
-  ('50 × 25 mm', 50, 25),
-  ('70 × 35 mm', 70, 35),
-  ('100 × 50 mm', 100, 50),
-];
-
-String _formatPresetMm(double v) {
-  final t = v.truncateToDouble();
-  return (v - t).abs() < 1e-9 ? t.toInt().toString() : v.toStringAsFixed(1);
+  const TemplatePreset({
+    required this.name,
+    required this.widthMm,
+    required this.heightMm,
+    required this.dimensionsIn,
+    required this.description,
+  });
 }
 
-String _presetDimensionsLabel(double w, double h) =>
-    '${_formatPresetMm(w)}×${_formatPresetMm(h)} mm';
+const List<TemplatePreset> globalPaperPresets = [
+  TemplatePreset(
+    name: 'A4',
+    widthMm: 210.0,
+    heightMm: 297.0,
+    dimensionsIn: '8.27 × 11.69 in',
+    description:
+        'International standard default for catalogs, reports, and label sheets.',
+  ),
+  TemplatePreset(
+    name: 'Letter',
+    widthMm: 215.9,
+    heightMm: 279.4,
+    dimensionsIn: '8.5 × 11.0 in',
+    description:
+        'North American standard default for documentation and matrix printing.',
+  ),
+  TemplatePreset(
+    name: 'Legal',
+    widthMm: 215.9,
+    heightMm: 355.6,
+    dimensionsIn: '8.5 × 14.0 in',
+    description:
+        'Extended canvas for long field logs, history sheets, or oversized tables.',
+  ),
+  TemplatePreset(
+    name: 'A5',
+    widthMm: 148.0,
+    heightMm: 210.0,
+    dimensionsIn: '5.83 × 8.27 in',
+    description:
+        'Compact size ideal for pocket field books and small log inserts.',
+  ),
+  TemplatePreset(
+    name: 'A3',
+    widthMm: 297.0,
+    heightMm: 420.0,
+    dimensionsIn: '11.69 × 16.54 in',
+    description:
+        'Oversized sheet for map generation, collection drawer layouts, and system grids.',
+  ),
+];
 
-List<PopupMenuEntry<String>> _labelSizePresetMenuEntries() {
-  PopupMenuItem<String> item((String label, double w, double h) p) {
-    return PopupMenuItem<String>(
-      value: '${p.$2},${p.$3}',
-      child: Text(_presetDimensionsLabel(p.$2, p.$3)),
-    );
-  }
+const List<TemplatePreset> cryotubePresets = [
+  TemplatePreset(
+    name: '1.5 - 2.0 mL Vial Side',
+    widthMm: 33.0,
+    heightMm: 13.0,
+    dimensionsIn: '1.30 × 0.50 in',
+    description:
+        'Standard side-wall label. Fits 3-4 lines of text plus a barcode.',
+  ),
+  TemplatePreset(
+    name: '0.5 - 1.0 mL Vial Side',
+    widthMm: 24.0,
+    heightMm: 13.0,
+    dimensionsIn: '0.94 × 0.50 in',
+    description:
+        'Compact side-wall profile for smaller tissue or DNA aliquots.',
+  ),
+  TemplatePreset(
+    name: 'Small Vial Cap Dot',
+    widthMm: 9.5,
+    heightMm: 9.5,
+    dimensionsIn: '0.375 in Ø',
+    description:
+        'Circular top dot fitting 0.5–1.5 mL tube caps for top-down scanning.',
+  ),
+  TemplatePreset(
+    name: 'Large Vial Cap Dot',
+    widthMm: 13.0,
+    heightMm: 13.0,
+    dimensionsIn: '0.50 in Ø',
+    description:
+        'Circular top dot fitting 2.0 mL or larger cryovial screw caps.',
+  ),
+  TemplatePreset(
+    name: 'Self-Laminating Wrap',
+    widthMm: 25.4,
+    heightMm: 31.8,
+    dimensionsIn: '1.00 × 1.25 in',
+    description:
+        'Text prints on a 25.4x12.7mm zone; clear tail wraps over to protect against liquid nitrogen.',
+  ),
+];
 
-  return [
-    ..._kMailingAddressPresets.map(item),
-    ..._kShippingPresets.map(item),
-    ..._kRoundSquarePresets.map(item),
-    ..._kSpecialtyPresets.map(item),
-    ..._kUkIntlPresets.map(item),
-    ..._kOtherPresets.map(item),
-  ];
-}
+const List<TemplatePreset> specimenPresets = [
+  TemplatePreset(
+    name: 'Arthropod Pinned (Locality)',
+    widthMm: 18.0,
+    heightMm: 8.0,
+    dimensionsIn: '0.70 × 0.31 in',
+    description:
+        'Rigid boundary for pinned insects; fits 5-6 lines of ultra-compact metadata.',
+  ),
+  TemplatePreset(
+    name: 'Arthropod Pinned (Taxon ID)',
+    widthMm: 15.0,
+    heightMm: 7.0,
+    dimensionsIn: '0.59 × 0.28 in',
+    description:
+        'Smallest footprint; contains Genus species, author, and determiner info.',
+  ),
+  TemplatePreset(
+    name: 'Fluid Collection (Jar Insert)',
+    widthMm: 75.0,
+    heightMm: 25.0,
+    dimensionsIn: '3.00 × 1.00 in',
+    description:
+        'Placed inside wet jars (alcohol/formalin). High legibility through curved glass.',
+  ),
+  TemplatePreset(
+    name: 'Vertebrate Specimen Tag (Medium)',
+    widthMm: 100.0,
+    heightMm: 34.0,
+    dimensionsIn: '3.94 × 1.34 in',
+    description: 'Standard medium-sized vertebrate curation and hang tag.',
+  ),
+  TemplatePreset(
+    name: 'Skull Box / Micro-Vial',
+    widthMm: 40.0,
+    heightMm: 17.0,
+    dimensionsIn: '1.57 × 0.67 in',
+    description:
+        'Optimized for 1-to-2 dram glass vials or small cardboard osteological boxes.',
+  ),
+];
 
 class TemplateSizeSelector extends ConsumerStatefulWidget {
   const TemplateSizeSelector({
@@ -156,46 +231,17 @@ class _TemplateSizeSelectorState extends ConsumerState<TemplateSizeSelector> {
     widget.onControlledDimensionsApplied?.call(w, h);
   }
 
-  Future<void> _openCustomDialog() async {
-    final wCtr = TextEditingController(text: _w.toStringAsFixed(1));
-    final hCtr = TextEditingController(text: _h.toStringAsFixed(1));
-    final ok = await showDialog<bool>(
+  Future<void> _showSelectorDialog() async {
+    final result = await showDialog<(double, double)>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Template size (mm)'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: wCtr,
-              decoration: const InputDecoration(labelText: 'Width (mm)'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-            ),
-            TextField(
-              controller: hCtr,
-              decoration: const InputDecoration(labelText: 'Height (mm)'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Apply'),
-          ),
-        ],
+      builder: (context) => TemplateSizeDialog(
+        currentWidth: _w,
+        currentHeight: _h,
       ),
     );
-    if (ok == true && mounted) {
-      final nw = double.tryParse(wCtr.text.replaceAll(',', '.')) ?? _w;
-      final nh = double.tryParse(hCtr.text.replaceAll(',', '.')) ?? _h;
-      await _apply(nw.clamp(10.0, 500.0), nh.clamp(10.0, 500.0));
+
+    if (result != null && mounted) {
+      await _apply(result.$1, result.$2);
     }
   }
 
@@ -211,33 +257,10 @@ class _TemplateSizeSelectorState extends ConsumerState<TemplateSizeSelector> {
 
     final label = '${_w.toStringAsFixed(0)}×${_h.toStringAsFixed(0)} mm';
 
-    final menuItems = <PopupMenuEntry<String>>[
-      ..._labelSizePresetMenuEntries(),
-      const PopupMenuDivider(),
-      const PopupMenuItem<String>(
-        value: 'custom',
-        child: Text('Custom…'),
-      ),
-    ];
-
-    Future<void> onMenuSelected(String? v) async {
-      if (v == null) return;
-      if (v == 'custom') {
-        await _openCustomDialog();
-      } else {
-        final parts = v.split(',');
-        if (parts.length == 2) {
-          await _apply(double.parse(parts[0]), double.parse(parts[1]));
-        }
-      }
-    }
-
     if (widget.compact) {
-      return PopupMenuButton<String>(
-        tooltip: 'Template size',
-        padding: EdgeInsets.zero,
-        itemBuilder: (ctx) => menuItems,
-        onSelected: onMenuSelected,
+      return InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: _showSelectorDialog,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           child: Row(
@@ -255,17 +278,261 @@ class _TemplateSizeSelectorState extends ConsumerState<TemplateSizeSelector> {
       );
     }
 
-    return PopupMenuButton<String>(
-      tooltip: 'Template size',
-      itemBuilder: (ctx) => menuItems,
-      onSelected: onMenuSelected,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+    return OutlinedButton.icon(
+      onPressed: _showSelectorDialog,
+      icon: const Icon(Icons.arrow_drop_down),
+      label: Text(label),
+    );
+  }
+}
+
+class TemplateSizeDialog extends StatefulWidget {
+  const TemplateSizeDialog({
+    super.key,
+    required this.currentWidth,
+    required this.currentHeight,
+  });
+
+  final double currentWidth;
+  final double currentHeight;
+
+  @override
+  State<TemplateSizeDialog> createState() => _TemplateSizeDialogState();
+}
+
+class _TemplateSizeDialogState extends State<TemplateSizeDialog>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  late TextEditingController _wController;
+  late TextEditingController _hController;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _wController = TextEditingController(
+      text: widget.currentWidth.toStringAsFixed(1),
+    );
+    _hController = TextEditingController(
+      text: widget.currentHeight.toStringAsFixed(1),
+    );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _wController.dispose();
+    _hController.dispose();
+    super.dispose();
+  }
+
+  bool _isCurrentSize(double w, double h) {
+    return (widget.currentWidth - w).abs() < 0.05 &&
+        (widget.currentHeight - h).abs() < 0.05;
+  }
+
+  void _applyCustom() {
+    if (_formKey.currentState?.validate() ?? false) {
+      final w = double.tryParse(_wController.text.replaceAll(',', '.')) ??
+          widget.currentWidth;
+      final h = double.tryParse(_hController.text.replaceAll(',', '.')) ??
+          widget.currentHeight;
+      Navigator.pop(context, (w.clamp(10.0, 500.0), h.clamp(10.0, 500.0)));
+    }
+  }
+
+  Widget _buildPresetsList(List<TemplatePreset> presets) {
+    final theme = Theme.of(context);
+    return ListView.builder(
+      itemCount: presets.length,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemBuilder: (context, index) {
+        final preset = presets[index];
+        final isSelected = _isCurrentSize(preset.widthMm, preset.heightMm);
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          elevation: isSelected ? 2 : 0,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outlineVariant,
+              width: isSelected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          color: isSelected
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.15)
+              : null,
+          child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            title: Text(
+              preset.name,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isSelected ? theme.colorScheme.primary : null,
+              ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 6.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${preset.widthMm.toStringAsFixed(1)} × ${preset.heightMm.toStringAsFixed(1)} mm (${preset.dimensionsIn})',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    preset.description,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            trailing: isSelected
+                ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
+                : null,
+            onTap: () {
+              Navigator.pop(context, (preset.widthMm, preset.heightMm));
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: SizedBox(
+        width: 500,
+        height: 520,
+        child: Column(
           children: [
-            Text(label),
-            const Icon(Icons.arrow_drop_down),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Template Size Preset',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Paper'),
+                Tab(text: 'Cryotubes'),
+                Tab(text: 'Curation'),
+                Tab(text: 'Custom'),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildPresetsList(globalPaperPresets),
+                  _buildPresetsList(cryotubePresets),
+                  _buildPresetsList(specimenPresets),
+                  // Custom size view
+                  Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextFormField(
+                            key: const Key('custom-width-field'),
+                            controller: _wController,
+                            decoration: const InputDecoration(
+                              labelText: 'Width (mm)',
+                              border: OutlineInputBorder(),
+                              helperText: 'Enter value between 10 and 500 mm',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: (val) {
+                              if (val == null || val.isEmpty) {
+                                return 'Please enter a width';
+                              }
+                              final d = double.tryParse(
+                                val.replaceAll(',', '.'),
+                              );
+                              if (d == null) {
+                                return 'Please enter a valid number';
+                              }
+                              if (d < 10.0 || d > 500.0) {
+                                return 'Must be between 10 and 500';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          TextFormField(
+                            key: const Key('custom-height-field'),
+                            controller: _hController,
+                            decoration: const InputDecoration(
+                              labelText: 'Height (mm)',
+                              border: OutlineInputBorder(),
+                              helperText: 'Enter value between 10 and 500 mm',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: (val) {
+                              if (val == null || val.isEmpty) {
+                                return 'Please enter a height';
+                              }
+                              final d = double.tryParse(
+                                val.replaceAll(',', '.'),
+                              );
+                              if (d == null) {
+                                return 'Please enter a valid number';
+                              }
+                              if (d < 10.0 || d > 500.0) {
+                                return 'Must be between 10 and 500';
+                              }
+                              return null;
+                            },
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              key: const Key('custom-apply-button'),
+                              onPressed: _applyCustom,
+                              child: const Text('Apply Custom Size'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
