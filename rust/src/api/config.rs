@@ -1,0 +1,138 @@
+//! Configs FFI Bridge module.
+//!
+//! Exposes APIs for configuring user project preferences and document export presets.
+
+use std::collections::HashMap;
+use nahpu_configs::ConfigDb;
+
+/// Represents a combined export field configuration.
+pub struct ConfigCombinedField {
+    /// Unique identifier for the combined field.
+    pub field_id: String,
+    /// List of field names that are combined.
+    pub fields: Vec<String>,
+}
+
+/// Represents an export preset containing field maps and combined fields.
+pub struct ConfigExportPreset {
+    /// Map of standard field keys to their export names.
+    pub fields: HashMap<String, String>,
+    /// List of fields that are combined during export.
+    pub combined_fields: Vec<ConfigCombinedField>,
+}
+
+/// Represents a single preset entry.
+pub struct ConfigPresetEntry {
+    /// Name of the preset.
+    pub name: String,
+    /// Preset details.
+    pub preset: ConfigExportPreset,
+}
+
+impl From<nahpu_configs::ConfigCombinedField> for ConfigCombinedField {
+    fn from(c: nahpu_configs::ConfigCombinedField) -> Self {
+        Self {
+            field_id: c.field_id,
+            fields: c.fields,
+        }
+    }
+}
+
+impl From<ConfigCombinedField> for nahpu_configs::ConfigCombinedField {
+    fn from(c: ConfigCombinedField) -> Self {
+        Self {
+            field_id: c.field_id,
+            fields: c.fields,
+        }
+    }
+}
+
+impl From<nahpu_configs::ConfigExportPreset> for ConfigExportPreset {
+    fn from(c: nahpu_configs::ConfigExportPreset) -> Self {
+        Self {
+            fields: c.fields,
+            combined_fields: c.combined_fields.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<ConfigExportPreset> for nahpu_configs::ConfigExportPreset {
+    fn from(c: ConfigExportPreset) -> Self {
+        Self {
+            fields: c.fields,
+            combined_fields: c.combined_fields.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<nahpu_configs::ConfigPresetEntry> for ConfigPresetEntry {
+    fn from(c: nahpu_configs::ConfigPresetEntry) -> Self {
+        Self {
+            name: c.name,
+            preset: c.preset.into(),
+        }
+    }
+}
+
+/// Initializes the configuration database at the specified path.
+pub fn init_config_db(path: String) -> Result<(), String> {
+    ConfigDb::init(&path)
+}
+
+/// Sets a user config list.
+pub fn set_user_config_list(key: String, value: Vec<String>) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.set_user_config_list(&key, &value)
+}
+
+/// Retrieves a user config list.
+pub fn get_user_config_list(key: String) -> Result<Option<Vec<String>>, String> {
+    let db = ConfigDb::get_instance()?;
+    let res = db.get_user_config_list(&key)?;
+    Ok(res)
+}
+
+/// Sets a user config string.
+pub fn set_user_config_string(key: String, value: String) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.set_user_config_string(&key, &value)
+}
+
+/// Retrieves a user config string.
+pub fn get_user_config_string(key: String) -> Result<Option<String>, String> {
+    let db = ConfigDb::get_instance()?;
+    let res = db.get_user_config_string(&key)?;
+    Ok(res)
+}
+
+/// Deletes a user config key.
+pub fn delete_user_config(key: String) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.delete_user_config(&key)
+}
+
+/// Saves a document export preset.
+pub fn set_document_preset(name: String, preset: ConfigExportPreset) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.set_document_preset(&name, &preset.into())
+}
+
+/// Retrieves a document export preset.
+pub fn get_document_preset(name: String) -> Result<Option<ConfigExportPreset>, String> {
+    let db = ConfigDb::get_instance()?;
+    let res = db.get_document_preset(&name)?;
+    Ok(res.map(Into::into))
+}
+
+/// Deletes a document export preset.
+pub fn delete_document_preset(name: String) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.delete_document_preset(&name)
+}
+
+/// Retrieves all document export presets.
+pub fn get_all_document_presets() -> Result<Vec<ConfigPresetEntry>, String> {
+    let db = ConfigDb::get_instance()?;
+    let res = db.get_all_document_presets()?;
+    Ok(res.into_iter().map(Into::into).collect())
+}

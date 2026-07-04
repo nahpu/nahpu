@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -8,6 +7,7 @@ import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 // App settings keys (UI/Device states)
 // Used for keeping track of user preferences and app states
@@ -167,13 +167,14 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
   final String prefKey;
 
   Future<List<String>> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final optionList = prefs.getStringList(prefKey);
-
+    final optionList = await rust_config.getUserConfigList(key: prefKey);
     List<String> currentOptions = optionList ?? getDefaultOptionsList(prefKey);
 
     if (optionList == null) {
-      await prefs.setStringList(prefKey, currentOptions);
+      await rust_config.setUserConfigList(
+        key: prefKey,
+        value: currentOptions,
+      );
     }
 
     return currentOptions;
@@ -188,16 +189,13 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     if (newOption.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final optionList = prefs.getStringList(prefKey);
+      final optionList = await rust_config.getUserConfigList(key: prefKey);
       if (optionList != null && isListContains(optionList, newOption)) {
         return optionList;
       }
 
-      // Add new type to list or create new list if null
-      // and then add a new type to the list
       List<String> newList = [...optionList ?? [], newOption];
-      await prefs.setStringList(prefKey, newList);
+      await rust_config.setUserConfigList(key: prefKey, value: newList);
       return newList;
     });
   }
@@ -206,8 +204,7 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     if (newOptions.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.setStringList(prefKey, newOptions);
+      await rust_config.setUserConfigList(key: prefKey, value: newOptions);
       return newOptions;
     });
   }
@@ -216,15 +213,13 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     if (option.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final optionsList = prefs.getStringList(prefKey);
+      final optionsList = await rust_config.getUserConfigList(key: prefKey);
       if (optionsList == null || optionsList.isEmpty) return [];
 
-      // Remove type from list
       if (!optionsList.contains(option)) return optionsList;
 
       List<String> newOptions = [...optionsList]..remove(option);
-      await prefs.setStringList(prefKey, newOptions);
+      await rust_config.setUserConfigList(key: prefKey, value: newOptions);
       return newOptions;
     });
   }
@@ -232,8 +227,7 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
   Future<void> clear() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.remove(prefKey);
+      await rust_config.deleteUserConfig(key: prefKey);
       return [];
     });
   }
@@ -248,14 +242,13 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   final String prefKey;
 
   Future<TextCaseFmt> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final fmtString = prefs.getString(prefKey);
+    final fmtString = await rust_config.getUserConfigString(key: prefKey);
 
     TextCaseFmt fmt =
         TextCaseFmt.values.byName(fmtString ?? TextCaseFmt.anyCase.name);
 
     if (fmtString == null) {
-      await prefs.setString(prefKey, fmt.name);
+      await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
     }
 
     return fmt;
@@ -269,14 +262,13 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   Future<void> set(String prefKey, TextCaseFmt fmt) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final fmtString = prefs.getString(prefKey);
+      final fmtString = await rust_config.getUserConfigString(key: prefKey);
       final setFmt =
           TextCaseFmt.values.byName(fmtString ?? TextCaseFmt.anyCase.name);
 
       if (setFmt == fmt) return fmt;
 
-      await prefs.setString(prefKey, fmt.name);
+      await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
       return fmt;
     });
   }
@@ -288,8 +280,9 @@ final pdfExportFontNotifierProvider =
 
 class PdfExportFontNotifier extends AsyncNotifier<String> {
   Future<String> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final font = prefs.getString(pdfExportFontPrefKey);
+    final font = await rust_config.getUserConfigString(
+      key: pdfExportFontPrefKey,
+    );
     return font ?? 'Merriweather';
   }
 
@@ -301,8 +294,10 @@ class PdfExportFontNotifier extends AsyncNotifier<String> {
   Future<void> set(String font) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.setString(pdfExportFontPrefKey, font);
+      await rust_config.setUserConfigString(
+        key: pdfExportFontPrefKey,
+        value: font,
+      );
       return font;
     });
   }
@@ -314,14 +309,18 @@ final fieldIdModeNotifierProvider =
 
 class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   Future<FieldIdMode> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final fieldIdModeString = prefs.getString(fieldIdModePrefKey);
+    final fieldIdModeString = await rust_config.getUserConfigString(
+      key: fieldIdModePrefKey,
+    );
 
     FieldIdMode fieldIdMode = FieldIdMode.values
         .byName(fieldIdModeString ?? FieldIdMode.personnel.name);
 
     if (fieldIdModeString == null) {
-      await prefs.setString(fieldIdModePrefKey, fieldIdMode.name);
+      await rust_config.setUserConfigString(
+        key: fieldIdModePrefKey,
+        value: fieldIdMode.name,
+      );
     }
 
     return fieldIdMode;
@@ -335,14 +334,18 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   Future<void> set(FieldIdMode mode) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final fieldIdModeString = prefs.getString(fieldIdModePrefKey);
+      final fieldIdModeString = await rust_config.getUserConfigString(
+        key: fieldIdModePrefKey,
+      );
       final setFieldIdMode = FieldIdMode.values
           .byName(fieldIdModeString ?? FieldIdMode.personnel.name);
 
       if (setFieldIdMode == mode) return mode;
 
-      await prefs.setString(fieldIdModePrefKey, mode.name);
+      await rust_config.setUserConfigString(
+        key: fieldIdModePrefKey,
+        value: mode.name,
+      );
       return mode;
     });
   }
@@ -355,32 +358,12 @@ final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
 class ExportPresetNotifier
     extends AsyncNotifier<Map<String, ExportPresetModel>> {
   Future<Map<String, ExportPresetModel>> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final presetString = prefs.getString(exportPresetPrefKey);
-    if (presetString == null) {
-      return {};
+    final presets = await rust_config.getAllDocumentPresets();
+    final Map<String, ExportPresetModel> mapped = {};
+    for (var entry in presets) {
+      mapped[entry.name] = _mapConfigToModel(entry.preset);
     }
-    try {
-      final decoded = jsonDecode(presetString) as Map<String, dynamic>;
-      final Map<String, ExportPresetModel> mapped = {};
-      for (var entry in decoded.entries) {
-        if (entry.value is Map<String, dynamic> &&
-            (entry.value as Map<String, dynamic>).containsKey('fields')) {
-          // Version 2 format
-          mapped[entry.key] =
-              ExportPresetModel.fromJson(entry.value as Map<String, dynamic>);
-        } else {
-          // Version 1 format (legacy)
-          mapped[entry.key] = ExportPresetModel(
-            fields: Map<String, String>.from(entry.value as Map),
-            combinedFields: [],
-          );
-        }
-      }
-      return mapped;
-    } catch (e) {
-      return {};
-    }
+    return mapped;
   }
 
   @override
@@ -391,22 +374,43 @@ class ExportPresetNotifier
   Future<void> savePreset(String name, ExportPresetModel preset) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final current = await _fetchSettings();
-      current[name] = preset;
-      final prefs = ref.watch(settingProvider);
-      await prefs.setString(exportPresetPrefKey, jsonEncode(current));
-      return current;
+      await rust_config.setDocumentPreset(
+        name: name,
+        preset: _mapModelToConfig(preset),
+      );
+      return await _fetchSettings();
     });
   }
 
   Future<void> deletePreset(String name) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final current = await _fetchSettings();
-      current.remove(name);
-      final prefs = ref.watch(settingProvider);
-      await prefs.setString(exportPresetPrefKey, jsonEncode(current));
-      return current;
+      await rust_config.deleteDocumentPreset(name: name);
+      return await _fetchSettings();
     });
+  }
+
+  ExportPresetModel _mapConfigToModel(rust_config.ConfigExportPreset config) {
+    return ExportPresetModel(
+      fields: config.fields,
+      combinedFields: config.combinedFields
+          .map((e) => CombinedField(
+                fieldId: e.fieldId,
+                fields: e.fields,
+              ))
+          .toList(),
+    );
+  }
+
+  rust_config.ConfigExportPreset _mapModelToConfig(ExportPresetModel model) {
+    return rust_config.ConfigExportPreset(
+      fields: model.fields,
+      combinedFields: model.combinedFields
+          .map((e) => rust_config.ConfigCombinedField(
+                fieldId: e.fieldId,
+                fields: e.fields,
+              ))
+          .toList(),
+    );
   }
 }

@@ -10,12 +10,16 @@ import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nahpu/services/config_services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
   final prefs = await SharedPreferences.getInstance();
   await RustLib.init();
+  final configService = ConfigDbService();
+  await configService.initDb();
+  await configService.migrate(prefs);
   if (kDebugMode) {
     print(await checkRust());
   }

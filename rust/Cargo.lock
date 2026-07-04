@@ -2184,6 +2184,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nahpu_configs"
+version = "0.1.0"
+dependencies = [
+ "redb",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "nahpu_db"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2805,6 +2814,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "redb"
+version = "4.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e925444704b5f17d32bf42f5b6e2df050bceebc3dcd6e71cc73dafe8092e839"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.5.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2992,6 +3010,7 @@ version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
  "nahpu_archive",
+ "nahpu_configs",
  "nahpu_db",
  "nahpu_export",
  "nahpu_gis",

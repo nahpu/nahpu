@@ -8,6 +8,7 @@
 
 import 'api/archive.dart';
 import 'api/common.dart';
+import 'api/config.dart';
 import 'api/export.dart';
 import 'api/gis.dart';
 import 'api/import.dart';
@@ -25,10 +26,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   @protected
+  Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
+
+  @protected
   String dco_decode_String(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  ConfigExportPreset dco_decode_box_autoadd_config_export_preset(dynamic raw);
 
   @protected
   RecordReader dco_decode_box_autoadd_record_reader(dynamic raw);
@@ -46,6 +53,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CardinalDirection dco_decode_cardinal_direction(dynamic raw);
 
   @protected
+  ConfigCombinedField dco_decode_config_combined_field(dynamic raw);
+
+  @protected
+  ConfigExportPreset dco_decode_config_export_preset(dynamic raw);
+
+  @protected
+  ConfigPresetEntry dco_decode_config_preset_entry(dynamic raw);
+
+  @protected
   DdmCoordinateFfi dco_decode_ddm_coordinate_ffi(dynamic raw);
 
   @protected
@@ -61,6 +77,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<ConfigCombinedField> dco_decode_list_config_combined_field(dynamic raw);
+
+  @protected
+  List<ConfigPresetEntry> dco_decode_list_config_preset_entry(dynamic raw);
+
+  @protected
   List<List<String>> dco_decode_list_list_String(dynamic raw);
 
   @protected
@@ -70,13 +92,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  ConfigExportPreset? dco_decode_opt_box_autoadd_config_export_preset(
+      dynamic raw);
+
+  @protected
+  List<String>? dco_decode_opt_list_String(dynamic raw);
 
   @protected
   (double, double) dco_decode_record_f_64_f_64(dynamic raw);
 
   @protected
   RecordReader dco_decode_record_reader(dynamic raw);
+
+  @protected
+  (String, String) dco_decode_record_string_string(dynamic raw);
 
   @protected
   RecordWriter dco_decode_record_writer(dynamic raw);
@@ -100,10 +135,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ZipWriter dco_decode_zip_writer(dynamic raw);
 
   @protected
+  Map<String, String> sse_decode_Map_String_String_None(
+      SseDeserializer deserializer);
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  ConfigExportPreset sse_decode_box_autoadd_config_export_preset(
+      SseDeserializer deserializer);
 
   @protected
   RecordReader sse_decode_box_autoadd_record_reader(
@@ -124,6 +167,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CardinalDirection sse_decode_cardinal_direction(SseDeserializer deserializer);
 
   @protected
+  ConfigCombinedField sse_decode_config_combined_field(
+      SseDeserializer deserializer);
+
+  @protected
+  ConfigExportPreset sse_decode_config_export_preset(
+      SseDeserializer deserializer);
+
+  @protected
+  ConfigPresetEntry sse_decode_config_preset_entry(
+      SseDeserializer deserializer);
+
+  @protected
   DdmCoordinateFfi sse_decode_ddm_coordinate_ffi(SseDeserializer deserializer);
 
   @protected
@@ -139,6 +194,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<ConfigCombinedField> sse_decode_list_config_combined_field(
+      SseDeserializer deserializer);
+
+  @protected
+  List<ConfigPresetEntry> sse_decode_list_config_preset_entry(
+      SseDeserializer deserializer);
+
+  @protected
   List<List<String>> sse_decode_list_list_String(SseDeserializer deserializer);
 
   @protected
@@ -149,13 +212,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<(String, String)> sse_decode_list_record_string_string(
+      SseDeserializer deserializer);
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  ConfigExportPreset? sse_decode_opt_box_autoadd_config_export_preset(
+      SseDeserializer deserializer);
+
+  @protected
+  List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
 
   @protected
   (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer);
 
   @protected
   RecordReader sse_decode_record_reader(SseDeserializer deserializer);
+
+  @protected
+  (String, String) sse_decode_record_string_string(
+      SseDeserializer deserializer);
 
   @protected
   RecordWriter sse_decode_record_writer(SseDeserializer deserializer);
@@ -179,10 +257,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ZipWriter sse_decode_zip_writer(SseDeserializer deserializer);
 
   @protected
+  void sse_encode_Map_String_String_None(
+      Map<String, String> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_config_export_preset(
+      ConfigExportPreset self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_record_reader(
@@ -205,6 +291,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       CardinalDirection self, SseSerializer serializer);
 
   @protected
+  void sse_encode_config_combined_field(
+      ConfigCombinedField self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_config_export_preset(
+      ConfigExportPreset self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_config_preset_entry(
+      ConfigPresetEntry self, SseSerializer serializer);
+
+  @protected
   void sse_encode_ddm_coordinate_ffi(
       DdmCoordinateFfi self, SseSerializer serializer);
 
@@ -222,6 +320,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_config_combined_field(
+      List<ConfigCombinedField> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_config_preset_entry(
+      List<ConfigPresetEntry> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_list_String(
       List<List<String>> self, SseSerializer serializer);
 
@@ -234,7 +340,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       Uint8List self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_record_string_string(
+      List<(String, String)> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_config_export_preset(
+      ConfigExportPreset? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_f_64_f_64(
@@ -242,6 +359,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_record_reader(RecordReader self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_string_string(
+      (String, String) self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_writer(RecordWriter self, SseSerializer serializer);
