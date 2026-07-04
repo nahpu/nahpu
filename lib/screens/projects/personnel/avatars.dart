@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/validation.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';

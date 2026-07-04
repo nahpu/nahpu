@@ -6,10 +6,10 @@ import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/qr.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:path/path.dart' as path;
 
@@ -524,9 +524,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   Future<void> _saveAndSetCurrentLayout(
       rust_config.DocumentLayoutPreset imported) async {
     var nextLayout = imported;
-    final names = (await _layoutService.listLayoutStatuses())
-        .map((s) => s.name)
-        .toList();
+    final names =
+        (await _layoutService.listLayoutStatuses()).map((s) => s.name).toList();
     if (names.contains(imported.name)) {
       final base = imported.name;
       var i = 2;

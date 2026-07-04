@@ -9,7 +9,7 @@ import 'package:nahpu/screens/settings/collevent_settings.dart';
 import 'package:nahpu/screens/settings/site_settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/db_settings.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/settings/application_settings.dart';
 import 'package:nahpu/screens/settings/specimen_settings.dart';

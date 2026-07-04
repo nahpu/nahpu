@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/shared/fields.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/types/export.dart';
 
 class RecordOptionsCard extends StatelessWidget {

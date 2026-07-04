@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 

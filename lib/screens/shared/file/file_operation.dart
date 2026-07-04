@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_svg/svg.dart';
 import 'package:share_plus/share_plus.dart';

@@ -10,7 +10,7 @@ import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_image_chip.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_line_chip.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_shape_chip.dart';
-import 'package:nahpu/screens/shared/qr.dart' show QrImageView;
+import 'package:nahpu/screens/shared/media/qr.dart' show QrImageView;
 
 import 'dart:math' as math;
 import 'package:nahpu/screens/templates/template_canvas_stack.dart';

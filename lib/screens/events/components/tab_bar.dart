@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/events/components/personnel.dart';
 import 'package:nahpu/screens/events/components/weather_data.dart';
-import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 
 class CollEventTabBar extends StatefulWidget {
   const CollEventTabBar({

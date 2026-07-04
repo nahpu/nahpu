@@ -269,7 +269,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     });
   }
 
-
   Future<void> _exportDocuments() async {
     if (!exportCtr.isValid || _selectedDir == null || _layout == null) {
       ScaffoldMessenger.of(context).showSnackBar(

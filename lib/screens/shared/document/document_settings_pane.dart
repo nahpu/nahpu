@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/document_layout_service.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/types/controllers.dart';
 
 class DocumentSettingsPane extends StatelessWidget {

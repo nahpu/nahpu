@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/providers/database.dart';
 

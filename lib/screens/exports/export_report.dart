@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/fields.dart';
+import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/export/report_writer.dart';
 import 'package:nahpu/services/platform_services.dart';
 

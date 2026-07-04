@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 
 class MeasurementForm extends StatefulWidget {
   const MeasurementForm({

@@ -5,11 +5,11 @@ import 'package:nahpu/screens/home/components/learning_resources.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/app_settings_import.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:nahpu/screens/shared/qr.dart';
+import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const String nahpuWebsite = 'https://nahpu.app/';
