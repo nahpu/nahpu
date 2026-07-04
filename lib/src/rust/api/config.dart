@@ -54,6 +54,16 @@ Future<void> deleteDocumentPreset({required String name}) =>
 Future<List<ConfigPresetEntry>> getAllDocumentPresets() =>
     RustLib.instance.api.crateApiConfigGetAllDocumentPresets();
 
+/// Exports all user configs and document presets to a file in either JSON or KDL format.
+Future<void> exportConfigToFile(
+        {required String filePath, required bool isJson}) =>
+    RustLib.instance.api
+        .crateApiConfigExportConfigToFile(filePath: filePath, isJson: isJson);
+
+/// Imports and replaces all user configs and document presets from a file.
+Future<void> importConfigFromFile({required String filePath}) =>
+    RustLib.instance.api.crateApiConfigImportConfigFromFile(filePath: filePath);
+
 /// Represents a combined export field configuration.
 class ConfigCombinedField {
   /// Unique identifier for the combined field.

@@ -136,3 +136,37 @@ pub fn get_all_document_presets() -> Result<Vec<ConfigPresetEntry>, String> {
     let res = db.get_all_document_presets()?;
     Ok(res.into_iter().map(Into::into).collect())
 }
+
+/// Exports all user configs and document presets to a file in either JSON or KDL format.
+pub fn export_config_to_file(file_path: String, is_json: bool) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    let export = db.export_configs()?;
+
+    let content = if is_json {
+        serde_json::to_string_pretty(&export).map_err(|e| e.to_string())?
+    } else {
+        nahpu_configs::kdl::export_to_kdl(&export)
+    };
+
+    std::fs::write(&file_path, content).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Imports and replaces all user configs and document presets from a file.
+pub fn import_config_from_file(file_path: String) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    let content = std::fs::read_to_string(&file_path).map_err(|e| e.to_string())?;
+
+    let is_json = content.trim_start().starts_with('{');
+
+    let export = if is_json {
+        serde_json::from_str::<nahpu_configs::models::UserConfigsExport>(&content)
+            .map_err(|e| e.to_string())?
+    } else {
+        nahpu_configs::kdl::parse_kdl_to_export(&content)?
+    };
+
+    db.import_configs(export)?;
+    Ok(())
+}
+

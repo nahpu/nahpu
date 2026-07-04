@@ -43,6 +43,14 @@ const Map<DbExportFmt, String> dbExportFmt = {
   DbExportFmt.sqlite3: 'Database (.sqlite3)',
 };
 
+enum ConfigExportFmt { json, kdl }
+
+const Map<ConfigExportFmt, String> configExportFmt = {
+  ConfigExportFmt.json: 'JSON (.json)',
+  ConfigExportFmt.kdl: 'KDL (.kdl)',
+};
+
+
 enum ReportFmt { csv, kml, geojson, topojson, shp }
 
 const List<String> reportFmtList = [

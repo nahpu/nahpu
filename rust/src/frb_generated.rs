@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1295134116;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 2022806621;
 
 // Section: executor
 
@@ -365,6 +365,41 @@ fn wire__crate__api__gis__dms_to_dd_impl(
         },
     )
 }
+fn wire__crate__api__config__export_config_to_file_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "export_config_to_file",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_file_path = <String>::sse_decode(&mut deserializer);
+            let api_is_json = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok =
+                        crate::api::config::export_config_to_file(api_file_path, api_is_json)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__export__export_coordinates_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -568,6 +603,39 @@ fn wire__crate__api__config__get_user_config_string_impl(
             move |context| {
                 transform_result_sse::<_, String>((move || {
                     let output_ok = crate::api::config::get_user_config_string(api_key)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__import_config_from_file_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "import_config_from_file",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_file_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::import_config_from_file(api_file_path)?;
                     Ok(output_ok)
                 })())
             }
@@ -1556,61 +1624,70 @@ fn pde_ffi_dispatcher_primary_impl(
         }
         8 => wire__crate__api__config__delete_user_config_impl(port, ptr, rust_vec_len, data_len),
         9 => wire__crate__api__gis__dms_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__export__export_coordinates_impl(port, ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__config__get_all_document_presets_impl(
+        10 => {
+            wire__crate__api__config__export_config_to_file_impl(port, ptr, rust_vec_len, data_len)
+        }
+        11 => wire__crate__api__export__export_coordinates_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__config__get_all_document_presets_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        13 => wire__crate__api__config__get_document_preset_impl(port, ptr, rust_vec_len, data_len),
-        14 => {
+        14 => wire__crate__api__config__get_document_preset_impl(port, ptr, rust_vec_len, data_len),
+        15 => {
             wire__crate__api__config__get_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        15 => {
+        16 => {
             wire__crate__api__config__get_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        16 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        18 => {
+        17 => wire__crate__api__config__import_config_from_file_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        18 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        20 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        19 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        21 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        20 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        22 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        23 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__config__set_document_preset_impl(port, ptr, rust_vec_len, data_len),
-        26 => {
+        24 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__config__set_document_preset_impl(port, ptr, rust_vec_len, data_len),
+        28 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        27 => {
+        29 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        28 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        29 => {
+        30 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        31 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        30 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

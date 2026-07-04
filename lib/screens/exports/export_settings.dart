@@ -6,9 +6,7 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/screens/shared/file_operation.dart';
 import 'package:nahpu/screens/shared/buttons.dart';
 import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/kdl_services.dart';
-
-const String _settingsExtension = 'kdl';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class ExportSettingsForm extends ConsumerStatefulWidget {
   const ExportSettingsForm({super.key});
@@ -18,7 +16,7 @@ class ExportSettingsForm extends ConsumerStatefulWidget {
 }
 
 class ExportSettingsFormState extends ConsumerState<ExportSettingsForm> {
-  DbExportFmt exportFmt = DbExportFmt.sqlite3;
+  ConfigExportFmt exportFmt = ConfigExportFmt.json;
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   String _fileStem = 'backup';
   Directory? _selectedDir;
@@ -41,12 +39,34 @@ class ExportSettingsFormState extends ConsumerState<ExportSettingsForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Backup app settings'),
+        title: const Text('Export settings'),
         automaticallyImplyLeading: false,
       ),
       body: FileOperationPage(
         children: [
           FileFormatIcon(path: 'assets/icons/settings.svg'),
+          DropdownButtonFormField(
+            initialValue: exportFmt,
+            decoration: const InputDecoration(
+              labelText: 'Settings format',
+            ),
+            items: configExportFmt.entries
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e.key,
+                    child: Text(e.value),
+                  ),
+                )
+                .toList(),
+            onChanged: (ConfigExportFmt? value) {
+              if (value != null) {
+                setState(() {
+                  exportFmt = value;
+                  _hasSaved = false;
+                });
+              }
+            },
+          ),
           FileNameField(
             controller: exportCtr,
             onChanged: (String? value) {
@@ -110,12 +130,14 @@ class ExportSettingsFormState extends ConsumerState<ExportSettingsForm> {
       _savePath = await AppIOServices(
         dir: _selectedDir,
         fileStem: _fileStem,
-        ext: _settingsExtension,
+        ext: exportFmt == ConfigExportFmt.json ? 'json' : 'kdl',
       ).getSavePath();
-      final currentSavePath = await KdlServices().write(_savePath.path);
+      await rust_config.exportConfigToFile(
+        filePath: _savePath.path,
+        isJson: exportFmt == ConfigExportFmt.json,
+      );
       setState(() {
         _hasSaved = true;
-        _savePath = currentSavePath;
       });
       if (context.mounted) {
         _showSuccess();

@@ -12,6 +12,7 @@ import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/settings.dart';
+import 'package:nahpu/screens/settings/app_settings_import.dart';
 import 'package:nahpu/screens/shared/forms.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -109,8 +110,17 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.settings_backup_restore),
-          title: const Text('Backup app settings'),
+          leading: const Icon(Icons.settings_rounded),
+          title: const Text('Settings'),
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const AppSettings()));
+          },
+        ),
+        const Divider(color: Colors.grey),
+        ListTile(
+          leading: const Icon(Icons.share_rounded),
+          title: const Text('Export settings'),
           onTap: () {
             Navigator.push(
               context,
@@ -119,15 +129,18 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             );
           },
         ),
-        const Divider(color: Colors.grey),
         ListTile(
-          leading: const Icon(Icons.settings_rounded),
-          title: const Text('Settings'),
+          leading: const Icon(Icons.input_rounded),
+          title: const Text('Import settings'),
           onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const AppSettings()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AppSettingsImport()),
+            );
           },
         ),
+
         ListTile(
           leading: const Icon(Icons.exit_to_app_rounded),
           title: const Text('Close project'),

@@ -61,7 +61,6 @@ dependencies:
   rust_lib_nahpu:
     path: rust_builder
   timezone: ^0.11.0
-  kdl: ^2.0.2
   material_ui: ^0.0.1
   qr: ^4.0.0
   flutter_markdown_plus: ^1.0.7

@@ -39,7 +39,7 @@ class ApplicationSettings extends ConsumerWidget {
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.sync,
-          title: 'Replace app settings',
+          title: 'Import settings',
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(

@@ -4,6 +4,7 @@ import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/home/components/learning_resources.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
+import 'package:nahpu/screens/settings/app_settings_import.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -56,8 +57,19 @@ class HomeMenuDrawer extends StatelessWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.settings_backup_restore),
-          title: const Text('Backup app settings'),
+          leading: const Icon(Icons.settings_rounded),
+          title: const Text('Settings'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AppSettings()),
+            );
+          },
+        ),
+        const CommonLineDivider(),
+        ListTile(
+          leading: const Icon(Icons.share_rounded),
+          title: const Text('Export settings'),
           onTap: () {
             Navigator.push(
               context,
@@ -67,12 +79,13 @@ class HomeMenuDrawer extends StatelessWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.settings_rounded),
-          title: const Text('Settings'),
+          leading: const Icon(Icons.input_rounded),
+          title: const Text('Import settings'),
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AppSettings()),
+              MaterialPageRoute(
+                  builder: (context) => const AppSettingsImport()),
             );
           },
         ),
