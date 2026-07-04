@@ -1,43 +1,43 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/export/label_writer.dart';
+import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
 void main() {
-  group('LabelWriter text substitutions', () {
-    test('substituteLabelPlaceholders replaces keys exactly', () {
+  group('DocumentWriter text substitutions', () {
+    test('substituteDocumentPlaceholders replaces keys exactly', () {
       final text = 'Specimen: [catalogNum] ([tissueId])';
       final data = {
         'catalogNum': '1234',
         'tissueId': 'T-100',
       };
 
-      final result = substituteLabelPlaceholders(text, data);
+      final result = substituteDocumentPlaceholders(text, data);
       expect(result, 'Specimen: 1234 (T-100)');
     });
 
-    test('substituteLabelPlaceholders replaces keys case-insensitively', () {
+    test('substituteDocumentPlaceholders replaces keys case-insensitively', () {
       final text = 'Sex: [SEX] - Locality: [Locality]';
       final data = {
         'sex': 'Male',
         'locality': 'Forest edge',
       };
 
-      final result = substituteLabelPlaceholders(text, data);
+      final result = substituteDocumentPlaceholders(text, data);
       expect(result, 'Sex: Male - Locality: Forest edge');
     });
 
-    test('substituteLabelPlaceholders handles missing keys gracefully', () {
+    test('substituteDocumentPlaceholders handles missing keys gracefully', () {
       final text = 'Age: [age] - Weight: [weight]';
       final data = {
         'age': 'Adult',
       };
 
-      final result = substituteLabelPlaceholders(text, data);
+      final result = substituteDocumentPlaceholders(text, data);
       expect(result, 'Age: Adult - Weight: [weight]');
     });
   });
 
-  group('LabelWriter z-index tests', () {
+  group('DocumentWriter z-index tests', () {
     test('Elements are correctly sorted by zIndex', () {
       final page = TemplatePage(customImages: [
         CustomImageElement(
@@ -66,7 +66,7 @@ void main() {
             zIndex: 0),
       ]);
 
-      final sortedElements = LabelWriter.sortElementsForTesting(page);
+      final sortedElements = DocumentWriter.sortElementsForTesting(page);
 
       expect(sortedElements.length, 5);
 
@@ -114,20 +114,20 @@ void main() {
     });
   });
 
-  group('LabelWriter pagination tests', () {
-    test('does not add a trailing page break for simplex labels', () {
+  group('DocumentWriter pagination tests', () {
+    test('does not add a trailing page break for simplex documents', () {
       expect(
-        LabelWriter.pageBreakPlanForTesting(
+        DocumentWriter.pageBreakPlanForTesting(
           specimenCount: 8,
-          labelsPerSheet: 8,
+          documentsPerSheet: 8,
           duplex: false,
         ),
         [false],
       );
       expect(
-        LabelWriter.pageBreakPlanForTesting(
+        DocumentWriter.pageBreakPlanForTesting(
           specimenCount: 9,
-          labelsPerSheet: 8,
+          documentsPerSheet: 8,
           duplex: false,
         ),
         [true, false],
@@ -137,17 +137,17 @@ void main() {
     test('does not add a trailing page break after the last duplex back side',
         () {
       expect(
-        LabelWriter.pageBreakPlanForTesting(
+        DocumentWriter.pageBreakPlanForTesting(
           specimenCount: 8,
-          labelsPerSheet: 8,
+          documentsPerSheet: 8,
           duplex: true,
         ),
         [true, false],
       );
       expect(
-        LabelWriter.pageBreakPlanForTesting(
+        DocumentWriter.pageBreakPlanForTesting(
           specimenCount: 9,
-          labelsPerSheet: 8,
+          documentsPerSheet: 8,
           duplex: true,
         ),
         [true, true, true, false],
@@ -155,7 +155,7 @@ void main() {
     });
   });
 
-  group('Label text formatting tests', () {
+  group('Document text formatting tests', () {
     test('formatTextWithCase applies correct capitalization styles', () {
       const text = 'hello world test';
       expect(formatTextWithCase(text, 'uppercase'), 'HELLO WORLD TEST');

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/export/label_writer.dart';
+import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/specimen_services.dart';
 
@@ -31,7 +31,7 @@ class ExportDocumentService {
   }
 
   /// Exports documents to PDF using the provided parameters.
-  Future<void> exportDocuments({
+  Future<File> exportDocuments({
     required Set<String> selectedSpecimens,
     required Directory selectedDir,
     required String fileStem,
@@ -49,7 +49,7 @@ class ExportDocumentService {
       throw Exception('Select at least one specimen');
     }
 
-    await LabelWriter(ref: ref!).writeLabels(
+    return await DocumentWriter(ref: ref!).writeDocuments(
       picked: picked,
       selectedDir: selectedDir,
       fileStem: fileStem,

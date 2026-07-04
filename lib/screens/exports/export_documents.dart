@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -47,8 +48,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   Directory? _selectedDir;
+  File? _savePath;
   bool _isRunning = false;
-  bool _hasSaved = false;
 
   @override
   void initState() {
@@ -85,7 +86,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
             templateNames: _templateNames,
             exportCtr: exportCtr,
             selectedDir: _selectedDir,
-            hasSaved: _hasSaved,
             isRunning: _isRunning,
             onLayoutChanged: _layoutChanged,
             onSetupSelected: _selectSetup,
@@ -95,19 +95,20 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
             onImportSetup: _importSetup,
             onFileNameChanged: (v) {
               setState(() {
-                _hasSaved = false;
+                _savePath = null;
               });
             },
             onSelectDir: () async {
               Directory? path = await FilePickerServices().selectDir();
               setState(() {
                 _selectedDir = path;
+                _savePath = null;
               });
             },
             onClearDir: () {
               setState(() {
                 _selectedDir = null;
-                _hasSaved = false;
+                _savePath = null;
               });
             },
             onExportPressed: !exportCtr.isValid ? null : _exportDocuments,
@@ -427,11 +428,11 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
     setState(() {
       _isRunning = true;
-      _hasSaved = false;
+      _savePath = null;
     });
 
     try {
-      await ExportDocumentService(ref: ref).exportDocuments(
+      final savePath = await ExportDocumentService(ref: ref).exportDocuments(
         selectedSpecimens: ref.read(documentSpecimenSelectionProvider),
         selectedDir: _selectedDir!,
         fileStem: exportCtr.fileNameCtr.text,
@@ -440,11 +441,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
       if (mounted) {
         setState(() {
-          _hasSaved = true;
+          _savePath = savePath;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved documents successfully.')),
-        );
+        _showSavedPath();
       }
     } catch (e) {
       if (mounted) {
@@ -459,5 +458,19 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
         });
       }
     }
+  }
+
+  void _showSavedPath() {
+    final savePath = _savePath;
+    if (!context.mounted || savePath == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          systemPlatform == PlatformType.desktop
+              ? 'Document saved to ${savePath.path}'
+              : 'Document saved!',
+        ),
+      ),
+    );
   }
 }

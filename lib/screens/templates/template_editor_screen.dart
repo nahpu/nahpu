@@ -13,7 +13,7 @@ import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/template_editor_service.dart';
-import 'package:nahpu/services/export/label_writer.dart';
+import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_scaffold.dart';
 import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -32,7 +32,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TemplateService _templateService = const TemplateService();
-  final LabelSettingsServices _labelSettings = LabelSettingsServices();
+  final DocumentSettingsServices _documentSettings = DocumentSettingsServices();
   final TemplateEditorService _editorService = TemplateEditorService();
 
   Template _template = DefaultTemplate.defaultTemplate();
@@ -312,12 +312,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   Future<void> _loadInitial() async {
-    _isDuplex = await _labelSettings.getDuplex();
-    _mirrorFront = await _labelSettings.getMirrorFront();
-    _mirrorBack = await _labelSettings.getMirrorBack();
-    _templateWidthMm = await _labelSettings.getLabelWidthMm();
-    _templateHeightMm = await _labelSettings.getLabelHeightMm();
-    final currentName = await _labelSettings.getCurrentTemplateName();
+    _isDuplex = await _documentSettings.getDuplex();
+    _mirrorFront = await _documentSettings.getMirrorFront();
+    _mirrorBack = await _documentSettings.getMirrorBack();
+    _templateWidthMm = await _documentSettings.getDocumentWidthMm();
+    _templateHeightMm = await _documentSettings.getDocumentHeightMm();
+    final currentName = await _documentSettings.getCurrentTemplateName();
     if (currentName != null && currentName.isNotEmpty) {
       final t = await _templateService.getTemplate(currentName);
       if (t != null) {
@@ -327,9 +327,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           _isDuplex = o.isDuplex;
           _mirrorFront = o.mirrorFront;
           _mirrorBack = o.mirrorBack;
-          await _labelSettings.setDuplex(_isDuplex);
-          await _labelSettings.setMirrorFront(_mirrorFront);
-          await _labelSettings.setMirrorBack(_mirrorBack);
+          await _documentSettings.setDuplex(_isDuplex);
+          await _documentSettings.setMirrorFront(_mirrorFront);
+          await _documentSettings.setMirrorBack(_mirrorBack);
         }
       }
     }
@@ -349,7 +349,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       if (list.isEmpty) return;
       final db = ref.read(databaseProvider);
       final firstSpecimen = list.first;
-      final m = await fieldValuesForSpecimen(db, firstSpecimen, ref);
+      final m = await documentFieldValuesForSpecimen(db, firstSpecimen, ref);
       if (mounted) {
         setState(() {
           _selectedSpecimenUuid = firstSpecimen.uuid;
@@ -425,7 +425,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       }
       _selectedElement = null;
     });
-    await _labelSettings.setDuplex(duplex);
+    await _documentSettings.setDuplex(duplex);
   }
 
   void _selectPage(int index) {
@@ -444,11 +444,11 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     if (_isPage1) {
       final next = !_mirrorFront;
       _deferSetState(() => _mirrorFront = next);
-      await _labelSettings.setMirrorFront(next);
+      await _documentSettings.setMirrorFront(next);
     } else {
       final next = !_mirrorBack;
       _deferSetState(() => _mirrorBack = next);
-      await _labelSettings.setMirrorBack(next);
+      await _documentSettings.setMirrorBack(next);
     }
   }
 
@@ -791,9 +791,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     await _templateService.saveTemplate(fresh);
     _savedNames = await _templateService.listTemplateNames();
 
-    await _labelSettings.setMirrorFront(false);
-    await _labelSettings.setMirrorBack(false);
-    final duplex = await _labelSettings.getDuplex();
+    await _documentSettings.setMirrorFront(false);
+    await _documentSettings.setMirrorBack(false);
+    final duplex = await _documentSettings.getDuplex();
     if (!mounted) return;
     setState(() {
       _template = fresh;
@@ -870,9 +870,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       await _templateService.saveTemplate(merged);
       if (!mounted) return;
       if (o != null) {
-        await _labelSettings.setDuplex(o.isDuplex);
-        await _labelSettings.setMirrorFront(o.mirrorFront);
-        await _labelSettings.setMirrorBack(o.mirrorBack);
+        await _documentSettings.setDuplex(o.isDuplex);
+        await _documentSettings.setMirrorFront(o.mirrorFront);
+        await _documentSettings.setMirrorBack(o.mirrorBack);
       }
       if (!mounted) return;
       _savedNames = await _templateService.listTemplateNames();
@@ -900,12 +900,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   Future<void> _loadTemplate(String name) async {
     final t = await _templateService.getTemplate(name);
     if (t != null) {
-      await _labelSettings.setCurrentTemplateName(name);
+      await _documentSettings.setCurrentTemplateName(name);
       final o = t.printOptions;
       if (o != null) {
-        await _labelSettings.setDuplex(o.isDuplex);
-        await _labelSettings.setMirrorFront(o.mirrorFront);
-        await _labelSettings.setMirrorBack(o.mirrorBack);
+        await _documentSettings.setDuplex(o.isDuplex);
+        await _documentSettings.setMirrorFront(o.mirrorFront);
+        await _documentSettings.setMirrorBack(o.mirrorBack);
       }
       if (!mounted) return;
       setState(() {
@@ -936,11 +936,11 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _savedNames = await _templateService.listTemplateNames();
     final fresh = DefaultTemplate.defaultTemplate();
     if (!mounted) return;
-    await _labelSettings.setMirrorFront(false);
-    await _labelSettings.setMirrorBack(false);
+    await _documentSettings.setMirrorFront(false);
+    await _documentSettings.setMirrorBack(false);
     _mirrorFront = false;
     _mirrorBack = false;
-    _isDuplex = await _labelSettings.getDuplex();
+    _isDuplex = await _documentSettings.getDuplex();
     if (!mounted) return;
     setState(() {
       _template = fresh;
@@ -964,7 +964,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       final db = ref.read(databaseProvider);
       try {
         final s = await SpecimenServices(ref: ref).getSpecimen(result);
-        final m = await fieldValuesForSpecimen(db, s, ref);
+        final m = await documentFieldValuesForSpecimen(db, s, ref);
         setState(() {
           _selectedSpecimenUuid = result;
           _editorTemplateFieldPreview = m;

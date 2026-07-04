@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/column_picker.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/export_document.dart';
-import 'package:nahpu/services/export/label_writer.dart'
-    show fieldValuesForSpecimen;
+import 'package:nahpu/services/export/document_writer.dart'
+    show documentFieldValuesForSpecimen;
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -365,7 +365,7 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
 
       final rowVals = <String, Map<String, String>>{};
       for (final s in data) {
-        rowVals[s.uuid] = await fieldValuesForSpecimen(db, s, ref);
+        rowVals[s.uuid] = await documentFieldValuesForSpecimen(db, s, ref);
       }
 
       List<String> allUuids = [];
@@ -575,7 +575,7 @@ class _SpecimenSelectionScreenState
 
   Future<void> _loadColumns() async {
     final db = ref.read(databaseProvider);
-    final settings = LabelSettingsServices();
+    final settings = DocumentSettingsServices();
     final storedCols = await settings.getPrintSpecimenTableColumnIds();
     var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
     if (visible.isEmpty) {
@@ -593,7 +593,7 @@ class _SpecimenSelectionScreenState
 
   Future<void> _pickColumns() async {
     final db = ref.read(databaseProvider);
-    final settings = LabelSettingsServices();
+    final settings = DocumentSettingsServices();
     final order = List<String>.from(_visibleColumnIds);
     List<String>? result;
 

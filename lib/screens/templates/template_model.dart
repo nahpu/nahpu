@@ -855,10 +855,10 @@ class TemplatePrintOptions {
     this.pagePadLeftMm,
     this.pagePadRightMm,
     this.pagePadBottomMm,
-    this.labelPadTopMm,
-    this.labelPadLeftMm,
-    this.labelPadRightMm,
-    this.labelPadBottomMm,
+    this.documentPadTopMm,
+    this.documentPadLeftMm,
+    this.documentPadRightMm,
+    this.documentPadBottomMm,
   });
 
   final bool isDuplex;
@@ -871,10 +871,10 @@ class TemplatePrintOptions {
   final double? pagePadLeftMm;
   final double? pagePadRightMm;
   final double? pagePadBottomMm;
-  final double? labelPadTopMm;
-  final double? labelPadLeftMm;
-  final double? labelPadRightMm;
-  final double? labelPadBottomMm;
+  final double? documentPadTopMm;
+  final double? documentPadLeftMm;
+  final double? documentPadRightMm;
+  final double? documentPadBottomMm;
 
   Map<String, dynamic> toJson() => {
         'isDuplex': isDuplex,
@@ -887,13 +887,20 @@ class TemplatePrintOptions {
         if (pagePadLeftMm != null) 'pagePadLeftMm': pagePadLeftMm,
         if (pagePadRightMm != null) 'pagePadRightMm': pagePadRightMm,
         if (pagePadBottomMm != null) 'pagePadBottomMm': pagePadBottomMm,
-        if (labelPadTopMm != null) 'labelPadTopMm': labelPadTopMm,
-        if (labelPadLeftMm != null) 'labelPadLeftMm': labelPadLeftMm,
-        if (labelPadRightMm != null) 'labelPadRightMm': labelPadRightMm,
-        if (labelPadBottomMm != null) 'labelPadBottomMm': labelPadBottomMm,
+        if (documentPadTopMm != null) 'documentPadTopMm': documentPadTopMm,
+        if (documentPadLeftMm != null) 'documentPadLeftMm': documentPadLeftMm,
+        if (documentPadRightMm != null)
+          'documentPadRightMm': documentPadRightMm,
+        if (documentPadBottomMm != null)
+          'documentPadBottomMm': documentPadBottomMm,
       };
 
   factory TemplatePrintOptions.fromJson(Map<String, dynamic> json) {
+    double? readDouble(String key, String legacyKey) {
+      return (json[key] as num?)?.toDouble() ??
+          (json[legacyKey] as num?)?.toDouble();
+    }
+
     return TemplatePrintOptions(
       isDuplex: json['isDuplex'] as bool? ?? false,
       mirrorFront: json['mirrorFront'] as bool? ?? false,
@@ -905,10 +912,11 @@ class TemplatePrintOptions {
       pagePadLeftMm: (json['pagePadLeftMm'] as num?)?.toDouble(),
       pagePadRightMm: (json['pagePadRightMm'] as num?)?.toDouble(),
       pagePadBottomMm: (json['pagePadBottomMm'] as num?)?.toDouble(),
-      labelPadTopMm: (json['labelPadTopMm'] as num?)?.toDouble(),
-      labelPadLeftMm: (json['labelPadLeftMm'] as num?)?.toDouble(),
-      labelPadRightMm: (json['labelPadRightMm'] as num?)?.toDouble(),
-      labelPadBottomMm: (json['labelPadBottomMm'] as num?)?.toDouble(),
+      documentPadTopMm: readDouble('documentPadTopMm', 'labelPadTopMm'),
+      documentPadLeftMm: readDouble('documentPadLeftMm', 'labelPadLeftMm'),
+      documentPadRightMm: readDouble('documentPadRightMm', 'labelPadRightMm'),
+      documentPadBottomMm:
+          readDouble('documentPadBottomMm', 'labelPadBottomMm'),
     );
   }
 }
@@ -932,6 +940,10 @@ TemplatePrintOptions? templatePrintOptionsFromJson(
       json.containsKey('pagePadLeftMm') ||
       json.containsKey('pagePadRightMm') ||
       json.containsKey('pagePadBottomMm') ||
+      json.containsKey('documentPadTopMm') ||
+      json.containsKey('documentPadLeftMm') ||
+      json.containsKey('documentPadRightMm') ||
+      json.containsKey('documentPadBottomMm') ||
       json.containsKey('labelPadTopMm') ||
       json.containsKey('labelPadLeftMm') ||
       json.containsKey('labelPadRightMm') ||

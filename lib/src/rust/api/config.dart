@@ -183,37 +183,37 @@ class ConfigPresetEntry {
 /// Represents a layout block within a document.
 class DocumentLayoutBlock {
   final String templateName;
-  final int labelCount;
+  final int templateCount;
   final int rows;
   final int cols;
-  final double labelPadTopMm;
-  final double labelPadLeftMm;
-  final double labelPadRightMm;
-  final double labelPadBottomMm;
+  final double templatePadTopMm;
+  final double templatePadLeftMm;
+  final double templatePadRightMm;
+  final double templatePadBottomMm;
   final bool pageBreakAfter;
 
   const DocumentLayoutBlock({
     required this.templateName,
-    required this.labelCount,
+    required this.templateCount,
     required this.rows,
     required this.cols,
-    required this.labelPadTopMm,
-    required this.labelPadLeftMm,
-    required this.labelPadRightMm,
-    required this.labelPadBottomMm,
+    required this.templatePadTopMm,
+    required this.templatePadLeftMm,
+    required this.templatePadRightMm,
+    required this.templatePadBottomMm,
     required this.pageBreakAfter,
   });
 
   @override
   int get hashCode =>
       templateName.hashCode ^
-      labelCount.hashCode ^
+      templateCount.hashCode ^
       rows.hashCode ^
       cols.hashCode ^
-      labelPadTopMm.hashCode ^
-      labelPadLeftMm.hashCode ^
-      labelPadRightMm.hashCode ^
-      labelPadBottomMm.hashCode ^
+      templatePadTopMm.hashCode ^
+      templatePadLeftMm.hashCode ^
+      templatePadRightMm.hashCode ^
+      templatePadBottomMm.hashCode ^
       pageBreakAfter.hashCode;
 
   @override
@@ -222,13 +222,13 @@ class DocumentLayoutBlock {
       other is DocumentLayoutBlock &&
           runtimeType == other.runtimeType &&
           templateName == other.templateName &&
-          labelCount == other.labelCount &&
+          templateCount == other.templateCount &&
           rows == other.rows &&
           cols == other.cols &&
-          labelPadTopMm == other.labelPadTopMm &&
-          labelPadLeftMm == other.labelPadLeftMm &&
-          labelPadRightMm == other.labelPadRightMm &&
-          labelPadBottomMm == other.labelPadBottomMm &&
+          templatePadTopMm == other.templatePadTopMm &&
+          templatePadLeftMm == other.templatePadLeftMm &&
+          templatePadRightMm == other.templatePadRightMm &&
+          templatePadBottomMm == other.templatePadBottomMm &&
           pageBreakAfter == other.pageBreakAfter;
 }
 

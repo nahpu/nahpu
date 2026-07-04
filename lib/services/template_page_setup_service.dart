@@ -5,11 +5,13 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String _pageSetupsDirName = 'label_page_setups';
-const String _kCurrentPageSetupName = 'label_current_page_setup_name';
+const String _pageSetupsDirName = 'document_page_setups';
+const String _legacyPageSetupsDirName = 'label_page_setups';
+const String _kCurrentPageSetupName = 'document_current_page_setup_name';
+const String _legacyCurrentPageSetupName = 'label_current_page_setup_name';
 
-class LabelPageSetup {
-  const LabelPageSetup({
+class DocumentPageSetup {
+  const DocumentPageSetup({
     required this.name,
     required this.pageSizeKey,
     required this.pageOrientation,
@@ -21,10 +23,10 @@ class LabelPageSetup {
     required this.pagePadLeftMm,
     required this.pagePadRightMm,
     required this.pagePadBottomMm,
-    required this.labelPadTopMm,
-    required this.labelPadLeftMm,
-    required this.labelPadRightMm,
-    required this.labelPadBottomMm,
+    required this.documentPadTopMm,
+    required this.documentPadLeftMm,
+    required this.documentPadRightMm,
+    required this.documentPadBottomMm,
   });
 
   final String name;
@@ -38,12 +40,12 @@ class LabelPageSetup {
   final double pagePadLeftMm;
   final double pagePadRightMm;
   final double pagePadBottomMm;
-  final double labelPadTopMm;
-  final double labelPadLeftMm;
-  final double labelPadRightMm;
-  final double labelPadBottomMm;
+  final double documentPadTopMm;
+  final double documentPadLeftMm;
+  final double documentPadRightMm;
+  final double documentPadBottomMm;
 
-  LabelPageSetup copyWith({
+  DocumentPageSetup copyWith({
     String? name,
     String? pageSizeKey,
     String? pageOrientation,
@@ -55,12 +57,12 @@ class LabelPageSetup {
     double? pagePadLeftMm,
     double? pagePadRightMm,
     double? pagePadBottomMm,
-    double? labelPadTopMm,
-    double? labelPadLeftMm,
-    double? labelPadRightMm,
-    double? labelPadBottomMm,
+    double? documentPadTopMm,
+    double? documentPadLeftMm,
+    double? documentPadRightMm,
+    double? documentPadBottomMm,
   }) {
-    return LabelPageSetup(
+    return DocumentPageSetup(
       name: name ?? this.name,
       pageSizeKey: pageSizeKey ?? this.pageSizeKey,
       pageOrientation: pageOrientation ?? this.pageOrientation,
@@ -72,10 +74,10 @@ class LabelPageSetup {
       pagePadLeftMm: pagePadLeftMm ?? this.pagePadLeftMm,
       pagePadRightMm: pagePadRightMm ?? this.pagePadRightMm,
       pagePadBottomMm: pagePadBottomMm ?? this.pagePadBottomMm,
-      labelPadTopMm: labelPadTopMm ?? this.labelPadTopMm,
-      labelPadLeftMm: labelPadLeftMm ?? this.labelPadLeftMm,
-      labelPadRightMm: labelPadRightMm ?? this.labelPadRightMm,
-      labelPadBottomMm: labelPadBottomMm ?? this.labelPadBottomMm,
+      documentPadTopMm: documentPadTopMm ?? this.documentPadTopMm,
+      documentPadLeftMm: documentPadLeftMm ?? this.documentPadLeftMm,
+      documentPadRightMm: documentPadRightMm ?? this.documentPadRightMm,
+      documentPadBottomMm: documentPadBottomMm ?? this.documentPadBottomMm,
     );
   }
 
@@ -91,14 +93,20 @@ class LabelPageSetup {
         'pagePadLeftMm': pagePadLeftMm,
         'pagePadRightMm': pagePadRightMm,
         'pagePadBottomMm': pagePadBottomMm,
-        'labelPadTopMm': labelPadTopMm,
-        'labelPadLeftMm': labelPadLeftMm,
-        'labelPadRightMm': labelPadRightMm,
-        'labelPadBottomMm': labelPadBottomMm,
+        'documentPadTopMm': documentPadTopMm,
+        'documentPadLeftMm': documentPadLeftMm,
+        'documentPadRightMm': documentPadRightMm,
+        'documentPadBottomMm': documentPadBottomMm,
       };
 
-  factory LabelPageSetup.fromJson(Map<String, dynamic> json) {
-    return LabelPageSetup(
+  factory DocumentPageSetup.fromJson(Map<String, dynamic> json) {
+    double readDouble(String key, String legacyKey, double fallback) {
+      return (json[key] as num?)?.toDouble() ??
+          (json[legacyKey] as num?)?.toDouble() ??
+          fallback;
+    }
+
+    return DocumentPageSetup(
       name: (json['name'] as String? ?? 'Default').trim().isEmpty
           ? 'Default'
           : (json['name'] as String).trim(),
@@ -113,25 +121,27 @@ class LabelPageSetup {
       pagePadLeftMm: (json['pagePadLeftMm'] as num?)?.toDouble() ?? 8.0,
       pagePadRightMm: (json['pagePadRightMm'] as num?)?.toDouble() ?? 8.0,
       pagePadBottomMm: (json['pagePadBottomMm'] as num?)?.toDouble() ?? 8.0,
-      labelPadTopMm: (json['labelPadTopMm'] as num?)?.toDouble() ?? 1.0,
-      labelPadLeftMm: (json['labelPadLeftMm'] as num?)?.toDouble() ?? 1.0,
-      labelPadRightMm: (json['labelPadRightMm'] as num?)?.toDouble() ?? 1.0,
-      labelPadBottomMm: (json['labelPadBottomMm'] as num?)?.toDouble() ?? 1.0,
+      documentPadTopMm: readDouble('documentPadTopMm', 'labelPadTopMm', 1.0),
+      documentPadLeftMm: readDouble('documentPadLeftMm', 'labelPadLeftMm', 1.0),
+      documentPadRightMm:
+          readDouble('documentPadRightMm', 'labelPadRightMm', 1.0),
+      documentPadBottomMm:
+          readDouble('documentPadBottomMm', 'labelPadBottomMm', 1.0),
     );
   }
 
   String toJsonString() => const JsonEncoder.withIndent('  ').convert(toJson());
 
-  static LabelPageSetup fromJsonString(String text) {
+  static DocumentPageSetup fromJsonString(String text) {
     final decoded = jsonDecode(text);
     if (decoded is! Map) {
       throw const FormatException('Page setup JSON must be an object');
     }
-    return LabelPageSetup.fromJson(Map<String, dynamic>.from(decoded));
+    return DocumentPageSetup.fromJson(Map<String, dynamic>.from(decoded));
   }
 
-  static LabelPageSetup defaults([String name = 'Default']) {
-    return LabelPageSetup(
+  static DocumentPageSetup defaults([String name = 'Default']) {
+    return DocumentPageSetup(
       name: name,
       pageSizeKey: 'Letter',
       pageOrientation: 'portrait',
@@ -143,16 +153,16 @@ class LabelPageSetup {
       pagePadLeftMm: 8,
       pagePadRightMm: 8,
       pagePadBottomMm: 8,
-      labelPadTopMm: 1,
-      labelPadLeftMm: 1,
-      labelPadRightMm: 1,
-      labelPadBottomMm: 1,
+      documentPadTopMm: 1,
+      documentPadLeftMm: 1,
+      documentPadRightMm: 1,
+      documentPadBottomMm: 1,
     );
   }
 }
 
-class LabelPageSetupService {
-  const LabelPageSetupService();
+class DocumentPageSetupService {
+  const DocumentPageSetupService();
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
@@ -165,31 +175,45 @@ class LabelPageSetupService {
     return dir;
   }
 
+  Future<Directory> _legacySetupsDir() async {
+    final root = await getApplicationDocumentsDirectory();
+    return Directory(p.join(root.path, _legacyPageSetupsDirName));
+  }
+
   Future<List<String>> listSetupNames() async {
     final dir = await _setupsDir();
-    final names = dir
-        .listSync()
-        .whereType<File>()
+    final legacyDir = await _legacySetupsDir();
+    final files = [
+      ...dir.listSync().whereType<File>(),
+      if (legacyDir.existsSync()) ...legacyDir.listSync().whereType<File>(),
+    ];
+    final names = files
         .where((f) => f.path.endsWith('.json'))
         .map((f) => p.basenameWithoutExtension(f.path))
+        .toSet()
         .toList()
       ..sort();
     if (!names.contains('Default')) {
-      await saveSetup(LabelPageSetup.defaults());
+      await saveSetup(DocumentPageSetup.defaults());
       names.add('Default');
       names.sort();
     }
     return names;
   }
 
-  Future<LabelPageSetup?> getSetup(String name) async {
+  Future<DocumentPageSetup?> getSetup(String name) async {
     final dir = await _setupsDir();
     final file = File(p.join(dir.path, '$name.json'));
-    if (!file.existsSync()) return null;
-    return LabelPageSetup.fromJsonString(await file.readAsString());
+    if (file.existsSync()) {
+      return DocumentPageSetup.fromJsonString(await file.readAsString());
+    }
+    final legacyDir = await _legacySetupsDir();
+    final legacyFile = File(p.join(legacyDir.path, '$name.json'));
+    if (!legacyFile.existsSync()) return null;
+    return DocumentPageSetup.fromJsonString(await legacyFile.readAsString());
   }
 
-  Future<void> saveSetup(LabelPageSetup setup) async {
+  Future<void> saveSetup(DocumentPageSetup setup) async {
     final dir = await _setupsDir();
     final safeName = setup.name.trim().isEmpty ? 'Default' : setup.name.trim();
     final file = File(p.join(dir.path, '$safeName.json'));
@@ -211,7 +235,8 @@ class LabelPageSetupService {
 
   Future<String> getCurrentSetupName() async {
     final prefs = await _prefs;
-    final stored = prefs.getString(_kCurrentPageSetupName);
+    final stored = prefs.getString(_kCurrentPageSetupName) ??
+        prefs.getString(_legacyCurrentPageSetupName);
     final names = await listSetupNames();
     if (stored != null && names.contains(stored)) return stored;
     return names.first;
@@ -222,21 +247,21 @@ class LabelPageSetupService {
     await prefs.setString(_kCurrentPageSetupName, name);
   }
 
-  Future<LabelPageSetup> getCurrentSetup() async {
+  Future<DocumentPageSetup> getCurrentSetup() async {
     final name = await getCurrentSetupName();
-    return (await getSetup(name)) ?? LabelPageSetup.defaults(name);
+    return (await getSetup(name)) ?? DocumentPageSetup.defaults(name);
   }
 
-  Future<LabelPageSetup?> importFromPath(String path) async {
+  Future<DocumentPageSetup?> importFromPath(String path) async {
     try {
       final text = await File(path).readAsString();
-      return LabelPageSetup.fromJsonString(text);
+      return DocumentPageSetup.fromJsonString(text);
     } catch (_) {
       return null;
     }
   }
 
-  Future<void> exportToPath(LabelPageSetup setup, String path) async {
+  Future<void> exportToPath(DocumentPageSetup setup, String path) async {
     await File(path).writeAsString(setup.toJsonString());
   }
 }

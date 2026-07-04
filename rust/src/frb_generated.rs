@@ -1665,23 +1665,23 @@ impl SseDecode for crate::api::config::DocumentLayoutBlock {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_templateName = <String>::sse_decode(deserializer);
-        let mut var_labelCount = <i32>::sse_decode(deserializer);
+        let mut var_templateCount = <i32>::sse_decode(deserializer);
         let mut var_rows = <i32>::sse_decode(deserializer);
         let mut var_cols = <i32>::sse_decode(deserializer);
-        let mut var_labelPadTopMm = <f64>::sse_decode(deserializer);
-        let mut var_labelPadLeftMm = <f64>::sse_decode(deserializer);
-        let mut var_labelPadRightMm = <f64>::sse_decode(deserializer);
-        let mut var_labelPadBottomMm = <f64>::sse_decode(deserializer);
+        let mut var_templatePadTopMm = <f64>::sse_decode(deserializer);
+        let mut var_templatePadLeftMm = <f64>::sse_decode(deserializer);
+        let mut var_templatePadRightMm = <f64>::sse_decode(deserializer);
+        let mut var_templatePadBottomMm = <f64>::sse_decode(deserializer);
         let mut var_pageBreakAfter = <bool>::sse_decode(deserializer);
         return crate::api::config::DocumentLayoutBlock {
             template_name: var_templateName,
-            label_count: var_labelCount,
+            template_count: var_templateCount,
             rows: var_rows,
             cols: var_cols,
-            label_pad_top_mm: var_labelPadTopMm,
-            label_pad_left_mm: var_labelPadLeftMm,
-            label_pad_right_mm: var_labelPadRightMm,
-            label_pad_bottom_mm: var_labelPadBottomMm,
+            template_pad_top_mm: var_templatePadTopMm,
+            template_pad_left_mm: var_templatePadLeftMm,
+            template_pad_right_mm: var_templatePadRightMm,
+            template_pad_bottom_mm: var_templatePadBottomMm,
             page_break_after: var_pageBreakAfter,
         };
     }
@@ -2292,13 +2292,13 @@ impl flutter_rust_bridge::IntoDart for crate::api::config::DocumentLayoutBlock {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.template_name.into_into_dart().into_dart(),
-            self.label_count.into_into_dart().into_dart(),
+            self.template_count.into_into_dart().into_dart(),
             self.rows.into_into_dart().into_dart(),
             self.cols.into_into_dart().into_dart(),
-            self.label_pad_top_mm.into_into_dart().into_dart(),
-            self.label_pad_left_mm.into_into_dart().into_dart(),
-            self.label_pad_right_mm.into_into_dart().into_dart(),
-            self.label_pad_bottom_mm.into_into_dart().into_dart(),
+            self.template_pad_top_mm.into_into_dart().into_dart(),
+            self.template_pad_left_mm.into_into_dart().into_dart(),
+            self.template_pad_right_mm.into_into_dart().into_dart(),
+            self.template_pad_bottom_mm.into_into_dart().into_dart(),
             self.page_break_after.into_into_dart().into_dart(),
         ]
         .into_dart()
@@ -2543,13 +2543,13 @@ impl SseEncode for crate::api::config::DocumentLayoutBlock {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.template_name, serializer);
-        <i32>::sse_encode(self.label_count, serializer);
+        <i32>::sse_encode(self.template_count, serializer);
         <i32>::sse_encode(self.rows, serializer);
         <i32>::sse_encode(self.cols, serializer);
-        <f64>::sse_encode(self.label_pad_top_mm, serializer);
-        <f64>::sse_encode(self.label_pad_left_mm, serializer);
-        <f64>::sse_encode(self.label_pad_right_mm, serializer);
-        <f64>::sse_encode(self.label_pad_bottom_mm, serializer);
+        <f64>::sse_encode(self.template_pad_top_mm, serializer);
+        <f64>::sse_encode(self.template_pad_left_mm, serializer);
+        <f64>::sse_encode(self.template_pad_right_mm, serializer);
+        <f64>::sse_encode(self.template_pad_bottom_mm, serializer);
         <bool>::sse_encode(self.page_break_after, serializer);
     }
 }

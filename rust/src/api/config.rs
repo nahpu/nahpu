@@ -32,13 +32,13 @@ pub struct ConfigPresetEntry {
 /// Represents a layout block within a document.
 pub struct DocumentLayoutBlock {
     pub template_name: String,
-    pub label_count: i32,
+    pub template_count: i32,
     pub rows: i32,
     pub cols: i32,
-    pub label_pad_top_mm: f64,
-    pub label_pad_left_mm: f64,
-    pub label_pad_right_mm: f64,
-    pub label_pad_bottom_mm: f64,
+    pub template_pad_top_mm: f64,
+    pub template_pad_left_mm: f64,
+    pub template_pad_right_mm: f64,
+    pub template_pad_bottom_mm: f64,
     pub page_break_after: bool,
 }
 
@@ -61,13 +61,13 @@ impl From<nahpu_configs::DocumentLayoutBlock> for DocumentLayoutBlock {
     fn from(b: nahpu_configs::DocumentLayoutBlock) -> Self {
         Self {
             template_name: b.template_name,
-            label_count: b.label_count,
+            template_count: b.template_count,
             rows: b.rows,
             cols: b.cols,
-            label_pad_top_mm: b.label_pad_top_mm,
-            label_pad_left_mm: b.label_pad_left_mm,
-            label_pad_right_mm: b.label_pad_right_mm,
-            label_pad_bottom_mm: b.label_pad_bottom_mm,
+            template_pad_top_mm: b.template_pad_top_mm,
+            template_pad_left_mm: b.template_pad_left_mm,
+            template_pad_right_mm: b.template_pad_right_mm,
+            template_pad_bottom_mm: b.template_pad_bottom_mm,
             page_break_after: b.page_break_after,
         }
     }
@@ -77,13 +77,13 @@ impl From<DocumentLayoutBlock> for nahpu_configs::DocumentLayoutBlock {
     fn from(b: DocumentLayoutBlock) -> Self {
         Self {
             template_name: b.template_name,
-            label_count: b.label_count,
+            template_count: b.template_count,
             rows: b.rows,
             cols: b.cols,
-            label_pad_top_mm: b.label_pad_top_mm,
-            label_pad_left_mm: b.label_pad_left_mm,
-            label_pad_right_mm: b.label_pad_right_mm,
-            label_pad_bottom_mm: b.label_pad_bottom_mm,
+            template_pad_top_mm: b.template_pad_top_mm,
+            template_pad_left_mm: b.template_pad_left_mm,
+            template_pad_right_mm: b.template_pad_right_mm,
+            template_pad_bottom_mm: b.template_pad_bottom_mm,
             page_break_after: b.page_break_after,
         }
     }

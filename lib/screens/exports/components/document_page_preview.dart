@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
-import 'package:nahpu/services/export/label_writer.dart';
+import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -21,7 +21,8 @@ class DocumentPageLivePreview extends ConsumerStatefulWidget {
       _DocumentPageLivePreviewState();
 }
 
-class _DocumentPageLivePreviewState extends ConsumerState<DocumentPageLivePreview> {
+class _DocumentPageLivePreviewState
+    extends ConsumerState<DocumentPageLivePreview> {
   bool _isLoading = true;
   String? _error;
   Uint8List? _pdfBytes;
@@ -128,8 +129,8 @@ class _DocumentPageLivePreviewState extends ConsumerState<DocumentPageLivePrevie
       final wPt = w * 72.0 / 25.4;
       final hPt = h * 72.0 / 25.4;
 
-      final writer = LabelWriter(ref: ref);
-      final bytes = await writer.generateLabelsPdf(
+      final writer = DocumentWriter(ref: ref);
+      final bytes = await writer.generateDocumentsPdf(
         picked,
         sheetWidthPt: wPt,
         sheetHeightPt: hPt,

@@ -17,20 +17,20 @@ import 'package:path/path.dart' as path;
 import 'package:qr/qr.dart';
 
 /// Layout options for configuring the precise physical dimensions
-/// and padding of a printed label sheet.
-class LabelPrintLayoutOptions {
+/// and padding of a printed document sheet.
+class DocumentPrintLayoutOptions {
   /// Creates a new layout configuration.
-  const LabelPrintLayoutOptions({
+  const DocumentPrintLayoutOptions({
     required this.rowsPerPage,
     required this.colsPerPage,
     required this.pagePadTopMm,
     required this.pagePadLeftMm,
     required this.pagePadRightMm,
     required this.pagePadBottomMm,
-    required this.labelPadTopMm,
-    required this.labelPadLeftMm,
-    required this.labelPadRightMm,
-    required this.labelPadBottomMm,
+    required this.templatePadTopMm,
+    required this.templatePadLeftMm,
+    required this.templatePadRightMm,
+    required this.templatePadBottomMm,
   });
 
   final int rowsPerPage;
@@ -39,23 +39,23 @@ class LabelPrintLayoutOptions {
   final double pagePadLeftMm;
   final double pagePadRightMm;
   final double pagePadBottomMm;
-  final double labelPadTopMm;
-  final double labelPadLeftMm;
-  final double labelPadRightMm;
-  final double labelPadBottomMm;
+  final double templatePadTopMm;
+  final double templatePadLeftMm;
+  final double templatePadRightMm;
+  final double templatePadBottomMm;
 }
 
 /// Orchestrates the process of converting specimen data into a generated
-/// PDF label file using the Typst rendering engine.
-class LabelWriter {
-  LabelWriter({required this.ref});
+/// PDF document file using the Typst rendering engine.
+class DocumentWriter {
+  DocumentWriter({required this.ref});
 
   final WidgetRef ref;
 
   Database get _db => ref.read(databaseProvider);
 
   /// Generates the Typst PDF and writes it to the designated output file.
-  Future<void> writeLabels({
+  Future<File> writeDocuments({
     required List<SpecimenData> picked,
     required Directory selectedDir,
     required String fileStem,
@@ -70,7 +70,7 @@ class LabelWriter {
       h = tmp;
     }
 
-    final pdfBytes = await generateLabelsPdf(
+    final pdfBytes = await generateDocumentsPdf(
       picked,
       sheetWidthPt: w * 72.0 / 25.4,
       sheetHeightPt: h * 72.0 / 25.4,
@@ -81,6 +81,7 @@ class LabelWriter {
         await AppIOServices(dir: selectedDir, fileStem: fileStem, ext: 'pdf')
             .getSavePath();
     await savePath.writeAsBytes(pdfBytes);
+    return savePath;
   }
 
   double _getPageWidth(String pageSizeKey, double? customPageWidthMm) {
@@ -143,17 +144,17 @@ class LabelWriter {
     }
   }
 
-  Future<Uint8List> generateLabelsPdf(
+  Future<Uint8List> generateDocumentsPdf(
     List<SpecimenData> specimens, {
     required double sheetWidthPt,
     required double sheetHeightPt,
     required rust_config.DocumentLayoutPreset layout,
   }) async {
-    final settings = LabelSettingsServices();
+    final settings = DocumentSettingsServices();
     final templateService = const TemplateService();
 
-    final wPt = labelPdfMmToPt(await settings.getLabelWidthMm());
-    final hPt = labelPdfMmToPt(await settings.getLabelHeightMm());
+    final wPt = documentPdfMmToPt(await settings.getDocumentWidthMm());
+    final hPt = documentPdfMmToPt(await settings.getDocumentHeightMm());
     final duplex = await settings.getDuplex();
     final mirrorFront = await settings.getMirrorFront();
     final mirrorBack = await settings.getMirrorBack();
@@ -173,14 +174,14 @@ class LabelWriter {
     if (specimens.isEmpty) {
       typst.writeln(
           '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt)');
-      typst.writeln('#align(center + horizon)[No labels]');
+      typst.writeln('#align(center + horizon)[No documents]');
     } else if (layout.layoutType == 'Continuous') {
       final List<_ContinuousPrintItem> continuousItems = [];
 
       for (final specimen in specimens) {
         for (final block in layout.blocks) {
           final tmpl = templates[block.templateName]!;
-          for (var c = 0; c < block.labelCount; c++) {
+          for (var c = 0; c < block.templateCount; c++) {
             continuousItems.add(_ContinuousPrintItem(
               specimen: specimen,
               template: tmpl,
@@ -204,28 +205,29 @@ class LabelWriter {
       for (var i = 0; i < continuousItems.length; i++) {
         final item = continuousItems[i];
         final cellWPt = wPt +
-            labelPdfMmToPt(item.block.labelPadLeftMm) +
-            labelPdfMmToPt(item.block.labelPadRightMm);
+            documentPdfMmToPt(item.block.templatePadLeftMm) +
+            documentPdfMmToPt(item.block.templatePadRightMm);
         final cellHPt = hPt +
-            labelPdfMmToPt(item.block.labelPadTopMm) +
-            labelPdfMmToPt(item.block.labelPadBottomMm);
+            documentPdfMmToPt(item.block.templatePadTopMm) +
+            documentPdfMmToPt(item.block.templatePadBottomMm);
 
         typst.writeln(
             '#set page(width: ${cellWPt}pt, height: ${cellHPt}pt, margin: 0pt)');
 
-        final data = await fieldValuesForSpecimen(_db, item.specimen, ref);
+        final data =
+            await documentFieldValuesForSpecimen(_db, item.specimen, ref);
         final subbedPage = await _substitutePage(item.pageTemplate, data);
 
-        _writeSingleLabelCell(
+        _writeSingleDocumentCell(
           typst: typst,
           page: subbedPage,
           data: data,
           wPt: wPt,
           hPt: hPt,
-          labelPadTopMm: item.block.labelPadTopMm,
-          labelPadLeftMm: item.block.labelPadLeftMm,
-          labelPadRightMm: item.block.labelPadRightMm,
-          labelPadBottomMm: item.block.labelPadBottomMm,
+          templatePadTopMm: item.block.templatePadTopMm,
+          templatePadLeftMm: item.block.templatePadLeftMm,
+          templatePadRightMm: item.block.templatePadRightMm,
+          templatePadBottomMm: item.block.templatePadBottomMm,
           mirror: item.mirror,
           outline: item.template.outline,
         );
@@ -235,10 +237,10 @@ class LabelWriter {
         }
       }
     } else {
-      final ptTop = labelPdfMmToPt(layout.pagePadTopMm);
-      final ptLeft = labelPdfMmToPt(layout.pagePadLeftMm);
-      final ptBottom = labelPdfMmToPt(layout.pagePadBottomMm);
-      final ptRight = labelPdfMmToPt(layout.pagePadRightMm);
+      final ptTop = documentPdfMmToPt(layout.pagePadTopMm);
+      final ptLeft = documentPdfMmToPt(layout.pagePadLeftMm);
+      final ptBottom = documentPdfMmToPt(layout.pagePadBottomMm);
+      final ptRight = documentPdfMmToPt(layout.pagePadRightMm);
       typst.writeln(
           '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt, margin: (top: ${ptTop}pt, left: ${ptLeft}pt, bottom: ${ptBottom}pt, right: ${ptRight}pt))');
 
@@ -257,7 +259,7 @@ class LabelWriter {
 
         final List<SpecimenData> blockSpecimens = [];
         for (final specimen in specimens) {
-          for (var c = 0; c < block.labelCount; c++) {
+          for (var c = 0; c < block.templateCount; c++) {
             blockSpecimens.add(specimen);
           }
         }
@@ -277,11 +279,12 @@ class LabelWriter {
           final frontPages = <TemplatePage>[];
           final frontDataList = <Map<String, String>>[];
           for (final specimen in batch) {
-            final data = await fieldValuesForSpecimen(_db, specimen, ref);
+            final data =
+                await documentFieldValuesForSpecimen(_db, specimen, ref);
             frontDataList.add(data);
             frontPages.add(await _substitutePage(tmpl.page1, data));
           }
-          _writeTiledLabelSheet(
+          _writeTiledDocumentSheet(
             typst: typst,
             pages: frontPages,
             dataList: frontDataList,
@@ -291,10 +294,10 @@ class LabelWriter {
             cellH: cellH,
             wPt: wPt,
             hPt: hPt,
-            labelPadTopMm: block.labelPadTopMm,
-            labelPadLeftMm: block.labelPadLeftMm,
-            labelPadRightMm: block.labelPadRightMm,
-            labelPadBottomMm: block.labelPadBottomMm,
+            templatePadTopMm: block.templatePadTopMm,
+            templatePadLeftMm: block.templatePadLeftMm,
+            templatePadRightMm: block.templatePadRightMm,
+            templatePadBottomMm: block.templatePadBottomMm,
             mirror: mirrorFront,
             outline: tmpl.outline,
             pageBreakAfter: breakAfterFront,
@@ -304,11 +307,12 @@ class LabelWriter {
             final backPages = <TemplatePage>[];
             final backDataList = <Map<String, String>>[];
             for (final specimen in batch) {
-              final data = await fieldValuesForSpecimen(_db, specimen, ref);
+              final data =
+                  await documentFieldValuesForSpecimen(_db, specimen, ref);
               backDataList.add(data);
               backPages.add(await _substitutePage(tmpl.page2, data));
             }
-            _writeTiledLabelSheet(
+            _writeTiledDocumentSheet(
               typst: typst,
               pages: backPages,
               dataList: backDataList,
@@ -318,10 +322,10 @@ class LabelWriter {
               cellH: cellH,
               wPt: wPt,
               hPt: hPt,
-              labelPadTopMm: block.labelPadTopMm,
-              labelPadLeftMm: block.labelPadLeftMm,
-              labelPadRightMm: block.labelPadRightMm,
-              labelPadBottomMm: block.labelPadBottomMm,
+              templatePadTopMm: block.templatePadTopMm,
+              templatePadLeftMm: block.templatePadLeftMm,
+              templatePadRightMm: block.templatePadRightMm,
+              templatePadBottomMm: block.templatePadBottomMm,
               mirror: mirrorBack,
               outline: tmpl.outline,
               pageBreakAfter: breakAfterBack,
@@ -360,13 +364,13 @@ class LabelWriter {
   @visibleForTesting
   static List<bool> pageBreakPlanForTesting({
     required int specimenCount,
-    required int labelsPerSheet,
+    required int documentsPerSheet,
     required bool duplex,
   }) {
-    if (specimenCount <= 0 || labelsPerSheet <= 0) return const [];
+    if (specimenCount <= 0 || documentsPerSheet <= 0) return const [];
     final breaks = <bool>[];
-    for (var start = 0; start < specimenCount; start += labelsPerSheet) {
-      final end = math.min(start + labelsPerSheet, specimenCount);
+    for (var start = 0; start < specimenCount; start += documentsPerSheet) {
+      final end = math.min(start + documentsPerSheet, specimenCount);
       final isLastBatch = end >= specimenCount;
       breaks.add(duplex || !isLastBatch);
       if (duplex) breaks.add(!isLastBatch);
@@ -381,7 +385,7 @@ class LabelWriter {
     final texts = <CustomTextElement>[];
     final tempDir = await AppServices(ref: ref).tempDirectory;
     for (final ct in page.customTexts) {
-      final subbedText = substituteLabelPlaceholders(ct.text, data);
+      final subbedText = substituteDocumentPlaceholders(ct.text, data);
       if (ct.isQrCode) {
         final formattedText = formatTemplateText(
           subbedText,
@@ -465,7 +469,7 @@ class LabelWriter {
     return sb.toString();
   }
 
-  void _writeTiledLabelSheet({
+  void _writeTiledDocumentSheet({
     required StringBuffer typst,
     required List<TemplatePage> pages,
     required List<Map<String, String>> dataList,
@@ -475,10 +479,10 @@ class LabelWriter {
     required double cellH,
     required double wPt,
     required double hPt,
-    required double labelPadTopMm,
-    required double labelPadLeftMm,
-    required double labelPadRightMm,
-    required double labelPadBottomMm,
+    required double templatePadTopMm,
+    required double templatePadLeftMm,
+    required double templatePadRightMm,
+    required double templatePadBottomMm,
     required bool mirror,
     required bool pageBreakAfter,
     TemplateOutline? outline,
@@ -490,16 +494,16 @@ class LabelWriter {
     typst.writeln('  row-gutter: 0pt,');
 
     for (var i = 0; i < pages.length; i++) {
-      _writeSingleLabelCell(
+      _writeSingleDocumentCell(
         typst: typst,
         page: pages[i],
         data: dataList[i],
         wPt: wPt,
         hPt: hPt,
-        labelPadTopMm: labelPadTopMm,
-        labelPadLeftMm: labelPadLeftMm,
-        labelPadRightMm: labelPadRightMm,
-        labelPadBottomMm: labelPadBottomMm,
+        templatePadTopMm: templatePadTopMm,
+        templatePadLeftMm: templatePadLeftMm,
+        templatePadRightMm: templatePadRightMm,
+        templatePadBottomMm: templatePadBottomMm,
         mirror: mirror,
         outline: outline,
       );
@@ -512,23 +516,23 @@ class LabelWriter {
     }
   }
 
-  void _writeSingleLabelCell({
+  void _writeSingleDocumentCell({
     required StringBuffer typst,
     required TemplatePage page,
     required Map<String, String> data,
     required double wPt,
     required double hPt,
-    required double labelPadTopMm,
-    required double labelPadLeftMm,
-    required double labelPadRightMm,
-    required double labelPadBottomMm,
+    required double templatePadTopMm,
+    required double templatePadLeftMm,
+    required double templatePadRightMm,
+    required double templatePadBottomMm,
     required bool mirror,
     TemplateOutline? outline,
   }) {
-    final padTop = labelPdfMmToPt(labelPadTopMm);
-    final padBottom = labelPdfMmToPt(labelPadBottomMm);
-    final padLeft = labelPdfMmToPt(labelPadLeftMm);
-    final padRight = labelPdfMmToPt(labelPadRightMm);
+    final padTop = documentPdfMmToPt(templatePadTopMm);
+    final padBottom = documentPdfMmToPt(templatePadBottomMm);
+    final padLeft = documentPdfMmToPt(templatePadLeftMm);
+    final padRight = documentPdfMmToPt(templatePadRightMm);
 
     typst.writeln('  [');
     typst.writeln(
@@ -597,9 +601,9 @@ class LabelWriter {
     if (t.isQrCode) {
       if (t.tempPath == null || t.tempPath!.isEmpty) return;
       String cleanPath = t.tempPath!.replaceAll(r'\', r'\\');
-      final sizePt = labelPdfMmToPt(t.qrSizeMm);
+      final sizePt = documentPdfMmToPt(t.qrSizeMm);
       typst.writeln(
-          '  #place(dx: ${labelPdfMmToPt(t.xMm)}pt, dy: ${labelPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]');
+          '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${documentPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]');
       return;
     }
 
@@ -628,11 +632,12 @@ class LabelWriter {
       textElem = '#align(${t.textAlign})[$textElem]';
     }
     if (t.maxWidthMm != null) {
-      textElem = '#box(width: ${labelPdfMmToPt(t.maxWidthMm!)}pt)[$textElem]';
+      textElem =
+          '#box(width: ${documentPdfMmToPt(t.maxWidthMm!)}pt)[$textElem]';
     }
 
     typst.writeln(
-        '  #place(dx: ${labelPdfMmToPt(t.xMm)}pt, dy: ${labelPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[$textElem]]');
+        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${documentPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[$textElem]]');
   }
 
   void _writeGenderIcon(StringBuffer typst, CustomTextElement t,
@@ -646,13 +651,13 @@ class LabelWriter {
             : '?';
 
     final iconWPt =
-        labelPdfMmToPt(t.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm);
+        documentPdfMmToPt(t.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm);
     final iconHPt =
-        labelPdfMmToPt(t.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm);
+        documentPdfMmToPt(t.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm);
     final fs = math.min(iconWPt, iconHPt) * 0.88;
 
     typst.writeln(
-        '  #place(dx: ${labelPdfMmToPt(t.xMm)}pt, dy: ${labelPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
+        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${documentPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
   }
 
   String _fieldValueCi(Map<String, String> m, String key) {
@@ -679,7 +684,7 @@ class LabelWriter {
     String path = im.imagePath.replaceAll(r'\', r'\\');
 
     typst.writeln(
-        '  #place(dx: ${labelPdfMmToPt(im.xMm)}pt, dy: ${labelPdfMmToPt(im.yMm)}pt)[#rotate(${im.rotationDegrees}deg)[#image("$path", width: ${labelPdfMmToPt(im.widthMm)}pt, height: ${labelPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
+        '  #place(dx: ${documentPdfMmToPt(im.xMm)}pt, dy: ${documentPdfMmToPt(im.yMm)}pt)[#rotate(${im.rotationDegrees}deg)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
   }
 
   void _writeSingleCustomLine(StringBuffer typst, CustomLineElement line) {
@@ -687,7 +692,7 @@ class LabelWriter {
     final colorStr =
         'rgb("${hexColor.substring(2)}")'; // ignores alpha for now, assuming 100%
 
-    final lengthPt = labelPdfMmToPt(line.lengthMm);
+    final lengthPt = documentPdfMmToPt(line.lengthMm);
     String elem;
     if (line.strokeStyle == 'double') {
       final gap = line.thicknessPt * 1.25;
@@ -708,7 +713,7 @@ class LabelWriter {
     }
 
     typst.writeln(
-        '  #place(dx: ${labelPdfMmToPt(line.xMm)}pt, dy: ${labelPdfMmToPt(line.yMm)}pt)[#rotate(${line.rotationDegrees}deg)[$elem]]');
+        '  #place(dx: ${documentPdfMmToPt(line.xMm)}pt, dy: ${documentPdfMmToPt(line.yMm)}pt)[#rotate(${line.rotationDegrees}deg)[$elem]]');
   }
 
   void _writeSingleCustomShape(StringBuffer typst, CustomShapeElement shape) {
@@ -721,8 +726,8 @@ class LabelWriter {
       fillOpt = ', fill: rgb("${fillHex.substring(2)}")';
     }
 
-    final wPt = labelPdfMmToPt(shape.widthMm);
-    final hPt = labelPdfMmToPt(shape.heightMm);
+    final wPt = documentPdfMmToPt(shape.widthMm);
+    final hPt = documentPdfMmToPt(shape.heightMm);
 
     final kind = shape.shapeType == 'ellipse' ? 'ellipse' : 'rect';
     String elem;
@@ -764,7 +769,7 @@ class LabelWriter {
     }
 
     typst.writeln(
-        '  #place(dx: ${labelPdfMmToPt(shape.xMm)}pt, dy: ${labelPdfMmToPt(shape.yMm)}pt)[#rotate(${shape.rotationDegrees}deg)[$elem]]');
+        '  #place(dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: ${documentPdfMmToPt(shape.yMm)}pt)[#rotate(${shape.rotationDegrees}deg)[$elem]]');
   }
 
   String _typstCustomShapeElement(
@@ -872,14 +877,14 @@ class LabelWriter {
 
 /// Converts a measurement in millimeters to its equivalent in typographical points.
 /// A standard point is defined as 1/72 of an inch.
-double labelPdfMmToPt(double mm) => mm * 72.0 / 25.4;
+double documentPdfMmToPt(double mm) => mm * 72.0 / 25.4;
 
 /// Replaces bracket placeholders in the provided [input] string with corresponding
 /// values from the [data] map.
 ///
 /// If a placeholder key (e.g. `[catalogNum]`) is found in [data], it is replaced
 /// with the associated value. Matches are performed case-insensitively.
-String substituteLabelPlaceholders(String input, Map<String, String> data) {
+String substituteDocumentPlaceholders(String input, Map<String, String> data) {
   if (isTemplateBracketGenderIconText(input)) return input;
   return input.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (m) {
     final k = m.group(1)!.trim();
@@ -892,12 +897,12 @@ String substituteLabelPlaceholders(String input, Map<String, String> data) {
   });
 }
 
-/// Extracts and aggregates a dictionary of all supported label variables
+/// Extracts and aggregates a dictionary of all supported document variables
 /// for a specific [s] SpecimenData record from the [db] database.
 ///
 /// The returned map contains key-value pairs representing data fields (e.g.,
 /// 'catalogNum', 'species', 'locality') ready to be injected into a template.
-Future<Map<String, String>> fieldValuesForSpecimen(
+Future<Map<String, String>> documentFieldValuesForSpecimen(
   Database db,
   SpecimenData s,
   WidgetRef ref,

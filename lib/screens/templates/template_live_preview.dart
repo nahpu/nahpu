@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/template_gender_icon.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_outline.dart';
-import 'package:nahpu/services/export/label_writer.dart';
+import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -216,7 +216,7 @@ class _PreviewPage extends StatelessWidget {
                             : formatTemplateText(
                                 placeholderValues.isEmpty
                                     ? ct.text
-                                    : substituteLabelPlaceholders(
+                                    : substituteDocumentPlaceholders(
                                         ct.text,
                                         placeholderValues,
                                       ),

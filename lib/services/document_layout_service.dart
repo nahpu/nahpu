@@ -1,7 +1,10 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
-const String _kCurrentDocumentLayoutName = 'label_current_document_layout_name';
+const String _kCurrentDocumentLayoutName =
+    'document_current_document_layout_name';
+const String _legacyCurrentDocumentLayoutName =
+    'label_current_document_layout_name';
 
 class DocumentLayoutService {
   const DocumentLayoutService();
@@ -39,7 +42,8 @@ class DocumentLayoutService {
 
   Future<String> getCurrentLayoutName() async {
     final prefs = await _prefs;
-    final stored = prefs.getString(_kCurrentDocumentLayoutName);
+    final stored = prefs.getString(_kCurrentDocumentLayoutName) ??
+        prefs.getString(_legacyCurrentDocumentLayoutName);
     final names = await listLayoutNames();
     if (stored != null && names.contains(stored)) return stored;
     return names.first;
@@ -77,13 +81,13 @@ class DocumentLayoutService {
       blocks: [
         rust_config.DocumentLayoutBlock(
           templateName: templateName,
-          labelCount: 1,
+          templateCount: 1,
           rows: 8,
           cols: 4,
-          labelPadTopMm: 1.0,
-          labelPadLeftMm: 1.0,
-          labelPadRightMm: 1.0,
-          labelPadBottomMm: 1.0,
+          templatePadTopMm: 1.0,
+          templatePadLeftMm: 1.0,
+          templatePadRightMm: 1.0,
+          templatePadBottomMm: 1.0,
           pageBreakAfter: false,
         ),
       ],
@@ -94,24 +98,24 @@ class DocumentLayoutService {
 extension DocumentLayoutBlockExtension on rust_config.DocumentLayoutBlock {
   rust_config.DocumentLayoutBlock copyWith({
     String? templateName,
-    int? labelCount,
+    int? templateCount,
     int? rows,
     int? cols,
-    double? labelPadTopMm,
-    double? labelPadLeftMm,
-    double? labelPadRightMm,
-    double? labelPadBottomMm,
+    double? templatePadTopMm,
+    double? templatePadLeftMm,
+    double? templatePadRightMm,
+    double? templatePadBottomMm,
     bool? pageBreakAfter,
   }) {
     return rust_config.DocumentLayoutBlock(
       templateName: templateName ?? this.templateName,
-      labelCount: labelCount ?? this.labelCount,
+      templateCount: templateCount ?? this.templateCount,
       rows: rows ?? this.rows,
       cols: cols ?? this.cols,
-      labelPadTopMm: labelPadTopMm ?? this.labelPadTopMm,
-      labelPadLeftMm: labelPadLeftMm ?? this.labelPadLeftMm,
-      labelPadRightMm: labelPadRightMm ?? this.labelPadRightMm,
-      labelPadBottomMm: labelPadBottomMm ?? this.labelPadBottomMm,
+      templatePadTopMm: templatePadTopMm ?? this.templatePadTopMm,
+      templatePadLeftMm: templatePadLeftMm ?? this.templatePadLeftMm,
+      templatePadRightMm: templatePadRightMm ?? this.templatePadRightMm,
+      templatePadBottomMm: templatePadBottomMm ?? this.templatePadBottomMm,
       pageBreakAfter: pageBreakAfter ?? this.pageBreakAfter,
     );
   }
@@ -163,13 +167,13 @@ Map<String, dynamic> documentLayoutPresetToJson(
     'blocks': p.blocks
         .map((b) => {
               'templateName': b.templateName,
-              'labelCount': b.labelCount,
+              'templateCount': b.templateCount,
               'rows': b.rows,
               'cols': b.cols,
-              'labelPadTopMm': b.labelPadTopMm,
-              'labelPadLeftMm': b.labelPadLeftMm,
-              'labelPadRightMm': b.labelPadRightMm,
-              'labelPadBottomMm': b.labelPadBottomMm,
+              'templatePadTopMm': b.templatePadTopMm,
+              'templatePadLeftMm': b.templatePadLeftMm,
+              'templatePadRightMm': b.templatePadRightMm,
+              'templatePadBottomMm': b.templatePadBottomMm,
               'pageBreakAfter': b.pageBreakAfter,
             })
         .toList(),
@@ -180,19 +184,24 @@ rust_config.DocumentLayoutPreset documentLayoutPresetFromJson(
     Map<String, dynamic> map) {
   final blocksList = (map['blocks'] as List? ?? []).map((b) {
     final blockMap = b as Map<String, dynamic>;
+
     return rust_config.DocumentLayoutBlock(
       templateName: blockMap['templateName']?.toString() ?? 'Default',
-      labelCount: int.tryParse(blockMap['labelCount']?.toString() ?? '') ?? 1,
+      templateCount:
+          int.tryParse(blockMap['templateCount']?.toString() ?? '') ?? 1,
       rows: int.tryParse(blockMap['rows']?.toString() ?? '') ?? 8,
       cols: int.tryParse(blockMap['cols']?.toString() ?? '') ?? 4,
-      labelPadTopMm:
-          double.tryParse(blockMap['labelPadTopMm']?.toString() ?? '') ?? 1.0,
-      labelPadLeftMm:
-          double.tryParse(blockMap['labelPadLeftMm']?.toString() ?? '') ?? 1.0,
-      labelPadRightMm:
-          double.tryParse(blockMap['labelPadRightMm']?.toString() ?? '') ?? 1.0,
-      labelPadBottomMm:
-          double.tryParse(blockMap['labelPadBottomMm']?.toString() ?? '') ??
+      templatePadTopMm:
+          double.tryParse(blockMap['templatePadTopMm']?.toString() ?? '') ??
+              1.0,
+      templatePadLeftMm:
+          double.tryParse(blockMap['templatePadLeftMm']?.toString() ?? '') ??
+              1.0,
+      templatePadRightMm:
+          double.tryParse(blockMap['templatePadRightMm']?.toString() ?? '') ??
+              1.0,
+      templatePadBottomMm:
+          double.tryParse(blockMap['templatePadBottomMm']?.toString() ?? '') ??
               1.0,
       pageBreakAfter: blockMap['pageBreakAfter'] == true,
     );

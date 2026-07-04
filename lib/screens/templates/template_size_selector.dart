@@ -131,9 +131,9 @@ class _TemplateSizeSelectorState extends ConsumerState<TemplateSizeSelector> {
   }
 
   Future<void> _load() async {
-    final s = LabelSettingsServices();
-    final w = await s.getLabelWidthMm();
-    final h = await s.getLabelHeightMm();
+    final s = DocumentSettingsServices();
+    final w = await s.getDocumentWidthMm();
+    final h = await s.getDocumentHeightMm();
     if (!mounted) return;
     setState(() {
       _w = w;
@@ -143,9 +143,9 @@ class _TemplateSizeSelectorState extends ConsumerState<TemplateSizeSelector> {
   }
 
   Future<void> _apply(double w, double h) async {
-    final s = LabelSettingsServices();
-    await s.setLabelWidthMm(w);
-    await s.setLabelHeightMm(h);
+    final s = DocumentSettingsServices();
+    await s.setDocumentWidthMm(w);
+    await s.setDocumentHeightMm(h);
     if (mounted) {
       setState(() {
         _w = w;

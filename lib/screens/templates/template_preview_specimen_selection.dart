@@ -32,7 +32,7 @@ class _TemplatePreviewSpecimenSelectionScreenState
 
   Future<void> _loadColumns() async {
     final db = ref.read(databaseProvider);
-    final settings = LabelSettingsServices();
+    final settings = DocumentSettingsServices();
     final storedCols = await settings.getPrintSpecimenTableColumnIds();
     var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
     if (visible.isEmpty) {

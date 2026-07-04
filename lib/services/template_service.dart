@@ -23,7 +23,7 @@ class TemplateService {
       name: template.name,
       value: template.toJsonString(),
     );
-    await LabelSettingsServices().setCurrentTemplateName(template.name);
+    await DocumentSettingsServices().setCurrentTemplateName(template.name);
   }
 
   Future<void> deleteTemplate(String name) async {
@@ -33,7 +33,7 @@ class TemplateService {
   Future<Template> getCurrentTemplate() async {
     final names = await listTemplateNames();
     if (names.isEmpty) return DefaultTemplate.defaultTemplate();
-    final prefsName = await LabelSettingsServices().getCurrentTemplateName();
+    final prefsName = await DocumentSettingsServices().getCurrentTemplateName();
     final pick = (prefsName != null && names.contains(prefsName))
         ? prefsName
         : names.first;

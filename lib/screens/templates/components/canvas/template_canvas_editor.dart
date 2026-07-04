@@ -3,8 +3,8 @@ import 'package:nahpu/screens/templates/template_outline.dart'
     show templateAreaStackDecoration, TemplateOutlineOverlayPainter;
 import 'package:nahpu/screens/templates/template_gender_icon.dart'
     show templateGenderIconForFieldKey;
-import 'package:nahpu/services/export/label_writer.dart'
-    show substituteLabelPlaceholders;
+import 'package:nahpu/services/export/document_writer.dart'
+    show substituteDocumentPlaceholders;
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_image_chip.dart';
@@ -290,7 +290,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   final rawText = element.text;
                                   final textVal = formatTemplateText(
                                     isPreviewMode
-                                        ? substituteLabelPlaceholders(
+                                        ? substituteDocumentPlaceholders(
                                             rawText,
                                             editorTemplateFieldPreview,
                                           )
@@ -414,7 +414,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                         ? '(empty)'
                                         : formatTemplateText(
                                             isPreviewMode
-                                                ? substituteLabelPlaceholders(
+                                                ? substituteDocumentPlaceholders(
                                                     element.text,
                                                     editorTemplateFieldPreview,
                                                   )

@@ -7,27 +7,27 @@ void main() {
     test('copyWith copies and changes specified fields', () {
       final block = rust_config.DocumentLayoutBlock(
         templateName: 'TemplateA',
-        labelCount: 2,
+        templateCount: 2,
         rows: 4,
         cols: 3,
-        labelPadTopMm: 1.5,
-        labelPadLeftMm: 1.5,
-        labelPadRightMm: 1.5,
-        labelPadBottomMm: 1.5,
+        templatePadTopMm: 1.5,
+        templatePadLeftMm: 1.5,
+        templatePadRightMm: 1.5,
+        templatePadBottomMm: 1.5,
         pageBreakAfter: true,
       );
 
       final updatedBlock = block.copyWith(
         templateName: 'TemplateB',
-        labelCount: 5,
+        templateCount: 5,
         pageBreakAfter: false,
       );
 
       expect(updatedBlock.templateName, 'TemplateB');
-      expect(updatedBlock.labelCount, 5);
+      expect(updatedBlock.templateCount, 5);
       expect(updatedBlock.rows, 4);
       expect(updatedBlock.cols, 3);
-      expect(updatedBlock.labelPadTopMm, 1.5);
+      expect(updatedBlock.templatePadTopMm, 1.5);
       expect(updatedBlock.pageBreakAfter, false);
 
       final layout = rust_config.DocumentLayoutPreset(
@@ -64,13 +64,13 @@ void main() {
     test('roundtrip serialization matches exactly', () {
       final block = rust_config.DocumentLayoutBlock(
         templateName: 'Mammal Skin',
-        labelCount: 1,
+        templateCount: 1,
         rows: 8,
         cols: 4,
-        labelPadTopMm: 1.0,
-        labelPadLeftMm: 1.0,
-        labelPadRightMm: 1.0,
-        labelPadBottomMm: 1.0,
+        templatePadTopMm: 1.0,
+        templatePadLeftMm: 1.0,
+        templatePadRightMm: 1.0,
+        templatePadBottomMm: 1.0,
         pageBreakAfter: false,
       );
 
@@ -105,13 +105,13 @@ void main() {
       expect(deserialized.blocks.length, 1);
       final deserializedBlock = deserialized.blocks.first;
       expect(deserializedBlock.templateName, block.templateName);
-      expect(deserializedBlock.labelCount, block.labelCount);
+      expect(deserializedBlock.templateCount, block.templateCount);
       expect(deserializedBlock.rows, block.rows);
       expect(deserializedBlock.cols, block.cols);
-      expect(deserializedBlock.labelPadTopMm, block.labelPadTopMm);
-      expect(deserializedBlock.labelPadLeftMm, block.labelPadLeftMm);
-      expect(deserializedBlock.labelPadRightMm, block.labelPadRightMm);
-      expect(deserializedBlock.labelPadBottomMm, block.labelPadBottomMm);
+      expect(deserializedBlock.templatePadTopMm, block.templatePadTopMm);
+      expect(deserializedBlock.templatePadLeftMm, block.templatePadLeftMm);
+      expect(deserializedBlock.templatePadRightMm, block.templatePadRightMm);
+      expect(deserializedBlock.templatePadBottomMm, block.templatePadBottomMm);
       expect(deserializedBlock.pageBreakAfter, block.pageBreakAfter);
     });
   });

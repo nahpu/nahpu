@@ -3,31 +3,35 @@ import 'dart:convert';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LabelSettingsServices {
-  static const _kDuplex = 'label_duplex';
-  static const _kMirrorFront = 'label_mirror_front';
-  static const _kMirrorBack = 'label_mirror_back';
-  static const _kWidthMm = 'label_width_mm';
-  static const _kHeightMm = 'label_height_mm';
-  static const _kTemplateName = 'label_template_name';
-  static const _kPrintTableColumns = 'label_print_table_columns';
-  static const _kPrintPageSizeKey = 'label_print_page_size_key';
-  static const _kPrintRowsPerPage = 'label_print_rows_per_page';
-  static const _kPrintColsPerPage = 'label_print_cols_per_page';
-  static const _kPrintPagePadTopMm = 'label_print_page_pad_top_mm';
-  static const _kPrintPagePadLeftMm = 'label_print_page_pad_left_mm';
-  static const _kPrintPagePadRightMm = 'label_print_page_pad_right_mm';
-  static const _kPrintPagePadBottomMm = 'label_print_page_pad_bottom_mm';
-  static const _kPrintLabelPadTopMm = 'label_print_label_pad_top_mm';
-  static const _kPrintLabelPadLeftMm = 'label_print_label_pad_left_mm';
-  static const _kPrintLabelPadRightMm = 'label_print_label_pad_right_mm';
-  static const _kPrintLabelPadBottomMm = 'label_print_label_pad_bottom_mm';
+class DocumentSettingsServices {
+  static const _kDuplex = 'document_duplex';
+  static const _kMirrorFront = 'document_mirror_front';
+  static const _kMirrorBack = 'document_mirror_back';
+  static const _kWidthMm = 'document_width_mm';
+  static const _kHeightMm = 'document_height_mm';
+  static const _kTemplateName = 'document_template_name';
+  static const _kPrintTableColumns = 'document_print_table_columns';
+  static const _kPrintPageSizeKey = 'document_print_page_size_key';
+  static const _kPrintRowsPerPage = 'document_print_rows_per_page';
+  static const _kPrintColsPerPage = 'document_print_cols_per_page';
+  static const _kPrintPagePadTopMm = 'document_print_page_pad_top_mm';
+  static const _kPrintPagePadLeftMm = 'document_print_page_pad_left_mm';
+  static const _kPrintPagePadRightMm = 'document_print_page_pad_right_mm';
+  static const _kPrintPagePadBottomMm = 'document_print_page_pad_bottom_mm';
+  static const _kPrintDocumentPadTopMm = 'document_print_document_pad_top_mm';
+  static const _kPrintDocumentPadLeftMm = 'document_print_document_pad_left_mm';
+  static const _kPrintDocumentPadRightMm =
+      'document_print_document_pad_right_mm';
+  static const _kPrintDocumentPadBottomMm =
+      'document_print_document_pad_bottom_mm';
+
+  static const _legacyPrefix = 'label';
 
   Future<SharedPreferences> get _p async => SharedPreferences.getInstance();
 
   Future<bool> getDuplex() async {
     final p = await _p;
-    return p.getBool(_kDuplex) ?? true;
+    return p.getBool(_kDuplex) ?? p.getBool('${_legacyPrefix}_duplex') ?? true;
   }
 
   Future<void> setDuplex(bool value) async {
@@ -37,7 +41,9 @@ class LabelSettingsServices {
 
   Future<bool> getMirrorFront() async {
     final p = await _p;
-    return p.getBool(_kMirrorFront) ?? false;
+    return p.getBool(_kMirrorFront) ??
+        p.getBool('${_legacyPrefix}_mirror_front') ??
+        false;
   }
 
   Future<void> setMirrorFront(bool value) async {
@@ -47,7 +53,9 @@ class LabelSettingsServices {
 
   Future<bool> getMirrorBack() async {
     final p = await _p;
-    return p.getBool(_kMirrorBack) ?? false;
+    return p.getBool(_kMirrorBack) ??
+        p.getBool('${_legacyPrefix}_mirror_back') ??
+        false;
   }
 
   Future<void> setMirrorBack(bool value) async {
@@ -55,29 +63,34 @@ class LabelSettingsServices {
     await p.setBool(_kMirrorBack, value);
   }
 
-  Future<double> getLabelWidthMm() async {
+  Future<double> getDocumentWidthMm() async {
     final p = await _p;
-    return p.getDouble(_kWidthMm) ?? 50.0;
+    return p.getDouble(_kWidthMm) ??
+        p.getDouble('${_legacyPrefix}_width_mm') ??
+        50.0;
   }
 
-  Future<void> setLabelWidthMm(double mm) async {
+  Future<void> setDocumentWidthMm(double mm) async {
     final p = await _p;
     await p.setDouble(_kWidthMm, mm);
   }
 
-  Future<double> getLabelHeightMm() async {
+  Future<double> getDocumentHeightMm() async {
     final p = await _p;
-    return p.getDouble(_kHeightMm) ?? 25.0;
+    return p.getDouble(_kHeightMm) ??
+        p.getDouble('${_legacyPrefix}_height_mm') ??
+        25.0;
   }
 
-  Future<void> setLabelHeightMm(double mm) async {
+  Future<void> setDocumentHeightMm(double mm) async {
     final p = await _p;
     await p.setDouble(_kHeightMm, mm);
   }
 
   Future<String?> getCurrentTemplateName() async {
     final p = await _p;
-    return p.getString(_kTemplateName);
+    return p.getString(_kTemplateName) ??
+        p.getString('${_legacyPrefix}_template_name');
   }
 
   Future<void> setCurrentTemplateName(String? name) async {
@@ -91,7 +104,8 @@ class LabelSettingsServices {
 
   Future<List<String>> getPrintSpecimenTableColumnIds() async {
     final p = await _p;
-    final raw = p.getString(_kPrintTableColumns);
+    final raw = p.getString(_kPrintTableColumns) ??
+        p.getString('${_legacyPrefix}_print_table_columns');
     if (raw == null || raw.isEmpty) {
       return List<String>.from(kDefaultPrintSpecimenTableColumnIds);
     }
@@ -113,7 +127,9 @@ class LabelSettingsServices {
 
   Future<String> getPrintPageSizeKey() async {
     final p = await _p;
-    return p.getString(_kPrintPageSizeKey) ?? 'A4';
+    return p.getString(_kPrintPageSizeKey) ??
+        p.getString('${_legacyPrefix}_print_page_size_key') ??
+        'A4';
   }
 
   Future<void> setPrintPageSizeKey(String key) async {
@@ -123,7 +139,9 @@ class LabelSettingsServices {
 
   Future<int> getPrintRowsPerPage() async {
     final p = await _p;
-    return p.getInt(_kPrintRowsPerPage) ?? 8;
+    return p.getInt(_kPrintRowsPerPage) ??
+        p.getInt('${_legacyPrefix}_print_rows_per_page') ??
+        8;
   }
 
   Future<void> setPrintRowsPerPage(int rows) async {
@@ -133,7 +151,9 @@ class LabelSettingsServices {
 
   Future<int> getPrintColsPerPage() async {
     final p = await _p;
-    return p.getInt(_kPrintColsPerPage) ?? 4;
+    return p.getInt(_kPrintColsPerPage) ??
+        p.getInt('${_legacyPrefix}_print_cols_per_page') ??
+        4;
   }
 
   Future<void> setPrintColsPerPage(int cols) async {
@@ -143,7 +163,9 @@ class LabelSettingsServices {
 
   Future<double> getPrintPagePadTopMm() async {
     final p = await _p;
-    return p.getDouble(_kPrintPagePadTopMm) ?? 8.0;
+    return p.getDouble(_kPrintPagePadTopMm) ??
+        p.getDouble('${_legacyPrefix}_print_page_pad_top_mm') ??
+        8.0;
   }
 
   Future<void> setPrintPagePadTopMm(double mm) async {
@@ -153,7 +175,9 @@ class LabelSettingsServices {
 
   Future<double> getPrintPagePadLeftMm() async {
     final p = await _p;
-    return p.getDouble(_kPrintPagePadLeftMm) ?? 8.0;
+    return p.getDouble(_kPrintPagePadLeftMm) ??
+        p.getDouble('${_legacyPrefix}_print_page_pad_left_mm') ??
+        8.0;
   }
 
   Future<void> setPrintPagePadLeftMm(double mm) async {
@@ -163,7 +187,9 @@ class LabelSettingsServices {
 
   Future<double> getPrintPagePadRightMm() async {
     final p = await _p;
-    return p.getDouble(_kPrintPagePadRightMm) ?? 8.0;
+    return p.getDouble(_kPrintPagePadRightMm) ??
+        p.getDouble('${_legacyPrefix}_print_page_pad_right_mm') ??
+        8.0;
   }
 
   Future<void> setPrintPagePadRightMm(double mm) async {
@@ -173,7 +199,9 @@ class LabelSettingsServices {
 
   Future<double> getPrintPagePadBottomMm() async {
     final p = await _p;
-    return p.getDouble(_kPrintPagePadBottomMm) ?? 8.0;
+    return p.getDouble(_kPrintPagePadBottomMm) ??
+        p.getDouble('${_legacyPrefix}_print_page_pad_bottom_mm') ??
+        8.0;
   }
 
   Future<void> setPrintPagePadBottomMm(double mm) async {
@@ -181,43 +209,51 @@ class LabelSettingsServices {
     await p.setDouble(_kPrintPagePadBottomMm, mm.clamp(0.0, 1000.0));
   }
 
-  Future<double> getPrintLabelPadTopMm() async {
+  Future<double> getPrintDocumentPadTopMm() async {
     final p = await _p;
-    return p.getDouble(_kPrintLabelPadTopMm) ?? 1.0;
+    return p.getDouble(_kPrintDocumentPadTopMm) ??
+        p.getDouble('${_legacyPrefix}_print_label_pad_top_mm') ??
+        1.0;
   }
 
-  Future<void> setPrintLabelPadTopMm(double mm) async {
+  Future<void> setPrintDocumentPadTopMm(double mm) async {
     final p = await _p;
-    await p.setDouble(_kPrintLabelPadTopMm, mm.clamp(0.0, 1000.0));
+    await p.setDouble(_kPrintDocumentPadTopMm, mm.clamp(0.0, 1000.0));
   }
 
-  Future<double> getPrintLabelPadLeftMm() async {
+  Future<double> getPrintDocumentPadLeftMm() async {
     final p = await _p;
-    return p.getDouble(_kPrintLabelPadLeftMm) ?? 1.0;
+    return p.getDouble(_kPrintDocumentPadLeftMm) ??
+        p.getDouble('${_legacyPrefix}_print_label_pad_left_mm') ??
+        1.0;
   }
 
-  Future<void> setPrintLabelPadLeftMm(double mm) async {
+  Future<void> setPrintDocumentPadLeftMm(double mm) async {
     final p = await _p;
-    await p.setDouble(_kPrintLabelPadLeftMm, mm.clamp(0.0, 1000.0));
+    await p.setDouble(_kPrintDocumentPadLeftMm, mm.clamp(0.0, 1000.0));
   }
 
-  Future<double> getPrintLabelPadRightMm() async {
+  Future<double> getPrintDocumentPadRightMm() async {
     final p = await _p;
-    return p.getDouble(_kPrintLabelPadRightMm) ?? 1.0;
+    return p.getDouble(_kPrintDocumentPadRightMm) ??
+        p.getDouble('${_legacyPrefix}_print_label_pad_right_mm') ??
+        1.0;
   }
 
-  Future<void> setPrintLabelPadRightMm(double mm) async {
+  Future<void> setPrintDocumentPadRightMm(double mm) async {
     final p = await _p;
-    await p.setDouble(_kPrintLabelPadRightMm, mm.clamp(0.0, 1000.0));
+    await p.setDouble(_kPrintDocumentPadRightMm, mm.clamp(0.0, 1000.0));
   }
 
-  Future<double> getPrintLabelPadBottomMm() async {
+  Future<double> getPrintDocumentPadBottomMm() async {
     final p = await _p;
-    return p.getDouble(_kPrintLabelPadBottomMm) ?? 1.0;
+    return p.getDouble(_kPrintDocumentPadBottomMm) ??
+        p.getDouble('${_legacyPrefix}_print_label_pad_bottom_mm') ??
+        1.0;
   }
 
-  Future<void> setPrintLabelPadBottomMm(double mm) async {
+  Future<void> setPrintDocumentPadBottomMm(double mm) async {
     final p = await _p;
-    await p.setDouble(_kPrintLabelPadBottomMm, mm.clamp(0.0, 1000.0));
+    await p.setDouble(_kPrintDocumentPadBottomMm, mm.clamp(0.0, 1000.0));
   }
 }

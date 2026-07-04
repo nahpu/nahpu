@@ -15,7 +15,6 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.templateNames,
     required this.exportCtr,
     required this.selectedDir,
-    required this.hasSaved,
     required this.isRunning,
     required this.onLayoutChanged,
     required this.onSetupSelected,
@@ -40,7 +39,6 @@ class DocumentSettingsPane extends StatelessWidget {
 
   final FileOpCtrModel exportCtr;
   final Directory? selectedDir;
-  final bool hasSaved;
   final bool isRunning;
 
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
@@ -178,17 +176,6 @@ class DocumentSettingsPane extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              hasSaved
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                      child: Text(
-                        'Saved successfully to: ${selectedDir!.path}/${exportCtr.fileNameCtr.text}.pdf',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-              const SizedBox(height: 8),
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
@@ -290,13 +277,13 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
         : 'Default';
     newBlocks.add(rust_config.DocumentLayoutBlock(
       templateName: defaultTemplate,
-      labelCount: 1,
+      templateCount: 1,
       rows: 8,
       cols: 4,
-      labelPadTopMm: 1.0,
-      labelPadLeftMm: 1.0,
-      labelPadRightMm: 1.0,
-      labelPadBottomMm: 1.0,
+      templatePadTopMm: 1.0,
+      templatePadLeftMm: 1.0,
+      templatePadRightMm: 1.0,
+      templatePadBottomMm: 1.0,
       pageBreakAfter: false,
     ));
     widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
@@ -688,13 +675,13 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
                           ),
                           NumberField(
                             label: 'Copies',
-                            initialValue: '${block.labelCount}',
+                            initialValue: '${block.templateCount}',
                             onChanged: (value) {
                               _updateBlock(
                                 idx,
                                 block.copyWith(
-                                  labelCount: _parseIntOrCurrent(
-                                      value, block.labelCount),
+                                  templateCount: _parseIntOrCurrent(
+                                      value, block.templateCount),
                                 ),
                               );
                             },
@@ -734,57 +721,57 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
                                 ],
                               ),
                             NumberField(
-                              label: 'Label top',
+                              label: 'Template top',
                               initialValue:
-                                  block.labelPadTopMm.toStringAsFixed(1),
+                                  block.templatePadTopMm.toStringAsFixed(1),
                               onChanged: (value) {
                                 _updateBlock(
                                   idx,
                                   block.copyWith(
-                                    labelPadTopMm: _parseMmOrCurrent(
-                                        value, block.labelPadTopMm),
+                                    templatePadTopMm: _parseMmOrCurrent(
+                                        value, block.templatePadTopMm),
                                   ),
                                 );
                               },
                             ),
                             NumberField(
-                              label: 'Label left',
+                              label: 'Template left',
                               initialValue:
-                                  block.labelPadLeftMm.toStringAsFixed(1),
+                                  block.templatePadLeftMm.toStringAsFixed(1),
                               onChanged: (value) {
                                 _updateBlock(
                                   idx,
                                   block.copyWith(
-                                    labelPadLeftMm: _parseMmOrCurrent(
-                                        value, block.labelPadLeftMm),
+                                    templatePadLeftMm: _parseMmOrCurrent(
+                                        value, block.templatePadLeftMm),
                                   ),
                                 );
                               },
                             ),
                             NumberField(
-                              label: 'Label right',
+                              label: 'Template right',
                               initialValue:
-                                  block.labelPadRightMm.toStringAsFixed(1),
+                                  block.templatePadRightMm.toStringAsFixed(1),
                               onChanged: (value) {
                                 _updateBlock(
                                   idx,
                                   block.copyWith(
-                                    labelPadRightMm: _parseMmOrCurrent(
-                                        value, block.labelPadRightMm),
+                                    templatePadRightMm: _parseMmOrCurrent(
+                                        value, block.templatePadRightMm),
                                   ),
                                 );
                               },
                             ),
                             NumberField(
-                              label: 'Label bottom',
+                              label: 'Template bottom',
                               initialValue:
-                                  block.labelPadBottomMm.toStringAsFixed(1),
+                                  block.templatePadBottomMm.toStringAsFixed(1),
                               onChanged: (value) {
                                 _updateBlock(
                                   idx,
                                   block.copyWith(
-                                    labelPadBottomMm: _parseMmOrCurrent(
-                                        value, block.labelPadBottomMm),
+                                    templatePadBottomMm: _parseMmOrCurrent(
+                                        value, block.templatePadBottomMm),
                                   ),
                                 );
                               },

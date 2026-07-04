@@ -1513,13 +1513,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return DocumentLayoutBlock(
       templateName: dco_decode_String(arr[0]),
-      labelCount: dco_decode_i_32(arr[1]),
+      templateCount: dco_decode_i_32(arr[1]),
       rows: dco_decode_i_32(arr[2]),
       cols: dco_decode_i_32(arr[3]),
-      labelPadTopMm: dco_decode_f_64(arr[4]),
-      labelPadLeftMm: dco_decode_f_64(arr[5]),
-      labelPadRightMm: dco_decode_f_64(arr[6]),
-      labelPadBottomMm: dco_decode_f_64(arr[7]),
+      templatePadTopMm: dco_decode_f_64(arr[4]),
+      templatePadLeftMm: dco_decode_f_64(arr[5]),
+      templatePadRightMm: dco_decode_f_64(arr[6]),
+      templatePadBottomMm: dco_decode_f_64(arr[7]),
       pageBreakAfter: dco_decode_bool(arr[8]),
     );
   }
@@ -1898,23 +1898,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_templateName = sse_decode_String(deserializer);
-    var var_labelCount = sse_decode_i_32(deserializer);
+    var var_templateCount = sse_decode_i_32(deserializer);
     var var_rows = sse_decode_i_32(deserializer);
     var var_cols = sse_decode_i_32(deserializer);
-    var var_labelPadTopMm = sse_decode_f_64(deserializer);
-    var var_labelPadLeftMm = sse_decode_f_64(deserializer);
-    var var_labelPadRightMm = sse_decode_f_64(deserializer);
-    var var_labelPadBottomMm = sse_decode_f_64(deserializer);
+    var var_templatePadTopMm = sse_decode_f_64(deserializer);
+    var var_templatePadLeftMm = sse_decode_f_64(deserializer);
+    var var_templatePadRightMm = sse_decode_f_64(deserializer);
+    var var_templatePadBottomMm = sse_decode_f_64(deserializer);
     var var_pageBreakAfter = sse_decode_bool(deserializer);
     return DocumentLayoutBlock(
         templateName: var_templateName,
-        labelCount: var_labelCount,
+        templateCount: var_templateCount,
         rows: var_rows,
         cols: var_cols,
-        labelPadTopMm: var_labelPadTopMm,
-        labelPadLeftMm: var_labelPadLeftMm,
-        labelPadRightMm: var_labelPadRightMm,
-        labelPadBottomMm: var_labelPadBottomMm,
+        templatePadTopMm: var_templatePadTopMm,
+        templatePadLeftMm: var_templatePadLeftMm,
+        templatePadRightMm: var_templatePadRightMm,
+        templatePadBottomMm: var_templatePadBottomMm,
         pageBreakAfter: var_pageBreakAfter);
   }
 
@@ -2341,13 +2341,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       DocumentLayoutBlock self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.templateName, serializer);
-    sse_encode_i_32(self.labelCount, serializer);
+    sse_encode_i_32(self.templateCount, serializer);
     sse_encode_i_32(self.rows, serializer);
     sse_encode_i_32(self.cols, serializer);
-    sse_encode_f_64(self.labelPadTopMm, serializer);
-    sse_encode_f_64(self.labelPadLeftMm, serializer);
-    sse_encode_f_64(self.labelPadRightMm, serializer);
-    sse_encode_f_64(self.labelPadBottomMm, serializer);
+    sse_encode_f_64(self.templatePadTopMm, serializer);
+    sse_encode_f_64(self.templatePadLeftMm, serializer);
+    sse_encode_f_64(self.templatePadRightMm, serializer);
+    sse_encode_f_64(self.templatePadBottomMm, serializer);
     sse_encode_bool(self.pageBreakAfter, serializer);
   }
 
