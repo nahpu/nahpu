@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/exports/components/document_settings_pane.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
@@ -12,17 +13,30 @@ import 'package:nahpu/screens/shared/qr.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:path/path.dart' as path;
 
-class DocumentPresetsScreen extends StatefulWidget {
+// Preview and specimen selection imports
+import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
+import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/column_picker.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/template_settings_services.dart';
+import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/export/export_document.dart';
+
+class DocumentPresetsScreen extends ConsumerStatefulWidget {
   const DocumentPresetsScreen({super.key});
 
   @override
-  State<DocumentPresetsScreen> createState() => _DocumentPresetsScreenState();
+  ConsumerState<DocumentPresetsScreen> createState() =>
+      _DocumentPresetsScreenState();
 }
 
-class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
-    with SingleTickerProviderStateMixin {
+class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
+    with TickerProviderStateMixin {
   final DocumentLayoutService _layoutService = const DocumentLayoutService();
   late TabController _tabController;
+  late TabController _largeScreenTabController;
 
   bool _loading = true;
   String? _error;
@@ -31,22 +45,65 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
   List<String> _templateNames = const [];
   String _selectedLayoutName = 'Default';
 
+  // Preview States
+  bool _showPreview = false;
+  bool _previewStale = false;
+  int _previewVersion = 0;
+  rust_config.DocumentLayoutPreset? _previewLayout;
+  List<String> _previewSelectedUuidList = const [];
+  List<String> _previewSelectedUuids = const [];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _largeScreenTabController = TabController(length: 2, vsync: this);
     _load();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _largeScreenTabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+
+    final previewWidget = Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Preview Specimens (${_previewSelectedUuids.length} selected)',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              OutlinedButton.icon(
+                onPressed: _selectPreviewSpecimens,
+                icon: const Icon(Icons.check_box_outlined),
+                label: const Text('Select'),
+              ),
+            ],
+          ),
+        ),
+        const Divider(),
+        Expanded(
+          child: DocumentPreviewPane(
+            showPreview: _showPreview,
+            layout: _previewLayout,
+            selectedUuidList: _previewSelectedUuidList,
+            previewVersion: _previewVersion,
+            isPreviewStale: _previewStale,
+            onGeneratePreview: _updatePreview,
+          ),
+        ),
+      ],
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -88,14 +145,35 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
                                       .colorScheme
                                       .surfaceContainerHighest
                                       .withValues(alpha: 0.4),
-                                  child: DocumentPresetEditColumn(
-                                    selectedPresetName: _selectedLayoutName,
-                                    layout: _layout,
-                                    templateNames: _templateNames,
-                                    layoutStatuses: _layoutStatuses,
-                                    onLayoutChanged: _layoutChanged,
-                                    onSaveSetupAs: _savePresetAs,
-                                    onCreateTemplate: _openTemplateEditor,
+                                  child: Column(
+                                    children: [
+                                      TabBar(
+                                        controller: _largeScreenTabController,
+                                        tabs: const [
+                                          Tab(text: 'Edit Preset'),
+                                          Tab(text: 'Preview'),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: TabBarView(
+                                          controller: _largeScreenTabController,
+                                          children: [
+                                            DocumentPresetEditColumn(
+                                              selectedPresetName:
+                                                  _selectedLayoutName,
+                                              layout: _layout,
+                                              templateNames: _templateNames,
+                                              layoutStatuses: _layoutStatuses,
+                                              onLayoutChanged: _layoutChanged,
+                                              onSaveSetupAs: _savePresetAs,
+                                              onCreateTemplate:
+                                                  _openTemplateEditor,
+                                            ),
+                                            previewWidget,
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -109,6 +187,7 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
                               tabs: const [
                                 Tab(text: 'Presets'),
                                 Tab(text: 'Edit Preset'),
+                                Tab(text: 'Preview'),
                               ],
                             ),
                             Expanded(
@@ -138,6 +217,7 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
                                     onSaveSetupAs: _savePresetAs,
                                     onCreateTemplate: _openTemplateEditor,
                                   ),
+                                  previewWidget,
                                 ],
                               ),
                             ),
@@ -172,6 +252,11 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
           : null;
       final templates = await rust_config.listTemplatePresets();
 
+      if (_previewSelectedUuids.isEmpty) {
+        final specimens = await ref.read(specimenEntryProvider.future);
+        _previewSelectedUuids = specimens.take(20).map((e) => e.uuid).toList();
+      }
+
       if (!mounted) return;
       setState(() {
         _layoutStatuses = statuses;
@@ -189,11 +274,48 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
     }
   }
 
+  void _markPreviewStale() {
+    if (_showPreview && !_previewStale) {
+      setState(() {
+        _previewStale = true;
+      });
+    }
+  }
+
+  void _updatePreview() {
+    if (_layout == null) return;
+    setState(() {
+      _showPreview = true;
+      _previewStale = false;
+      _previewLayout = _layout;
+      _previewSelectedUuidList = List.unmodifiable(_previewSelectedUuids);
+      _previewVersion++;
+    });
+  }
+
+  void _selectPreviewSpecimens() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PreviewSpecimenSelectionScreen(
+          selectedUuids: _previewSelectedUuids.toSet(),
+          onSelectionChanged: (selected) {
+            setState(() {
+              _previewSelectedUuids = selected.toList();
+              _previewStale = true;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> _layoutChanged(rust_config.DocumentLayoutPreset layout) async {
     setState(() {
       _layout = layout;
     });
     await _layoutService.saveLayout(layout);
+    _markPreviewStale();
   }
 
   Future<void> _selectLayout(String name) async {
@@ -207,6 +329,7 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
       _selectedLayoutName = name;
       _layout = layout;
     });
+    _markPreviewStale();
   }
 
   Future<void> _addPreset() async {
@@ -322,7 +445,8 @@ class _DocumentPresetsScreenState extends State<DocumentPresetsScreen>
       final jsonString = jsonEncode(exportedData);
       final dir = await FilePickerServices().selectDir();
       if (dir != null) {
-        final savePath = File(path.join(dir.path, 'nahpu_document_presets.json'));
+        final savePath =
+            File(path.join(dir.path, 'nahpu_document_presets.json'));
         await savePath.writeAsString(jsonString);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -906,5 +1030,126 @@ class DocumentPresetInfoContent extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class PreviewSpecimenSelectionScreen extends ConsumerStatefulWidget {
+  const PreviewSpecimenSelectionScreen({
+    super.key,
+    required this.selectedUuids,
+    required this.onSelectionChanged,
+  });
+
+  final Set<String> selectedUuids;
+  final ValueChanged<Set<String>> onSelectionChanged;
+
+  @override
+  ConsumerState<PreviewSpecimenSelectionScreen> createState() =>
+      _PreviewSpecimenSelectionScreenState();
+}
+
+class _PreviewSpecimenSelectionScreenState
+    extends ConsumerState<PreviewSpecimenSelectionScreen> {
+  List<String> _visibleColumnIds = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadColumns();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Select specimens for preview'),
+      ),
+      body: SafeArea(
+        child: SpecimenSelectionView(
+          selectedUuidList: widget.selectedUuids,
+          visibleColumnIds: _visibleColumnIds,
+          onSelectionChanged: widget.onSelectionChanged,
+          onColumnsChanged: _pickColumns,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _loadColumns() async {
+    final db = ref.read(databaseProvider);
+    final settings = DocumentSettingsServices();
+    final storedCols = await settings.getPrintSpecimenTableColumnIds();
+    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
+    if (visible.isEmpty) {
+      visible = normalizePrintSpecimenTableColumnIds(
+        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+        db,
+      );
+    }
+    if (mounted) {
+      setState(() {
+        _visibleColumnIds = visible;
+      });
+    }
+  }
+
+  Future<void> _pickColumns() async {
+    final db = ref.read(databaseProvider);
+    final settings = DocumentSettingsServices();
+    final order = List<String>.from(_visibleColumnIds);
+    List<String>? result;
+
+    if (systemPlatform == PlatformType.mobile) {
+      result = await showModalBottomSheet<List<String>>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) {
+          return FractionallySizedBox(
+            heightFactor: 0.9,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('Table columns'),
+                automaticallyImplyLeading: false,
+              ),
+              body: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      result = await showDialog<List<String>>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('Table columns'),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    if (result != null && mounted) {
+      var merged =
+          const ExportDocumentService().mergeColumnOrder(order, result.toSet());
+      merged = normalizePrintSpecimenTableColumnIds(merged, db);
+      if (merged.isEmpty) {
+        merged = normalizePrintSpecimenTableColumnIds(
+          List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+          db,
+        );
+      }
+      await settings.setPrintSpecimenTableColumnIds(merged);
+      setState(() {
+        _visibleColumnIds = merged;
+      });
+    }
   }
 }

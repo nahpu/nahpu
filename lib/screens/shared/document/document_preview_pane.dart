@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
-import 'package:nahpu/screens/exports/components/document_page_preview.dart';
+import 'package:nahpu/screens/shared/document/document_page_preview.dart';
 
 class DocumentPreviewPane extends StatelessWidget {
   const DocumentPreviewPane({

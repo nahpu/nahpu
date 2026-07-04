@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/exports/components/specimen_selection.dart';
-import 'package:nahpu/screens/exports/components/column_picker.dart';
+import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';

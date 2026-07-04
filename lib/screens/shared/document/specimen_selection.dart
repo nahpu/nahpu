@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/exports/components/column_picker.dart';
+import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/export_document.dart';
 import 'package:nahpu/services/export/document_writer.dart'

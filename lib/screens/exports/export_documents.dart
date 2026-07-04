@@ -9,11 +9,11 @@ import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/screens/exports/components/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/services/export/export_document.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:nahpu/screens/exports/components/document_preview_pane.dart';
-import 'package:nahpu/screens/exports/components/document_settings_pane.dart';
+import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
+import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/settings/document_presets.dart';
 
 class ExportDocumentsView extends ConsumerStatefulWidget {
