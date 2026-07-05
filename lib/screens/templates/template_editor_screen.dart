@@ -642,6 +642,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         context: context,
         builder: (context) => TextElementEditorDialog(
           initialText: ct.text,
+          recordType: _template.recordType,
           onSave: (newText) {
             _updateCustomText(
               page1,
@@ -656,6 +657,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         isScrollControlled: true,
         builder: (context) => TextElementEditorBottomSheet(
           initialText: ct.text,
+          recordType: _template.recordType,
           onSave: (newText) {
             _updateCustomText(
               page1,

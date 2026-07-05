@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/export.dart';
 
 class AvailableSymbolsWrap extends StatelessWidget {
   const AvailableSymbolsWrap({
@@ -59,9 +60,11 @@ class AvailableFieldsSection extends ConsumerStatefulWidget {
   const AvailableFieldsSection({
     super.key,
     required this.onSelectField,
+    required this.recordType,
   });
 
   final ValueChanged<String> onSelectField;
+  final RecordType recordType;
 
   @override
   ConsumerState<AvailableFieldsSection> createState() =>
@@ -72,14 +75,58 @@ class _AvailableFieldsSectionState
     extends ConsumerState<AvailableFieldsSection> {
   bool _showFields = false;
   String _fieldDisplayOption = 'short';
+  String _selectedTaxon = 'All Taxa';
 
   Map<String, List<String>> _getAllGroups() {
     final db = ref.read(databaseProvider);
     final Map<String, List<String>> groups = {};
+
+    final Set<String> allowedTables;
+    switch (widget.recordType) {
+      case RecordType.narrative:
+        allowedTables = {'narrative', 'site', 'personnel'};
+        break;
+      case RecordType.site:
+        allowedTables = {'site', 'personnel'};
+        break;
+      case RecordType.collEvent:
+        allowedTables = {'collEvent', 'site', 'weather', 'personnel'};
+        break;
+      case RecordType.specimenRecord:
+      case RecordType.specimenParts:
+        allowedTables = {
+          'specimen',
+          'taxonomy',
+          'personnel',
+          'project',
+          'collEvent',
+          'site',
+          'coordinate',
+          'weather',
+          'mammalMeasurement',
+          'avianMeasurement',
+          'herpMeasurement',
+          'specimenPart',
+        };
+        if (_selectedTaxon == 'Mammals') {
+          allowedTables.remove('avianMeasurement');
+          allowedTables.remove('herpMeasurement');
+        } else if (_selectedTaxon == 'Birds') {
+          allowedTables.remove('mammalMeasurement');
+          allowedTables.remove('herpMeasurement');
+        } else if (_selectedTaxon == 'Herpetofauna') {
+          allowedTables.remove('mammalMeasurement');
+          allowedTables.remove('avianMeasurement');
+        }
+        break;
+    }
+
     for (var table in db.allTables) {
       final tableName = table.actualTableName;
-      groups[tableName] =
-          table.$columns.map((c) => '$tableName::${c.name}').toList();
+      if (allowedTables.contains(tableName)) {
+        groups[tableName] =
+            table.$columns.map((c) => '$tableName::${c.name}').toList();
+      }
     }
     return groups;
   }
@@ -150,6 +197,52 @@ class _AvailableFieldsSectionState
                 ),
                 Row(
                   children: [
+                    if (widget.recordType == RecordType.specimenRecord ||
+                        widget.recordType == RecordType.specimenParts) ...[
+                      DropdownButton<String>(
+                        value: _selectedTaxon,
+                        isDense: true,
+                        underline: const SizedBox.shrink(),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'All Taxa',
+                            child: Text(
+                              'All Taxa',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Mammals',
+                            child: Text(
+                              'Mammals',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Birds',
+                            child: Text(
+                              'Birds',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Herpetofauna',
+                            child: Text(
+                              'Herpetofauna',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) {
+                            setState(() {
+                              _selectedTaxon = v;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8.0),
+                    ],
                     DropdownButton<String>(
                       value: _fieldDisplayOption,
                       isDense: true,
@@ -240,10 +333,12 @@ class TextElementEditorDialog extends ConsumerStatefulWidget {
   const TextElementEditorDialog({
     super.key,
     required this.initialText,
+    required this.recordType,
     required this.onSave,
   });
 
   final String initialText;
+  final RecordType recordType;
   final ValueChanged<String> onSave;
 
   @override
@@ -360,6 +455,7 @@ class _TextElementEditorDialogState
                     ),
                     const SizedBox(height: 16.0),
                     AvailableFieldsSection(
+                      recordType: widget.recordType,
                       onSelectField: _handleInsert,
                     ),
                   ],
@@ -469,10 +565,12 @@ class TextElementEditorBottomSheet extends ConsumerStatefulWidget {
   const TextElementEditorBottomSheet({
     super.key,
     required this.initialText,
+    required this.recordType,
     required this.onSave,
   });
 
   final String initialText;
+  final RecordType recordType;
   final ValueChanged<String> onSave;
 
   @override
@@ -704,6 +802,7 @@ class _TextElementEditorBottomSheetState
                   ),
                   const SizedBox(height: 16.0),
                   AvailableFieldsSection(
+                    recordType: widget.recordType,
                     onSelectField: _handleInsert,
                   ),
                 ],

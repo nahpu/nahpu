@@ -16,6 +16,7 @@ import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/services/export/narrative_writer.dart';
+import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/src/rust/api/export.dart' as rust_export;
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
@@ -1089,6 +1090,10 @@ Future<Map<String, String>> documentFieldValuesForSite(
   final m = <String, String>{};
   final writer = SiteWriterServices(ref: ref);
 
+  for (var entry in s.toJson().entries) {
+    m['site::${entry.key}'] = entry.value?.toString() ?? '';
+  }
+
   m['site::site'] = s.siteID ?? '';
   m['site::habitatType'] = s.habitatType ?? '';
   m['site::country'] = s.country ?? '';
@@ -1099,6 +1104,15 @@ Future<Map<String, String>> documentFieldValuesForSite(
   m['site::siteNotes'] = s.remark ?? '';
   m['site::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
   m['site::coordinates'] = await writer.getCoordinates(s.id);
+
+  if (s.leadStaffId != null) {
+    try {
+      final p = await PersonnelServices(ref: ref).getPersonnelByUuid(s.leadStaffId!);
+      for (var entry in p.toJson().entries) {
+        m['personnel::${entry.key}'] = entry.value?.toString() ?? '';
+      }
+    } catch (_) {}
+  }
   return m;
 }
 
@@ -1109,11 +1123,23 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
 ) async {
   final m = <String, String>{};
 
+  for (var entry in s.toJson().entries) {
+    m['collEvent::${entry.key}'] = entry.value?.toString() ?? '';
+  }
+
   // Site details
   final siteDetails =
       await SiteWriterServices(ref: ref).getSiteDetails(s.siteID);
   for (var i = 0; i < siteExportList.length; i++) {
     m[siteExportList[i]] = siteDetails[i];
+  }
+
+  if (s.siteID != null) {
+    final site = await SiteServices(ref: ref).getSite(s.siteID!);
+    if (site != null) {
+      final siteVals = await documentFieldValuesForSite(db, site, ref);
+      m.addAll(siteVals);
+    }
   }
 
   // Event details
@@ -1154,10 +1180,33 @@ Future<Map<String, String>> documentFieldValuesForNarrative(
   WidgetRef ref,
 ) async {
   final m = <String, String>{};
+
+  for (var entry in s.toJson().entries) {
+    m['narrative::${entry.key}'] = entry.value?.toString() ?? '';
+  }
+
   final writer = NarrativeRecordWriter(ref: ref);
   final details = await writer.getNarrative(s);
   for (var i = 0; i < narrativeExportList.length; i++) {
     m[narrativeExportList[i]] = details[i];
   }
+
+  if (s.siteID != null) {
+    final site = await SiteServices(ref: ref).getSite(s.siteID!);
+    if (site != null) {
+      final siteVals = await documentFieldValuesForSite(db, site, ref);
+      m.addAll(siteVals);
+    }
+  }
+
+  if (s.writerId != null) {
+    try {
+      final p = await PersonnelServices(ref: ref).getPersonnelByUuid(s.writerId!);
+      for (var entry in p.toJson().entries) {
+        m['personnel::${entry.key}'] = entry.value?.toString() ?? '';
+      }
+    } catch (_) {}
+  }
+
   return m;
 }
