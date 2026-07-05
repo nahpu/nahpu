@@ -229,7 +229,7 @@ void main() {
       expect(withPadding, greaterThan(withoutPadding));
     });
 
-    test('dynamic text does not force configured template height', () {
+    test('dynamic text without fixed height can grow past template height', () {
       final page = TemplatePage(customTexts: [
         CustomTextElement(
           id: 'dynamic',
@@ -252,7 +252,121 @@ void main() {
         templatePadBottomMm: 0,
       );
 
+      expect(height, greaterThan(0));
+    });
+
+    test('dynamic text row height includes bottom line elements', () {
+      final page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'dynamic',
+            text: 'Short dynamic narrative.',
+            xMm: 0,
+            yMm: 0,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+        ],
+        customLines: const [
+          CustomLineElement(
+            id: 'bottom-line',
+            xMm: 0,
+            yMm: 80,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 700,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, greaterThan(documentPdfMmToPt(80)));
       expect(height, lessThan(700));
+    });
+
+    test('dynamic text growth pushes lower elements in row height', () {
+      final page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'dynamic',
+            text: List.filled(30, 'Long narrative text').join(' '),
+            xMm: 0,
+            yMm: 0,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            heightMm: 8,
+            isDynamic: true,
+          ),
+        ],
+        customLines: const [
+          CustomLineElement(
+            id: 'below-dynamic',
+            xMm: 0,
+            yMm: 12,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 700,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, greaterThan(documentPdfMmToPt(35)));
+      expect(height, lessThan(700));
+    });
+
+    test('dynamic text without height pushes lower elements', () {
+      final page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'dynamic',
+            text: List.filled(12, 'Dynamic text').join(' '),
+            xMm: 0,
+            yMm: 0,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+        ],
+        customLines: const [
+          CustomLineElement(
+            id: 'below-dynamic',
+            xMm: 0,
+            yMm: 8,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 700,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, greaterThan(documentPdfMmToPt(20)));
     });
   });
 

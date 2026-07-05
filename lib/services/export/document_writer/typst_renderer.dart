@@ -135,6 +135,7 @@ class _DocumentTypstRenderer {
       typst.writeln('#style(styles => {');
       typst.writeln('  let cell_height = ${initialCellHeight}pt');
       for (final t in dynamicTexts) {
+        final varSuffix = _typstVarSuffix(t.id);
         final formatted = formatTemplateText(
           t.text,
           t.textType,
@@ -153,11 +154,38 @@ class _DocumentTypstRenderer {
             ? '${documentPdfMmToPt(t.maxWidthMm!)}pt'
             : '${wPt - documentPdfMmToPt(t.xMm)}pt';
         final dyPt = '${documentPdfMmToPt(t.yMm)}pt';
+        final baselinePt =
+            t.heightMm != null ? documentPdfMmToPt(t.heightMm!) : 0.0;
 
         typst.writeln(
-            '  let h_${t.id} = measure(box(width: $mwPt)[#text($textProps)[$content]], styles).height');
+            '  let h_$varSuffix = measure(box(width: $mwPt)[#text($textProps)[$content]], styles).height');
         typst.writeln(
-            '  cell_height = calc.max(cell_height, $dyPt + h_${t.id})');
+            '  let grow_$varSuffix = calc.max(0pt, h_$varSuffix - ${baselinePt}pt)');
+        typst.writeln(
+            '  cell_height = calc.max(cell_height, $dyPt + h_$varSuffix)');
+      }
+
+      for (final el in sortElements(page)) {
+        final shift = _dynamicShiftExpression(
+          dynamicTexts,
+          _elementTopMm(el),
+          excludeElement: el,
+        );
+        if (el is CustomTextElement &&
+            el.isDynamic &&
+            !el.isQrCode &&
+            templateGenderIconFieldKeyFromBracketText(el.text) == null) {
+          final varSuffix = _typstVarSuffix(el.id);
+          typst.writeln(
+              '  cell_height = calc.max(cell_height, ${documentPdfMmToPt(el.yMm)}pt + h_$varSuffix${shift == '0pt' ? '' : ' + $shift'})');
+        } else {
+          final bottom = _elementBottomPt(el, wPt);
+          if (bottom <= 0) continue;
+          if (shift != '0pt') {
+            typst.writeln(
+                '  cell_height = calc.max(cell_height, ${bottom}pt + $shift)');
+          }
+        }
       }
 
       if (continuous || autoHeight) {
@@ -194,14 +222,19 @@ class _DocumentTypstRenderer {
     final allElements = sortElements(page);
 
     for (final el in allElements) {
+      final dyShift = _dynamicShiftExpression(
+        dynamicTexts,
+        _elementTopMm(el),
+        excludeElement: el,
+      );
       if (el is CustomImageElement) {
-        _writeSingleCustomImage(typst, el);
+        _writeSingleCustomImage(typst, el, dyShift);
       } else if (el is CustomTextElement) {
-        _writeSingleCustomText(typst, el, data);
+        _writeSingleCustomText(typst, el, data, dyShift);
       } else if (el is CustomLineElement) {
-        _writeSingleCustomLine(typst, el);
+        _writeSingleCustomLine(typst, el, dyShift);
       } else if (el is CustomShapeElement) {
-        _writeSingleCustomShape(typst, el);
+        _writeSingleCustomShape(typst, el, dyShift);
       }
     }
 
@@ -247,20 +280,51 @@ class _DocumentTypstRenderer {
     return content;
   }
 
+  String _typstVarSuffix(String id) {
+    final sanitized = id.replaceAll(RegExp(r'[^A-Za-z0-9_]'), '_');
+    if (sanitized.isEmpty) return 'text';
+    if (RegExp(r'^[0-9]').hasMatch(sanitized)) return 'v_$sanitized';
+    return sanitized;
+  }
+
+  String _dynamicShiftExpression(
+    List<CustomTextElement> dynamicTexts,
+    double yMm, {
+    required dynamic excludeElement,
+  }) {
+    final shifts = <String>[];
+    for (final text in dynamicTexts) {
+      if (identical(text, excludeElement)) continue;
+      if (yMm > text.yMm) {
+        shifts.add('grow_${_typstVarSuffix(text.id)}');
+      }
+    }
+    return shifts.isEmpty ? '0pt' : shifts.join(' + ');
+  }
+
+  String _dyPt(double yMm, String dyShift) {
+    final base = '${documentPdfMmToPt(yMm)}pt';
+    return dyShift == '0pt' ? base : '$base + $dyShift';
+  }
+
   void _writeSingleCustomText(
-      StringBuffer typst, CustomTextElement t, Map<String, String> data) {
+    StringBuffer typst,
+    CustomTextElement t,
+    Map<String, String> data,
+    String dyShift,
+  ) {
     if (t.isQrCode) {
       if (t.tempPath == null || t.tempPath!.isEmpty) return;
       String cleanPath = t.tempPath!.replaceAll(r'\', r'\\');
       final sizePt = documentPdfMmToPt(t.qrSizeMm);
       typst.writeln(
-          '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${documentPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]');
+          '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]');
       return;
     }
 
     final gKey = templateGenderIconFieldKeyFromBracketText(t.text);
     if (gKey != null) {
-      _writeGenderIcon(typst, t, data, gKey);
+      _writeGenderIcon(typst, t, data, gKey, dyShift);
       return;
     }
 
@@ -285,18 +349,20 @@ class _DocumentTypstRenderer {
     final hasWidth = t.maxWidthMm != null;
     final hasHeight = t.heightMm != null && !t.isDynamic;
     if (hasWidth || hasHeight) {
-      final wPart = hasWidth ? 'width: ${documentPdfMmToPt(t.maxWidthMm!)}pt' : '';
-      final hPart = hasHeight ? 'height: ${documentPdfMmToPt(t.heightMm!)}pt' : '';
+      final wPart =
+          hasWidth ? 'width: ${documentPdfMmToPt(t.maxWidthMm!)}pt' : '';
+      final hPart =
+          hasHeight ? 'height: ${documentPdfMmToPt(t.heightMm!)}pt' : '';
       final comma = (hasWidth && hasHeight) ? ', ' : '';
       textElem = '#box($wPart$comma$hPart)[$textElem]';
     }
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${documentPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[$textElem]]');
+        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg)[$textElem]]');
   }
 
   void _writeGenderIcon(StringBuffer typst, CustomTextElement t,
-      Map<String, String> data, String gKey) {
+      Map<String, String> data, String gKey, String dyShift) {
     final display = _fieldValueCi(data, gKey);
     final s = display.trim().toLowerCase();
     final ch = s == 'male'
@@ -312,7 +378,7 @@ class _DocumentTypstRenderer {
     final fs = math.min(iconWPt, iconHPt) * 0.88;
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${documentPdfMmToPt(t.yMm)}pt)[#rotate(${t.rotationDegrees}deg)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
+        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
   }
 
   String _fieldValueCi(Map<String, String> m, String key) {
@@ -364,20 +430,105 @@ class _DocumentTypstRenderer {
     }
 
     for (final image in page.customImages) {
-      height = math.max(
-        height,
-        documentPdfMmToPt(image.yMm + image.heightMm),
-      );
+      height = math.max(height, _customImageBottomPt(image));
+    }
+
+    for (final line in page.customLines) {
+      height = math.max(height, _customLineBottomPt(line));
     }
 
     for (final shape in page.customShapes) {
-      height = math.max(
-        height,
-        documentPdfMmToPt(shape.yMm + shape.heightMm),
-      );
+      height = math.max(height, _customShapeBottomPt(shape));
     }
 
     return height;
+  }
+
+  double _elementTopMm(dynamic element) {
+    if (element is CustomImageElement) return element.yMm;
+    if (element is CustomTextElement) return element.yMm;
+    if (element is CustomLineElement) return element.yMm;
+    if (element is CustomShapeElement) return element.yMm;
+    return 0;
+  }
+
+  double _elementBottomPt(dynamic element, double wPt) {
+    if (element is CustomImageElement) return _customImageBottomPt(element);
+    if (element is CustomLineElement) return _customLineBottomPt(element);
+    if (element is CustomShapeElement) return _customShapeBottomPt(element);
+    if (element is CustomTextElement) {
+      final genderIconKey =
+          templateGenderIconFieldKeyFromBracketText(element.text);
+      if (element.isQrCode) {
+        return documentPdfMmToPt(element.yMm + element.qrSizeMm);
+      }
+      if (genderIconKey != null) {
+        return documentPdfMmToPt(
+          element.yMm +
+              (element.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+        );
+      }
+      final heightPt = element.heightMm != null
+          ? documentPdfMmToPt(element.heightMm!)
+          : _estimateTextHeightPt(
+              element.text,
+              element.fontSizePt,
+              _textMaxWidthPt(element, wPt),
+            );
+      return documentPdfMmToPt(element.yMm) + heightPt;
+    }
+    return 0;
+  }
+
+  double _textMaxWidthPt(CustomTextElement text, double wPt) {
+    return text.maxWidthMm == null
+        ? wPt - documentPdfMmToPt(text.xMm)
+        : documentPdfMmToPt(text.maxWidthMm!);
+  }
+
+  double _customImageBottomPt(CustomImageElement image) {
+    return documentPdfMmToPt(image.yMm) +
+        _rotatedRectBottomExtentPt(
+          widthPt: documentPdfMmToPt(image.widthMm),
+          heightPt: documentPdfMmToPt(image.heightMm),
+          rotationDegrees: image.rotationDegrees,
+        );
+  }
+
+  double _customShapeBottomPt(CustomShapeElement shape) {
+    return documentPdfMmToPt(shape.yMm) +
+        _rotatedRectBottomExtentPt(
+          widthPt: documentPdfMmToPt(shape.widthMm),
+          heightPt: documentPdfMmToPt(shape.heightMm),
+          rotationDegrees: shape.rotationDegrees,
+        ) +
+        shape.strokeThicknessPt;
+  }
+
+  double _customLineBottomPt(CustomLineElement line) {
+    final angle = line.rotationDegrees * math.pi / 180.0;
+    final lengthPt = documentPdfMmToPt(line.lengthMm);
+    final yExtentPt = math.max(0.0, math.sin(angle) * lengthPt);
+    final strokeExtentPt =
+        line.thicknessPt * (line.strokeStyle == 'double' ? 3.5 : 1.5);
+    return documentPdfMmToPt(line.yMm) + yExtentPt + strokeExtentPt;
+  }
+
+  double _rotatedRectBottomExtentPt({
+    required double widthPt,
+    required double heightPt,
+    required int rotationDegrees,
+  }) {
+    final angle = rotationDegrees * math.pi / 180.0;
+    final sinA = math.sin(angle);
+    final cosA = math.cos(angle);
+    final ys = <double>[
+      0,
+      widthPt * sinA,
+      heightPt * cosA,
+      widthPt * sinA + heightPt * cosA,
+    ];
+    return ys.reduce(math.max);
   }
 
   double _estimateTextHeightPt(
@@ -401,15 +552,17 @@ class _DocumentTypstRenderer {
     ]..sort((a, b) => (a.zIndex as int).compareTo(b.zIndex as int));
   }
 
-  void _writeSingleCustomImage(StringBuffer typst, CustomImageElement im) {
+  void _writeSingleCustomImage(
+      StringBuffer typst, CustomImageElement im, String dyShift) {
     if (!isTemplateImagePathUsable(im.imagePath)) return;
     String path = im.imagePath.replaceAll(r'\', r'\\');
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(im.xMm)}pt, dy: ${documentPdfMmToPt(im.yMm)}pt)[#rotate(${im.rotationDegrees}deg)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
+        '  #place(dx: ${documentPdfMmToPt(im.xMm)}pt, dy: ${_dyPt(im.yMm, dyShift)})[#rotate(${im.rotationDegrees}deg)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
   }
 
-  void _writeSingleCustomLine(StringBuffer typst, CustomLineElement line) {
+  void _writeSingleCustomLine(
+      StringBuffer typst, CustomLineElement line, String dyShift) {
     final hexColor = line.colorArgb.toRadixString(16).padLeft(8, '0');
     final colorStr =
         'rgb("${hexColor.substring(2)}")'; // ignores alpha for now, assuming 100%
@@ -435,10 +588,11 @@ class _DocumentTypstRenderer {
     }
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(line.xMm)}pt, dy: ${documentPdfMmToPt(line.yMm)}pt)[#rotate(${line.rotationDegrees}deg)[$elem]]');
+        '  #place(dx: ${documentPdfMmToPt(line.xMm)}pt, dy: ${_dyPt(line.yMm, dyShift)})[#rotate(${line.rotationDegrees}deg)[$elem]]');
   }
 
-  void _writeSingleCustomShape(StringBuffer typst, CustomShapeElement shape) {
+  void _writeSingleCustomShape(
+      StringBuffer typst, CustomShapeElement shape, String dyShift) {
     final strokeHex = shape.strokeColorArgb.toRadixString(16).padLeft(8, '0');
     final strokeColor = 'rgb("${strokeHex.substring(2)}")';
 
@@ -491,7 +645,7 @@ class _DocumentTypstRenderer {
     }
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: ${documentPdfMmToPt(shape.yMm)}pt)[#rotate(${shape.rotationDegrees}deg)[$elem]]');
+        '  #place(dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: ${_dyPt(shape.yMm, dyShift)})[#rotate(${shape.rotationDegrees}deg)[$elem]]');
   }
 
   String _typstCustomShapeElement(

@@ -776,9 +776,11 @@ class _DocumentPdfBuilder {
         text.isDynamic &&
         !text.isQrCode &&
         templateGenderIconFieldKeyFromBracketText(text.text) == null);
-    var height = hasDynamicText
-        ? _estimateStaticTemplateContentHeightPt(page: page, wPt: wPt)
-        : hPt;
+    if (hasDynamicText) {
+      return _estimateFlowTemplateContentHeightPt(page: page, wPt: wPt);
+    }
+
+    var height = hPt;
 
     for (final text in page.customTexts) {
       final genderIconKey =
@@ -821,80 +823,175 @@ class _DocumentPdfBuilder {
     }
 
     for (final image in page.customImages) {
-      height = math.max(
-        height,
-        documentPdfMmToPt(image.yMm + image.heightMm),
-      );
+      height = math.max(height, _customImageBottomPt(image));
+    }
+
+    for (final line in page.customLines) {
+      height = math.max(height, _customLineBottomPt(line));
     }
 
     for (final shape in page.customShapes) {
-      height = math.max(
-        height,
-        documentPdfMmToPt(shape.yMm + shape.heightMm),
-      );
+      height = math.max(height, _customShapeBottomPt(shape));
     }
 
     return height;
   }
 
-  static double _estimateStaticTemplateContentHeightPt({
+  static double _estimateFlowTemplateContentHeightPt({
     required TemplatePage page,
     required double wPt,
   }) {
+    final dynamicTexts = page.customTexts
+        .where((text) =>
+            text.isDynamic &&
+            !text.isQrCode &&
+            templateGenderIconFieldKeyFromBracketText(text.text) == null)
+        .toList()
+      ..sort((a, b) => a.yMm.compareTo(b.yMm));
+
     var height = 0.0;
-
-    for (final text in page.customTexts) {
-      final genderIconKey =
-          templateGenderIconFieldKeyFromBracketText(text.text);
-      if (text.isDynamic && !text.isQrCode && genderIconKey == null) {
-        continue;
-      }
-
-      if (text.isQrCode) {
-        height = math.max(
-          height,
-          documentPdfMmToPt(text.yMm + text.qrSizeMm),
-        );
-        continue;
-      }
-
-      if (genderIconKey != null) {
-        height = math.max(
-          height,
-          documentPdfMmToPt(
-            text.yMm +
-                (text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
-          ),
-        );
-        continue;
-      }
-
-      final bottom = documentPdfMmToPt(text.yMm) +
-          _estimateTextHeightPt(
-            text.text,
-            text.fontSizePt,
-            text.maxWidthMm == null
-                ? wPt - documentPdfMmToPt(text.xMm)
-                : documentPdfMmToPt(text.maxWidthMm!),
-          );
-      height = math.max(height, bottom);
-    }
-
-    for (final image in page.customImages) {
+    for (final element in _sortTemplateElements(page)) {
+      final bottom = _elementBottomPt(element, wPt);
+      if (bottom <= 0) continue;
       height = math.max(
         height,
-        documentPdfMmToPt(image.yMm + image.heightMm),
+        bottom + _dynamicGrowthBeforePt(dynamicTexts, element, wPt),
       );
     }
-
-    for (final shape in page.customShapes) {
-      height = math.max(
-        height,
-        documentPdfMmToPt(shape.yMm + shape.heightMm),
-      );
-    }
-
     return height;
+  }
+
+  static double _dynamicGrowthBeforePt(
+    List<CustomTextElement> dynamicTexts,
+    dynamic element,
+    double wPt,
+  ) {
+    final yMm = _elementTopMm(element);
+    var growth = 0.0;
+    for (final text in dynamicTexts) {
+      if (identical(text, element)) continue;
+      if (yMm > text.yMm) {
+        growth += _dynamicTextGrowthPt(text, wPt);
+      }
+    }
+    return growth;
+  }
+
+  static double _dynamicTextGrowthPt(CustomTextElement text, double wPt) {
+    final measuredHeight = _estimateTextHeightPt(
+      formatTemplateText(
+        text.text,
+        text.textType,
+        text.formatOption,
+        text.caseFormat,
+      ),
+      text.fontSizePt,
+      _textMaxWidthPt(text, wPt),
+    );
+    final baselineHeight =
+        text.heightMm != null ? documentPdfMmToPt(text.heightMm!) : 0.0;
+    return math.max(0.0, measuredHeight - baselineHeight);
+  }
+
+  static List<dynamic> _sortTemplateElements(TemplatePage page) {
+    return <dynamic>[
+      ...page.customImages,
+      ...page.customTexts,
+      ...page.customLines,
+      ...page.customShapes,
+    ]..sort((a, b) => (a.zIndex as int).compareTo(b.zIndex as int));
+  }
+
+  static double _elementTopMm(dynamic element) {
+    if (element is CustomImageElement) return element.yMm;
+    if (element is CustomTextElement) return element.yMm;
+    if (element is CustomLineElement) return element.yMm;
+    if (element is CustomShapeElement) return element.yMm;
+    return 0;
+  }
+
+  static double _elementBottomPt(dynamic element, double wPt) {
+    if (element is CustomImageElement) return _customImageBottomPt(element);
+    if (element is CustomLineElement) return _customLineBottomPt(element);
+    if (element is CustomShapeElement) return _customShapeBottomPt(element);
+    if (element is CustomTextElement) {
+      final genderIconKey =
+          templateGenderIconFieldKeyFromBracketText(element.text);
+      if (element.isQrCode) {
+        return documentPdfMmToPt(element.yMm + element.qrSizeMm);
+      }
+      if (genderIconKey != null) {
+        return documentPdfMmToPt(
+          element.yMm +
+              (element.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+        );
+      }
+      final heightPt = element.heightMm != null
+          ? documentPdfMmToPt(element.heightMm!)
+          : _estimateTextHeightPt(
+              formatTemplateText(
+                element.text,
+                element.textType,
+                element.formatOption,
+                element.caseFormat,
+              ),
+              element.fontSizePt,
+              _textMaxWidthPt(element, wPt),
+            );
+      return documentPdfMmToPt(element.yMm) + heightPt;
+    }
+    return 0;
+  }
+
+  static double _customImageBottomPt(CustomImageElement image) {
+    return documentPdfMmToPt(image.yMm) +
+        _rotatedRectBottomExtentPt(
+          widthPt: documentPdfMmToPt(image.widthMm),
+          heightPt: documentPdfMmToPt(image.heightMm),
+          rotationDegrees: image.rotationDegrees,
+        );
+  }
+
+  static double _customShapeBottomPt(CustomShapeElement shape) {
+    return documentPdfMmToPt(shape.yMm) +
+        _rotatedRectBottomExtentPt(
+          widthPt: documentPdfMmToPt(shape.widthMm),
+          heightPt: documentPdfMmToPt(shape.heightMm),
+          rotationDegrees: shape.rotationDegrees,
+        ) +
+        shape.strokeThicknessPt;
+  }
+
+  static double _customLineBottomPt(CustomLineElement line) {
+    final angle = line.rotationDegrees * math.pi / 180.0;
+    final lengthPt = documentPdfMmToPt(line.lengthMm);
+    final yExtentPt = math.max(0.0, math.sin(angle) * lengthPt);
+    final strokeExtentPt =
+        line.thicknessPt * (line.strokeStyle == 'double' ? 3.5 : 1.5);
+    return documentPdfMmToPt(line.yMm) + yExtentPt + strokeExtentPt;
+  }
+
+  static double _textMaxWidthPt(CustomTextElement text, double wPt) {
+    return text.maxWidthMm == null
+        ? wPt - documentPdfMmToPt(text.xMm)
+        : documentPdfMmToPt(text.maxWidthMm!);
+  }
+
+  static double _rotatedRectBottomExtentPt({
+    required double widthPt,
+    required double heightPt,
+    required int rotationDegrees,
+  }) {
+    final angle = rotationDegrees * math.pi / 180.0;
+    final sinA = math.sin(angle);
+    final cosA = math.cos(angle);
+    final ys = <double>[
+      0,
+      widthPt * sinA,
+      heightPt * cosA,
+      widthPt * sinA + heightPt * cosA,
+    ];
+    return ys.reduce(math.max);
   }
 
   static double _estimateTextHeightPt(
