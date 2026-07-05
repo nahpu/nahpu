@@ -26,6 +26,7 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.totalCount,
     required this.onSelectSpecimens,
     required this.onManagePresets,
+    required this.recordType,
   });
 
   final rust_config.DocumentLayoutPreset layout;
@@ -48,6 +49,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final int totalCount;
   final VoidCallback onSelectSpecimens;
   final VoidCallback onManagePresets;
+  final String recordType;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +73,13 @@ class DocumentSettingsPane extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Specimens',
+                            recordType == 'site'
+                                ? 'Sites'
+                                : recordType == 'collEvent'
+                                    ? 'Collecting Events'
+                                    : recordType == 'narrative'
+                                        ? 'Narratives'
+                                        : 'Specimens',
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 4),

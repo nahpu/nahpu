@@ -56,20 +56,3 @@ final specimenMediaProvider = FutureProvider.family
   }
   return mediaDataList;
 });
-
-final documentSpecimenSelectionProvider =
-    NotifierProvider.autoDispose<DocumentSpecimenSelection, Set<String>>(
-  DocumentSpecimenSelection.new,
-);
-
-class DocumentSpecimenSelection extends Notifier<Set<String>> {
-  @override
-  Set<String> build() {
-    final specimens = ref.watch(specimenEntryProvider).value ?? [];
-    return specimens.map((e) => e.uuid).toSet();
-  }
-
-  void updateSelection(Set<String> selection) {
-    state = selection;
-  }
-}

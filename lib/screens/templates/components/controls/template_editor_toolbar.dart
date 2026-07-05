@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/components/controls/front_back_page_pickers.dart';
 import 'package:nahpu/screens/templates/components/controls/mirror_toggle_button.dart';
 import 'package:nahpu/screens/templates/template_size_selector.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 
 class TemplateEditorToolbar extends StatelessWidget {
   const TemplateEditorToolbar({
     super.key,
     required this.savedNames,
-    required this.currentTemplateName,
+    required this.template,
+    required this.onDescriptionChanged,
     required this.isDuplex,
     required this.isPage1,
     required this.mirrorFront,
@@ -32,7 +34,8 @@ class TemplateEditorToolbar extends StatelessWidget {
   });
 
   final List<String> savedNames;
-  final String currentTemplateName;
+  final Template template;
+  final ValueChanged<String> onDescriptionChanged;
   final bool isDuplex;
   final bool isPage1;
   final bool mirrorFront;
@@ -71,9 +74,15 @@ class TemplateEditorToolbar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(child: _TemplatePicker(this)),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Show template info',
+                  icon: const Icon(Icons.info_outline_rounded),
+                  onPressed: () => _showTemplateInfoDialog(context),
+                ),
+                const SizedBox(width: 8),
                 SegmentedButton<bool>(
                   showSelectedIcon: false,
                   segments: const [
@@ -200,6 +209,66 @@ class TemplateEditorToolbar extends StatelessWidget {
       ),
     );
   }
+
+  void _showTemplateInfoDialog(BuildContext context) {
+    final controller = TextEditingController(text: template.description);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(template.name),
+        content: SizedBox(
+          width: 320,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Record type: ${_getRecordTypeLabel(template.recordType)}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              onDescriptionChanged(controller.text);
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getRecordTypeLabel(String recordType) {
+    switch (recordType) {
+      case 'specimen':
+        return 'Specimen';
+      case 'site':
+        return 'Site';
+      case 'collEvent':
+        return 'Collecting Event';
+      case 'narrative':
+        return 'Narrative';
+      default:
+        return recordType;
+    }
+  }
 }
 
 class _TemplatePicker extends StatelessWidget {
@@ -210,8 +279,8 @@ class _TemplatePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownMenu<String>(
-      initialSelection: toolbar.savedNames.contains(toolbar.currentTemplateName)
-          ? toolbar.currentTemplateName
+      initialSelection: toolbar.savedNames.contains(toolbar.template.name)
+          ? toolbar.template.name
           : null,
       label: const Text('Preset template'),
       inputDecorationTheme: const InputDecorationTheme(

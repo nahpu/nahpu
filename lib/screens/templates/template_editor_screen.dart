@@ -19,6 +19,10 @@ import 'package:nahpu/screens/templates/components/properties/text_element_edito
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/screens/templates/template_preview_specimen_selection.dart';
+import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/screens/shared/document/record_selection.dart';
 
 class TemplateEditorScreen extends ConsumerStatefulWidget {
   const TemplateEditorScreen({super.key});
@@ -56,7 +60,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
 
   String? _selectedSpecimenUuid;
 
-  /// First specimen’s `[field]` map for canvas preview (sex icons, etc.).
+  /// First record’s `[field]` map for canvas preview (sex icons, etc.).
   Map<String, String> _editorTemplateFieldPreview = {};
 
   final bool _isPreviewMode = true;
@@ -132,6 +136,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       onExportTemplate: _exportTemplate,
       onDeleteTemplate: _confirmDeleteTemplate,
       onTemplateSelected: _loadTemplate,
+      onDescriptionChanged: _updateTemplateDescription,
       onDuplexChanged: _setDuplex,
       onPageChanged: _selectPage,
       onTemplateSizeChanged: _setTemplateSize,
@@ -345,16 +350,55 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
 
   Future<void> _loadEditorTemplateFieldPreview() async {
     try {
-      final list = await SpecimenServices(ref: ref).getSpecimenList();
-      if (list.isEmpty) return;
       final db = ref.read(databaseProvider);
-      final firstSpecimen = list.first;
-      final m = await documentFieldValuesForSpecimen(db, firstSpecimen, ref);
-      if (mounted) {
-        setState(() {
-          _selectedSpecimenUuid = firstSpecimen.uuid;
-          _editorTemplateFieldPreview = m;
-        });
+      Map<String, String> m = {};
+      final recordType = _template.recordType;
+
+      if (recordType == 'specimen') {
+        final list = await SpecimenServices(ref: ref).getSpecimenList();
+        if (list.isNotEmpty) {
+          final firstSpecimen = list.first;
+          m = await documentFieldValuesForSpecimen(db, firstSpecimen, ref);
+          if (mounted) {
+            setState(() {
+              _selectedSpecimenUuid = firstSpecimen.uuid;
+              _editorTemplateFieldPreview = m;
+            });
+          }
+        }
+      } else if (recordType == 'site') {
+        final list = await SiteServices(ref: ref).getAllSites();
+        if (list.isNotEmpty) {
+          final firstSite = list.first;
+          m = await documentFieldValuesForSite(db, firstSite, ref);
+          if (mounted) {
+            setState(() {
+              _editorTemplateFieldPreview = m;
+            });
+          }
+        }
+      } else if (recordType == 'collEvent') {
+        final list = await CollEventServices(ref: ref).getAllCollEvents();
+        if (list.isNotEmpty) {
+          final firstEvent = list.first;
+          m = await documentFieldValuesForCollEvent(db, firstEvent, ref);
+          if (mounted) {
+            setState(() {
+              _editorTemplateFieldPreview = m;
+            });
+          }
+        }
+      } else if (recordType == 'narrative') {
+        final list = await NarrativeServices(ref: ref).getAllNarrative();
+        if (list.isNotEmpty) {
+          final firstNarrative = list.first;
+          m = await documentFieldValuesForNarrative(db, firstNarrative, ref);
+          if (mounted) {
+            setState(() {
+              _editorTemplateFieldPreview = m;
+            });
+          }
+        }
       }
     } catch (_) {}
   }
@@ -437,6 +481,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _deferSetState(() {
       _templateWidthMm = widthMm;
       _templateHeightMm = heightMm;
+    });
+  }
+
+  void _updateTemplateDescription(String description) {
+    setState(() {
+      _template = _template.copyWith(description: description);
     });
   }
 
@@ -773,19 +823,23 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     });
   }
 
-  Future<String?> _promptCreateNewTemplateName() async {
+  Future<_CreateTemplateResult?> _promptCreateNewTemplate() async {
     final taken = _savedNames.toSet();
-    return showDialog<String>(
+    return showDialog<_CreateTemplateResult>(
       context: context,
       builder: (context) => _CreateTemplateDialog(takenNames: taken),
     );
   }
 
   Future<void> _createNewTemplate() async {
-    final name = await _promptCreateNewTemplateName();
-    if (name == null || name.isEmpty) return;
+    final result = await _promptCreateNewTemplate();
+    if (result == null || result.name.isEmpty) return;
 
-    final fresh = DefaultTemplate.defaultTemplate(name).copyWith(
+    final fresh = DefaultTemplate.defaultTemplate(
+      result.name,
+      result.recordType,
+      result.description,
+    ).copyWith(
       printOptions: _currentPrintOptions,
     );
     await _templateService.saveTemplate(fresh);
@@ -951,27 +1005,102 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   Future<void> _selectSpecimenForPreview() async {
-    final result = await Navigator.push<String?>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TemplatePreviewSpecimenSelectionScreen(
-          selectedUuid: _selectedSpecimenUuid,
-        ),
-      ),
-    );
+    final recordType = _template.recordType;
+    final db = ref.read(databaseProvider);
 
-    if (result != null && mounted) {
-      final db = ref.read(databaseProvider);
-      try {
-        final s = await SpecimenServices(ref: ref).getSpecimen(result);
-        final m = await documentFieldValuesForSpecimen(db, s, ref);
-        setState(() {
-          _selectedSpecimenUuid = result;
-          _editorTemplateFieldPreview = m;
-        });
-      } catch (_) {}
+    if (recordType == 'specimen') {
+      final result = await Navigator.push<String?>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TemplatePreviewSpecimenSelectionScreen(
+            selectedUuid: _selectedSpecimenUuid,
+          ),
+        ),
+      );
+
+      if (result != null && mounted) {
+        try {
+          final s = await SpecimenServices(ref: ref).getSpecimen(result);
+          final m = await documentFieldValuesForSpecimen(db, s, ref);
+          setState(() {
+            _selectedSpecimenUuid = result;
+            _editorTemplateFieldPreview = m;
+          });
+        } catch (_) {}
+      }
+    } else if (recordType == 'site') {
+      final result = await Navigator.push<int?>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SiteSelectionScreen(
+            isSingleSelection: true,
+          ),
+        ),
+      );
+
+      if (result != null && mounted) {
+        try {
+          final list = await SiteServices(ref: ref).getAllSites();
+          final s = list.firstWhere((element) => element.id == result);
+          final m = await documentFieldValuesForSite(db, s, ref);
+          setState(() {
+            _editorTemplateFieldPreview = m;
+          });
+        } catch (_) {}
+      }
+    } else if (recordType == 'collEvent') {
+      final result = await Navigator.push<int?>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const EventSelectionScreen(
+            isSingleSelection: true,
+          ),
+        ),
+      );
+
+      if (result != null && mounted) {
+        try {
+          final list = await CollEventServices(ref: ref).getAllCollEvents();
+          final s = list.firstWhere((element) => element.id == result);
+          final m = await documentFieldValuesForCollEvent(db, s, ref);
+          setState(() {
+            _editorTemplateFieldPreview = m;
+          });
+        } catch (_) {}
+      }
+    } else if (recordType == 'narrative') {
+      final result = await Navigator.push<int?>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const NarrativeSelectionScreen(
+            isSingleSelection: true,
+          ),
+        ),
+      );
+
+      if (result != null && mounted) {
+        try {
+          final list = await NarrativeServices(ref: ref).getAllNarrative();
+          final s = list.firstWhere((element) => element.id == result);
+          final m = await documentFieldValuesForNarrative(db, s, ref);
+          setState(() {
+            _editorTemplateFieldPreview = m;
+          });
+        } catch (_) {}
+      }
     }
   }
+}
+
+class _CreateTemplateResult {
+  _CreateTemplateResult({
+    required this.name,
+    required this.recordType,
+    required this.description,
+  });
+  final String name;
+  final String recordType;
+  final String description;
 }
 
 class _CreateTemplateDialog extends StatefulWidget {
@@ -985,17 +1114,21 @@ class _CreateTemplateDialog extends StatefulWidget {
 
 class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
   late final TextEditingController _ctrl;
+  late final TextEditingController _descCtrl;
   final _formKey = GlobalKey<FormState>();
+  String _recordType = 'specimen';
 
   @override
   void initState() {
     super.initState();
     _ctrl = TextEditingController();
+    _descCtrl = TextEditingController();
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _descCtrl.dispose();
     super.dispose();
   }
 
@@ -1005,28 +1138,85 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
       title: const Text('Create new template'),
       content: Form(
         key: _formKey,
-        child: TextFormField(
-          controller: _ctrl,
-          decoration: const InputDecoration(
-            labelText: 'Template name',
-            border: OutlineInputBorder(),
-            isDense: true,
-          ),
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          validator: (v) {
-            final t = v?.trim() ?? '';
-            if (t.isEmpty) return 'Enter a name';
-            if (widget.takenNames.contains(t)) {
-              return 'A template with this name already exists';
-            }
-            return null;
-          },
-          onFieldSubmitted: (_) {
-            if (_formKey.currentState?.validate() ?? false) {
-              Navigator.pop(context, _ctrl.text.trim());
-            }
-          },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _ctrl,
+              decoration: const InputDecoration(
+                labelText: 'Template name',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              validator: (v) {
+                final t = v?.trim() ?? '';
+                if (t.isEmpty) return 'Enter a name';
+                if (widget.takenNames.contains(t)) {
+                  return 'A template with this name already exists';
+                }
+                return null;
+              },
+              onFieldSubmitted: (_) {
+                if (_formKey.currentState?.validate() ?? false) {
+                  Navigator.pop(
+                    context,
+                    _CreateTemplateResult(
+                      name: _ctrl.text.trim(),
+                      recordType: _recordType,
+                      description: _descCtrl.text.trim(),
+                    ),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _descCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: _recordType,
+              decoration: const InputDecoration(
+                labelText: 'Record type',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              items: const [
+                DropdownMenuItem(
+                  value: 'specimen',
+                  child: Text('Specimen'),
+                ),
+                DropdownMenuItem(
+                  value: 'site',
+                  child: Text('Site'),
+                ),
+                DropdownMenuItem(
+                  value: 'collEvent',
+                  child: Text('Collecting Event'),
+                ),
+                DropdownMenuItem(
+                  value: 'narrative',
+                  child: Text('Narrative'),
+                ),
+              ],
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() {
+                    _recordType = v;
+                  });
+                }
+              },
+            ),
+          ],
         ),
       ),
       actions: [
@@ -1037,7 +1227,14 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
         FilledButton(
           onPressed: () {
             if (_formKey.currentState?.validate() ?? false) {
-              Navigator.pop(context, _ctrl.text.trim());
+              Navigator.pop(
+                context,
+                _CreateTemplateResult(
+                  name: _ctrl.text.trim(),
+                  recordType: _recordType,
+                  description: _descCtrl.text.trim(),
+                ),
+              );
             }
           },
           child: const Text('Create'),

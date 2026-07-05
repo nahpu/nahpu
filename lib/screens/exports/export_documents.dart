@@ -9,7 +9,13 @@ import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/document_selection.dart';
+import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/services/export/export_document.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
@@ -39,6 +45,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   List<String> _templateNames = const [];
   List<String> _setupNames = const [];
   String _selectedSetupName = 'Default';
+  String _recordType = 'specimen';
 
   late TabController _mobileTabController;
 
@@ -63,14 +70,49 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   @override
   Widget build(BuildContext context) {
     ref.watch(projectUuidProvider);
-    final selectedUuids = ref.watch(documentSpecimenSelectionProvider);
-    ref.listen<Set<String>>(documentSpecimenSelectionProvider,
-        (previous, next) {
-      if (previous != null && next != previous) {
-        _markPreviewStale();
-      }
-    });
-    final totalCount = ref.watch(specimenEntryProvider).value?.length ?? 0;
+    int selectedCount = 0;
+    int totalCount = 0;
+
+    if (_recordType == 'specimen') {
+      final selectedUuids = ref.watch(documentSpecimenSelectionProvider);
+      selectedCount = selectedUuids.length;
+      totalCount = ref.watch(specimenEntryProvider).value?.length ?? 0;
+      ref.listen<Set<String>>(documentSpecimenSelectionProvider,
+          (previous, next) {
+        if (previous != null && next != previous) {
+          _markPreviewStale();
+        }
+      });
+    } else if (_recordType == 'site') {
+      final selectedSites = ref.watch(documentSiteSelectionProvider);
+      selectedCount = selectedSites.length;
+      totalCount = ref.watch(siteEntryProvider).value?.length ?? 0;
+      ref.listen<Set<int>>(documentSiteSelectionProvider, (previous, next) {
+        if (previous != null && next != previous) {
+          _markPreviewStale();
+        }
+      });
+    } else if (_recordType == 'collEvent') {
+      final selectedEvents = ref.watch(documentEventSelectionProvider);
+      selectedCount = selectedEvents.length;
+      totalCount = ref.watch(collEventEntryProvider).value?.length ?? 0;
+      ref.listen<Set<int>>(documentEventSelectionProvider, (previous, next) {
+        if (previous != null && next != previous) {
+          _markPreviewStale();
+        }
+      });
+    } else if (_recordType == 'narrative') {
+      final selectedNarratives = ref.watch(documentNarrativeSelectionProvider);
+      selectedCount = selectedNarratives.length;
+      totalCount = ref.watch(narrativeEntryProvider).value?.length ?? 0;
+      ref.listen<Set<int>>(documentNarrativeSelectionProvider,
+          (previous, next) {
+        if (previous != null && next != previous) {
+          _markPreviewStale();
+        }
+      });
+    }
+
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     final settingsPane = _layout == null
@@ -104,15 +146,39 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
               });
             },
             onExportPressed: !exportCtr.isValid ? null : _exportDocuments,
-            selectedCount: selectedUuids.length,
+            selectedCount: selectedCount,
             totalCount: totalCount,
+            recordType: _recordType,
             onSelectSpecimens: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SpecimenSelectionScreen(),
-                ),
-              );
+              if (_recordType == 'specimen') {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SpecimenSelectionScreen(),
+                  ),
+                );
+              } else if (_recordType == 'site') {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SiteSelectionScreen(),
+                  ),
+                );
+              } else if (_recordType == 'collEvent') {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EventSelectionScreen(),
+                  ),
+                );
+              } else if (_recordType == 'narrative') {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NarrativeSelectionScreen(),
+                  ),
+                );
+              }
             },
             onManagePresets: () async {
               await Navigator.push<void>(
@@ -195,14 +261,42 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
   void _updatePreview() {
     if (_layout == null) return;
+
+    List<String> selectedList = [];
+    if (_recordType == 'specimen') {
+      selectedList = ref.read(documentSpecimenSelectionProvider).toList();
+    } else if (_recordType == 'site') {
+      selectedList = ref
+          .read(documentSiteSelectionProvider)
+          .map((id) => id.toString())
+          .toList();
+    } else if (_recordType == 'collEvent') {
+      selectedList = ref
+          .read(documentEventSelectionProvider)
+          .map((id) => id.toString())
+          .toList();
+    } else if (_recordType == 'narrative') {
+      selectedList = ref
+          .read(documentNarrativeSelectionProvider)
+          .map((id) => id.toString())
+          .toList();
+    }
+
     setState(() {
       _showPreview = true;
       _previewStale = false;
       _previewLayout = _layout;
-      _previewSelectedUuidList =
-          List.unmodifiable(ref.read(documentSpecimenSelectionProvider));
+      _previewSelectedUuidList = List.unmodifiable(selectedList);
       _previewVersion++;
     });
+  }
+
+  Future<String> _getRecordTypeForLayout(
+      rust_config.DocumentLayoutPreset? layout) async {
+    if (layout == null || layout.blocks.isEmpty) return 'specimen';
+    final firstTemplateName = layout.blocks.first.templateName;
+    final tmpl = await const TemplateService().getTemplate(firstTemplateName);
+    return tmpl?.recordType ?? 'specimen';
   }
 
   Future<void> _load() async {
@@ -216,6 +310,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       final layout = await _layoutService.getCurrentLayout();
       final setupNames = await _layoutService.listLayoutNames();
       final templateNames = await rust_config.listTemplatePresets();
+      final recordType = await _getRecordTypeForLayout(layout);
 
       if (mounted) {
         setState(() {
@@ -223,6 +318,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           _setupNames = setupNames;
           _selectedSetupName = layout.name;
           _templateNames = templateNames;
+          _recordType = recordType;
           _showPreview = false;
           _previewStale = false;
           _previewLayout = null;
@@ -251,8 +347,10 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
   Future<void> _layoutChanged(
       rust_config.DocumentLayoutPreset newLayout) async {
+    final recordType = await _getRecordTypeForLayout(newLayout);
     setState(() {
       _layout = newLayout;
+      _recordType = recordType;
       _setPreviewStale();
     });
     await _layoutService.saveLayout(newLayout);
@@ -262,9 +360,11 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     final setup = await _layoutService.getLayout(name);
     if (setup == null) return;
     await _layoutService.setCurrentLayoutName(name);
+    final recordType = await _getRecordTypeForLayout(setup);
     setState(() {
       _layout = setup;
       _selectedSetupName = name;
+      _recordType = recordType;
       _setPreviewStale();
     });
   }
@@ -284,7 +384,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
     try {
       final savePath = await ExportDocumentService(ref: ref).exportDocuments(
-        selectedSpecimens: ref.read(documentSpecimenSelectionProvider),
         selectedDir: _selectedDir!,
         fileStem: exportCtr.fileNameCtr.text,
         layout: _layout!,

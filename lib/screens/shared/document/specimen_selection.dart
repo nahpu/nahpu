@@ -9,7 +9,7 @@ import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/document_selection.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 
 class SpecimenSelectionView extends ConsumerStatefulWidget {

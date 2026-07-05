@@ -1037,6 +1037,8 @@ class Template {
     required this.page2,
     this.printOptions,
     this.outline,
+    this.recordType = 'specimen',
+    this.description = '',
   });
 
   final String name;
@@ -1049,6 +1051,9 @@ class Template {
   /// When null, no outline is drawn on the label.
   final TemplateOutline? outline;
 
+  final String recordType;
+  final String description;
+
   Template copyWith({
     String? name,
     TemplatePage? page1,
@@ -1057,6 +1062,8 @@ class Template {
     bool clearPrintOptions = false,
     TemplateOutline? outline,
     bool clearOutline = false,
+    String? recordType,
+    String? description,
   }) {
     return Template(
       name: name ?? this.name,
@@ -1065,6 +1072,8 @@ class Template {
       printOptions:
           clearPrintOptions ? null : (printOptions ?? this.printOptions),
       outline: clearOutline ? null : (outline ?? this.outline),
+      recordType: recordType ?? this.recordType,
+      description: description ?? this.description,
     );
   }
 
@@ -1074,6 +1083,8 @@ class Template {
         'page2': page2.toJson(),
         if (printOptions != null) 'printOptions': printOptions!.toJson(),
         if (outline != null) 'outline': outline!.toJson(),
+        'recordType': recordType,
+        'description': description,
       };
 
   factory Template.fromJson(Map<String, dynamic> json) {
@@ -1098,6 +1109,8 @@ class Template {
       ),
       printOptions: opts,
       outline: outline,
+      recordType: json['recordType'] as String? ?? 'specimen',
+      description: json['description'] as String? ?? '',
     );
   }
 
@@ -1113,12 +1126,18 @@ class Template {
 }
 
 class DefaultTemplate {
-  static Template defaultTemplate([String name = 'Default']) {
+  static Template defaultTemplate([
+    String name = 'Default',
+    String recordType = 'specimen',
+    String description = '',
+  ]) {
     return Template(
       name: name,
       page1: const TemplatePage(),
       page2: const TemplatePage(),
       printOptions: null,
+      recordType: recordType,
+      description: description,
     );
   }
 }

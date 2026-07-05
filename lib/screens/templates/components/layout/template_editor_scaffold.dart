@@ -35,6 +35,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.onExportTemplate,
     required this.onDeleteTemplate,
     required this.onTemplateSelected,
+    required this.onDescriptionChanged,
     required this.onDuplexChanged,
     required this.onPageChanged,
     required this.onTemplateSizeChanged,
@@ -97,6 +98,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   final VoidCallback onExportTemplate;
   final VoidCallback onDeleteTemplate;
   final ValueChanged<String> onTemplateSelected;
+  final ValueChanged<String> onDescriptionChanged;
   final ValueChanged<bool> onDuplexChanged;
   final ValueChanged<int> onPageChanged;
   final void Function(double widthMm, double heightMm) onTemplateSizeChanged;
@@ -160,7 +162,8 @@ class TemplateEditorScaffold extends StatelessWidget {
           children: [
             TemplateEditorToolbar(
               savedNames: savedNames,
-              currentTemplateName: template.name,
+              template: template,
+              onDescriptionChanged: onDescriptionChanged,
               isDuplex: isDuplex,
               isPage1: isPage1,
               mirrorFront: mirrorFront,

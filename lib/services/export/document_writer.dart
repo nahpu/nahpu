@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'dart:io';
 import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/export/common.dart';
 
 import 'package:flutter/services.dart' show rootBundle, AssetManifest;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,11 @@ import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/export/dynamic_record_exporter.dart';
+import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/export/site_writer.dart';
+import 'package:nahpu/services/export/narrative_writer.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/src/rust/api/export.dart' as rust_export;
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:path/path.dart' as path;
@@ -54,12 +60,14 @@ class DocumentWriter {
 
   Database get _db => ref.read(databaseProvider);
 
-  /// Generates the Typst PDF and writes it to the designated output file.
-  Future<File> writeDocuments({
-    required List<SpecimenData> picked,
+  Future<File> _writeRecordsGeneric<T>({
+    required List<T> picked,
     required Directory selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
+    required Future<Uint8List> Function(
+            List<T> picked, double sheetWidthPt, double sheetHeightPt)
+        generatePdf,
   }) async {
     double w = _getPageWidth(layout.pageSizeKey, layout.customPageWidthMm);
     double h = _getPageHeight(layout.pageSizeKey, layout.customPageHeightMm);
@@ -70,11 +78,10 @@ class DocumentWriter {
       h = tmp;
     }
 
-    final pdfBytes = await generateDocumentsPdf(
+    final pdfBytes = await generatePdf(
       picked,
-      sheetWidthPt: w * 72.0 / 25.4,
-      sheetHeightPt: h * 72.0 / 25.4,
-      layout: layout,
+      w * 72.0 / 25.4,
+      h * 72.0 / 25.4,
     );
 
     final savePath =
@@ -82,6 +89,86 @@ class DocumentWriter {
             .getSavePath();
     await savePath.writeAsBytes(pdfBytes);
     return savePath;
+  }
+
+  Future<File> writeDocuments({
+    required List<SpecimenData> picked,
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _writeRecordsGeneric<SpecimenData>(
+      picked: picked,
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (p, w, h) => generateDocumentsPdf(
+        p,
+        sheetWidthPt: w,
+        sheetHeightPt: h,
+        layout: layout,
+      ),
+    );
+  }
+
+  Future<File> writeSites({
+    required List<SiteData> picked,
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _writeRecordsGeneric<SiteData>(
+      picked: picked,
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (p, w, h) => generateSitesPdf(
+        p,
+        sheetWidthPt: w,
+        sheetHeightPt: h,
+        layout: layout,
+      ),
+    );
+  }
+
+  Future<File> writeEvents({
+    required List<CollEventData> picked,
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _writeRecordsGeneric<CollEventData>(
+      picked: picked,
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (p, w, h) => generateEventsPdf(
+        p,
+        sheetWidthPt: w,
+        sheetHeightPt: h,
+        layout: layout,
+      ),
+    );
+  }
+
+  Future<File> writeNarratives({
+    required List<NarrativeData> picked,
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _writeRecordsGeneric<NarrativeData>(
+      picked: picked,
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (p, w, h) => generateNarrativesPdf(
+        p,
+        sheetWidthPt: w,
+        sheetHeightPt: h,
+        layout: layout,
+      ),
+    );
   }
 
   double _getPageWidth(String pageSizeKey, double? customPageWidthMm) {
@@ -144,11 +231,12 @@ class DocumentWriter {
     }
   }
 
-  Future<Uint8List> generateDocumentsPdf(
-    List<SpecimenData> specimens, {
+  Future<Uint8List> _generateRecordsPdfGeneric<T>(
+    List<T> records, {
     required double sheetWidthPt,
     required double sheetHeightPt,
     required rust_config.DocumentLayoutPreset layout,
+    required Future<Map<String, String>> Function(T) recordToFields,
   }) async {
     final settings = DocumentSettingsServices();
     final templateService = const TemplateService();
@@ -171,27 +259,27 @@ class DocumentWriter {
 
     StringBuffer typst = StringBuffer();
 
-    if (specimens.isEmpty) {
+    if (records.isEmpty) {
       typst.writeln(
           '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt)');
       typst.writeln('#align(center + horizon)[No documents]');
     } else if (layout.layoutType == 'Continuous') {
-      final List<_ContinuousPrintItem> continuousItems = [];
+      final List<_ContinuousPrintItemGeneric<T>> continuousItems = [];
 
-      for (final specimen in specimens) {
+      for (final record in records) {
         for (final block in layout.blocks) {
           final tmpl = templates[block.templateName]!;
           for (var c = 0; c < block.templateCount; c++) {
-            continuousItems.add(_ContinuousPrintItem(
-              specimen: specimen,
+            continuousItems.add(_ContinuousPrintItemGeneric<T>(
+              record: record,
               template: tmpl,
               pageTemplate: tmpl.page1,
               block: block,
               mirror: mirrorFront,
             ));
             if (duplex) {
-              continuousItems.add(_ContinuousPrintItem(
-                specimen: specimen,
+              continuousItems.add(_ContinuousPrintItemGeneric<T>(
+                record: record,
                 template: tmpl,
                 pageTemplate: tmpl.page2,
                 block: block,
@@ -214,8 +302,7 @@ class DocumentWriter {
         typst.writeln(
             '#set page(width: ${cellWPt}pt, height: ${cellHPt}pt, margin: 0pt)');
 
-        final data =
-            await documentFieldValuesForSpecimen(_db, item.specimen, ref);
+        final data = await recordToFields(item.record);
         final subbedPage = await _substitutePage(item.pageTemplate, data);
 
         _writeSingleDocumentCell(
@@ -257,17 +344,17 @@ class DocumentWriter {
         final cellW = usableW / cols;
         final cellH = usableH / rows;
 
-        final List<SpecimenData> blockSpecimens = [];
-        for (final specimen in specimens) {
+        final List<T> blockRecords = [];
+        for (final record in records) {
           for (var c = 0; c < block.templateCount; c++) {
-            blockSpecimens.add(specimen);
+            blockRecords.add(record);
           }
         }
 
-        for (var start = 0; start < blockSpecimens.length; start += perSheet) {
-          final end = math.min(start + perSheet, blockSpecimens.length);
-          final batch = blockSpecimens.sublist(start, end);
-          final isLastBatch = (start + perSheet) >= blockSpecimens.length;
+        for (var start = 0; start < blockRecords.length; start += perSheet) {
+          final end = math.min(start + perSheet, blockRecords.length);
+          final batch = blockRecords.sublist(start, end);
+          final isLastBatch = (start + perSheet) >= blockRecords.length;
           final isLastBlock = bIdx == layout.blocks.length - 1;
 
           final breakAfterFront = duplex ||
@@ -278,9 +365,8 @@ class DocumentWriter {
 
           final frontPages = <TemplatePage>[];
           final frontDataList = <Map<String, String>>[];
-          for (final specimen in batch) {
-            final data =
-                await documentFieldValuesForSpecimen(_db, specimen, ref);
+          for (final record in batch) {
+            final data = await recordToFields(record);
             frontDataList.add(data);
             frontPages.add(await _substitutePage(tmpl.page1, data));
           }
@@ -306,9 +392,8 @@ class DocumentWriter {
           if (duplex) {
             final backPages = <TemplatePage>[];
             final backDataList = <Map<String, String>>[];
-            for (final specimen in batch) {
-              final data =
-                  await documentFieldValuesForSpecimen(_db, specimen, ref);
+            for (final record in batch) {
+              final data = await recordToFields(record);
               backDataList.add(data);
               backPages.add(await _substitutePage(tmpl.page2, data));
             }
@@ -339,6 +424,66 @@ class DocumentWriter {
     return await rust_export.compileTypstToPdf(
       typstContent: typst.toString(),
       fontBytes: fontBytesList,
+    );
+  }
+
+  Future<Uint8List> generateDocumentsPdf(
+    List<SpecimenData> specimens, {
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _generateRecordsPdfGeneric<SpecimenData>(
+      specimens,
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+      recordToFields: (s) => documentFieldValuesForSpecimen(_db, s, ref),
+    );
+  }
+
+  Future<Uint8List> generateSitesPdf(
+    List<SiteData> sites, {
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _generateRecordsPdfGeneric<SiteData>(
+      sites,
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+      recordToFields: (s) => documentFieldValuesForSite(_db, s, ref),
+    );
+  }
+
+  Future<Uint8List> generateEventsPdf(
+    List<CollEventData> events, {
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _generateRecordsPdfGeneric<CollEventData>(
+      events,
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+      recordToFields: (s) => documentFieldValuesForCollEvent(_db, s, ref),
+    );
+  }
+
+  Future<Uint8List> generateNarrativesPdf(
+    List<NarrativeData> narratives, {
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _generateRecordsPdfGeneric<NarrativeData>(
+      narratives,
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+      recordToFields: (s) => documentFieldValuesForNarrative(_db, s, ref),
     );
   }
 
@@ -921,17 +1066,98 @@ Future<Map<String, String>> documentFieldValuesForSpecimen(
   return m;
 }
 
-class _ContinuousPrintItem {
-  _ContinuousPrintItem({
-    required this.specimen,
+class _ContinuousPrintItemGeneric<T> {
+  _ContinuousPrintItemGeneric({
+    required this.record,
     required this.template,
     required this.pageTemplate,
     required this.block,
     required this.mirror,
   });
-  final SpecimenData specimen;
+  final T record;
   final Template template;
   final TemplatePage pageTemplate;
   final rust_config.DocumentLayoutBlock block;
   final bool mirror;
+}
+
+Future<Map<String, String>> documentFieldValuesForSite(
+  Database db,
+  SiteData s,
+  WidgetRef ref,
+) async {
+  final m = <String, String>{};
+  final writer = SiteWriterServices(ref: ref);
+
+  m['site::site'] = s.siteID ?? '';
+  m['site::habitatType'] = s.habitatType ?? '';
+  m['site::country'] = s.country ?? '';
+  m['site::stateProvince'] = s.stateProvince ?? '';
+  m['site::county'] = s.county ?? '';
+  m['site::municipality'] = s.municipality ?? '';
+  m['site::specificLocality'] = s.locality ?? '';
+  m['site::siteNotes'] = s.remark ?? '';
+  m['site::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
+  m['site::coordinates'] = await writer.getCoordinates(s.id);
+  return m;
+}
+
+Future<Map<String, String>> documentFieldValuesForCollEvent(
+  Database db,
+  CollEventData s,
+  WidgetRef ref,
+) async {
+  final m = <String, String>{};
+
+  // Site details
+  final siteDetails =
+      await SiteWriterServices(ref: ref).getSiteDetails(s.siteID);
+  for (var i = 0; i < siteExportList.length; i++) {
+    m[siteExportList[i]] = siteDetails[i];
+  }
+
+  // Event details
+  m['event::collEventID'] = await CollEventServices(ref: ref).getCollEventID(s);
+  m['event::Activity'] = s.primaryCollMethod ?? '';
+  m['event::startDate'] = s.startDate ?? '';
+  m['event::endDate'] = s.endDate ?? '';
+  m['event::startTime'] = s.startTime ?? '';
+  m['event::endTime'] = s.endTime ?? '';
+  m['event::methods'] = await _getEventEffort(ref, s.id);
+  m['event::personnel'] = await _getEventPersonnel(ref, s.id);
+  return m;
+}
+
+Future<String> _getEventEffort(WidgetRef ref, int id) async {
+  List<CollEffortData> effort =
+      await CollEventServices(ref: ref).getAllCollEffort(id);
+  return effort.map((e) => '"${e.method}";${e.count}').join(writerSeparator);
+}
+
+Future<String> _getEventPersonnel(WidgetRef ref, int id) async {
+  List<CollPersonnelData> personnel =
+      await CollEventServices(ref: ref).getAllCollPersonnel(id);
+
+  String person = await Future.wait(personnel.map((e) async {
+    if (e.personnelId == null) return '';
+    final p =
+        await PersonnelServices(ref: ref).getPersonnelByUuid(e.personnelId!);
+    return '${p.name};${e.role}';
+  })).then((value) => value.where((v) => v.isNotEmpty).join(writerSeparator));
+
+  return person;
+}
+
+Future<Map<String, String>> documentFieldValuesForNarrative(
+  Database db,
+  NarrativeData s,
+  WidgetRef ref,
+) async {
+  final m = <String, String>{};
+  final writer = NarrativeRecordWriter(ref: ref);
+  final details = await writer.getNarrative(s);
+  for (var i = 0; i < narrativeExportList.length; i++) {
+    m[narrativeExportList[i]] = details[i];
+  }
+  return m;
 }
