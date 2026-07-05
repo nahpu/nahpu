@@ -1806,6 +1806,7 @@ impl SseDecode for crate::api::config::DocumentLayoutPreset {
         let mut var_pagePadBottomMm = <f64>::sse_decode(deserializer);
         let mut var_blocks =
             <Vec<crate::api::config::DocumentLayoutBlock>>::sse_decode(deserializer);
+        let mut var_fillPage = <bool>::sse_decode(deserializer);
         return crate::api::config::DocumentLayoutPreset {
             name: var_name,
             layout_type: var_layoutType,
@@ -1818,6 +1819,7 @@ impl SseDecode for crate::api::config::DocumentLayoutPreset {
             page_pad_right_mm: var_pagePadRightMm,
             page_pad_bottom_mm: var_pagePadBottomMm,
             blocks: var_blocks,
+            fill_page: var_fillPage,
         };
     }
 }
@@ -2480,6 +2482,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::config::DocumentLayoutPreset 
             self.page_pad_right_mm.into_into_dart().into_dart(),
             self.page_pad_bottom_mm.into_into_dart().into_dart(),
             self.blocks.into_into_dart().into_dart(),
+            self.fill_page.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -2740,6 +2743,7 @@ impl SseEncode for crate::api::config::DocumentLayoutPreset {
         <f64>::sse_encode(self.page_pad_right_mm, serializer);
         <f64>::sse_encode(self.page_pad_bottom_mm, serializer);
         <Vec<crate::api::config::DocumentLayoutBlock>>::sse_encode(self.blocks, serializer);
+        <bool>::sse_encode(self.fill_page, serializer);
     }
 }
 

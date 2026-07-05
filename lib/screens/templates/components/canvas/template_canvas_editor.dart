@@ -445,6 +445,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     isCustom: true,
                                     maxWidthMm: element.maxWidthMm,
                                     colorArgb: element.colorArgb,
+                                    isDynamic: element.isDynamic,
                                     onMaxWidthChanged: (w) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(maxWidthMm: w),

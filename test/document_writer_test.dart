@@ -336,6 +336,22 @@ void main() {
         expect(ct.qrSizeMm, 15.0);
         expect(ct.qrBgColorArgb, 0xFFFFFFFF);
         expect(ct.qrShape, 'square');
+        expect(ct.isDynamic, false);
+      });
+
+      test('CustomTextElement JSON serialization retains isDynamic', () {
+        final ct = CustomTextElement(
+          id: 'ct_3',
+          text: 'Hello Dynamic',
+          xMm: 10,
+          yMm: 20,
+          isDynamic: true,
+        );
+        final json = ct.toJson();
+        expect(json['isDynamic'], true);
+
+        final deserialized = CustomTextElement.fromJson(json);
+        expect(deserialized.isDynamic, true);
       });
     });
   });

@@ -15,6 +15,13 @@ nahpu_gis = "0.2.0"
 serde_json = "1.0.150"
 nahpu_configs = "0.3.3"
 
+[patch.crates-io]
+nahpu_configs = { path = "/Users/hhandika/Codes/Rust/nahpu_api/crates/nahpu_configs" }
+nahpu_db = { path = "/Users/hhandika/Codes/Rust/nahpu_api/crates/nahpu_db" }
+nahpu_archive = { path = "/Users/hhandika/Codes/Rust/nahpu_api/crates/nahpu_archive" }
+nahpu_export = { path = "/Users/hhandika/Codes/Rust/nahpu_api/crates/nahpu_export" }
+nahpu_gis = { path = "/Users/hhandika/Codes/Rust/nahpu_api/crates/nahpu_gis" }
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
 

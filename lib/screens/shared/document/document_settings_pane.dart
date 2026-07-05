@@ -281,11 +281,6 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
     'landscape': 'Landscape',
   };
 
-  static const Map<String, String> _layoutTypeLabels = {
-    'WholePage': 'Whole Page',
-    'Continuous': 'Continuous Roll',
-  };
-
   double _parseMmOrCurrent(String value, double current) {
     final parsed = double.tryParse(value.replaceAll(',', '.'));
     if (parsed == null) return current;
@@ -335,7 +330,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
 
   @override
   Widget build(BuildContext context) {
-    final isContinuous = widget.layout.layoutType == 'Continuous';
+    const isContinuous = false;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -435,32 +430,6 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
             runSpacing: 10,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              SizedBox(
-                width: 180,
-                child: DropdownButtonFormField<String>(
-                  key: ValueKey('layout-type-${widget.layout.layoutType}'),
-                  initialValue: widget.layout.layoutType,
-                  decoration: const InputDecoration(
-                    labelText: 'Layout style',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  items: _layoutTypeLabels.entries
-                      .map(
-                        (e) => DropdownMenuItem<String>(
-                          value: e.key,
-                          child: Text(e.value),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (v) {
-                    if (v != null) {
-                      widget.onLayoutChanged(
-                          widget.layout.copyWith(layoutType: v));
-                    }
-                  },
-                ),
-              ),
               if (!isContinuous) ...[
                 SizedBox(
                   width: 240,
@@ -736,6 +705,20 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   icon: const Icon(Icons.edit_outlined),
                                   tooltip: 'Edit template',
                                 ),
+                              const SizedBox(width: 8),
+                              NumberField(
+                                label: 'Copies',
+                                initialValue: '${block.templateCount}',
+                                onChanged: (value) {
+                                  _updateBlock(
+                                    idx,
+                                    block.copyWith(
+                                      templateCount: _parseIntOrCurrent(
+                                          value, block.templateCount),
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
                           ),
                           if (isExpanded) ...[
@@ -745,19 +728,6 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                               runSpacing: 10,
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                NumberField(
-                                  label: 'Copies',
-                                  initialValue: '${block.templateCount}',
-                                  onChanged: (value) {
-                                    _updateBlock(
-                                      idx,
-                                      block.copyWith(
-                                        templateCount: _parseIntOrCurrent(
-                                            value, block.templateCount),
-                                      ),
-                                    );
-                                  },
-                                ),
                                 if (!isContinuous) ...[
                                   NumberField(
                                     label: 'Rows',
@@ -784,6 +754,21 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                         ),
                                       );
                                     },
+                                  ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Checkbox(
+                                        value: widget.layout.fillPage,
+                                        onChanged: (v) {
+                                          if (v != null) {
+                                            widget.onLayoutChanged(widget.layout
+                                                .copyWith(fillPage: v));
+                                          }
+                                        },
+                                      ),
+                                      const Text('Auto-fill page'),
+                                    ],
                                   ),
                                 ],
                               ],

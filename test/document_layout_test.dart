@@ -61,6 +61,7 @@ void main() {
         pagePadRightMm: 5.0,
         pagePadBottomMm: 5.0,
         blocks: [block],
+        fillPage: false,
       );
 
       final updatedLayout = layout.copyWith(
@@ -118,6 +119,7 @@ void main() {
         pagePadRightMm: 8.0,
         pagePadBottomMm: 8.0,
         blocks: [block],
+        fillPage: true,
       );
 
       final filePath = '${tempDir.path}/layout.json';
@@ -136,6 +138,7 @@ void main() {
       expect(deserialized.pagePadLeftMm, layout.pagePadLeftMm);
       expect(deserialized.pagePadRightMm, layout.pagePadRightMm);
       expect(deserialized.pagePadBottomMm, layout.pagePadBottomMm);
+      expect(deserialized.fillPage, true);
 
       expect(deserialized.blocks.length, 1);
       final deserializedBlock = deserialized.blocks.first;
@@ -194,6 +197,7 @@ void main() {
       expect(deserialized.pagePadLeftMm, 8.0);
       expect(deserialized.pagePadRightMm, 8.0);
       expect(deserialized.pagePadBottomMm, 8.0);
+      expect(deserialized.fillPage, false);
 
       expect(deserialized.blocks.length, 1);
       final block = deserialized.blocks.first;

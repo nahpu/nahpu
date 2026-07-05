@@ -34,6 +34,7 @@ class DraggableChip extends StatefulWidget {
     this.colorArgb = 0xFF000000,
     this.onDragStateChanged,
     this.onDoubleTap,
+    this.isDynamic = false,
   });
 
   final String label;
@@ -70,6 +71,7 @@ class DraggableChip extends StatefulWidget {
   final void Function(Offset newPosMm, double maxWidthMm)? onResizeChanged;
   final int colorArgb;
   final ValueChanged<bool>? onDragStateChanged;
+  final bool isDynamic;
 
   @override
   State<DraggableChip> createState() => DraggableChipState();
@@ -412,7 +414,15 @@ class DraggableChipState extends State<DraggableChip> {
                               width: 2,
                             ),
                           )
-                        : null,
+                        : (widget.isDynamic
+                            ? BoxDecoration(
+                                border: Border.all(
+                                  color: scheme.secondary.withValues(alpha: 0.5),
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(2),
+                              )
+                            : null),
                     child: text,
                   ),
                 ),

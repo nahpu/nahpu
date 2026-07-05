@@ -581,6 +581,14 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               },
             ),
           ] else ...[
+            FilterChip(
+              label: const Text('Dynamic'),
+              selected: ct.isDynamic,
+              onSelected: (selected) {
+                onUpdateCustomText(page1, ct.copyWith(isDynamic: selected));
+              },
+            ),
+            const SizedBox(width: 12),
             Text('Size (pt)', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(width: 8),
             SizedBox(

@@ -11,6 +11,7 @@ double documentPdfMmToPt(double mm) => mm * 72.0 / 25.4;
 /// with the associated value. Matches are performed case-insensitively.
 String substituteDocumentPlaceholders(String input, Map<String, String> data) {
   if (isTemplateBracketGenderIconText(input)) return input;
+  final isBlank = data['__blank__'] == 'true';
   return input.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (m) {
     final k = m.group(1)!.trim();
     if (data.containsKey(k)) return data[k]!;
@@ -18,6 +19,6 @@ String substituteDocumentPlaceholders(String input, Map<String, String> data) {
     for (final e in data.entries) {
       if (e.key.toLowerCase() == lower) return e.value;
     }
-    return m.group(0)!;
+    return isBlank ? '' : m.group(0)!;
   });
 }

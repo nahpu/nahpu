@@ -244,12 +244,18 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     );
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool showLoading = true}) async {
     if (!mounted) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (showLoading) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    } else {
+      setState(() {
+        _error = null;
+      });
+    }
 
     try {
       var statuses = await _layoutService.listLayoutStatuses();
@@ -354,12 +360,17 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   }
 
   Future<void> _layoutChanged(rust_config.DocumentLayoutPreset layout) async {
+    final oldRecordType = _recordType;
     setState(() {
       _layout = layout;
-      _previewSelectedUuids = const [];
     });
     await _layoutService.saveLayout(layout);
-    await _load();
+    await _load(showLoading: false);
+    if (_recordType != oldRecordType) {
+      setState(() {
+        _previewSelectedUuids = const [];
+      });
+    }
     _markPreviewStale();
   }
 

@@ -62,18 +62,76 @@ class _DocumentTypstRenderer {
     required double templatePadBottomMm,
     required bool mirror,
     TemplateOutline? outline,
+    bool continuous = false,
   }) {
     final padTop = documentPdfMmToPt(templatePadTopMm);
     final padBottom = documentPdfMmToPt(templatePadBottomMm);
     final padLeft = documentPdfMmToPt(templatePadLeftMm);
     final padRight = documentPdfMmToPt(templatePadRightMm);
+    final cellWPt = wPt + padLeft + padRight;
+    final cellHPt = hPt + padTop + padBottom;
 
     typst.writeln('  [');
-    typst.writeln(
-        '#box(width: 100%, height: 100%, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
 
-    if (mirror) typst.writeln('#rotate(180deg, ref: "center")[');
-    typst.writeln('#box(width: ${wPt}pt, height: ${hPt}pt, clip: false)[');
+    final dynamicTexts = page.customTexts
+        .where((t) =>
+            t.isDynamic &&
+            !t.isQrCode &&
+            templateGenderIconFieldKeyFromBracketText(t.text) == null)
+        .toList();
+
+    if (dynamicTexts.isNotEmpty) {
+      typst.writeln('#style(styles => {');
+      typst.writeln('  let cell_height = ${hPt}pt');
+      for (final t in dynamicTexts) {
+        final formatted = formatTemplateText(
+          t.text,
+          t.textType,
+          t.formatOption,
+          t.caseFormat,
+        );
+        String content = _escapeTypstMarkup(formatted);
+        final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
+        final colorStr = 'rgb("${hexColor.substring(2)}")';
+        String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
+        if (t.bold) textProps += ', weight: "bold"';
+        if (t.italic) textProps += ', style: "italic"';
+        if (t.fontFamily.isNotEmpty) textProps += ', font: "${t.fontFamily}"';
+
+        final mwPt = t.maxWidthMm != null
+            ? '${documentPdfMmToPt(t.maxWidthMm!)}pt'
+            : '${wPt - documentPdfMmToPt(t.xMm)}pt';
+        final dyPt = '${documentPdfMmToPt(t.yMm)}pt';
+
+        typst.writeln(
+            '  let h_${t.id} = measure(box(width: $mwPt)[#text($textProps)[$content]], styles).height');
+        typst.writeln('  cell_height = calc.max(cell_height, $dyPt + h_${t.id})');
+      }
+
+      if (continuous) {
+        typst.writeln(
+            '  let outer_height = cell_height + ${padTop}pt + ${padBottom}pt');
+        typst.writeln(
+            '  box(width: ${cellWPt}pt, height: outer_height, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+      } else {
+        typst.writeln(
+            '  box(width: 100%, height: 100%, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+      }
+
+      if (mirror) typst.writeln('    #rotate(180deg, ref: "center")[');
+      typst.writeln('      #box(width: ${wPt}pt, height: cell_height, clip: false)[');
+    } else {
+      if (continuous) {
+        typst.writeln(
+            '#box(width: ${cellWPt}pt, height: ${cellHPt}pt, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+      } else {
+        typst.writeln(
+            '#box(width: 100%, height: 100%, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+      }
+
+      if (mirror) typst.writeln('  #rotate(180deg, ref: "center")[');
+      typst.writeln('    #box(width: ${wPt}pt, height: ${hPt}pt, clip: false)[');
+    }
 
     _writeOutline(typst, outline, wPt, hPt);
 
@@ -91,9 +149,12 @@ class _DocumentTypstRenderer {
       }
     }
 
-    typst.writeln(']'); // close box
+    typst.writeln(']'); // close inner box
     if (mirror) typst.writeln(']'); // close rotate
-    typst.writeln(']'); // close cell inset box
+    typst.writeln(']'); // close outer box / cell inset box
+    if (dynamicTexts.isNotEmpty) {
+      typst.writeln('})'); // close style
+    }
     typst.writeln('],'); // close grid item
   }
 
@@ -116,7 +177,7 @@ class _DocumentTypstRenderer {
           '  #place(dx: 0pt, dy: 0pt)[#rect(width: 100%, height: 100%, stroke: ${outline.widthPt}pt + rgb($r, $g, $b))]');
       final inset = outline.widthPt + math.max(1.0, outline.widthPt * 1.25);
       typst.writeln(
-          '  #place(dx: ${inset}pt, dy: ${inset}pt)[#rect(width: ${wPt - 2 * inset}pt, height: ${hPt - 2 * inset}pt, stroke: ${outline.widthPt}pt + rgb($r, $g, $b))]');
+          '  #place(dx: ${inset}pt, dy: ${inset}pt)[#rect(width: 100% - ${2 * inset}pt, height: 100% - ${2 * inset}pt, stroke: ${outline.widthPt}pt + rgb($r, $g, $b))]');
     } else {
       typst.writeln(
           '  #place(dx: 0pt, dy: 0pt)[#rect(width: 100%, height: 100%, stroke: (paint: rgb($r, $g, $b), thickness: ${outline.widthPt}pt, dash: $strokeStyle))]');

@@ -76,12 +76,9 @@ class _DocumentPdfBuilder {
         final cellWPt = wPt +
             documentPdfMmToPt(item.block.templatePadLeftMm) +
             documentPdfMmToPt(item.block.templatePadRightMm);
-        final cellHPt = hPt +
-            documentPdfMmToPt(item.block.templatePadTopMm) +
-            documentPdfMmToPt(item.block.templatePadBottomMm);
 
         typst.writeln(
-            '#set page(width: ${cellWPt}pt, height: ${cellHPt}pt, margin: 0pt)');
+            '#set page(width: ${cellWPt}pt, height: auto, margin: 0pt)');
 
         final data = await recordToFields(item.record);
         final subbedPage =
@@ -99,6 +96,7 @@ class _DocumentPdfBuilder {
           templatePadBottomMm: item.block.templatePadBottomMm,
           mirror: item.mirror,
           outline: item.template.outline,
+          continuous: true,
         );
 
         if (i < continuousItems.length - 1) {
@@ -152,6 +150,16 @@ class _DocumentPdfBuilder {
             frontDataList.add(data);
             frontPages.add(await _substitutor.substitutePage(tmpl.page1, data));
           }
+          if (layout.fillPage && frontPages.length < perSheet) {
+            final paddingCount = perSheet - frontPages.length;
+            final originalFrontDataList = List<Map<String, String>>.from(frontDataList);
+            final originalFrontPages = List<TemplatePage>.from(frontPages);
+            for (var p = 0; p < paddingCount; p++) {
+              final repeatIdx = p % originalFrontPages.length;
+              frontDataList.add(originalFrontDataList[repeatIdx]);
+              frontPages.add(originalFrontPages[repeatIdx]);
+            }
+          }
           _renderer.writeTiledDocumentSheet(
             typst: typst,
             pages: frontPages,
@@ -179,6 +187,16 @@ class _DocumentPdfBuilder {
               backDataList.add(data);
               backPages
                   .add(await _substitutor.substitutePage(tmpl.page2, data));
+            }
+            if (layout.fillPage && backPages.length < perSheet) {
+              final paddingCount = perSheet - backPages.length;
+              final originalBackDataList = List<Map<String, String>>.from(backDataList);
+              final originalBackPages = List<TemplatePage>.from(backPages);
+              for (var p = 0; p < paddingCount; p++) {
+                final repeatIdx = p % originalBackPages.length;
+                backDataList.add(originalBackDataList[repeatIdx]);
+                backPages.add(originalBackPages[repeatIdx]);
+              }
             }
             _renderer.writeTiledDocumentSheet(
               typst: typst,
@@ -374,12 +392,9 @@ class _DocumentPdfBuilder {
         final cellWPt = wPt +
             documentPdfMmToPt(item.block.templatePadLeftMm) +
             documentPdfMmToPt(item.block.templatePadRightMm);
-        final cellHPt = hPt +
-            documentPdfMmToPt(item.block.templatePadTopMm) +
-            documentPdfMmToPt(item.block.templatePadBottomMm);
 
         typst.writeln(
-            '#set page(width: ${cellWPt}pt, height: ${cellHPt}pt, margin: 0pt)');
+            '#set page(width: ${cellWPt}pt, height: auto, margin: 0pt)');
 
         final subbedPage =
             await _substitutor.substitutePage(item.pageTemplate, item.data);
@@ -396,6 +411,7 @@ class _DocumentPdfBuilder {
           templatePadBottomMm: item.block.templatePadBottomMm,
           mirror: item.mirror,
           outline: item.template.outline,
+          continuous: true,
         );
 
         if (i < continuousItems.length - 1) {
@@ -449,6 +465,16 @@ class _DocumentPdfBuilder {
             frontDataList.add(data);
             frontPages.add(await _substitutor.substitutePage(tmpl.page1, data));
           }
+          if (layout.fillPage && frontPages.length < perSheet) {
+            final paddingCount = perSheet - frontPages.length;
+            final originalFrontDataList = List<Map<String, String>>.from(frontDataList);
+            final originalFrontPages = List<TemplatePage>.from(frontPages);
+            for (var p = 0; p < paddingCount; p++) {
+              final repeatIdx = p % originalFrontPages.length;
+              frontDataList.add(originalFrontDataList[repeatIdx]);
+              frontPages.add(originalFrontPages[repeatIdx]);
+            }
+          }
           _renderer.writeTiledDocumentSheet(
             typst: typst,
             pages: frontPages,
@@ -475,6 +501,16 @@ class _DocumentPdfBuilder {
               backDataList.add(data);
               backPages
                   .add(await _substitutor.substitutePage(tmpl.page2, data));
+            }
+            if (layout.fillPage && backPages.length < perSheet) {
+              final paddingCount = perSheet - backPages.length;
+              final originalBackDataList = List<Map<String, String>>.from(backDataList);
+              final originalBackPages = List<TemplatePage>.from(backPages);
+              for (var p = 0; p < paddingCount; p++) {
+                final repeatIdx = p % originalBackPages.length;
+                backDataList.add(originalBackDataList[repeatIdx]);
+                backPages.add(originalBackPages[repeatIdx]);
+              }
             }
             _renderer.writeTiledDocumentSheet(
               typst: typst,

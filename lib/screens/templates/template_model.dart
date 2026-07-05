@@ -334,6 +334,7 @@ class CustomTextElement {
     this.qrBgColorArgb = 0xFFFFFFFF,
     this.qrShape = 'square',
     this.tempPath,
+    this.isDynamic = false,
   });
 
   final String id;
@@ -364,6 +365,7 @@ class CustomTextElement {
   final int qrBgColorArgb;
   final String qrShape;
   final String? tempPath;
+  final bool isDynamic;
 
   CustomTextElement copyWith({
     String? id,
@@ -391,6 +393,7 @@ class CustomTextElement {
     String? qrShape,
     String? tempPath,
     bool clearTempPath = false,
+    bool? isDynamic,
   }) {
     return CustomTextElement(
       id: id ?? this.id,
@@ -416,6 +419,7 @@ class CustomTextElement {
       qrBgColorArgb: qrBgColorArgb ?? this.qrBgColorArgb,
       qrShape: qrShape ?? this.qrShape,
       tempPath: clearTempPath ? null : (tempPath ?? this.tempPath),
+      isDynamic: isDynamic ?? this.isDynamic,
     );
   }
 
@@ -442,6 +446,7 @@ class CustomTextElement {
         'qrSizeMm': qrSizeMm,
         'qrBgColorArgb': qrBgColorArgb,
         'qrShape': qrShape,
+        'isDynamic': isDynamic,
       };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
@@ -468,6 +473,7 @@ class CustomTextElement {
       qrSizeMm: (json['qrSizeMm'] as num?)?.toDouble() ?? 15.0,
       qrBgColorArgb: (json['qrBgColorArgb'] as num?)?.toInt() ?? 0xFFFFFFFF,
       qrShape: json['qrShape'] as String? ?? 'square',
+      isDynamic: json['isDynamic'] as bool? ?? false,
     );
   }
 }
