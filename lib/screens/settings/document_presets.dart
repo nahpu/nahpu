@@ -179,7 +179,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                               layoutStatuses: _layoutStatuses,
                                               onLayoutChanged: _layoutChanged,
                                               onSaveSetupAs: _savePresetAs,
-                                              onCreateTemplate:
+                                              onCreateTemplate: () =>
+                                                  _openTemplateEditor(),
+                                              onEditTemplate:
                                                   _openTemplateEditor,
                                             ),
                                             previewWidget,
@@ -228,7 +230,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                     layoutStatuses: _layoutStatuses,
                                     onLayoutChanged: _layoutChanged,
                                     onSaveSetupAs: _savePresetAs,
-                                    onCreateTemplate: _openTemplateEditor,
+                                    onCreateTemplate: () =>
+                                        _openTemplateEditor(),
+                                    onEditTemplate: _openTemplateEditor,
                                   ),
                                   previewWidget,
                                 ],
@@ -460,7 +464,11 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     await _load();
   }
 
-  Future<void> _openTemplateEditor() async {
+  Future<void> _openTemplateEditor([String? templateName]) async {
+    if (templateName != null && templateName.isNotEmpty) {
+      await DocumentSettingsServices().setCurrentTemplateName(templateName);
+    }
+    if (!mounted) return;
     await Navigator.push<void>(
       context,
       MaterialPageRoute<void>(
@@ -868,6 +876,7 @@ class DocumentPresetEditColumn extends StatelessWidget {
     required this.onLayoutChanged,
     required this.onSaveSetupAs,
     required this.onCreateTemplate,
+    required this.onEditTemplate,
   });
 
   final String? selectedPresetName;
@@ -877,6 +886,7 @@ class DocumentPresetEditColumn extends StatelessWidget {
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final VoidCallback onSaveSetupAs;
   final VoidCallback onCreateTemplate;
+  final ValueChanged<String> onEditTemplate;
 
   @override
   Widget build(BuildContext context) {
@@ -968,6 +978,7 @@ class DocumentPresetEditColumn extends StatelessWidget {
                 showFileActions: false,
                 showProfileDropdown: false,
                 onCreateTemplate: onCreateTemplate,
+                onEditTemplate: onEditTemplate,
               ),
             ),
           ),

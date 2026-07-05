@@ -14,6 +14,7 @@ import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
+
 class DocumentSettingsPane extends StatelessWidget {
   const DocumentSettingsPane({
     super.key,
@@ -222,6 +223,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
     this.onExportSetup,
     this.onImportSetup,
     this.onCreateTemplate,
+    this.onEditTemplate,
     this.showFileActions = true,
     this.showPresetActions = true,
     this.showBlocks = true,
@@ -243,6 +245,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
   final VoidCallback? onExportSetup;
   final VoidCallback? onImportSetup;
   final VoidCallback? onCreateTemplate;
+  final ValueChanged<String>? onEditTemplate;
   final bool showFileActions;
   final bool showPresetActions;
   final bool showBlocks;
@@ -252,7 +255,8 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
   final bool showSpecimenSelection;
 
   @override
-  ConsumerState<DocumentLayoutSection> createState() => _DocumentLayoutSectionState();
+  ConsumerState<DocumentLayoutSection> createState() =>
+      _DocumentLayoutSectionState();
 }
 
 class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
@@ -438,27 +442,27 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
             const Divider(),
             const SizedBox(height: 8),
           ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Page Setup',
-                  style: Theme.of(context).textTheme.titleSmall,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Page Setup',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showMorePageSetup = !_showMorePageSetup;
+                  });
+                },
+                icon: Icon(
+                  _showMorePageSetup ? Icons.expand_less : Icons.expand_more,
                 ),
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _showMorePageSetup = !_showMorePageSetup;
-                    });
-                  },
-                  icon: Icon(
-                    _showMorePageSetup ? Icons.expand_less : Icons.expand_more,
-                  ),
-                  label: Text(_showMorePageSetup ? 'Show less' : 'Show more'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
+                label: Text(_showMorePageSetup ? 'Show less' : 'Show more'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -633,403 +637,518 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
           ],
           if (widget.showPresetActions || _showAdvanced) ...[
             if (widget.showBlocks) ...[
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Layout Blocks',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    TextButton.icon(
-                      onPressed: widget.onCreateTemplate,
-                      icon: const Icon(Icons.edit_note_outlined),
-                      label: const Text('Create Preset'),
-                    ),
-                    TextButton.icon(
-                      onPressed: _addBlock,
-                      icon: const Icon(Icons.add_circle_outline),
-                      label: const Text('Add Block'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ...widget.layout.blocks.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final block = entry.value;
-              final isExpanded = _expandedBlocks[idx] ?? false;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Layout Blocks',
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Block #${idx + 1}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                TextButton.icon(
-                                  onPressed: () {
-                                    setState(() {
-                                      _expandedBlocks[idx] = !isExpanded;
-                                    });
-                                  },
-                                  icon: Icon(isExpanded
-                                      ? Icons.expand_less
-                                      : Icons.expand_more),
-                                  label: Text(
-                                      isExpanded ? 'Show less' : 'Show more'),
-                                ),
-                                if (widget.layout.blocks.length > 1)
-                                  IconButton(
-                                    onPressed: () => _deleteBlock(idx),
-                                    icon: const Icon(
-                                        Icons.delete_sweep_outlined,
-                                        color: Colors.red),
-                                    tooltip: 'Delete Block',
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 200,
-                              child: DropdownButtonFormField<String>(
-                                key: ValueKey(
-                                    'block-template-$idx-${block.templateName}'),
-                                initialValue: widget.templateNames
-                                        .contains(block.templateName)
-                                    ? block.templateName
-                                    : (widget.templateNames.isNotEmpty
-                                        ? widget.templateNames.first
-                                        : null),
-                                decoration: const InputDecoration(
-                                  labelText: 'Template preset',
-                                  border: OutlineInputBorder(),
-                                  isDense: true,
-                                ),
-                                items: widget.templateNames
-                                    .map(
-                                      (name) => DropdownMenuItem<String>(
-                                        value: name,
-                                        child: Text(name),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (v) {
-                                  if (v != null) {
-                                    _updateBlock(
-                                        idx, block.copyWith(templateName: v));
-                                  }
-                                },
-                              ),
-                            ),
-                            NumberField(
-                              label: 'Copies',
-                              initialValue: '${block.templateCount}',
-                              onChanged: (value) {
-                                _updateBlock(
-                                  idx,
-                                  block.copyWith(
-                                    templateCount: _parseIntOrCurrent(
-                                        value, block.templateCount),
-                                  ),
-                                );
-                              },
-                            ),
-                            if (isExpanded) ...[
-                              if (!isContinuous)
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    NumberField(
-                                      label: 'Rows',
-                                      initialValue: '${block.rows}',
-                                      onChanged: (value) {
-                                        _updateBlock(
-                                          idx,
-                                          block.copyWith(
-                                            rows: _parseIntOrCurrent(
-                                                value, block.rows),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(width: 10),
-                                    NumberField(
-                                      label: 'Cols',
-                                      initialValue: '${block.cols}',
-                                      onChanged: (value) {
-                                        _updateBlock(
-                                          idx,
-                                          block.copyWith(
-                                            cols: _parseIntOrCurrent(
-                                                value, block.cols),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              NumberField(
-                                label: 'Template top',
-                                initialValue:
-                                    block.templatePadTopMm.toStringAsFixed(1),
-                                onChanged: (value) {
-                                  _updateBlock(
-                                    idx,
-                                    block.copyWith(
-                                      templatePadTopMm: _parseMmOrCurrent(
-                                          value, block.templatePadTopMm),
-                                    ),
-                                  );
-                                },
-                              ),
-                              NumberField(
-                                label: 'Template left',
-                                initialValue:
-                                    block.templatePadLeftMm.toStringAsFixed(1),
-                                onChanged: (value) {
-                                  _updateBlock(
-                                    idx,
-                                    block.copyWith(
-                                      templatePadLeftMm: _parseMmOrCurrent(
-                                          value, block.templatePadLeftMm),
-                                    ),
-                                  );
-                                },
-                              ),
-                              NumberField(
-                                label: 'Template right',
-                                initialValue:
-                                    block.templatePadRightMm.toStringAsFixed(1),
-                                onChanged: (value) {
-                                  _updateBlock(
-                                    idx,
-                                    block.copyWith(
-                                      templatePadRightMm: _parseMmOrCurrent(
-                                          value, block.templatePadRightMm),
-                                    ),
-                                  );
-                                },
-                              ),
-                              NumberField(
-                                label: 'Template bottom',
-                                initialValue: block.templatePadBottomMm
-                                    .toStringAsFixed(1),
-                                onChanged: (value) {
-                                  _updateBlock(
-                                    idx,
-                                    block.copyWith(
-                                      templatePadBottomMm: _parseMmOrCurrent(
-                                          value, block.templatePadBottomMm),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ],
-                        ),
-                        if (!isContinuous && isExpanded) ...[
-                          const SizedBox(height: 12),
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      TextButton.icon(
+                        onPressed: widget.onCreateTemplate,
+                        icon: const Icon(Icons.edit_note_outlined),
+                        label: const Text('Create Preset'),
+                      ),
+                      TextButton.icon(
+                        onPressed: _addBlock,
+                        icon: const Icon(Icons.add_circle_outline),
+                        label: const Text('Add Block'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ...widget.layout.blocks.asMap().entries.map((entry) {
+                final idx = entry.key;
+                final block = entry.value;
+                final isExpanded = _expandedBlocks[idx] ?? false;
+                final selectedTemplateName =
+                    widget.templateNames.contains(block.templateName)
+                        ? block.templateName
+                        : (widget.templateNames.isNotEmpty
+                            ? widget.templateNames.first
+                            : null);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Page break after',
-                                style: Theme.of(context).textTheme.titleSmall,
+                                'Block #${idx + 1}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
-                              const SizedBox(height: 4),
                               Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Checkbox(
-                                    value: block.pageBreakAfter,
-                                    onChanged: (v) {
-                                      if (v != null) {
-                                        _updateBlock(idx,
-                                            block.copyWith(pageBreakAfter: v));
-                                      }
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        _expandedBlocks[idx] = !isExpanded;
+                                      });
                                     },
+                                    icon: Icon(isExpanded
+                                        ? Icons.expand_less
+                                        : Icons.expand_more),
+                                    label: Text(
+                                        isExpanded ? 'Show less' : 'Show more'),
                                   ),
-                                  const Text(
-                                      'Insert page break after this block'),
+                                  if (widget.layout.blocks.length > 1)
+                                    IconButton(
+                                      onPressed: () => _deleteBlock(idx),
+                                      icon: const Icon(
+                                          Icons.delete_sweep_outlined,
+                                          color: Colors.red),
+                                      tooltip: 'Delete Block',
+                                    ),
                                 ],
                               ),
                             ],
                           ),
-                        ],
-                        if (widget.showSpecimenSelection) ...[
-                          const SizedBox(height: 12),
-                          const Divider(),
                           const SizedBox(height: 8),
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final recordTypeAsync = ref.watch(templateRecordTypeProvider(block.templateName));
-                              return recordTypeAsync.when(
-                                data: (recordType) {
-                                  final param = BlockRecordSelectionParam(blockIndex: idx, recordType: recordType);
-                                  final selectedIds = ref.watch(blockRecordSelectionProvider(param));
-                                  
-                                  int totalCount = 0;
-                                  String label = '';
-                                  if (recordType == RecordType.specimenRecord) {
-                                    totalCount = ref.watch(specimenEntryProvider).value?.length ?? 0;
-                                    label = 'Specimens';
-                                  } else if (recordType == RecordType.site) {
-                                    totalCount = ref.watch(siteEntryProvider).value?.length ?? 0;
-                                    label = 'Sites';
-                                  } else if (recordType == RecordType.collEvent) {
-                                    totalCount = ref.watch(collEventEntryProvider).value?.length ?? 0;
-                                    label = 'Collecting Events';
-                                  } else if (recordType == RecordType.narrative) {
-                                    totalCount = ref.watch(narrativeEntryProvider).value?.length ?? 0;
-                                    label = 'Narratives';
-                                  }
-                                  
-                                  return Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '$label Selection',
-                                              style: Theme.of(context).textTheme.titleSmall,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              '${selectedIds.length} of $totalCount selected',
-                                              style: Theme.of(context).textTheme.bodyMedium,
-                                            ),
-                                          ],
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 200,
+                                child: DropdownButtonFormField<String>(
+                                  key: ValueKey(
+                                      'block-template-$idx-${block.templateName}'),
+                                  initialValue: selectedTemplateName,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Template',
+                                    border: OutlineInputBorder(),
+                                    isDense: true,
+                                  ),
+                                  items: widget.templateNames
+                                      .map(
+                                        (name) => DropdownMenuItem<String>(
+                                          value: name,
+                                          child: Text(name),
                                         ),
+                                      )
+                                      .toList(),
+                                  onChanged: (v) {
+                                    if (v != null) {
+                                      _updateBlock(
+                                          idx, block.copyWith(templateName: v));
+                                    }
+                                  },
+                                ),
+                              ),
+                              if (widget.onEditTemplate != null)
+                                IconButton.outlined(
+                                  onPressed: selectedTemplateName == null
+                                      ? null
+                                      : () => widget.onEditTemplate!(
+                                          selectedTemplateName),
+                                  icon: const Icon(Icons.edit_outlined),
+                                  tooltip: 'Edit template',
+                                ),
+                            ],
+                          ),
+                          if (isExpanded) ...[
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                NumberField(
+                                  label: 'Copies',
+                                  initialValue: '${block.templateCount}',
+                                  onChanged: (value) {
+                                    _updateBlock(
+                                      idx,
+                                      block.copyWith(
+                                        templateCount: _parseIntOrCurrent(
+                                            value, block.templateCount),
                                       ),
-                                      OutlinedButton.icon(
-                                        onPressed: () async {
-                                          if (recordType == RecordType.specimenRecord) {
-                                            await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => Scaffold(
-                                                  appBar: AppBar(
-                                                    title: const Text('Select specimens'),
-                                                  ),
-                                                  body: SafeArea(
-                                                    child: SpecimenSelectionView(
-                                                      selectedUuidList: selectedIds,
-                                                      visibleColumnIds: const [],
-                                                      onSelectionChanged: (nextSelection) {
-                                                        ref.read(blockRecordSelectionProvider(param).notifier).updateSelection(nextSelection);
-                                                      },
-                                                      onColumnsChanged: () {},
+                                    );
+                                  },
+                                ),
+                                if (!isContinuous) ...[
+                                  NumberField(
+                                    label: 'Rows',
+                                    initialValue: '${block.rows}',
+                                    onChanged: (value) {
+                                      _updateBlock(
+                                        idx,
+                                        block.copyWith(
+                                          rows: _parseIntOrCurrent(
+                                              value, block.rows),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  NumberField(
+                                    label: 'Cols',
+                                    initialValue: '${block.cols}',
+                                    onChanged: (value) {
+                                      _updateBlock(
+                                        idx,
+                                        block.copyWith(
+                                          cols: _parseIntOrCurrent(
+                                              value, block.cols),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Template padding',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                NumberField(
+                                  label: 'Top',
+                                  initialValue:
+                                      block.templatePadTopMm.toStringAsFixed(1),
+                                  onChanged: (value) {
+                                    _updateBlock(
+                                      idx,
+                                      block.copyWith(
+                                        templatePadTopMm: _parseMmOrCurrent(
+                                            value, block.templatePadTopMm),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                NumberField(
+                                  label: 'Left',
+                                  initialValue: block.templatePadLeftMm
+                                      .toStringAsFixed(1),
+                                  onChanged: (value) {
+                                    _updateBlock(
+                                      idx,
+                                      block.copyWith(
+                                        templatePadLeftMm: _parseMmOrCurrent(
+                                            value, block.templatePadLeftMm),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                NumberField(
+                                  label: 'Right',
+                                  initialValue: block.templatePadRightMm
+                                      .toStringAsFixed(1),
+                                  onChanged: (value) {
+                                    _updateBlock(
+                                      idx,
+                                      block.copyWith(
+                                        templatePadRightMm: _parseMmOrCurrent(
+                                            value, block.templatePadRightMm),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                NumberField(
+                                  label: 'Bottom',
+                                  initialValue: block.templatePadBottomMm
+                                      .toStringAsFixed(1),
+                                  onChanged: (value) {
+                                    _updateBlock(
+                                      idx,
+                                      block.copyWith(
+                                        templatePadBottomMm: _parseMmOrCurrent(
+                                            value, block.templatePadBottomMm),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (!isContinuous && isExpanded) ...[
+                            const SizedBox(height: 12),
+                            const Divider(),
+                            const SizedBox(height: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Page break after',
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: block.pageBreakAfter,
+                                      onChanged: (v) {
+                                        if (v != null) {
+                                          _updateBlock(
+                                              idx,
+                                              block.copyWith(
+                                                  pageBreakAfter: v));
+                                        }
+                                      },
+                                    ),
+                                    const Text(
+                                        'Insert page break after this block'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (widget.showSpecimenSelection) ...[
+                            const SizedBox(height: 12),
+                            const Divider(),
+                            const SizedBox(height: 8),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final recordTypeAsync = ref.watch(
+                                    templateRecordTypeProvider(
+                                        block.templateName));
+                                return recordTypeAsync.when(
+                                  data: (recordType) {
+                                    final param = BlockRecordSelectionParam(
+                                        blockIndex: idx,
+                                        recordType: recordType);
+                                    final selectedIds = ref.watch(
+                                        blockRecordSelectionProvider(param));
+
+                                    int totalCount = 0;
+                                    String label = '';
+                                    if (recordType ==
+                                        RecordType.specimenRecord) {
+                                      totalCount = ref
+                                              .watch(specimenEntryProvider)
+                                              .value
+                                              ?.length ??
+                                          0;
+                                      label = 'Specimens';
+                                    } else if (recordType == RecordType.site) {
+                                      totalCount = ref
+                                              .watch(siteEntryProvider)
+                                              .value
+                                              ?.length ??
+                                          0;
+                                      label = 'Sites';
+                                    } else if (recordType ==
+                                        RecordType.collEvent) {
+                                      totalCount = ref
+                                              .watch(collEventEntryProvider)
+                                              .value
+                                              ?.length ??
+                                          0;
+                                      label = 'Collecting Events';
+                                    } else if (recordType ==
+                                        RecordType.narrative) {
+                                      totalCount = ref
+                                              .watch(narrativeEntryProvider)
+                                              .value
+                                              ?.length ??
+                                          0;
+                                      label = 'Narratives';
+                                    }
+
+                                    return Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '$label Selection',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleSmall,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                '${selectedIds.length} of $totalCount selected',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        OutlinedButton.icon(
+                                          onPressed: () async {
+                                            if (recordType ==
+                                                RecordType.specimenRecord) {
+                                              await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      Scaffold(
+                                                    appBar: AppBar(
+                                                      title: const Text(
+                                                          'Select specimens'),
+                                                    ),
+                                                    body: SafeArea(
+                                                      child:
+                                                          SpecimenSelectionView(
+                                                        selectedUuidList:
+                                                            selectedIds,
+                                                        visibleColumnIds: const [],
+                                                        onSelectionChanged:
+                                                            (nextSelection) {
+                                                          ref
+                                                              .read(
+                                                                  blockRecordSelectionProvider(
+                                                                          param)
+                                                                      .notifier)
+                                                              .updateSelection(
+                                                                  nextSelection);
+                                                        },
+                                                        onColumnsChanged: () {},
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            );
-                                          } else if (recordType == RecordType.site) {
-                                            await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => SiteSelectionScreen(
-                                                  selectedIds: selectedIds.map((e) => int.tryParse(e) ?? 0).toSet(),
-                                                  onSelectionChanged: (nextSelection) {
-                                                    ref.read(blockRecordSelectionProvider(param).notifier).updateSelection(
-                                                      nextSelection.map((e) => e.toString()).toSet(),
-                                                    );
-                                                  },
+                                              );
+                                            } else if (recordType ==
+                                                RecordType.site) {
+                                              await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      SiteSelectionScreen(
+                                                    selectedIds: selectedIds
+                                                        .map((e) =>
+                                                            int.tryParse(e) ??
+                                                            0)
+                                                        .toSet(),
+                                                    onSelectionChanged:
+                                                        (nextSelection) {
+                                                      ref
+                                                          .read(
+                                                              blockRecordSelectionProvider(
+                                                                      param)
+                                                                  .notifier)
+                                                          .updateSelection(
+                                                            nextSelection
+                                                                .map((e) => e
+                                                                    .toString())
+                                                                .toSet(),
+                                                          );
+                                                    },
+                                                  ),
                                                 ),
-                                              ),
-                                            );
-                                          } else if (recordType == RecordType.collEvent) {
-                                            await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => EventSelectionScreen(
-                                                  selectedIds: selectedIds.map((e) => int.tryParse(e) ?? 0).toSet(),
-                                                  onSelectionChanged: (nextSelection) {
-                                                    ref.read(blockRecordSelectionProvider(param).notifier).updateSelection(
-                                                      nextSelection.map((e) => e.toString()).toSet(),
-                                                    );
-                                                  },
+                                              );
+                                            } else if (recordType ==
+                                                RecordType.collEvent) {
+                                              await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventSelectionScreen(
+                                                    selectedIds: selectedIds
+                                                        .map((e) =>
+                                                            int.tryParse(e) ??
+                                                            0)
+                                                        .toSet(),
+                                                    onSelectionChanged:
+                                                        (nextSelection) {
+                                                      ref
+                                                          .read(
+                                                              blockRecordSelectionProvider(
+                                                                      param)
+                                                                  .notifier)
+                                                          .updateSelection(
+                                                            nextSelection
+                                                                .map((e) => e
+                                                                    .toString())
+                                                                .toSet(),
+                                                          );
+                                                    },
+                                                  ),
                                                 ),
-                                              ),
-                                            );
-                                          } else if (recordType == RecordType.narrative) {
-                                            await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => NarrativeSelectionScreen(
-                                                  selectedIds: selectedIds.map((e) => int.tryParse(e) ?? 0).toSet(),
-                                                  onSelectionChanged: (nextSelection) {
-                                                    ref.read(blockRecordSelectionProvider(param).notifier).updateSelection(
-                                                      nextSelection.map((e) => e.toString()).toSet(),
-                                                    );
-                                                  },
+                                              );
+                                            } else if (recordType ==
+                                                RecordType.narrative) {
+                                              await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      NarrativeSelectionScreen(
+                                                    selectedIds: selectedIds
+                                                        .map((e) =>
+                                                            int.tryParse(e) ??
+                                                            0)
+                                                        .toSet(),
+                                                    onSelectionChanged:
+                                                        (nextSelection) {
+                                                      ref
+                                                          .read(
+                                                              blockRecordSelectionProvider(
+                                                                      param)
+                                                                  .notifier)
+                                                          .updateSelection(
+                                                            nextSelection
+                                                                .map((e) => e
+                                                                    .toString())
+                                                                .toSet(),
+                                                          );
+                                                    },
+                                                  ),
                                                 ),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        icon: const Icon(Icons.table_rows_outlined),
-                                        label: const Text('Select'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                                loading: () => const SizedBox.shrink(),
-                                error: (_, __) => const SizedBox.shrink(),
-                              );
-                            },
-                          ),
+                                              );
+                                            }
+                                          },
+                                          icon: const Icon(
+                                              Icons.table_rows_outlined),
+                                          label: const Text('Select'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (_, __) => const SizedBox.shrink(),
+                                );
+                              },
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ],
           ],
         ],
-      ],
-    ),
-  );
-}
+      ),
+    );
+  }
 }
 
 class NumberField extends StatefulWidget {
