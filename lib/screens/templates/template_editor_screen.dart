@@ -41,6 +41,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
 
   Template _template = DefaultTemplate.defaultTemplate();
   List<String> _savedNames = [];
+  String? _lastSavedJson;
+
+  bool get _isDirty {
+    if (_lastSavedJson == null) return false;
+    return _lastSavedJson != _templateWithCurrentPrintOptions().toJsonString();
+  }
+
   bool _loading = true;
   double _zoom = 1.0;
   bool _showGrid = true;
@@ -109,68 +116,78 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       return const TemplateEditorLoading();
     }
 
-    return TemplateEditorScaffold(
-      savedNames: _savedNames,
-      template: _template,
-      isDuplex: _isDuplex,
-      isPage1: _isPage1,
-      mirrorFront: _mirrorFront,
-      mirrorBack: _mirrorBack,
-      templateWidthMm: _templateWidthMm,
-      templateHeightMm: _templateHeightMm,
-      isBorderPanelOpen: _templateBorderPanelOpen,
-      showGrid: _showGrid,
-      selectedElement: _selectedElement,
-      tabController: _tabController,
-      zoom: _zoom,
-      isPreviewMode: _isPreviewMode,
-      editorTemplateFieldPreview: _editorTemplateFieldPreview,
-      frontStackKey: _templateStackKeyPage1,
-      backStackKey: _templateStackKeyPage2,
-      templatePanGlobalDeltaToMm: _templatePanGlobalDeltaToMm,
-      fieldDisplayOption: _fieldDisplayOption,
-      canDeleteSavedTemplate: _canDeleteSavedTemplate,
-      onCreateNewTemplate: _createNewTemplate,
-      onSaveTemplate: _saveTemplate,
-      onSaveAsTemplate: _promptSaveAsTemplate,
-      onImportTemplate: _importTemplate,
-      onExportTemplate: _exportTemplate,
-      onDeleteTemplate: _confirmDeleteTemplate,
-      onTemplateSelected: _loadTemplate,
-      onDescriptionChanged: _updateTemplateDescription,
-      onDuplexChanged: _setDuplex,
-      onPageChanged: _selectPage,
-      onTemplateSizeChanged: _setTemplateSize,
-      onAddText: () => _addCustomText(_isPage1),
-      onAddImage: () => _showAddImageDialog(_isPage1),
-      onAddLine: () => _addCustomLine(_isPage1),
-      onAddShape: () => _addCustomShape(_isPage1),
-      onMirrorToggled: _toggleCurrentMirror,
-      onBorderPanelToggled: _toggleTemplateBorderPanel,
-      onGridToggled: () => _deferSetState(() => _showGrid = !_showGrid),
-      onSelectPreviewSpecimen: _selectSpecimenForPreview,
-      onClearSelection: _clearSelection,
-      onSelectElement: _selectElement,
-      onStartInlineEditing: _startInlineEditing,
-      onScheduleTemplateImageUpdate: _scheduleTemplateImageUpdate,
-      onRemoveCustomImage: _removeCustomImage,
-      onScheduleTemplateTextPositionUpdate: _scheduleTemplateTextPositionUpdate,
-      onScheduleTemplateLineUpdate: _scheduleTemplateLineUpdate,
-      onRemoveCustomLine: _removeCustomLine,
-      onScheduleTemplateShapeUpdate: _scheduleTemplateShapeUpdate,
-      onRemoveCustomShape: _removeCustomShape,
-      onUpdateCustomText: _updateCustomText,
-      onDeleteCustomText: _deleteCustomText,
-      onUpdateCustomImage: _scheduleTemplateImageUpdate,
-      onUpdateCustomLine: _updateCustomLine,
-      onUpdateCustomShape: _updateCustomShape,
-      onDismissProperties: _clearSelection,
-      onZoomChanged: (z) => _deferSetState(() => _zoom = z),
-      borderPanel: TemplateBorderPanel(
-        session: _templateBorderPanelSession,
-        outline: _template.outline,
-        onOutlineChanged: _setTemplateOutline,
-        onDismiss: _toggleTemplateBorderPanel,
+    return PopScope(
+      canPop: !_isDirty,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldLeave = await _promptExitWithoutSaving();
+        if (shouldLeave && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: TemplateEditorScaffold(
+        savedNames: _savedNames,
+        template: _template,
+        isDuplex: _isDuplex,
+        isPage1: _isPage1,
+        mirrorFront: _mirrorFront,
+        mirrorBack: _mirrorBack,
+        templateWidthMm: _templateWidthMm,
+        templateHeightMm: _templateHeightMm,
+        isBorderPanelOpen: _templateBorderPanelOpen,
+        showGrid: _showGrid,
+        selectedElement: _selectedElement,
+        tabController: _tabController,
+        zoom: _zoom,
+        isPreviewMode: _isPreviewMode,
+        editorTemplateFieldPreview: _editorTemplateFieldPreview,
+        frontStackKey: _templateStackKeyPage1,
+        backStackKey: _templateStackKeyPage2,
+        templatePanGlobalDeltaToMm: _templatePanGlobalDeltaToMm,
+        fieldDisplayOption: _fieldDisplayOption,
+        canDeleteSavedTemplate: _canDeleteSavedTemplate,
+        onCreateNewTemplate: _createNewTemplate,
+        onSaveTemplate: _saveTemplate,
+        onSaveAsTemplate: _promptSaveAsTemplate,
+        onImportTemplate: _importTemplate,
+        onExportTemplate: _exportTemplate,
+        onDeleteTemplate: _confirmDeleteTemplate,
+        onTemplateSelected: _loadTemplate,
+        onDescriptionChanged: _updateTemplateDescription,
+        onDuplexChanged: _setDuplex,
+        onPageChanged: _selectPage,
+        onTemplateSizeChanged: _setTemplateSize,
+        onAddText: () => _addCustomText(_isPage1),
+        onAddImage: () => _showAddImageDialog(_isPage1),
+        onAddLine: () => _addCustomLine(_isPage1),
+        onAddShape: () => _addCustomShape(_isPage1),
+        onMirrorToggled: _toggleCurrentMirror,
+        onBorderPanelToggled: _toggleTemplateBorderPanel,
+        onGridToggled: () => _deferSetState(() => _showGrid = !_showGrid),
+        onSelectPreviewSpecimen: _selectSpecimenForPreview,
+        onClearSelection: _clearSelection,
+        onSelectElement: _selectElement,
+        onStartInlineEditing: _startInlineEditing,
+        onScheduleTemplateImageUpdate: _scheduleTemplateImageUpdate,
+        onRemoveCustomImage: _removeCustomImage,
+        onScheduleTemplateTextPositionUpdate: _scheduleTemplateTextPositionUpdate,
+        onScheduleTemplateLineUpdate: _scheduleTemplateLineUpdate,
+        onRemoveCustomLine: _removeCustomLine,
+        onScheduleTemplateShapeUpdate: _scheduleTemplateShapeUpdate,
+        onRemoveCustomShape: _removeCustomShape,
+        onUpdateCustomText: _updateCustomText,
+        onDeleteCustomText: _deleteCustomText,
+        onUpdateCustomImage: _scheduleTemplateImageUpdate,
+        onUpdateCustomLine: _updateCustomLine,
+        onUpdateCustomShape: _updateCustomShape,
+        onDismissProperties: _clearSelection,
+        onZoomChanged: (z) => _deferSetState(() => _zoom = z),
+        borderPanel: TemplateBorderPanel(
+          session: _templateBorderPanelSession,
+          outline: _template.outline,
+          onOutlineChanged: _setTemplateOutline,
+          onDismiss: _toggleTemplateBorderPanel,
+        ),
       ),
     );
   }
@@ -343,6 +360,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _savedNames = await _templateService.listTemplateNames();
     _syncIdCountersFromTemplate();
     await _loadEditorTemplateFieldPreview();
+    _lastSavedJson = _templateWithCurrentPrintOptions().toJsonString();
     if (mounted) {
       setState(() => _loading = false);
       unawaited(_warmCustomTextGoogleFonts());
@@ -868,6 +886,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _syncDuplexTabIndex();
     });
     await _loadEditorTemplateFieldPreview();
+    _lastSavedJson = _templateWithCurrentPrintOptions().toJsonString();
   }
 
   Future<void> _saveTemplate() async {
@@ -889,6 +908,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _savedNames = await _templateService.listTemplateNames();
     if (mounted) {
       setState(() => _template = merged);
+      _lastSavedJson = merged.toJsonString();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Saved template "$name"')),
       );
@@ -957,6 +977,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         _syncDuplexTabIndex();
       });
       await _loadEditorTemplateFieldPreview();
+      _lastSavedJson = _templateWithCurrentPrintOptions().toJsonString();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Imported and saved "$name"')),
@@ -992,6 +1013,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         _syncDuplexTabIndex();
       });
       await _loadEditorTemplateFieldPreview();
+      _lastSavedJson = _templateWithCurrentPrintOptions().toJsonString();
     }
   }
 
@@ -1022,6 +1044,41 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _syncDuplexTabIndex();
     });
     await _loadEditorTemplateFieldPreview();
+    _lastSavedJson = _templateWithCurrentPrintOptions().toJsonString();
+  }
+
+  Future<bool> _promptExitWithoutSaving() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unsaved Changes'),
+        content: const Text(
+          'Do you want to save the changes to the template before leaving?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false), // Cancel
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true); // Don't save (Discard)
+            },
+            child: const Text('Discard'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await _saveTemplate();
+              if (context.mounted) {
+                Navigator.pop(context, true); // Save and Leave
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Future<void> _selectSpecimenForPreview() async {

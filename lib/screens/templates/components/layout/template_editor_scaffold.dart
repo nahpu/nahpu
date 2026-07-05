@@ -176,7 +176,6 @@ class TemplateEditorScaffold extends StatelessWidget {
               isBorderPanelOpen: isBorderPanelOpen,
               showGrid: showGrid,
               onSaveTemplate: onSaveTemplate,
-              onSaveAsTemplate: onSaveAsTemplate,
               onTemplateSelected: onTemplateSelected,
               onDuplexChanged: onDuplexChanged,
               onPageChanged: onPageChanged,
