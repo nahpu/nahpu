@@ -8,15 +8,8 @@ import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/services/providers/document_selection.dart';
-import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/services/providers/collevents.dart';
-import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/template_service.dart';
-import 'package:nahpu/screens/shared/document/specimen_selection.dart';
-import 'package:nahpu/screens/shared/document/record_selection.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/export/export_document.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
@@ -71,48 +64,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   @override
   Widget build(BuildContext context) {
     ref.watch(projectUuidProvider);
-    int selectedCount = 0;
-    int totalCount = 0;
-
-    if (_recordType == RecordType.specimenRecord) {
-      final selectedUuids = ref.watch(documentSpecimenSelectionProvider);
-      selectedCount = selectedUuids.length;
-      totalCount = ref.watch(specimenEntryProvider).value?.length ?? 0;
-      ref.listen<Set<String>>(documentSpecimenSelectionProvider,
-          (previous, next) {
-        if (previous != null && next != previous) {
-          _markPreviewStale();
-        }
-      });
-    } else if (_recordType == RecordType.site) {
-      final selectedSites = ref.watch(documentSiteSelectionProvider);
-      selectedCount = selectedSites.length;
-      totalCount = ref.watch(siteEntryProvider).value?.length ?? 0;
-      ref.listen<Set<int>>(documentSiteSelectionProvider, (previous, next) {
-        if (previous != null && next != previous) {
-          _markPreviewStale();
-        }
-      });
-    } else if (_recordType == RecordType.collEvent) {
-      final selectedEvents = ref.watch(documentEventSelectionProvider);
-      selectedCount = selectedEvents.length;
-      totalCount = ref.watch(collEventEntryProvider).value?.length ?? 0;
-      ref.listen<Set<int>>(documentEventSelectionProvider, (previous, next) {
-        if (previous != null && next != previous) {
-          _markPreviewStale();
-        }
-      });
-    } else if (_recordType == RecordType.narrative) {
-      final selectedNarratives = ref.watch(documentNarrativeSelectionProvider);
-      selectedCount = selectedNarratives.length;
-      totalCount = ref.watch(narrativeEntryProvider).value?.length ?? 0;
-      ref.listen<Set<int>>(documentNarrativeSelectionProvider,
-          (previous, next) {
-        if (previous != null && next != previous) {
-          _markPreviewStale();
-        }
-      });
-    }
 
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
@@ -147,40 +98,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
               });
             },
             onExportPressed: !exportCtr.isValid ? null : _exportDocuments,
-            selectedCount: selectedCount,
-            totalCount: totalCount,
-            recordType: _recordType,
-            onSelectSpecimens: () async {
-              if (_recordType == RecordType.specimenRecord) {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SpecimenSelectionScreen(),
-                  ),
-                );
-              } else if (_recordType == RecordType.site) {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SiteSelectionScreen(),
-                  ),
-                );
-              } else if (_recordType == RecordType.collEvent) {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const EventSelectionScreen(),
-                  ),
-                );
-              } else if (_recordType == RecordType.narrative) {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NarrativeSelectionScreen(),
-                  ),
-                );
-              }
-            },
             onManagePresets: () async {
               await Navigator.push<void>(
                 context,
@@ -190,6 +107,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
               );
               await _load();
             },
+            recordType: _recordType,
+            showSpecimenSelection: true,
           );
 
     final previewPane = DocumentPreviewPane(
@@ -199,6 +118,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       previewVersion: _previewVersion,
       isPreviewStale: _previewStale,
       onGeneratePreview: _updatePreview,
+      isBlockSelection: true,
     );
 
     return Scaffold(
@@ -246,52 +166,22 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     );
   }
 
-  void _markPreviewStale() {
-    if (_showPreview && !_previewStale) {
-      setState(() {
-        _setPreviewStale();
-      });
-    }
-  }
-
   void _setPreviewStale() {
     if (_showPreview) {
       _previewStale = true;
     }
   }
-
   void _updatePreview() {
     if (_layout == null) return;
-
-    List<String> selectedList = [];
-    if (_recordType == RecordType.specimenRecord) {
-      selectedList = ref.read(documentSpecimenSelectionProvider).toList();
-    } else if (_recordType == RecordType.site) {
-      selectedList = ref
-          .read(documentSiteSelectionProvider)
-          .map((id) => id.toString())
-          .toList();
-    } else if (_recordType == RecordType.collEvent) {
-      selectedList = ref
-          .read(documentEventSelectionProvider)
-          .map((id) => id.toString())
-          .toList();
-    } else if (_recordType == RecordType.narrative) {
-      selectedList = ref
-          .read(documentNarrativeSelectionProvider)
-          .map((id) => id.toString())
-          .toList();
-    }
 
     setState(() {
       _showPreview = true;
       _previewStale = false;
       _previewLayout = _layout;
-      _previewSelectedUuidList = List.unmodifiable(selectedList);
+      _previewSelectedUuidList = const [];
       _previewVersion++;
     });
   }
-
   Future<RecordType> _getRecordTypeForLayout(
       rust_config.DocumentLayoutPreset? layout) async {
     if (layout == null || layout.blocks.isEmpty) {

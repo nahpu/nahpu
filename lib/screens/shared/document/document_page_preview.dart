@@ -3,23 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/export/document_writer.dart';
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/collevent_services.dart';
-import 'package:nahpu/services/narrative_services.dart';
-import 'package:nahpu/services/template_service.dart';
-import 'package:nahpu/services/types/export.dart';
 import 'package:pdfrx/pdfrx.dart';
-
 class DocumentPageLivePreview extends ConsumerStatefulWidget {
   const DocumentPageLivePreview({
     super.key,
     required this.selectedUuidList,
     required this.layout,
+    this.isBlockSelection = false,
   });
 
   final List<String> selectedUuidList;
   final rust_config.DocumentLayoutPreset layout;
+  final bool isBlockSelection;
 
   @override
   ConsumerState<DocumentPageLivePreview> createState() =>
@@ -114,16 +109,6 @@ class _DocumentPageLivePreviewState
     });
 
     try {
-      RecordType recordType = RecordType.specimenRecord;
-      if (widget.layout.blocks.isNotEmpty) {
-        final firstTemplateName = widget.layout.blocks.first.templateName;
-        final tmpl =
-            await const TemplateService().getTemplate(firstTemplateName);
-        if (tmpl != null) {
-          recordType = tmpl.recordType;
-        }
-      }
-
       double w = _getPageWidth(
           widget.layout.pageSizeKey, widget.layout.customPageWidthMm);
       double h = _getPageHeight(
@@ -139,59 +124,13 @@ class _DocumentPageLivePreviewState
       final hPt = h * 72.0 / 25.4;
 
       final writer = DocumentWriter(ref: ref);
-      Uint8List bytes;
-
-      if (recordType == RecordType.specimenRecord) {
-        final all = await SpecimenServices(ref: ref).getSpecimenList();
-        final picked = all
-            .where((s) => widget.selectedUuidList.contains(s.uuid))
-            .take(500)
-            .toList();
-        bytes = await writer.generateDocumentsPdf(
-          picked,
-          sheetWidthPt: wPt,
-          sheetHeightPt: hPt,
-          layout: widget.layout,
-        );
-      } else if (recordType == RecordType.site) {
-        final all = await SiteServices(ref: ref).getAllSites();
-        final picked = all
-            .where((s) => widget.selectedUuidList.contains(s.id.toString()))
-            .take(500)
-            .toList();
-        bytes = await writer.generateSitesPdf(
-          picked,
-          sheetWidthPt: wPt,
-          sheetHeightPt: hPt,
-          layout: widget.layout,
-        );
-      } else if (recordType == RecordType.collEvent) {
-        final all = await CollEventServices(ref: ref).getAllCollEvents();
-        final picked = all
-            .where((s) => widget.selectedUuidList.contains(s.id.toString()))
-            .take(500)
-            .toList();
-        bytes = await writer.generateEventsPdf(
-          picked,
-          sheetWidthPt: wPt,
-          sheetHeightPt: hPt,
-          layout: widget.layout,
-        );
-      } else if (recordType == RecordType.narrative) {
-        final all = await NarrativeServices(ref: ref).getAllNarrative();
-        final picked = all
-            .where((s) => widget.selectedUuidList.contains(s.id.toString()))
-            .take(500)
-            .toList();
-        bytes = await writer.generateNarrativesPdf(
-          picked,
-          sheetWidthPt: wPt,
-          sheetHeightPt: hPt,
-          layout: widget.layout,
-        );
-      } else {
-        throw Exception('Unsupported record type: $recordType');
-      }
+      Uint8List bytes = await writer.generateLayoutPdf(
+        sheetWidthPt: wPt,
+        sheetHeightPt: hPt,
+        layout: widget.layout,
+        isPreview: !widget.isBlockSelection,
+        previewRecords: widget.selectedUuidList,
+      );
 
       if (mounted) {
         setState(() {

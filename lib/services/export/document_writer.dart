@@ -16,7 +16,10 @@ import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/services/export/narrative_writer.dart';
+import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/providers/document_selection.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/src/rust/api/export.dart' as rust_export;
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
@@ -83,6 +86,33 @@ class DocumentWriter {
       picked,
       w * 72.0 / 25.4,
       h * 72.0 / 25.4,
+    );
+
+    final savePath =
+        await AppIOServices(dir: selectedDir, fileStem: fileStem, ext: 'pdf')
+            .getSavePath();
+    await savePath.writeAsBytes(pdfBytes);
+    return savePath;
+  }
+
+  Future<File> writeLayout({
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) async {
+    double w = _getPageWidth(layout.pageSizeKey, layout.customPageWidthMm);
+    double h = _getPageHeight(layout.pageSizeKey, layout.customPageHeightMm);
+
+    if (layout.pageOrientation == 'landscape') {
+      final tmp = w;
+      w = h;
+      h = tmp;
+    }
+
+    final pdfBytes = await generateLayoutPdf(
+      sheetWidthPt: w * 72.0 / 25.4,
+      sheetHeightPt: h * 72.0 / 25.4,
+      layout: layout,
     );
 
     final savePath =
@@ -486,6 +516,264 @@ class DocumentWriter {
       layout: layout,
       recordToFields: (s) => documentFieldValuesForNarrative(_db, s, ref),
     );
+  }
+
+  Future<Uint8List> generateLayoutPdf({
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+    bool isPreview = false,
+    List<String>? previewRecords,
+  }) async {
+    final settings = DocumentSettingsServices();
+    final templateService = const TemplateService();
+
+    final wPt = documentPdfMmToPt(await settings.getDocumentWidthMm());
+    final hPt = documentPdfMmToPt(await settings.getDocumentHeightMm());
+    final duplex = await settings.getDuplex();
+    final mirrorFront = await settings.getMirrorFront();
+    final mirrorBack = await settings.getMirrorBack();
+
+    // Preload templates
+    final templates = <String, Template>{};
+    for (final block in layout.blocks) {
+      if (!templates.containsKey(block.templateName)) {
+        final tmpl = await templateService.getTemplate(block.templateName);
+        templates[block.templateName] =
+            tmpl ?? DefaultTemplate.defaultTemplate(block.templateName);
+      }
+    }
+
+    StringBuffer typst = StringBuffer();
+
+    // Collect all data maps per block
+    final Map<int, List<Map<String, String>>> blockDataMaps = {};
+    int totalRecordCount = 0;
+    for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+      final block = layout.blocks[bIdx];
+      final tmpl = templates[block.templateName]!;
+      final dataList = await _getRecordDataListForBlock(
+        bIdx,
+        tmpl.recordType,
+        isPreview,
+        previewRecords,
+      );
+      blockDataMaps[bIdx] = dataList;
+      totalRecordCount += dataList.length;
+    }
+
+    if (totalRecordCount == 0) {
+      typst.writeln(
+          '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt)');
+      typst.writeln('#align(center + horizon)[No documents]');
+    } else if (layout.layoutType == 'Continuous') {
+      final List<_ContinuousPrintItem> continuousItems = [];
+
+      for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+        final block = layout.blocks[bIdx];
+        final tmpl = templates[block.templateName]!;
+        final dataList = blockDataMaps[bIdx] ?? [];
+
+        for (final data in dataList) {
+          for (var c = 0; c < block.templateCount; c++) {
+            continuousItems.add(_ContinuousPrintItem(
+              data: data,
+              template: tmpl,
+              pageTemplate: tmpl.page1,
+              block: block,
+              mirror: mirrorFront,
+            ));
+            if (duplex) {
+              continuousItems.add(_ContinuousPrintItem(
+                data: data,
+                template: tmpl,
+                pageTemplate: tmpl.page2,
+                block: block,
+                mirror: mirrorBack,
+              ));
+            }
+          }
+        }
+      }
+
+      for (var i = 0; i < continuousItems.length; i++) {
+        final item = continuousItems[i];
+        final cellWPt = wPt +
+            documentPdfMmToPt(item.block.templatePadLeftMm) +
+            documentPdfMmToPt(item.block.templatePadRightMm);
+        final cellHPt = hPt +
+            documentPdfMmToPt(item.block.templatePadTopMm) +
+            documentPdfMmToPt(item.block.templatePadBottomMm);
+
+        typst.writeln(
+            '#set page(width: ${cellWPt}pt, height: ${cellHPt}pt, margin: 0pt)');
+
+        final subbedPage = await _substitutePage(item.pageTemplate, item.data);
+
+        _writeSingleDocumentCell(
+          typst: typst,
+          page: subbedPage,
+          data: item.data,
+          wPt: wPt,
+          hPt: hPt,
+          templatePadTopMm: item.block.templatePadTopMm,
+          templatePadLeftMm: item.block.templatePadLeftMm,
+          templatePadRightMm: item.block.templatePadRightMm,
+          templatePadBottomMm: item.block.templatePadBottomMm,
+          mirror: item.mirror,
+          outline: item.template.outline,
+        );
+
+        if (i < continuousItems.length - 1) {
+          typst.writeln('#pagebreak()');
+        }
+      }
+    } else {
+      final ptTop = documentPdfMmToPt(layout.pagePadTopMm);
+      final ptLeft = documentPdfMmToPt(layout.pagePadLeftMm);
+      final ptBottom = documentPdfMmToPt(layout.pagePadBottomMm);
+      final ptRight = documentPdfMmToPt(layout.pagePadRightMm);
+      typst.writeln(
+          '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt, margin: (top: ${ptTop}pt, left: ${ptLeft}pt, bottom: ${ptBottom}pt, right: ${ptRight}pt))');
+
+      final usableW = math.max(1.0, sheetWidthPt - ptLeft - ptRight);
+      final usableH = math.max(1.0, sheetHeightPt - ptTop - ptBottom);
+
+      for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+        final block = layout.blocks[bIdx];
+        final tmpl = templates[block.templateName]!;
+        final cols = block.cols > 0 ? block.cols : 4;
+        final rows = block.rows > 0 ? block.rows : 8;
+        final perSheet = cols * rows;
+
+        final cellW = usableW / cols;
+        final cellH = usableH / rows;
+
+        final dataList = blockDataMaps[bIdx] ?? [];
+        final List<Map<String, String>> blockRecords = [];
+        for (final data in dataList) {
+          for (var c = 0; c < block.templateCount; c++) {
+            blockRecords.add(data);
+          }
+        }
+
+        for (var start = 0; start < blockRecords.length; start += perSheet) {
+          final end = math.min(start + perSheet, blockRecords.length);
+          final batch = blockRecords.sublist(start, end);
+          final isLastBatch = (start + perSheet) >= blockRecords.length;
+          final isLastBlock = bIdx == layout.blocks.length - 1;
+
+          final breakAfterFront = duplex ||
+              !isLastBatch ||
+              (isLastBatch && !isLastBlock && block.pageBreakAfter);
+          final breakAfterBack = !isLastBatch ||
+              (isLastBatch && !isLastBlock && block.pageBreakAfter);
+
+          final frontPages = <TemplatePage>[];
+          final frontDataList = <Map<String, String>>[];
+          for (final data in batch) {
+            frontDataList.add(data);
+            frontPages.add(await _substitutePage(tmpl.page1, data));
+          }
+          _writeTiledDocumentSheet(
+            typst: typst,
+            pages: frontPages,
+            dataList: frontDataList,
+            cols: cols,
+            rows: rows,
+            cellW: cellW,
+            cellH: cellH,
+            wPt: wPt,
+            hPt: hPt,
+            templatePadTopMm: block.templatePadTopMm,
+            templatePadLeftMm: block.templatePadLeftMm,
+            templatePadRightMm: block.templatePadRightMm,
+            templatePadBottomMm: block.templatePadBottomMm,
+            mirror: mirrorFront,
+            outline: tmpl.outline,
+            pageBreakAfter: breakAfterFront,
+          );
+
+          if (duplex) {
+            final backPages = <TemplatePage>[];
+            final backDataList = <Map<String, String>>[];
+            for (final data in batch) {
+              backDataList.add(data);
+              backPages.add(await _substitutePage(tmpl.page2, data));
+            }
+            _writeTiledDocumentSheet(
+              typst: typst,
+              pages: backPages,
+              dataList: backDataList,
+              cols: cols,
+              rows: rows,
+              cellW: cellW,
+              cellH: cellH,
+              wPt: wPt,
+              hPt: hPt,
+              templatePadTopMm: block.templatePadTopMm,
+              templatePadLeftMm: block.templatePadLeftMm,
+              templatePadRightMm: block.templatePadRightMm,
+              templatePadBottomMm: block.templatePadBottomMm,
+              mirror: mirrorBack,
+              outline: tmpl.outline,
+              pageBreakAfter: breakAfterBack,
+            );
+          }
+        }
+      }
+    }
+
+    final fontBytesList = await _loadFontBytes();
+    return await rust_export.compileTypstToPdf(
+      typstContent: typst.toString(),
+      fontBytes: fontBytesList,
+    );
+  }
+
+  Future<List<Map<String, String>>> _getRecordDataListForBlock(
+    int bIdx,
+    RecordType recordType,
+    bool isPreview,
+    List<String>? previewRecords,
+  ) async {
+    final Set<String> selectedIds;
+    if (isPreview) {
+      selectedIds = (previewRecords ?? const []).toSet();
+    } else {
+      final param = BlockRecordSelectionParam(blockIndex: bIdx, recordType: recordType);
+      selectedIds = ref.read(blockRecordSelectionProvider(param));
+    }
+
+    final List<Map<String, String>> out = [];
+
+    if (recordType == RecordType.specimenRecord) {
+      final specimens = await SpecimenServices(ref: ref).getSpecimenList();
+      final filtered = specimens.where((s) => selectedIds.contains(s.uuid));
+      for (final s in filtered) {
+        out.add(await documentFieldValuesForSpecimen(_db, s, ref));
+      }
+    } else if (recordType == RecordType.site) {
+      final sites = await SiteServices(ref: ref).getAllSites();
+      final filtered = sites.where((s) => selectedIds.contains(s.id.toString()));
+      for (final s in filtered) {
+        out.add(await documentFieldValuesForSite(_db, s, ref));
+      }
+    } else if (recordType == RecordType.collEvent) {
+      final events = await CollEventServices(ref: ref).getAllCollEvents();
+      final filtered = events.where((s) => selectedIds.contains(s.id.toString()));
+      for (final s in filtered) {
+        out.add(await documentFieldValuesForCollEvent(_db, s, ref));
+      }
+    } else if (recordType == RecordType.narrative) {
+      final narratives = await NarrativeServices(ref: ref).getAllNarrative();
+      final filtered = narratives.where((s) => selectedIds.contains(s.id.toString()));
+      for (final s in filtered) {
+        out.add(await documentFieldValuesForNarrative(_db, s, ref));
+      }
+    }
+
+    return out;
   }
 
   Future<List<Uint8List>> _loadFontBytes() async {
@@ -1076,6 +1364,21 @@ class _ContinuousPrintItemGeneric<T> {
     required this.mirror,
   });
   final T record;
+  final Template template;
+  final TemplatePage pageTemplate;
+  final rust_config.DocumentLayoutBlock block;
+  final bool mirror;
+}
+
+class _ContinuousPrintItem {
+  _ContinuousPrintItem({
+    required this.data,
+    required this.template,
+    required this.pageTemplate,
+    required this.block,
+    required this.mirror,
+  });
+  final Map<String, String> data;
   final Template template;
   final TemplatePage pageTemplate;
   final rust_config.DocumentLayoutBlock block;

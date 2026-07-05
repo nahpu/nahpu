@@ -11,6 +11,7 @@ class DocumentPreviewPane extends StatelessWidget {
     required this.previewVersion,
     required this.isPreviewStale,
     required this.onGeneratePreview,
+    this.isBlockSelection = false,
   });
 
   final bool showPreview;
@@ -19,6 +20,7 @@ class DocumentPreviewPane extends StatelessWidget {
   final int previewVersion;
   final bool isPreviewStale;
   final VoidCallback onGeneratePreview;
+  final bool isBlockSelection;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,7 @@ class DocumentPreviewPane extends StatelessWidget {
                           key: ValueKey(previewVersion),
                           selectedUuidList: selectedUuidList,
                           layout: layout!,
+                          isBlockSelection: isBlockSelection,
                         ),
             ),
             Positioned(

@@ -1,12 +1,19 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
-
+import 'package:nahpu/services/providers/document_selection.dart';
+import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/record_selection.dart';
 class DocumentSettingsPane extends StatelessWidget {
   const DocumentSettingsPane({
     super.key,
@@ -23,11 +30,12 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.onSelectDir,
     required this.onClearDir,
     required this.onExportPressed,
-    required this.selectedCount,
-    required this.totalCount,
-    required this.onSelectSpecimens,
+    this.selectedCount = 0,
+    this.totalCount = 0,
+    this.onSelectSpecimens,
     required this.onManagePresets,
     required this.recordType,
+    this.showSpecimenSelection = false,
   });
 
   final rust_config.DocumentLayoutPreset layout;
@@ -48,9 +56,10 @@ class DocumentSettingsPane extends StatelessWidget {
   final VoidCallback? onExportPressed;
   final int selectedCount;
   final int totalCount;
-  final VoidCallback onSelectSpecimens;
+  final VoidCallback? onSelectSpecimens;
   final VoidCallback onManagePresets;
   final RecordType recordType;
+  final bool showSpecimenSelection;
 
   @override
   Widget build(BuildContext context) {
@@ -61,47 +70,49 @@ class DocumentSettingsPane extends StatelessWidget {
           FileOperationPage(
             children: [
               const FileFormatIcon(path: 'assets/icons/pdf.svg'),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            recordType == RecordType.site
-                                ? 'Sites'
-                                : recordType == RecordType.collEvent
-                                    ? 'Collecting Events'
-                                    : recordType == RecordType.narrative
-                                        ? 'Narratives'
-                                        : 'Specimens',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$selectedCount of $totalCount selected',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
+              if (!showSpecimenSelection && onSelectSpecimens != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              recordType == RecordType.site
+                                  ? 'Sites'
+                                  : recordType == RecordType.collEvent
+                                      ? 'Collecting Events'
+                                      : recordType == RecordType.narrative
+                                          ? 'Narratives'
+                                          : 'Specimens',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '$selectedCount of $totalCount selected',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: onSelectSpecimens,
-                      icon: const Icon(
-                        Icons.table_rows_outlined,
+                      OutlinedButton.icon(
+                        onPressed: onSelectSpecimens,
+                        icon: const Icon(
+                          Icons.table_rows_outlined,
+                        ),
+                        label: const Text('Select'),
                       ),
-                      label: const Text('Select'),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
+              ],
               DocumentLayoutSection(
                 layout: layout,
                 setupNames: setupNames,
@@ -110,7 +121,8 @@ class DocumentSettingsPane extends StatelessWidget {
                 onLayoutChanged: onLayoutChanged,
                 onSetupSelected: onSetupSelected,
                 showPresetActions: false,
-                showBlocks: false,
+                showBlocks: showSpecimenSelection ? true : false,
+                showSpecimenSelection: showSpecimenSelection,
                 onManagePresets: onManagePresets,
               ),
               const SizedBox(height: 8),
@@ -195,7 +207,7 @@ class DocumentSettingsPane extends StatelessWidget {
   }
 }
 
-class DocumentLayoutSection extends StatefulWidget {
+class DocumentLayoutSection extends ConsumerStatefulWidget {
   const DocumentLayoutSection({
     super.key,
     required this.layout,
@@ -216,6 +228,7 @@ class DocumentLayoutSection extends StatefulWidget {
     this.onManagePresets,
     this.incompatibleSetupNames = const {},
     this.showProfileDropdown = true,
+    this.showSpecimenSelection = false,
   });
 
   final rust_config.DocumentLayoutPreset layout;
@@ -236,13 +249,15 @@ class DocumentLayoutSection extends StatefulWidget {
   final VoidCallback? onManagePresets;
   final Set<String> incompatibleSetupNames;
   final bool showProfileDropdown;
+  final bool showSpecimenSelection;
 
   @override
-  State<DocumentLayoutSection> createState() => _DocumentLayoutSectionState();
+  ConsumerState<DocumentLayoutSection> createState() => _DocumentLayoutSectionState();
 }
 
-class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
+class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   bool _showMorePageSetup = false;
+  bool _showAdvanced = false;
   final Map<int, bool> _expandedBlocks = {};
 
   static const Map<String, String> _pageSizeLabels = {
@@ -417,31 +432,33 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
                 ],
               ],
             ),
+          ],
+          if (widget.showProfileDropdown) ...[
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
           ],
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Page Setup',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showMorePageSetup = !_showMorePageSetup;
-                  });
-                },
-                icon: Icon(
-                  _showMorePageSetup ? Icons.expand_less : Icons.expand_more,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Page Setup',
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-                label: Text(_showMorePageSetup ? 'Show less' : 'Show more'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _showMorePageSetup = !_showMorePageSetup;
+                    });
+                  },
+                  icon: Icon(
+                    _showMorePageSetup ? Icons.expand_less : Icons.expand_more,
+                  ),
+                  label: Text(_showMorePageSetup ? 'Show less' : 'Show more'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -594,7 +611,28 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
               ],
             ],
           ),
-          if (widget.showBlocks) ...[
+          if (!widget.showPresetActions) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(
+                  'Advanced options',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const Spacer(),
+                Switch(
+                  value: _showAdvanced,
+                  onChanged: (v) {
+                    setState(() {
+                      _showAdvanced = v;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ],
+          if (widget.showPresetActions || _showAdvanced) ...[
+            if (widget.showBlocks) ...[
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
@@ -855,6 +893,131 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
                             ],
                           ),
                         ],
+                        if (widget.showSpecimenSelection) ...[
+                          const SizedBox(height: 12),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final recordTypeAsync = ref.watch(templateRecordTypeProvider(block.templateName));
+                              return recordTypeAsync.when(
+                                data: (recordType) {
+                                  final param = BlockRecordSelectionParam(blockIndex: idx, recordType: recordType);
+                                  final selectedIds = ref.watch(blockRecordSelectionProvider(param));
+                                  
+                                  int totalCount = 0;
+                                  String label = '';
+                                  if (recordType == RecordType.specimenRecord) {
+                                    totalCount = ref.watch(specimenEntryProvider).value?.length ?? 0;
+                                    label = 'Specimens';
+                                  } else if (recordType == RecordType.site) {
+                                    totalCount = ref.watch(siteEntryProvider).value?.length ?? 0;
+                                    label = 'Sites';
+                                  } else if (recordType == RecordType.collEvent) {
+                                    totalCount = ref.watch(collEventEntryProvider).value?.length ?? 0;
+                                    label = 'Collecting Events';
+                                  } else if (recordType == RecordType.narrative) {
+                                    totalCount = ref.watch(narrativeEntryProvider).value?.length ?? 0;
+                                    label = 'Narratives';
+                                  }
+                                  
+                                  return Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '$label Selection',
+                                              style: Theme.of(context).textTheme.titleSmall,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '${selectedIds.length} of $totalCount selected',
+                                              style: Theme.of(context).textTheme.bodyMedium,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      OutlinedButton.icon(
+                                        onPressed: () async {
+                                          if (recordType == RecordType.specimenRecord) {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => Scaffold(
+                                                  appBar: AppBar(
+                                                    title: const Text('Select specimens'),
+                                                  ),
+                                                  body: SafeArea(
+                                                    child: SpecimenSelectionView(
+                                                      selectedUuidList: selectedIds,
+                                                      visibleColumnIds: const [],
+                                                      onSelectionChanged: (nextSelection) {
+                                                        ref.read(blockRecordSelectionProvider(param).notifier).updateSelection(nextSelection);
+                                                      },
+                                                      onColumnsChanged: () {},
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          } else if (recordType == RecordType.site) {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => SiteSelectionScreen(
+                                                  selectedIds: selectedIds.map((e) => int.tryParse(e) ?? 0).toSet(),
+                                                  onSelectionChanged: (nextSelection) {
+                                                    ref.read(blockRecordSelectionProvider(param).notifier).updateSelection(
+                                                      nextSelection.map((e) => e.toString()).toSet(),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          } else if (recordType == RecordType.collEvent) {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => EventSelectionScreen(
+                                                  selectedIds: selectedIds.map((e) => int.tryParse(e) ?? 0).toSet(),
+                                                  onSelectionChanged: (nextSelection) {
+                                                    ref.read(blockRecordSelectionProvider(param).notifier).updateSelection(
+                                                      nextSelection.map((e) => e.toString()).toSet(),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          } else if (recordType == RecordType.narrative) {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => NarrativeSelectionScreen(
+                                                  selectedIds: selectedIds.map((e) => int.tryParse(e) ?? 0).toSet(),
+                                                  onSelectionChanged: (nextSelection) {
+                                                    ref.read(blockRecordSelectionProvider(param).notifier).updateSelection(
+                                                      nextSelection.map((e) => e.toString()).toSet(),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        icon: const Icon(Icons.table_rows_outlined),
+                                        label: const Text('Select'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                                loading: () => const SizedBox.shrink(),
+                                error: (_, __) => const SizedBox.shrink(),
+                              );
+                            },
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -863,9 +1026,10 @@ class _DocumentLayoutSectionState extends State<DocumentLayoutSection> {
             }),
           ],
         ],
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 }
 
 class NumberField extends StatefulWidget {
