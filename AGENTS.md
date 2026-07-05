@@ -11,6 +11,7 @@ NAHPU is a Flutter app with Rust via Flutter Rust Bridge. Dart lives in `lib/`: 
 - `flutter pub run build_runner build --delete-conflicting-outputs`: codegen.
 - `python scripts.py frb --generate`: bridge codegen.
 - `python scripts.py frb --check`: `cargo check` in `rust/`.
+- `cargo clippy`: Rust linting.
 
 ## Coding Style & Naming Conventions
 
@@ -28,10 +29,6 @@ Keep screens as thin UI wrappers under `lib/screens/`. Put business logic in `li
 
 Add focused `*_test.dart` files in `test/`. Prefer service tests for import/export, persistence, validation, and migrations; add widget tests for regressions. Run integration tests for startup, navigation, IO, or bridge changes.
 
-## Commit & Pull Request Guidelines
-
-Git history uses short imperative commits such as `Fix overflow issues.` Keep commits scoped. PRs target `dev`, explain changes, list tests, and include UI screenshots.
-
 ## Agent-Specific Instructions
 
-Preserve user changes and avoid unrelated refactors. Always write the product name as `NAHPU`. Agents must not create commits, branches, pushes, or pull requests; leave Git under user control. After bridge API edits, regenerate bindings and verify analysis plus `cargo check`. Add assets to `pubspec.yaml` only when needed.
+Preserve user changes and avoid unrelated refactors. Always write the product name as `NAHPU`. Agents must not create commits, branches, pushes, or pull requests; leave Git under user control. After bridge API edits, regenerate bindings and verify analysis plus `cargo check` and `cargo clippy`. Add assets to `pubspec.yaml` only when needed.
