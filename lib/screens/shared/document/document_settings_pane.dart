@@ -394,6 +394,13 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                     },
                   ),
                 ),
+                if (widget.onManagePresets != null) ...[
+                  OutlinedButton.icon(
+                    onPressed: widget.onManagePresets,
+                    icon: const Icon(Icons.description_outlined),
+                    label: const Text('Manage presets'),
+                  ),
+                ],
               ],
             ),
           ],
