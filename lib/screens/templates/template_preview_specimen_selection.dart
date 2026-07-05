@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/export.dart';
 
 class TemplatePreviewSpecimenSelectionScreen extends ConsumerStatefulWidget {
   const TemplatePreviewSpecimenSelectionScreen({
     super.key,
     required this.selectedUuid,
+    required this.recordType,
   });
 
   final String? selectedUuid;
+  final RecordType recordType;
 
   @override
   ConsumerState<TemplatePreviewSpecimenSelectionScreen> createState() =>
@@ -27,7 +31,9 @@ class _TemplatePreviewSpecimenSelectionScreenState
   @override
   void initState() {
     super.initState();
-    _loadColumns();
+    if (widget.recordType == RecordType.specimenRecord) {
+      _loadColumns();
+    }
   }
 
   Future<void> _loadColumns() async {
@@ -50,6 +56,50 @@ class _TemplatePreviewSpecimenSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
+    if (widget.recordType == RecordType.site) {
+      return SiteSelectionScreen(
+        isSingleSelection: true,
+        selectedIds: widget.selectedUuid != null
+            ? {int.tryParse(widget.selectedUuid!) ?? 0}
+                .where((e) => e != 0)
+                .toSet()
+            : const {},
+        onSelectionChanged: (selected) {
+          if (selected.isNotEmpty) {
+            Navigator.pop(context, selected.first.toString());
+          }
+        },
+      );
+    } else if (widget.recordType == RecordType.collEvent) {
+      return EventSelectionScreen(
+        isSingleSelection: true,
+        selectedIds: widget.selectedUuid != null
+            ? {int.tryParse(widget.selectedUuid!) ?? 0}
+                .where((e) => e != 0)
+                .toSet()
+            : const {},
+        onSelectionChanged: (selected) {
+          if (selected.isNotEmpty) {
+            Navigator.pop(context, selected.first.toString());
+          }
+        },
+      );
+    } else if (widget.recordType == RecordType.narrative) {
+      return NarrativeSelectionScreen(
+        isSingleSelection: true,
+        selectedIds: widget.selectedUuid != null
+            ? {int.tryParse(widget.selectedUuid!) ?? 0}
+                .where((e) => e != 0)
+                .toSet()
+            : const {},
+        onSelectionChanged: (selected) {
+          if (selected.isNotEmpty) {
+            Navigator.pop(context, selected.first.toString());
+          }
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Specimen Selection for Preview'),

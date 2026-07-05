@@ -9,6 +9,7 @@ import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/providers/document_selection.dart';
+import 'package:nahpu/services/types/export.dart';
 
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
@@ -45,7 +46,7 @@ class ExportDocumentService {
       throw Exception('WidgetRef is required for exporting');
     }
 
-    String recordType = 'specimen';
+    RecordType recordType = RecordType.specimenRecord;
     if (layout.blocks.isNotEmpty) {
       final tmpl = await const TemplateService()
           .getTemplate(layout.blocks.first.templateName);
@@ -56,7 +57,7 @@ class ExportDocumentService {
 
     final writer = DocumentWriter(ref: ref!);
 
-    if (recordType == 'specimen') {
+    if (recordType == RecordType.specimenRecord) {
       final selectedSpecimens = ref!.read(documentSpecimenSelectionProvider);
       final all = await SpecimenServices(ref: ref!).getSpecimenList();
       final picked = all
@@ -71,7 +72,7 @@ class ExportDocumentService {
         fileStem: fileStem,
         layout: layout,
       );
-    } else if (recordType == 'site') {
+    } else if (recordType == RecordType.site) {
       final selectedSites = ref!.read(documentSiteSelectionProvider);
       final all = await SiteServices(ref: ref!).getAllSites();
       final picked = all
@@ -86,7 +87,7 @@ class ExportDocumentService {
         fileStem: fileStem,
         layout: layout,
       );
-    } else if (recordType == 'collEvent') {
+    } else if (recordType == RecordType.collEvent) {
       final selectedEvents = ref!.read(documentEventSelectionProvider);
       final all = await CollEventServices(ref: ref!).getAllCollEvents();
       final picked = all
@@ -101,7 +102,7 @@ class ExportDocumentService {
         fileStem: fileStem,
         layout: layout,
       );
-    } else if (recordType == 'narrative') {
+    } else if (recordType == RecordType.narrative) {
       final selectedNarratives = ref!.read(documentNarrativeSelectionProvider);
       final all = await NarrativeServices(ref: ref!).getAllNarrative();
       final picked = all

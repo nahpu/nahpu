@@ -35,7 +35,8 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIds = widget.selectedIds ?? ref.watch(documentSiteSelectionProvider);
+    final Set<int> selectedIds =
+        widget.selectedIds ?? ref.watch(documentSiteSelectionProvider);
     final sitesAsync = ref.watch(siteEntryProvider);
 
     return Scaffold(
@@ -180,8 +181,8 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                                   widget.onSelectionChanged!(newSelected);
                                 } else {
                                   ref
-                                      .read(
-                                          documentSiteSelectionProvider.notifier)
+                                      .read(documentSiteSelectionProvider
+                                          .notifier)
                                       .updateSelection(newSelected);
                                 }
                               },
@@ -204,9 +205,13 @@ class EventSelectionScreen extends ConsumerStatefulWidget {
   const EventSelectionScreen({
     super.key,
     this.isSingleSelection = false,
+    this.selectedIds,
+    this.onSelectionChanged,
   });
 
   final bool isSingleSelection;
+  final Set<int>? selectedIds;
+  final ValueChanged<Set<int>>? onSelectionChanged;
 
   @override
   ConsumerState<EventSelectionScreen> createState() =>
@@ -247,14 +252,17 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIds = ref.watch(documentEventSelectionProvider);
+    final Set<int> selectedIds =
+        widget.selectedIds ?? ref.watch(documentEventSelectionProvider);
     final eventsAsync = ref.watch(collEventEntryProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isSingleSelection
             ? 'Select Event for Preview'
-            : 'Select events'),
+            : widget.selectedIds != null
+                ? 'Select Events for Preview'
+                : 'Select events'),
       ),
       body: SafeArea(
         child: _loadingIds
@@ -285,10 +293,15 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                               TextButton(
                                 onPressed: selectedIds.isNotEmpty
                                     ? () {
-                                        ref
-                                            .read(documentEventSelectionProvider
-                                                .notifier)
-                                            .updateSelection(<int>{});
+                                        if (widget.onSelectionChanged != null) {
+                                          widget.onSelectionChanged!(<int>{});
+                                        } else {
+                                          ref
+                                              .read(
+                                                  documentEventSelectionProvider
+                                                      .notifier)
+                                              .updateSelection(<int>{});
+                                        }
                                       }
                                     : null,
                                 child: const Text('Clear all'),
@@ -299,10 +312,16 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                         final newSelected =
                                             Set<int>.from(selectedIds);
                                         newSelected.addAll(allFilteredIds);
-                                        ref
-                                            .read(documentEventSelectionProvider
-                                                .notifier)
-                                            .updateSelection(newSelected);
+                                        if (widget.onSelectionChanged != null) {
+                                          widget
+                                              .onSelectionChanged!(newSelected);
+                                        } else {
+                                          ref
+                                              .read(
+                                                  documentEventSelectionProvider
+                                                      .notifier)
+                                              .updateSelection(newSelected);
+                                        }
                                       }
                                     : null,
                                 child: const Text('Select all'),
@@ -358,7 +377,12 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                         '${event.startDate ?? 'No date'}',
                                       ),
                                       onTap: () {
-                                        Navigator.pop(context, event.id);
+                                        if (widget.onSelectionChanged != null) {
+                                          widget
+                                              .onSelectionChanged!({event.id});
+                                        } else {
+                                          Navigator.pop(context, event.id);
+                                        }
                                       },
                                     );
                                   }
@@ -378,10 +402,14 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                       } else {
                                         newSelected.remove(event.id);
                                       }
-                                      ref
-                                          .read(documentEventSelectionProvider
-                                              .notifier)
-                                          .updateSelection(newSelected);
+                                      if (widget.onSelectionChanged != null) {
+                                        widget.onSelectionChanged!(newSelected);
+                                      } else {
+                                        ref
+                                            .read(documentEventSelectionProvider
+                                                .notifier)
+                                            .updateSelection(newSelected);
+                                      }
                                     },
                                   );
                                 },
@@ -402,9 +430,13 @@ class NarrativeSelectionScreen extends ConsumerStatefulWidget {
   const NarrativeSelectionScreen({
     super.key,
     this.isSingleSelection = false,
+    this.selectedIds,
+    this.onSelectionChanged,
   });
 
   final bool isSingleSelection;
+  final Set<int>? selectedIds;
+  final ValueChanged<Set<int>>? onSelectionChanged;
 
   @override
   ConsumerState<NarrativeSelectionScreen> createState() =>
@@ -424,14 +456,17 @@ class _NarrativeSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
-    final selectedIds = ref.watch(documentNarrativeSelectionProvider);
+    final Set<int> selectedIds =
+        widget.selectedIds ?? ref.watch(documentNarrativeSelectionProvider);
     final narrativesAsync = ref.watch(narrativeEntryProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isSingleSelection
             ? 'Select Narrative for Preview'
-            : 'Select narratives'),
+            : widget.selectedIds != null
+                ? 'Select Narratives for Preview'
+                : 'Select narratives'),
       ),
       body: SafeArea(
         child: narrativesAsync.when(
@@ -457,10 +492,14 @@ class _NarrativeSelectionScreenState
                         TextButton(
                           onPressed: selectedIds.isNotEmpty
                               ? () {
-                                  ref
-                                      .read(documentNarrativeSelectionProvider
-                                          .notifier)
-                                      .updateSelection(<int>{});
+                                  if (widget.onSelectionChanged != null) {
+                                    widget.onSelectionChanged!(<int>{});
+                                  } else {
+                                    ref
+                                        .read(documentNarrativeSelectionProvider
+                                            .notifier)
+                                        .updateSelection(<int>{});
+                                  }
                                 }
                               : null,
                           child: const Text('Clear all'),
@@ -471,10 +510,14 @@ class _NarrativeSelectionScreenState
                                   final newSelected =
                                       Set<int>.from(selectedIds);
                                   newSelected.addAll(allFilteredIds);
-                                  ref
-                                      .read(documentNarrativeSelectionProvider
-                                          .notifier)
-                                      .updateSelection(newSelected);
+                                  if (widget.onSelectionChanged != null) {
+                                    widget.onSelectionChanged!(newSelected);
+                                  } else {
+                                    ref
+                                        .read(documentNarrativeSelectionProvider
+                                            .notifier)
+                                        .updateSelection(newSelected);
+                                  }
                                 }
                               : null,
                           child: const Text('Select all'),
@@ -529,7 +572,11 @@ class _NarrativeSelectionScreenState
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 onTap: () {
-                                  Navigator.pop(context, narrative.id);
+                                  if (widget.onSelectionChanged != null) {
+                                    widget.onSelectionChanged!({narrative.id});
+                                  } else {
+                                    Navigator.pop(context, narrative.id);
+                                  }
                                 },
                               );
                             }
@@ -549,10 +596,14 @@ class _NarrativeSelectionScreenState
                                 } else {
                                   newSelected.remove(narrative.id);
                                 }
-                                ref
-                                    .read(documentNarrativeSelectionProvider
-                                        .notifier)
-                                    .updateSelection(newSelected);
+                                if (widget.onSelectionChanged != null) {
+                                  widget.onSelectionChanged!(newSelected);
+                                } else {
+                                  ref
+                                      .read(documentNarrativeSelectionProvider
+                                          .notifier)
+                                      .updateSelection(newSelected);
+                                }
                               },
                             );
                           },

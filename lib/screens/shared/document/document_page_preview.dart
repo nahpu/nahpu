@@ -8,6 +8,7 @@ import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/template_service.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 class DocumentPageLivePreview extends ConsumerStatefulWidget {
@@ -113,7 +114,7 @@ class _DocumentPageLivePreviewState
     });
 
     try {
-      String recordType = 'specimen';
+      RecordType recordType = RecordType.specimenRecord;
       if (widget.layout.blocks.isNotEmpty) {
         final firstTemplateName = widget.layout.blocks.first.templateName;
         final tmpl =
@@ -140,7 +141,7 @@ class _DocumentPageLivePreviewState
       final writer = DocumentWriter(ref: ref);
       Uint8List bytes;
 
-      if (recordType == 'specimen') {
+      if (recordType == RecordType.specimenRecord) {
         final all = await SpecimenServices(ref: ref).getSpecimenList();
         final picked = all
             .where((s) => widget.selectedUuidList.contains(s.uuid))
@@ -152,7 +153,7 @@ class _DocumentPageLivePreviewState
           sheetHeightPt: hPt,
           layout: widget.layout,
         );
-      } else if (recordType == 'site') {
+      } else if (recordType == RecordType.site) {
         final all = await SiteServices(ref: ref).getAllSites();
         final picked = all
             .where((s) => widget.selectedUuidList.contains(s.id.toString()))
@@ -164,7 +165,7 @@ class _DocumentPageLivePreviewState
           sheetHeightPt: hPt,
           layout: widget.layout,
         );
-      } else if (recordType == 'collEvent') {
+      } else if (recordType == RecordType.collEvent) {
         final all = await CollEventServices(ref: ref).getAllCollEvents();
         final picked = all
             .where((s) => widget.selectedUuidList.contains(s.id.toString()))
@@ -176,7 +177,7 @@ class _DocumentPageLivePreviewState
           sheetHeightPt: hPt,
           layout: widget.layout,
         );
-      } else if (recordType == 'narrative') {
+      } else if (recordType == RecordType.narrative) {
         final all = await NarrativeServices(ref: ref).getAllNarrative();
         final picked = all
             .where((s) => widget.selectedUuidList.contains(s.id.toString()))

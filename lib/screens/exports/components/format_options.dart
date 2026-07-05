@@ -16,7 +16,7 @@ class FormatOptionsCard extends StatelessWidget {
     this.isPreset = false,
   });
 
-  final ExportRecordType? recordType;
+  final RecordType? recordType;
   final SpecimenExportFmt specimenExportFmt;
   final bool concatenateMultiEntry;
   final bool useFieldNamesOnly;
@@ -45,8 +45,7 @@ class FormatOptionsCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Visibility(
-              visible:
-                  recordType == ExportRecordType.specimenRecord && !isPreset,
+              visible: recordType == RecordType.specimenRecord && !isPreset,
               child: DropdownButtonFormField<SpecimenExportFmt>(
                 initialValue: specimenExportFmt,
                 decoration: const InputDecoration(
@@ -74,7 +73,7 @@ class FormatOptionsCard extends StatelessWidget {
                 ),
               ),
             Visibility(
-              visible: recordType == ExportRecordType.specimenRecord,
+              visible: recordType == RecordType.specimenRecord,
               child: SwitchField(
                 value: concatenateMultiEntry,
                 label: 'Concatenate multi-entry records',

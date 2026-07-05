@@ -28,7 +28,7 @@ class ExportForm extends ConsumerStatefulWidget {
 
 class ExportFormState extends ConsumerState<ExportForm> {
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
-  ExportRecordType _recordType = ExportRecordType.narrative;
+  RecordType _recordType = RecordType.narrative;
   TaxonRecordType? _taxonRecordType;
   SpecimenRecordType _specimenRecordType = SpecimenRecordType.generalMammals;
   MammalRecordType _mammalRecordType = MammalRecordType.excludeBats;
@@ -198,7 +198,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
           mammalRecordType: _mammalRecordType,
           inaccurateInBrackets: _inaccurateInBrackets,
           isMammalSpecimenRecord: _isMammalSpecimenRecord(),
-          onRecordTypeChanged: (ExportRecordType? value) {
+          onRecordTypeChanged: (RecordType? value) {
             if (value != null) {
               setState(() {
                 _recordType = value;
@@ -238,7 +238,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
       ],
       FormatOptionsCard(
         recordType: _selectedPresetName != null
-            ? ExportRecordType.specimenRecord
+            ? RecordType.specimenRecord
             : _recordType,
         specimenExportFmt: _specimenExportFmt,
         concatenateMultiEntry: _concatenateMultiEntry,
@@ -395,14 +395,14 @@ class ExportFormState extends ConsumerState<ExportForm> {
 
   bool _isValid() {
     bool isFieldValid = exportCtr.isValid;
-    if (_recordType == ExportRecordType.specimenRecord) {
+    if (_recordType == RecordType.specimenRecord) {
       return isFieldValid && _taxonRecordType != null;
     }
     return isFieldValid;
   }
 
   bool _isMammalSpecimenRecord() {
-    return _recordType == ExportRecordType.specimenRecord &&
+    return _recordType == RecordType.specimenRecord &&
         _taxonRecordType == TaxonRecordType.mammals;
   }
 
@@ -516,28 +516,28 @@ class ExportFormState extends ConsumerState<ExportForm> {
     }
 
     switch (_recordType) {
-      case ExportRecordType.narrative:
+      case RecordType.narrative:
         await NarrativeRecordWriter(
           ref: ref,
           useFieldNamesOnly: _useFieldNamesOnly,
           selectedColumns: _isCustomFields ? _selectedColumns : null,
         ).writeNarrativeDelimited(file, format);
         break;
-      case ExportRecordType.site:
+      case RecordType.site:
         await SiteWriterServices(
           ref: ref,
           useFieldNamesOnly: _useFieldNamesOnly,
           selectedColumns: _isCustomFields ? _selectedColumns : null,
         ).writeSiteDelimited(file, format);
         break;
-      case ExportRecordType.collEvent:
+      case RecordType.collEvent:
         await CollEventRecordWriter(
           ref: ref,
           useFieldNamesOnly: _useFieldNamesOnly,
           selectedColumns: _isCustomFields ? _selectedColumns : null,
         ).writeCollEventDelimited(file, format);
         break;
-      case ExportRecordType.specimenRecord:
+      case RecordType.specimenRecord:
         await SpecimenRecordWriter(
           ref: ref,
           recordType: _specimenRecordType,
@@ -549,7 +549,7 @@ class ExportFormState extends ConsumerState<ExportForm> {
           exportPreset: _selectedPresetMap,
         ).writeRecordDelimited(file, format);
         break;
-      case ExportRecordType.specimenParts:
+      case RecordType.specimenParts:
         await SpecimenPartWriter(
           ref: ref,
           useFieldNamesOnly: _useFieldNamesOnly,

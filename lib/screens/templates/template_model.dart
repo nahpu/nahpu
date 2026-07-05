@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:nahpu/services/types/export.dart';
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
 bool isTemplateImagePathUsable(String path) {
@@ -1037,7 +1038,7 @@ class Template {
     required this.page2,
     this.printOptions,
     this.outline,
-    this.recordType = 'specimen',
+    this.recordType = RecordType.specimenRecord,
     this.description = '',
   });
 
@@ -1051,7 +1052,7 @@ class Template {
   /// When null, no outline is drawn on the label.
   final TemplateOutline? outline;
 
-  final String recordType;
+  final RecordType recordType;
   final String description;
 
   Template copyWith({
@@ -1062,7 +1063,7 @@ class Template {
     bool clearPrintOptions = false,
     TemplateOutline? outline,
     bool clearOutline = false,
-    String? recordType,
+    RecordType? recordType,
     String? description,
   }) {
     return Template(
@@ -1083,7 +1084,7 @@ class Template {
         'page2': page2.toJson(),
         if (printOptions != null) 'printOptions': printOptions!.toJson(),
         if (outline != null) 'outline': outline!.toJson(),
-        'recordType': recordType,
+        'recordType': recordTypeToString(recordType),
         'description': description,
       };
 
@@ -1109,7 +1110,7 @@ class Template {
       ),
       printOptions: opts,
       outline: outline,
-      recordType: json['recordType'] as String? ?? 'specimen',
+      recordType: parseRecordType(json['recordType'] as String?),
       description: json['description'] as String? ?? '',
     );
   }
@@ -1128,7 +1129,7 @@ class Template {
 class DefaultTemplate {
   static Template defaultTemplate([
     String name = 'Default',
-    String recordType = 'specimen',
+    RecordType recordType = RecordType.specimenRecord,
     String description = '',
   ]) {
     return Template(

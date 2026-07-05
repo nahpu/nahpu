@@ -16,12 +16,12 @@ class RecordOptionsCard extends StatelessWidget {
     required this.onInaccurateInBracketsChanged,
   });
 
-  final ExportRecordType? recordType;
+  final RecordType? recordType;
   final TaxonRecordType? taxonRecordType;
   final MammalRecordType mammalRecordType;
   final bool inaccurateInBrackets;
   final bool isMammalSpecimenRecord;
-  final void Function(ExportRecordType?) onRecordTypeChanged;
+  final void Function(RecordType?) onRecordTypeChanged;
   final void Function(TaxonRecordType?) onTaxonRecordTypeChanged;
   final void Function(MammalRecordType?) onMammalRecordTypeChanged;
   final void Function(bool) onInaccurateInBracketsChanged;
@@ -44,22 +44,21 @@ class RecordOptionsCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<ExportRecordType>(
+            DropdownButtonFormField<RecordType>(
               initialValue: recordType,
               decoration: const InputDecoration(
                 labelText: 'Record type',
               ),
               items: recordTypeList
                   .map((e) => DropdownMenuItem(
-                        value:
-                            ExportRecordType.values[recordTypeList.indexOf(e)],
+                        value: RecordType.values[recordTypeList.indexOf(e)],
                         child: CommonDropdownText(text: e),
                       ))
                   .toList(),
               onChanged: onRecordTypeChanged,
             ),
             Visibility(
-              visible: recordType == ExportRecordType.specimenRecord,
+              visible: recordType == RecordType.specimenRecord,
               child: DropdownButtonFormField<TaxonRecordType?>(
                 initialValue: taxonRecordType,
                 decoration: const InputDecoration(

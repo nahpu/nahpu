@@ -10,6 +10,7 @@ import 'package:nahpu/screens/templates/components/layout/template_editor_loadin
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/template_service.dart';
 import 'package:nahpu/services/template_editor_service.dart';
@@ -22,7 +23,6 @@ import 'package:nahpu/screens/templates/template_preview_specimen_selection.dart
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/narrative_services.dart';
-import 'package:nahpu/screens/shared/document/record_selection.dart';
 
 class TemplateEditorScreen extends ConsumerStatefulWidget {
   const TemplateEditorScreen({super.key});
@@ -354,7 +354,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       Map<String, String> m = {};
       final recordType = _template.recordType;
 
-      if (recordType == 'specimen') {
+      if (recordType == RecordType.specimenRecord) {
         final list = await SpecimenServices(ref: ref).getSpecimenList();
         if (list.isNotEmpty) {
           final firstSpecimen = list.first;
@@ -366,7 +366,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             });
           }
         }
-      } else if (recordType == 'site') {
+      } else if (recordType == RecordType.site) {
         final list = await SiteServices(ref: ref).getAllSites();
         if (list.isNotEmpty) {
           final firstSite = list.first;
@@ -377,7 +377,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             });
           }
         }
-      } else if (recordType == 'collEvent') {
+      } else if (recordType == RecordType.collEvent) {
         final list = await CollEventServices(ref: ref).getAllCollEvents();
         if (list.isNotEmpty) {
           final firstEvent = list.first;
@@ -388,7 +388,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             });
           }
         }
-      } else if (recordType == 'narrative') {
+      } else if (recordType == RecordType.narrative) {
         final list = await NarrativeServices(ref: ref).getAllNarrative();
         if (list.isNotEmpty) {
           final firstNarrative = list.first;
@@ -1008,86 +1008,54 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final recordType = _template.recordType;
     final db = ref.read(databaseProvider);
 
-    if (recordType == 'specimen') {
-      final result = await Navigator.push<String?>(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TemplatePreviewSpecimenSelectionScreen(
-            selectedUuid: _selectedSpecimenUuid,
-          ),
+    final result = await Navigator.push<String?>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TemplatePreviewSpecimenSelectionScreen(
+          selectedUuid: _selectedSpecimenUuid,
+          recordType: recordType,
         ),
-      );
+      ),
+    );
 
-      if (result != null && mounted) {
-        try {
+    if (result != null && mounted) {
+      try {
+        if (recordType == RecordType.specimenRecord) {
           final s = await SpecimenServices(ref: ref).getSpecimen(result);
           final m = await documentFieldValuesForSpecimen(db, s, ref);
           setState(() {
             _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
           });
-        } catch (_) {}
-      }
-    } else if (recordType == 'site') {
-      final result = await Navigator.push<int?>(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SiteSelectionScreen(
-            isSingleSelection: true,
-          ),
-        ),
-      );
-
-      if (result != null && mounted) {
-        try {
+        } else if (recordType == RecordType.site) {
           final list = await SiteServices(ref: ref).getAllSites();
-          final s = list.firstWhere((element) => element.id == result);
+          final s =
+              list.firstWhere((element) => element.id.toString() == result);
           final m = await documentFieldValuesForSite(db, s, ref);
           setState(() {
+            _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
           });
-        } catch (_) {}
-      }
-    } else if (recordType == 'collEvent') {
-      final result = await Navigator.push<int?>(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const EventSelectionScreen(
-            isSingleSelection: true,
-          ),
-        ),
-      );
-
-      if (result != null && mounted) {
-        try {
+        } else if (recordType == RecordType.collEvent) {
           final list = await CollEventServices(ref: ref).getAllCollEvents();
-          final s = list.firstWhere((element) => element.id == result);
+          final s =
+              list.firstWhere((element) => element.id.toString() == result);
           final m = await documentFieldValuesForCollEvent(db, s, ref);
           setState(() {
+            _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
           });
-        } catch (_) {}
-      }
-    } else if (recordType == 'narrative') {
-      final result = await Navigator.push<int?>(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const NarrativeSelectionScreen(
-            isSingleSelection: true,
-          ),
-        ),
-      );
-
-      if (result != null && mounted) {
-        try {
+        } else if (recordType == RecordType.narrative) {
           final list = await NarrativeServices(ref: ref).getAllNarrative();
-          final s = list.firstWhere((element) => element.id == result);
+          final s =
+              list.firstWhere((element) => element.id.toString() == result);
           final m = await documentFieldValuesForNarrative(db, s, ref);
           setState(() {
+            _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
           });
-        } catch (_) {}
-      }
+        }
+      } catch (_) {}
     }
   }
 }
@@ -1099,7 +1067,7 @@ class _CreateTemplateResult {
     required this.description,
   });
   final String name;
-  final String recordType;
+  final RecordType recordType;
   final String description;
 }
 
@@ -1116,7 +1084,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
   late final TextEditingController _ctrl;
   late final TextEditingController _descCtrl;
   final _formKey = GlobalKey<FormState>();
-  String _recordType = 'specimen';
+  RecordType _recordType = RecordType.specimenRecord;
 
   @override
   void initState() {
@@ -1183,7 +1151,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
               textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<RecordType>(
               initialValue: _recordType,
               decoration: const InputDecoration(
                 labelText: 'Record type',
@@ -1192,19 +1160,19 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
               ),
               items: const [
                 DropdownMenuItem(
-                  value: 'specimen',
+                  value: RecordType.specimenRecord,
                   child: Text('Specimen'),
                 ),
                 DropdownMenuItem(
-                  value: 'site',
+                  value: RecordType.site,
                   child: Text('Site'),
                 ),
                 DropdownMenuItem(
-                  value: 'collEvent',
+                  value: RecordType.collEvent,
                   child: Text('Collecting Event'),
                 ),
                 DropdownMenuItem(
-                  value: 'narrative',
+                  value: RecordType.narrative,
                   child: Text('Narrative'),
                 ),
               ],

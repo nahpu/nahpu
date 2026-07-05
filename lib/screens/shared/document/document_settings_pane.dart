@@ -5,6 +5,7 @@ import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/export.dart';
 
 class DocumentSettingsPane extends StatelessWidget {
   const DocumentSettingsPane({
@@ -49,7 +50,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final int totalCount;
   final VoidCallback onSelectSpecimens;
   final VoidCallback onManagePresets;
-  final String recordType;
+  final RecordType recordType;
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +74,11 @@ class DocumentSettingsPane extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            recordType == 'site'
+                            recordType == RecordType.site
                                 ? 'Sites'
-                                : recordType == 'collEvent'
+                                : recordType == RecordType.collEvent
                                     ? 'Collecting Events'
-                                    : recordType == 'narrative'
+                                    : recordType == RecordType.narrative
                                         ? 'Narratives'
                                         : 'Specimens',
                             style: Theme.of(context).textTheme.titleMedium,

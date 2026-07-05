@@ -116,13 +116,7 @@ const List<String> mammalGroupList = [
   'All mammals',
 ];
 
-enum ExportRecordType {
-  narrative,
-  site,
-  collEvent,
-  specimenRecord,
-  specimenParts
-}
+enum RecordType { narrative, site, collEvent, specimenRecord, specimenParts }
 
 const List<String> recordTypeList = [
   'Narrative',
@@ -374,4 +368,20 @@ class ExportPresetModel {
       'combined': combinedFields.map((e) => e.toJson()).toList(),
     };
   }
+}
+
+RecordType parseRecordType(String? value) {
+  if (value == null) return RecordType.specimenRecord;
+  if (value == 'specimen') return RecordType.specimenRecord;
+  for (final val in RecordType.values) {
+    if (val.name == value) return val;
+  }
+  return RecordType.specimenRecord;
+}
+
+String recordTypeToString(RecordType type) {
+  if (type == RecordType.specimenRecord) {
+    return 'specimen';
+  }
+  return type.name;
 }

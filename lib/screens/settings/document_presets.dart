@@ -16,9 +16,15 @@ import 'package:path/path.dart' as path;
 // Preview and specimen selection imports
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/template_service.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/platform_services.dart';
@@ -52,6 +58,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   rust_config.DocumentLayoutPreset? _previewLayout;
   List<String> _previewSelectedUuidList = const [];
   List<String> _previewSelectedUuids = const [];
+  RecordType _recordType = RecordType.specimenRecord;
 
   @override
   void initState() {
@@ -80,11 +87,17 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Preview Specimens (${_previewSelectedUuids.length} selected)',
+                _recordType == RecordType.site
+                    ? 'Preview Sites (${_previewSelectedUuids.length} selected)'
+                    : _recordType == RecordType.collEvent
+                        ? 'Preview Events (${_previewSelectedUuids.length} selected)'
+                        : _recordType == RecordType.narrative
+                            ? 'Preview Narratives (${_previewSelectedUuids.length} selected)'
+                            : 'Preview Specimens (${_previewSelectedUuids.length} selected)',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               OutlinedButton.icon(
-                onPressed: _selectPreviewSpecimens,
+                onPressed: _selectPreviewRecords,
                 icon: const Icon(Icons.check_box_outlined),
                 label: const Text('Select'),
               ),
@@ -252,9 +265,33 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
           : null;
       final templates = await rust_config.listTemplatePresets();
 
+      RecordType recordType = RecordType.specimenRecord;
+      if (layout != null && layout.blocks.isNotEmpty) {
+        final templateName = layout.blocks.first.templateName;
+        final tmpl = await const TemplateService().getTemplate(templateName);
+        if (tmpl != null) {
+          recordType = tmpl.recordType;
+        }
+      }
+
       if (_previewSelectedUuids.isEmpty) {
-        final specimens = await ref.read(specimenEntryProvider.future);
-        _previewSelectedUuids = specimens.take(20).map((e) => e.uuid).toList();
+        if (recordType == RecordType.site) {
+          final sites = ref.read(siteEntryProvider).value ?? [];
+          _previewSelectedUuids =
+              sites.take(20).map((e) => e.id.toString()).toList();
+        } else if (recordType == RecordType.collEvent) {
+          final events = ref.read(collEventEntryProvider).value ?? [];
+          _previewSelectedUuids =
+              events.take(20).map((e) => e.id.toString()).toList();
+        } else if (recordType == RecordType.narrative) {
+          final narratives = ref.read(narrativeEntryProvider).value ?? [];
+          _previewSelectedUuids =
+              narratives.take(20).map((e) => e.id.toString()).toList();
+        } else {
+          final specimens = ref.read(specimenEntryProvider).value ?? [];
+          _previewSelectedUuids =
+              specimens.take(20).map((e) => e.uuid).toList();
+        }
       }
 
       if (!mounted) return;
@@ -263,6 +300,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         _selectedLayoutName = selectedName;
         _layout = layout;
         _templateNames = templates;
+        _recordType = recordType;
         _loading = false;
       });
     } catch (e) {
@@ -293,12 +331,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     });
   }
 
-  void _selectPreviewSpecimens() {
+  void _selectPreviewRecords() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PreviewSpecimenSelectionScreen(
+        builder: (context) => PreviewRecordSelectionScreen(
           selectedUuids: _previewSelectedUuids.toSet(),
+          recordType: _recordType,
           onSelectionChanged: (selected) {
             setState(() {
               _previewSelectedUuids = selected.toList();
@@ -313,8 +352,10 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   Future<void> _layoutChanged(rust_config.DocumentLayoutPreset layout) async {
     setState(() {
       _layout = layout;
+      _previewSelectedUuids = const [];
     });
     await _layoutService.saveLayout(layout);
+    await _load();
     _markPreviewStale();
   }
 
@@ -328,7 +369,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     setState(() {
       _selectedLayoutName = name;
       _layout = layout;
+      _previewSelectedUuids = const [];
     });
+    await _load();
     _markPreviewStale();
   }
 
@@ -1032,33 +1075,69 @@ class DocumentPresetInfoContent extends StatelessWidget {
   }
 }
 
-class PreviewSpecimenSelectionScreen extends ConsumerStatefulWidget {
-  const PreviewSpecimenSelectionScreen({
+class PreviewRecordSelectionScreen extends ConsumerStatefulWidget {
+  const PreviewRecordSelectionScreen({
     super.key,
     required this.selectedUuids,
     required this.onSelectionChanged,
+    required this.recordType,
   });
 
   final Set<String> selectedUuids;
   final ValueChanged<Set<String>> onSelectionChanged;
+  final RecordType recordType;
 
   @override
-  ConsumerState<PreviewSpecimenSelectionScreen> createState() =>
-      _PreviewSpecimenSelectionScreenState();
+  ConsumerState<PreviewRecordSelectionScreen> createState() =>
+      _PreviewRecordSelectionScreenState();
 }
 
-class _PreviewSpecimenSelectionScreenState
-    extends ConsumerState<PreviewSpecimenSelectionScreen> {
+class _PreviewRecordSelectionScreenState
+    extends ConsumerState<PreviewRecordSelectionScreen> {
   List<String> _visibleColumnIds = [];
 
   @override
   void initState() {
     super.initState();
-    _loadColumns();
+    if (widget.recordType == RecordType.specimenRecord) {
+      _loadColumns();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.recordType == RecordType.site) {
+      return SiteSelectionScreen(
+        selectedIds: widget.selectedUuids
+            .map((e) => int.tryParse(e) ?? 0)
+            .where((e) => e != 0)
+            .toSet(),
+        onSelectionChanged: (selected) {
+          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+        },
+      );
+    } else if (widget.recordType == RecordType.collEvent) {
+      return EventSelectionScreen(
+        selectedIds: widget.selectedUuids
+            .map((e) => int.tryParse(e) ?? 0)
+            .where((e) => e != 0)
+            .toSet(),
+        onSelectionChanged: (selected) {
+          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+        },
+      );
+    } else if (widget.recordType == RecordType.narrative) {
+      return NarrativeSelectionScreen(
+        selectedIds: widget.selectedUuids
+            .map((e) => int.tryParse(e) ?? 0)
+            .where((e) => e != 0)
+            .toSet(),
+        onSelectionChanged: (selected) {
+          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Select specimens for preview'),

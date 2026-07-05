@@ -3,6 +3,7 @@ import 'package:nahpu/screens/templates/components/controls/front_back_page_pick
 import 'package:nahpu/screens/templates/components/controls/mirror_toggle_button.dart';
 import 'package:nahpu/screens/templates/template_size_selector.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/types/export.dart';
 
 class TemplateEditorToolbar extends StatelessWidget {
   const TemplateEditorToolbar({
@@ -255,18 +256,18 @@ class TemplateEditorToolbar extends StatelessWidget {
     );
   }
 
-  String _getRecordTypeLabel(String recordType) {
+  String _getRecordTypeLabel(RecordType recordType) {
     switch (recordType) {
-      case 'specimen':
+      case RecordType.specimenRecord:
         return 'Specimen';
-      case 'site':
+      case RecordType.site:
         return 'Site';
-      case 'collEvent':
+      case RecordType.collEvent:
         return 'Collecting Event';
-      case 'narrative':
+      case RecordType.narrative:
         return 'Narrative';
-      default:
-        return recordType;
+      case RecordType.specimenParts:
+        return 'Specimen Parts';
     }
   }
 }

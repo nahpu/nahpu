@@ -7,6 +7,7 @@ import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/document_selection.dart';
@@ -45,7 +46,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   List<String> _templateNames = const [];
   List<String> _setupNames = const [];
   String _selectedSetupName = 'Default';
-  String _recordType = 'specimen';
+  RecordType _recordType = RecordType.specimenRecord;
 
   late TabController _mobileTabController;
 
@@ -73,7 +74,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     int selectedCount = 0;
     int totalCount = 0;
 
-    if (_recordType == 'specimen') {
+    if (_recordType == RecordType.specimenRecord) {
       final selectedUuids = ref.watch(documentSpecimenSelectionProvider);
       selectedCount = selectedUuids.length;
       totalCount = ref.watch(specimenEntryProvider).value?.length ?? 0;
@@ -83,7 +84,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           _markPreviewStale();
         }
       });
-    } else if (_recordType == 'site') {
+    } else if (_recordType == RecordType.site) {
       final selectedSites = ref.watch(documentSiteSelectionProvider);
       selectedCount = selectedSites.length;
       totalCount = ref.watch(siteEntryProvider).value?.length ?? 0;
@@ -92,7 +93,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           _markPreviewStale();
         }
       });
-    } else if (_recordType == 'collEvent') {
+    } else if (_recordType == RecordType.collEvent) {
       final selectedEvents = ref.watch(documentEventSelectionProvider);
       selectedCount = selectedEvents.length;
       totalCount = ref.watch(collEventEntryProvider).value?.length ?? 0;
@@ -101,7 +102,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           _markPreviewStale();
         }
       });
-    } else if (_recordType == 'narrative') {
+    } else if (_recordType == RecordType.narrative) {
       final selectedNarratives = ref.watch(documentNarrativeSelectionProvider);
       selectedCount = selectedNarratives.length;
       totalCount = ref.watch(narrativeEntryProvider).value?.length ?? 0;
@@ -150,28 +151,28 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
             totalCount: totalCount,
             recordType: _recordType,
             onSelectSpecimens: () async {
-              if (_recordType == 'specimen') {
+              if (_recordType == RecordType.specimenRecord) {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const SpecimenSelectionScreen(),
                   ),
                 );
-              } else if (_recordType == 'site') {
+              } else if (_recordType == RecordType.site) {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const SiteSelectionScreen(),
                   ),
                 );
-              } else if (_recordType == 'collEvent') {
+              } else if (_recordType == RecordType.collEvent) {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const EventSelectionScreen(),
                   ),
                 );
-              } else if (_recordType == 'narrative') {
+              } else if (_recordType == RecordType.narrative) {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -263,19 +264,19 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     if (_layout == null) return;
 
     List<String> selectedList = [];
-    if (_recordType == 'specimen') {
+    if (_recordType == RecordType.specimenRecord) {
       selectedList = ref.read(documentSpecimenSelectionProvider).toList();
-    } else if (_recordType == 'site') {
+    } else if (_recordType == RecordType.site) {
       selectedList = ref
           .read(documentSiteSelectionProvider)
           .map((id) => id.toString())
           .toList();
-    } else if (_recordType == 'collEvent') {
+    } else if (_recordType == RecordType.collEvent) {
       selectedList = ref
           .read(documentEventSelectionProvider)
           .map((id) => id.toString())
           .toList();
-    } else if (_recordType == 'narrative') {
+    } else if (_recordType == RecordType.narrative) {
       selectedList = ref
           .read(documentNarrativeSelectionProvider)
           .map((id) => id.toString())
@@ -291,12 +292,14 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     });
   }
 
-  Future<String> _getRecordTypeForLayout(
+  Future<RecordType> _getRecordTypeForLayout(
       rust_config.DocumentLayoutPreset? layout) async {
-    if (layout == null || layout.blocks.isEmpty) return 'specimen';
+    if (layout == null || layout.blocks.isEmpty) {
+      return RecordType.specimenRecord;
+    }
     final firstTemplateName = layout.blocks.first.templateName;
     final tmpl = await const TemplateService().getTemplate(firstTemplateName);
-    return tmpl?.recordType ?? 'specimen';
+    return tmpl?.recordType ?? RecordType.specimenRecord;
   }
 
   Future<void> _load() async {
