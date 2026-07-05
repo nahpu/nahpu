@@ -121,7 +121,6 @@ class DocumentSettingsPane extends StatelessWidget {
                 templateNames: templateNames,
                 onLayoutChanged: onLayoutChanged,
                 onSetupSelected: onSetupSelected,
-                showPresetActions: false,
                 showBlocks: showSpecimenSelection ? true : false,
                 showSpecimenSelection: showSpecimenSelection,
                 onManagePresets: onManagePresets,
@@ -225,7 +224,6 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
     this.onCreateTemplate,
     this.onEditTemplate,
     this.showFileActions = true,
-    this.showPresetActions = true,
     this.showBlocks = true,
     this.onManagePresets,
     this.incompatibleSetupNames = const {},
@@ -247,7 +245,6 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
   final VoidCallback? onCreateTemplate;
   final ValueChanged<String>? onEditTemplate;
   final bool showFileActions;
-  final bool showPresetActions;
   final bool showBlocks;
   final VoidCallback? onManagePresets;
   final Set<String> incompatibleSetupNames;
@@ -397,43 +394,6 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                     },
                   ),
                 ),
-                if (widget.showPresetActions) ...[
-                  OutlinedButton.icon(
-                    onPressed: widget.onCreatePreset,
-                    icon: const Icon(Icons.add),
-                    label: const Text('New'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: widget.onSaveSetupAs,
-                    icon: const Icon(Icons.save_outlined),
-                    label: const Text('Save As'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: widget.selectedSetupName == 'Default'
-                        ? null
-                        : widget.onDeleteSetup,
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Delete'),
-                  ),
-                  if (widget.showFileActions) ...[
-                    OutlinedButton.icon(
-                      onPressed: widget.onImportSetup,
-                      icon: const Icon(Icons.download_outlined),
-                      label: const Text('Import'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: widget.onExportSetup,
-                      icon: const Icon(Icons.upload_file_outlined),
-                      label: const Text('Export'),
-                    ),
-                  ],
-                ] else if (widget.onManagePresets != null) ...[
-                  OutlinedButton.icon(
-                    onPressed: widget.onManagePresets,
-                    icon: const Icon(Icons.description_outlined),
-                    label: const Text('Presets'),
-                  ),
-                ],
               ],
             ),
           ],
@@ -615,27 +575,25 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
               ],
             ],
           ),
-          if (!widget.showPresetActions) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Text(
-                  'Advanced options',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const Spacer(),
-                Switch(
-                  value: _showAdvanced,
-                  onChanged: (v) {
-                    setState(() {
-                      _showAdvanced = v;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ],
-          if (widget.showPresetActions || _showAdvanced) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Text(
+                'Advanced options',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const Spacer(),
+              Switch(
+                value: _showAdvanced,
+                onChanged: (v) {
+                  setState(() {
+                    _showAdvanced = v;
+                  });
+                },
+              ),
+            ],
+          ),
+          if (_showAdvanced) ...[
             if (widget.showBlocks) ...[
               const SizedBox(height: 16),
               const Divider(),

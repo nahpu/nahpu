@@ -974,7 +974,6 @@ class DocumentPresetEditColumn extends StatelessWidget {
                 templateNames: templateNames,
                 onLayoutChanged: onLayoutChanged,
                 onSetupSelected: (_) {},
-                showPresetActions: false,
                 showFileActions: false,
                 showProfileDropdown: false,
                 onCreateTemplate: onCreateTemplate,
