@@ -90,7 +90,7 @@ class _AvailableFieldsSectionState
         allowedTables = {'site', 'personnel'};
         break;
       case RecordType.collEvent:
-        allowedTables = {'collEvent', 'site', 'weather', 'personnel'};
+        allowedTables = {'collEvent', 'site', 'weather', 'personnel', 'collEffort'};
         break;
       case RecordType.specimenRecord:
       case RecordType.specimenParts:

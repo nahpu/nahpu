@@ -350,6 +350,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
 
   Future<void> _loadEditorTemplateFieldPreview() async {
     try {
+      if (mounted) {
+        setState(() {
+          _selectedSpecimenUuid = null;
+          _editorTemplateFieldPreview = {};
+        });
+      }
       final db = ref.read(databaseProvider);
       Map<String, String> m = {};
       final recordType = _template.recordType;
@@ -860,6 +866,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _syncIdCountersFromTemplate();
       _syncDuplexTabIndex();
     });
+    await _loadEditorTemplateFieldPreview();
   }
 
   Future<void> _promptSaveTemplate() async {
@@ -943,9 +950,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         _syncIdCountersFromTemplate();
         _syncDuplexTabIndex();
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Imported and saved "$name"')),
-      );
+      await _loadEditorTemplateFieldPreview();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Imported and saved "$name"')),
+        );
+      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Import failed or file invalid')),
@@ -975,6 +985,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         _selectedElement = null;
         _syncDuplexTabIndex();
       });
+      await _loadEditorTemplateFieldPreview();
     }
   }
 
@@ -1004,6 +1015,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _selectedElement = null;
       _syncDuplexTabIndex();
     });
+    await _loadEditorTemplateFieldPreview();
   }
 
   Future<void> _selectSpecimenForPreview() async {

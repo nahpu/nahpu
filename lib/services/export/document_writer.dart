@@ -1123,8 +1123,15 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
 ) async {
   final m = <String, String>{};
 
+  // Pre-populate collEffort keys to avoid unresolved placeholders
+  final effortColumns = ['id', 'eventID', 'method', 'brand', 'count', 'size', 'notes'];
+  for (var col in effortColumns) {
+    m['collEffort::$col'] = '';
+  }
+
   for (var entry in s.toJson().entries) {
     m['collEvent::${entry.key}'] = entry.value?.toString() ?? '';
+    m['event::${entry.key}'] = entry.value?.toString() ?? '';
   }
 
   // Site details
@@ -1143,14 +1150,48 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
   }
 
   // Event details
-  m['event::collEventID'] = await CollEventServices(ref: ref).getCollEventID(s);
+  final formattedEventID = await CollEventServices(ref: ref).getCollEventID(s);
+  m['collEvent::collEventID'] = formattedEventID;
+  m['collEvent::collEventId'] = formattedEventID;
+  m['event::collEventID'] = formattedEventID;
+  m['event::collEventId'] = formattedEventID;
+
+  m['collEvent::Activity'] = s.primaryCollMethod ?? '';
   m['event::Activity'] = s.primaryCollMethod ?? '';
+
+  m['collEvent::startDate'] = s.startDate ?? '';
   m['event::startDate'] = s.startDate ?? '';
+
+  m['collEvent::endDate'] = s.endDate ?? '';
   m['event::endDate'] = s.endDate ?? '';
+
+  m['collEvent::startTime'] = s.startTime ?? '';
   m['event::startTime'] = s.startTime ?? '';
+
+  m['collEvent::endTime'] = s.endTime ?? '';
   m['event::endTime'] = s.endTime ?? '';
-  m['event::methods'] = await _getEventEffort(ref, s.id);
-  m['event::personnel'] = await _getEventPersonnel(ref, s.id);
+
+  final methods = await _getEventEffort(ref, s.id);
+  final personnel = await _getEventPersonnel(ref, s.id);
+  m['collEvent::methods'] = methods;
+  m['event::methods'] = methods;
+  m['collEvent::personnel'] = personnel;
+  m['event::personnel'] = personnel;
+
+  // Add collEffort records
+  final efforts = await CollEventServices(ref: ref).getAllCollEffort(s.id);
+  if (efforts.isNotEmpty) {
+    final Set<String> effortKeys = {};
+    final List<Map<String, dynamic>> effortJsons = efforts.map((e) => e.toJson()).toList();
+    for (var effortJson in effortJsons) {
+      effortKeys.addAll(effortJson.keys);
+    }
+    for (var key in effortKeys) {
+      final combined = effortJsons.map((e) => e[key]?.toString() ?? '').join(' | ');
+      m['collEffort::$key'] = combined;
+    }
+  }
+
   return m;
 }
 
