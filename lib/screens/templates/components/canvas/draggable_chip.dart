@@ -29,7 +29,9 @@ class DraggableChip extends StatefulWidget {
     this.onTap,
     this.onSelect,
     this.maxWidthMm,
+    this.heightMm,
     this.onMaxWidthChanged,
+    this.onHeightChanged,
     this.onResizeChanged,
     this.colorArgb = 0xFF000000,
     this.onDragStateChanged,
@@ -67,8 +69,10 @@ class DraggableChip extends StatefulWidget {
   final VoidCallback? onDoubleTap;
 
   final double? maxWidthMm;
+  final double? heightMm;
   final ValueChanged<double>? onMaxWidthChanged;
-  final void Function(Offset newPosMm, double maxWidthMm)? onResizeChanged;
+  final ValueChanged<double>? onHeightChanged;
+  final void Function(Offset newPosMm, double maxWidthMm, double heightMm)? onResizeChanged;
   final int colorArgb;
   final ValueChanged<bool>? onDragStateChanged;
   final bool isDynamic;
@@ -94,8 +98,10 @@ class DraggableChipState extends State<DraggableChip> {
 
   _TextCorner? _resizeCorner;
   double? _resizeStartWidthMm;
+  double? _resizeStartHeightMm;
   Offset? _resizeStartGlobal;
   double? _resizeLiveWidthMm;
+  double? _resizeLiveHeightMm;
   Offset? _resizeStartPosMm;
   Offset? _resizeLivePosMm;
 
@@ -134,10 +140,14 @@ class DraggableChipState extends State<DraggableChip> {
       textDirection: TextDirection.ltr,
     )..layout();
 
+    final initialHeight = widget.heightMm ?? (tp.height / widget.scale);
+
     _deferSetState(() {
       _resizeCorner = corner;
       _resizeStartWidthMm = widget.maxWidthMm ?? (tp.width / widget.scale);
       _resizeLiveWidthMm = _resizeStartWidthMm;
+      _resizeStartHeightMm = initialHeight;
+      _resizeLiveHeightMm = initialHeight;
       _resizeStartPosMm = widget.position;
       _resizeLivePosMm = widget.position;
     });
@@ -159,39 +169,60 @@ class DraggableChipState extends State<DraggableChip> {
       templateDeltaMm,
       widget.rotationDegrees,
     );
-    final deltaMm = localDeltaMm.dx;
 
-    var newWidth = _resizeStartWidthMm!;
-    var newPos = _resizeStartPosMm!;
+    if (widget.isDynamic) {
+      final deltaMm = localDeltaMm.dx;
+      var newWidth = _resizeStartWidthMm!;
+      var newPos = _resizeStartPosMm!;
 
-    switch (_resizeCorner!) {
-      case _TextCorner.tl:
-      case _TextCorner.bl:
-        newWidth = (_resizeStartWidthMm! - deltaMm).clamp(
-          5.0,
-          widget.templateWidthMm,
-        );
-        final appliedDeltaMm = _resizeStartWidthMm! - newWidth;
-        final radians = degreesToRadians(widget.rotationDegrees);
-        newPos = _resizeStartPosMm! +
-            Offset(
-              appliedDeltaMm * math.cos(radians),
-              appliedDeltaMm * math.sin(radians),
-            );
-        break;
-      case _TextCorner.tr:
-      case _TextCorner.br:
-        newWidth = (_resizeStartWidthMm! + deltaMm).clamp(
-          5.0,
-          widget.templateWidthMm,
-        );
-        break;
+      switch (_resizeCorner!) {
+        case _TextCorner.tl:
+        case _TextCorner.bl:
+          newWidth = (_resizeStartWidthMm! - deltaMm).clamp(
+            5.0,
+            widget.templateWidthMm,
+          );
+          final appliedDeltaMm = _resizeStartWidthMm! - newWidth;
+          final radians = degreesToRadians(widget.rotationDegrees);
+          newPos = _resizeStartPosMm! +
+              Offset(
+                appliedDeltaMm * math.cos(radians),
+                appliedDeltaMm * math.sin(radians),
+              );
+          break;
+        case _TextCorner.tr:
+        case _TextCorner.br:
+          newWidth = (_resizeStartWidthMm! + deltaMm).clamp(
+            5.0,
+            widget.templateWidthMm,
+          );
+          break;
+      }
+
+      setState(() {
+        _resizeLiveWidthMm = newWidth;
+        _resizeLivePosMm = newPos;
+      });
+    } else {
+      final rect = resizedRotatedRectFromCorner(
+        startMm: Rect.fromLTWH(
+          _resizeStartPosMm!.dx,
+          _resizeStartPosMm!.dy,
+          _resizeStartWidthMm!,
+          _resizeStartHeightMm ?? 0.0,
+        ),
+        localDeltaMm: localDeltaMm,
+        corner: _resizeCorner!.name,
+        rotationDegrees: widget.rotationDegrees,
+        maxWidthMm: widget.templateWidthMm,
+        maxHeightMm: widget.templateHeightMm,
+      );
+      setState(() {
+        _resizeLiveWidthMm = rect.width;
+        _resizeLiveHeightMm = rect.height;
+        _resizeLivePosMm = rect.topLeft;
+      });
     }
-
-    setState(() {
-      _resizeLiveWidthMm = newWidth;
-      _resizeLivePosMm = newPos;
-    });
   }
 
   void _onResizePanEnd() {
@@ -199,9 +230,16 @@ class DraggableChipState extends State<DraggableChip> {
     if (_resizeLiveWidthMm != null) {
       final pos = _resizeLivePosMm ?? _resizeStartPosMm ?? widget.position;
       if (widget.onResizeChanged != null) {
-        widget.onResizeChanged!(pos, _resizeLiveWidthMm!);
+        widget.onResizeChanged!(
+          pos,
+          _resizeLiveWidthMm!,
+          widget.isDynamic ? 0.0 : (_resizeLiveHeightMm ?? widget.heightMm ?? 0.0),
+        );
       } else {
         widget.onMaxWidthChanged?.call(_resizeLiveWidthMm!);
+        if (widget.onHeightChanged != null && !widget.isDynamic && _resizeLiveHeightMm != null) {
+          widget.onHeightChanged!(_resizeLiveHeightMm!);
+        }
         if (_resizeLivePosMm != null && _resizeLivePosMm != _resizeStartPosMm) {
           widget.onMoved(_resizeLivePosMm!);
         }
@@ -212,6 +250,8 @@ class DraggableChipState extends State<DraggableChip> {
       _resizeStartGlobal = null;
       _resizeStartWidthMm = null;
       _resizeLiveWidthMm = null;
+      _resizeStartHeightMm = null;
+      _resizeLiveHeightMm = null;
       _resizeStartPosMm = null;
       _resizeLivePosMm = null;
     });
@@ -367,8 +407,10 @@ class DraggableChipState extends State<DraggableChip> {
       ).copyWith(color: Color(widget.colorArgb));
 
       final activeWidthMm = _resizeLiveWidthMm ?? widget.maxWidthMm;
+      final activeHeightMm = widget.isDynamic ? null : (_resizeLiveHeightMm ?? widget.heightMm);
       final text = SizedBox(
         width: activeWidthMm != null ? activeWidthMm * widget.scale : null,
+        height: activeHeightMm != null ? activeHeightMm * widget.scale : null,
         child: Text(
           widget.label,
           style: textStyle,
@@ -440,7 +482,7 @@ class DraggableChipState extends State<DraggableChip> {
                   ),
                 ),
                 if ((widget.isSelected || _resizeCorner != null) &&
-                    widget.onMaxWidthChanged != null) ...[
+                    (widget.onMaxWidthChanged != null || widget.onHeightChanged != null)) ...[
                   Positioned(
                     left: 0,
                     top: 0,

@@ -282,9 +282,13 @@ class _DocumentTypstRenderer {
     if (t.textAlign != 'left') {
       textElem = '#align(${t.textAlign})[$textElem]';
     }
-    if (t.maxWidthMm != null) {
-      textElem =
-          '#box(width: ${documentPdfMmToPt(t.maxWidthMm!)}pt)[$textElem]';
+    final hasWidth = t.maxWidthMm != null;
+    final hasHeight = t.heightMm != null && !t.isDynamic;
+    if (hasWidth || hasHeight) {
+      final wPart = hasWidth ? 'width: ${documentPdfMmToPt(t.maxWidthMm!)}pt' : '';
+      final hPart = hasHeight ? 'height: ${documentPdfMmToPt(t.heightMm!)}pt' : '';
+      final comma = (hasWidth && hasHeight) ? ', ' : '';
+      textElem = '#box($wPart$comma$hPart)[$textElem]';
     }
 
     typst.writeln(

@@ -444,6 +444,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     templatePanToMmDelta: templatePanToMmDelta,
                                     isCustom: true,
                                     maxWidthMm: element.maxWidthMm,
+                                    heightMm: element.heightMm,
                                     colorArgb: element.colorArgb,
                                     isDynamic: element.isDynamic,
                                     onMaxWidthChanged: (w) {
@@ -451,12 +452,18 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                         element.copyWith(maxWidthMm: w),
                                       );
                                     },
-                                    onResizeChanged: (pos, w) {
+                                    onHeightChanged: (h) {
+                                      onScheduleTemplateTextPositionUpdate(
+                                        element.copyWith(heightMm: h),
+                                      );
+                                    },
+                                    onResizeChanged: (pos, w, h) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
                                           xMm: pos.dx,
                                           yMm: pos.dy,
                                           maxWidthMm: w,
+                                          heightMm: element.isDynamic ? null : h,
                                         ),
                                       );
                                     },

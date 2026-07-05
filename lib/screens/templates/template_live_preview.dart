@@ -210,6 +210,8 @@ class _PreviewPage extends StatelessWidget {
                     child: SizedBox(
                       width:
                           ct.maxWidthMm != null ? ct.maxWidthMm! * scale : null,
+                      height:
+                          (!ct.isDynamic && ct.heightMm != null) ? ct.heightMm! * scale : null,
                       child: Text(
                         ct.text.isEmpty
                             ? ' '

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_font_size_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
+import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -725,6 +726,44 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 },
               ),
             ),
+            if (!ct.isDynamic) ...[
+              const SizedBox(width: 12),
+              Text('Max Height (mm)',
+                  style: Theme.of(context).textTheme.labelMedium),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 64,
+                child: SyncedMaxHeightField(
+                  key: ValueKey('mh_${ct.id}'),
+                  maxHeightMm: ct.heightMm,
+                  onValidSize: (p) => onUpdateCustomText(
+                    page1,
+                    ct.copyWith(heightMm: p),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 100,
+                child: widget.buildOptionSlider(
+                  context,
+                  value: ct.heightMm ?? 0.0,
+                  min: 0.0,
+                  max: 200.0,
+                  divisions: 40,
+                  label: ct.heightMm == null || ct.heightMm! == 0.0
+                      ? 'Auto'
+                      : '${ct.heightMm!.toStringAsFixed(1)} mm',
+                  onChanged: (v) {
+                    onUpdateCustomText(
+                      page1,
+                      ct.copyWith(
+                        heightMm: v == 0.0 ? null : v,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
             const SizedBox(width: 12),
             Text('Rotation', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(width: 8),

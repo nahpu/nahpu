@@ -131,7 +131,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       fieldDisplayOption: _fieldDisplayOption,
       canDeleteSavedTemplate: _canDeleteSavedTemplate,
       onCreateNewTemplate: _createNewTemplate,
-      onSaveTemplate: _promptSaveTemplate,
+      onSaveTemplate: _saveTemplate,
+      onSaveAsTemplate: _promptSaveAsTemplate,
       onImportTemplate: _importTemplate,
       onExportTemplate: _exportTemplate,
       onDeleteTemplate: _confirmDeleteTemplate,
@@ -869,12 +870,17 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     await _loadEditorTemplateFieldPreview();
   }
 
-  Future<void> _promptSaveTemplate() async {
+  Future<void> _saveTemplate() async {
+    await _saveTemplateWithName(_template.name);
+  }
+
+  Future<void> _promptSaveAsTemplate() async {
     final name =
         await _editorService.promptSaveTemplate(context, _template.name);
     if (name == null || !mounted) return;
     await _saveTemplateWithName(name);
   }
+
 
   /// When import would overwrite an existing saved template, user picks a new unique name.
   Future<void> _saveTemplateWithName(String name) async {

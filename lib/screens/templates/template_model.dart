@@ -325,6 +325,7 @@ class CustomTextElement {
     this.iconWidthMm,
     this.iconHeightMm,
     this.maxWidthMm,
+    this.heightMm,
     this.zIndex = 0,
     this.colorArgb = 0xFF000000,
     this.textType = 'normal',
@@ -360,6 +361,9 @@ class CustomTextElement {
   /// If non-null, text wraps to this width.
   final double? maxWidthMm;
 
+  /// If non-null, bounds the text box height.
+  final double? heightMm;
+
   final bool isQrCode;
   final double qrSizeMm;
   final int qrBgColorArgb;
@@ -382,9 +386,11 @@ class CustomTextElement {
     double? iconWidthMm,
     double? iconHeightMm,
     double? maxWidthMm,
+    double? heightMm,
     int? zIndex,
     int? colorArgb,
     bool clearMaxWidthMm = false,
+    bool clearHeightMm = false,
     String? textType,
     String? formatOption,
     bool? isQrCode,
@@ -410,6 +416,7 @@ class CustomTextElement {
       iconWidthMm: iconWidthMm ?? this.iconWidthMm,
       iconHeightMm: iconHeightMm ?? this.iconHeightMm,
       maxWidthMm: clearMaxWidthMm ? null : (maxWidthMm ?? this.maxWidthMm),
+      heightMm: clearHeightMm ? null : (heightMm ?? this.heightMm),
       zIndex: zIndex ?? this.zIndex,
       colorArgb: colorArgb ?? this.colorArgb,
       textType: textType ?? this.textType,
@@ -438,6 +445,7 @@ class CustomTextElement {
         if (iconWidthMm != null) 'iconWidthMm': iconWidthMm,
         if (iconHeightMm != null) 'iconHeightMm': iconHeightMm,
         if (maxWidthMm != null) 'maxWidthMm': maxWidthMm,
+        if (heightMm != null) 'heightMm': heightMm,
         'zIndex': zIndex,
         'colorArgb': colorArgb,
         'textType': textType,
@@ -465,6 +473,7 @@ class CustomTextElement {
       iconWidthMm: (json['iconWidthMm'] as num?)?.toDouble(),
       iconHeightMm: (json['iconHeightMm'] as num?)?.toDouble(),
       maxWidthMm: (json['maxWidthMm'] as num?)?.toDouble(),
+      heightMm: (json['heightMm'] as num?)?.toDouble(),
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
       colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF000000,
       textType: json['textType'] as String? ?? 'normal',

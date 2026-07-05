@@ -454,6 +454,21 @@ void main() {
         final deserialized = CustomTextElement.fromJson(json);
         expect(deserialized.isDynamic, true);
       });
+
+      test('CustomTextElement JSON serialization retains heightMm', () {
+        final ct = CustomTextElement(
+          id: 'ct_4',
+          text: 'Hello Height',
+          xMm: 10,
+          yMm: 20,
+          heightMm: 45.5,
+        );
+        final json = ct.toJson();
+        expect(json['heightMm'], 45.5);
+
+        final deserialized = CustomTextElement.fromJson(json);
+        expect(deserialized.heightMm, 45.5);
+      });
     });
   });
 }

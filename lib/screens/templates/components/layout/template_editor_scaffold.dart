@@ -31,6 +31,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.canDeleteSavedTemplate,
     required this.onCreateNewTemplate,
     required this.onSaveTemplate,
+    required this.onSaveAsTemplate,
     required this.onImportTemplate,
     required this.onExportTemplate,
     required this.onDeleteTemplate,
@@ -94,6 +95,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   final bool canDeleteSavedTemplate;
   final VoidCallback onCreateNewTemplate;
   final VoidCallback onSaveTemplate;
+  final VoidCallback onSaveAsTemplate;
   final VoidCallback onImportTemplate;
   final VoidCallback onExportTemplate;
   final VoidCallback onDeleteTemplate;
@@ -145,6 +147,7 @@ class TemplateEditorScaffold extends StatelessWidget {
         canDeleteSavedTemplate: canDeleteSavedTemplate,
         onCreateNewTemplate: onCreateNewTemplate,
         onSaveTemplate: onSaveTemplate,
+        onSaveAsTemplate: onSaveAsTemplate,
         onImportTemplate: onImportTemplate,
         onExportTemplate: onExportTemplate,
         onDeleteTemplate: onDeleteTemplate,
@@ -173,6 +176,7 @@ class TemplateEditorScaffold extends StatelessWidget {
               isBorderPanelOpen: isBorderPanelOpen,
               showGrid: showGrid,
               onSaveTemplate: onSaveTemplate,
+              onSaveAsTemplate: onSaveAsTemplate,
               onTemplateSelected: onTemplateSelected,
               onDuplexChanged: onDuplexChanged,
               onPageChanged: onPageChanged,
@@ -247,6 +251,7 @@ class _TemplateEditorAppBar extends StatelessWidget
     required this.canDeleteSavedTemplate,
     required this.onCreateNewTemplate,
     required this.onSaveTemplate,
+    required this.onSaveAsTemplate,
     required this.onImportTemplate,
     required this.onExportTemplate,
     required this.onDeleteTemplate,
@@ -255,6 +260,7 @@ class _TemplateEditorAppBar extends StatelessWidget
   final bool canDeleteSavedTemplate;
   final VoidCallback onCreateNewTemplate;
   final VoidCallback onSaveTemplate;
+  final VoidCallback onSaveAsTemplate;
   final VoidCallback onImportTemplate;
   final VoidCallback onExportTemplate;
   final VoidCallback onDeleteTemplate;
@@ -280,6 +286,8 @@ class _TemplateEditorAppBar extends StatelessWidget
               onCreateNewTemplate();
             } else if (action == 'save') {
               onSaveTemplate();
+            } else if (action == 'save_as') {
+              onSaveAsTemplate();
             } else if (action == 'import') {
               onImportTemplate();
             } else if (action == 'export') {
@@ -291,26 +299,69 @@ class _TemplateEditorAppBar extends StatelessWidget
           itemBuilder: (ctx) => [
             const PopupMenuItem(
               value: 'create',
-              child: Text('Create new template'),
+              child: Row(
+                children: [
+                  Icon(Icons.add_circle_outline_rounded),
+                  SizedBox(width: 8),
+                  Text('Create new'),
+                ],
+              ),
             ),
+            const PopupMenuDivider(height: 8),
             const PopupMenuItem(
               value: 'save',
-              child: Text('Save template'),
+              child: Row(
+                children: [
+                  Icon(Icons.save_outlined),
+                  SizedBox(width: 8),
+                  Text('Save'),
+                ],
+              ),
             ),
             const PopupMenuItem(
+              value: 'save_as',
+              child: Row(
+                children: [
+                  Icon(Icons.save_as_outlined),
+                  SizedBox(width: 8),
+                  Text('Save as...'),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(height: 8),
+            const PopupMenuItem(
               value: 'import',
-              child: Text('Import template'),
+              child: Row(
+                children: [
+                  Icon(Icons.file_download_outlined),
+                  SizedBox(width: 8),
+                  Text('Import'),
+                ],
+              ),
             ),
             const PopupMenuItem(
               value: 'export',
-              child: Text('Export template'),
+              child: Row(
+                children: [
+                  Icon(Icons.file_upload_outlined),
+                  SizedBox(width: 8),
+                  Text('Export'),
+                ],
+              ),
             ),
+            const PopupMenuDivider(height: 8),
             if (canDeleteSavedTemplate)
               PopupMenuItem(
                 value: 'delete',
-                child: Text(
-                  'Delete template',
-                  style: TextStyle(color: scheme.error),
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline_rounded, color: scheme.error),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Delete',
+                      style: TextStyle(color: scheme.error),
+                    ),
+                  ],
                 ),
               ),
           ],
