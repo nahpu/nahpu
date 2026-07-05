@@ -15,6 +15,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/settings/document_presets.dart';
+import 'package:nahpu/screens/templates/template_editor_screen.dart';
+import 'package:nahpu/services/template_settings_services.dart';
 
 class ExportDocumentsView extends ConsumerStatefulWidget {
   const ExportDocumentsView({super.key});
@@ -107,6 +109,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
               );
               await _load();
             },
+            onEditTemplate: _openTemplateEditor,
             recordType: _recordType,
             showSpecimenSelection: true,
           );
@@ -171,6 +174,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       _previewStale = true;
     }
   }
+
   void _updatePreview() {
     if (_layout == null) return;
 
@@ -182,6 +186,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       _previewVersion++;
     });
   }
+
   Future<RecordType> _getRecordTypeForLayout(
       rust_config.DocumentLayoutPreset? layout) async {
     if (layout == null || layout.blocks.isEmpty) {
@@ -260,6 +265,20 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       _recordType = recordType;
       _setPreviewStale();
     });
+  }
+
+  Future<void> _openTemplateEditor(String templateName) async {
+    if (templateName.isNotEmpty) {
+      await DocumentSettingsServices().setCurrentTemplateName(templateName);
+    }
+    if (!mounted) return;
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (context) => const TemplateEditorScreen(),
+      ),
+    );
+    await _load();
   }
 
   Future<void> _exportDocuments() async {

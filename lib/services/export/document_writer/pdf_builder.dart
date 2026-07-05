@@ -119,7 +119,6 @@ class _DocumentPdfBuilder {
         final tmpl = templates[block.templateName]!;
         final cols = block.cols > 0 ? block.cols : 4;
         final rows = block.rows > 0 ? block.rows : 8;
-        final perSheet = cols * rows;
 
         final cellW = usableW / cols;
         final cellH = usableH / rows;
@@ -131,77 +130,95 @@ class _DocumentPdfBuilder {
           }
         }
 
-        for (var start = 0; start < blockRecords.length; start += perSheet) {
-          final end = math.min(start + perSheet, blockRecords.length);
-          final batch = blockRecords.sublist(start, end);
-          final isLastBatch = (start + perSheet) >= blockRecords.length;
-          final isLastBlock = bIdx == layout.blocks.length - 1;
+        final frontPages = <TemplatePage>[];
+        final frontDataList = <Map<String, String>>[];
+        for (final record in blockRecords) {
+          final data = await recordToFields(record);
+          frontDataList.add(data);
+          frontPages.add(await _substitutor.substitutePage(tmpl.page1, data));
+        }
 
+        final frontBatches = layout.fillPage
+            ? _buildAutoFillBatches(
+                pages: frontPages,
+                dataList: frontDataList,
+                cols: cols,
+                usableH: usableH,
+                wPt: wPt,
+                hPt: hPt,
+                templatePadTopMm: block.templatePadTopMm,
+                templatePadLeftMm: block.templatePadLeftMm,
+                templatePadRightMm: block.templatePadRightMm,
+                templatePadBottomMm: block.templatePadBottomMm,
+              )
+            : _buildFixedGridBatches(
+                pages: frontPages,
+                dataList: frontDataList,
+                perSheet: cols * rows,
+              );
+
+        List<_DocumentSheetBatch>? backBatches;
+        if (duplex) {
+          final backPages = <TemplatePage>[];
+          final backDataList = <Map<String, String>>[];
+          for (final record in blockRecords) {
+            final data = await recordToFields(record);
+            backDataList.add(data);
+            backPages.add(await _substitutor.substitutePage(tmpl.page2, data));
+          }
+          backBatches = layout.fillPage
+              ? _buildAutoFillBatches(
+                  pages: backPages,
+                  dataList: backDataList,
+                  cols: cols,
+                  usableH: usableH,
+                  wPt: wPt,
+                  hPt: hPt,
+                  templatePadTopMm: block.templatePadTopMm,
+                  templatePadLeftMm: block.templatePadLeftMm,
+                  templatePadRightMm: block.templatePadRightMm,
+                  templatePadBottomMm: block.templatePadBottomMm,
+                )
+              : _buildFixedGridBatches(
+                  pages: backPages,
+                  dataList: backDataList,
+                  perSheet: cols * rows,
+                );
+        }
+
+        for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
+          final isLastBatch = batchIdx == frontBatches.length - 1;
+          final isLastBlock = bIdx == layout.blocks.length - 1;
           final breakAfterFront = duplex ||
               !isLastBatch ||
               (isLastBatch && !isLastBlock && block.pageBreakAfter);
           final breakAfterBack = !isLastBatch ||
               (isLastBatch && !isLastBlock && block.pageBreakAfter);
 
-          final frontPages = <TemplatePage>[];
-          final frontDataList = <Map<String, String>>[];
-          for (final record in batch) {
-            final data = await recordToFields(record);
-            frontDataList.add(data);
-            frontPages.add(await _substitutor.substitutePage(tmpl.page1, data));
-          }
-          if (layout.fillPage && frontPages.length < perSheet) {
-            final paddingCount = perSheet - frontPages.length;
-            final originalFrontDataList = List<Map<String, String>>.from(frontDataList);
-            final originalFrontPages = List<TemplatePage>.from(frontPages);
-            for (var p = 0; p < paddingCount; p++) {
-              final repeatIdx = p % originalFrontPages.length;
-              frontDataList.add(originalFrontDataList[repeatIdx]);
-              frontPages.add(originalFrontPages[repeatIdx]);
-            }
-          }
-          _renderer.writeTiledDocumentSheet(
-            typst: typst,
-            pages: frontPages,
-            dataList: frontDataList,
-            cols: cols,
-            rows: rows,
-            cellW: cellW,
-            cellH: cellH,
-            wPt: wPt,
-            hPt: hPt,
-            templatePadTopMm: block.templatePadTopMm,
-            templatePadLeftMm: block.templatePadLeftMm,
-            templatePadRightMm: block.templatePadRightMm,
-            templatePadBottomMm: block.templatePadBottomMm,
-            mirror: mirrorFront,
-            outline: tmpl.outline,
-            pageBreakAfter: breakAfterFront,
-          );
-
-          if (duplex) {
-            final backPages = <TemplatePage>[];
-            final backDataList = <Map<String, String>>[];
-            for (final record in batch) {
-              final data = await recordToFields(record);
-              backDataList.add(data);
-              backPages
-                  .add(await _substitutor.substitutePage(tmpl.page2, data));
-            }
-            if (layout.fillPage && backPages.length < perSheet) {
-              final paddingCount = perSheet - backPages.length;
-              final originalBackDataList = List<Map<String, String>>.from(backDataList);
-              final originalBackPages = List<TemplatePage>.from(backPages);
-              for (var p = 0; p < paddingCount; p++) {
-                final repeatIdx = p % originalBackPages.length;
-                backDataList.add(originalBackDataList[repeatIdx]);
-                backPages.add(originalBackPages[repeatIdx]);
-              }
-            }
+          final frontBatch = frontBatches[batchIdx];
+          if (layout.fillPage) {
+            _renderer.writeAutoFillDocumentSheet(
+              typst: typst,
+              pages: frontBatch.pages,
+              dataList: frontBatch.dataList,
+              cols: cols,
+              cellW: cellW,
+              usableH: usableH,
+              wPt: wPt,
+              hPt: hPt,
+              templatePadTopMm: block.templatePadTopMm,
+              templatePadLeftMm: block.templatePadLeftMm,
+              templatePadRightMm: block.templatePadRightMm,
+              templatePadBottomMm: block.templatePadBottomMm,
+              mirror: mirrorFront,
+              outline: tmpl.outline,
+              pageBreakAfter: breakAfterFront,
+            );
+          } else {
             _renderer.writeTiledDocumentSheet(
               typst: typst,
-              pages: backPages,
-              dataList: backDataList,
+              pages: frontBatch.pages,
+              dataList: frontBatch.dataList,
               cols: cols,
               rows: rows,
               cellW: cellW,
@@ -212,10 +229,52 @@ class _DocumentPdfBuilder {
               templatePadLeftMm: block.templatePadLeftMm,
               templatePadRightMm: block.templatePadRightMm,
               templatePadBottomMm: block.templatePadBottomMm,
-              mirror: mirrorBack,
+              mirror: mirrorFront,
               outline: tmpl.outline,
-              pageBreakAfter: breakAfterBack,
+              pageBreakAfter: breakAfterFront,
             );
+          }
+
+          if (duplex) {
+            final backBatch = backBatches![batchIdx];
+            if (layout.fillPage) {
+              _renderer.writeAutoFillDocumentSheet(
+                typst: typst,
+                pages: backBatch.pages,
+                dataList: backBatch.dataList,
+                cols: cols,
+                cellW: cellW,
+                usableH: usableH,
+                wPt: wPt,
+                hPt: hPt,
+                templatePadTopMm: block.templatePadTopMm,
+                templatePadLeftMm: block.templatePadLeftMm,
+                templatePadRightMm: block.templatePadRightMm,
+                templatePadBottomMm: block.templatePadBottomMm,
+                mirror: mirrorBack,
+                outline: tmpl.outline,
+                pageBreakAfter: breakAfterBack,
+              );
+            } else {
+              _renderer.writeTiledDocumentSheet(
+                typst: typst,
+                pages: backBatch.pages,
+                dataList: backBatch.dataList,
+                cols: cols,
+                rows: rows,
+                cellW: cellW,
+                cellH: cellH,
+                wPt: wPt,
+                hPt: hPt,
+                templatePadTopMm: block.templatePadTopMm,
+                templatePadLeftMm: block.templatePadLeftMm,
+                templatePadRightMm: block.templatePadRightMm,
+                templatePadBottomMm: block.templatePadBottomMm,
+                mirror: mirrorBack,
+                outline: tmpl.outline,
+                pageBreakAfter: breakAfterBack,
+              );
+            }
           }
         }
       }
@@ -434,7 +493,6 @@ class _DocumentPdfBuilder {
         final tmpl = templates[block.templateName]!;
         final cols = block.cols > 0 ? block.cols : 4;
         final rows = block.rows > 0 ? block.rows : 8;
-        final perSheet = cols * rows;
 
         final cellW = usableW / cols;
         final cellH = usableH / rows;
@@ -447,75 +505,93 @@ class _DocumentPdfBuilder {
           }
         }
 
-        for (var start = 0; start < blockRecords.length; start += perSheet) {
-          final end = math.min(start + perSheet, blockRecords.length);
-          final batch = blockRecords.sublist(start, end);
-          final isLastBatch = (start + perSheet) >= blockRecords.length;
-          final isLastBlock = bIdx == layout.blocks.length - 1;
+        final frontPages = <TemplatePage>[];
+        final frontDataList = <Map<String, String>>[];
+        for (final data in blockRecords) {
+          frontDataList.add(data);
+          frontPages.add(await _substitutor.substitutePage(tmpl.page1, data));
+        }
 
+        final frontBatches = layout.fillPage
+            ? _buildAutoFillBatches(
+                pages: frontPages,
+                dataList: frontDataList,
+                cols: cols,
+                usableH: usableH,
+                wPt: wPt,
+                hPt: hPt,
+                templatePadTopMm: block.templatePadTopMm,
+                templatePadLeftMm: block.templatePadLeftMm,
+                templatePadRightMm: block.templatePadRightMm,
+                templatePadBottomMm: block.templatePadBottomMm,
+              )
+            : _buildFixedGridBatches(
+                pages: frontPages,
+                dataList: frontDataList,
+                perSheet: cols * rows,
+              );
+
+        List<_DocumentSheetBatch>? backBatches;
+        if (duplex) {
+          final backPages = <TemplatePage>[];
+          final backDataList = <Map<String, String>>[];
+          for (final data in blockRecords) {
+            backDataList.add(data);
+            backPages.add(await _substitutor.substitutePage(tmpl.page2, data));
+          }
+          backBatches = layout.fillPage
+              ? _buildAutoFillBatches(
+                  pages: backPages,
+                  dataList: backDataList,
+                  cols: cols,
+                  usableH: usableH,
+                  wPt: wPt,
+                  hPt: hPt,
+                  templatePadTopMm: block.templatePadTopMm,
+                  templatePadLeftMm: block.templatePadLeftMm,
+                  templatePadRightMm: block.templatePadRightMm,
+                  templatePadBottomMm: block.templatePadBottomMm,
+                )
+              : _buildFixedGridBatches(
+                  pages: backPages,
+                  dataList: backDataList,
+                  perSheet: cols * rows,
+                );
+        }
+
+        for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
+          final isLastBatch = batchIdx == frontBatches.length - 1;
+          final isLastBlock = bIdx == layout.blocks.length - 1;
           final breakAfterFront = duplex ||
               !isLastBatch ||
               (isLastBatch && !isLastBlock && block.pageBreakAfter);
           final breakAfterBack = !isLastBatch ||
               (isLastBatch && !isLastBlock && block.pageBreakAfter);
 
-          final frontPages = <TemplatePage>[];
-          final frontDataList = <Map<String, String>>[];
-          for (final data in batch) {
-            frontDataList.add(data);
-            frontPages.add(await _substitutor.substitutePage(tmpl.page1, data));
-          }
-          if (layout.fillPage && frontPages.length < perSheet) {
-            final paddingCount = perSheet - frontPages.length;
-            final originalFrontDataList = List<Map<String, String>>.from(frontDataList);
-            final originalFrontPages = List<TemplatePage>.from(frontPages);
-            for (var p = 0; p < paddingCount; p++) {
-              final repeatIdx = p % originalFrontPages.length;
-              frontDataList.add(originalFrontDataList[repeatIdx]);
-              frontPages.add(originalFrontPages[repeatIdx]);
-            }
-          }
-          _renderer.writeTiledDocumentSheet(
-            typst: typst,
-            pages: frontPages,
-            dataList: frontDataList,
-            cols: cols,
-            rows: rows,
-            cellW: cellW,
-            cellH: cellH,
-            wPt: wPt,
-            hPt: hPt,
-            templatePadTopMm: block.templatePadTopMm,
-            templatePadLeftMm: block.templatePadLeftMm,
-            templatePadRightMm: block.templatePadRightMm,
-            templatePadBottomMm: block.templatePadBottomMm,
-            mirror: mirrorFront,
-            outline: tmpl.outline,
-            pageBreakAfter: breakAfterFront,
-          );
-
-          if (duplex) {
-            final backPages = <TemplatePage>[];
-            final backDataList = <Map<String, String>>[];
-            for (final data in batch) {
-              backDataList.add(data);
-              backPages
-                  .add(await _substitutor.substitutePage(tmpl.page2, data));
-            }
-            if (layout.fillPage && backPages.length < perSheet) {
-              final paddingCount = perSheet - backPages.length;
-              final originalBackDataList = List<Map<String, String>>.from(backDataList);
-              final originalBackPages = List<TemplatePage>.from(backPages);
-              for (var p = 0; p < paddingCount; p++) {
-                final repeatIdx = p % originalBackPages.length;
-                backDataList.add(originalBackDataList[repeatIdx]);
-                backPages.add(originalBackPages[repeatIdx]);
-              }
-            }
+          final frontBatch = frontBatches[batchIdx];
+          if (layout.fillPage) {
+            _renderer.writeAutoFillDocumentSheet(
+              typst: typst,
+              pages: frontBatch.pages,
+              dataList: frontBatch.dataList,
+              cols: cols,
+              cellW: cellW,
+              usableH: usableH,
+              wPt: wPt,
+              hPt: hPt,
+              templatePadTopMm: block.templatePadTopMm,
+              templatePadLeftMm: block.templatePadLeftMm,
+              templatePadRightMm: block.templatePadRightMm,
+              templatePadBottomMm: block.templatePadBottomMm,
+              mirror: mirrorFront,
+              outline: tmpl.outline,
+              pageBreakAfter: breakAfterFront,
+            );
+          } else {
             _renderer.writeTiledDocumentSheet(
               typst: typst,
-              pages: backPages,
-              dataList: backDataList,
+              pages: frontBatch.pages,
+              dataList: frontBatch.dataList,
               cols: cols,
               rows: rows,
               cellW: cellW,
@@ -526,10 +602,52 @@ class _DocumentPdfBuilder {
               templatePadLeftMm: block.templatePadLeftMm,
               templatePadRightMm: block.templatePadRightMm,
               templatePadBottomMm: block.templatePadBottomMm,
-              mirror: mirrorBack,
+              mirror: mirrorFront,
               outline: tmpl.outline,
-              pageBreakAfter: breakAfterBack,
+              pageBreakAfter: breakAfterFront,
             );
+          }
+
+          if (duplex) {
+            final backBatch = backBatches![batchIdx];
+            if (layout.fillPage) {
+              _renderer.writeAutoFillDocumentSheet(
+                typst: typst,
+                pages: backBatch.pages,
+                dataList: backBatch.dataList,
+                cols: cols,
+                cellW: cellW,
+                usableH: usableH,
+                wPt: wPt,
+                hPt: hPt,
+                templatePadTopMm: block.templatePadTopMm,
+                templatePadLeftMm: block.templatePadLeftMm,
+                templatePadRightMm: block.templatePadRightMm,
+                templatePadBottomMm: block.templatePadBottomMm,
+                mirror: mirrorBack,
+                outline: tmpl.outline,
+                pageBreakAfter: breakAfterBack,
+              );
+            } else {
+              _renderer.writeTiledDocumentSheet(
+                typst: typst,
+                pages: backBatch.pages,
+                dataList: backBatch.dataList,
+                cols: cols,
+                rows: rows,
+                cellW: cellW,
+                cellH: cellH,
+                wPt: wPt,
+                hPt: hPt,
+                templatePadTopMm: block.templatePadTopMm,
+                templatePadLeftMm: block.templatePadLeftMm,
+                templatePadRightMm: block.templatePadRightMm,
+                templatePadBottomMm: block.templatePadBottomMm,
+                mirror: mirrorBack,
+                outline: tmpl.outline,
+                pageBreakAfter: breakAfterBack,
+              );
+            }
           }
         }
       }
@@ -540,6 +658,258 @@ class _DocumentPdfBuilder {
       typstContent: typst.toString(),
       fontBytes: fontBytesList,
     );
+  }
+
+  List<_DocumentSheetBatch> _buildFixedGridBatches({
+    required List<TemplatePage> pages,
+    required List<Map<String, String>> dataList,
+    required int perSheet,
+  }) {
+    if (pages.isEmpty) return const [];
+    final batches = <_DocumentSheetBatch>[];
+    final safePerSheet = math.max(1, perSheet);
+    for (var start = 0; start < pages.length; start += safePerSheet) {
+      final end = math.min(start + safePerSheet, pages.length);
+      batches.add(_DocumentSheetBatch(
+        pages: pages.sublist(start, end),
+        dataList: dataList.sublist(start, end),
+      ));
+    }
+    return batches;
+  }
+
+  List<_DocumentSheetBatch> _buildAutoFillBatches({
+    required List<TemplatePage> pages,
+    required List<Map<String, String>> dataList,
+    required int cols,
+    required double usableH,
+    required double wPt,
+    required double hPt,
+    required double templatePadTopMm,
+    required double templatePadLeftMm,
+    required double templatePadRightMm,
+    required double templatePadBottomMm,
+  }) {
+    if (pages.isEmpty) return const [];
+
+    final cells = <_DocumentSheetCell>[];
+    for (var i = 0; i < pages.length; i++) {
+      cells.add(_DocumentSheetCell(
+        page: pages[i],
+        data: dataList[i],
+        heightPt: estimateAutoFillCellHeightPt(
+          page: pages[i],
+          wPt: wPt,
+          hPt: hPt,
+          templatePadTopMm: templatePadTopMm,
+          templatePadLeftMm: templatePadLeftMm,
+          templatePadRightMm: templatePadRightMm,
+          templatePadBottomMm: templatePadBottomMm,
+        ),
+      ));
+    }
+
+    final originalRows = <_DocumentSheetRow>[];
+    final safeCols = math.max(1, cols);
+    for (var start = 0; start < cells.length; start += safeCols) {
+      final end = math.min(start + safeCols, cells.length);
+      originalRows.add(_DocumentSheetRow(cells.sublist(start, end)));
+    }
+
+    final batches = <_DocumentSheetBatch>[];
+    var rowIndex = 0;
+    while (rowIndex < originalRows.length) {
+      final sheetRows = <_DocumentSheetRow>[];
+      var usedHeight = 0.0;
+
+      while (rowIndex < originalRows.length) {
+        final row = originalRows[rowIndex];
+        if (sheetRows.isNotEmpty && usedHeight + row.heightPt > usableH) {
+          break;
+        }
+        sheetRows.add(row);
+        usedHeight += row.heightPt;
+        rowIndex++;
+      }
+
+      final repeatRows = List<_DocumentSheetRow>.from(sheetRows);
+      var repeatIndex = 0;
+      while (repeatRows.isNotEmpty) {
+        final row = repeatRows[repeatIndex % repeatRows.length];
+        if (usedHeight + row.heightPt > usableH) break;
+        sheetRows.add(row);
+        usedHeight += row.heightPt;
+        repeatIndex++;
+      }
+
+      batches.add(_DocumentSheetBatch.fromRows(sheetRows));
+    }
+
+    return batches;
+  }
+
+  static double estimateAutoFillCellHeightPt({
+    required TemplatePage page,
+    required double wPt,
+    required double hPt,
+    required double templatePadTopMm,
+    required double templatePadLeftMm,
+    required double templatePadRightMm,
+    required double templatePadBottomMm,
+  }) {
+    final padTop = documentPdfMmToPt(templatePadTopMm);
+    final padBottom = documentPdfMmToPt(templatePadBottomMm);
+    final bodyHeight = estimateTemplatePageContentHeightPt(
+      page: page,
+      wPt: wPt,
+      hPt: hPt,
+    );
+    return bodyHeight + padTop + padBottom;
+  }
+
+  static double estimateTemplatePageContentHeightPt({
+    required TemplatePage page,
+    required double wPt,
+    required double hPt,
+  }) {
+    final hasDynamicText = page.customTexts.any((text) =>
+        text.isDynamic &&
+        !text.isQrCode &&
+        templateGenderIconFieldKeyFromBracketText(text.text) == null);
+    var height = hasDynamicText
+        ? _estimateStaticTemplateContentHeightPt(page: page, wPt: wPt)
+        : hPt;
+
+    for (final text in page.customTexts) {
+      final genderIconKey =
+          templateGenderIconFieldKeyFromBracketText(text.text);
+      if (hasDynamicText &&
+          !text.isDynamic &&
+          !text.isQrCode &&
+          genderIconKey == null) {
+        continue;
+      }
+
+      if (text.isQrCode) {
+        height = math.max(
+          height,
+          documentPdfMmToPt(text.yMm + text.qrSizeMm),
+        );
+        continue;
+      }
+
+      if (genderIconKey != null) {
+        height = math.max(
+          height,
+          documentPdfMmToPt(
+            text.yMm +
+                (text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+          ),
+        );
+        continue;
+      }
+
+      final bottom = documentPdfMmToPt(text.yMm) +
+          _estimateTextHeightPt(
+            text.text,
+            text.fontSizePt,
+            text.maxWidthMm == null
+                ? wPt - documentPdfMmToPt(text.xMm)
+                : documentPdfMmToPt(text.maxWidthMm!),
+          );
+      height = math.max(height, bottom);
+    }
+
+    for (final image in page.customImages) {
+      height = math.max(
+        height,
+        documentPdfMmToPt(image.yMm + image.heightMm),
+      );
+    }
+
+    for (final shape in page.customShapes) {
+      height = math.max(
+        height,
+        documentPdfMmToPt(shape.yMm + shape.heightMm),
+      );
+    }
+
+    return height;
+  }
+
+  static double _estimateStaticTemplateContentHeightPt({
+    required TemplatePage page,
+    required double wPt,
+  }) {
+    var height = 0.0;
+
+    for (final text in page.customTexts) {
+      final genderIconKey =
+          templateGenderIconFieldKeyFromBracketText(text.text);
+      if (text.isDynamic && !text.isQrCode && genderIconKey == null) {
+        continue;
+      }
+
+      if (text.isQrCode) {
+        height = math.max(
+          height,
+          documentPdfMmToPt(text.yMm + text.qrSizeMm),
+        );
+        continue;
+      }
+
+      if (genderIconKey != null) {
+        height = math.max(
+          height,
+          documentPdfMmToPt(
+            text.yMm +
+                (text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+          ),
+        );
+        continue;
+      }
+
+      final bottom = documentPdfMmToPt(text.yMm) +
+          _estimateTextHeightPt(
+            text.text,
+            text.fontSizePt,
+            text.maxWidthMm == null
+                ? wPt - documentPdfMmToPt(text.xMm)
+                : documentPdfMmToPt(text.maxWidthMm!),
+          );
+      height = math.max(height, bottom);
+    }
+
+    for (final image in page.customImages) {
+      height = math.max(
+        height,
+        documentPdfMmToPt(image.yMm + image.heightMm),
+      );
+    }
+
+    for (final shape in page.customShapes) {
+      height = math.max(
+        height,
+        documentPdfMmToPt(shape.yMm + shape.heightMm),
+      );
+    }
+
+    return height;
+  }
+
+  static double _estimateTextHeightPt(
+    String text,
+    double fontSizePt,
+    double maxWidthPt,
+  ) {
+    if (text.trim().isEmpty) return fontSizePt * 1.2;
+    final safeWidth = math.max(1.0, maxWidthPt);
+    final charsPerLine = math.max(1, (safeWidth / (fontSizePt * 0.52)).floor());
+    var lineCount = 0;
+    for (final line in text.split('\n')) {
+      lineCount += math.max(1, (line.length / charsPerLine).ceil());
+    }
+    return lineCount * fontSizePt * 1.2;
   }
 
   static List<bool> pageBreakPlanForTesting({
@@ -557,4 +927,45 @@ class _DocumentPdfBuilder {
     }
     return breaks;
   }
+}
+
+class _DocumentSheetBatch {
+  const _DocumentSheetBatch({
+    required this.pages,
+    required this.dataList,
+  });
+
+  factory _DocumentSheetBatch.fromRows(List<_DocumentSheetRow> rows) {
+    final cells = rows.expand((row) => row.cells).toList();
+    return _DocumentSheetBatch(
+      pages: cells.map((cell) => cell.page).toList(),
+      dataList: cells.map((cell) => cell.data).toList(),
+    );
+  }
+
+  final List<TemplatePage> pages;
+  final List<Map<String, String>> dataList;
+}
+
+class _DocumentSheetRow {
+  const _DocumentSheetRow(this.cells);
+
+  final List<_DocumentSheetCell> cells;
+
+  double get heightPt => cells.fold<double>(
+        0,
+        (height, cell) => math.max(height, cell.heightPt),
+      );
+}
+
+class _DocumentSheetCell {
+  const _DocumentSheetCell({
+    required this.page,
+    required this.data,
+    required this.heightPt,
+  });
+
+  final TemplatePage page;
+  final Map<String, String> data;
+  final double heightPt;
 }

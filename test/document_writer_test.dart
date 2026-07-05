@@ -155,6 +155,107 @@ void main() {
     });
   });
 
+  group('DocumentWriter auto-fill sizing tests', () {
+    test('estimates taller cells for wrapped auto-height text', () {
+      final shortPage = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'short',
+          text: 'Short narrative.',
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+        ),
+      ]);
+      final longPage = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'long',
+          text: List.filled(30, 'Long narrative text').join(' '),
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+        ),
+      ]);
+
+      final shortHeight =
+          DocumentWriter.estimateTemplatePageContentHeightPtForTesting(
+        page: shortPage,
+        wPt: 180,
+        hPt: 20,
+      );
+      final longHeight =
+          DocumentWriter.estimateTemplatePageContentHeightPtForTesting(
+        page: longPage,
+        wPt: 180,
+        hPt: 20,
+      );
+
+      expect(longHeight, greaterThan(shortHeight));
+    });
+
+    test('includes template padding in auto-fill cell height', () {
+      final page = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'text',
+          text: 'Text',
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+        ),
+      ]);
+
+      final withoutPadding =
+          DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 20,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+      final withPadding = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 20,
+        templatePadTopMm: 2,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 2,
+      );
+
+      expect(withPadding, greaterThan(withoutPadding));
+    });
+
+    test('dynamic text does not force configured template height', () {
+      final page = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'dynamic',
+          text: 'Short dynamic narrative.',
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+          isDynamic: true,
+        ),
+      ]);
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 700,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, lessThan(700));
+    });
+  });
+
   group('Document text formatting tests', () {
     test('formatTextWithCase applies correct capitalization styles', () {
       const text = 'hello world test';

@@ -213,4 +213,38 @@ class DocumentWriter {
   static List<dynamic> sortElementsForTesting(TemplatePage page) {
     return _DocumentTypstRenderer.sortElements(page);
   }
+
+  @visibleForTesting
+  static double estimateTemplatePageContentHeightPtForTesting({
+    required TemplatePage page,
+    required double wPt,
+    required double hPt,
+  }) {
+    return _DocumentPdfBuilder.estimateTemplatePageContentHeightPt(
+      page: page,
+      wPt: wPt,
+      hPt: hPt,
+    );
+  }
+
+  @visibleForTesting
+  static double estimateAutoFillCellHeightPtForTesting({
+    required TemplatePage page,
+    required double wPt,
+    required double hPt,
+    required double templatePadTopMm,
+    required double templatePadLeftMm,
+    required double templatePadRightMm,
+    required double templatePadBottomMm,
+  }) {
+    return _DocumentPdfBuilder.estimateAutoFillCellHeightPt(
+      page: page,
+      wPt: wPt,
+      hPt: hPt,
+      templatePadTopMm: templatePadTopMm,
+      templatePadLeftMm: templatePadLeftMm,
+      templatePadRightMm: templatePadRightMm,
+      templatePadBottomMm: templatePadBottomMm,
+    );
+  }
 }

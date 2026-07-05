@@ -35,6 +35,7 @@ class DocumentSettingsPane extends StatelessWidget {
     this.totalCount = 0,
     this.onSelectSpecimens,
     required this.onManagePresets,
+    this.onEditTemplate,
     required this.recordType,
     this.showSpecimenSelection = false,
   });
@@ -59,6 +60,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final int totalCount;
   final VoidCallback? onSelectSpecimens;
   final VoidCallback onManagePresets;
+  final ValueChanged<String>? onEditTemplate;
   final RecordType recordType;
   final bool showSpecimenSelection;
 
@@ -124,6 +126,7 @@ class DocumentSettingsPane extends StatelessWidget {
                 showBlocks: showSpecimenSelection ? true : false,
                 showSpecimenSelection: showSpecimenSelection,
                 onManagePresets: onManagePresets,
+                onEditTemplate: onEditTemplate,
               ),
               const SizedBox(height: 8),
               Container(
@@ -729,19 +732,20 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 if (!isContinuous) ...[
-                                  NumberField(
-                                    label: 'Rows',
-                                    initialValue: '${block.rows}',
-                                    onChanged: (value) {
-                                      _updateBlock(
-                                        idx,
-                                        block.copyWith(
-                                          rows: _parseIntOrCurrent(
-                                              value, block.rows),
-                                        ),
-                                      );
-                                    },
-                                  ),
+                                  if (!widget.layout.fillPage)
+                                    NumberField(
+                                      label: 'Rows',
+                                      initialValue: '${block.rows}',
+                                      onChanged: (value) {
+                                        _updateBlock(
+                                          idx,
+                                          block.copyWith(
+                                            rows: _parseIntOrCurrent(
+                                                value, block.rows),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   NumberField(
                                     label: 'Cols',
                                     initialValue: '${block.cols}',

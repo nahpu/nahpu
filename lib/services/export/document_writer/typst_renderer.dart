@@ -50,6 +50,54 @@ class _DocumentTypstRenderer {
     }
   }
 
+  void writeAutoFillDocumentSheet({
+    required StringBuffer typst,
+    required List<TemplatePage> pages,
+    required List<Map<String, String>> dataList,
+    required int cols,
+    required double cellW,
+    required double usableH,
+    required double wPt,
+    required double hPt,
+    required double templatePadTopMm,
+    required double templatePadLeftMm,
+    required double templatePadRightMm,
+    required double templatePadBottomMm,
+    required bool mirror,
+    required bool pageBreakAfter,
+    TemplateOutline? outline,
+  }) {
+    typst.writeln('#box(width: 100%, height: ${usableH}pt, clip: true)[');
+    typst.writeln('#grid(');
+    typst.writeln('  columns: (${cellW}pt, ) * $cols,');
+    typst.writeln('  column-gutter: 0pt,');
+    typst.writeln('  row-gutter: 0pt,');
+
+    for (var i = 0; i < pages.length; i++) {
+      writeSingleDocumentCell(
+        typst: typst,
+        page: pages[i],
+        data: dataList[i],
+        wPt: wPt,
+        hPt: hPt,
+        templatePadTopMm: templatePadTopMm,
+        templatePadLeftMm: templatePadLeftMm,
+        templatePadRightMm: templatePadRightMm,
+        templatePadBottomMm: templatePadBottomMm,
+        mirror: mirror,
+        outline: outline,
+        autoHeight: true,
+      );
+    }
+
+    _fillRemainingGridSpaces(typst, pages.length, cols);
+    typst.writeln(')');
+    typst.writeln(']');
+    if (pageBreakAfter) {
+      typst.writeln('#pagebreak()');
+    }
+  }
+
   void writeSingleDocumentCell({
     required StringBuffer typst,
     required TemplatePage page,
@@ -63,6 +111,7 @@ class _DocumentTypstRenderer {
     required bool mirror,
     TemplateOutline? outline,
     bool continuous = false,
+    bool autoHeight = false,
   }) {
     final padTop = documentPdfMmToPt(templatePadTopMm);
     final padBottom = documentPdfMmToPt(templatePadBottomMm);
@@ -81,8 +130,10 @@ class _DocumentTypstRenderer {
         .toList();
 
     if (dynamicTexts.isNotEmpty) {
+      final initialCellHeight =
+          autoHeight ? _staticContentHeightPt(page, wPt) : hPt;
       typst.writeln('#style(styles => {');
-      typst.writeln('  let cell_height = ${hPt}pt');
+      typst.writeln('  let cell_height = ${initialCellHeight}pt');
       for (final t in dynamicTexts) {
         final formatted = formatTemplateText(
           t.text,
@@ -105,32 +156,37 @@ class _DocumentTypstRenderer {
 
         typst.writeln(
             '  let h_${t.id} = measure(box(width: $mwPt)[#text($textProps)[$content]], styles).height');
-        typst.writeln('  cell_height = calc.max(cell_height, $dyPt + h_${t.id})');
+        typst.writeln(
+            '  cell_height = calc.max(cell_height, $dyPt + h_${t.id})');
       }
 
-      if (continuous) {
+      if (continuous || autoHeight) {
+        final width = continuous ? '${cellWPt}pt' : '100%';
         typst.writeln(
             '  let outer_height = cell_height + ${padTop}pt + ${padBottom}pt');
         typst.writeln(
-            '  box(width: ${cellWPt}pt, height: outer_height, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+            '  box(width: $width, height: outer_height, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
       } else {
         typst.writeln(
             '  box(width: 100%, height: 100%, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
       }
 
       if (mirror) typst.writeln('    #rotate(180deg, ref: "center")[');
-      typst.writeln('      #box(width: ${wPt}pt, height: cell_height, clip: false)[');
+      typst.writeln(
+          '      #box(width: ${wPt}pt, height: cell_height, clip: false)[');
     } else {
-      if (continuous) {
+      if (continuous || autoHeight) {
+        final width = continuous ? '${cellWPt}pt' : '100%';
         typst.writeln(
-            '#box(width: ${cellWPt}pt, height: ${cellHPt}pt, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+            '#box(width: $width, height: ${cellHPt}pt, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
       } else {
         typst.writeln(
             '#box(width: 100%, height: 100%, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
       }
 
       if (mirror) typst.writeln('  #rotate(180deg, ref: "center")[');
-      typst.writeln('    #box(width: ${wPt}pt, height: ${hPt}pt, clip: false)[');
+      typst
+          .writeln('    #box(width: ${wPt}pt, height: ${hPt}pt, clip: false)[');
     }
 
     _writeOutline(typst, outline, wPt, hPt);
@@ -262,6 +318,74 @@ class _DocumentTypstRenderer {
       if (e.key.toLowerCase() == low) return e.value;
     }
     return '';
+  }
+
+  double _staticContentHeightPt(TemplatePage page, double wPt) {
+    var height = 0.0;
+
+    for (final text in page.customTexts) {
+      final genderIconKey =
+          templateGenderIconFieldKeyFromBracketText(text.text);
+      if (text.isDynamic && !text.isQrCode && genderIconKey == null) {
+        continue;
+      }
+
+      if (text.isQrCode) {
+        height = math.max(
+          height,
+          documentPdfMmToPt(text.yMm + text.qrSizeMm),
+        );
+        continue;
+      }
+
+      if (genderIconKey != null) {
+        height = math.max(
+          height,
+          documentPdfMmToPt(
+            text.yMm +
+                (text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+          ),
+        );
+        continue;
+      }
+
+      final maxWidthPt = text.maxWidthMm == null
+          ? wPt - documentPdfMmToPt(text.xMm)
+          : documentPdfMmToPt(text.maxWidthMm!);
+      height = math.max(
+        height,
+        documentPdfMmToPt(text.yMm) +
+            _estimateTextHeightPt(text.text, text.fontSizePt, maxWidthPt),
+      );
+    }
+
+    for (final image in page.customImages) {
+      height = math.max(
+        height,
+        documentPdfMmToPt(image.yMm + image.heightMm),
+      );
+    }
+
+    for (final shape in page.customShapes) {
+      height = math.max(
+        height,
+        documentPdfMmToPt(shape.yMm + shape.heightMm),
+      );
+    }
+
+    return height;
+  }
+
+  double _estimateTextHeightPt(
+      String text, double fontSizePt, double maxWidthPt) {
+    if (text.trim().isEmpty) return fontSizePt * 1.2;
+    final safeWidth = math.max(1.0, maxWidthPt);
+    final charsPerLine = math.max(1, (safeWidth / (fontSizePt * 0.52)).floor());
+    var lineCount = 0;
+    for (final line in text.split('\n')) {
+      lineCount += math.max(1, (line.length / charsPerLine).ceil());
+    }
+    return lineCount * fontSizePt * 1.2;
   }
 
   static List<dynamic> sortElements(TemplatePage page) {
