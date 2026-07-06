@@ -170,6 +170,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              controlAffinity: ListTileControlAffinity.leading,
                               onChanged: (val) {
                                 final newSelected = Set<int>.from(selectedIds);
                                 if (val == true) {
@@ -394,6 +395,8 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                       '${event.primaryCollMethod ?? 'No method'} | '
                                       '${event.startDate ?? 'No date'}',
                                     ),
+                                    controlAffinity:
+                                        ListTileControlAffinity.leading,
                                     onChanged: (val) {
                                       final newSelected =
                                           Set<int>.from(selectedIds);
@@ -589,6 +592,7 @@ class _NarrativeSelectionScreenState
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              controlAffinity: ListTileControlAffinity.leading,
                               onChanged: (val) {
                                 final newSelected = Set<int>.from(selectedIds);
                                 if (val == true) {

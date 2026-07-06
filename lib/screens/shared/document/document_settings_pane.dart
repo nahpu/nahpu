@@ -87,13 +87,7 @@ class DocumentSettingsPane extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              recordType == RecordType.site
-                                  ? 'Sites'
-                                  : recordType == RecordType.collEvent
-                                      ? 'Collecting Events'
-                                      : recordType == RecordType.narrative
-                                          ? 'Narratives'
-                                          : 'Specimens',
+                              _getRecordTypeLabel(),
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 4),
@@ -207,6 +201,21 @@ class DocumentSettingsPane extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getRecordTypeLabel() {
+    switch (recordType) {
+      case RecordType.specimenRecord:
+        return 'Specimens';
+      case RecordType.site:
+        return 'Sites';
+      case RecordType.collEvent:
+        return 'Collecting Events';
+      case RecordType.narrative:
+        return 'Narratives';
+      default:
+        return 'Records';
+    }
   }
 }
 
@@ -982,7 +991,6 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                           0;
                                       label = 'Narratives';
                                     }
-
                                     return Row(
                                       children: [
                                         Expanded(
@@ -1006,133 +1014,10 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                             ],
                                           ),
                                         ),
-                                        OutlinedButton.icon(
-                                          onPressed: () async {
-                                            if (recordType ==
-                                                RecordType.specimenRecord) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      Scaffold(
-                                                    appBar: AppBar(
-                                                      title: const Text(
-                                                          'Select specimens'),
-                                                    ),
-                                                    body: SafeArea(
-                                                      child:
-                                                          SpecimenSelectionView(
-                                                        selectedUuidList:
-                                                            selectedIds,
-                                                        visibleColumnIds: const [],
-                                                        onSelectionChanged:
-                                                            (nextSelection) {
-                                                          ref
-                                                              .read(
-                                                                  blockRecordSelectionProvider(
-                                                                          param)
-                                                                      .notifier)
-                                                              .updateSelection(
-                                                                  nextSelection);
-                                                        },
-                                                        onColumnsChanged: () {},
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            } else if (recordType ==
-                                                RecordType.site) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      SiteSelectionScreen(
-                                                    selectedIds: selectedIds
-                                                        .map((e) =>
-                                                            int.tryParse(e) ??
-                                                            0)
-                                                        .toSet(),
-                                                    onSelectionChanged:
-                                                        (nextSelection) {
-                                                      ref
-                                                          .read(
-                                                              blockRecordSelectionProvider(
-                                                                      param)
-                                                                  .notifier)
-                                                          .updateSelection(
-                                                            nextSelection
-                                                                .map((e) => e
-                                                                    .toString())
-                                                                .toSet(),
-                                                          );
-                                                    },
-                                                  ),
-                                                ),
-                                              );
-                                            } else if (recordType ==
-                                                RecordType.collEvent) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EventSelectionScreen(
-                                                    selectedIds: selectedIds
-                                                        .map((e) =>
-                                                            int.tryParse(e) ??
-                                                            0)
-                                                        .toSet(),
-                                                    onSelectionChanged:
-                                                        (nextSelection) {
-                                                      ref
-                                                          .read(
-                                                              blockRecordSelectionProvider(
-                                                                      param)
-                                                                  .notifier)
-                                                          .updateSelection(
-                                                            nextSelection
-                                                                .map((e) => e
-                                                                    .toString())
-                                                                .toSet(),
-                                                          );
-                                                    },
-                                                  ),
-                                                ),
-                                              );
-                                            } else if (recordType ==
-                                                RecordType.narrative) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      NarrativeSelectionScreen(
-                                                    selectedIds: selectedIds
-                                                        .map((e) =>
-                                                            int.tryParse(e) ??
-                                                            0)
-                                                        .toSet(),
-                                                    onSelectionChanged:
-                                                        (nextSelection) {
-                                                      ref
-                                                          .read(
-                                                              blockRecordSelectionProvider(
-                                                                      param)
-                                                                  .notifier)
-                                                          .updateSelection(
-                                                            nextSelection
-                                                                .map((e) => e
-                                                                    .toString())
-                                                                .toSet(),
-                                                          );
-                                                    },
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          icon: const Icon(
-                                              Icons.table_rows_outlined),
-                                          label: const Text('Select'),
+                                        RecordNavigationButton(
+                                          recordType: recordType,
+                                          selectedIds: selectedIds,
+                                          param: param,
                                         ),
                                       ],
                                     );
@@ -1201,6 +1086,105 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
         List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
     newBlocks.removeAt(index);
     widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
+  }
+}
+
+class RecordNavigationButton extends ConsumerWidget {
+  const RecordNavigationButton({
+    super.key,
+    required this.recordType,
+    required this.selectedIds,
+    required this.param,
+  });
+
+  final RecordType recordType;
+  final Set<String> selectedIds;
+  final BlockRecordSelectionParam param;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return OutlinedButton.icon(
+      onPressed: () async {
+        if (recordType == RecordType.specimenRecord) {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Scaffold(
+                appBar: AppBar(
+                  title: const Text('Select specimens'),
+                ),
+                body: SafeArea(
+                  child: SpecimenSelectionView(
+                    selectedUuidList: selectedIds,
+                    visibleColumnIds: const [],
+                    onSelectionChanged: (nextSelection) {
+                      ref
+                          .read(blockRecordSelectionProvider(param).notifier)
+                          .updateSelection(nextSelection);
+                    },
+                    onColumnsChanged: () {},
+                  ),
+                ),
+              ),
+            ),
+          );
+        } else if (recordType == RecordType.site) {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SiteSelectionScreen(
+                selectedIds: _parseRecordIds(selectedIds),
+                onSelectionChanged: (nextSelection) {
+                  ref
+                      .read(blockRecordSelectionProvider(param).notifier)
+                      .updateSelection(
+                        nextSelection.map((e) => e.toString()).toSet(),
+                      );
+                },
+              ),
+            ),
+          );
+        } else if (recordType == RecordType.collEvent) {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EventSelectionScreen(
+                selectedIds: _parseRecordIds(selectedIds),
+                onSelectionChanged: (nextSelection) {
+                  ref
+                      .read(blockRecordSelectionProvider(param).notifier)
+                      .updateSelection(
+                        nextSelection.map((e) => e.toString()).toSet(),
+                      );
+                },
+              ),
+            ),
+          );
+        } else if (recordType == RecordType.narrative) {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NarrativeSelectionScreen(
+                selectedIds: _parseRecordIds(selectedIds),
+                onSelectionChanged: (nextSelection) {
+                  ref
+                      .read(blockRecordSelectionProvider(param).notifier)
+                      .updateSelection(
+                        nextSelection.map((e) => e.toString()).toSet(),
+                      );
+                },
+              ),
+            ),
+          );
+        }
+      },
+      icon: const Icon(Icons.table_rows_outlined),
+      label: const Text('Select'),
+    );
+  }
+
+  Set<int> _parseRecordIds(Set<String> ids) {
+    return ids.map(int.tryParse).whereType<int>().toSet();
   }
 }
 
