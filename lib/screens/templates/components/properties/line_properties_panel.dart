@@ -93,6 +93,17 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                             ),
                           ),
                           const SizedBox(width: 16),
+                          IconButton(
+                            icon: const Icon(Icons.palette_outlined, size: 22),
+                            isSelected: _showStrokeOptions,
+                            tooltip: 'Line stroke options',
+                            onPressed: () {
+                              setState(() {
+                                _showStrokeOptions = !_showStrokeOptions;
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 16),
                           Text(
                             'Rotation',
                             style: Theme.of(context).textTheme.labelMedium,
@@ -104,17 +115,6 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                               widget.page1,
                               widget.line.copyWith(rotationDegrees: v),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          IconButton(
-                            icon: const Icon(Icons.settings_outlined, size: 22),
-                            isSelected: _showStrokeOptions,
-                            tooltip: 'Line stroke options',
-                            onPressed: () {
-                              setState(() {
-                                _showStrokeOptions = !_showStrokeOptions;
-                              });
-                            },
                           ),
                         ],
                       ),

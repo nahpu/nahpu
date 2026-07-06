@@ -82,6 +82,17 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                             ),
                           ],
                           const SizedBox(width: 16),
+                          IconButton(
+                            icon: const Icon(Icons.palette_outlined, size: 22),
+                            isSelected: _showStrokeOptions,
+                            tooltip: 'Border and fill options',
+                            onPressed: () {
+                              setState(() {
+                                _showStrokeOptions = !_showStrokeOptions;
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 16),
                           _DimensionControl(
                             id: 'shape_w_${widget.id}',
                             label: 'Width (mm)',
@@ -113,17 +124,6 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                               widget.page1,
                               widget.shape.copyWith(rotationDegrees: v),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          IconButton(
-                            icon: const Icon(Icons.settings_outlined, size: 22),
-                            isSelected: _showStrokeOptions,
-                            tooltip: 'Border and fill options',
-                            onPressed: () {
-                              setState(() {
-                                _showStrokeOptions = !_showStrokeOptions;
-                              });
-                            },
                           ),
                         ],
                       ),
