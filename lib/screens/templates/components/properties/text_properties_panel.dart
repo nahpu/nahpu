@@ -524,12 +524,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               showColorName: true,
-              showColorCode: false,
-              copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                copyButton: true,
-                pasteButton: true,
-                longPressMenu: true,
-              ),
+              colorCodeHasColor: true,
+              showColorCode: true,
               colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
               colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
               pickersEnabled: const <ColorPickerType, bool>{
@@ -1015,7 +1011,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                                     style:
                                         Theme.of(context).textTheme.titleSmall),
                                 showColorName: true,
-                                showColorCode: false,
+                                showColorCode: true,
                                 pickersEnabled: const <ColorPickerType, bool>{
                                   ColorPickerType.both: false,
                                   ColorPickerType.primary: true,
