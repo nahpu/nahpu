@@ -90,7 +90,13 @@ class _AvailableFieldsSectionState
         allowedTables = {'site', 'personnel'};
         break;
       case RecordType.collEvent:
-        allowedTables = {'collEvent', 'site', 'weather', 'personnel', 'collEffort'};
+        allowedTables = {
+          'collEvent',
+          'site',
+          'weather',
+          'personnel',
+          'collEffort'
+        };
         break;
       case RecordType.specimenRecord:
       case RecordType.specimenParts:
@@ -595,85 +601,6 @@ class _TextElementEditorBottomSheetState
     super.dispose();
   }
 
-  void _handleInsert(String val) {
-    final text = _controller.text;
-    final sel = _controller.selection;
-    final start = sel.isValid ? sel.start : text.length;
-    final end = sel.isValid ? sel.end : text.length;
-    final newText = text.replaceRange(
-      start < 0 ? 0 : start,
-      end < 0 ? 0 : end,
-      val,
-    );
-    _controller.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(
-        offset: (start < 0 ? 0 : start) + val.length,
-      ),
-    );
-  }
-
-  void _convertTextFormat(String targetFormat) {
-    final text = _controller.text;
-    final db = ref.read(databaseProvider);
-    final Map<String, String> fieldToFull = {};
-    final List<String> allFullFields = [];
-
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      for (var col in table.$columns) {
-        final colName = col.name;
-        final full = '$tableName::$colName';
-        allFullFields.add(full);
-        fieldToFull.putIfAbsent(colName, () => full);
-        if (colName.endsWith('.sex')) {
-          fieldToFull.putIfAbsent('$colName-img', () => '$full-img');
-        }
-      }
-    }
-
-    if (targetFormat == 'short') {
-      String result = text;
-      for (final full in allFullFields) {
-        final parts = full.split('::');
-        final short = parts.last;
-        result = result.replaceAll('[$full]', '[$short]');
-        if (full.endsWith('.sex')) {
-          result = result.replaceAll('[$full-img]', '[$short-img]');
-        }
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    } else {
-      final regExp = RegExp(r'\[([^\]]+)\]');
-      final matches = regExp.allMatches(text).toList();
-      String result = text;
-      for (final match in matches.reversed) {
-        final matchedGroup = match.group(1);
-        if (matchedGroup == null) continue;
-        if (matchedGroup.contains('::')) {
-          continue;
-        }
-        final isImg = matchedGroup.endsWith('-img');
-        final baseName = isImg
-            ? matchedGroup.substring(0, matchedGroup.length - 4)
-            : matchedGroup;
-        final fullBase = fieldToFull[baseName];
-        if (fullBase != null) {
-          final replacement = isImg ? '$fullBase-img' : fullBase;
-          result =
-              result.replaceRange(match.start, match.end, '[$replacement]');
-        }
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
@@ -812,5 +739,84 @@ class _TextElementEditorBottomSheetState
         ],
       ),
     );
+  }
+
+  void _handleInsert(String val) {
+    final text = _controller.text;
+    final sel = _controller.selection;
+    final start = sel.isValid ? sel.start : text.length;
+    final end = sel.isValid ? sel.end : text.length;
+    final newText = text.replaceRange(
+      start < 0 ? 0 : start,
+      end < 0 ? 0 : end,
+      val,
+    );
+    _controller.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(
+        offset: (start < 0 ? 0 : start) + val.length,
+      ),
+    );
+  }
+
+  void _convertTextFormat(String targetFormat) {
+    final text = _controller.text;
+    final db = ref.read(databaseProvider);
+    final Map<String, String> fieldToFull = {};
+    final List<String> allFullFields = [];
+
+    for (var table in db.allTables) {
+      final tableName = table.actualTableName;
+      for (var col in table.$columns) {
+        final colName = col.name;
+        final full = '$tableName::$colName';
+        allFullFields.add(full);
+        fieldToFull.putIfAbsent(colName, () => full);
+        if (colName.endsWith('.sex')) {
+          fieldToFull.putIfAbsent('$colName-img', () => '$full-img');
+        }
+      }
+    }
+
+    if (targetFormat == 'short') {
+      String result = text;
+      for (final full in allFullFields) {
+        final parts = full.split('::');
+        final short = parts.last;
+        result = result.replaceAll('[$full]', '[$short]');
+        if (full.endsWith('.sex')) {
+          result = result.replaceAll('[$full-img]', '[$short-img]');
+        }
+      }
+      _controller.value = TextEditingValue(
+        text: result,
+        selection: TextSelection.collapsed(offset: result.length),
+      );
+    } else {
+      final regExp = RegExp(r'\[([^\]]+)\]');
+      final matches = regExp.allMatches(text).toList();
+      String result = text;
+      for (final match in matches.reversed) {
+        final matchedGroup = match.group(1);
+        if (matchedGroup == null) continue;
+        if (matchedGroup.contains('::')) {
+          continue;
+        }
+        final isImg = matchedGroup.endsWith('-img');
+        final baseName = isImg
+            ? matchedGroup.substring(0, matchedGroup.length - 4)
+            : matchedGroup;
+        final fullBase = fieldToFull[baseName];
+        if (fullBase != null) {
+          final replacement = isImg ? '$fullBase-img' : fullBase;
+          result =
+              result.replaceRange(match.start, match.end, '[$replacement]');
+        }
+      }
+      _controller.value = TextEditingValue(
+        text: result,
+        selection: TextSelection.collapsed(offset: result.length),
+      );
+    }
   }
 }
