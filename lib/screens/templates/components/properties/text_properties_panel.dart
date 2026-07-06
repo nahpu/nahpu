@@ -970,7 +970,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                                   ColorPickerType.both: false,
                                   ColorPickerType.primary: true,
                                   ColorPickerType.accent: true,
-                                  ColorPickerType.bw: false,
+                                  ColorPickerType.bw: true,
                                   ColorPickerType.custom: true,
                                   ColorPickerType.wheel: true,
                                 },
