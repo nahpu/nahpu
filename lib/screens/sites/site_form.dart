@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/screens/sites/components/habitats.dart';
+import 'package:nahpu/screens/sites/components/sedimentology.dart';
 import 'package:nahpu/screens/sites/components/geography.dart';
 import 'package:nahpu/screens/sites/components/media.dart';
 import 'package:nahpu/screens/sites/components/site_info.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/screens/sites/components/coordinates.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
@@ -53,11 +56,7 @@ class SiteFormState extends ConsumerState<SiteForm> {
               useHorizontalLayout: useHorizontalLayout,
               height: bottomSiteHeight,
               children: [
-                Habitat(
-                  id: widget.id,
-                  useHorizontalLayout: useHorizontalLayout,
-                  siteFormCtr: widget.siteFormCtr,
-                ),
+                _buildSiteContext(useHorizontalLayout),
                 CoordinateFields(
                   siteId: widget.id,
                 ),
@@ -69,5 +68,35 @@ class SiteFormState extends ConsumerState<SiteForm> {
         );
       },
     );
+  }
+
+  /// Paleontology (fossil) projects record stratigraphic and sedimentological
+  /// information instead of the extant habitat of a site.
+  Widget _buildSiteContext(bool useHorizontalLayout) {
+    return ref.watch(catalogFmtNotifierProvider).when(
+          data: (catalogFmt) {
+            return catalogFmt == CatalogFmt.fossils
+                ? Sedimentology(
+                    id: widget.id,
+                    useHorizontalLayout: useHorizontalLayout,
+                    siteFormCtr: widget.siteFormCtr,
+                  )
+                : Habitat(
+                    id: widget.id,
+                    useHorizontalLayout: useHorizontalLayout,
+                    siteFormCtr: widget.siteFormCtr,
+                  );
+          },
+          loading: () => Habitat(
+            id: widget.id,
+            useHorizontalLayout: useHorizontalLayout,
+            siteFormCtr: widget.siteFormCtr,
+          ),
+          error: (e, s) => Habitat(
+            id: widget.id,
+            useHorizontalLayout: useHorizontalLayout,
+            siteFormCtr: widget.siteFormCtr,
+          ),
+        );
   }
 }
