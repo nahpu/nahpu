@@ -469,21 +469,19 @@ class DraggableChipState extends State<DraggableChip> {
             ),
             child: Padding(
               padding: EdgeInsets.all(textBoxPaddingPx),
-              child: Builder(
-                builder: (context) {
-                  final hasNewlines = widget.label.contains('\n');
-                  return Text(
-                    widget.label,
-                    style: textStyle,
-                    softWrap: activeWidthMm != null || hasNewlines,
-                    maxLines: (activeWidthMm != null || hasNewlines) ? null : 1,
-                    overflow: (activeWidthMm != null || hasNewlines)
-                        ? TextOverflow.clip
-                        : TextOverflow.visible,
-                    textAlign: widget.textAlign,
-                  );
-                }
-              ),
+              child: Builder(builder: (context) {
+                final hasNewlines = widget.label.contains('\n');
+                return Text(
+                  widget.label,
+                  style: textStyle,
+                  softWrap: activeWidthMm != null || hasNewlines,
+                  maxLines: (activeWidthMm != null || hasNewlines) ? null : 1,
+                  overflow: (activeWidthMm != null || hasNewlines)
+                      ? TextOverflow.clip
+                      : TextOverflow.visible,
+                  textAlign: widget.textAlign,
+                );
+              }),
             ),
           ),
         ),
@@ -507,74 +505,77 @@ class DraggableChipState extends State<DraggableChip> {
             },
             onTap: widget.onTap,
             onDoubleTap: widget.onDoubleTap,
-            onPanStart: _onTemplatePanStart,
-            onPanUpdate: _panMoveClampedToHitInset,
-            onPanEnd: (_) => _onTemplatePanEnd(),
-            onPanCancel: _onTemplatePanEnd,
-            child: Stack(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(handlePad),
-                  child: Container(
-                    foregroundDecoration: (widget.isSelected || _dragging)
-                        ? BoxDecoration(
-                            border: Border.all(
-                              color: scheme.primary,
-                              width: 2,
-                            ),
-                          )
-                        : (widget.isDynamic
-                            ? BoxDecoration(
-                                border: Border.all(
-                                  color:
-                                      scheme.secondary.withValues(alpha: 0.5),
-                                  width: 1.5,
-                                ),
-                                borderRadius: BorderRadius.circular(2),
-                              )
-                            : null),
-                    child: text,
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  top: handlePad,
-                  width: handleSize,
-                  height: handleSize,
-                  child: Center(
-                    child: Icon(
-                      Icons.drag_indicator,
-                      size: handleSize * 0.65,
-                      color: scheme.primary.withValues(alpha: 0.5),
+            onPanStart: widget.isLocked ? null : _onTemplatePanStart,
+            onPanUpdate: widget.isLocked ? null : _panMoveClampedToHitInset,
+            onPanEnd: widget.isLocked ? null : (_) => _onTemplatePanEnd(),
+            onPanCancel: widget.isLocked ? null : _onTemplatePanEnd,
+            child: Opacity(
+              opacity: widget.isVisible ? 1.0 : 0.35,
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(handlePad),
+                    child: Container(
+                      foregroundDecoration: (widget.isSelected || _dragging)
+                          ? BoxDecoration(
+                              border: Border.all(
+                                color: scheme.primary,
+                                width: 2,
+                              ),
+                            )
+                          : (widget.isDynamic
+                              ? BoxDecoration(
+                                  border: Border.all(
+                                    color:
+                                        scheme.secondary.withValues(alpha: 0.5),
+                                    width: 1.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(2),
+                                )
+                              : null),
+                      child: text,
                     ),
                   ),
-                ),
-                if (!widget.isLocked &&
-                    (widget.isSelected || _resizeCorner != null) &&
-                    (widget.onMaxWidthChanged != null ||
-                        widget.onHeightChanged != null)) ...[
                   Positioned(
                     left: 0,
-                    top: 0,
-                    child: _cornerHandle(_TextCorner.tl, scheme),
+                    top: handlePad,
+                    width: handleSize,
+                    height: handleSize,
+                    child: Center(
+                      child: Icon(
+                        Icons.drag_indicator,
+                        size: handleSize * 0.65,
+                        color: scheme.primary.withValues(alpha: 0.5),
+                      ),
+                    ),
                   ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: _cornerHandle(_TextCorner.tr, scheme),
-                  ),
-                  Positioned(
-                    left: 0,
-                    bottom: 0,
-                    child: _cornerHandle(_TextCorner.bl, scheme),
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: _cornerHandle(_TextCorner.br, scheme),
-                  ),
-                ]
-              ],
+                  if (!widget.isLocked &&
+                      (widget.isSelected || _resizeCorner != null) &&
+                      (widget.onMaxWidthChanged != null ||
+                          widget.onHeightChanged != null)) ...[
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: _cornerHandle(_TextCorner.tl, scheme),
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: _cornerHandle(_TextCorner.tr, scheme),
+                    ),
+                    Positioned(
+                      left: 0,
+                      bottom: 0,
+                      child: _cornerHandle(_TextCorner.bl, scheme),
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: _cornerHandle(_TextCorner.br, scheme),
+                    ),
+                  ]
+                ],
+              ),
             ),
           ),
         ),
