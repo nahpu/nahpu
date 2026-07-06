@@ -1177,12 +1177,12 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
     newBlocks.add(rust_config.DocumentLayoutBlock(
       templateName: defaultTemplate,
       templateCount: 1,
-      rows: 8,
-      cols: 4,
-      templatePadTopMm: 1.0,
-      templatePadLeftMm: 1.0,
-      templatePadRightMm: 1.0,
-      templatePadBottomMm: 1.0,
+      rows: 1,
+      cols: 1,
+      templatePadTopMm: 0,
+      templatePadLeftMm: 0,
+      templatePadRightMm: 0,
+      templatePadBottomMm: 0,
       pageBreakAfter: false,
     ));
     widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));

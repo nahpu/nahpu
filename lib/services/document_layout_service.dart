@@ -95,8 +95,8 @@ class DocumentLayoutService {
         rust_config.DocumentLayoutBlock(
           templateName: templateName,
           templateCount: 1,
-          rows: 8,
-          cols: 4,
+          rows: 1,
+          cols: 1,
           templatePadTopMm: 1.0,
           templatePadLeftMm: 1.0,
           templatePadRightMm: 1.0,
