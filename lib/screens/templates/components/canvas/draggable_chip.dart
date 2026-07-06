@@ -469,15 +469,20 @@ class DraggableChipState extends State<DraggableChip> {
             ),
             child: Padding(
               padding: EdgeInsets.all(textBoxPaddingPx),
-              child: Text(
-                widget.label,
-                style: textStyle,
-                softWrap: activeWidthMm != null,
-                maxLines: activeWidthMm != null ? null : 1,
-                overflow: activeWidthMm != null
-                    ? TextOverflow.clip
-                    : TextOverflow.visible,
-                textAlign: widget.textAlign,
+              child: Builder(
+                builder: (context) {
+                  final hasNewlines = widget.label.contains('\n');
+                  return Text(
+                    widget.label,
+                    style: textStyle,
+                    softWrap: activeWidthMm != null || hasNewlines,
+                    maxLines: (activeWidthMm != null || hasNewlines) ? null : 1,
+                    overflow: (activeWidthMm != null || hasNewlines)
+                        ? TextOverflow.clip
+                        : TextOverflow.visible,
+                    textAlign: widget.textAlign,
+                  );
+                }
               ),
             ),
           ),

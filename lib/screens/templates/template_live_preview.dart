@@ -207,14 +207,9 @@ class _PreviewPage extends StatelessWidget {
                   top: ct.yMm * scale,
                   child: Transform.rotate(
                     angle: degreesToRadians(ct.rotationDegrees),
-                    child: SizedBox(
-                      width:
-                          ct.maxWidthMm != null ? ct.maxWidthMm! * scale : null,
-                      height: (!ct.isDynamic && ct.heightMm != null)
-                          ? ct.heightMm! * scale
-                          : null,
-                      child: Text(
-                        ct.text.isEmpty
+                    child: Builder(
+                      builder: (context) {
+                        final formattedText = ct.text.isEmpty
                             ? ' '
                             : formatTemplateText(
                                 placeholderValues.isEmpty
@@ -226,24 +221,35 @@ class _PreviewPage extends StatelessWidget {
                                 ct.textType,
                                 ct.formatOption,
                                 ct.caseFormat,
-                              ),
-                        style: customTemplateCanvasTextStyle(
-                          fontFamilyRaw: ct.fontFamily,
-                          fontSize: _previewFontSizePx(ct.fontSizePt, scale),
-                          fontWeight:
-                              ct.bold ? FontWeight.bold : FontWeight.normal,
-                          fontStyle:
-                              ct.italic ? FontStyle.italic : FontStyle.normal,
-                          underline: ct.underline,
-                          strikethrough: ct.strikethrough,
-                        ).copyWith(color: Colors.black),
-                        softWrap: ct.maxWidthMm != null,
-                        maxLines: ct.maxWidthMm != null ? null : 1,
-                        overflow: ct.maxWidthMm != null
-                            ? TextOverflow.clip
-                            : TextOverflow.visible,
-                        textAlign: _parseTextAlign(ct.textAlign),
-                      ),
+                              );
+                        final hasNewlines = formattedText.contains('\n');
+                        return SizedBox(
+                          width:
+                              ct.maxWidthMm != null ? ct.maxWidthMm! * scale : null,
+                          height: (!ct.isDynamic && ct.heightMm != null)
+                              ? ct.heightMm! * scale
+                              : null,
+                          child: Text(
+                            formattedText,
+                            style: customTemplateCanvasTextStyle(
+                              fontFamilyRaw: ct.fontFamily,
+                              fontSize: _previewFontSizePx(ct.fontSizePt, scale),
+                              fontWeight:
+                                  ct.bold ? FontWeight.bold : FontWeight.normal,
+                              fontStyle:
+                                  ct.italic ? FontStyle.italic : FontStyle.normal,
+                              underline: ct.underline,
+                              strikethrough: ct.strikethrough,
+                            ).copyWith(color: Colors.black),
+                            softWrap: ct.maxWidthMm != null || hasNewlines,
+                            maxLines: (ct.maxWidthMm != null || hasNewlines) ? null : 1,
+                            overflow: (ct.maxWidthMm != null || hasNewlines)
+                                ? TextOverflow.clip
+                                : TextOverflow.visible,
+                            textAlign: _parseTextAlign(ct.textAlign),
+                          ),
+                        );
+                      }
                     ),
                   ),
                 ),

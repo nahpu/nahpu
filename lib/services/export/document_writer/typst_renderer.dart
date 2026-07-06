@@ -278,6 +278,7 @@ class _DocumentTypstRenderer {
     var content = text.replaceAll(r'\', r'\\');
     final activeChars = RegExp(r'([#$*_[\]<@~="+-])');
     content = content.replaceAllMapped(activeChars, (m) => '\\${m.group(0)}');
+    content = content.replaceAll('\n', ' #linebreak() ');
     return content;
   }
 
