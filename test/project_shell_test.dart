@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/shared/project_shell.dart';
+import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';

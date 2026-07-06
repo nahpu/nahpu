@@ -3,5 +3,7 @@
 //
 pub mod archive;
 pub mod common;
+pub mod config;
 pub mod export;
+pub mod gis;
 pub mod import;

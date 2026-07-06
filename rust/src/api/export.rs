@@ -105,3 +105,15 @@ pub fn generate_document(
         _ => Err(format!("Unsupported export format: {}", export_format)),
     }
 }
+
+pub fn compile_typst_to_pdf(
+    typst_content: String,
+    font_bytes: Vec<Vec<u8>>,
+) -> Result<Vec<u8>, String> {
+    nahpu_export::typst_compiler::compile_to_pdf(&typst_content, font_bytes)
+}
+
+pub fn markdown_to_typst(md_content: String) -> String {
+    nahpu_export::document::markdown_to_typst(&md_content)
+}
+

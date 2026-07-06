@@ -1,5 +1,5 @@
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +39,7 @@ class ApplicationSettings extends ConsumerWidget {
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.sync,
-          title: 'Replace app settings',
+          title: 'Import settings',
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(

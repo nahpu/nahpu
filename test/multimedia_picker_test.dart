@@ -43,6 +43,7 @@ void main() {
       () => ImageServices.validateSupportedMediaPaths([
         '/tmp/photo.jpg',
         '/tmp/notes.txt',
+        '/tmp/doc.pdf',
       ]),
       throwsA(
         isA<UnsupportedMediaFileException>()

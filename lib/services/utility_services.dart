@@ -29,30 +29,73 @@ class UtilityServices extends AppServices {
   }
 
   Future<void> getAllOptions(String prefKey) async {
-    // List<String> data = await getDistinctOptions(prefKey);
-    // final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
-    // List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
-    // await notifier.replaceAll(options);
+    List<String> data = await getDistinctOptions(prefKey);
+    final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
+    List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
+    await notifier.replaceAll(options);
     _invalidateOptions(prefKey);
   }
 
   Future<void> addOption(String prefKey, String option) async {
-    // await ref.read(userDefinedFieldProvider(prefKey).notifier).add(option);
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).add(option);
     _invalidateOptions(prefKey);
   }
 
-  Future<void> removeOption(String prefKey, String option) async {
-    // await ref.read(userDefinedFieldProvider(prefKey).notifier).remove(option);
+  Future<void> removeOption(
+      BuildContext context, String prefKey, String option) async {
+    List<String> distinctOptions = await getDistinctOptions(prefKey);
+    if (distinctOptions.contains(option)) {
+      final tableField = _getTableField(prefKey);
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Cannot Delete Value'),
+            content: Text('The value "$option" is used in "$tableField". '
+                'You cannot delete it because it is already used in '
+                'the database.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).remove(option);
     _invalidateOptions(prefKey);
   }
 
   Future<void> removeAllOptions(String prefKey) async {
-    // await ref.read(userDefinedFieldProvider(prefKey).notifier).clear();
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).clear();
     _invalidateOptions(prefKey);
   }
 
   void _invalidateOptions(String prefKey) {
-    // ref.invalidate(userDefinedFieldProvider(prefKey));
+    ref.invalidate(userDefinedFieldProvider(prefKey));
+  }
+
+  String _getTableField(String prefKey) {
+    switch (prefKey) {
+      case siteTypePrefKey:
+        return 'site::type';
+      case habitatTypePrefKey:
+        return 'site::habitat';
+      case collMethodPrefKey:
+        return 'collEffort::method';
+      case collRolePrefKey:
+        return 'collPersonnel::role';
+      case specimenTypePrefKey:
+        return 'specimenPart::type';
+      case treatmentPrefKey:
+        return 'specimenPart::treatment';
+      default:
+        return 'unknown::field';
+    }
   }
 }
 
@@ -198,6 +241,15 @@ extension StringExtension on String {
     } catch (e) {
       return '';
     }
+  }
+
+  /// Replace any "|", ";", "/", "," with middot "·"
+  String toCommonName() {
+    final spacedMiddot = ' · ';
+    return replaceAll('|', spacedMiddot)
+        .replaceAll(';', spacedMiddot)
+        .replaceAll('/', spacedMiddot)
+        .replaceAll(',', spacedMiddot);
   }
 
   String toTitleCase() {

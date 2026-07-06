@@ -3,13 +3,13 @@ import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/projects/personnel/add_personnel.dart';
 import 'package:nahpu/screens/projects/personnel/avatars.dart';
 import 'package:nahpu/screens/projects/personnel/new_personnel.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
