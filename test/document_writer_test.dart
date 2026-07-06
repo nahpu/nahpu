@@ -368,6 +368,48 @@ void main() {
 
       expect(height, greaterThan(documentPdfMmToPt(20)));
     });
+
+    test('text box background and stroke add configured padding', () {
+      final plainPage = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'plain',
+          text: 'Text',
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+        ),
+      ]);
+      final styledPage = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'styled',
+          text: 'Text',
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+          backgroundColorArgb: 0xFFFFFFFF,
+          borderColorArgb: 0xFF000000,
+          borderWidthPt: 1,
+          paddingPt: 5,
+        ),
+      ]);
+
+      final plainHeight =
+          DocumentWriter.estimateTemplatePageContentHeightPtForTesting(
+        page: plainPage,
+        wPt: 180,
+        hPt: 0,
+      );
+      final styledHeight =
+          DocumentWriter.estimateTemplatePageContentHeightPtForTesting(
+        page: styledPage,
+        wPt: 180,
+        hPt: 0,
+      );
+
+      expect(styledHeight - plainHeight, greaterThanOrEqualTo(10));
+    });
   });
 
   group('Document text formatting tests', () {
@@ -467,6 +509,31 @@ void main() {
       expect(abbr, '28 Jun 2026');
     });
 
+    test('Date and time formatting handles common global formats', () {
+      const dateTimeText = '2026-06-28T14:05:09';
+
+      expect(
+        formatTemplateText(dateTimeText, 'datetime', 'yyyy-mm-dd-hm'),
+        '2026-06-28 14:05',
+      );
+      expect(
+        formatTemplateText(dateTimeText, 'datetime', 'dd/mm/yyyy-hm'),
+        '28/06/2026 14:05',
+      );
+      expect(
+        formatTemplateText(dateTimeText, 'datetime', 'mm/dd/yyyy-hm'),
+        '06/28/2026 2:05 PM',
+      );
+      expect(
+        formatTemplateText(dateTimeText, 'datetime', 'month-dd-yyyy-hm'),
+        'June 28, 2026 2:05 PM',
+      );
+      expect(
+        formatTemplateText(dateTimeText, 'datetime', 'time-24-seconds'),
+        '14:05:09',
+      );
+    });
+
     test('Sex formatting parses Male/Female/Unknown indices and text', () {
       expect(formatTemplateText('0', 'sex', 'symbol:unknown'), '\u2642');
       expect(formatTemplateText('Male', 'sex', 'letter:na'), 'M');
@@ -552,6 +619,12 @@ void main() {
         expect(ct.qrBgColorArgb, 0xFFFFFFFF);
         expect(ct.qrShape, 'square');
         expect(ct.isDynamic, false);
+        expect(ct.backgroundColorArgb, isNull);
+        expect(ct.borderColorArgb, isNull);
+        expect(ct.borderWidthPt, 0);
+        expect(ct.borderStrokeStyle, 'solid');
+        expect(ct.cornerRadiusPt, 0);
+        expect(ct.paddingPt, 2);
       });
 
       test('CustomTextElement JSON serialization retains isDynamic', () {
@@ -567,6 +640,37 @@ void main() {
 
         final deserialized = CustomTextElement.fromJson(json);
         expect(deserialized.isDynamic, true);
+      });
+
+      test('CustomTextElement JSON serialization retains background and border',
+          () {
+        const ct = CustomTextElement(
+          id: 'ct_style',
+          text: 'Styled text',
+          xMm: 10,
+          yMm: 20,
+          backgroundColorArgb: 0xFFEFEFEF,
+          borderColorArgb: 0xFF111111,
+          borderWidthPt: 1.5,
+          borderStrokeStyle: 'dashed',
+          cornerRadiusPt: 4,
+          paddingPt: 6,
+        );
+        final json = ct.toJson();
+        expect(json['backgroundColorArgb'], 0xFFEFEFEF);
+        expect(json['borderColorArgb'], 0xFF111111);
+        expect(json['borderWidthPt'], 1.5);
+        expect(json['borderStrokeStyle'], 'dashed');
+        expect(json['cornerRadiusPt'], 4);
+        expect(json['paddingPt'], 6);
+
+        final deserialized = CustomTextElement.fromJson(json);
+        expect(deserialized.backgroundColorArgb, 0xFFEFEFEF);
+        expect(deserialized.borderColorArgb, 0xFF111111);
+        expect(deserialized.borderWidthPt, 1.5);
+        expect(deserialized.borderStrokeStyle, 'dashed');
+        expect(deserialized.cornerRadiusPt, 4);
+        expect(deserialized.paddingPt, 6);
       });
 
       test('CustomTextElement JSON serialization retains heightMm', () {

@@ -179,6 +179,109 @@ String _formatDate(DateTime dt, String format) {
   }
 }
 
+String formatDateTimeText(String text, String formatOption) {
+  final dateTimeRegex = RegExp(
+    r'(\d{4}-\d{2}-\d{2})(?:[T\s]+)(\d{2}:\d{2}(?::\d{2})?)(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?',
+  );
+  final match = dateTimeRegex.firstMatch(text);
+  if (match != null) {
+    final raw = '${match.group(1)}T${match.group(2)}';
+    final dt = DateTime.tryParse(raw);
+    if (dt != null) {
+      return text.replaceFirst(
+          match.group(0)!, _formatDateTime(dt, formatOption));
+    }
+  }
+
+  final dt = DateTime.tryParse(text);
+  if (dt != null) {
+    return _formatDateTime(dt, formatOption);
+  }
+
+  return text;
+}
+
+String _formatDateTime(DateTime dt, String format) {
+  final months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+  final monthAbbr = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+
+  final y = dt.year.toString();
+  final m = dt.month.toString().padLeft(2, '0');
+  final d = dt.day.toString().padLeft(2, '0');
+  final h24 = dt.hour.toString().padLeft(2, '0');
+  final min = dt.minute.toString().padLeft(2, '0');
+  final sec = dt.second.toString().padLeft(2, '0');
+  final hour12Value = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+  final h12 = hour12Value.toString();
+  final h12Padded = hour12Value.toString().padLeft(2, '0');
+  final ampm = dt.hour < 12 ? 'AM' : 'PM';
+
+  switch (format) {
+    case 'iso-minutes':
+      return '$y-$m-${d}T$h24:$min';
+    case 'iso-seconds':
+      return '$y-$m-${d}T$h24:$min:$sec';
+    case 'yyyy-mm-dd-hm':
+      return '$y-$m-$d $h24:$min';
+    case 'yyyy-mm-dd-hms':
+      return '$y-$m-$d $h24:$min:$sec';
+    case 'dd-mm-yyyy-hm':
+      return '$d-$m-$y $h24:$min';
+    case 'mm-dd-yyyy-hm':
+      return '$m-$d-$y $h24:$min';
+    case 'dd/mm/yyyy-hm':
+      return '$d/$m/$y $h24:$min';
+    case 'mm/dd/yyyy-hm':
+      return '$m/$d/$y $h12:$min $ampm';
+    case 'yyyy/mm/dd-hm':
+      return '$y/$m/$d $h24:$min';
+    case 'dd-month-yyyy-hm':
+      return '${dt.day} ${months[dt.month - 1]} $y $h24:$min';
+    case 'month-dd-yyyy-hm':
+      return '${months[dt.month - 1]} ${dt.day}, $y $h12:$min $ampm';
+    case 'dd-month-abbr-yyyy-hm':
+      return '${dt.day} ${monthAbbr[dt.month - 1]} $y $h24:$min';
+    case 'month-abbr-dd-yyyy-hm':
+      return '${monthAbbr[dt.month - 1]} ${dt.day}, $y $h12:$min $ampm';
+    case 'time-24':
+      return '$h24:$min';
+    case 'time-24-seconds':
+      return '$h24:$min:$sec';
+    case 'time-12':
+      return '$h12:$min $ampm';
+    case 'time-12-padded':
+      return '$h12Padded:$min $ampm';
+    default:
+      return '$y-$m-$d $h24:$min';
+  }
+}
+
 String formatListText(String text, String formatOption) {
   List<String> items;
   if (text.contains(' | ')) {
@@ -286,6 +389,9 @@ String formatTemplateText(
     case 'date':
       result = formatDateText(rawText, formatOption);
       break;
+    case 'datetime':
+      result = formatDateTimeText(rawText, formatOption);
+      break;
     case 'list':
       result = formatListText(rawText, formatOption);
       break;
@@ -328,6 +434,12 @@ class CustomTextElement {
     this.heightMm,
     this.zIndex = 0,
     this.colorArgb = 0xFF000000,
+    this.backgroundColorArgb,
+    this.borderColorArgb,
+    this.borderWidthPt = 0.0,
+    this.borderStrokeStyle = 'solid',
+    this.cornerRadiusPt = 0.0,
+    this.paddingPt = 2.0,
     this.textType = 'normal',
     this.formatOption = 'normal',
     this.isQrCode = false,
@@ -351,6 +463,12 @@ class CustomTextElement {
   final int rotationDegrees;
   final int zIndex;
   final int colorArgb;
+  final int? backgroundColorArgb;
+  final int? borderColorArgb;
+  final double borderWidthPt;
+  final String borderStrokeStyle;
+  final double cornerRadiusPt;
+  final double paddingPt;
   final String textType;
   final String formatOption;
 
@@ -389,6 +507,14 @@ class CustomTextElement {
     double? heightMm,
     int? zIndex,
     int? colorArgb,
+    int? backgroundColorArgb,
+    int? borderColorArgb,
+    double? borderWidthPt,
+    String? borderStrokeStyle,
+    double? cornerRadiusPt,
+    double? paddingPt,
+    bool clearBackgroundColor = false,
+    bool clearBorderColor = false,
     bool clearMaxWidthMm = false,
     bool clearHeightMm = false,
     String? textType,
@@ -419,6 +545,15 @@ class CustomTextElement {
       heightMm: clearHeightMm ? null : (heightMm ?? this.heightMm),
       zIndex: zIndex ?? this.zIndex,
       colorArgb: colorArgb ?? this.colorArgb,
+      backgroundColorArgb: clearBackgroundColor
+          ? null
+          : (backgroundColorArgb ?? this.backgroundColorArgb),
+      borderColorArgb:
+          clearBorderColor ? null : (borderColorArgb ?? this.borderColorArgb),
+      borderWidthPt: borderWidthPt ?? this.borderWidthPt,
+      borderStrokeStyle: borderStrokeStyle ?? this.borderStrokeStyle,
+      cornerRadiusPt: cornerRadiusPt ?? this.cornerRadiusPt,
+      paddingPt: paddingPt ?? this.paddingPt,
       textType: textType ?? this.textType,
       formatOption: formatOption ?? this.formatOption,
       isQrCode: isQrCode ?? this.isQrCode,
@@ -448,6 +583,13 @@ class CustomTextElement {
         if (heightMm != null) 'heightMm': heightMm,
         'zIndex': zIndex,
         'colorArgb': colorArgb,
+        if (backgroundColorArgb != null)
+          'backgroundColorArgb': backgroundColorArgb,
+        if (borderColorArgb != null) 'borderColorArgb': borderColorArgb,
+        'borderWidthPt': borderWidthPt,
+        'borderStrokeStyle': borderStrokeStyle,
+        'cornerRadiusPt': cornerRadiusPt,
+        'paddingPt': paddingPt,
         'textType': textType,
         'formatOption': formatOption,
         'isQrCode': isQrCode,
@@ -476,6 +618,12 @@ class CustomTextElement {
       heightMm: (json['heightMm'] as num?)?.toDouble(),
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
       colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF000000,
+      backgroundColorArgb: (json['backgroundColorArgb'] as num?)?.toInt(),
+      borderColorArgb: (json['borderColorArgb'] as num?)?.toInt(),
+      borderWidthPt: (json['borderWidthPt'] as num?)?.toDouble() ?? 0.0,
+      borderStrokeStyle: json['borderStrokeStyle'] as String? ?? 'solid',
+      cornerRadiusPt: (json['cornerRadiusPt'] as num?)?.toDouble() ?? 0.0,
+      paddingPt: (json['paddingPt'] as num?)?.toDouble() ?? 2.0,
       textType: json['textType'] as String? ?? 'normal',
       formatOption: json['formatOption'] as String? ?? 'normal',
       isQrCode: json['isQrCode'] as bool? ?? false,

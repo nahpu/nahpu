@@ -815,10 +815,9 @@ class _DocumentPdfBuilder {
           _estimateTextHeightPt(
             text.text,
             text.fontSizePt,
-            text.maxWidthMm == null
-                ? wPt - documentPdfMmToPt(text.xMm)
-                : documentPdfMmToPt(text.maxWidthMm!),
-          );
+            _textContentWidthPt(text, wPt),
+          ) +
+          _textBoxVerticalExtraPt(text);
       height = math.max(height, bottom);
     }
 
@@ -879,15 +878,16 @@ class _DocumentPdfBuilder {
 
   static double _dynamicTextGrowthPt(CustomTextElement text, double wPt) {
     final measuredHeight = _estimateTextHeightPt(
-      formatTemplateText(
-        text.text,
-        text.textType,
-        text.formatOption,
-        text.caseFormat,
-      ),
-      text.fontSizePt,
-      _textMaxWidthPt(text, wPt),
-    );
+          formatTemplateText(
+            text.text,
+            text.textType,
+            text.formatOption,
+            text.caseFormat,
+          ),
+          text.fontSizePt,
+          _textContentWidthPt(text, wPt),
+        ) +
+        _textBoxVerticalExtraPt(text);
     final baselineHeight =
         text.heightMm != null ? documentPdfMmToPt(text.heightMm!) : 0.0;
     return math.max(0.0, measuredHeight - baselineHeight);
@@ -929,15 +929,16 @@ class _DocumentPdfBuilder {
       final heightPt = element.heightMm != null
           ? documentPdfMmToPt(element.heightMm!)
           : _estimateTextHeightPt(
-              formatTemplateText(
-                element.text,
-                element.textType,
-                element.formatOption,
-                element.caseFormat,
-              ),
-              element.fontSizePt,
-              _textMaxWidthPt(element, wPt),
-            );
+                formatTemplateText(
+                  element.text,
+                  element.textType,
+                  element.formatOption,
+                  element.caseFormat,
+                ),
+                element.fontSizePt,
+                _textContentWidthPt(element, wPt),
+              ) +
+              _textBoxVerticalExtraPt(element);
       return documentPdfMmToPt(element.yMm) + heightPt;
     }
     return 0;
@@ -975,6 +976,24 @@ class _DocumentPdfBuilder {
     return text.maxWidthMm == null
         ? wPt - documentPdfMmToPt(text.xMm)
         : documentPdfMmToPt(text.maxWidthMm!);
+  }
+
+  static double _textContentWidthPt(CustomTextElement text, double wPt) {
+    final padding = _textBoxPaddingTotalPt(text);
+    return math.max(1.0, _textMaxWidthPt(text, wPt) - padding);
+  }
+
+  static double _textBoxVerticalExtraPt(CustomTextElement text) {
+    return _textBoxPaddingTotalPt(text);
+  }
+
+  static double _textBoxPaddingTotalPt(CustomTextElement text) {
+    return _hasTextBoxInset(text) ? math.max(0.0, text.paddingPt) * 2 : 0.0;
+  }
+
+  static bool _hasTextBoxInset(CustomTextElement text) {
+    return text.backgroundColorArgb != null ||
+        (text.borderColorArgb != null && text.borderWidthPt > 0);
   }
 
   static double _rotatedRectBottomExtentPt({

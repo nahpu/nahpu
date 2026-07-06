@@ -148,7 +148,7 @@ class _DocumentTypstRenderer {
         String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
         if (t.bold) textProps += ', weight: "bold"';
         if (t.italic) textProps += ', style: "italic"';
-        if (t.fontFamily.isNotEmpty) textProps += ', font: "${t.fontFamily}"';
+        textProps += ', font: "${_typstTemplateFont(t.fontFamily)}"';
 
         final mwPt = t.maxWidthMm != null
             ? '${documentPdfMmToPt(t.maxWidthMm!)}pt'
@@ -156,9 +156,13 @@ class _DocumentTypstRenderer {
         final dyPt = '${documentPdfMmToPt(t.yMm)}pt';
         final baselinePt =
             t.heightMm != null ? documentPdfMmToPt(t.heightMm!) : 0.0;
+        final measureBoxArgs = _textBoxArgs(t, width: mwPt);
+        final measureBox = measureBoxArgs.isEmpty
+            ? 'box(width: $mwPt)'
+            : 'box($measureBoxArgs)';
 
         typst.writeln(
-            '  let h_$varSuffix = measure(box(width: $mwPt)[#text($textProps)[$content]], styles).height');
+            '  let h_$varSuffix = measure($measureBox[#text($textProps)[$content]], styles).height');
         typst.writeln(
             '  let grow_$varSuffix = calc.max(0pt, h_$varSuffix - ${baselinePt}pt)');
         typst.writeln(
@@ -199,7 +203,7 @@ class _DocumentTypstRenderer {
             '  box(width: 100%, height: 100%, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
       }
 
-      if (mirror) typst.writeln('    #rotate(180deg, ref: "center")[');
+      if (mirror) typst.writeln('    #rotate(180deg, origin: center)[');
       typst.writeln(
           '      #box(width: ${wPt}pt, height: cell_height, clip: false)[');
     } else {
@@ -212,7 +216,7 @@ class _DocumentTypstRenderer {
             '#box(width: 100%, height: 100%, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
       }
 
-      if (mirror) typst.writeln('  #rotate(180deg, ref: "center")[');
+      if (mirror) typst.writeln('  #rotate(180deg, origin: center)[');
       typst
           .writeln('    #box(width: ${wPt}pt, height: ${hPt}pt, clip: false)[');
     }
@@ -318,7 +322,7 @@ class _DocumentTypstRenderer {
       String cleanPath = t.tempPath!.replaceAll(r'\', r'\\');
       final sizePt = documentPdfMmToPt(t.qrSizeMm);
       typst.writeln(
-          '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]');
+          '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]');
       return;
     }
 
@@ -340,7 +344,7 @@ class _DocumentTypstRenderer {
     String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
     if (t.bold) textProps += ', weight: "bold"';
     if (t.italic) textProps += ', style: "italic"';
-    if (t.fontFamily.isNotEmpty) textProps += ', font: "${t.fontFamily}"';
+    textProps += ', font: "${_typstTemplateFont(t.fontFamily)}"';
 
     String textElem = '#text($textProps)[$content]';
     if (t.textAlign != 'left') {
@@ -348,13 +352,24 @@ class _DocumentTypstRenderer {
     }
     final hasWidth = t.maxWidthMm != null;
     final hasHeight = t.heightMm != null && !t.isDynamic;
-    if (hasWidth || hasHeight) {
+    final hasBackground = t.backgroundColorArgb != null;
+    final hasBorder = t.borderColorArgb != null && t.borderWidthPt > 0;
+    if (hasWidth || hasHeight || hasBackground || hasBorder) {
       final wPart =
           hasWidth ? 'width: ${documentPdfMmToPt(t.maxWidthMm!)}pt' : '';
       final hPart =
           hasHeight ? 'height: ${documentPdfMmToPt(t.heightMm!)}pt' : '';
-      final comma = (hasWidth && hasHeight) ? ', ' : '';
-      textElem = '#box($wPart$comma$hPart)[$textElem]';
+      final fillPart =
+          hasBackground ? 'fill: ${_typstColor(t.backgroundColorArgb!)}' : '';
+      final strokePart = hasBorder ? 'stroke: ${_typstTextStroke(t)}' : '';
+      final radiusPart =
+          t.cornerRadiusPt > 0 ? 'radius: ${t.cornerRadiusPt}pt' : '';
+      final insetPart =
+          (hasBackground || hasBorder) ? 'inset: ${t.paddingPt}pt' : '';
+      final args = [wPart, hPart, fillPart, strokePart, radiusPart, insetPart]
+          .where((p) => p.isNotEmpty)
+          .join(', ');
+      textElem = '#box($args)[$textElem]';
     }
 
     typst.writeln(
@@ -378,7 +393,7 @@ class _DocumentTypstRenderer {
     final fs = math.min(iconWPt, iconHPt) * 0.88;
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
+        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
   }
 
   String _fieldValueCi(Map<String, String> m, String key) {
@@ -388,6 +403,48 @@ class _DocumentTypstRenderer {
       if (e.key.toLowerCase() == low) return e.value;
     }
     return '';
+  }
+
+  String _typstColor(int argb) {
+    final hexColor = argb.toRadixString(16).padLeft(8, '0');
+    return 'rgb("${hexColor.substring(2)}")';
+  }
+
+  String _typstTemplateFont(String fontFamily) {
+    final font = fontFamily.trim();
+    return font.isEmpty ? 'Merriweather' : font;
+  }
+
+  String _textBoxArgs(
+    CustomTextElement text, {
+    String? width,
+    String? height,
+  }) {
+    final hasBackground = text.backgroundColorArgb != null;
+    final hasBorder = text.borderColorArgb != null && text.borderWidthPt > 0;
+    if (!hasBackground && !hasBorder) return '';
+    final fillPart =
+        hasBackground ? 'fill: ${_typstColor(text.backgroundColorArgb!)}' : '';
+    final strokePart = hasBorder ? 'stroke: ${_typstTextStroke(text)}' : '';
+    final radiusPart =
+        text.cornerRadiusPt > 0 ? 'radius: ${text.cornerRadiusPt}pt' : '';
+    return [
+      if (width != null) 'width: $width',
+      if (height != null) 'height: $height',
+      fillPart,
+      strokePart,
+      radiusPart,
+      'inset: ${text.paddingPt}pt',
+    ].where((p) => p.isNotEmpty).join(', ');
+  }
+
+  String _typstTextStroke(CustomTextElement text) {
+    final dash = text.borderStrokeStyle == 'dashed'
+        ? ', dash: "dashed"'
+        : text.borderStrokeStyle == 'dotted'
+            ? ', dash: "dotted"'
+            : '';
+    return '(paint: ${_typstColor(text.borderColorArgb!)}, thickness: ${text.borderWidthPt}pt$dash)';
   }
 
   double _staticContentHeightPt(TemplatePage page, double wPt) {
@@ -419,13 +476,15 @@ class _DocumentTypstRenderer {
         continue;
       }
 
-      final maxWidthPt = text.maxWidthMm == null
-          ? wPt - documentPdfMmToPt(text.xMm)
-          : documentPdfMmToPt(text.maxWidthMm!);
       height = math.max(
         height,
         documentPdfMmToPt(text.yMm) +
-            _estimateTextHeightPt(text.text, text.fontSizePt, maxWidthPt),
+            _estimateTextHeightPt(
+              text.text,
+              text.fontSizePt,
+              _textContentWidthPt(text, wPt),
+            ) +
+            _textBoxVerticalExtraPt(text),
       );
     }
 
@@ -471,10 +530,11 @@ class _DocumentTypstRenderer {
       final heightPt = element.heightMm != null
           ? documentPdfMmToPt(element.heightMm!)
           : _estimateTextHeightPt(
-              element.text,
-              element.fontSizePt,
-              _textMaxWidthPt(element, wPt),
-            );
+                element.text,
+                element.fontSizePt,
+                _textContentWidthPt(element, wPt),
+              ) +
+              _textBoxVerticalExtraPt(element);
       return documentPdfMmToPt(element.yMm) + heightPt;
     }
     return 0;
@@ -484,6 +544,24 @@ class _DocumentTypstRenderer {
     return text.maxWidthMm == null
         ? wPt - documentPdfMmToPt(text.xMm)
         : documentPdfMmToPt(text.maxWidthMm!);
+  }
+
+  double _textContentWidthPt(CustomTextElement text, double wPt) {
+    final padding = _textBoxPaddingTotalPt(text);
+    return math.max(1.0, _textMaxWidthPt(text, wPt) - padding);
+  }
+
+  double _textBoxVerticalExtraPt(CustomTextElement text) {
+    return _textBoxPaddingTotalPt(text);
+  }
+
+  double _textBoxPaddingTotalPt(CustomTextElement text) {
+    return _hasTextBoxInset(text) ? math.max(0.0, text.paddingPt) * 2 : 0.0;
+  }
+
+  bool _hasTextBoxInset(CustomTextElement text) {
+    return text.backgroundColorArgb != null ||
+        (text.borderColorArgb != null && text.borderWidthPt > 0);
   }
 
   double _customImageBottomPt(CustomImageElement image) {
@@ -558,7 +636,7 @@ class _DocumentTypstRenderer {
     String path = im.imagePath.replaceAll(r'\', r'\\');
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(im.xMm)}pt, dy: ${_dyPt(im.yMm, dyShift)})[#rotate(${im.rotationDegrees}deg)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
+        '  #place(dx: ${documentPdfMmToPt(im.xMm)}pt, dy: ${_dyPt(im.yMm, dyShift)})[#rotate(${im.rotationDegrees}deg, origin: center)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
   }
 
   void _writeSingleCustomLine(
@@ -588,7 +666,7 @@ class _DocumentTypstRenderer {
     }
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(line.xMm)}pt, dy: ${_dyPt(line.yMm, dyShift)})[#rotate(${line.rotationDegrees}deg)[$elem]]');
+        '  #place(dx: ${documentPdfMmToPt(line.xMm)}pt, dy: ${_dyPt(line.yMm, dyShift)})[#rotate(${line.rotationDegrees}deg, origin: center)[$elem]]');
   }
 
   void _writeSingleCustomShape(
@@ -645,7 +723,7 @@ class _DocumentTypstRenderer {
     }
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: ${_dyPt(shape.yMm, dyShift)})[#rotate(${shape.rotationDegrees}deg)[$elem]]');
+        '  #place(dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: ${_dyPt(shape.yMm, dyShift)})[#rotate(${shape.rotationDegrees}deg, origin: center)[$elem]]');
   }
 
   String _typstCustomShapeElement(

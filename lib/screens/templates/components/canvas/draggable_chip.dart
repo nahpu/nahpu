@@ -37,6 +37,12 @@ class DraggableChip extends StatefulWidget {
     this.onDragStateChanged,
     this.onDoubleTap,
     this.isDynamic = false,
+    this.backgroundColorArgb,
+    this.borderColorArgb,
+    this.borderWidthPt = 0.0,
+    this.borderStrokeStyle = 'solid',
+    this.cornerRadiusPt = 0.0,
+    this.paddingPt = 2.0,
   });
 
   final String label;
@@ -72,10 +78,17 @@ class DraggableChip extends StatefulWidget {
   final double? heightMm;
   final ValueChanged<double>? onMaxWidthChanged;
   final ValueChanged<double>? onHeightChanged;
-  final void Function(Offset newPosMm, double maxWidthMm, double heightMm)? onResizeChanged;
+  final void Function(Offset newPosMm, double maxWidthMm, double heightMm)?
+      onResizeChanged;
   final int colorArgb;
   final ValueChanged<bool>? onDragStateChanged;
   final bool isDynamic;
+  final int? backgroundColorArgb;
+  final int? borderColorArgb;
+  final double borderWidthPt;
+  final String borderStrokeStyle;
+  final double cornerRadiusPt;
+  final double paddingPt;
 
   @override
   State<DraggableChip> createState() => DraggableChipState();
@@ -233,11 +246,15 @@ class DraggableChipState extends State<DraggableChip> {
         widget.onResizeChanged!(
           pos,
           _resizeLiveWidthMm!,
-          widget.isDynamic ? 0.0 : (_resizeLiveHeightMm ?? widget.heightMm ?? 0.0),
+          widget.isDynamic
+              ? 0.0
+              : (_resizeLiveHeightMm ?? widget.heightMm ?? 0.0),
         );
       } else {
         widget.onMaxWidthChanged?.call(_resizeLiveWidthMm!);
-        if (widget.onHeightChanged != null && !widget.isDynamic && _resizeLiveHeightMm != null) {
+        if (widget.onHeightChanged != null &&
+            !widget.isDynamic &&
+            _resizeLiveHeightMm != null) {
           widget.onHeightChanged!(_resizeLiveHeightMm!);
         }
         if (_resizeLivePosMm != null && _resizeLivePosMm != _resizeStartPosMm) {
@@ -407,18 +424,51 @@ class DraggableChipState extends State<DraggableChip> {
       ).copyWith(color: Color(widget.colorArgb));
 
       final activeWidthMm = _resizeLiveWidthMm ?? widget.maxWidthMm;
-      final activeHeightMm = widget.isDynamic ? null : (_resizeLiveHeightMm ?? widget.heightMm);
+      final activeHeightMm =
+          widget.isDynamic ? null : (_resizeLiveHeightMm ?? widget.heightMm);
+      final hasTextBoxStyle = widget.backgroundColorArgb != null ||
+          (widget.borderColorArgb != null && widget.borderWidthPt > 0);
+      final textBoxPaddingPx = hasTextBoxStyle
+          ? widget.paddingPt * widget.scale / _kPdfPointsPerMm
+          : 0.0;
+      final textBoxBorderWidthPx =
+          widget.borderWidthPt * widget.scale / _kPdfPointsPerMm;
+      final textBoxRadiusPx =
+          widget.cornerRadiusPt * widget.scale / _kPdfPointsPerMm;
       final text = SizedBox(
         width: activeWidthMm != null ? activeWidthMm * widget.scale : null,
         height: activeHeightMm != null ? activeHeightMm * widget.scale : null,
-        child: Text(
-          widget.label,
-          style: textStyle,
-          softWrap: activeWidthMm != null,
-          maxLines: activeWidthMm != null ? null : 1,
-          overflow:
-              activeWidthMm != null ? TextOverflow.clip : TextOverflow.visible,
-          textAlign: widget.textAlign,
+        child: CustomPaint(
+          foregroundPainter:
+              widget.borderColorArgb == null || widget.borderWidthPt <= 0
+                  ? null
+                  : _TextBoxStrokePainter(
+                      color: Color(widget.borderColorArgb!),
+                      width: textBoxBorderWidthPx,
+                      style: widget.borderStrokeStyle,
+                      radius: textBoxRadiusPx,
+                    ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: widget.backgroundColorArgb == null
+                  ? null
+                  : Color(widget.backgroundColorArgb!),
+              borderRadius: BorderRadius.circular(textBoxRadiusPx),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(textBoxPaddingPx),
+              child: Text(
+                widget.label,
+                style: textStyle,
+                softWrap: activeWidthMm != null,
+                maxLines: activeWidthMm != null ? null : 1,
+                overflow: activeWidthMm != null
+                    ? TextOverflow.clip
+                    : TextOverflow.visible,
+                textAlign: widget.textAlign,
+              ),
+            ),
+          ),
         ),
       );
       final handleSize = fontPx.clamp(20.0, 32.0);
@@ -459,7 +509,8 @@ class DraggableChipState extends State<DraggableChip> {
                         : (widget.isDynamic
                             ? BoxDecoration(
                                 border: Border.all(
-                                  color: scheme.secondary.withValues(alpha: 0.5),
+                                  color:
+                                      scheme.secondary.withValues(alpha: 0.5),
                                   width: 1.5,
                                 ),
                                 borderRadius: BorderRadius.circular(2),
@@ -482,7 +533,8 @@ class DraggableChipState extends State<DraggableChip> {
                   ),
                 ),
                 if ((widget.isSelected || _resizeCorner != null) &&
-                    (widget.onMaxWidthChanged != null || widget.onHeightChanged != null)) ...[
+                    (widget.onMaxWidthChanged != null ||
+                        widget.onHeightChanged != null)) ...[
                   Positioned(
                     left: 0,
                     top: 0,
@@ -592,5 +644,68 @@ class DraggableChipState extends State<DraggableChip> {
         ),
       ),
     );
+  }
+}
+
+class _TextBoxStrokePainter extends CustomPainter {
+  const _TextBoxStrokePainter({
+    required this.color,
+    required this.width,
+    required this.style,
+    required this.radius,
+  });
+
+  final Color color;
+  final double width;
+  final String style;
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (width <= 0 || size.isEmpty) return;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width;
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(
+      rect.deflate(width / 2),
+      Radius.circular(math.max(0, radius)),
+    );
+
+    if (style == 'double') {
+      canvas.drawRRect(rrect, paint);
+      final gap = math.max(1.0, width * 1.25);
+      final inner = rrect.deflate(width + gap);
+      if (inner.width > 0 && inner.height > 0) {
+        canvas.drawRRect(inner, paint);
+      }
+      return;
+    }
+
+    final path = Path()..addRRect(rrect);
+    if (style == 'dashed' || style == 'dotted') {
+      final dashLength = style == 'dotted' ? width : width * 4;
+      final gapLength = style == 'dotted' ? width * 2 : width * 2.5;
+      for (final metric in path.computeMetrics()) {
+        var distance = 0.0;
+        while (distance < metric.length) {
+          final end = math.min(distance + dashLength, metric.length);
+          canvas.drawPath(metric.extractPath(distance, end), paint);
+          distance = end + gapLength;
+        }
+      }
+      return;
+    }
+
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TextBoxStrokePainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.width != width ||
+        oldDelegate.style != style ||
+        oldDelegate.radius != radius;
   }
 }

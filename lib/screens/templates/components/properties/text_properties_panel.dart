@@ -440,6 +440,77 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
             ),
           ),
         ];
+      case 'datetime':
+        return const [
+          DropdownMenuItem(
+            value: 'yyyy-mm-dd-hm',
+            child: Text('YYYY-MM-DD 24h (2026-06-28 14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'yyyy-mm-dd-hms',
+            child: Text('YYYY-MM-DD seconds (2026-06-28 14:05:09)'),
+          ),
+          DropdownMenuItem(
+            value: 'iso-minutes',
+            child: Text('ISO minutes (2026-06-28T14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'iso-seconds',
+            child: Text('ISO seconds (2026-06-28T14:05:09)'),
+          ),
+          DropdownMenuItem(
+            value: 'dd-mm-yyyy-hm',
+            child: Text('DD-MM-YYYY 24h (28-06-2026 14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'mm-dd-yyyy-hm',
+            child: Text('MM-DD-YYYY 24h (06-28-2026 14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'dd/mm/yyyy-hm',
+            child: Text('DD/MM/YYYY 24h (28/06/2026 14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'mm/dd/yyyy-hm',
+            child: Text('MM/DD/YYYY 12h (06/28/2026 2:05 PM)'),
+          ),
+          DropdownMenuItem(
+            value: 'yyyy/mm/dd-hm',
+            child: Text('YYYY/MM/DD 24h (2026/06/28 14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'dd-month-yyyy-hm',
+            child: Text('DD Month YYYY 24h (28 June 2026 14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'month-dd-yyyy-hm',
+            child: Text('Month DD, YYYY 12h (June 28, 2026 2:05 PM)'),
+          ),
+          DropdownMenuItem(
+            value: 'dd-month-abbr-yyyy-hm',
+            child: Text('DD Mon YYYY 24h (28 Jun 2026 14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'month-abbr-dd-yyyy-hm',
+            child: Text('Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)'),
+          ),
+          DropdownMenuItem(
+            value: 'time-24',
+            child: Text('Time 24h (14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'time-24-seconds',
+            child: Text('Time 24h seconds (14:05:09)'),
+          ),
+          DropdownMenuItem(
+            value: 'time-12',
+            child: Text('Time 12h (2:05 PM)'),
+          ),
+          DropdownMenuItem(
+            value: 'time-12-padded',
+            child: Text('Time 12h padded (02:05 PM)'),
+          ),
+        ];
       case 'number':
         return const [
           DropdownMenuItem(
@@ -484,6 +555,78 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
           ),
         ];
     }
+  }
+
+  Widget _colorSwatch({
+    required BuildContext context,
+    required String label,
+    required Color color,
+    required String pickerTitle,
+    required ValueChanged<Color> onPicked,
+    VoidCallback? onClear,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: () async {
+            Color selectedColor = color;
+            final picked = await ColorPicker(
+              color: selectedColor,
+              onColorChanged: (c) => selectedColor = c,
+              heading: Text(
+                pickerTitle,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              subheading: Text(
+                'Select color shade',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              wheelSubheading: Text(
+                'Selected color and its shades',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              showColorName: true,
+              showColorCode: false,
+              copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                copyButton: true,
+                pasteButton: true,
+                longPressMenu: true,
+              ),
+              colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
+              colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
+              pickersEnabled: const <ColorPickerType, bool>{
+                ColorPickerType.both: false,
+                ColorPickerType.primary: true,
+                ColorPickerType.accent: true,
+                ColorPickerType.bw: true,
+                ColorPickerType.custom: true,
+                ColorPickerType.wheel: true,
+              },
+            ).showPickerDialog(context);
+            if (picked) onPicked(selectedColor);
+          },
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: color,
+              border: Border.all(color: scheme.outline),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        if (onClear != null)
+          IconButton(
+            icon: const Icon(Icons.close, size: 18),
+            tooltip: 'Clear $label',
+            onPressed: onClear,
+          ),
+      ],
+    );
   }
 
   @override
@@ -639,58 +782,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               },
             ),
             const SizedBox(width: 12),
-            Text('Color', style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: () async {
-                Color selectedColor = Color(ct.colorArgb);
-                final picked = await ColorPicker(
-                  color: selectedColor,
-                  onColorChanged: (c) => selectedColor = c,
-                  heading: Text('Select text color',
-                      style: Theme.of(context).textTheme.titleSmall),
-                  subheading: Text('Select color shade',
-                      style: Theme.of(context).textTheme.titleSmall),
-                  wheelSubheading: Text('Selected color and its shades',
-                      style: Theme.of(context).textTheme.titleSmall),
-                  showColorName: true,
-                  showColorCode: false,
-                  copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                    copyButton: true,
-                    pasteButton: true,
-                    longPressMenu: true,
-                  ),
-                  colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-                  colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-                  pickersEnabled: const <ColorPickerType, bool>{
-                    ColorPickerType.both: false,
-                    ColorPickerType.primary: true,
-                    ColorPickerType.accent: true,
-                    ColorPickerType.bw: false,
-                    ColorPickerType.custom: true,
-                    ColorPickerType.wheel: true,
-                  },
-                ).showPickerDialog(context);
-                if (picked) {
-                  onUpdateCustomText(
-                    page1,
-                    ct.copyWith(
-                      colorArgb: selectedColor.toARGB32(),
-                    ),
-                  );
-                }
-              },
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: Color(ct.colorArgb),
-                  border: Border.all(color: scheme.outline),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
             Text('Max Width (mm)',
                 style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(width: 8),
@@ -830,6 +921,174 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               onUpdateCustomText(
                                   page1, ct.copyWith(fontFamily: v));
                             },
+                          ),
+                          const SizedBox(width: 12),
+                          _colorSwatch(
+                            context: context,
+                            label: 'Text',
+                            color: Color(ct.colorArgb),
+                            pickerTitle: 'Select text color',
+                            onPicked: (selectedColor) {
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(
+                                    colorArgb: selectedColor.toARGB32()),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          _colorSwatch(
+                            context: context,
+                            label: 'Background',
+                            color: ct.backgroundColorArgb == null
+                                ? Colors.transparent
+                                : Color(ct.backgroundColorArgb!),
+                            pickerTitle: 'Select text background color',
+                            onPicked: (selectedColor) {
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(
+                                  backgroundColorArgb: selectedColor.toARGB32(),
+                                ),
+                              );
+                            },
+                            onClear: () {
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(clearBackgroundColor: true),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          _colorSwatch(
+                            context: context,
+                            label: 'Stroke',
+                            color: ct.borderColorArgb == null
+                                ? Colors.black
+                                : Color(ct.borderColorArgb!),
+                            pickerTitle: 'Select text stroke color',
+                            onPicked: (selectedColor) {
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(
+                                  borderColorArgb: selectedColor.toARGB32(),
+                                  borderWidthPt:
+                                      ct.borderWidthPt <= 0 ? 1.0 : null,
+                                  borderStrokeStyle: ct.borderStrokeStyle,
+                                ),
+                              );
+                            },
+                            onClear: () {
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(
+                                  clearBorderColor: true,
+                                  borderWidthPt: 0.0,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          Text('Stroke',
+                              style: Theme.of(context).textTheme.labelMedium),
+                          SizedBox(
+                            width: 96,
+                            child: widget.buildOptionSlider(
+                              context,
+                              value: ct.borderWidthPt.clamp(0.0, 10.0),
+                              min: 0.0,
+                              max: 10.0,
+                              divisions: 20,
+                              label: ct.borderWidthPt <= 0
+                                  ? 'None'
+                                  : '${ct.borderWidthPt.toStringAsFixed(1)} pt',
+                              onChanged: (v) {
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(
+                                    borderWidthPt: v,
+                                    borderColorArgb:
+                                        v > 0 && ct.borderColorArgb == null
+                                            ? Colors.black.toARGB32()
+                                            : null,
+                                    clearBorderColor: v == 0,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('Style',
+                              style: Theme.of(context).textTheme.labelMedium),
+                          const SizedBox(width: 8),
+                          DropdownButton<String>(
+                            value: ct.borderStrokeStyle,
+                            isDense: true,
+                            underline: const SizedBox.shrink(),
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 'solid', child: Text('Solid')),
+                              DropdownMenuItem(
+                                  value: 'dashed', child: Text('Dashed')),
+                              DropdownMenuItem(
+                                  value: 'dotted', child: Text('Dotted')),
+                              DropdownMenuItem(
+                                  value: 'double', child: Text('Double')),
+                            ],
+                            onChanged: (v) {
+                              if (v == null) return;
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(
+                                  borderStrokeStyle: v,
+                                  borderWidthPt:
+                                      ct.borderWidthPt <= 0 ? 1.0 : null,
+                                  borderColorArgb: ct.borderColorArgb ??
+                                      Colors.black.toARGB32(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          Text('Radius',
+                              style: Theme.of(context).textTheme.labelMedium),
+                          SizedBox(
+                            width: 96,
+                            child: widget.buildOptionSlider(
+                              context,
+                              value: ct.cornerRadiusPt.clamp(0.0, 24.0),
+                              min: 0.0,
+                              max: 24.0,
+                              divisions: 24,
+                              label:
+                                  '${ct.cornerRadiusPt.toStringAsFixed(0)} pt',
+                              onChanged: (v) {
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(cornerRadiusPt: v),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text('Padding',
+                              style: Theme.of(context).textTheme.labelMedium),
+                          SizedBox(
+                            width: 96,
+                            child: widget.buildOptionSlider(
+                              context,
+                              value: ct.paddingPt.clamp(0.0, 24.0),
+                              min: 0.0,
+                              max: 24.0,
+                              divisions: 24,
+                              label: '${ct.paddingPt.toStringAsFixed(0)} pt',
+                              onChanged: (v) {
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(paddingPt: v),
+                                );
+                              },
+                            ),
                           ),
                           const SizedBox(width: 12),
                           SegmentedButton<String>(
@@ -1014,6 +1273,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               child: Text('Dates'),
                             ),
                             DropdownMenuItem(
+                              value: 'datetime',
+                              child: Text('Date and Time'),
+                            ),
+                            DropdownMenuItem(
                               value: 'sex',
                               child: Text('Sex'),
                             ),
@@ -1031,6 +1294,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               defaultOpt = 'pipe';
                             } else if (v == 'date') {
                               defaultOpt = 'yyyy-mm-dd';
+                            } else if (v == 'datetime') {
+                              defaultOpt = 'yyyy-mm-dd-hm';
                             } else if (v == 'sex') {
                               defaultOpt = 'text:unknown';
                             } else if (v == 'number') {

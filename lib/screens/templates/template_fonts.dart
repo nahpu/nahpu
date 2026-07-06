@@ -17,6 +17,7 @@ TextStyle customTemplateCanvasTextStyle({
   final raw = fontFamilyRaw.trim();
   if (raw.isEmpty) {
     return TextStyle(
+      fontFamily: 'Merriweather',
       fontSize: fontSize,
       fontWeight: fontWeight,
       fontStyle: fontStyle,

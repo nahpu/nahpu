@@ -446,6 +446,14 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     maxWidthMm: element.maxWidthMm,
                                     heightMm: element.heightMm,
                                     colorArgb: element.colorArgb,
+                                    backgroundColorArgb:
+                                        element.backgroundColorArgb,
+                                    borderColorArgb: element.borderColorArgb,
+                                    borderWidthPt: element.borderWidthPt,
+                                    borderStrokeStyle:
+                                        element.borderStrokeStyle,
+                                    cornerRadiusPt: element.cornerRadiusPt,
+                                    paddingPt: element.paddingPt,
                                     isDynamic: element.isDynamic,
                                     onMaxWidthChanged: (w) {
                                       onScheduleTemplateTextPositionUpdate(
@@ -463,7 +471,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                           xMm: pos.dx,
                                           yMm: pos.dy,
                                           maxWidthMm: w,
-                                          heightMm: element.isDynamic ? null : h,
+                                          heightMm:
+                                              element.isDynamic ? null : h,
                                         ),
                                       );
                                     },
