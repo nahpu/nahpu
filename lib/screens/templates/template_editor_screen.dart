@@ -42,6 +42,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   Template _template = DefaultTemplate.defaultTemplate();
   List<String> _savedNames = [];
   String? _lastSavedJson;
+  final List<_EditorStateSnapshot> _undoStack = [];
+  final List<_EditorStateSnapshot> _redoStack = [];
 
   bool get _isDirty {
     if (_lastSavedJson == null) return false;
@@ -170,7 +172,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         onStartInlineEditing: _startInlineEditing,
         onScheduleTemplateImageUpdate: _scheduleTemplateImageUpdate,
         onRemoveCustomImage: _removeCustomImage,
-        onScheduleTemplateTextPositionUpdate: _scheduleTemplateTextPositionUpdate,
+        onScheduleTemplateTextPositionUpdate:
+            _scheduleTemplateTextPositionUpdate,
         onScheduleTemplateLineUpdate: _scheduleTemplateLineUpdate,
         onRemoveCustomLine: _removeCustomLine,
         onScheduleTemplateShapeUpdate: _scheduleTemplateShapeUpdate,
@@ -182,6 +185,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         onUpdateCustomShape: _updateCustomShape,
         onDismissProperties: _clearSelection,
         onZoomChanged: (z) => _deferSetState(() => _zoom = z),
+        onUndo: _undo,
+        onRedo: _redo,
+        canUndo: _undoStack.isNotEmpty,
+        canRedo: _redoStack.isNotEmpty,
+        onDuplicateElement: _duplicateElement,
+        onDragStateChanged: _onDragStateChanged,
         borderPanel: TemplateBorderPanel(
           session: _templateBorderPanelSession,
           outline: _template.outline,
@@ -487,6 +496,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   Future<void> _setDuplex(bool duplex) async {
+    _pushToUndo();
     _deferSetState(() {
       _isDuplex = duplex;
       if (!duplex && _tabController.index != 0) {
@@ -503,6 +513,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _setTemplateSize(double widthMm, double heightMm) {
+    _pushToUndo();
     _deferSetState(() {
       _templateWidthMm = widthMm;
       _templateHeightMm = heightMm;
@@ -510,12 +521,14 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _updateTemplateDescription(String description) {
+    _pushToUndo();
     setState(() {
       _template = _template.copyWith(description: description);
     });
   }
 
   Future<void> _toggleCurrentMirror() async {
+    _pushToUndo();
     if (_isPage1) {
       final next = !_mirrorFront;
       _deferSetState(() => _mirrorFront = next);
@@ -562,6 +575,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _addCustomTextWithLabel(bool page1, String text) {
+    _pushToUndo();
     final id = 'ct_$_customIdCounter';
     _customIdCounter++;
     final element = CustomTextElement(
@@ -585,6 +599,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _addCustomLine(bool page1) {
+    _pushToUndo();
     final id = 'line_$_customIdCounter';
     _customIdCounter++;
     final element = CustomLineElement(
@@ -608,6 +623,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _addCustomShape(bool page1) {
+    _pushToUndo();
     final id = 'shape_$_customIdCounter';
     _customIdCounter++;
     final element = CustomShapeElement(
@@ -633,6 +649,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _updateCustomText(bool page1, CustomTextElement element) {
+    _pushToUndo();
     setState(() {
       if (page1) {
         _template =
@@ -695,6 +712,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _updateCustomLine(bool page1, CustomLineElement element) {
+    _pushToUndo();
     setState(() {
       if (page1) {
         _template =
@@ -707,6 +725,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _updateCustomShape(bool page1, CustomShapeElement element) {
+    _pushToUndo();
     setState(() {
       if (page1) {
         _template =
@@ -719,6 +738,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _deleteCustomText(bool page1, String id) {
+    _pushToUndo();
     _deferSetState(() {
       if (page1) {
         _template =
@@ -734,6 +754,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _removeCustomLine(bool page1, String id) {
+    _pushToUndo();
     _deferSetState(() {
       if (page1) {
         _template = _template.copyWith(
@@ -751,6 +772,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _removeCustomShape(bool page1, String id) {
+    _pushToUndo();
     _deferSetState(() {
       if (page1) {
         _template = _template.copyWith(
@@ -768,6 +790,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _removeCustomImage(bool page1, String imageId) {
+    _pushToUndo();
     _deferSetState(() {
       if (page1) {
         _template = _template.copyWith(
@@ -815,6 +838,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _setTemplateOutline(TemplateOutline? outline) {
+    _pushToUndo();
     _deferSetState(() {
       if (outline == null) {
         _template = _template.copyWith(clearOutline: true);
@@ -825,6 +849,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   void _placeCustomImage(bool page1, String filePath) {
+    _pushToUndo();
     final id = 'img_$_imageIdCounter';
     _imageIdCounter++;
     final dw = (_templateWidthMm * 0.35).clamp(8.0, 48.0);
@@ -899,7 +924,6 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     if (name == null || !mounted) return;
     await _saveTemplateWithName(name);
   }
-
 
   /// When import would overwrite an existing saved template, user picks a new unique name.
   Future<void> _saveTemplateWithName(String name) async {
@@ -1135,6 +1159,223 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       } catch (_) {}
     }
   }
+
+  void _pushToUndo() {
+    _undoStack.add(_EditorStateSnapshot(
+      template: _template.copyWith(),
+      isDuplex: _isDuplex,
+      mirrorFront: _mirrorFront,
+      mirrorBack: _mirrorBack,
+      templateWidthMm: _templateWidthMm,
+      templateHeightMm: _templateHeightMm,
+    ));
+    if (_undoStack.length > 50) {
+      _undoStack.removeAt(0);
+    }
+    _redoStack.clear();
+  }
+
+  void _undo() {
+    if (_undoStack.isEmpty) return;
+    _redoStack.add(_EditorStateSnapshot(
+      template: _template.copyWith(),
+      isDuplex: _isDuplex,
+      mirrorFront: _mirrorFront,
+      mirrorBack: _mirrorBack,
+      templateWidthMm: _templateWidthMm,
+      templateHeightMm: _templateHeightMm,
+    ));
+    final snapshot = _undoStack.removeLast();
+    setState(() {
+      _template = snapshot.template;
+      _isDuplex = snapshot.isDuplex;
+      _mirrorFront = snapshot.mirrorFront;
+      _mirrorBack = snapshot.mirrorBack;
+      _templateWidthMm = snapshot.templateWidthMm;
+      _templateHeightMm = snapshot.templateHeightMm;
+    });
+    _documentSettings.setDuplex(snapshot.isDuplex);
+    _documentSettings.setMirrorFront(snapshot.mirrorFront);
+    _documentSettings.setMirrorBack(snapshot.mirrorBack);
+  }
+
+  void _redo() {
+    if (_redoStack.isEmpty) return;
+    _undoStack.add(_EditorStateSnapshot(
+      template: _template.copyWith(),
+      isDuplex: _isDuplex,
+      mirrorFront: _mirrorFront,
+      mirrorBack: _mirrorBack,
+      templateWidthMm: _templateWidthMm,
+      templateHeightMm: _templateHeightMm,
+    ));
+    final snapshot = _redoStack.removeLast();
+    setState(() {
+      _template = snapshot.template;
+      _isDuplex = snapshot.isDuplex;
+      _mirrorFront = snapshot.mirrorFront;
+      _mirrorBack = snapshot.mirrorBack;
+      _templateWidthMm = snapshot.templateWidthMm;
+      _templateHeightMm = snapshot.templateHeightMm;
+    });
+    _documentSettings.setDuplex(snapshot.isDuplex);
+    _documentSettings.setMirrorFront(snapshot.mirrorFront);
+    _documentSettings.setMirrorBack(snapshot.mirrorBack);
+  }
+
+  void _duplicateElement(String sel) {
+    final selection = TemplateSelection.parse(sel);
+    if (selection == null) return;
+
+    _pushToUndo();
+
+    final page1 = selection.page1;
+    switch (selection.type) {
+      case TemplateElementType.text:
+        final original = _findCustomText(page1, selection.id);
+        if (original != null) {
+          final id = 'ct_$_customIdCounter';
+          _customIdCounter++;
+          final duplicated = original.copyWith(
+            id: id,
+            xMm: original.xMm + 4,
+            yMm: original.yMm + 4,
+          );
+          setState(() {
+            if (page1) {
+              _template = _template.copyWith(
+                page1: _template.page1.withCustomText(duplicated),
+              );
+            } else {
+              _template = _template.copyWith(
+                page2: _template.page2.withCustomText(duplicated),
+              );
+            }
+            _selectedElement = 'custom:${page1 ? '1' : '2'}:$id';
+          });
+        }
+      case TemplateElementType.image:
+        final original = _findCustomImage(page1, selection.id);
+        if (original != null) {
+          final id = 'img_$_imageIdCounter';
+          _imageIdCounter++;
+          final duplicated = original.copyWith(
+            id: id,
+            xMm: original.xMm + 4,
+            yMm: original.yMm + 4,
+          );
+          setState(() {
+            if (page1) {
+              _template = _template.copyWith(
+                page1: _template.page1.withCustomImage(duplicated),
+              );
+            } else {
+              _template = _template.copyWith(
+                page2: _template.page2.withCustomImage(duplicated),
+              );
+            }
+            _selectedElement = 'image:${page1 ? '1' : '2'}:$id';
+          });
+        }
+      case TemplateElementType.line:
+        final original = _findCustomLine(page1, selection.id);
+        if (original != null) {
+          final id = 'line_$_customIdCounter';
+          _customIdCounter++;
+          final duplicated = original.copyWith(
+            id: id,
+            xMm: original.xMm + 4,
+            yMm: original.yMm + 4,
+          );
+          setState(() {
+            if (page1) {
+              _template = _template.copyWith(
+                page1: _template.page1.withCustomLine(duplicated),
+              );
+            } else {
+              _template = _template.copyWith(
+                page2: _template.page2.withCustomLine(duplicated),
+              );
+            }
+            _selectedElement = 'line:${page1 ? '1' : '2'}:$id';
+          });
+        }
+      case TemplateElementType.shape:
+        final original = _findCustomShape(page1, selection.id);
+        if (original != null) {
+          final id = 'shape_$_customIdCounter';
+          _customIdCounter++;
+          final duplicated = original.copyWith(
+            id: id,
+            xMm: original.xMm + 4,
+            yMm: original.yMm + 4,
+          );
+          setState(() {
+            if (page1) {
+              _template = _template.copyWith(
+                page1: _template.page1.withCustomShape(duplicated),
+              );
+            } else {
+              _template = _template.copyWith(
+                page2: _template.page2.withCustomShape(duplicated),
+              );
+            }
+            _selectedElement = 'shape:${page1 ? '1' : '2'}:$id';
+          });
+        }
+    }
+  }
+
+  void _onDragStateChanged(bool dragging) {
+    if (dragging) {
+      _pushToUndo();
+    }
+  }
+
+  CustomImageElement? _findCustomImage(bool page1, String id) {
+    final page = page1 ? _template.page1 : _template.page2;
+    try {
+      return page.customImages.firstWhere((e) => e.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  CustomLineElement? _findCustomLine(bool page1, String id) {
+    final page = page1 ? _template.page1 : _template.page2;
+    try {
+      return page.customLines.firstWhere((e) => e.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  CustomShapeElement? _findCustomShape(bool page1, String id) {
+    final page = page1 ? _template.page1 : _template.page2;
+    try {
+      return page.customShapes.firstWhere((e) => e.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+class _EditorStateSnapshot {
+  final Template template;
+  final bool isDuplex;
+  final bool mirrorFront;
+  final bool mirrorBack;
+  final double templateWidthMm;
+  final double templateHeightMm;
+
+  _EditorStateSnapshot({
+    required this.template,
+    required this.isDuplex,
+    required this.mirrorFront,
+    required this.mirrorBack,
+    required this.templateWidthMm,
+    required this.templateHeightMm,
+  });
 }
 
 class _CreateTemplateResult {

@@ -29,6 +29,9 @@ Future<Uint8List> compileTypstToPdf(
     RustLib.instance.api.crateApiExportCompileTypstToPdf(
         typstContent: typstContent, fontBytes: fontBytes);
 
+Future<String> markdownToTypst({required String mdContent}) =>
+    RustLib.instance.api.crateApiExportMarkdownToTypst(mdContent: mdContent);
+
 class RecordWriter {
   /// JSON string containing the records to be exported.
   final String jsonContent;

@@ -33,6 +33,8 @@ class DraggableShapeChip extends StatefulWidget {
     this.isSelected = false,
     this.onTap,
     this.onDragStateChanged,
+    this.isLocked = false,
+    this.isVisible = true,
   });
 
   final String shapeType; // 'rect', 'ellipse', 'circle', 'triangle', 'polygon'
@@ -62,6 +64,8 @@ class DraggableShapeChip extends StatefulWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final ValueChanged<bool>? onDragStateChanged;
+  final bool isLocked;
+  final bool isVisible;
 
   @override
   State<DraggableShapeChip> createState() => DraggableShapeChipState();
@@ -369,114 +373,187 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                   behavior: HitTestBehavior.opaque,
                   onTapDown: (_) => widget.onTap?.call(),
                   onTap: widget.onTap,
-                  onPanStart: (d) {
-                    widget.onDragStateChanged?.call(true);
-                    _imageMoveSession++;
-                    _imagePanOriginMm = widget.position;
-                    _imagePanAccumMm = Offset.zero;
-                    _imageDragLiveMm = null;
-                    _deferSetState(() => _moving = true);
-                    _imageMovePanLastGlobal = d.globalPosition;
-                  },
-                  onPanUpdate: (details) {
-                    final last =
-                        _imageMovePanLastGlobal ?? details.globalPosition;
-                    final gDelta = details.globalPosition - last;
-                    _imageMovePanLastGlobal = details.globalPosition;
-                    final dMm =
-                        _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
-                    final origin = _imagePanOriginMm ?? widget.position;
-                    _imagePanAccumMm += dMm;
-                    final lr = _resizeLiveRect;
-                    final w = lr?.width ?? widget.widthMm;
-                    final h = lr?.height ?? widget.heightMm;
-                    final rawX = origin.dx + _imagePanAccumMm.dx;
-                    final rawY = origin.dy + _imagePanAccumMm.dy;
-                    final clamped = clampRotatedRectTopLeft(
-                      positionMm: Offset(rawX, rawY),
-                      widthMm: w,
-                      heightMm: h,
-                      rotationDegrees: _effectiveRotationDeg,
-                      canvasWidthMm: widget.templateWidthMm,
-                      canvasHeightMm: widget.templateHeightMm,
-                    );
-                    final cx = clamped.dx;
-                    final cy = clamped.dy;
-                    if (cx != rawX || cy != rawY) {
-                      _imagePanOriginMm = Offset(cx, cy);
-                      _imagePanAccumMm = Offset.zero;
-                    }
-                    setState(() => _imageDragLiveMm = clamped);
-                  },
-                  onPanEnd: (_) {
-                    _deferSetState(() => _moving = false);
-                    _finishImageMoveGesture();
-                    widget.onDragStateChanged?.call(false);
-                  },
-                  onPanCancel: () {
-                    _deferSetState(() => _moving = false);
-                    _finishImageMoveGesture();
-                    widget.onDragStateChanged?.call(false);
-                  },
-                  child: AnimatedContainer(
-                    duration: (_resizeCorner != null ||
-                            _rotateStartFingerRad != null ||
-                            _moving)
-                        ? Duration.zero
-                        : const Duration(milliseconds: 100),
-                    width: w,
-                    height: h,
-                    decoration: BoxDecoration(
-                      border: (widget.isSelected || _moving)
-                          ? Border.all(color: borderColor, width: 2.0)
-                          : null,
-                      borderRadius: BorderRadius.circular(4),
-                      color: Colors.transparent,
-                      boxShadow: _moving
-                          ? [
-                              BoxShadow(
-                                color: scheme.primary.withValues(alpha: 0.25),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      fit: StackFit.expand,
-                      children: [
-                        CustomPaint(
-                          size: Size(w, h),
-                          painter: ShapePainter(
-                            shapeType: widget.shapeType,
-                            polygonSides: widget.polygonSides,
-                            strokeColor: Color(widget.strokeColorArgb),
-                            fillColor: widget.fillColorArgb != null
-                                ? Color(widget.fillColorArgb!)
+                  onPanStart: widget.isLocked
+                      ? null
+                      : (d) {
+                          widget.onDragStateChanged?.call(true);
+                          _imageMoveSession++;
+                          _imagePanOriginMm = widget.position;
+                          _imagePanAccumMm = Offset.zero;
+                          _imageDragLiveMm = null;
+                          _deferSetState(() => _moving = true);
+                          _imageMovePanLastGlobal = d.globalPosition;
+                        },
+                  onPanUpdate: widget.isLocked
+                      ? null
+                      : (details) {
+                          final last =
+                              _imageMovePanLastGlobal ?? details.globalPosition;
+                          final gDelta = details.globalPosition - last;
+                          _imageMovePanLastGlobal = details.globalPosition;
+                          final dMm = _mmDeltaFromGlobalDrag(
+                              details.globalPosition, gDelta);
+                          final origin = _imagePanOriginMm ?? widget.position;
+                          _imagePanAccumMm += dMm;
+                          final lr = _resizeLiveRect;
+                          final w = lr?.width ?? widget.widthMm;
+                          final h = lr?.height ?? widget.heightMm;
+                          final rawX = origin.dx + _imagePanAccumMm.dx;
+                          final rawY = origin.dy + _imagePanAccumMm.dy;
+                          final clamped = clampRotatedRectTopLeft(
+                            positionMm: Offset(rawX, rawY),
+                            widthMm: w,
+                            heightMm: h,
+                            rotationDegrees: _effectiveRotationDeg,
+                            canvasWidthMm: widget.templateWidthMm,
+                            canvasHeightMm: widget.templateHeightMm,
+                          );
+                          final cx = clamped.dx;
+                          final cy = clamped.dy;
+                          if (cx != rawX || cy != rawY) {
+                            _imagePanOriginMm = Offset(cx, cy);
+                            _imagePanAccumMm = Offset.zero;
+                          }
+                          setState(() => _imageDragLiveMm = clamped);
+                        },
+                  onPanEnd: widget.isLocked
+                      ? null
+                      : (_) {
+                          _deferSetState(() => _moving = false);
+                          _finishImageMoveGesture();
+                          widget.onDragStateChanged?.call(false);
+                        },
+                  onPanCancel: widget.isLocked
+                      ? null
+                      : () {
+                          _deferSetState(() => _moving = false);
+                          _finishImageMoveGesture();
+                          widget.onDragStateChanged?.call(false);
+                        },
+                  child: widget.isVisible
+                      ? AnimatedContainer(
+                          duration: (_resizeCorner != null ||
+                                  _rotateStartFingerRad != null ||
+                                  _moving)
+                              ? Duration.zero
+                              : const Duration(milliseconds: 100),
+                          width: w,
+                          height: h,
+                          decoration: BoxDecoration(
+                            border: (widget.isSelected || _moving)
+                                ? Border.all(color: borderColor, width: 2.0)
                                 : null,
-                            strokeThicknessPx: widget.strokeThicknessPt *
-                                widget.scale /
-                                _kPdfPointsPerMm,
-                            strokeStyle: widget.strokeStyle,
+                            borderRadius: BorderRadius.circular(4),
+                            color: Colors.transparent,
+                            boxShadow: _moving
+                                ? [
+                                    BoxShadow(
+                                      color: scheme.primary
+                                          .withValues(alpha: 0.25),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            fit: StackFit.expand,
+                            children: [
+                              CustomPaint(
+                                size: Size(w, h),
+                                painter: ShapePainter(
+                                  shapeType: widget.shapeType,
+                                  polygonSides: widget.polygonSides,
+                                  strokeColor: Color(widget.strokeColorArgb),
+                                  fillColor: widget.fillColorArgb != null
+                                      ? Color(widget.fillColorArgb!)
+                                      : null,
+                                  strokeThicknessPx: widget.strokeThicknessPt *
+                                      widget.scale /
+                                      _kPdfPointsPerMm,
+                                  strokeStyle: widget.strokeStyle,
+                                ),
+                              ),
+                              Positioned(
+                                left: 2,
+                                top: 2,
+                                child: Icon(
+                                  Icons.drag_indicator,
+                                  size: 14,
+                                  color:
+                                      scheme.onSurface.withValues(alpha: 0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Opacity(
+                          opacity: 0.35,
+                          child: AnimatedContainer(
+                            duration: (_resizeCorner != null ||
+                                    _rotateStartFingerRad != null ||
+                                    _moving)
+                                ? Duration.zero
+                                : const Duration(milliseconds: 100),
+                            width: w,
+                            height: h,
+                            decoration: BoxDecoration(
+                              border: (widget.isSelected || _moving)
+                                  ? Border.all(color: borderColor, width: 2.0)
+                                  : null,
+                              borderRadius: BorderRadius.circular(4),
+                              color: Colors.transparent,
+                              boxShadow: _moving
+                                  ? [
+                                      BoxShadow(
+                                        color: scheme.primary
+                                            .withValues(alpha: 0.25),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              fit: StackFit.expand,
+                              children: [
+                                CustomPaint(
+                                  size: Size(w, h),
+                                  painter: ShapePainter(
+                                    shapeType: widget.shapeType,
+                                    polygonSides: widget.polygonSides,
+                                    strokeColor: Color(widget.strokeColorArgb),
+                                    fillColor: widget.fillColorArgb != null
+                                        ? Color(widget.fillColorArgb!)
+                                        : null,
+                                    strokeThicknessPx:
+                                        widget.strokeThicknessPt *
+                                            widget.scale /
+                                            _kPdfPointsPerMm,
+                                    strokeStyle: widget.strokeStyle,
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 2,
+                                  top: 2,
+                                  child: Icon(
+                                    Icons.drag_indicator,
+                                    size: 14,
+                                    color:
+                                        scheme.onSurface.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        Positioned(
-                          left: 2,
-                          top: 2,
-                          child: Icon(
-                            Icons.drag_indicator,
-                            size: 14,
-                            color: scheme.onSurface.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ),
-              if (widget.isSelected) ...[
+              if (widget.isSelected && !widget.isLocked) ...[
                 _cornerHandle(_ShapeCorner.tl, scheme,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
                 _cornerHandle(_ShapeCorner.tr, scheme,

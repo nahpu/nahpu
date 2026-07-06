@@ -28,6 +28,8 @@ class DraggableImageChip extends StatefulWidget {
     this.onTap,
     this.vectorChild,
     this.onDragStateChanged,
+    this.isLocked = false,
+    this.isVisible = true,
   });
 
   final String imagePath;
@@ -55,6 +57,8 @@ class DraggableImageChip extends StatefulWidget {
 
   /// When set, drawn instead of [imagePath] (e.g. sex icon for `[*.sex]-img`).
   final Widget? vectorChild;
+  final bool isLocked;
+  final bool isVisible;
 
   @override
   State<DraggableImageChip> createState() => DraggableImageChipState();
@@ -362,125 +366,213 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                   behavior: HitTestBehavior.opaque,
                   onTapDown: (_) => widget.onTap?.call(),
                   onTap: widget.onTap,
-                  onPanStart: (d) {
-                    widget.onDragStateChanged?.call(true);
-                    _imageMoveSession++;
-                    _imagePanOriginMm = widget.position;
-                    _imagePanAccumMm = Offset.zero;
-                    _imageDragLiveMm = null;
-                    _deferSetState(() => _moving = true);
-                    _imageMovePanLastGlobal = d.globalPosition;
-                  },
-                  onPanUpdate: (details) {
-                    final last =
-                        _imageMovePanLastGlobal ?? details.globalPosition;
-                    final gDelta = details.globalPosition - last;
-                    _imageMovePanLastGlobal = details.globalPosition;
-                    final dMm =
-                        _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
-                    final origin = _imagePanOriginMm ?? widget.position;
-                    _imagePanAccumMm += dMm;
-                    final lr = _resizeLiveRect;
-                    final w = lr?.width ?? widget.widthMm;
-                    final h = lr?.height ?? widget.heightMm;
-                    final rawX = origin.dx + _imagePanAccumMm.dx;
-                    final rawY = origin.dy + _imagePanAccumMm.dy;
-                    final clamped = clampRotatedRectTopLeft(
-                      positionMm: Offset(rawX, rawY),
-                      widthMm: w,
-                      heightMm: h,
-                      rotationDegrees: _effectiveRotationDeg,
-                      canvasWidthMm: widget.templateWidthMm,
-                      canvasHeightMm: widget.templateHeightMm,
-                    );
-                    final cx = clamped.dx;
-                    final cy = clamped.dy;
-                    if (cx != rawX || cy != rawY) {
-                      _imagePanOriginMm = Offset(cx, cy);
-                      _imagePanAccumMm = Offset.zero;
-                    }
-                    setState(() => _imageDragLiveMm = clamped);
-                  },
-                  onPanEnd: (_) {
-                    _deferSetState(() => _moving = false);
-                    _finishImageMoveGesture();
-                    widget.onDragStateChanged?.call(false);
-                  },
-                  onPanCancel: () {
-                    _deferSetState(() => _moving = false);
-                    _finishImageMoveGesture();
-                    widget.onDragStateChanged?.call(false);
-                  },
-                  child: AnimatedContainer(
-                    duration: (_resizeCorner != null ||
-                            _rotateStartFingerRad != null ||
-                            _moving)
-                        ? Duration.zero
-                        : const Duration(milliseconds: 100),
-                    width: w,
-                    height: h,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: borderColor,
-                        width: (widget.isSelected || _moving) ? 2.0 : 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                      color: scheme.surfaceContainerHighest,
-                      boxShadow: _moving
-                          ? [
-                              BoxShadow(
-                                color: scheme.primary.withValues(alpha: 0.25),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      fit: StackFit.expand,
-                      children: [
-                        if (widget.vectorChild != null)
-                          Center(
-                            child: IconTheme(
-                              data: IconThemeData(
-                                size: math.min(w, h) * 0.88,
-                                color: scheme.onSurface,
-                              ),
-                              child: widget.vectorChild!,
+                  onPanStart: widget.isLocked
+                      ? null
+                      : (d) {
+                          widget.onDragStateChanged?.call(true);
+                          _imageMoveSession++;
+                          _imagePanOriginMm = widget.position;
+                          _imagePanAccumMm = Offset.zero;
+                          _imageDragLiveMm = null;
+                          _deferSetState(() => _moving = true);
+                          _imageMovePanLastGlobal = d.globalPosition;
+                        },
+                  onPanUpdate: widget.isLocked
+                      ? null
+                      : (details) {
+                          final last =
+                              _imageMovePanLastGlobal ?? details.globalPosition;
+                          final gDelta = details.globalPosition - last;
+                          _imageMovePanLastGlobal = details.globalPosition;
+                          final dMm = _mmDeltaFromGlobalDrag(
+                              details.globalPosition, gDelta);
+                          final origin = _imagePanOriginMm ?? widget.position;
+                          _imagePanAccumMm += dMm;
+                          final lr = _resizeLiveRect;
+                          final w = lr?.width ?? widget.widthMm;
+                          final h = lr?.height ?? widget.heightMm;
+                          final rawX = origin.dx + _imagePanAccumMm.dx;
+                          final rawY = origin.dy + _imagePanAccumMm.dy;
+                          final clamped = clampRotatedRectTopLeft(
+                            positionMm: Offset(rawX, rawY),
+                            widthMm: w,
+                            heightMm: h,
+                            rotationDegrees: _effectiveRotationDeg,
+                            canvasWidthMm: widget.templateWidthMm,
+                            canvasHeightMm: widget.templateHeightMm,
+                          );
+                          final cx = clamped.dx;
+                          final cy = clamped.dy;
+                          if (cx != rawX || cy != rawY) {
+                            _imagePanOriginMm = Offset(cx, cy);
+                            _imagePanAccumMm = Offset.zero;
+                          }
+                          setState(() => _imageDragLiveMm = clamped);
+                        },
+                  onPanEnd: widget.isLocked
+                      ? null
+                      : (_) {
+                          _deferSetState(() => _moving = false);
+                          _finishImageMoveGesture();
+                          widget.onDragStateChanged?.call(false);
+                        },
+                  onPanCancel: widget.isLocked
+                      ? null
+                      : () {
+                          _deferSetState(() => _moving = false);
+                          _finishImageMoveGesture();
+                          widget.onDragStateChanged?.call(false);
+                        },
+                  child: widget.isVisible
+                      ? AnimatedContainer(
+                          duration: (_resizeCorner != null ||
+                                  _rotateStartFingerRad != null ||
+                                  _moving)
+                              ? Duration.zero
+                              : const Duration(milliseconds: 100),
+                          width: w,
+                          height: h,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: borderColor,
+                              width: (widget.isSelected || _moving) ? 2.0 : 1.0,
                             ),
-                          )
-                        else if (isTemplateImagePathUsable(widget.imagePath))
-                          Image.file(
-                            File(widget.imagePath),
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child:
-                                  Icon(Icons.broken_image_outlined, size: 28),
-                            ),
-                          )
-                        else
-                          const Center(
-                            child: Icon(Icons.image_not_supported_outlined,
-                                size: 28),
+                            borderRadius: BorderRadius.circular(4),
+                            color: scheme.surfaceContainerHighest,
+                            boxShadow: _moving
+                                ? [
+                                    BoxShadow(
+                                      color: scheme.primary
+                                          .withValues(alpha: 0.25),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
                           ),
-                        if (widget.vectorChild == null)
-                          Positioned(
-                            left: 2,
-                            top: 2,
-                            child: Icon(
-                              Icons.drag_indicator,
-                              size: 14,
-                              color: scheme.onSurface.withValues(alpha: 0.5),
+                          clipBehavior: Clip.antiAlias,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            fit: StackFit.expand,
+                            children: [
+                              if (widget.vectorChild != null)
+                                Center(
+                                  child: IconTheme(
+                                    data: IconThemeData(
+                                      size: math.min(w, h) * 0.88,
+                                      color: scheme.onSurface,
+                                    ),
+                                    child: widget.vectorChild!,
+                                  ),
+                                )
+                              else if (isTemplateImagePathUsable(
+                                  widget.imagePath))
+                                Image.file(
+                                  File(widget.imagePath),
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                    child: Icon(Icons.broken_image_outlined,
+                                        size: 28),
+                                  ),
+                                )
+                              else
+                                const Center(
+                                  child: Icon(
+                                      Icons.image_not_supported_outlined,
+                                      size: 28),
+                                ),
+                              if (widget.vectorChild == null)
+                                Positioned(
+                                  left: 2,
+                                  top: 2,
+                                  child: Icon(
+                                    Icons.drag_indicator,
+                                    size: 14,
+                                    color:
+                                        scheme.onSurface.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                      : Opacity(
+                          opacity: 0.35,
+                          child: AnimatedContainer(
+                            duration: (_resizeCorner != null ||
+                                    _rotateStartFingerRad != null ||
+                                    _moving)
+                                ? Duration.zero
+                                : const Duration(milliseconds: 100),
+                            width: w,
+                            height: h,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: borderColor,
+                                width:
+                                    (widget.isSelected || _moving) ? 2.0 : 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                              color: scheme.surfaceContainerHighest,
+                              boxShadow: _moving
+                                  ? [
+                                      BoxShadow(
+                                        color: scheme.primary
+                                            .withValues(alpha: 0.25),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              fit: StackFit.expand,
+                              children: [
+                                if (widget.vectorChild != null)
+                                  Center(
+                                    child: IconTheme(
+                                      data: IconThemeData(
+                                        size: math.min(w, h) * 0.88,
+                                        color: scheme.onSurface,
+                                      ),
+                                      child: widget.vectorChild!,
+                                    ),
+                                  )
+                                else if (isTemplateImagePathUsable(
+                                    widget.imagePath))
+                                  Image.file(
+                                    File(widget.imagePath),
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) => const Center(
+                                      child: Icon(Icons.broken_image_outlined,
+                                          size: 28),
+                                    ),
+                                  )
+                                else
+                                  const Center(
+                                    child: Icon(
+                                        Icons.image_not_supported_outlined,
+                                        size: 28),
+                                  ),
+                                if (widget.vectorChild == null)
+                                  Positioned(
+                                    left: 2,
+                                    top: 2,
+                                    child: Icon(
+                                      Icons.drag_indicator,
+                                      size: 14,
+                                      color: scheme.onSurface
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                      ],
-                    ),
-                  ),
+                        ),
                 ),
               ),
-              if (widget.isSelected) ...[
+              if (widget.isSelected && !widget.isLocked) ...[
                 _cornerHandle(scheme, _ImageCorner.tl,
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
                 _cornerHandle(scheme, _ImageCorner.tr,

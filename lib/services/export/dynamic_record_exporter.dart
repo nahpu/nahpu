@@ -120,7 +120,15 @@ class DynamicRecordExporter {
     Map<String, String> record,
   ) async {
     // Pre-populate collEffort keys to avoid unresolved placeholders
-    final effortColumns = ['id', 'eventID', 'method', 'brand', 'count', 'size', 'notes'];
+    final effortColumns = [
+      'id',
+      'eventID',
+      'method',
+      'brand',
+      'count',
+      'size',
+      'notes'
+    ];
     for (var col in effortColumns) {
       record['collEffort::$col'] = '';
     }
@@ -131,7 +139,8 @@ class DynamicRecordExporter {
         _addData(record, 'collEvent', event.toJson());
         _addData(record, 'event', event.toJson());
 
-        final formattedEventID = await CollEventServices(ref: ref).getCollEventID(event);
+        final formattedEventID =
+            await CollEventServices(ref: ref).getCollEventID(event);
         record['collEvent::collEventID'] = formattedEventID;
         record['collEvent::collEventId'] = formattedEventID;
         record['event::collEventID'] = formattedEventID;
@@ -146,15 +155,18 @@ class DynamicRecordExporter {
         record['collEvent::Activity'] = event.primaryCollMethod ?? '';
         record['event::Activity'] = event.primaryCollMethod ?? '';
 
-        final efforts = await CollEventServices(ref: ref).getAllCollEffort(event.id);
+        final efforts =
+            await CollEventServices(ref: ref).getAllCollEffort(event.id);
         if (efforts.isNotEmpty) {
           final Set<String> effortKeys = {};
-          final List<Map<String, dynamic>> effortJsons = efforts.map((e) => e.toJson()).toList();
+          final List<Map<String, dynamic>> effortJsons =
+              efforts.map((e) => e.toJson()).toList();
           for (var effortJson in effortJsons) {
             effortKeys.addAll(effortJson.keys);
           }
           for (var key in effortKeys) {
-            final combined = effortJsons.map((e) => e[key]?.toString() ?? '').join(' | ');
+            final combined =
+                effortJsons.map((e) => e[key]?.toString() ?? '').join(' | ');
             record['collEffort::$key'] = combined;
           }
         }

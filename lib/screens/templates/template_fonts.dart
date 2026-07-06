@@ -99,10 +99,13 @@ String templateFontDropdownLabel(String key) {
 
 /// Maps stored [fontFamily] to a [kTemplateFontDropdownKeys] entry when possible.
 String normalizeTemplateFontFamily(String raw) {
-  final t = raw.trim();
+  final t = raw.trim().replaceAll(' ', '');
   if (t.isEmpty) return '';
   for (final k in kTemplateFontDropdownKeys) {
-    if (k.isNotEmpty && k.toLowerCase() == t.toLowerCase()) return k;
+    if (k.isNotEmpty &&
+        k.replaceAll(' ', '').toLowerCase() == t.toLowerCase()) {
+      return k;
+    }
   }
   return t;
 }

@@ -112,6 +112,7 @@ class _DocumentTypstRenderer {
 
     final dynamicTexts = page.customTexts
         .where((t) =>
+            t.isVisible &&
             t.isDynamic &&
             !t.isQrCode &&
             templateGenderIconFieldKeyFromBracketText(t.text) == null)
@@ -334,7 +335,8 @@ class _DocumentTypstRenderer {
       t.formatOption,
       t.caseFormat,
     );
-    String content = _escapeTypstMarkup(formatted);
+    final isMarkdown = t.textType == 'markdown';
+    String content = isMarkdown ? formatted : _escapeTypstMarkup(formatted);
     final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
     final colorStr = 'rgb("${hexColor.substring(2)}")';
     String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
@@ -414,7 +416,21 @@ class _DocumentTypstRenderer {
 
   String _typstTemplateFont(String fontFamily) {
     final font = fontFamily.trim();
-    return font.isEmpty ? 'Merriweather' : font;
+    if (font.isEmpty) return 'Merriweather';
+    switch (font) {
+      case 'DejaVuSans':
+        return 'DejaVu Sans';
+      case 'DejaVuSerif':
+        return 'DejaVu Serif';
+      case 'LibertinusSans':
+        return 'Libertinus Sans';
+      case 'LibertinusSerif':
+        return 'Libertinus Serif';
+      case 'PlusJakartaSans':
+        return 'Plus Jakarta Sans';
+      default:
+        return font;
+    }
   }
 
   String _textBoxArgs(
@@ -453,6 +469,7 @@ class _DocumentTypstRenderer {
     var height = 0.0;
 
     for (final text in page.customTexts) {
+      if (!text.isVisible) continue;
       final genderIconKey =
           templateGenderIconFieldKeyFromBracketText(text.text);
       if (text.isDynamic && !text.isQrCode && genderIconKey == null) {
@@ -491,14 +508,17 @@ class _DocumentTypstRenderer {
     }
 
     for (final image in page.customImages) {
+      if (!image.isVisible) continue;
       height = math.max(height, _customImageBottomPt(image));
     }
 
     for (final line in page.customLines) {
+      if (!line.isVisible) continue;
       height = math.max(height, _customLineBottomPt(line));
     }
 
     for (final shape in page.customShapes) {
+      if (!shape.isVisible) continue;
       height = math.max(height, _customShapeBottomPt(shape));
     }
 
@@ -625,10 +645,10 @@ class _DocumentTypstRenderer {
 
   static List<dynamic> sortElements(TemplatePage page) {
     return <dynamic>[
-      ...page.customImages,
-      ...page.customTexts,
-      ...page.customLines,
-      ...page.customShapes,
+      ...page.customImages.where((e) => e.isVisible),
+      ...page.customTexts.where((e) => e.isVisible),
+      ...page.customLines.where((e) => e.isVisible),
+      ...page.customShapes.where((e) => e.isVisible),
     ]..sort((a, b) => (a.zIndex as int).compareTo(b.zIndex as int));
   }
 

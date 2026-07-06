@@ -127,7 +127,8 @@ class BlockRecordSelection extends Notifier<Set<String>> {
   }
 }
 
-final templateRecordTypeProvider = FutureProvider.family<RecordType, String>((ref, templateName) async {
+final templateRecordTypeProvider =
+    FutureProvider.family<RecordType, String>((ref, templateName) async {
   final tmpl = await const TemplateService().getTemplate(templateName);
   return tmpl?.recordType ?? RecordType.specimenRecord;
 });

@@ -1120,6 +1120,7 @@ class _DocumentPdfBuilder {
     required double hPt,
   }) {
     final hasDynamicText = page.customTexts.any((text) =>
+        text.isVisible &&
         text.isDynamic &&
         !text.isQrCode &&
         templateGenderIconFieldKeyFromBracketText(text.text) == null);
@@ -1130,6 +1131,7 @@ class _DocumentPdfBuilder {
     var height = hPt;
 
     for (final text in page.customTexts) {
+      if (!text.isVisible) continue;
       final genderIconKey =
           templateGenderIconFieldKeyFromBracketText(text.text);
       if (hasDynamicText &&
@@ -1169,14 +1171,17 @@ class _DocumentPdfBuilder {
     }
 
     for (final image in page.customImages) {
+      if (!image.isVisible) continue;
       height = math.max(height, _customImageBottomPt(image));
     }
 
     for (final line in page.customLines) {
+      if (!line.isVisible) continue;
       height = math.max(height, _customLineBottomPt(line));
     }
 
     for (final shape in page.customShapes) {
+      if (!shape.isVisible) continue;
       height = math.max(height, _customShapeBottomPt(shape));
     }
 
@@ -1189,6 +1194,7 @@ class _DocumentPdfBuilder {
   }) {
     final dynamicTexts = page.customTexts
         .where((text) =>
+            text.isVisible &&
             text.isDynamic &&
             !text.isQrCode &&
             templateGenderIconFieldKeyFromBracketText(text.text) == null)
@@ -1242,10 +1248,10 @@ class _DocumentPdfBuilder {
 
   static List<dynamic> _sortTemplateElements(TemplatePage page) {
     return <dynamic>[
-      ...page.customImages,
-      ...page.customTexts,
-      ...page.customLines,
-      ...page.customShapes,
+      ...page.customImages.where((e) => e.isVisible),
+      ...page.customTexts.where((e) => e.isVisible),
+      ...page.customLines.where((e) => e.isVisible),
+      ...page.customShapes.where((e) => e.isVisible),
     ]..sort((a, b) => (a.zIndex as int).compareTo(b.zIndex as int));
   }
 

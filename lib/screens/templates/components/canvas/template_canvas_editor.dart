@@ -57,6 +57,7 @@ class TemplateCanvasEditor extends StatefulWidget {
     required this.onScheduleTemplateShapeUpdate,
     required this.onRemoveCustomShape,
     this.fieldDisplayOption = 'short',
+    this.onDragStateChanged,
   });
 
   final bool page1;
@@ -72,6 +73,7 @@ class TemplateCanvasEditor extends StatefulWidget {
   final String? selectedElement;
   final GlobalKey templateStackKey;
   final String fieldDisplayOption;
+  final ValueChanged<bool>? onDragStateChanged;
 
   final Offset? Function(GlobalKey stackKey, Offset globalPosition,
       Offset globalDelta, double scale) templatePanGlobalDeltaToMm;
@@ -150,6 +152,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
         setState(() {
           _canvasPanEnabled = !dragging;
         });
+        widget.onDragStateChanged?.call(dragging);
       }
 
       return InteractiveViewer(
@@ -259,6 +262,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onTap: () => onSelectElement(
                                       'image:${page1 ? '1' : '2'}:${element.id}'),
                                   onDragStateChanged: onDragStateChanged,
+                                  isLocked: element.isLocked,
+                                  isVisible: element.isVisible,
                                   onMoved: (pos) {
                                     onScheduleTemplateImageUpdate(
                                       element.copyWith(
@@ -330,6 +335,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     onTap: () => onSelectElement(
                                         'custom:${page1 ? '1' : '2'}:${element.id}'),
                                     onDragStateChanged: onDragStateChanged,
+                                    isLocked: element.isLocked,
+                                    isVisible: element.isVisible,
                                     onMoved: (pos) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
@@ -381,6 +388,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     onTap: () => onSelectElement(
                                         'custom:${page1 ? '1' : '2'}:${element.id}'),
                                     onDragStateChanged: onDragStateChanged,
+                                    isLocked: element.isLocked,
+                                    isVisible: element.isVisible,
                                     onMoved: (pos) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
@@ -457,6 +466,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     cornerRadiusPt: element.cornerRadiusPt,
                                     paddingPt: element.paddingPt,
                                     isDynamic: element.isDynamic,
+                                    isLocked: element.isLocked,
+                                    isVisible: element.isVisible,
                                     onMaxWidthChanged: (w) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(maxWidthMm: w),
@@ -522,6 +533,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onTap: () => onSelectElement(
                                       'line:${page1 ? '1' : '2'}:${element.id}'),
                                   onDragStateChanged: onDragStateChanged,
+                                  isLocked: element.isLocked,
+                                  isVisible: element.isVisible,
                                   onMoved: (pos) {
                                     onScheduleTemplateLineUpdate(element
                                         .copyWith(xMm: pos.dx, yMm: pos.dy));
@@ -562,6 +575,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onTap: () => onSelectElement(
                                       'shape:${page1 ? '1' : '2'}:${element.id}'),
                                   onDragStateChanged: onDragStateChanged,
+                                  isLocked: element.isLocked,
+                                  isVisible: element.isVisible,
                                   onMoved: (pos) {
                                     onScheduleTemplateShapeUpdate(element
                                         .copyWith(xMm: pos.dx, yMm: pos.dy));

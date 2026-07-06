@@ -14,12 +14,7 @@ class TextPropertiesPanel extends StatelessWidget {
     required this.template,
     required this.onUpdateCustomText,
     required this.onDeleteCustomText,
-    required this.onUpdateCustomImage,
-    required this.onDeleteCustomImage,
-    required this.onUpdateCustomLine,
-    required this.onDeleteCustomLine,
-    required this.onUpdateCustomShape,
-    required this.onDeleteCustomShape,
+    required this.actionControls,
     this.onDismiss,
   });
 
@@ -27,46 +22,15 @@ class TextPropertiesPanel extends StatelessWidget {
   final bool page1;
   final Template template;
   final VoidCallback? onDismiss;
+  final Widget actionControls;
 
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
   final void Function(bool page1, String id) onDeleteCustomText;
-  final void Function(bool page1, CustomImageElement element)
-      onUpdateCustomImage;
-  final void Function(bool page1, String id) onDeleteCustomImage;
-  final void Function(bool page1, CustomLineElement element) onUpdateCustomLine;
-  final void Function(bool page1, String id) onDeleteCustomLine;
-  final void Function(bool page1, CustomShapeElement element)
-      onUpdateCustomShape;
-  final void Function(bool page1, String id) onDeleteCustomShape;
 
   CustomTextElement? _findCustomText(bool p1, String id) {
     final page = p1 ? template.page1 : template.page2;
     for (final ct in page.customTexts) {
       if (ct.id == id) return ct;
-    }
-    return null;
-  }
-
-  CustomImageElement? _findCustomImage(bool p1, String id) {
-    final page = p1 ? template.page1 : template.page2;
-    for (final img in page.customImages) {
-      if (img.id == id) return img;
-    }
-    return null;
-  }
-
-  CustomLineElement? _findCustomLine(bool p1, String id) {
-    final page = p1 ? template.page1 : template.page2;
-    for (final line in page.customLines) {
-      if (line.id == id) return line;
-    }
-    return null;
-  }
-
-  CustomShapeElement? _findCustomShape(bool p1, String id) {
-    final page = p1 ? template.page1 : template.page2;
-    for (final shape in page.customShapes) {
-      if (shape.id == id) return shape;
     }
     return null;
   }
@@ -157,65 +121,6 @@ class TextPropertiesPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildZIndexControls(BuildContext context, String sel) {
-    void setZIndex(String sel, int delta) {
-      final parts = sel.split(':');
-      if (parts.length != 3) return;
-      final type = parts[0];
-      final p1 = parts[1] == '1';
-      final id = parts[2];
-
-      if (type == 'custom') {
-        final el = _findCustomText(p1, id);
-        if (el != null) {
-          onUpdateCustomText(p1, el.copyWith(zIndex: el.zIndex + delta));
-        }
-      } else if (type == 'image') {
-        final el = _findCustomImage(p1, id);
-        if (el != null) {
-          onUpdateCustomImage(p1, el.copyWith(zIndex: el.zIndex + delta));
-        }
-      } else if (type == 'line') {
-        final el = _findCustomLine(p1, id);
-        if (el != null) {
-          onUpdateCustomLine(p1, el.copyWith(zIndex: el.zIndex + delta));
-        }
-      } else if (type == 'shape') {
-        final el = _findCustomShape(p1, id);
-        if (el != null) {
-          onUpdateCustomShape(p1, el.copyWith(zIndex: el.zIndex + delta));
-        }
-      }
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.keyboard_double_arrow_down, size: 20),
-          tooltip: 'Send to back',
-          onPressed: () => setZIndex(
-              sel, -1), // Simplistic, could be improved to find min/max
-        ),
-        IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
-          tooltip: 'Send backward',
-          onPressed: () => setZIndex(sel, -1),
-        ),
-        IconButton(
-          icon: const Icon(Icons.keyboard_arrow_up, size: 20),
-          tooltip: 'Bring forward',
-          onPressed: () => setZIndex(sel, 1),
-        ),
-        IconButton(
-          icon: const Icon(Icons.keyboard_double_arrow_up, size: 20),
-          tooltip: 'Bring to front',
-          onPressed: () => setZIndex(sel, 1),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCustomTextPanel(BuildContext context, String sel,
       {bool inToolbar = false}) {
     final parts = sel.split(':');
@@ -240,11 +145,7 @@ class TextPropertiesPanel extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildZIndexControls(context, sel),
-            const Spacer(),
-            deleteButton
-          ],
+          children: [actionControls, const Spacer(), deleteButton],
         ),
       );
       return _buildPanelContainer(context,
@@ -257,7 +158,7 @@ class TextPropertiesPanel extends StatelessWidget {
       page1: page1,
       inToolbar: inToolbar,
       onUpdateCustomText: onUpdateCustomText,
-      zIndexControls: _buildZIndexControls(context, sel),
+      actionControls: actionControls,
       deleteButton: deleteButton,
       buildOptionSlider: _buildOptionSlider,
     );
@@ -277,7 +178,7 @@ class _CustomTextToolbar extends StatefulWidget {
     required this.page1,
     required this.inToolbar,
     required this.onUpdateCustomText,
-    required this.zIndexControls,
+    required this.actionControls,
     required this.deleteButton,
     required this.buildOptionSlider,
   });
@@ -286,7 +187,7 @@ class _CustomTextToolbar extends StatefulWidget {
   final bool page1;
   final bool inToolbar;
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
-  final Widget zIndexControls;
+  final Widget actionControls;
   final Widget deleteButton;
   final Widget Function(
     BuildContext, {
@@ -554,6 +455,13 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
             child: Text('3 decimal places (e.g. 12.345)'),
           ),
         ];
+      case 'markdown':
+        return const [
+          DropdownMenuItem(
+            value: 'normal',
+            child: Text('Normal'),
+          ),
+        ];
       case 'normal':
       default:
         return const [
@@ -666,7 +574,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          widget.zIndexControls,
+          widget.actionControls,
           const SizedBox(width: 12),
           FilterChip(
             label: const Text('QR Code'),
@@ -1145,6 +1053,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             DropdownMenuItem(
                               value: 'normal',
                               child: Text('Normal Text'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'markdown',
+                              child: Text('Markdown'),
                             ),
                             DropdownMenuItem(
                               value: 'coordinates',

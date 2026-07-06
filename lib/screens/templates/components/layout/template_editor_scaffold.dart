@@ -65,6 +65,12 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.onUpdateCustomShape,
     required this.onDismissProperties,
     required this.onZoomChanged,
+    required this.onUndo,
+    required this.onRedo,
+    required this.canUndo,
+    required this.canRedo,
+    required this.onDuplicateElement,
+    this.onDragStateChanged,
     this.borderPanel,
   });
 
@@ -135,6 +141,12 @@ class TemplateEditorScaffold extends StatelessWidget {
       onUpdateCustomShape;
   final VoidCallback onDismissProperties;
   final ValueChanged<double> onZoomChanged;
+  final VoidCallback? onUndo;
+  final VoidCallback? onRedo;
+  final bool canUndo;
+  final bool canRedo;
+  final ValueChanged<String> onDuplicateElement;
+  final ValueChanged<bool>? onDragStateChanged;
   final Widget? borderPanel;
 
   @override
@@ -188,6 +200,10 @@ class TemplateEditorScaffold extends StatelessWidget {
               onBorderPanelToggled: onBorderPanelToggled,
               onGridToggled: onGridToggled,
               onSelectPreviewSpecimen: onSelectPreviewSpecimen,
+              onUndo: onUndo,
+              onRedo: onRedo,
+              canUndo: canUndo,
+              canRedo: canRedo,
             ),
             _TemplatePropertiesStrip(
               selectedElement: selectedElement,
@@ -203,6 +219,7 @@ class TemplateEditorScaffold extends StatelessWidget {
               onDeleteCustomShape: onRemoveCustomShape,
               onDismiss: onDismissProperties,
               isBorderPanelOpen: isBorderPanelOpen,
+              onDuplicateElement: onDuplicateElement,
               borderPanel: borderPanel,
             ),
             Expanded(
@@ -235,6 +252,7 @@ class TemplateEditorScaffold extends StatelessWidget {
                 onScheduleTemplateShapeUpdate: onScheduleTemplateShapeUpdate,
                 onRemoveCustomShape: onRemoveCustomShape,
                 onZoomChanged: onZoomChanged,
+                onDragStateChanged: onDragStateChanged,
               ),
             ),
           ],
@@ -385,6 +403,7 @@ class _TemplatePropertiesStrip extends StatelessWidget {
     required this.onDeleteCustomShape,
     required this.onDismiss,
     required this.isBorderPanelOpen,
+    required this.onDuplicateElement,
     this.borderPanel,
   });
 
@@ -425,6 +444,7 @@ class _TemplatePropertiesStrip extends StatelessWidget {
   ) onDeleteCustomShape;
   final VoidCallback onDismiss;
   final bool isBorderPanelOpen;
+  final ValueChanged<String> onDuplicateElement;
   final Widget? borderPanel;
 
   @override
@@ -443,6 +463,7 @@ class _TemplatePropertiesStrip extends StatelessWidget {
         onDeleteCustomLine: onDeleteCustomLine,
         onUpdateCustomShape: onUpdateCustomShape,
         onDeleteCustomShape: onDeleteCustomShape,
+        onDuplicateElement: onDuplicateElement,
         onDismiss: onDismiss,
       );
     } else if (isBorderPanelOpen && borderPanel != null) {

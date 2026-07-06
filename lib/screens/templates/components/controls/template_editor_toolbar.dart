@@ -32,6 +32,10 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.onBorderPanelToggled,
     required this.onGridToggled,
     required this.onSelectPreviewSpecimen,
+    this.onUndo,
+    this.onRedo,
+    this.canUndo = false,
+    this.canRedo = false,
   });
 
   final List<String> savedNames;
@@ -58,6 +62,10 @@ class TemplateEditorToolbar extends StatelessWidget {
   final VoidCallback onBorderPanelToggled;
   final VoidCallback onGridToggled;
   final VoidCallback onSelectPreviewSpecimen;
+  final VoidCallback? onUndo;
+  final VoidCallback? onRedo;
+  final bool canUndo;
+  final bool canRedo;
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +176,18 @@ class TemplateEditorToolbar extends StatelessWidget {
                     tooltip: 'Save template',
                     icon: Icons.save_outlined,
                     onPressed: onSaveTemplate,
+                  ),
+                  const SizedBox(width: 4),
+                  _ToolbarIconButton(
+                    tooltip: 'Undo',
+                    icon: Icons.undo,
+                    onPressed: canUndo ? onUndo : null,
+                  ),
+                  const SizedBox(width: 4),
+                  _ToolbarIconButton(
+                    tooltip: 'Redo',
+                    icon: Icons.redo,
+                    onPressed: canRedo ? onRedo : null,
                   ),
                   const SizedBox(width: 12),
                   IconButton(
@@ -303,12 +323,12 @@ class _ToolbarIconButton extends StatelessWidget {
   const _ToolbarIconButton({
     required this.icon,
     required this.tooltip,
-    required this.onPressed,
+    this.onPressed,
   });
 
   final IconData icon;
   final String tooltip;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {

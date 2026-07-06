@@ -12,11 +12,21 @@ class _DocumentTemplateSubstitutor {
     final texts = <CustomTextElement>[];
     final tempDir = await AppServices(ref: ref).tempDirectory;
     for (final ct in page.customTexts) {
-      final subbedText = substituteDocumentPlaceholders(ct.text, data);
+      if (!ct.isVisible) {
+        texts.add(ct);
+        continue;
+      }
+      var subbedText = substituteDocumentPlaceholders(ct.text, data);
+      var textType = ct.textType;
+      if (ct.textType == 'markdown' ||
+          ct.text.toLowerCase().contains('narrative::narrative')) {
+        subbedText = await rust_export.markdownToTypst(mdContent: subbedText);
+        textType = 'markdown';
+      }
       if (ct.isQrCode) {
         final formattedText = formatTemplateText(
           subbedText,
-          ct.textType,
+          textType,
           ct.formatOption,
           ct.caseFormat,
         );
@@ -36,9 +46,13 @@ class _DocumentTemplateSubstitutor {
         texts.add(ct.copyWith(
           text: formattedText,
           tempPath: tempFile.path,
+          textType: textType,
         ));
       } else {
-        texts.add(ct.copyWith(text: subbedText));
+        texts.add(ct.copyWith(
+          text: subbedText,
+          textType: textType,
+        ));
       }
     }
     return page.copyWith(customTexts: texts);

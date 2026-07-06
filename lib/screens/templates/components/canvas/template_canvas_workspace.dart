@@ -33,9 +33,11 @@ class TemplateCanvasWorkspace extends StatelessWidget {
     required this.onScheduleTemplateShapeUpdate,
     required this.onRemoveCustomShape,
     required this.onZoomChanged,
+    this.onDragStateChanged,
   });
 
   final bool isDuplex;
+  final ValueChanged<bool>? onDragStateChanged;
   final TabController tabController;
   final Template template;
   final double templateWidthMm;
@@ -119,6 +121,7 @@ class TemplateCanvasWorkspace extends StatelessWidget {
       onClearSelection: onClearSelection,
       onSelectElement: onSelectElement,
       onStartInlineEditing: onStartInlineEditing,
+      onDragStateChanged: onDragStateChanged,
       onScheduleTemplateImageUpdate: (element) =>
           onScheduleTemplateImageUpdate(page1, element),
       onRemoveCustomImage: (id) => onRemoveCustomImage(page1, id),

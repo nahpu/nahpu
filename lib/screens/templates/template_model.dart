@@ -421,6 +421,9 @@ String formatTemplateText(
     case 'number':
       result = formatNumberText(rawText, formatOption);
       break;
+    case 'markdown':
+      result = rawText;
+      break;
     case 'normal':
     default:
       String currentCase = formatOption;
@@ -470,6 +473,8 @@ class CustomTextElement {
     this.qrShape = 'square',
     this.tempPath,
     this.isDynamic = false,
+    this.isLocked = false,
+    this.isVisible = true,
   });
 
   final String id;
@@ -512,6 +517,8 @@ class CustomTextElement {
   final String qrShape;
   final String? tempPath;
   final bool isDynamic;
+  final bool isLocked;
+  final bool isVisible;
 
   CustomTextElement copyWith({
     String? id,
@@ -552,6 +559,8 @@ class CustomTextElement {
     String? tempPath,
     bool clearTempPath = false,
     bool? isDynamic,
+    bool? isLocked,
+    bool? isVisible,
   }) {
     return CustomTextElement(
       id: id ?? this.id,
@@ -590,6 +599,8 @@ class CustomTextElement {
       qrShape: qrShape ?? this.qrShape,
       tempPath: clearTempPath ? null : (tempPath ?? this.tempPath),
       isDynamic: isDynamic ?? this.isDynamic,
+      isLocked: isLocked ?? this.isLocked,
+      isVisible: isVisible ?? this.isVisible,
     );
   }
 
@@ -627,6 +638,8 @@ class CustomTextElement {
         'qrBgColorArgb': qrBgColorArgb,
         'qrShape': qrShape,
         'isDynamic': isDynamic,
+        'isLocked': isLocked,
+        'isVisible': isVisible,
       };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
@@ -663,6 +676,8 @@ class CustomTextElement {
       qrBgColorArgb: (json['qrBgColorArgb'] as num?)?.toInt() ?? 0xFFFFFFFF,
       qrShape: json['qrShape'] as String? ?? 'square',
       isDynamic: json['isDynamic'] as bool? ?? false,
+      isLocked: json['isLocked'] as bool? ?? false,
+      isVisible: json['isVisible'] as bool? ?? true,
     );
   }
 }
@@ -677,6 +692,8 @@ class CustomImageElement {
     required this.heightMm,
     this.rotationDegrees = 0,
     this.zIndex = 0,
+    this.isLocked = false,
+    this.isVisible = true,
   });
 
   final String id;
@@ -687,6 +704,8 @@ class CustomImageElement {
   final double heightMm;
   final int rotationDegrees;
   final int zIndex;
+  final bool isLocked;
+  final bool isVisible;
 
   CustomImageElement copyWith({
     String? id,
@@ -697,6 +716,8 @@ class CustomImageElement {
     double? heightMm,
     int? rotationDegrees,
     int? zIndex,
+    bool? isLocked,
+    bool? isVisible,
   }) {
     return CustomImageElement(
       id: id ?? this.id,
@@ -707,6 +728,8 @@ class CustomImageElement {
       heightMm: heightMm ?? this.heightMm,
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
       zIndex: zIndex ?? this.zIndex,
+      isLocked: isLocked ?? this.isLocked,
+      isVisible: isVisible ?? this.isVisible,
     );
   }
 
@@ -719,6 +742,8 @@ class CustomImageElement {
         'heightMm': heightMm,
         'rotationDegrees': rotationDegrees,
         'zIndex': zIndex,
+        'isLocked': isLocked,
+        'isVisible': isVisible,
       };
 
   factory CustomImageElement.fromJson(Map<String, dynamic> json) {
@@ -731,6 +756,8 @@ class CustomImageElement {
       heightMm: (json['heightMm'] as num?)?.toDouble() ?? 20,
       rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
+      isLocked: json['isLocked'] as bool? ?? false,
+      isVisible: json['isVisible'] as bool? ?? true,
     );
   }
 
@@ -753,6 +780,8 @@ class CustomLineElement {
     this.colorArgb = 0xFF000000,
     this.zIndex = 0,
     this.strokeStyle = 'solid',
+    this.isLocked = false,
+    this.isVisible = true,
   });
 
   final String id;
@@ -764,6 +793,8 @@ class CustomLineElement {
   final int colorArgb;
   final int zIndex;
   final String strokeStyle;
+  final bool isLocked;
+  final bool isVisible;
 
   CustomLineElement copyWith({
     String? id,
@@ -775,6 +806,8 @@ class CustomLineElement {
     int? colorArgb,
     int? zIndex,
     String? strokeStyle,
+    bool? isLocked,
+    bool? isVisible,
   }) {
     return CustomLineElement(
       id: id ?? this.id,
@@ -786,6 +819,8 @@ class CustomLineElement {
       colorArgb: colorArgb ?? this.colorArgb,
       zIndex: zIndex ?? this.zIndex,
       strokeStyle: strokeStyle ?? this.strokeStyle,
+      isLocked: isLocked ?? this.isLocked,
+      isVisible: isVisible ?? this.isVisible,
     );
   }
 
@@ -799,6 +834,8 @@ class CustomLineElement {
         'colorArgb': colorArgb,
         'zIndex': zIndex,
         'strokeStyle': strokeStyle,
+        'isLocked': isLocked,
+        'isVisible': isVisible,
       };
 
   factory CustomLineElement.fromJson(Map<String, dynamic> json) {
@@ -812,6 +849,8 @@ class CustomLineElement {
       colorArgb: (json['colorArgb'] as num?)?.toInt() ?? 0xFF000000,
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
       strokeStyle: json['strokeStyle'] as String? ?? 'solid',
+      isLocked: json['isLocked'] as bool? ?? false,
+      isVisible: json['isVisible'] as bool? ?? true,
     );
   }
 }
@@ -831,6 +870,8 @@ class CustomShapeElement {
     this.fillColorArgb,
     this.zIndex = 0,
     this.strokeStyle = 'solid',
+    this.isLocked = false,
+    this.isVisible = true,
   });
 
   final String id;
@@ -846,6 +887,8 @@ class CustomShapeElement {
   final int? fillColorArgb;
   final int zIndex;
   final String strokeStyle;
+  final bool isLocked;
+  final bool isVisible;
 
   CustomShapeElement copyWith({
     String? id,
@@ -862,6 +905,8 @@ class CustomShapeElement {
     bool clearFillColor = false,
     int? zIndex,
     String? strokeStyle,
+    bool? isLocked,
+    bool? isVisible,
   }) {
     return CustomShapeElement(
       id: id ?? this.id,
@@ -878,6 +923,8 @@ class CustomShapeElement {
           clearFillColor ? null : (fillColorArgb ?? this.fillColorArgb),
       zIndex: zIndex ?? this.zIndex,
       strokeStyle: strokeStyle ?? this.strokeStyle,
+      isLocked: isLocked ?? this.isLocked,
+      isVisible: isVisible ?? this.isVisible,
     );
   }
 
@@ -895,6 +942,8 @@ class CustomShapeElement {
         if (fillColorArgb != null) 'fillColorArgb': fillColorArgb,
         'zIndex': zIndex,
         'strokeStyle': strokeStyle,
+        'isLocked': isLocked,
+        'isVisible': isVisible,
       };
 
   factory CustomShapeElement.fromJson(Map<String, dynamic> json) {
@@ -912,6 +961,42 @@ class CustomShapeElement {
       fillColorArgb: (json['fillColorArgb'] as num?)?.toInt(),
       zIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
       strokeStyle: json['strokeStyle'] as String? ?? 'solid',
+      isLocked: json['isLocked'] as bool? ?? false,
+      isVisible: json['isVisible'] as bool? ?? true,
+    );
+  }
+}
+
+enum TemplateElementType { text, image, line, shape }
+
+class TemplateSelection {
+  const TemplateSelection({
+    required this.type,
+    required this.page1,
+    required this.id,
+  });
+
+  final TemplateElementType type;
+  final bool page1;
+  final String id;
+
+  static TemplateSelection? parse(String selectedElement) {
+    final parts = selectedElement.split(':');
+    if (parts.length != 3) return null;
+
+    final type = switch (parts[0]) {
+      'custom' => TemplateElementType.text,
+      'image' => TemplateElementType.image,
+      'line' => TemplateElementType.line,
+      'shape' => TemplateElementType.shape,
+      _ => null,
+    };
+    if (type == null) return null;
+
+    return TemplateSelection(
+      type: type,
+      page1: parts[1] == '1',
+      id: parts[2],
     );
   }
 }

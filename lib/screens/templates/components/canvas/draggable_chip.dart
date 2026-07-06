@@ -45,6 +45,8 @@ class DraggableChip extends StatefulWidget {
     this.borderStrokeStyle = 'solid',
     this.cornerRadiusPt = 0.0,
     this.paddingPt = 2.0,
+    this.isLocked = false,
+    this.isVisible = true,
   });
 
   final String label;
@@ -93,6 +95,8 @@ class DraggableChip extends StatefulWidget {
   final String borderStrokeStyle;
   final double cornerRadiusPt;
   final double paddingPt;
+  final bool isLocked;
+  final bool isVisible;
 
   @override
   State<DraggableChip> createState() => DraggableChipState();
@@ -540,7 +544,8 @@ class DraggableChipState extends State<DraggableChip> {
                     ),
                   ),
                 ),
-                if ((widget.isSelected || _resizeCorner != null) &&
+                if (!widget.isLocked &&
+                    (widget.isSelected || _resizeCorner != null) &&
                     (widget.onMaxWidthChanged != null ||
                         widget.onHeightChanged != null)) ...[
                   Positioned(
@@ -644,11 +649,11 @@ class DraggableChipState extends State<DraggableChip> {
             widget.onSelect?.call();
           },
           onTap: widget.onTap,
-          onPanStart: _onTemplatePanStart,
-          onPanUpdate: _panMoveClampedToHitInset,
-          onPanEnd: (_) => _onTemplatePanEnd(),
-          onPanCancel: _onTemplatePanEnd,
-          child: chip,
+          onPanStart: widget.isLocked ? null : _onTemplatePanStart,
+          onPanUpdate: widget.isLocked ? null : _panMoveClampedToHitInset,
+          onPanEnd: widget.isLocked ? null : (_) => _onTemplatePanEnd(),
+          onPanCancel: widget.isLocked ? null : _onTemplatePanEnd,
+          child: widget.isVisible ? chip : Opacity(opacity: 0.35, child: chip),
         ),
       ),
     );
