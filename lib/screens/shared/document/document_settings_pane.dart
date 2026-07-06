@@ -13,8 +13,10 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/template_settings_services.dart';
+import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 
@@ -77,39 +79,11 @@ class DocumentSettingsPane extends StatelessWidget {
             children: [
               const FileFormatIcon(path: 'assets/icons/pdf.svg'),
               if (!showSpecimenSelection && onSelectSpecimens != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _getRecordTypeLabel(),
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '$selectedCount of $totalCount selected',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: onSelectSpecimens,
-                        icon: const Icon(
-                          Icons.table_rows_outlined,
-                        ),
-                        label: const Text('Select'),
-                      ),
-                    ],
-                  ),
+                _RecordSelectionSummary(
+                  label: _getRecordTypeLabel(),
+                  selectedCount: selectedCount,
+                  totalCount: totalCount,
+                  onSelect: onSelectSpecimens,
                 ),
                 const SizedBox(height: 8),
               ],
@@ -126,78 +100,17 @@ class DocumentSettingsPane extends StatelessWidget {
                 onEditTemplate: onEditTemplate,
               ),
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'File settings',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 10),
-                    FileNameField(
-                      controller: exportCtr,
-                      onChanged: onFileNameChanged,
-                    ),
-                    if (!Platform.isIOS && !Platform.isAndroid) ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Save to',
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  selectedDir != null
-                                      ? selectedDir!.path
-                                      : 'Select directory',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          selectedDir == null
-                              ? OutlinedButton.icon(
-                                  onPressed: onSelectDir,
-                                  icon: const Icon(
-                                    Icons.folder_outlined,
-                                  ),
-                                  label: const Text('Browse'),
-                                )
-                              : IconButton(
-                                  onPressed: onClearDir,
-                                  icon: const Icon(Icons.clear_rounded),
-                                ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
+              _FileSettingsSection(
+                exportCtr: exportCtr,
+                selectedDir: selectedDir,
+                onFileNameChanged: onFileNameChanged,
+                onSelectDir: onSelectDir,
+                onClearDir: onClearDir,
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  ProgressButton(
-                    label: 'Export Documents',
-                    icon: Icons.upload_outlined,
-                    isRunning: isRunning,
-                    onPressed: isRunning ? null : onExportPressed,
-                  ),
-                ],
+              _ExportActions(
+                isRunning: isRunning,
+                onExportPressed: onExportPressed,
               ),
             ],
           ),
@@ -219,6 +132,189 @@ class DocumentSettingsPane extends StatelessWidget {
       default:
         return 'Records';
     }
+  }
+}
+
+class _RecordSelectionSummary extends StatelessWidget {
+  const _RecordSelectionSummary({
+    required this.label,
+    required this.selectedCount,
+    required this.totalCount,
+    required this.onSelect,
+  });
+
+  final String label;
+  final int selectedCount;
+  final int totalCount;
+  final VoidCallback? onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsPaneCard(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$selectedCount of $totalCount selected',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: onSelect,
+            icon: const Icon(Icons.table_rows_outlined),
+            label: const Text('Select'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FileSettingsSection extends StatelessWidget {
+  const _FileSettingsSection({
+    required this.exportCtr,
+    required this.selectedDir,
+    required this.onFileNameChanged,
+    required this.onSelectDir,
+    required this.onClearDir,
+  });
+
+  final FileOpCtrModel exportCtr;
+  final Directory? selectedDir;
+  final ValueChanged<String?> onFileNameChanged;
+  final Future<void> Function() onSelectDir;
+  final VoidCallback onClearDir;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsPaneCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'File settings',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 10),
+          FileNameField(
+            controller: exportCtr,
+            onChanged: onFileNameChanged,
+          ),
+          if (!Platform.isIOS && !Platform.isAndroid) ...[
+            const SizedBox(height: 16),
+            _DirectoryPickerRow(
+              selectedDir: selectedDir,
+              onSelectDir: onSelectDir,
+              onClearDir: onClearDir,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DirectoryPickerRow extends StatelessWidget {
+  const _DirectoryPickerRow({
+    required this.selectedDir,
+    required this.onSelectDir,
+    required this.onClearDir,
+  });
+
+  final Directory? selectedDir;
+  final Future<void> Function() onSelectDir;
+  final VoidCallback onClearDir;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Save to',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                selectedDir != null ? selectedDir!.path : 'Select directory',
+                style: Theme.of(context).textTheme.bodyMedium,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        selectedDir == null
+            ? OutlinedButton.icon(
+                onPressed: onSelectDir,
+                icon: const Icon(Icons.folder_outlined),
+                label: const Text('Browse'),
+              )
+            : IconButton(
+                onPressed: onClearDir,
+                icon: const Icon(Icons.clear_rounded),
+              ),
+      ],
+    );
+  }
+}
+
+class _ExportActions extends StatelessWidget {
+  const _ExportActions({
+    required this.isRunning,
+    required this.onExportPressed,
+  });
+
+  final bool isRunning;
+  final VoidCallback? onExportPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        ProgressButton(
+          label: 'Export Documents',
+          icon: Icons.upload_outlined,
+          isRunning: isRunning,
+          onPressed: isRunning ? null : onExportPressed,
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsPaneCard extends StatelessWidget {
+  const _SettingsPaneCard({
+    required this.child,
+  });
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: child,
+    );
   }
 }
 
@@ -313,235 +409,29 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.showProfileDropdown) ...[
-            Text(
-              'Document Layout',
-              style: Theme.of(context).textTheme.titleMedium,
+            _LayoutProfileControls(
+              selectedSetupName: widget.selectedSetupName,
+              setupNames: widget.setupNames,
+              incompatibleSetupNames: widget.incompatibleSetupNames,
+              fieldWidth: _wideFieldWidth,
+              onSetupSelected: widget.onSetupSelected,
+              onManagePresets: widget.onManagePresets,
             ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _ResponsiveFieldBox(
-                  width: _wideFieldWidth,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('setup-${widget.selectedSetupName}'),
-                    initialValue: widget.selectedSetupName,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Layout profile',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    selectedItemBuilder: (context) => widget.setupNames
-                        .map(
-                          (n) => _DropdownText(
-                            n,
-                            leadingIcon: widget.incompatibleSetupNames
-                                    .contains(n)
-                                ? Icon(
-                                    Icons.warning_amber_outlined,
-                                    size: 18,
-                                    color: Theme.of(context).colorScheme.error,
-                                  )
-                                : null,
-                          ),
-                        )
-                        .toList(),
-                    items: widget.setupNames
-                        .map(
-                          (n) => DropdownMenuItem<String>(
-                            value: n,
-                            child: _DropdownText(
-                              n,
-                              leadingIcon: widget.incompatibleSetupNames
-                                      .contains(n)
-                                  ? Icon(
-                                      Icons.warning_amber_outlined,
-                                      size: 18,
-                                      color:
-                                          Theme.of(context).colorScheme.error,
-                                    )
-                                  : null,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) widget.onSetupSelected(v);
-                    },
-                  ),
-                ),
-                if (widget.onManagePresets != null) ...[
-                  OutlinedButton.icon(
-                    onPressed: widget.onManagePresets,
-                    icon: const Icon(Icons.description_outlined),
-                    label: const Text('Manage presets'),
-                  ),
-                ],
-              ],
-            ),
-          ],
-          if (widget.showProfileDropdown) ...[
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
           ],
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Page Setup',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showMorePageSetup = !_showMorePageSetup;
-                  });
-                },
-                icon: Icon(
-                  _showMorePageSetup ? Icons.expand_less : Icons.expand_more,
-                ),
-                label: Text(_showMorePageSetup ? 'Show less' : 'Show more'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              if (!isContinuous) ...[
-                _ResponsiveFieldBox(
-                  width: _wideFieldWidth,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('page-size-${widget.layout.pageSizeKey}'),
-                    initialValue: widget.layout.pageSizeKey,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Page size',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: _pageSizeLabels.entries
-                        .map(
-                          (e) => DropdownMenuItem<String>(
-                            value: e.key,
-                            child: Text(
-                              e.value,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        widget.onLayoutChanged(
-                            widget.layout.copyWith(pageSizeKey: v));
-                      }
-                    },
-                  ),
-                ),
-                if (_showMorePageSetup) ...[
-                  if (widget.layout.pageSizeKey == 'Custom') ...[
-                    NumberField(
-                      label: 'Width mm',
-                      initialValue: (widget.layout.customPageWidthMm ?? 210.0)
-                          .toStringAsFixed(1),
-                      onChanged: (value) {
-                        widget.onLayoutChanged(widget.layout.copyWith(
-                            customPageWidthMm: _parseMmOrCurrent(value,
-                                widget.layout.customPageWidthMm ?? 210.0)));
-                      },
-                    ),
-                    NumberField(
-                      label: 'Height mm',
-                      initialValue: (widget.layout.customPageHeightMm ?? 297.0)
-                          .toStringAsFixed(1),
-                      onChanged: (value) {
-                        widget.onLayoutChanged(widget.layout.copyWith(
-                            customPageHeightMm: _parseMmOrCurrent(value,
-                                widget.layout.customPageHeightMm ?? 297.0)));
-                      },
-                    ),
-                  ],
-                  _ResponsiveFieldBox(
-                    width: 160,
-                    child: DropdownButtonFormField<String>(
-                      key: ValueKey(
-                          'orientation-${widget.layout.pageOrientation}'),
-                      initialValue: widget.layout.pageOrientation,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Orientation',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                      items: _pageOrientationLabels.entries
-                          .map(
-                            (e) => DropdownMenuItem<String>(
-                              value: e.key,
-                              child: Text(
-                                e.value,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) {
-                          widget.onLayoutChanged(
-                              widget.layout.copyWith(pageOrientation: v));
-                        }
-                      },
-                    ),
-                  ),
-                  NumberField(
-                    label: 'Page top',
-                    initialValue: widget.layout.pagePadTopMm.toStringAsFixed(1),
-                    onChanged: (value) {
-                      widget.onLayoutChanged(widget.layout.copyWith(
-                          pagePadTopMm: _parseMmOrCurrent(
-                              value, widget.layout.pagePadTopMm)));
-                    },
-                  ),
-                  NumberField(
-                    label: 'Page left',
-                    initialValue:
-                        widget.layout.pagePadLeftMm.toStringAsFixed(1),
-                    onChanged: (value) {
-                      widget.onLayoutChanged(widget.layout.copyWith(
-                          pagePadLeftMm: _parseMmOrCurrent(
-                              value, widget.layout.pagePadLeftMm)));
-                    },
-                  ),
-                  NumberField(
-                    label: 'Page right',
-                    initialValue:
-                        widget.layout.pagePadRightMm.toStringAsFixed(1),
-                    onChanged: (value) {
-                      widget.onLayoutChanged(widget.layout.copyWith(
-                          pagePadRightMm: _parseMmOrCurrent(
-                              value, widget.layout.pagePadRightMm)));
-                    },
-                  ),
-                  NumberField(
-                    label: 'Page bottom',
-                    initialValue:
-                        widget.layout.pagePadBottomMm.toStringAsFixed(1),
-                    onChanged: (value) {
-                      widget.onLayoutChanged(widget.layout.copyWith(
-                          pagePadBottomMm: _parseMmOrCurrent(
-                              value, widget.layout.pagePadBottomMm)));
-                    },
-                  ),
-                ],
-              ],
-            ],
-          ),
+          if (!isContinuous)
+            _PageSetupControls(
+              layout: widget.layout,
+              showMore: _showMorePageSetup,
+              wideFieldWidth: _wideFieldWidth,
+              pageSizeLabels: _pageSizeLabels,
+              pageOrientationLabels: _pageOrientationLabels,
+              onToggleShowMore: _togglePageSetup,
+              onLayoutChanged: widget.onLayoutChanged,
+              parseMmOrCurrent: _parseMmOrCurrent,
+            ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -1056,6 +946,12 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
     return parsed.clamp(1, 200);
   }
 
+  void _togglePageSetup() {
+    setState(() {
+      _showMorePageSetup = !_showMorePageSetup;
+    });
+  }
+
   void _addBlock() {
     final newBlocks =
         List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
@@ -1092,6 +988,296 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   }
 }
 
+class _LayoutProfileControls extends StatelessWidget {
+  const _LayoutProfileControls({
+    required this.selectedSetupName,
+    required this.setupNames,
+    required this.incompatibleSetupNames,
+    required this.fieldWidth,
+    required this.onSetupSelected,
+    required this.onManagePresets,
+  });
+
+  final String selectedSetupName;
+  final List<String> setupNames;
+  final Set<String> incompatibleSetupNames;
+  final double fieldWidth;
+  final ValueChanged<String> onSetupSelected;
+  final VoidCallback? onManagePresets;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Document Layout',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _ResponsiveFieldBox(
+              width: fieldWidth,
+              child: DropdownButtonFormField<String>(
+                key: ValueKey('setup-$selectedSetupName'),
+                initialValue: selectedSetupName,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Layout profile',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                selectedItemBuilder: (context) => setupNames
+                    .map((n) => _setupDropdownText(context, n))
+                    .toList(),
+                items: setupNames
+                    .map(
+                      (n) => DropdownMenuItem<String>(
+                        value: n,
+                        child: _setupDropdownText(context, n),
+                      ),
+                    )
+                    .toList(),
+                onChanged: _selectSetup,
+              ),
+            ),
+            if (onManagePresets != null)
+              OutlinedButton.icon(
+                onPressed: onManagePresets,
+                icon: const Icon(Icons.description_outlined),
+                label: const Text('Manage presets'),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _setupDropdownText(BuildContext context, String name) {
+    return _DropdownText(
+      name,
+      leadingIcon: incompatibleSetupNames.contains(name)
+          ? Icon(
+              Icons.warning_amber_outlined,
+              size: 18,
+              color: Theme.of(context).colorScheme.error,
+            )
+          : null,
+    );
+  }
+
+  void _selectSetup(String? value) {
+    if (value != null) {
+      onSetupSelected(value);
+    }
+  }
+}
+
+class _PageSetupControls extends StatelessWidget {
+  const _PageSetupControls({
+    required this.layout,
+    required this.showMore,
+    required this.wideFieldWidth,
+    required this.pageSizeLabels,
+    required this.pageOrientationLabels,
+    required this.onToggleShowMore,
+    required this.onLayoutChanged,
+    required this.parseMmOrCurrent,
+  });
+
+  final rust_config.DocumentLayoutPreset layout;
+  final bool showMore;
+  final double wideFieldWidth;
+  final Map<String, String> pageSizeLabels;
+  final Map<String, String> pageOrientationLabels;
+  final VoidCallback onToggleShowMore;
+  final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
+  final double Function(String value, double current) parseMmOrCurrent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Page Setup',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            TextButton.icon(
+              onPressed: onToggleShowMore,
+              icon: Icon(showMore ? Icons.expand_less : Icons.expand_more),
+              label: Text(showMore ? 'Show less' : 'Show more'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _ResponsiveFieldBox(
+              width: wideFieldWidth,
+              child: DropdownButtonFormField<String>(
+                key: ValueKey('page-size-${layout.pageSizeKey}'),
+                initialValue: layout.pageSizeKey,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Page size',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                items: pageSizeLabels.entries
+                    .map(
+                      (e) => DropdownMenuItem<String>(
+                        value: e.key,
+                        child: Text(
+                          e.value,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: _setPageSize,
+              ),
+            ),
+            if (showMore) ...[
+              if (layout.pageSizeKey == 'Custom') ...[
+                NumberField(
+                  label: 'Width mm',
+                  initialValue:
+                      (layout.customPageWidthMm ?? 210.0).toStringAsFixed(1),
+                  onChanged: _setCustomPageWidth,
+                ),
+                NumberField(
+                  label: 'Height mm',
+                  initialValue:
+                      (layout.customPageHeightMm ?? 297.0).toStringAsFixed(1),
+                  onChanged: _setCustomPageHeight,
+                ),
+              ],
+              _ResponsiveFieldBox(
+                width: 160,
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('orientation-${layout.pageOrientation}'),
+                  initialValue: layout.pageOrientation,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Orientation',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  items: pageOrientationLabels.entries
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e.key,
+                          child: Text(
+                            e.value,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _setPageOrientation,
+                ),
+              ),
+              NumberField(
+                label: 'Page top',
+                initialValue: layout.pagePadTopMm.toStringAsFixed(1),
+                onChanged: _setPagePadTop,
+              ),
+              NumberField(
+                label: 'Page left',
+                initialValue: layout.pagePadLeftMm.toStringAsFixed(1),
+                onChanged: _setPagePadLeft,
+              ),
+              NumberField(
+                label: 'Page right',
+                initialValue: layout.pagePadRightMm.toStringAsFixed(1),
+                onChanged: _setPagePadRight,
+              ),
+              NumberField(
+                label: 'Page bottom',
+                initialValue: layout.pagePadBottomMm.toStringAsFixed(1),
+                onChanged: _setPagePadBottom,
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _setPageSize(String? value) {
+    if (value != null) {
+      onLayoutChanged(layout.copyWith(pageSizeKey: value));
+    }
+  }
+
+  void _setPageOrientation(String? value) {
+    if (value != null) {
+      onLayoutChanged(layout.copyWith(pageOrientation: value));
+    }
+  }
+
+  void _setCustomPageWidth(String value) {
+    onLayoutChanged(
+      layout.copyWith(
+        customPageWidthMm:
+            parseMmOrCurrent(value, layout.customPageWidthMm ?? 210.0),
+      ),
+    );
+  }
+
+  void _setCustomPageHeight(String value) {
+    onLayoutChanged(
+      layout.copyWith(
+        customPageHeightMm:
+            parseMmOrCurrent(value, layout.customPageHeightMm ?? 297.0),
+      ),
+    );
+  }
+
+  void _setPagePadTop(String value) {
+    onLayoutChanged(
+      layout.copyWith(
+        pagePadTopMm: parseMmOrCurrent(value, layout.pagePadTopMm),
+      ),
+    );
+  }
+
+  void _setPagePadLeft(String value) {
+    onLayoutChanged(
+      layout.copyWith(
+        pagePadLeftMm: parseMmOrCurrent(value, layout.pagePadLeftMm),
+      ),
+    );
+  }
+
+  void _setPagePadRight(String value) {
+    onLayoutChanged(
+      layout.copyWith(
+        pagePadRightMm: parseMmOrCurrent(value, layout.pagePadRightMm),
+      ),
+    );
+  }
+
+  void _setPagePadBottom(String value) {
+    onLayoutChanged(
+      layout.copyWith(
+        pagePadBottomMm: parseMmOrCurrent(value, layout.pagePadBottomMm),
+      ),
+    );
+  }
+}
+
 class RecordNavigationButton extends ConsumerWidget {
   const RecordNavigationButton({
     super.key,
@@ -1107,52 +1293,54 @@ class RecordNavigationButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return OutlinedButton.icon(
-      onPressed: () async {
-        if (recordType == RecordType.specimenRecord) {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => _BlockSpecimenSelectionScreen(
-                initialSelectedIds: selectedIds,
-                param: param,
-              ),
-            ),
-          );
-        } else if (recordType == RecordType.site) {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => _BlockSiteSelectionScreen(
-                initialSelectedIds: _parseRecordIds(selectedIds),
-                param: param,
-              ),
-            ),
-          );
-        } else if (recordType == RecordType.collEvent) {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => _BlockEventSelectionScreen(
-                initialSelectedIds: _parseRecordIds(selectedIds),
-                param: param,
-              ),
-            ),
-          );
-        } else if (recordType == RecordType.narrative) {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => _BlockNarrativeSelectionScreen(
-                initialSelectedIds: _parseRecordIds(selectedIds),
-                param: param,
-              ),
-            ),
-          );
-        }
-      },
+      onPressed: () => _openSelection(context),
       icon: const Icon(Icons.table_rows_outlined),
       label: const Text('Select'),
     );
+  }
+
+  Future<void> _openSelection(BuildContext context) async {
+    if (recordType == RecordType.specimenRecord) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _BlockSpecimenSelectionScreen(
+            initialSelectedIds: selectedIds,
+            param: param,
+          ),
+        ),
+      );
+    } else if (recordType == RecordType.site) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _BlockSiteSelectionScreen(
+            initialSelectedIds: _parseRecordIds(selectedIds),
+            param: param,
+          ),
+        ),
+      );
+    } else if (recordType == RecordType.collEvent) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _BlockEventSelectionScreen(
+            initialSelectedIds: _parseRecordIds(selectedIds),
+            param: param,
+          ),
+        ),
+      );
+    } else if (recordType == RecordType.narrative) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _BlockNarrativeSelectionScreen(
+            initialSelectedIds: _parseRecordIds(selectedIds),
+            param: param,
+          ),
+        ),
+      );
+    }
   }
 
   Set<int> _parseRecordIds(Set<String> ids) {
@@ -1197,7 +1385,7 @@ class _BlockSpecimenSelectionScreenState
           selectedUuidList: _selectedIds,
           visibleColumnIds: _visibleColumnIds,
           onSelectionChanged: _updateSelection,
-          onColumnsChanged: () {},
+          onColumnsChanged: _pickColumns,
         ),
       ),
     );
@@ -1228,6 +1416,53 @@ class _BlockSpecimenSelectionScreenState
     ref
         .read(blockRecordSelectionProvider(widget.param).notifier)
         .updateSelection(nextSelection);
+  }
+
+  Future<void> _pickColumns() async {
+    List<String>? result;
+
+    if (systemPlatform == PlatformType.mobile) {
+      result = await showModalBottomSheet<List<String>>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) {
+          return FractionallySizedBox(
+            heightFactor: 0.9,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('Table columns'),
+                automaticallyImplyLeading: false,
+              ),
+              body: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      result = await showDialog<List<String>>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('Table columns'),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: SpecimenTableColumnSelector(
+                selectedColumns: _visibleColumnIds,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    if (result != null && mounted) {
+      setState(() {
+        _visibleColumnIds = result!;
+      });
+    }
   }
 }
 
