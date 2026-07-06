@@ -4,17 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:pdfrx/pdfrx.dart';
+
 class DocumentPageLivePreview extends ConsumerStatefulWidget {
   const DocumentPageLivePreview({
     super.key,
     required this.selectedUuidList,
     required this.layout,
     this.isBlockSelection = false,
+    this.onPageChanged,
   });
 
   final List<String> selectedUuidList;
   final rust_config.DocumentLayoutPreset layout;
   final bool isBlockSelection;
+  final void Function(int current, int total)? onPageChanged;
 
   @override
   ConsumerState<DocumentPageLivePreview> createState() =>
@@ -26,6 +29,7 @@ class _DocumentPageLivePreviewState
   bool _isLoading = true;
   String? _error;
   Uint8List? _pdfBytes;
+  final PdfViewerController _pdfViewerController = PdfViewerController();
 
   @override
   void initState() {
@@ -170,8 +174,22 @@ class _DocumentPageLivePreviewState
         child: PdfViewer.data(
           _pdfBytes!,
           sourceName: 'preview.pdf',
-          params: const PdfViewerParams(
+          controller: _pdfViewerController,
+          params: PdfViewerParams(
             backgroundColor: Colors.transparent,
+            onViewerReady: (document, controller) {
+              final total = controller.pageCount;
+              final current = controller.pageNumber ?? 1;
+              widget.onPageChanged?.call(current, total);
+            },
+            onPageChanged: (pageNumber) {
+              if (pageNumber != null) {
+                widget.onPageChanged?.call(
+                  pageNumber,
+                  _pdfViewerController.pageCount,
+                );
+              }
+            },
           ),
         ),
       );
