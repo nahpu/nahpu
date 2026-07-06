@@ -7,11 +7,14 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/document_selection.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/template_settings_services.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 
@@ -1109,22 +1112,9 @@ class RecordNavigationButton extends ConsumerWidget {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('Select specimens'),
-                ),
-                body: SafeArea(
-                  child: SpecimenSelectionView(
-                    selectedUuidList: selectedIds,
-                    visibleColumnIds: const [],
-                    onSelectionChanged: (nextSelection) {
-                      ref
-                          .read(blockRecordSelectionProvider(param).notifier)
-                          .updateSelection(nextSelection);
-                    },
-                    onColumnsChanged: () {},
-                  ),
-                ),
+              builder: (context) => _BlockSpecimenSelectionScreen(
+                initialSelectedIds: selectedIds,
+                param: param,
               ),
             ),
           );
@@ -1132,15 +1122,9 @@ class RecordNavigationButton extends ConsumerWidget {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SiteSelectionScreen(
-                selectedIds: _parseRecordIds(selectedIds),
-                onSelectionChanged: (nextSelection) {
-                  ref
-                      .read(blockRecordSelectionProvider(param).notifier)
-                      .updateSelection(
-                        nextSelection.map((e) => e.toString()).toSet(),
-                      );
-                },
+              builder: (context) => _BlockSiteSelectionScreen(
+                initialSelectedIds: _parseRecordIds(selectedIds),
+                param: param,
               ),
             ),
           );
@@ -1148,15 +1132,9 @@ class RecordNavigationButton extends ConsumerWidget {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EventSelectionScreen(
-                selectedIds: _parseRecordIds(selectedIds),
-                onSelectionChanged: (nextSelection) {
-                  ref
-                      .read(blockRecordSelectionProvider(param).notifier)
-                      .updateSelection(
-                        nextSelection.map((e) => e.toString()).toSet(),
-                      );
-                },
+              builder: (context) => _BlockEventSelectionScreen(
+                initialSelectedIds: _parseRecordIds(selectedIds),
+                param: param,
               ),
             ),
           );
@@ -1164,15 +1142,9 @@ class RecordNavigationButton extends ConsumerWidget {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NarrativeSelectionScreen(
-                selectedIds: _parseRecordIds(selectedIds),
-                onSelectionChanged: (nextSelection) {
-                  ref
-                      .read(blockRecordSelectionProvider(param).notifier)
-                      .updateSelection(
-                        nextSelection.map((e) => e.toString()).toSet(),
-                      );
-                },
+              builder: (context) => _BlockNarrativeSelectionScreen(
+                initialSelectedIds: _parseRecordIds(selectedIds),
+                param: param,
               ),
             ),
           );
@@ -1185,6 +1157,203 @@ class RecordNavigationButton extends ConsumerWidget {
 
   Set<int> _parseRecordIds(Set<String> ids) {
     return ids.map(int.tryParse).whereType<int>().toSet();
+  }
+}
+
+class _BlockSpecimenSelectionScreen extends ConsumerStatefulWidget {
+  const _BlockSpecimenSelectionScreen({
+    required this.initialSelectedIds,
+    required this.param,
+  });
+
+  final Set<String> initialSelectedIds;
+  final BlockRecordSelectionParam param;
+
+  @override
+  ConsumerState<_BlockSpecimenSelectionScreen> createState() =>
+      _BlockSpecimenSelectionScreenState();
+}
+
+class _BlockSpecimenSelectionScreenState
+    extends ConsumerState<_BlockSpecimenSelectionScreen> {
+  late Set<String> _selectedIds;
+  List<String> _visibleColumnIds = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = Set<String>.from(widget.initialSelectedIds);
+    _loadColumns();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Select specimens'),
+      ),
+      body: SafeArea(
+        child: SpecimenSelectionView(
+          selectedUuidList: _selectedIds,
+          visibleColumnIds: _visibleColumnIds,
+          onSelectionChanged: _updateSelection,
+          onColumnsChanged: () {},
+        ),
+      ),
+    );
+  }
+
+  Future<void> _loadColumns() async {
+    final db = ref.read(databaseProvider);
+    final settings = DocumentSettingsServices();
+    final storedCols = await settings.getPrintSpecimenTableColumnIds();
+    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
+    if (visible.isEmpty) {
+      visible = normalizePrintSpecimenTableColumnIds(
+        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+        db,
+      );
+    }
+    if (mounted) {
+      setState(() {
+        _visibleColumnIds = visible;
+      });
+    }
+  }
+
+  void _updateSelection(Set<String> nextSelection) {
+    setState(() {
+      _selectedIds = nextSelection;
+    });
+    ref
+        .read(blockRecordSelectionProvider(widget.param).notifier)
+        .updateSelection(nextSelection);
+  }
+}
+
+class _BlockSiteSelectionScreen extends ConsumerStatefulWidget {
+  const _BlockSiteSelectionScreen({
+    required this.initialSelectedIds,
+    required this.param,
+  });
+
+  final Set<int> initialSelectedIds;
+  final BlockRecordSelectionParam param;
+
+  @override
+  ConsumerState<_BlockSiteSelectionScreen> createState() =>
+      _BlockSiteSelectionScreenState();
+}
+
+class _BlockSiteSelectionScreenState
+    extends ConsumerState<_BlockSiteSelectionScreen> {
+  late Set<int> _selectedIds;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = Set<int>.from(widget.initialSelectedIds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SiteSelectionScreen(
+      selectedIds: _selectedIds,
+      onSelectionChanged: _updateSelection,
+    );
+  }
+
+  void _updateSelection(Set<int> nextSelection) {
+    setState(() {
+      _selectedIds = nextSelection;
+    });
+    ref
+        .read(blockRecordSelectionProvider(widget.param).notifier)
+        .updateSelection(nextSelection.map((e) => e.toString()).toSet());
+  }
+}
+
+class _BlockEventSelectionScreen extends ConsumerStatefulWidget {
+  const _BlockEventSelectionScreen({
+    required this.initialSelectedIds,
+    required this.param,
+  });
+
+  final Set<int> initialSelectedIds;
+  final BlockRecordSelectionParam param;
+
+  @override
+  ConsumerState<_BlockEventSelectionScreen> createState() =>
+      _BlockEventSelectionScreenState();
+}
+
+class _BlockEventSelectionScreenState
+    extends ConsumerState<_BlockEventSelectionScreen> {
+  late Set<int> _selectedIds;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = Set<int>.from(widget.initialSelectedIds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return EventSelectionScreen(
+      selectedIds: _selectedIds,
+      onSelectionChanged: _updateSelection,
+    );
+  }
+
+  void _updateSelection(Set<int> nextSelection) {
+    setState(() {
+      _selectedIds = nextSelection;
+    });
+    ref
+        .read(blockRecordSelectionProvider(widget.param).notifier)
+        .updateSelection(nextSelection.map((e) => e.toString()).toSet());
+  }
+}
+
+class _BlockNarrativeSelectionScreen extends ConsumerStatefulWidget {
+  const _BlockNarrativeSelectionScreen({
+    required this.initialSelectedIds,
+    required this.param,
+  });
+
+  final Set<int> initialSelectedIds;
+  final BlockRecordSelectionParam param;
+
+  @override
+  ConsumerState<_BlockNarrativeSelectionScreen> createState() =>
+      _BlockNarrativeSelectionScreenState();
+}
+
+class _BlockNarrativeSelectionScreenState
+    extends ConsumerState<_BlockNarrativeSelectionScreen> {
+  late Set<int> _selectedIds;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = Set<int>.from(widget.initialSelectedIds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NarrativeSelectionScreen(
+      selectedIds: _selectedIds,
+      onSelectionChanged: _updateSelection,
+    );
+  }
+
+  void _updateSelection(Set<int> nextSelection) {
+    setState(() {
+      _selectedIds = nextSelection;
+    });
+    ref
+        .read(blockRecordSelectionProvider(widget.param).notifier)
+        .updateSelection(nextSelection.map((e) => e.toString()).toSet());
   }
 }
 
