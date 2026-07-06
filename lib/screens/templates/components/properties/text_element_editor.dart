@@ -77,88 +77,6 @@ class _AvailableFieldsSectionState
   String _fieldDisplayOption = 'short';
   String _selectedTaxon = 'All Taxa';
 
-  Map<String, List<String>> _getAllGroups() {
-    final db = ref.read(databaseProvider);
-    final Map<String, List<String>> groups = {};
-
-    final Set<String> allowedTables;
-    switch (widget.recordType) {
-      case RecordType.narrative:
-        allowedTables = {'narrative', 'site', 'personnel'};
-        break;
-      case RecordType.site:
-        allowedTables = {'site', 'personnel'};
-        break;
-      case RecordType.collEvent:
-        allowedTables = {
-          'collEvent',
-          'site',
-          'weather',
-          'personnel',
-          'collEffort'
-        };
-        break;
-      case RecordType.specimenRecord:
-      case RecordType.specimenParts:
-        allowedTables = {
-          'specimen',
-          'taxonomy',
-          'personnel',
-          'project',
-          'collEvent',
-          'site',
-          'coordinate',
-          'weather',
-          'mammalMeasurement',
-          'avianMeasurement',
-          'herpMeasurement',
-          'specimenPart',
-        };
-        if (_selectedTaxon == 'Mammals') {
-          allowedTables.remove('avianMeasurement');
-          allowedTables.remove('herpMeasurement');
-        } else if (_selectedTaxon == 'Birds') {
-          allowedTables.remove('mammalMeasurement');
-          allowedTables.remove('herpMeasurement');
-        } else if (_selectedTaxon == 'Herpetofauna') {
-          allowedTables.remove('mammalMeasurement');
-          allowedTables.remove('avianMeasurement');
-        }
-        break;
-    }
-
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      if (allowedTables.contains(tableName)) {
-        groups[tableName] =
-            table.$columns.map((c) => '$tableName::${c.name}').toList();
-      }
-    }
-    return groups;
-  }
-
-  List<String> _fieldPanelRowLabels(List<String> fieldIds) {
-    final out = <String>[];
-    for (final id in fieldIds) {
-      if (id.toLowerCase().endsWith('.sex')) {
-        out.add('[$id]');
-        out.add('[$id]-img');
-      } else {
-        out.add('[$id]');
-      }
-    }
-    return out;
-  }
-
-  String _getDisplayLabel(String label) {
-    final stripped = label.replaceAll('[', '').replaceAll(']', '');
-    if (_fieldDisplayOption == 'short') {
-      final parts = stripped.split('::');
-      return parts.length > 1 ? parts.last : stripped;
-    }
-    return stripped;
-  }
-
   @override
   Widget build(BuildContext context) {
     if (!_showFields) {
@@ -332,6 +250,88 @@ class _AvailableFieldsSectionState
         ],
       ),
     );
+  }
+
+  Map<String, List<String>> _getAllGroups() {
+    final db = ref.read(databaseProvider);
+    final Map<String, List<String>> groups = {};
+
+    final Set<String> allowedTables;
+    switch (widget.recordType) {
+      case RecordType.narrative:
+        allowedTables = {'narrative', 'site', 'personnel'};
+        break;
+      case RecordType.site:
+        allowedTables = {'site', 'personnel'};
+        break;
+      case RecordType.collEvent:
+        allowedTables = {
+          'collEvent',
+          'site',
+          'weather',
+          'personnel',
+          'collEffort'
+        };
+        break;
+      case RecordType.specimenRecord:
+      case RecordType.specimenParts:
+        allowedTables = {
+          'specimen',
+          'taxonomy',
+          'personnel',
+          'project',
+          'collEvent',
+          'site',
+          'coordinate',
+          'weather',
+          'mammalMeasurement',
+          'avianMeasurement',
+          'herpMeasurement',
+          'specimenPart',
+        };
+        if (_selectedTaxon == 'Mammals') {
+          allowedTables.remove('avianMeasurement');
+          allowedTables.remove('herpMeasurement');
+        } else if (_selectedTaxon == 'Birds') {
+          allowedTables.remove('mammalMeasurement');
+          allowedTables.remove('herpMeasurement');
+        } else if (_selectedTaxon == 'Herpetofauna') {
+          allowedTables.remove('mammalMeasurement');
+          allowedTables.remove('avianMeasurement');
+        }
+        break;
+    }
+
+    for (var table in db.allTables) {
+      final tableName = table.actualTableName;
+      if (allowedTables.contains(tableName)) {
+        groups[tableName] =
+            table.$columns.map((c) => '$tableName::${c.name}').toList();
+      }
+    }
+    return groups;
+  }
+
+  List<String> _fieldPanelRowLabels(List<String> fieldIds) {
+    final out = <String>[];
+    for (final id in fieldIds) {
+      if (id.toLowerCase().endsWith('.sex')) {
+        out.add('[$id]');
+        out.add('[$id]-img');
+      } else {
+        out.add('[$id]');
+      }
+    }
+    return out;
+  }
+
+  String _getDisplayLabel(String label) {
+    final stripped = label.replaceAll('[', '').replaceAll(']', '');
+    if (_fieldDisplayOption == 'short') {
+      final parts = stripped.split('::');
+      return parts.length > 1 ? parts.last : stripped;
+    }
+    return stripped;
   }
 }
 
