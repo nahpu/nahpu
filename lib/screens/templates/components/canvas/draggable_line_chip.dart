@@ -92,8 +92,6 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   Offset? _imageMovePanLastGlobal;
   Offset? _resizePanLastGlobal;
 
-  Offset? _imagePanOriginMm;
-  Offset _imagePanAccumMm = Offset.zero;
   Offset? _imageDragLiveMm;
   int _imageMoveSession = 0;
 
@@ -105,9 +103,70 @@ class DraggableLineChipState extends State<DraggableLineChip> {
 
   int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
 
+  Rect get _widgetRect => Rect.fromLTWH(
+        widget.position.dx,
+        widget.position.dy,
+        widget.lengthMm,
+        math.max(2.0, widget.thicknessPt * 0.3527),
+      );
+
+  bool _isSameRect(Rect a, Rect b) {
+    const tolerance = 1e-6;
+    return (a.left - b.left).abs() < tolerance &&
+        (a.top - b.top).abs() < tolerance &&
+        (a.width - b.width).abs() < tolerance &&
+        (a.height - b.height).abs() < tolerance;
+  }
+
   /// Drag in template mm -> delta along the line's unrotated local axis.
   Offset _labelDeltaToImageLocalMm(Offset dLabelMm) {
     return templateDeltaToElementLocalMm(dLabelMm, _effectiveRotationDeg);
+  }
+
+  void _onMovePanStart(DragStartDetails d) {
+    if (widget.isLocked) return;
+    widget.onDragStateChanged?.call(true);
+    widget.onTap?.call();
+    _imageMoveSession++;
+    _imageDragLiveMm = widget.position;
+    _deferSetState(() => _moving = true);
+    _imageMovePanLastGlobal = d.globalPosition;
+  }
+
+  void _onMovePanUpdate(DragUpdateDetails details) {
+    if (widget.isLocked) return;
+    final last = _imageMovePanLastGlobal ?? details.globalPosition;
+    final gDelta = details.globalPosition - last;
+    _imageMovePanLastGlobal = details.globalPosition;
+    final dMm = _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
+    if (dMm.dx.isNaN ||
+        dMm.dy.isNaN ||
+        dMm.dx.isInfinite ||
+        dMm.dy.isInfinite) {
+      return;
+    }
+
+    final lr = _resizeLiveRect;
+    final w = lr?.width ?? widget.lengthMm;
+    final h = lr?.height ?? math.max(1.0, widget.thicknessPt * 0.3527);
+    final current = _imageDragLiveMm ?? widget.position;
+    final raw = current + dMm;
+    final clamped = clampRotatedRectTopLeft(
+      positionMm: raw,
+      widthMm: w,
+      heightMm: h,
+      rotationDegrees: _effectiveRotationDeg,
+      canvasWidthMm: widget.templateWidthMm,
+      canvasHeightMm: widget.templateHeightMm,
+    );
+    setState(() => _imageDragLiveMm = clamped);
+  }
+
+  void _onMovePanEnd() {
+    if (widget.isLocked) return;
+    _deferSetState(() => _moving = false);
+    _finishImageMoveGesture();
+    widget.onDragStateChanged?.call(false);
   }
 
   void _onResizePanStart(DragStartDetails d, _LineHandle h) {
@@ -118,13 +177,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
 
   void _beginResize(_LineHandle h) {
     _resizeHandle = h;
-    _resizeStart = Rect.fromLTWH(
-      widget.position.dx,
-      widget.position.dy,
-      widget.lengthMm,
-      math.max(2.0,
-          widget.thicknessPt * 0.3527), // convert pt to mm approx for bounds
-    );
+    _resizeStart = _resizeLiveRect ?? _widgetRect;
     _resizeAccum = Offset.zero;
   }
 
@@ -188,7 +241,29 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     _resizeStart = null;
     _resizeAccum = Offset.zero;
     _resizePanLastGlobal = null;
-    _resizeLiveRect = null;
+  }
+
+  @override
+  void didUpdateWidget(covariant DraggableLineChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final liveRect = _resizeLiveRect;
+    if (liveRect == null) return;
+
+    final currentRect = _widgetRect;
+    if (_isSameRect(liveRect, currentRect)) {
+      _resizeLiveRect = null;
+      return;
+    }
+
+    final oldRect = Rect.fromLTWH(
+      oldWidget.position.dx,
+      oldWidget.position.dy,
+      oldWidget.lengthMm,
+      math.max(2.0, oldWidget.thicknessPt * 0.3527),
+    );
+    if (!_isSameRect(oldRect, currentRect)) {
+      _resizeLiveRect = null;
+    }
   }
 
   void _beginRotate(DragStartDetails d) {
@@ -256,8 +331,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
         behavior: HitTestBehavior.opaque,
         onPanStart: (d) => _onResizePanStart(d, handle),
         onPanUpdate: _onResizePanUpdate,
-        onPanEnd: (_) => _deferSetState(_endResize),
-        onPanCancel: () => _deferSetState(_endResize),
+        onPanEnd: (_) => setState(_endResize),
+        onPanCancel: () => setState(_endResize),
         child: Center(
           child: Container(
             width: _handleVisual,
@@ -279,14 +354,49 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     );
   }
 
+  Widget _moveHandle(ColorScheme scheme) {
+    const handleSize = 40.0;
+    return SizedBox(
+      width: handleSize,
+      height: handleSize,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanStart: widget.isLocked ? null : _onMovePanStart,
+        onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
+        onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
+        onPanCancel: widget.isLocked ? null : _onMovePanEnd,
+        onTap: widget.onTap,
+        child: Tooltip(
+          message: 'Drag to move',
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 3,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.open_with,
+              size: 22,
+              color: scheme.onPrimaryContainer,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _finishImageMoveGesture() {
     final session = _imageMoveSession;
     if (_imageDragLiveMm != null) {
       widget.onMoved(_imageDragLiveMm!);
     }
     _imageMovePanLastGlobal = null;
-    _imagePanOriginMm = null;
-    _imagePanAccumMm = Offset.zero;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _imageMoveSession) return;
       setState(() => _imageDragLiveMm = null);
@@ -323,10 +433,15 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     // does not hit-test children outside a tight w×h Stack).
     final padL = _handleHit / 2 + 6;
     final padR = _handleHit / 2 + 6;
-    final padT = 52.0;
+    final controlsHeight =
+        (widget.onDelete != null ? 30.0 : 0.0) + 40.0 + 4.0 + 48.0;
+    final padT =
+        widget.isSelected && !widget.isLocked ? controlsHeight + 8.0 : 52.0;
     final padB = _handleHit / 2 + 6;
     final outerW = w + padL + padR;
     final outerH = h + padT + padB;
+    final moveStripH = math.max(28.0, h + 24.0);
+    final moveStripTop = padT + h / 2 - moveStripH / 2;
 
     final rad = degreesToRadians(_effectiveRotationDeg);
     final pivotX = padL + w / 2;
@@ -349,132 +464,20 @@ class DraggableLineChipState extends State<DraggableLineChip> {
             children: [
               Positioned(
                 left: padL,
-                top: padT,
+                top: moveStripTop,
                 width: w,
-                height: h,
+                height: moveStripH,
                 child: GestureDetector(
                   key: _measureKey,
-                  behavior: HitTestBehavior.opaque,
-                  onTapDown: (_) => widget.onTap?.call(),
+                  behavior: HitTestBehavior.translucent,
                   onTap: widget.onTap,
-                  onPanStart: widget.isLocked
-                      ? null
-                      : (d) {
-                          widget.onDragStateChanged?.call(true);
-                          _imageMoveSession++;
-                          _imagePanOriginMm = widget.position;
-                          _imagePanAccumMm = Offset.zero;
-                          _imageDragLiveMm = null;
-                          _deferSetState(() => _moving = true);
-                          _imageMovePanLastGlobal = d.globalPosition;
-                        },
-                  onPanUpdate: widget.isLocked
-                      ? null
-                      : (details) {
-                          final last =
-                              _imageMovePanLastGlobal ?? details.globalPosition;
-                          final gDelta = details.globalPosition - last;
-                          _imageMovePanLastGlobal = details.globalPosition;
-                          final dMm = _mmDeltaFromGlobalDrag(
-                              details.globalPosition, gDelta);
-                          final origin = _imagePanOriginMm ?? widget.position;
-                          _imagePanAccumMm += dMm;
-                          final lr = _resizeLiveRect;
-                          final w = lr?.width ?? widget.lengthMm;
-                          final h = lr?.height ??
-                              math.max(1.0, widget.thicknessPt * 0.3527);
-                          final rad = degreesToRadians(_effectiveRotationDeg);
-                          final cosT = math.cos(rad).abs();
-                          final sinT = math.sin(rad).abs();
-                          final halfBoundX = (w * cosT + h * sinT) / 2;
-                          final halfBoundY = (w * sinT + h * cosT) / 2;
-                          final minX = halfBoundX - w / 2;
-                          final maxX =
-                              widget.templateWidthMm - w / 2 - halfBoundX;
-                          final minY = halfBoundY - h / 2;
-                          final maxY =
-                              widget.templateHeightMm - h / 2 - halfBoundY;
-                          final rawX = origin.dx + _imagePanAccumMm.dx;
-                          final rawY = origin.dy + _imagePanAccumMm.dy;
-                          final cx = clampFiniteMm(rawX, minX, maxX);
-                          final cy = clampFiniteMm(rawY, minY, maxY);
-                          if (cx != rawX || cy != rawY) {
-                            _imagePanOriginMm = Offset(cx, cy);
-                            _imagePanAccumMm = Offset.zero;
-                          }
-                          final clamped = Offset(cx, cy);
-                          setState(() => _imageDragLiveMm = clamped);
-                        },
-                  onPanEnd: widget.isLocked
-                      ? null
-                      : (_) {
-                          _deferSetState(() => _moving = false);
-                          _finishImageMoveGesture();
-                          widget.onDragStateChanged?.call(false);
-                        },
-                  onPanCancel: widget.isLocked
-                      ? null
-                      : () {
-                          _deferSetState(() => _moving = false);
-                          _finishImageMoveGesture();
-                          widget.onDragStateChanged?.call(false);
-                        },
-                  child: widget.isVisible
-                      ? AnimatedContainer(
-                          duration: (_resizeHandle != null ||
-                                  _rotateStartFingerRad != null ||
-                                  _moving)
-                              ? Duration.zero
-                              : const Duration(milliseconds: 100),
-                          width: w,
-                          height: h,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: borderColor,
-                              width: (widget.isSelected || _moving) ? 2.0 : 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                            color: scheme.surfaceContainerHighest,
-                            boxShadow: _moving
-                                ? [
-                                    BoxShadow(
-                                      color: scheme.primary
-                                          .withValues(alpha: 0.25),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            fit: StackFit.expand,
-                            children: [
-                              CustomPaint(
-                                size: Size(w, h),
-                                painter: LinePainter(
-                                  color: Color(widget.colorArgb),
-                                  thicknessPx: lineThicknessPx,
-                                  strokeStyle: widget.strokeStyle,
-                                ),
-                              ),
-                              Positioned(
-                                left: 2,
-                                top: 2,
-                                child: Icon(
-                                  Icons.drag_indicator,
-                                  size: 14,
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.5),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Opacity(
-                          opacity: 0.35,
-                          child: AnimatedContainer(
+                  onPanStart: widget.isLocked ? null : _onMovePanStart,
+                  onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
+                  onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
+                  onPanCancel: widget.isLocked ? null : _onMovePanEnd,
+                  child: Center(
+                    child: widget.isVisible
+                        ? AnimatedContainer(
                             duration: (_resizeHandle != null ||
                                     _rotateStartFingerRad != null ||
                                     _moving)
@@ -514,20 +517,57 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                                     strokeStyle: widget.strokeStyle,
                                   ),
                                 ),
-                                Positioned(
-                                  left: 2,
-                                  top: 2,
-                                  child: Icon(
-                                    Icons.drag_indicator,
-                                    size: 14,
-                                    color:
-                                        scheme.onSurface.withValues(alpha: 0.5),
-                                  ),
-                                ),
                               ],
                             ),
+                          )
+                        : Opacity(
+                            opacity: 0.35,
+                            child: AnimatedContainer(
+                              duration: (_resizeHandle != null ||
+                                      _rotateStartFingerRad != null ||
+                                      _moving)
+                                  ? Duration.zero
+                                  : const Duration(milliseconds: 100),
+                              width: w,
+                              height: h,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: borderColor,
+                                  width: (widget.isSelected || _moving)
+                                      ? 2.0
+                                      : 1.0,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                                color: scheme.surfaceContainerHighest,
+                                boxShadow: _moving
+                                    ? [
+                                        BoxShadow(
+                                          color: scheme.primary
+                                              .withValues(alpha: 0.25),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                fit: StackFit.expand,
+                                children: [
+                                  CustomPaint(
+                                    size: Size(w, h),
+                                    painter: LinePainter(
+                                      color: Color(widget.colorArgb),
+                                      thicknessPx: lineThicknessPx,
+                                      strokeStyle: widget.strokeStyle,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               ),
               if (widget.isSelected && !widget.isLocked) ...[
@@ -537,17 +577,14 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                     innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
                 Positioned(
                   left: padL + w / 2 - 24,
-                  top: math.max(
-                    0.0,
-                    padT - 42 - (widget.onDelete != null ? 34.0 : 0.0),
-                  ),
+                  top: math.max(0.0, padT - controlsHeight - 8.0),
                   width: 48,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (widget.onDelete != null) ...[
                         IconButton.filled(
-                          tooltip: 'Remove shape',
+                          tooltip: 'Remove line',
                           onPressed: widget.onDelete,
                           icon: const Icon(Icons.close, size: 13),
                           style: IconButton.styleFrom(
@@ -561,6 +598,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                         ),
                         const SizedBox(height: 4),
                       ],
+                      _moveHandle(scheme),
+                      const SizedBox(height: 4),
                       SizedBox(
                         width: 48,
                         height: 48,

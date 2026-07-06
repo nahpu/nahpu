@@ -131,8 +131,11 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
           (constraints.maxWidth - edgePadCanvasEnd).clamp(0.0, double.infinity);
       final availH =
           (constraints.maxHeight - 2 * edgePadH).clamp(0.0, double.infinity);
-      final baseScale =
-          (availW / templateWidthMm).clamp(1.0, availH / templateHeightMm);
+      final widthScale = templateWidthMm > 0 ? availW / templateWidthMm : 1.0;
+      final heightScale =
+          templateHeightMm > 0 ? availH / templateHeightMm : 1.0;
+      final fitScale = math.min(widthScale, heightScale);
+      final baseScale = fitScale.isFinite && fitScale > 0 ? fitScale : 1.0;
       final scale = baseScale * zoom;
       final canvasW = templateWidthMm * scale;
       final canvasH = templateHeightMm * scale;

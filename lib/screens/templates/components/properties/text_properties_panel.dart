@@ -27,6 +27,8 @@ class TextPropertiesPanel extends StatelessWidget {
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
   final void Function(bool page1, String id) onDeleteCustomText;
 
+  static const double _textDimensionSliderMaxMm = 1000.0;
+
   CustomTextElement? _findCustomText(bool p1, String id) {
     final page = p1 ? template.page1 : template.page2;
     for (final ct in page.customTexts) {
@@ -99,6 +101,10 @@ class TextPropertiesPanel extends StatelessWidget {
     required ValueChanged<double> onChanged,
   }) {
     final scheme = Theme.of(context).colorScheme;
+    final safeMin = min <= max ? min : max;
+    final safeMax = max >= min ? max : min;
+    final safeValue = value.clamp(safeMin, safeMax).toDouble();
+    final safeDivisions = divisions > 0 ? divisions : null;
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         activeTrackColor: scheme.primary,
@@ -111,10 +117,10 @@ class TextPropertiesPanel extends StatelessWidget {
         showValueIndicator: ShowValueIndicator.onDrag,
       ),
       child: Slider(
-        value: value,
-        min: min,
-        max: max,
-        divisions: divisions,
+        value: safeValue,
+        min: safeMin,
+        max: safeMax,
+        divisions: safeDivisions,
         label: label,
         onChanged: onChanged,
       ),
@@ -741,8 +747,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 context,
                 value: ct.maxWidthMm ?? 0.0,
                 min: 0.0,
-                max: 200.0,
-                divisions: 40,
+                max: TextPropertiesPanel._textDimensionSliderMaxMm,
+                divisions: 200,
                 label: ct.maxWidthMm == null || ct.maxWidthMm! == 0.0
                     ? 'Auto'
                     : '${ct.maxWidthMm!.toStringAsFixed(1)} mm',
@@ -778,8 +784,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                   context,
                   value: ct.heightMm ?? 0.0,
                   min: 0.0,
-                  max: 200.0,
-                  divisions: 40,
+                  max: TextPropertiesPanel._textDimensionSliderMaxMm,
+                  divisions: 200,
                   label: ct.heightMm == null || ct.heightMm! == 0.0
                       ? 'Auto'
                       : '${ct.heightMm!.toStringAsFixed(1)} mm',

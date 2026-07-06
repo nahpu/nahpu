@@ -15,6 +15,8 @@ class SyncedMaxHeightField extends StatefulWidget {
 }
 
 class SyncedMaxHeightFieldState extends State<SyncedMaxHeightField> {
+  static const double _maxHeightMm = 1000.0;
+
   late final TextEditingController _controller;
   late final FocusNode _focus;
 
@@ -33,7 +35,7 @@ class SyncedMaxHeightFieldState extends State<SyncedMaxHeightField> {
   void _onEdit() {
     if (_controller.text.trim().isEmpty) return;
     final p = double.tryParse(_controller.text.trim());
-    if (p != null && p >= 0 && p <= 200) {
+    if (p != null && p >= 0 && p <= _maxHeightMm) {
       widget.onValidSize(p == 0.0 ? null : p);
     }
   }

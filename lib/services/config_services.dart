@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:nahpu/services/document_layout_service.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -8,6 +11,13 @@ import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 class ConfigDbService {
   static const String nahpuAppDir = 'nahpu';
   static const String configDbName = 'nahpu_configs.db';
+  static const String defaultDocumentPresetsLoadedPrefKey =
+      'defaultDocumentPresetsLoaded';
+
+  static const List<String> _defaultDocumentPresetAssets = [
+    'assets/configs/classic.json',
+    'assets/configs/modern.json',
+  ];
 
   Future<void> initDb() async {
     final dbDir = await getApplicationDocumentsDirectory();
@@ -108,5 +118,55 @@ class ConfigDbService {
     for (final key in allDeprecatedKeys) {
       await prefs.remove(key);
     }
+  }
+
+  Future<void> loadDefaultDocumentPresetsOnce(
+    SharedPreferences prefs, {
+    AssetBundle? bundle,
+  }) async {
+    if (prefs.getBool(defaultDocumentPresetsLoadedPrefKey) ?? false) {
+      return;
+    }
+    final assetBundle = bundle ?? rootBundle;
+
+    final existingTemplateNames =
+        (await rust_config.listTemplatePresets()).toSet();
+    final existingLayoutNames =
+        (await const DocumentLayoutService().listLayoutStatuses())
+            .map((status) => status.name)
+            .toSet();
+
+    for (final assetPath in _defaultDocumentPresetAssets) {
+      final raw = await assetBundle.loadString(assetPath);
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) {
+        throw FormatException(
+            'Default preset must be a JSON object: $assetPath');
+      }
+      final preset = Map<String, dynamic>.from(decoded);
+
+      for (final templateJson in preset['templates'] as List? ?? const []) {
+        final template = Template.fromJson(
+          Map<String, dynamic>.from(templateJson as Map),
+        );
+        if (existingTemplateNames.contains(template.name)) continue;
+        await rust_config.setTemplatePreset(
+          name: template.name,
+          value: template.toJsonString(),
+        );
+        existingTemplateNames.add(template.name);
+      }
+
+      for (final layoutJson in preset['layouts'] as List? ?? const []) {
+        final layout = DocumentLayoutPresetJson.fromJson(
+          Map<String, dynamic>.from(layoutJson as Map),
+        );
+        if (existingLayoutNames.contains(layout.name)) continue;
+        await rust_config.setDocumentLayout(name: layout.name, layout: layout);
+        existingLayoutNames.add(layout.name);
+      }
+    }
+
+    await prefs.setBool(defaultDocumentPresetsLoadedPrefKey, true);
   }
 }

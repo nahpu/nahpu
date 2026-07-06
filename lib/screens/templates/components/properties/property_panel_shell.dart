@@ -80,6 +80,10 @@ class TemplateOptionSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final safeMin = min <= max ? min : max;
+    final safeMax = max >= min ? max : min;
+    final safeValue = value.clamp(safeMin, safeMax).toDouble();
+    final safeDivisions = divisions > 0 ? divisions : null;
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         activeTrackColor: scheme.primary,
@@ -92,10 +96,10 @@ class TemplateOptionSlider extends StatelessWidget {
         showValueIndicator: ShowValueIndicator.onDrag,
       ),
       child: Slider(
-        value: value,
-        min: min,
-        max: max,
-        divisions: divisions,
+        value: safeValue,
+        min: safeMin,
+        max: safeMax,
+        divisions: safeDivisions,
         label: label,
         onChanged: onChanged,
       ),

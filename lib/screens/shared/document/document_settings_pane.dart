@@ -264,6 +264,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   bool _showAdvanced = false;
   final Map<int, bool> _expandedBlocks = {};
 
+  static const double _wideFieldWidth = 240;
+  static const double _blockTemplateFieldWidth = 220;
+
   static const Map<String, String> _pageSizeLabels = {
     'A0': 'A0 (841 x 1188 mm)',
     'A1': 'A1 (594 x 841 mm)',
@@ -308,34 +311,47 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
               runSpacing: 10,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                SizedBox(
-                  width: 240,
+                _ResponsiveFieldBox(
+                  width: _wideFieldWidth,
                   child: DropdownButtonFormField<String>(
                     key: ValueKey('setup-${widget.selectedSetupName}'),
                     initialValue: widget.selectedSetupName,
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       labelText: 'Layout profile',
                       border: OutlineInputBorder(),
                       isDense: true,
                     ),
+                    selectedItemBuilder: (context) => widget.setupNames
+                        .map(
+                          (n) => _DropdownText(
+                            n,
+                            leadingIcon: widget.incompatibleSetupNames
+                                    .contains(n)
+                                ? Icon(
+                                    Icons.warning_amber_outlined,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.error,
+                                  )
+                                : null,
+                          ),
+                        )
+                        .toList(),
                     items: widget.setupNames
                         .map(
                           (n) => DropdownMenuItem<String>(
                             value: n,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (widget.incompatibleSetupNames
-                                    .contains(n)) ...[
-                                  Icon(
-                                    Icons.warning_amber_outlined,
-                                    size: 18,
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                  const SizedBox(width: 6),
-                                ],
-                                Flexible(child: Text(n)),
-                              ],
+                            child: _DropdownText(
+                              n,
+                              leadingIcon: widget.incompatibleSetupNames
+                                      .contains(n)
+                                  ? Icon(
+                                      Icons.warning_amber_outlined,
+                                      size: 18,
+                                      color:
+                                          Theme.of(context).colorScheme.error,
+                                    )
+                                  : null,
                             ),
                           ),
                         )
@@ -387,11 +403,12 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               if (!isContinuous) ...[
-                SizedBox(
-                  width: 240,
+                _ResponsiveFieldBox(
+                  width: _wideFieldWidth,
                   child: DropdownButtonFormField<String>(
                     key: ValueKey('page-size-${widget.layout.pageSizeKey}'),
                     initialValue: widget.layout.pageSizeKey,
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       labelText: 'Page size',
                       border: OutlineInputBorder(),
@@ -401,7 +418,10 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                         .map(
                           (e) => DropdownMenuItem<String>(
                             value: e.key,
-                            child: Text(e.value),
+                            child: Text(
+                              e.value,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         )
                         .toList(),
@@ -436,7 +456,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                       },
                     ),
                   ],
-                  SizedBox(
+                  _ResponsiveFieldBox(
                     width: 160,
                     child: DropdownButtonFormField<String>(
                       key: ValueKey(
@@ -452,7 +472,10 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                           .map(
                             (e) => DropdownMenuItem<String>(
                               value: e.key,
-                              child: Text(e.value),
+                              child: Text(
+                                e.value,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           )
                           .toList(),
@@ -561,6 +584,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                   key: ValueKey(
                       'multi-block-mode-${widget.layout.multiBlockMode}'),
                   initialValue: widget.layout.multiBlockMode,
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Multiple blocks mode',
                     border: OutlineInputBorder(),
@@ -569,11 +593,17 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                   items: const [
                     DropdownMenuItem(
                       value: 'Continuous',
-                      child: Text('Continuous (Block-by-block)'),
+                      child: Text(
+                        'Continuous (Block-by-block)',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     DropdownMenuItem(
                       value: 'Alternate',
-                      child: Text('Alternate (Record-by-record)'),
+                      child: Text(
+                        'Alternate (Record-by-record)',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                   onChanged: (v) {
@@ -656,22 +686,33 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                             runSpacing: 10,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              SizedBox(
-                                width: 200,
+                              _ResponsiveFieldBox(
+                                width: _blockTemplateFieldWidth,
                                 child: DropdownButtonFormField<String>(
                                   key: ValueKey(
                                       'block-template-$idx-${block.templateName}'),
                                   initialValue: selectedTemplateName,
+                                  isExpanded: true,
                                   decoration: const InputDecoration(
                                     labelText: 'Template',
                                     border: OutlineInputBorder(),
                                     isDense: true,
                                   ),
+                                  selectedItemBuilder: (context) =>
+                                      widget.templateNames
+                                          .map((name) => Text(
+                                                name,
+                                                overflow: TextOverflow.ellipsis,
+                                              ))
+                                          .toList(),
                                   items: widget.templateNames
                                       .map(
                                         (name) => DropdownMenuItem<String>(
                                           value: name,
-                                          child: Text(name),
+                                          child: Text(
+                                            name,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       )
                                       .toList(),
@@ -1177,6 +1218,60 @@ class NumberField extends StatefulWidget {
 
   @override
   State<NumberField> createState() => _NumberFieldState();
+}
+
+class _ResponsiveFieldBox extends StatelessWidget {
+  const _ResponsiveFieldBox({
+    required this.width,
+    required this.child,
+  });
+
+  final double width;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final resolvedWidth =
+            maxWidth.isFinite && maxWidth < width ? maxWidth : width;
+        return SizedBox(
+          width: resolvedWidth,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _DropdownText extends StatelessWidget {
+  const _DropdownText(
+    this.text, {
+    this.leadingIcon,
+  });
+
+  final String text;
+  final Widget? leadingIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (leadingIcon != null) ...[
+          leadingIcon!,
+          const SizedBox(width: 6),
+        ],
+        Flexible(
+          child: Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _NumberFieldState extends State<NumberField> {

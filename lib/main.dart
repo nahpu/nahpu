@@ -20,6 +20,7 @@ void main() async {
   final configService = ConfigDbService();
   await configService.initDb();
   await configService.migrate(prefs);
+  await configService.loadDefaultDocumentPresetsOnce(prefs);
   if (kDebugMode) {
     print(await checkRust());
   }
