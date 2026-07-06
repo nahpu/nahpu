@@ -138,6 +138,14 @@ class _DocumentTypstRenderer {
         if (t.italic) textProps += ', style: "italic"';
         textProps += ', font: "${_typstTemplateFont(t.fontFamily)}"';
 
+        String textElem = '#text($textProps)[$content]';
+        if (t.underline) {
+          textElem = '#underline[$textElem]';
+        }
+        if (t.strikethrough) {
+          textElem = '#strike[$textElem]';
+        }
+
         final mwPt = t.maxWidthMm != null
             ? '${documentPdfMmToPt(t.maxWidthMm!)}pt'
             : '${wPt - documentPdfMmToPt(t.xMm)}pt';
@@ -150,7 +158,7 @@ class _DocumentTypstRenderer {
             : 'box($measureBoxArgs)';
 
         typst.writeln(
-            '  let h_$varSuffix = measure($measureBox[#text($textProps)[$content]], styles).height');
+            '  let h_$varSuffix = measure($measureBox[$textElem], styles).height');
         typst.writeln(
             '  let grow_$varSuffix = calc.max(0pt, h_$varSuffix - ${baselinePt}pt)');
         typst.writeln(
@@ -335,6 +343,12 @@ class _DocumentTypstRenderer {
     textProps += ', font: "${_typstTemplateFont(t.fontFamily)}"';
 
     String textElem = '#text($textProps)[$content]';
+    if (t.underline) {
+      textElem = '#underline[$textElem]';
+    }
+    if (t.strikethrough) {
+      textElem = '#strike[$textElem]';
+    }
     if (t.textAlign != 'left') {
       textElem = '#align(${t.textAlign})[$textElem]';
     }

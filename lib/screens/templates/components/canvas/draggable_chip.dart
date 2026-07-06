@@ -15,6 +15,8 @@ class DraggableChip extends StatefulWidget {
     this.fontFamily = '',
     this.bold = false,
     this.italic = false,
+    this.underline = false,
+    this.strikethrough = false,
     this.textAlign = TextAlign.left,
     this.rotationDegrees = 0,
     required this.scale,
@@ -54,6 +56,8 @@ class DraggableChip extends StatefulWidget {
   final String fontFamily;
   final bool bold;
   final bool italic;
+  final bool underline;
+  final bool strikethrough;
   final TextAlign textAlign;
   final int rotationDegrees;
   final double scale;
@@ -146,6 +150,8 @@ class DraggableChipState extends State<DraggableChip> {
       fontSize: fontPx,
       fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
       fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
+      underline: widget.underline,
+      strikethrough: widget.strikethrough,
     ).copyWith(color: Color(widget.colorArgb));
 
     final tp = TextPainter(
@@ -421,6 +427,8 @@ class DraggableChipState extends State<DraggableChip> {
         fontSize: fontPx,
         fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
         fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
+        underline: widget.underline,
+        strikethrough: widget.strikethrough,
       ).copyWith(color: Color(widget.colorArgb));
 
       final activeWidthMm = _resizeLiveWidthMm ?? widget.maxWidthMm;

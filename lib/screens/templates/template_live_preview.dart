@@ -210,8 +210,9 @@ class _PreviewPage extends StatelessWidget {
                     child: SizedBox(
                       width:
                           ct.maxWidthMm != null ? ct.maxWidthMm! * scale : null,
-                      height:
-                          (!ct.isDynamic && ct.heightMm != null) ? ct.heightMm! * scale : null,
+                      height: (!ct.isDynamic && ct.heightMm != null)
+                          ? ct.heightMm! * scale
+                          : null,
                       child: Text(
                         ct.text.isEmpty
                             ? ' '
@@ -233,6 +234,8 @@ class _PreviewPage extends StatelessWidget {
                               ct.bold ? FontWeight.bold : FontWeight.normal,
                           fontStyle:
                               ct.italic ? FontStyle.italic : FontStyle.normal,
+                          underline: ct.underline,
+                          strikethrough: ct.strikethrough,
                         ).copyWith(color: Colors.black),
                         softWrap: ct.maxWidthMm != null,
                         maxLines: ct.maxWidthMm != null ? null : 1,

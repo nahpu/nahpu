@@ -13,7 +13,16 @@ TextStyle customTemplateCanvasTextStyle({
   required double fontSize,
   FontWeight fontWeight = FontWeight.normal,
   FontStyle fontStyle = FontStyle.normal,
+  bool underline = false,
+  bool strikethrough = false,
 }) {
+  final decorations = <TextDecoration>[
+    if (underline) TextDecoration.underline,
+    if (strikethrough) TextDecoration.lineThrough,
+  ];
+  final textDecoration = decorations.isEmpty
+      ? TextDecoration.none
+      : TextDecoration.combine(decorations);
   final raw = fontFamilyRaw.trim();
   if (raw.isEmpty) {
     return TextStyle(
@@ -21,6 +30,7 @@ TextStyle customTemplateCanvasTextStyle({
       fontSize: fontSize,
       fontWeight: fontWeight,
       fontStyle: fontStyle,
+      decoration: textDecoration,
     );
   }
   try {
@@ -30,6 +40,7 @@ TextStyle customTemplateCanvasTextStyle({
         fontSize: fontSize,
         fontWeight: fontWeight,
         fontStyle: fontStyle,
+        decoration: textDecoration,
       ),
     );
   } catch (_) {
@@ -38,6 +49,7 @@ TextStyle customTemplateCanvasTextStyle({
       fontSize: fontSize,
       fontWeight: fontWeight,
       fontStyle: fontStyle,
+      decoration: textDecoration,
     );
   }
 }

@@ -433,6 +433,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     fontFamily: element.fontFamily,
                                     bold: element.bold,
                                     italic: element.italic,
+                                    underline: element.underline,
+                                    strikethrough: element.strikethrough,
                                     textAlign:
                                         _parseTextAlign(element.textAlign),
                                     rotationDegrees: element.rotationDegrees,

@@ -282,6 +282,23 @@ String _formatDateTime(DateTime dt, String format) {
   }
 }
 
+String formatTimeText(String text, String formatOption) {
+  final timeRegex = RegExp(r'\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b');
+  final match = timeRegex.firstMatch(text);
+  if (match != null) {
+    final hour = int.tryParse(match.group(1)!);
+    final minute = int.tryParse(match.group(2)!);
+    final second = int.tryParse(match.group(3) ?? '0') ?? 0;
+    if (hour != null && minute != null) {
+      final now = DateTime.now();
+      final dt = DateTime(now.year, now.month, now.day, hour, minute, second);
+      return text.replaceFirst(
+          match.group(0)!, _formatDateTime(dt, formatOption));
+    }
+  }
+  return formatDateTimeText(text, formatOption);
+}
+
 String formatListText(String text, String formatOption) {
   List<String> items;
   if (text.contains(' | ')) {
@@ -392,6 +409,9 @@ String formatTemplateText(
     case 'datetime':
       result = formatDateTimeText(rawText, formatOption);
       break;
+    case 'time':
+      result = formatTimeText(rawText, formatOption);
+      break;
     case 'list':
       result = formatListText(rawText, formatOption);
       break;
@@ -425,6 +445,8 @@ class CustomTextElement {
     this.fontFamily = '',
     this.bold = false,
     this.italic = false,
+    this.underline = false,
+    this.strikethrough = false,
     this.textAlign = 'left',
     this.caseFormat = 'normal',
     this.rotationDegrees = 0,
@@ -458,6 +480,8 @@ class CustomTextElement {
   final String fontFamily;
   final bool bold;
   final bool italic;
+  final bool underline;
+  final bool strikethrough;
   final String textAlign;
   final String caseFormat;
   final int rotationDegrees;
@@ -498,6 +522,8 @@ class CustomTextElement {
     String? fontFamily,
     bool? bold,
     bool? italic,
+    bool? underline,
+    bool? strikethrough,
     String? textAlign,
     String? caseFormat,
     int? rotationDegrees,
@@ -536,6 +562,8 @@ class CustomTextElement {
       fontFamily: fontFamily ?? this.fontFamily,
       bold: bold ?? this.bold,
       italic: italic ?? this.italic,
+      underline: underline ?? this.underline,
+      strikethrough: strikethrough ?? this.strikethrough,
       textAlign: textAlign ?? this.textAlign,
       caseFormat: caseFormat ?? this.caseFormat,
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
@@ -574,6 +602,8 @@ class CustomTextElement {
         'fontFamily': fontFamily,
         'bold': bold,
         'italic': italic,
+        'underline': underline,
+        'strikethrough': strikethrough,
         'textAlign': textAlign,
         'caseFormat': caseFormat,
         'rotationDegrees': rotationDegrees,
@@ -609,6 +639,8 @@ class CustomTextElement {
       fontFamily: json['fontFamily'] as String? ?? '',
       bold: json['bold'] as bool? ?? false,
       italic: json['italic'] as bool? ?? false,
+      underline: json['underline'] as bool? ?? false,
+      strikethrough: json['strikethrough'] as bool? ?? false,
       textAlign: json['textAlign'] as String? ?? 'left',
       caseFormat: json['caseFormat'] as String? ?? 'normal',
       rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,

@@ -304,6 +304,7 @@ class _CustomTextToolbar extends StatefulWidget {
 
 class _CustomTextToolbarState extends State<_CustomTextToolbar> {
   bool _showFormattingRow = false;
+  bool _showStylingRow = false;
   late TextEditingController _separatorController;
 
   @override
@@ -494,6 +495,25 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
             value: 'month-abbr-dd-yyyy-hm',
             child: Text('Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)'),
           ),
+          DropdownMenuItem(
+            value: 'time-24',
+            child: Text('Time 24h (14:05)'),
+          ),
+          DropdownMenuItem(
+            value: 'time-24-seconds',
+            child: Text('Time 24h seconds (14:05:09)'),
+          ),
+          DropdownMenuItem(
+            value: 'time-12',
+            child: Text('Time 12h (2:05 PM)'),
+          ),
+          DropdownMenuItem(
+            value: 'time-12-padded',
+            child: Text('Time 12h padded (02:05 PM)'),
+          ),
+        ];
+      case 'time':
+        return const [
           DropdownMenuItem(
             value: 'time-24',
             child: Text('Time 24h (14:05)'),
@@ -781,6 +801,17 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 });
               },
             ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.palette_outlined, size: 24),
+              isSelected: _showStylingRow,
+              tooltip: 'Text styling options',
+              onPressed: () {
+                setState(() {
+                  _showStylingRow = !_showStylingRow;
+                });
+              },
+            ),
             const SizedBox(width: 12),
             Text('Max Width (mm)',
                 style: Theme.of(context).textTheme.labelMedium),
@@ -923,174 +954,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             },
                           ),
                           const SizedBox(width: 12),
-                          _colorSwatch(
-                            context: context,
-                            label: 'Text',
-                            color: Color(ct.colorArgb),
-                            pickerTitle: 'Select text color',
-                            onPicked: (selectedColor) {
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(
-                                    colorArgb: selectedColor.toARGB32()),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 12),
-                          _colorSwatch(
-                            context: context,
-                            label: 'Background',
-                            color: ct.backgroundColorArgb == null
-                                ? Colors.transparent
-                                : Color(ct.backgroundColorArgb!),
-                            pickerTitle: 'Select text background color',
-                            onPicked: (selectedColor) {
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(
-                                  backgroundColorArgb: selectedColor.toARGB32(),
-                                ),
-                              );
-                            },
-                            onClear: () {
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(clearBackgroundColor: true),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 12),
-                          _colorSwatch(
-                            context: context,
-                            label: 'Stroke',
-                            color: ct.borderColorArgb == null
-                                ? Colors.black
-                                : Color(ct.borderColorArgb!),
-                            pickerTitle: 'Select text stroke color',
-                            onPicked: (selectedColor) {
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(
-                                  borderColorArgb: selectedColor.toARGB32(),
-                                  borderWidthPt:
-                                      ct.borderWidthPt <= 0 ? 1.0 : null,
-                                  borderStrokeStyle: ct.borderStrokeStyle,
-                                ),
-                              );
-                            },
-                            onClear: () {
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(
-                                  clearBorderColor: true,
-                                  borderWidthPt: 0.0,
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          Text('Stroke',
-                              style: Theme.of(context).textTheme.labelMedium),
-                          SizedBox(
-                            width: 96,
-                            child: widget.buildOptionSlider(
-                              context,
-                              value: ct.borderWidthPt.clamp(0.0, 10.0),
-                              min: 0.0,
-                              max: 10.0,
-                              divisions: 20,
-                              label: ct.borderWidthPt <= 0
-                                  ? 'None'
-                                  : '${ct.borderWidthPt.toStringAsFixed(1)} pt',
-                              onChanged: (v) {
-                                onUpdateCustomText(
-                                  page1,
-                                  ct.copyWith(
-                                    borderWidthPt: v,
-                                    borderColorArgb:
-                                        v > 0 && ct.borderColorArgb == null
-                                            ? Colors.black.toARGB32()
-                                            : null,
-                                    clearBorderColor: v == 0,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text('Style',
-                              style: Theme.of(context).textTheme.labelMedium),
-                          const SizedBox(width: 8),
-                          DropdownButton<String>(
-                            value: ct.borderStrokeStyle,
-                            isDense: true,
-                            underline: const SizedBox.shrink(),
-                            items: const [
-                              DropdownMenuItem(
-                                  value: 'solid', child: Text('Solid')),
-                              DropdownMenuItem(
-                                  value: 'dashed', child: Text('Dashed')),
-                              DropdownMenuItem(
-                                  value: 'dotted', child: Text('Dotted')),
-                              DropdownMenuItem(
-                                  value: 'double', child: Text('Double')),
-                            ],
-                            onChanged: (v) {
-                              if (v == null) return;
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(
-                                  borderStrokeStyle: v,
-                                  borderWidthPt:
-                                      ct.borderWidthPt <= 0 ? 1.0 : null,
-                                  borderColorArgb: ct.borderColorArgb ??
-                                      Colors.black.toARGB32(),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 12),
-                          Text('Radius',
-                              style: Theme.of(context).textTheme.labelMedium),
-                          SizedBox(
-                            width: 96,
-                            child: widget.buildOptionSlider(
-                              context,
-                              value: ct.cornerRadiusPt.clamp(0.0, 24.0),
-                              min: 0.0,
-                              max: 24.0,
-                              divisions: 24,
-                              label:
-                                  '${ct.cornerRadiusPt.toStringAsFixed(0)} pt',
-                              onChanged: (v) {
-                                onUpdateCustomText(
-                                  page1,
-                                  ct.copyWith(cornerRadiusPt: v),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text('Padding',
-                              style: Theme.of(context).textTheme.labelMedium),
-                          SizedBox(
-                            width: 96,
-                            child: widget.buildOptionSlider(
-                              context,
-                              value: ct.paddingPt.clamp(0.0, 24.0),
-                              min: 0.0,
-                              max: 24.0,
-                              divisions: 24,
-                              label: '${ct.paddingPt.toStringAsFixed(0)} pt',
-                              onChanged: (v) {
-                                onUpdateCustomText(
-                                  page1,
-                                  ct.copyWith(paddingPt: v),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
                           SegmentedButton<String>(
                             segments: const [
                               ButtonSegment(
@@ -1141,6 +1004,29 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               ct.copyWith(italic: !ct.italic),
                             ),
                             tooltip: 'Italic',
+                          ),
+                          IconButton(
+                            isSelected: ct.underline,
+                            icon: const Icon(Icons.format_underline, size: 20),
+                            selectedIcon: Icon(Icons.format_underline,
+                                color: scheme.primary, size: 20),
+                            onPressed: () => onUpdateCustomText(
+                              page1,
+                              ct.copyWith(underline: !ct.underline),
+                            ),
+                            tooltip: 'Underline',
+                          ),
+                          IconButton(
+                            isSelected: ct.strikethrough,
+                            icon: const Icon(Icons.format_strikethrough,
+                                size: 20),
+                            selectedIcon: Icon(Icons.format_strikethrough,
+                                color: scheme.primary, size: 20),
+                            onPressed: () => onUpdateCustomText(
+                              page1,
+                              ct.copyWith(strikethrough: !ct.strikethrough),
+                            ),
+                            tooltip: 'Strikethrough',
                           ),
                           const SizedBox(width: 16),
                         ],
@@ -1277,6 +1163,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               child: Text('Date and Time'),
                             ),
                             DropdownMenuItem(
+                              value: 'time',
+                              child: Text('Time'),
+                            ),
+                            DropdownMenuItem(
                               value: 'sex',
                               child: Text('Sex'),
                             ),
@@ -1296,6 +1186,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               defaultOpt = 'yyyy-mm-dd';
                             } else if (v == 'datetime') {
                               defaultOpt = 'yyyy-mm-dd-hm';
+                            } else if (v == 'time') {
+                              defaultOpt = 'time-24';
                             } else if (v == 'sex') {
                               defaultOpt = 'text:unknown';
                             } else if (v == 'number') {
@@ -1437,6 +1329,159 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                     ),
                   ),
                 ],
+                if (_showStylingRow && !ct.isQrCode) ...[
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _colorSwatch(
+                          context: context,
+                          label: 'Text',
+                          color: Color(ct.colorArgb),
+                          pickerTitle: 'Select text color',
+                          onPicked: (selectedColor) {
+                            onUpdateCustomText(
+                              page1,
+                              ct.copyWith(colorArgb: selectedColor.toARGB32()),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        _colorSwatch(
+                          context: context,
+                          label: 'Background',
+                          color: ct.backgroundColorArgb == null
+                              ? Colors.transparent
+                              : Color(ct.backgroundColorArgb!),
+                          pickerTitle: 'Select text background color',
+                          onPicked: (selectedColor) {
+                            onUpdateCustomText(
+                              page1,
+                              ct.copyWith(
+                                backgroundColorArgb: selectedColor.toARGB32(),
+                              ),
+                            );
+                          },
+                          onClear: () {
+                            onUpdateCustomText(
+                              page1,
+                              ct.copyWith(clearBackgroundColor: true),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        _colorSwatch(
+                          context: context,
+                          label: 'Stroke',
+                          color: ct.borderColorArgb == null
+                              ? Colors.black
+                              : Color(ct.borderColorArgb!),
+                          pickerTitle: 'Select text stroke color',
+                          onPicked: (selectedColor) {
+                            onUpdateCustomText(
+                              page1,
+                              ct.copyWith(
+                                borderColorArgb: selectedColor.toARGB32(),
+                                borderWidthPt:
+                                    ct.borderWidthPt <= 0 ? 1.0 : null,
+                                borderStrokeStyle: ct.borderStrokeStyle,
+                              ),
+                            );
+                          },
+                          onClear: () {
+                            onUpdateCustomText(
+                              page1,
+                              ct.copyWith(
+                                clearBorderColor: true,
+                                borderWidthPt: 0.0,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Text('Stroke',
+                            style: Theme.of(context).textTheme.labelMedium),
+                        const SizedBox(width: 8),
+                        _StrokeThicknessPicker(
+                          value: ct.borderWidthPt,
+                          onChanged: (v) {
+                            onUpdateCustomText(
+                              page1,
+                              ct.copyWith(
+                                borderWidthPt: v,
+                                borderColorArgb:
+                                    v > 0 && ct.borderColorArgb == null
+                                        ? Colors.black.toARGB32()
+                                        : null,
+                                clearBorderColor: v == 0,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Text('Style',
+                            style: Theme.of(context).textTheme.labelMedium),
+                        const SizedBox(width: 8),
+                        _StylePicker(
+                          value: ct.borderStrokeStyle,
+                          onChanged: (v) {
+                            onUpdateCustomText(
+                              page1,
+                              ct.copyWith(
+                                borderStrokeStyle: v,
+                                borderWidthPt:
+                                    ct.borderWidthPt <= 0 ? 1.0 : null,
+                                borderColorArgb: ct.borderColorArgb ??
+                                    Colors.black.toARGB32(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        Text('Radius',
+                            style: Theme.of(context).textTheme.labelMedium),
+                        SizedBox(
+                          width: 96,
+                          child: widget.buildOptionSlider(
+                            context,
+                            value: ct.cornerRadiusPt.clamp(0.0, 24.0),
+                            min: 0.0,
+                            max: 24.0,
+                            divisions: 24,
+                            label: '${ct.cornerRadiusPt.toStringAsFixed(0)} pt',
+                            onChanged: (v) {
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(cornerRadiusPt: v),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text('Padding',
+                            style: Theme.of(context).textTheme.labelMedium),
+                        SizedBox(
+                          width: 96,
+                          child: widget.buildOptionSlider(
+                            context,
+                            value: ct.paddingPt.clamp(0.0, 24.0),
+                            min: 0.0,
+                            max: 24.0,
+                            divisions: 24,
+                            label: '${ct.paddingPt.toStringAsFixed(0)} pt',
+                            onChanged: (v) {
+                              onUpdateCustomText(
+                                page1,
+                                ct.copyWith(paddingPt: v),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -1445,5 +1490,141 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         ],
       ),
     );
+  }
+}
+
+class _StrokeThicknessPicker extends StatelessWidget {
+  const _StrokeThicknessPicker({
+    required this.value,
+    required this.onChanged,
+  });
+
+  static const values = [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0];
+
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<double>(
+      value: values.contains(value) ? value : 0.0,
+      isDense: true,
+      underline: const SizedBox.shrink(),
+      items: values
+          .map((thickness) => DropdownMenuItem(
+                value: thickness,
+                child: Text(thickness == 0.0 ? 'None' : '${thickness}pt'),
+              ))
+          .toList(),
+      onChanged: (val) {
+        if (val != null) onChanged(val);
+      },
+    );
+  }
+}
+
+class _StylePicker extends StatelessWidget {
+  const _StylePicker({
+    required this.value,
+    required this.onChanged,
+  });
+
+  static const values = ['solid', 'dashed', 'dotted', 'double'];
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface;
+    return DropdownButton<String>(
+      value: values.contains(value) ? value : 'solid',
+      isDense: true,
+      underline: const SizedBox.shrink(),
+      items: [
+        for (final val in values)
+          DropdownMenuItem(
+            value: val,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 48,
+                  height: 20,
+                  child: CustomPaint(
+                    painter: _StylePreviewPainter(style: val, color: color),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(val[0].toUpperCase() + val.substring(1)),
+              ],
+            ),
+          ),
+      ],
+      onChanged: (value) {
+        if (value != null) onChanged(value);
+      },
+    );
+  }
+}
+
+class _StylePreviewPainter extends CustomPainter {
+  const _StylePreviewPainter({
+    required this.style,
+    required this.color,
+  });
+
+  final String style;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final y = size.height / 2;
+
+    if (style == 'solid') {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    } else if (style == 'dashed') {
+      _drawDashedLine(canvas, size.width, y, paint, 6.0, 3.0);
+    } else if (style == 'dotted') {
+      _drawDashedLine(canvas, size.width, y, paint, 1.5, 3.0);
+    } else if (style == 'double') {
+      final paintDouble = Paint()
+        ..color = color
+        ..strokeWidth = 1.0
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(Offset(0, y - 2), Offset(size.width, y - 2), paintDouble);
+      canvas.drawLine(Offset(0, y + 2), Offset(size.width, y + 2), paintDouble);
+    }
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    double width,
+    double y,
+    Paint paint,
+    double dashLen,
+    double gapLen,
+  ) {
+    double d = 0.0;
+    while (d < width) {
+      final end = (d + dashLen).clamp(0.0, width);
+      canvas.drawLine(
+        Offset(d, y),
+        Offset(end, y),
+        paint,
+      );
+      d += dashLen + gapLen;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _StylePreviewPainter oldDelegate) {
+    return oldDelegate.style != style || oldDelegate.color != color;
   }
 }
