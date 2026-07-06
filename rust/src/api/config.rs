@@ -56,6 +56,7 @@ pub struct DocumentLayoutPreset {
     pub page_pad_bottom_mm: f64,
     pub blocks: Vec<DocumentLayoutBlock>,
     pub fill_page: bool,
+    pub multi_block_mode: String,
 }
 
 /// Represents whether a stored document layout can be read by the current schema.
@@ -112,6 +113,7 @@ impl From<nahpu_configs::DocumentLayoutPreset> for DocumentLayoutPreset {
             page_pad_bottom_mm: p.page_pad_bottom_mm,
             blocks: p.blocks.into_iter().map(Into::into).collect(),
             fill_page: p.fill_page,
+            multi_block_mode: p.multi_block_mode,
         }
     }
 }
@@ -131,6 +133,7 @@ impl From<DocumentLayoutPreset> for nahpu_configs::DocumentLayoutPreset {
             page_pad_bottom_mm: p.page_pad_bottom_mm,
             blocks: p.blocks.into_iter().map(Into::into).collect(),
             fill_page: p.fill_page,
+            multi_block_mode: p.multi_block_mode,
         }
     }
 }

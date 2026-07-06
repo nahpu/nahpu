@@ -284,53 +284,6 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
     'landscape': 'Landscape',
   };
 
-  double _parseMmOrCurrent(String value, double current) {
-    final parsed = double.tryParse(value.replaceAll(',', '.'));
-    if (parsed == null) return current;
-    return parsed.clamp(0.0, 1000.0);
-  }
-
-  int _parseIntOrCurrent(String value, int current) {
-    final parsed = int.tryParse(value.trim());
-    if (parsed == null) return current;
-    return parsed.clamp(1, 200);
-  }
-
-  void _addBlock() {
-    final newBlocks =
-        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
-    final defaultTemplate = widget.templateNames.isNotEmpty
-        ? widget.templateNames.first
-        : 'Default';
-    newBlocks.add(rust_config.DocumentLayoutBlock(
-      templateName: defaultTemplate,
-      templateCount: 1,
-      rows: 8,
-      cols: 4,
-      templatePadTopMm: 1.0,
-      templatePadLeftMm: 1.0,
-      templatePadRightMm: 1.0,
-      templatePadBottomMm: 1.0,
-      pageBreakAfter: false,
-    ));
-    widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
-  }
-
-  void _updateBlock(int index, rust_config.DocumentLayoutBlock block) {
-    final newBlocks =
-        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
-    newBlocks[index] = block;
-    widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
-  }
-
-  void _deleteBlock(int index) {
-    if (widget.layout.blocks.length <= 1) return;
-    final newBlocks =
-        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
-    newBlocks.removeAt(index);
-    widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
-  }
-
   @override
   Widget build(BuildContext context) {
     const isContinuous = false;
@@ -602,6 +555,37 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                 ],
               ),
               const SizedBox(height: 8),
+              if (widget.layout.blocks.length > 1) ...[
+                const SizedBox(height: 4),
+                DropdownButtonFormField<String>(
+                  key: ValueKey(
+                      'multi-block-mode-${widget.layout.multiBlockMode}'),
+                  initialValue: widget.layout.multiBlockMode,
+                  decoration: const InputDecoration(
+                    labelText: 'Multiple blocks mode',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'Continuous',
+                      child: Text('Continuous (Block-by-block)'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Alternate',
+                      child: Text('Alternate (Record-by-record)'),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      widget.onLayoutChanged(
+                        widget.layout.copyWith(multiBlockMode: v),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
               ...widget.layout.blocks.asMap().entries.map((entry) {
                 final idx = entry.key;
                 final block = entry.value;
@@ -1102,6 +1086,53 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
         ],
       ),
     );
+  }
+
+  double _parseMmOrCurrent(String value, double current) {
+    final parsed = double.tryParse(value.replaceAll(',', '.'));
+    if (parsed == null) return current;
+    return parsed.clamp(0.0, 1000.0);
+  }
+
+  int _parseIntOrCurrent(String value, int current) {
+    final parsed = int.tryParse(value.trim());
+    if (parsed == null) return current;
+    return parsed.clamp(1, 200);
+  }
+
+  void _addBlock() {
+    final newBlocks =
+        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
+    final defaultTemplate = widget.templateNames.isNotEmpty
+        ? widget.templateNames.first
+        : 'Default';
+    newBlocks.add(rust_config.DocumentLayoutBlock(
+      templateName: defaultTemplate,
+      templateCount: 1,
+      rows: 8,
+      cols: 4,
+      templatePadTopMm: 1.0,
+      templatePadLeftMm: 1.0,
+      templatePadRightMm: 1.0,
+      templatePadBottomMm: 1.0,
+      pageBreakAfter: false,
+    ));
+    widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
+  }
+
+  void _updateBlock(int index, rust_config.DocumentLayoutBlock block) {
+    final newBlocks =
+        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
+    newBlocks[index] = block;
+    widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
+  }
+
+  void _deleteBlock(int index) {
+    if (widget.layout.blocks.length <= 1) return;
+    final newBlocks =
+        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
+    newBlocks.removeAt(index);
+    widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
   }
 }
 

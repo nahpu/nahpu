@@ -62,6 +62,7 @@ void main() {
         pagePadBottomMm: 5.0,
         blocks: [block],
         fillPage: false,
+        multiBlockMode: 'Continuous',
       );
 
       final updatedLayout = layout.copyWith(
@@ -120,6 +121,7 @@ void main() {
         pagePadBottomMm: 8.0,
         blocks: [block],
         fillPage: true,
+        multiBlockMode: 'Continuous',
       );
 
       final filePath = '${tempDir.path}/layout.json';

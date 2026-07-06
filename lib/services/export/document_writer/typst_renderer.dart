@@ -5,21 +5,14 @@ class _DocumentTypstRenderer {
 
   void writeTiledDocumentSheet({
     required StringBuffer typst,
-    required List<TemplatePage> pages,
-    required List<Map<String, String>> dataList,
+    required List<_DocumentSheetCell> cells,
     required int cols,
     required int rows,
     required double cellW,
     required double cellH,
     required double wPt,
     required double hPt,
-    required double templatePadTopMm,
-    required double templatePadLeftMm,
-    required double templatePadRightMm,
-    required double templatePadBottomMm,
-    required bool mirror,
     required bool pageBreakAfter,
-    TemplateOutline? outline,
   }) {
     typst.writeln('#grid(');
     typst.writeln('  columns: (${cellW}pt, ) * $cols,');
@@ -27,23 +20,24 @@ class _DocumentTypstRenderer {
     typst.writeln('  column-gutter: 0pt,');
     typst.writeln('  row-gutter: 0pt,');
 
-    for (var i = 0; i < pages.length; i++) {
+    for (var i = 0; i < cells.length; i++) {
+      final cell = cells[i];
       writeSingleDocumentCell(
         typst: typst,
-        page: pages[i],
-        data: dataList[i],
+        page: cell.page,
+        data: cell.data,
         wPt: wPt,
         hPt: hPt,
-        templatePadTopMm: templatePadTopMm,
-        templatePadLeftMm: templatePadLeftMm,
-        templatePadRightMm: templatePadRightMm,
-        templatePadBottomMm: templatePadBottomMm,
-        mirror: mirror,
-        outline: outline,
+        templatePadTopMm: cell.block.templatePadTopMm,
+        templatePadLeftMm: cell.block.templatePadLeftMm,
+        templatePadRightMm: cell.block.templatePadRightMm,
+        templatePadBottomMm: cell.block.templatePadBottomMm,
+        mirror: cell.mirror,
+        outline: cell.outline,
       );
     }
 
-    _fillRemainingGridSpaces(typst, pages.length, cols);
+    _fillRemainingGridSpaces(typst, cells.length, cols);
     typst.writeln(')');
     if (pageBreakAfter) {
       typst.writeln('#pagebreak()');
@@ -52,20 +46,13 @@ class _DocumentTypstRenderer {
 
   void writeAutoFillDocumentSheet({
     required StringBuffer typst,
-    required List<TemplatePage> pages,
-    required List<Map<String, String>> dataList,
+    required List<_DocumentSheetCell> cells,
     required int cols,
     required double cellW,
     required double usableH,
     required double wPt,
     required double hPt,
-    required double templatePadTopMm,
-    required double templatePadLeftMm,
-    required double templatePadRightMm,
-    required double templatePadBottomMm,
-    required bool mirror,
     required bool pageBreakAfter,
-    TemplateOutline? outline,
   }) {
     typst.writeln('#box(width: 100%, height: ${usableH}pt, clip: true)[');
     typst.writeln('#grid(');
@@ -73,24 +60,25 @@ class _DocumentTypstRenderer {
     typst.writeln('  column-gutter: 0pt,');
     typst.writeln('  row-gutter: 0pt,');
 
-    for (var i = 0; i < pages.length; i++) {
+    for (var i = 0; i < cells.length; i++) {
+      final cell = cells[i];
       writeSingleDocumentCell(
         typst: typst,
-        page: pages[i],
-        data: dataList[i],
+        page: cell.page,
+        data: cell.data,
         wPt: wPt,
         hPt: hPt,
-        templatePadTopMm: templatePadTopMm,
-        templatePadLeftMm: templatePadLeftMm,
-        templatePadRightMm: templatePadRightMm,
-        templatePadBottomMm: templatePadBottomMm,
-        mirror: mirror,
-        outline: outline,
+        templatePadTopMm: cell.block.templatePadTopMm,
+        templatePadLeftMm: cell.block.templatePadLeftMm,
+        templatePadRightMm: cell.block.templatePadRightMm,
+        templatePadBottomMm: cell.block.templatePadBottomMm,
+        mirror: cell.mirror,
+        outline: cell.outline,
         autoHeight: true,
       );
     }
 
-    _fillRemainingGridSpaces(typst, pages.length, cols);
+    _fillRemainingGridSpaces(typst, cells.length, cols);
     typst.writeln(')');
     typst.writeln(']');
     if (pageBreakAfter) {

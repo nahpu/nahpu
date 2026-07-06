@@ -105,6 +105,7 @@ class DocumentLayoutService {
         ),
       ],
       fillPage: false,
+      multiBlockMode: 'Continuous',
     );
   }
 }
@@ -149,6 +150,7 @@ extension DocumentLayoutPresetExtension on rust_config.DocumentLayoutPreset {
     double? pagePadBottomMm,
     List<rust_config.DocumentLayoutBlock>? blocks,
     bool? fillPage,
+    String? multiBlockMode,
   }) {
     return rust_config.DocumentLayoutPreset(
       name: name ?? this.name,
@@ -163,6 +165,7 @@ extension DocumentLayoutPresetExtension on rust_config.DocumentLayoutPreset {
       pagePadBottomMm: pagePadBottomMm ?? this.pagePadBottomMm,
       blocks: blocks ?? this.blocks,
       fillPage: fillPage ?? this.fillPage,
+      multiBlockMode: multiBlockMode ?? this.multiBlockMode,
     );
   }
 }
@@ -209,6 +212,7 @@ extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
         'pagePadBottomMm': pagePadBottomMm,
         'blocks': blocks.map((b) => b.toJson()).toList(),
         'fillPage': fillPage,
+        'multiBlockMode': multiBlockMode,
       };
 
   static rust_config.DocumentLayoutPreset fromJson(Map<String, dynamic> json) {
@@ -228,6 +232,7 @@ extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
               Map<String, dynamic>.from(b as Map)))
           .toList(),
       fillPage: json['fillPage'] as bool? ?? false,
+      multiBlockMode: json['multiBlockMode'] as String? ?? 'Continuous',
     );
   }
 }

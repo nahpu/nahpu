@@ -262,6 +262,7 @@ class DocumentLayoutPreset {
   final double pagePadBottomMm;
   final List<DocumentLayoutBlock> blocks;
   final bool fillPage;
+  final String multiBlockMode;
 
   const DocumentLayoutPreset({
     required this.name,
@@ -276,6 +277,7 @@ class DocumentLayoutPreset {
     required this.pagePadBottomMm,
     required this.blocks,
     required this.fillPage,
+    required this.multiBlockMode,
   });
 
   @override
@@ -291,7 +293,8 @@ class DocumentLayoutPreset {
       pagePadRightMm.hashCode ^
       pagePadBottomMm.hashCode ^
       blocks.hashCode ^
-      fillPage.hashCode;
+      fillPage.hashCode ^
+      multiBlockMode.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -309,7 +312,8 @@ class DocumentLayoutPreset {
           pagePadRightMm == other.pagePadRightMm &&
           pagePadBottomMm == other.pagePadBottomMm &&
           blocks == other.blocks &&
-          fillPage == other.fillPage;
+          fillPage == other.fillPage &&
+          multiBlockMode == other.multiBlockMode;
 }
 
 /// Represents whether a stored document layout can be read by the current schema.

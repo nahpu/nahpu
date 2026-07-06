@@ -47,25 +47,51 @@ class _DocumentPdfBuilder {
     } else if (layout.layoutType == 'Continuous') {
       final List<_ContinuousPrintItemGeneric<T>> continuousItems = [];
 
-      for (final record in records) {
-        for (final block in layout.blocks) {
-          final tmpl = templates[block.templateName]!;
-          for (var c = 0; c < block.templateCount; c++) {
-            continuousItems.add(_ContinuousPrintItemGeneric<T>(
-              record: record,
-              template: tmpl,
-              pageTemplate: tmpl.page1,
-              block: block,
-              mirror: mirrorFront,
-            ));
-            if (duplex) {
+      if (layout.multiBlockMode == 'Alternate') {
+        for (final record in records) {
+          for (final block in layout.blocks) {
+            final tmpl = templates[block.templateName]!;
+            for (var c = 0; c < block.templateCount; c++) {
               continuousItems.add(_ContinuousPrintItemGeneric<T>(
                 record: record,
                 template: tmpl,
-                pageTemplate: tmpl.page2,
+                pageTemplate: tmpl.page1,
                 block: block,
-                mirror: mirrorBack,
+                mirror: mirrorFront,
               ));
+              if (duplex) {
+                continuousItems.add(_ContinuousPrintItemGeneric<T>(
+                  record: record,
+                  template: tmpl,
+                  pageTemplate: tmpl.page2,
+                  block: block,
+                  mirror: mirrorBack,
+                ));
+              }
+            }
+          }
+        }
+      } else {
+        for (final block in layout.blocks) {
+          final tmpl = templates[block.templateName]!;
+          for (final record in records) {
+            for (var c = 0; c < block.templateCount; c++) {
+              continuousItems.add(_ContinuousPrintItemGeneric<T>(
+                record: record,
+                template: tmpl,
+                pageTemplate: tmpl.page1,
+                block: block,
+                mirror: mirrorFront,
+              ));
+              if (duplex) {
+                continuousItems.add(_ContinuousPrintItemGeneric<T>(
+                  record: record,
+                  template: tmpl,
+                  pageTemplate: tmpl.page2,
+                  block: block,
+                  mirror: mirrorBack,
+                ));
+              }
             }
           }
         }
@@ -114,123 +140,127 @@ class _DocumentPdfBuilder {
       final usableW = math.max(1.0, sheetWidthPt - ptLeft - ptRight);
       final usableH = math.max(1.0, sheetHeightPt - ptTop - ptBottom);
 
-      for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
-        final block = layout.blocks[bIdx];
-        final tmpl = templates[block.templateName]!;
-        final cols = block.cols > 0 ? block.cols : 4;
-        final rows = block.rows > 0 ? block.rows : 8;
+      if (layout.multiBlockMode == 'Alternate') {
+        final List<_DocumentSheetCell> allFrontCells = [];
+        final List<_DocumentSheetCell> allBackCells = [];
 
-        final cellW = usableW / cols;
-        final cellH = usableH / rows;
-
-        final List<T> blockRecords = [];
         for (final record in records) {
-          for (var c = 0; c < block.templateCount; c++) {
-            blockRecords.add(record);
+          final data = await recordToFields(record);
+          for (final block in layout.blocks) {
+            final tmpl = templates[block.templateName]!;
+            final rows = block.rows > 0 ? block.rows : 8;
+            final cellH = usableH / rows;
+
+            for (var c = 0; c < block.templateCount; c++) {
+              final frontPage =
+                  await _substitutor.substitutePage(tmpl.page1, data);
+              final frontHeight = layout.fillPage
+                  ? estimateAutoFillCellHeightPt(
+                      page: frontPage,
+                      wPt: wPt,
+                      hPt: hPt,
+                      templatePadTopMm: block.templatePadTopMm,
+                      templatePadLeftMm: block.templatePadLeftMm,
+                      templatePadRightMm: block.templatePadRightMm,
+                      templatePadBottomMm: block.templatePadBottomMm,
+                    )
+                  : cellH;
+
+              allFrontCells.add(_DocumentSheetCell(
+                page: frontPage,
+                data: data,
+                heightPt: frontHeight,
+                block: block,
+                outline: tmpl.outline,
+                mirror: mirrorFront,
+              ));
+
+              if (duplex) {
+                final backPage =
+                    await _substitutor.substitutePage(tmpl.page2, data);
+                final backHeight = layout.fillPage
+                    ? estimateAutoFillCellHeightPt(
+                        page: backPage,
+                        wPt: wPt,
+                        hPt: hPt,
+                        templatePadTopMm: block.templatePadTopMm,
+                        templatePadLeftMm: block.templatePadLeftMm,
+                        templatePadRightMm: block.templatePadRightMm,
+                        templatePadBottomMm: block.templatePadBottomMm,
+                      )
+                    : cellH;
+
+                allBackCells.add(_DocumentSheetCell(
+                  page: backPage,
+                  data: data,
+                  heightPt: backHeight,
+                  block: block,
+                  outline: tmpl.outline,
+                  mirror: mirrorBack,
+                ));
+              }
+            }
           }
         }
 
-        final frontPages = <TemplatePage>[];
-        final frontDataList = <Map<String, String>>[];
-        for (final record in blockRecords) {
-          final data = await recordToFields(record);
-          frontDataList.add(data);
-          frontPages.add(await _substitutor.substitutePage(tmpl.page1, data));
-        }
+        final firstBlock = layout.blocks.first;
+        final cols = firstBlock.cols > 0 ? firstBlock.cols : 4;
+        final rows = firstBlock.rows > 0 ? firstBlock.rows : 8;
+        final cellW = usableW / cols;
+        final cellH = usableH / rows;
 
         final frontBatches = layout.fillPage
             ? _buildAutoFillBatches(
-                pages: frontPages,
-                dataList: frontDataList,
+                cells: allFrontCells,
                 cols: cols,
                 usableH: usableH,
-                wPt: wPt,
-                hPt: hPt,
-                templatePadTopMm: block.templatePadTopMm,
-                templatePadLeftMm: block.templatePadLeftMm,
-                templatePadRightMm: block.templatePadRightMm,
-                templatePadBottomMm: block.templatePadBottomMm,
               )
             : _buildFixedGridBatches(
-                pages: frontPages,
-                dataList: frontDataList,
+                cells: allFrontCells,
                 perSheet: cols * rows,
               );
 
         List<_DocumentSheetBatch>? backBatches;
         if (duplex) {
-          final backPages = <TemplatePage>[];
-          final backDataList = <Map<String, String>>[];
-          for (final record in blockRecords) {
-            final data = await recordToFields(record);
-            backDataList.add(data);
-            backPages.add(await _substitutor.substitutePage(tmpl.page2, data));
-          }
           backBatches = layout.fillPage
               ? _buildAutoFillBatches(
-                  pages: backPages,
-                  dataList: backDataList,
+                  cells: allBackCells,
                   cols: cols,
                   usableH: usableH,
-                  wPt: wPt,
-                  hPt: hPt,
-                  templatePadTopMm: block.templatePadTopMm,
-                  templatePadLeftMm: block.templatePadLeftMm,
-                  templatePadRightMm: block.templatePadRightMm,
-                  templatePadBottomMm: block.templatePadBottomMm,
                 )
               : _buildFixedGridBatches(
-                  pages: backPages,
-                  dataList: backDataList,
+                  cells: allBackCells,
                   perSheet: cols * rows,
                 );
         }
 
         for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
           final isLastBatch = batchIdx == frontBatches.length - 1;
-          final isLastBlock = bIdx == layout.blocks.length - 1;
-          final breakAfterFront = duplex ||
-              !isLastBatch ||
-              (isLastBatch && !isLastBlock && block.pageBreakAfter);
-          final breakAfterBack = !isLastBatch ||
-              (isLastBatch && !isLastBlock && block.pageBreakAfter);
+          final breakAfterFront = duplex || !isLastBatch;
+          final breakAfterBack = !isLastBatch;
 
           final frontBatch = frontBatches[batchIdx];
           if (layout.fillPage) {
             _renderer.writeAutoFillDocumentSheet(
               typst: typst,
-              pages: frontBatch.pages,
-              dataList: frontBatch.dataList,
+              cells: frontBatch.cells,
               cols: cols,
               cellW: cellW,
               usableH: usableH,
               wPt: wPt,
               hPt: hPt,
-              templatePadTopMm: block.templatePadTopMm,
-              templatePadLeftMm: block.templatePadLeftMm,
-              templatePadRightMm: block.templatePadRightMm,
-              templatePadBottomMm: block.templatePadBottomMm,
-              mirror: mirrorFront,
-              outline: tmpl.outline,
               pageBreakAfter: breakAfterFront,
             );
           } else {
             _renderer.writeTiledDocumentSheet(
               typst: typst,
-              pages: frontBatch.pages,
-              dataList: frontBatch.dataList,
+              cells: frontBatch.cells,
               cols: cols,
               rows: rows,
               cellW: cellW,
               cellH: cellH,
               wPt: wPt,
               hPt: hPt,
-              templatePadTopMm: block.templatePadTopMm,
-              templatePadLeftMm: block.templatePadLeftMm,
-              templatePadRightMm: block.templatePadRightMm,
-              templatePadBottomMm: block.templatePadBottomMm,
-              mirror: mirrorFront,
-              outline: tmpl.outline,
               pageBreakAfter: breakAfterFront,
             );
           }
@@ -240,40 +270,181 @@ class _DocumentPdfBuilder {
             if (layout.fillPage) {
               _renderer.writeAutoFillDocumentSheet(
                 typst: typst,
-                pages: backBatch.pages,
-                dataList: backBatch.dataList,
+                cells: backBatch.cells,
                 cols: cols,
                 cellW: cellW,
                 usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
-                templatePadTopMm: block.templatePadTopMm,
-                templatePadLeftMm: block.templatePadLeftMm,
-                templatePadRightMm: block.templatePadRightMm,
-                templatePadBottomMm: block.templatePadBottomMm,
-                mirror: mirrorBack,
-                outline: tmpl.outline,
                 pageBreakAfter: breakAfterBack,
               );
             } else {
               _renderer.writeTiledDocumentSheet(
                 typst: typst,
-                pages: backBatch.pages,
-                dataList: backBatch.dataList,
+                cells: backBatch.cells,
                 cols: cols,
                 rows: rows,
                 cellW: cellW,
                 cellH: cellH,
                 wPt: wPt,
                 hPt: hPt,
-                templatePadTopMm: block.templatePadTopMm,
-                templatePadLeftMm: block.templatePadLeftMm,
-                templatePadRightMm: block.templatePadRightMm,
-                templatePadBottomMm: block.templatePadBottomMm,
-                mirror: mirrorBack,
-                outline: tmpl.outline,
                 pageBreakAfter: breakAfterBack,
               );
+            }
+          }
+        }
+      } else {
+        for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+          final block = layout.blocks[bIdx];
+          final tmpl = templates[block.templateName]!;
+          final cols = block.cols > 0 ? block.cols : 4;
+          final rows = block.rows > 0 ? block.rows : 8;
+
+          final cellW = usableW / cols;
+          final cellH = usableH / rows;
+
+          final List<_DocumentSheetCell> blockFrontCells = [];
+          final List<_DocumentSheetCell> blockBackCells = [];
+
+          for (final record in records) {
+            final data = await recordToFields(record);
+            for (var c = 0; c < block.templateCount; c++) {
+              final frontPage =
+                  await _substitutor.substitutePage(tmpl.page1, data);
+              final frontHeight = layout.fillPage
+                  ? estimateAutoFillCellHeightPt(
+                      page: frontPage,
+                      wPt: wPt,
+                      hPt: hPt,
+                      templatePadTopMm: block.templatePadTopMm,
+                      templatePadLeftMm: block.templatePadLeftMm,
+                      templatePadRightMm: block.templatePadRightMm,
+                      templatePadBottomMm: block.templatePadBottomMm,
+                    )
+                  : cellH;
+
+              blockFrontCells.add(_DocumentSheetCell(
+                page: frontPage,
+                data: data,
+                heightPt: frontHeight,
+                block: block,
+                outline: tmpl.outline,
+                mirror: mirrorFront,
+              ));
+
+              if (duplex) {
+                final backPage =
+                    await _substitutor.substitutePage(tmpl.page2, data);
+                final backHeight = layout.fillPage
+                    ? estimateAutoFillCellHeightPt(
+                        page: backPage,
+                        wPt: wPt,
+                        hPt: hPt,
+                        templatePadTopMm: block.templatePadTopMm,
+                        templatePadLeftMm: block.templatePadLeftMm,
+                        templatePadRightMm: block.templatePadRightMm,
+                        templatePadBottomMm: block.templatePadBottomMm,
+                      )
+                    : cellH;
+
+                blockBackCells.add(_DocumentSheetCell(
+                  page: backPage,
+                  data: data,
+                  heightPt: backHeight,
+                  block: block,
+                  outline: tmpl.outline,
+                  mirror: mirrorBack,
+                ));
+              }
+            }
+          }
+
+          final frontBatches = layout.fillPage
+              ? _buildAutoFillBatches(
+                  cells: blockFrontCells,
+                  cols: cols,
+                  usableH: usableH,
+                )
+              : _buildFixedGridBatches(
+                  cells: blockFrontCells,
+                  perSheet: cols * rows,
+                );
+
+          List<_DocumentSheetBatch>? backBatches;
+          if (duplex) {
+            backBatches = layout.fillPage
+                ? _buildAutoFillBatches(
+                    cells: blockBackCells,
+                    cols: cols,
+                    usableH: usableH,
+                  )
+                : _buildFixedGridBatches(
+                    cells: blockBackCells,
+                    perSheet: cols * rows,
+                  );
+          }
+
+          for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
+            final isLastBatch = batchIdx == frontBatches.length - 1;
+            final isLastBlock = bIdx == layout.blocks.length - 1;
+            final breakAfterFront = duplex ||
+                !isLastBatch ||
+                (isLastBatch && !isLastBlock && block.pageBreakAfter);
+            final breakAfterBack = !isLastBatch ||
+                (isLastBatch && !isLastBlock && block.pageBreakAfter);
+
+            final frontBatch = frontBatches[batchIdx];
+            if (layout.fillPage) {
+              _renderer.writeAutoFillDocumentSheet(
+                typst: typst,
+                cells: frontBatch.cells,
+                cols: cols,
+                cellW: cellW,
+                usableH: usableH,
+                wPt: wPt,
+                hPt: hPt,
+                pageBreakAfter: breakAfterFront,
+              );
+            } else {
+              _renderer.writeTiledDocumentSheet(
+                typst: typst,
+                cells: frontBatch.cells,
+                cols: cols,
+                rows: rows,
+                cellW: cellW,
+                cellH: cellH,
+                wPt: wPt,
+                hPt: hPt,
+                pageBreakAfter: breakAfterFront,
+              );
+            }
+
+            if (duplex) {
+              final backBatch = backBatches![batchIdx];
+              if (layout.fillPage) {
+                _renderer.writeAutoFillDocumentSheet(
+                  typst: typst,
+                  cells: backBatch.cells,
+                  cols: cols,
+                  cellW: cellW,
+                  usableH: usableH,
+                  wPt: wPt,
+                  hPt: hPt,
+                  pageBreakAfter: breakAfterBack,
+                );
+              } else {
+                _renderer.writeTiledDocumentSheet(
+                  typst: typst,
+                  cells: backBatch.cells,
+                  cols: cols,
+                  rows: rows,
+                  cellW: cellW,
+                  cellH: cellH,
+                  wPt: wPt,
+                  hPt: hPt,
+                  pageBreakAfter: breakAfterBack,
+                );
+              }
             }
           }
         }
@@ -419,28 +590,69 @@ class _DocumentPdfBuilder {
     } else if (layout.layoutType == 'Continuous') {
       final List<_ContinuousPrintItem> continuousItems = [];
 
-      for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
-        final block = layout.blocks[bIdx];
-        final tmpl = templates[block.templateName]!;
-        final dataList = blockDataMaps[bIdx] ?? [];
+      if (layout.multiBlockMode == 'Alternate') {
+        int maxDataLength = 0;
+        for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+          final len = (blockDataMaps[bIdx] ?? []).length;
+          if (len > maxDataLength) {
+            maxDataLength = len;
+          }
+        }
 
-        for (final data in dataList) {
-          for (var c = 0; c < block.templateCount; c++) {
-            continuousItems.add(_ContinuousPrintItem(
-              data: data,
-              template: tmpl,
-              pageTemplate: tmpl.page1,
-              block: block,
-              mirror: mirrorFront,
-            ));
-            if (duplex) {
+        for (var idx = 0; idx < maxDataLength; idx++) {
+          for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+            final block = layout.blocks[bIdx];
+            final dataList = blockDataMaps[bIdx] ?? [];
+            if (idx >= dataList.length) {
+              continue;
+            }
+            final data = dataList[idx];
+            final tmpl = templates[block.templateName]!;
+
+            for (var c = 0; c < block.templateCount; c++) {
               continuousItems.add(_ContinuousPrintItem(
                 data: data,
                 template: tmpl,
-                pageTemplate: tmpl.page2,
+                pageTemplate: tmpl.page1,
                 block: block,
-                mirror: mirrorBack,
+                mirror: mirrorFront,
               ));
+              if (duplex) {
+                continuousItems.add(_ContinuousPrintItem(
+                  data: data,
+                  template: tmpl,
+                  pageTemplate: tmpl.page2,
+                  block: block,
+                  mirror: mirrorBack,
+                ));
+              }
+            }
+          }
+        }
+      } else {
+        for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+          final block = layout.blocks[bIdx];
+          final tmpl = templates[block.templateName]!;
+          final dataList = blockDataMaps[bIdx] ?? [];
+
+          for (final data in dataList) {
+            for (var c = 0; c < block.templateCount; c++) {
+              continuousItems.add(_ContinuousPrintItem(
+                data: data,
+                template: tmpl,
+                pageTemplate: tmpl.page1,
+                block: block,
+                mirror: mirrorFront,
+              ));
+              if (duplex) {
+                continuousItems.add(_ContinuousPrintItem(
+                  data: data,
+                  template: tmpl,
+                  pageTemplate: tmpl.page2,
+                  block: block,
+                  mirror: mirrorBack,
+                ));
+              }
             }
           }
         }
@@ -488,122 +700,140 @@ class _DocumentPdfBuilder {
       final usableW = math.max(1.0, sheetWidthPt - ptLeft - ptRight);
       final usableH = math.max(1.0, sheetHeightPt - ptTop - ptBottom);
 
-      for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
-        final block = layout.blocks[bIdx];
-        final tmpl = templates[block.templateName]!;
-        final cols = block.cols > 0 ? block.cols : 4;
-        final rows = block.rows > 0 ? block.rows : 8;
+      if (layout.multiBlockMode == 'Alternate') {
+        final List<_DocumentSheetCell> allFrontCells = [];
+        final List<_DocumentSheetCell> allBackCells = [];
 
-        final cellW = usableW / cols;
-        final cellH = usableH / rows;
-
-        final dataList = blockDataMaps[bIdx] ?? [];
-        final List<Map<String, String>> blockRecords = [];
-        for (final data in dataList) {
-          for (var c = 0; c < block.templateCount; c++) {
-            blockRecords.add(data);
+        int maxDataLength = 0;
+        for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+          final len = (blockDataMaps[bIdx] ?? []).length;
+          if (len > maxDataLength) {
+            maxDataLength = len;
           }
         }
 
-        final frontPages = <TemplatePage>[];
-        final frontDataList = <Map<String, String>>[];
-        for (final data in blockRecords) {
-          frontDataList.add(data);
-          frontPages.add(await _substitutor.substitutePage(tmpl.page1, data));
+        for (var idx = 0; idx < maxDataLength; idx++) {
+          for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+            final block = layout.blocks[bIdx];
+            final dataList = blockDataMaps[bIdx] ?? [];
+            if (idx >= dataList.length) {
+              continue;
+            }
+            final data = dataList[idx];
+            final tmpl = templates[block.templateName]!;
+            final rows = block.rows > 0 ? block.rows : 8;
+            final cellH = usableH / rows;
+
+            for (var c = 0; c < block.templateCount; c++) {
+              final frontPage =
+                  await _substitutor.substitutePage(tmpl.page1, data);
+              final frontHeight = layout.fillPage
+                  ? estimateAutoFillCellHeightPt(
+                      page: frontPage,
+                      wPt: wPt,
+                      hPt: hPt,
+                      templatePadTopMm: block.templatePadTopMm,
+                      templatePadLeftMm: block.templatePadLeftMm,
+                      templatePadRightMm: block.templatePadRightMm,
+                      templatePadBottomMm: block.templatePadBottomMm,
+                    )
+                  : cellH;
+
+              allFrontCells.add(_DocumentSheetCell(
+                page: frontPage,
+                data: data,
+                heightPt: frontHeight,
+                block: block,
+                outline: tmpl.outline,
+                mirror: mirrorFront,
+              ));
+
+              if (duplex) {
+                final backPage =
+                    await _substitutor.substitutePage(tmpl.page2, data);
+                final backHeight = layout.fillPage
+                    ? estimateAutoFillCellHeightPt(
+                        page: backPage,
+                        wPt: wPt,
+                        hPt: hPt,
+                        templatePadTopMm: block.templatePadTopMm,
+                        templatePadLeftMm: block.templatePadLeftMm,
+                        templatePadRightMm: block.templatePadRightMm,
+                        templatePadBottomMm: block.templatePadBottomMm,
+                      )
+                    : cellH;
+
+                allBackCells.add(_DocumentSheetCell(
+                  page: backPage,
+                  data: data,
+                  heightPt: backHeight,
+                  block: block,
+                  outline: tmpl.outline,
+                  mirror: mirrorBack,
+                ));
+              }
+            }
+          }
         }
+
+        final firstBlock = layout.blocks.first;
+        final cols = firstBlock.cols > 0 ? firstBlock.cols : 4;
+        final rows = firstBlock.rows > 0 ? firstBlock.rows : 8;
+        final cellW = usableW / cols;
+        final cellH = usableH / rows;
 
         final frontBatches = layout.fillPage
             ? _buildAutoFillBatches(
-                pages: frontPages,
-                dataList: frontDataList,
+                cells: allFrontCells,
                 cols: cols,
                 usableH: usableH,
-                wPt: wPt,
-                hPt: hPt,
-                templatePadTopMm: block.templatePadTopMm,
-                templatePadLeftMm: block.templatePadLeftMm,
-                templatePadRightMm: block.templatePadRightMm,
-                templatePadBottomMm: block.templatePadBottomMm,
               )
             : _buildFixedGridBatches(
-                pages: frontPages,
-                dataList: frontDataList,
+                cells: allFrontCells,
                 perSheet: cols * rows,
               );
 
         List<_DocumentSheetBatch>? backBatches;
         if (duplex) {
-          final backPages = <TemplatePage>[];
-          final backDataList = <Map<String, String>>[];
-          for (final data in blockRecords) {
-            backDataList.add(data);
-            backPages.add(await _substitutor.substitutePage(tmpl.page2, data));
-          }
           backBatches = layout.fillPage
               ? _buildAutoFillBatches(
-                  pages: backPages,
-                  dataList: backDataList,
+                  cells: allBackCells,
                   cols: cols,
                   usableH: usableH,
-                  wPt: wPt,
-                  hPt: hPt,
-                  templatePadTopMm: block.templatePadTopMm,
-                  templatePadLeftMm: block.templatePadLeftMm,
-                  templatePadRightMm: block.templatePadRightMm,
-                  templatePadBottomMm: block.templatePadBottomMm,
                 )
               : _buildFixedGridBatches(
-                  pages: backPages,
-                  dataList: backDataList,
+                  cells: allBackCells,
                   perSheet: cols * rows,
                 );
         }
 
         for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
           final isLastBatch = batchIdx == frontBatches.length - 1;
-          final isLastBlock = bIdx == layout.blocks.length - 1;
-          final breakAfterFront = duplex ||
-              !isLastBatch ||
-              (isLastBatch && !isLastBlock && block.pageBreakAfter);
-          final breakAfterBack = !isLastBatch ||
-              (isLastBatch && !isLastBlock && block.pageBreakAfter);
+          final breakAfterFront = duplex || !isLastBatch;
+          final breakAfterBack = !isLastBatch;
 
           final frontBatch = frontBatches[batchIdx];
           if (layout.fillPage) {
             _renderer.writeAutoFillDocumentSheet(
               typst: typst,
-              pages: frontBatch.pages,
-              dataList: frontBatch.dataList,
+              cells: frontBatch.cells,
               cols: cols,
               cellW: cellW,
               usableH: usableH,
               wPt: wPt,
               hPt: hPt,
-              templatePadTopMm: block.templatePadTopMm,
-              templatePadLeftMm: block.templatePadLeftMm,
-              templatePadRightMm: block.templatePadRightMm,
-              templatePadBottomMm: block.templatePadBottomMm,
-              mirror: mirrorFront,
-              outline: tmpl.outline,
               pageBreakAfter: breakAfterFront,
             );
           } else {
             _renderer.writeTiledDocumentSheet(
               typst: typst,
-              pages: frontBatch.pages,
-              dataList: frontBatch.dataList,
+              cells: frontBatch.cells,
               cols: cols,
               rows: rows,
               cellW: cellW,
               cellH: cellH,
               wPt: wPt,
               hPt: hPt,
-              templatePadTopMm: block.templatePadTopMm,
-              templatePadLeftMm: block.templatePadLeftMm,
-              templatePadRightMm: block.templatePadRightMm,
-              templatePadBottomMm: block.templatePadBottomMm,
-              mirror: mirrorFront,
-              outline: tmpl.outline,
               pageBreakAfter: breakAfterFront,
             );
           }
@@ -613,40 +843,181 @@ class _DocumentPdfBuilder {
             if (layout.fillPage) {
               _renderer.writeAutoFillDocumentSheet(
                 typst: typst,
-                pages: backBatch.pages,
-                dataList: backBatch.dataList,
+                cells: backBatch.cells,
                 cols: cols,
                 cellW: cellW,
                 usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
-                templatePadTopMm: block.templatePadTopMm,
-                templatePadLeftMm: block.templatePadLeftMm,
-                templatePadRightMm: block.templatePadRightMm,
-                templatePadBottomMm: block.templatePadBottomMm,
-                mirror: mirrorBack,
-                outline: tmpl.outline,
                 pageBreakAfter: breakAfterBack,
               );
             } else {
               _renderer.writeTiledDocumentSheet(
                 typst: typst,
-                pages: backBatch.pages,
-                dataList: backBatch.dataList,
+                cells: backBatch.cells,
                 cols: cols,
                 rows: rows,
                 cellW: cellW,
                 cellH: cellH,
                 wPt: wPt,
                 hPt: hPt,
-                templatePadTopMm: block.templatePadTopMm,
-                templatePadLeftMm: block.templatePadLeftMm,
-                templatePadRightMm: block.templatePadRightMm,
-                templatePadBottomMm: block.templatePadBottomMm,
-                mirror: mirrorBack,
-                outline: tmpl.outline,
                 pageBreakAfter: breakAfterBack,
               );
+            }
+          }
+        }
+      } else {
+        for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
+          final block = layout.blocks[bIdx];
+          final tmpl = templates[block.templateName]!;
+          final cols = block.cols > 0 ? block.cols : 4;
+          final rows = block.rows > 0 ? block.rows : 8;
+
+          final cellW = usableW / cols;
+          final cellH = usableH / rows;
+
+          final dataList = blockDataMaps[bIdx] ?? [];
+          final List<_DocumentSheetCell> blockFrontCells = [];
+          final List<_DocumentSheetCell> blockBackCells = [];
+
+          for (final data in dataList) {
+            for (var c = 0; c < block.templateCount; c++) {
+              final frontPage =
+                  await _substitutor.substitutePage(tmpl.page1, data);
+              final frontHeight = layout.fillPage
+                  ? estimateAutoFillCellHeightPt(
+                      page: frontPage,
+                      wPt: wPt,
+                      hPt: hPt,
+                      templatePadTopMm: block.templatePadTopMm,
+                      templatePadLeftMm: block.templatePadLeftMm,
+                      templatePadRightMm: block.templatePadRightMm,
+                      templatePadBottomMm: block.templatePadBottomMm,
+                    )
+                  : cellH;
+
+              blockFrontCells.add(_DocumentSheetCell(
+                page: frontPage,
+                data: data,
+                heightPt: frontHeight,
+                block: block,
+                outline: tmpl.outline,
+                mirror: mirrorFront,
+              ));
+
+              if (duplex) {
+                final backPage =
+                    await _substitutor.substitutePage(tmpl.page2, data);
+                final backHeight = layout.fillPage
+                    ? estimateAutoFillCellHeightPt(
+                        page: backPage,
+                        wPt: wPt,
+                        hPt: hPt,
+                        templatePadTopMm: block.templatePadTopMm,
+                        templatePadLeftMm: block.templatePadLeftMm,
+                        templatePadRightMm: block.templatePadRightMm,
+                        templatePadBottomMm: block.templatePadBottomMm,
+                      )
+                    : cellH;
+
+                blockBackCells.add(_DocumentSheetCell(
+                  page: backPage,
+                  data: data,
+                  heightPt: backHeight,
+                  block: block,
+                  outline: tmpl.outline,
+                  mirror: mirrorBack,
+                ));
+              }
+            }
+          }
+
+          final frontBatches = layout.fillPage
+              ? _buildAutoFillBatches(
+                  cells: blockFrontCells,
+                  cols: cols,
+                  usableH: usableH,
+                )
+              : _buildFixedGridBatches(
+                  cells: blockFrontCells,
+                  perSheet: cols * rows,
+                );
+
+          List<_DocumentSheetBatch>? backBatches;
+          if (duplex) {
+            backBatches = layout.fillPage
+                ? _buildAutoFillBatches(
+                    cells: blockBackCells,
+                    cols: cols,
+                    usableH: usableH,
+                  )
+                : _buildFixedGridBatches(
+                    cells: blockBackCells,
+                    perSheet: cols * rows,
+                  );
+          }
+
+          for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
+            final isLastBatch = batchIdx == frontBatches.length - 1;
+            final isLastBlock = bIdx == layout.blocks.length - 1;
+            final breakAfterFront = duplex ||
+                !isLastBatch ||
+                (isLastBatch && !isLastBlock && block.pageBreakAfter);
+            final breakAfterBack = !isLastBatch ||
+                (isLastBatch && !isLastBlock && block.pageBreakAfter);
+
+            final frontBatch = frontBatches[batchIdx];
+            if (layout.fillPage) {
+              _renderer.writeAutoFillDocumentSheet(
+                typst: typst,
+                cells: frontBatch.cells,
+                cols: cols,
+                cellW: cellW,
+                usableH: usableH,
+                wPt: wPt,
+                hPt: hPt,
+                pageBreakAfter: breakAfterFront,
+              );
+            } else {
+              _renderer.writeTiledDocumentSheet(
+                typst: typst,
+                cells: frontBatch.cells,
+                cols: cols,
+                rows: rows,
+                cellW: cellW,
+                cellH: cellH,
+                wPt: wPt,
+                hPt: hPt,
+                pageBreakAfter: breakAfterFront,
+              );
+            }
+
+            if (duplex) {
+              final backBatch = backBatches![batchIdx];
+              if (layout.fillPage) {
+                _renderer.writeAutoFillDocumentSheet(
+                  typst: typst,
+                  cells: backBatch.cells,
+                  cols: cols,
+                  cellW: cellW,
+                  usableH: usableH,
+                  wPt: wPt,
+                  hPt: hPt,
+                  pageBreakAfter: breakAfterBack,
+                );
+              } else {
+                _renderer.writeTiledDocumentSheet(
+                  typst: typst,
+                  cells: backBatch.cells,
+                  cols: cols,
+                  rows: rows,
+                  cellW: cellW,
+                  cellH: cellH,
+                  wPt: wPt,
+                  hPt: hPt,
+                  pageBreakAfter: breakAfterBack,
+                );
+              }
             }
           }
         }
@@ -661,53 +1032,27 @@ class _DocumentPdfBuilder {
   }
 
   List<_DocumentSheetBatch> _buildFixedGridBatches({
-    required List<TemplatePage> pages,
-    required List<Map<String, String>> dataList,
+    required List<_DocumentSheetCell> cells,
     required int perSheet,
   }) {
-    if (pages.isEmpty) return const [];
+    if (cells.isEmpty) return const [];
     final batches = <_DocumentSheetBatch>[];
     final safePerSheet = math.max(1, perSheet);
-    for (var start = 0; start < pages.length; start += safePerSheet) {
-      final end = math.min(start + safePerSheet, pages.length);
+    for (var start = 0; start < cells.length; start += safePerSheet) {
+      final end = math.min(start + safePerSheet, cells.length);
       batches.add(_DocumentSheetBatch(
-        pages: pages.sublist(start, end),
-        dataList: dataList.sublist(start, end),
+        cells: cells.sublist(start, end),
       ));
     }
     return batches;
   }
 
   List<_DocumentSheetBatch> _buildAutoFillBatches({
-    required List<TemplatePage> pages,
-    required List<Map<String, String>> dataList,
+    required List<_DocumentSheetCell> cells,
     required int cols,
     required double usableH,
-    required double wPt,
-    required double hPt,
-    required double templatePadTopMm,
-    required double templatePadLeftMm,
-    required double templatePadRightMm,
-    required double templatePadBottomMm,
   }) {
-    if (pages.isEmpty) return const [];
-
-    final cells = <_DocumentSheetCell>[];
-    for (var i = 0; i < pages.length; i++) {
-      cells.add(_DocumentSheetCell(
-        page: pages[i],
-        data: dataList[i],
-        heightPt: estimateAutoFillCellHeightPt(
-          page: pages[i],
-          wPt: wPt,
-          hPt: hPt,
-          templatePadTopMm: templatePadTopMm,
-          templatePadLeftMm: templatePadLeftMm,
-          templatePadRightMm: templatePadRightMm,
-          templatePadBottomMm: templatePadBottomMm,
-        ),
-      ));
-    }
+    if (cells.isEmpty) return const [];
 
     final originalRows = <_DocumentSheetRow>[];
     final safeCols = math.max(1, cols);
@@ -742,7 +1087,9 @@ class _DocumentPdfBuilder {
         repeatIndex++;
       }
 
-      batches.add(_DocumentSheetBatch.fromRows(sheetRows));
+      batches.add(_DocumentSheetBatch(
+        cells: sheetRows.expand((row) => row.cells).toList(),
+      ));
     }
 
     return batches;
@@ -1047,20 +1394,10 @@ class _DocumentPdfBuilder {
 
 class _DocumentSheetBatch {
   const _DocumentSheetBatch({
-    required this.pages,
-    required this.dataList,
+    required this.cells,
   });
 
-  factory _DocumentSheetBatch.fromRows(List<_DocumentSheetRow> rows) {
-    final cells = rows.expand((row) => row.cells).toList();
-    return _DocumentSheetBatch(
-      pages: cells.map((cell) => cell.page).toList(),
-      dataList: cells.map((cell) => cell.data).toList(),
-    );
-  }
-
-  final List<TemplatePage> pages;
-  final List<Map<String, String>> dataList;
+  final List<_DocumentSheetCell> cells;
 }
 
 class _DocumentSheetRow {
@@ -1079,9 +1416,15 @@ class _DocumentSheetCell {
     required this.page,
     required this.data,
     required this.heightPt,
+    required this.block,
+    required this.outline,
+    required this.mirror,
   });
 
   final TemplatePage page;
   final Map<String, String> data;
   final double heightPt;
+  final rust_config.DocumentLayoutBlock block;
+  final TemplateOutline? outline;
+  final bool mirror;
 }

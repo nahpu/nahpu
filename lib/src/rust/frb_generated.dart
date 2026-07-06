@@ -1613,8 +1613,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   DocumentLayoutPreset dco_decode_document_layout_preset(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 12)
-      throw Exception('unexpected arr length: expect 12 but see ${arr.length}');
+    if (arr.length != 13)
+      throw Exception('unexpected arr length: expect 13 but see ${arr.length}');
     return DocumentLayoutPreset(
       name: dco_decode_String(arr[0]),
       layoutType: dco_decode_String(arr[1]),
@@ -1628,6 +1628,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       pagePadBottomMm: dco_decode_f_64(arr[9]),
       blocks: dco_decode_list_document_layout_block(arr[10]),
       fillPage: dco_decode_bool(arr[11]),
+      multiBlockMode: dco_decode_String(arr[12]),
     );
   }
 
@@ -2042,6 +2043,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_pagePadBottomMm = sse_decode_f_64(deserializer);
     var var_blocks = sse_decode_list_document_layout_block(deserializer);
     var var_fillPage = sse_decode_bool(deserializer);
+    var var_multiBlockMode = sse_decode_String(deserializer);
     return DocumentLayoutPreset(
         name: var_name,
         layoutType: var_layoutType,
@@ -2054,7 +2056,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         pagePadRightMm: var_pagePadRightMm,
         pagePadBottomMm: var_pagePadBottomMm,
         blocks: var_blocks,
-        fillPage: var_fillPage);
+        fillPage: var_fillPage,
+        multiBlockMode: var_multiBlockMode);
   }
 
   @protected
@@ -2501,6 +2504,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.pagePadBottomMm, serializer);
     sse_encode_list_document_layout_block(self.blocks, serializer);
     sse_encode_bool(self.fillPage, serializer);
+    sse_encode_String(self.multiBlockMode, serializer);
   }
 
   @protected
