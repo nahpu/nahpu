@@ -92,7 +92,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.palette_outlined, size: 22),
                             isSelected: _showStrokeOptions,
@@ -103,7 +103,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                               });
                             },
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 8),
                           Text(
                             'Rotation',
                             style: Theme.of(context).textTheme.labelMedium,

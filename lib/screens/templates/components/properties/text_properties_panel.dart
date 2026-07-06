@@ -581,7 +581,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
       child: Row(
         children: [
           widget.actionControls,
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           FilterChip(
             label: const Text('QR Code'),
             selected: ct.isQrCode,
@@ -589,7 +589,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               onUpdateCustomText(page1, ct.copyWith(isQrCode: selected));
             },
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           if (ct.isQrCode) ...[
             Text('QR Size (mm)',
                 style: Theme.of(context).textTheme.labelMedium),
@@ -611,7 +611,18 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.palette_outlined, size: 24),
+              isSelected: _showFormattingRow,
+              tooltip: 'Content formatting options',
+              onPressed: () {
+                setState(() {
+                  _showFormattingRow = !_showFormattingRow;
+                });
+              },
+            ),
+            const SizedBox(width: 8),
             Text('Shape', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(width: 8),
             SegmentedButton<String>(
@@ -647,17 +658,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 );
               },
             ),
-            const SizedBox(width: 12),
-            IconButton(
-              icon: const Icon(Icons.settings_outlined, size: 24),
-              isSelected: _showFormattingRow,
-              tooltip: 'Content formatting options',
-              onPressed: () {
-                setState(() {
-                  _showFormattingRow = !_showFormattingRow;
-                });
-              },
-            ),
           ] else ...[
             FilterChip(
               label: const Text('Dynamic'),
@@ -666,7 +666,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 onUpdateCustomText(page1, ct.copyWith(isDynamic: selected));
               },
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Text('Size (pt)', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(width: 8),
             SizedBox(
