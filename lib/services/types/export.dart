@@ -116,7 +116,14 @@ const List<String> mammalGroupList = [
   'All mammals',
 ];
 
-enum RecordType { narrative, site, collEvent, specimenRecord, specimenParts }
+enum RecordType {
+  narrative,
+  site,
+  collEvent,
+  specimenRecord,
+  specimenParts,
+  none
+}
 
 const List<String> recordTypeList = [
   'Narrative',
@@ -124,6 +131,7 @@ const List<String> recordTypeList = [
   'Events',
   'Specimen records',
   'Specimen parts',
+  'None',
 ];
 
 const collectingRecordExportList = [

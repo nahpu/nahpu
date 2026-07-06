@@ -6,6 +6,8 @@ List<String> getAvailableExportColumns({
   SpecimenExportFmt? specimenExportFmt,
 }) {
   switch (recordType) {
+    case RecordType.none:
+      return [];
     case RecordType.narrative:
       return narrativeExportList;
     case RecordType.site:

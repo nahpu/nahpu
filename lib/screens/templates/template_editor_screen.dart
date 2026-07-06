@@ -23,6 +23,9 @@ import 'package:nahpu/screens/templates/template_preview_specimen_selection.dart
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/providers/projects.dart';
 
 class TemplateEditorScreen extends ConsumerStatefulWidget {
   const TemplateEditorScreen({super.key});
@@ -432,6 +435,58 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
               _editorTemplateFieldPreview = m;
             });
           }
+        }
+      } else if (recordType == RecordType.none) {
+        final projectUuid = ref.read(projectUuidProvider);
+        if (projectUuid.isNotEmpty) {
+          try {
+            final proj = await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
+            for (var entry in proj.toJson().entries) {
+              m['project::${entry.key}'] = entry.value?.toString() ?? '';
+            }
+          } catch (_) {}
+
+          try {
+            final personnel = await PersonnelServices(ref: ref)
+                .getPersonnelByProjectUuid(projectUuid);
+            if (personnel.isNotEmpty) {
+              final Set<String> keys = {};
+              final List<Map<String, dynamic>> jsonList =
+                  personnel.map((p) => p.toJson()).toList();
+              for (final json in jsonList) {
+                keys.addAll(json.keys);
+              }
+              for (final key in keys) {
+                final joined = jsonList
+                    .map((json) => json[key]?.toString() ?? '')
+                    .where((v) => v.isNotEmpty)
+                    .join(' | ');
+                m['personnel::$key'] = joined;
+              }
+            }
+          } catch (_) {}
+        }
+
+        // Apply fallback values for preview in the editor
+        m.putIfAbsent('project::name', () => 'Active Project');
+        m.putIfAbsent('project::uuid', () => 'active-project-uuid');
+        m.putIfAbsent('project::description', () => 'Active Project Description');
+        m.putIfAbsent('project::principalInvestigator', () => 'Active Investigator');
+        m.putIfAbsent('project::location', () => 'Active Project Location');
+        m.putIfAbsent('project::timeZone', () => 'UTC');
+        m.putIfAbsent('project::startDate', () => '2026-01-01');
+        m.putIfAbsent('project::endDate', () => '2026-12-31');
+
+        m.putIfAbsent('personnel::name', () => 'Active Personnel');
+        m.putIfAbsent('personnel::role', () => 'Active Personnel Role');
+        m.putIfAbsent('personnel::initial', () => 'AP');
+        m.putIfAbsent('personnel::email', () => 'active@example.com');
+        m.putIfAbsent('personnel::affiliation', () => 'Active Affiliation');
+
+        if (mounted) {
+          setState(() {
+            _editorTemplateFieldPreview = m;
+          });
         }
       }
     } catch (_) {}
@@ -1492,6 +1547,10 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                 DropdownMenuItem(
                   value: RecordType.narrative,
                   child: Text('Narrative'),
+                ),
+                DropdownMenuItem(
+                  value: RecordType.none,
+                  child: Text('None'),
                 ),
               ],
               onChanged: (v) {

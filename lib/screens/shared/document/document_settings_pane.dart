@@ -882,6 +882,33 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
 
                                     int totalCount = 0;
                                     String label = '';
+                                    if (recordType == RecordType.none) {
+                                      return Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Current Project Selection',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                const Text(
+                                                  '1 document (active project)',
+                                                  style: TextStyle(
+                                                    fontStyle: FontStyle.italic,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }
                                     if (recordType ==
                                         RecordType.specimenRecord) {
                                       totalCount = ref

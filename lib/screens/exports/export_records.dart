@@ -559,6 +559,8 @@ class ExportFormState extends ConsumerState<ExportForm> {
           format,
         );
         break;
+      case RecordType.none:
+        break;
     }
   }
 }

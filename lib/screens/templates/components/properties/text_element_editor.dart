@@ -258,6 +258,9 @@ class _AvailableFieldsSectionState
 
     final Set<String> allowedTables;
     switch (widget.recordType) {
+      case RecordType.none:
+        allowedTables = {'personnel', 'project'};
+        break;
       case RecordType.narrative:
         allowedTables = {'narrative', 'site', 'personnel'};
         break;

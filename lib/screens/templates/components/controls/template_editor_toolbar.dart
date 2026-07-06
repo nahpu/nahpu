@@ -214,14 +214,15 @@ class TemplateEditorToolbar extends StatelessWidget {
                       size: 22,
                     ),
                   ),
-                  IconButton(
-                    tooltip: 'Select specimen for text preview',
-                    style: IconButton.styleFrom(
-                      foregroundColor: scheme.onSurfaceVariant,
+                  if (template.recordType != RecordType.none)
+                    IconButton(
+                      tooltip: 'Select specimen for text preview',
+                      style: IconButton.styleFrom(
+                        foregroundColor: scheme.onSurfaceVariant,
+                      ),
+                      onPressed: onSelectPreviewSpecimen,
+                      icon: const Icon(Icons.manage_search, size: 22),
                     ),
-                    onPressed: onSelectPreviewSpecimen,
-                    icon: const Icon(Icons.manage_search, size: 22),
-                  ),
                 ],
               ),
             ),
@@ -288,6 +289,8 @@ class TemplateEditorToolbar extends StatelessWidget {
         return 'Narrative';
       case RecordType.specimenParts:
         return 'Specimen Parts';
+      case RecordType.none:
+        return 'None';
     }
   }
 }

@@ -56,6 +56,13 @@ class _TemplatePreviewSpecimenSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
+    if (widget.recordType == RecordType.none) {
+      return const Scaffold(
+        body: Center(
+          child: Text('No preview records for this type'),
+        ),
+      );
+    }
     if (widget.recordType == RecordType.site) {
       return SiteSelectionScreen(
         isSingleSelection: true,

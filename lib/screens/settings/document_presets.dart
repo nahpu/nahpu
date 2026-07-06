@@ -93,14 +93,17 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                         ? 'Preview Events (${_previewSelectedUuids.length} selected)'
                         : _recordType == RecordType.narrative
                             ? 'Preview Narratives (${_previewSelectedUuids.length} selected)'
-                            : 'Preview Specimens (${_previewSelectedUuids.length} selected)',
+                            : _recordType == RecordType.none
+                                ? 'Current Project (None)'
+                                : 'Preview Specimens (${_previewSelectedUuids.length} selected)',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              OutlinedButton.icon(
-                onPressed: _selectPreviewRecords,
-                icon: const Icon(Icons.check_box_outlined),
-                label: const Text('Select'),
-              ),
+              if (_recordType != RecordType.none)
+                OutlinedButton.icon(
+                  onPressed: _selectPreviewRecords,
+                  icon: const Icon(Icons.check_box_outlined),
+                  label: const Text('Select'),
+                ),
             ],
           ),
         ),
@@ -297,6 +300,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
           final narratives = ref.read(narrativeEntryProvider).value ?? [];
           _previewSelectedUuids =
               narratives.take(20).map((e) => e.id.toString()).toList();
+        } else if (recordType == RecordType.none) {
+          _previewSelectedUuids = [];
         } else {
           final specimens = ref.read(specimenEntryProvider).value ?? [];
           _previewSelectedUuids =
@@ -1127,6 +1132,13 @@ class _PreviewRecordSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
+    if (widget.recordType == RecordType.none) {
+      return const Scaffold(
+        body: Center(
+          child: Text('No preview records for this type'),
+        ),
+      );
+    }
     if (widget.recordType == RecordType.site) {
       return SiteSelectionScreen(
         selectedIds: widget.selectedUuids
