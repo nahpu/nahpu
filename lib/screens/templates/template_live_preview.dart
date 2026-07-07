@@ -7,6 +7,7 @@ import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_outline.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
+import 'package:nahpu/screens/templates/template_markdown.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
@@ -224,32 +225,48 @@ class _PreviewPage extends StatelessWidget {
                               );
                         final hasNewlines = formattedText.contains('\n');
                         return SizedBox(
-                          width:
-                              ct.maxWidthMm != null ? ct.maxWidthMm! * scale : null,
+                          width: ct.maxWidthMm != null
+                              ? ct.maxWidthMm! * scale
+                              : null,
                           height: (!ct.isDynamic && ct.heightMm != null)
                               ? ct.heightMm! * scale
                               : null,
-                          child: Text(
-                            formattedText,
-                            style: customTemplateCanvasTextStyle(
+                          child: Builder(builder: (context) {
+                            final textStyle = customTemplateCanvasTextStyle(
                               fontFamilyRaw: ct.fontFamily,
-                              fontSize: _previewFontSizePx(ct.fontSizePt, scale),
+                              fontSize:
+                                  _previewFontSizePx(ct.fontSizePt, scale),
                               fontWeight:
                                   ct.bold ? FontWeight.bold : FontWeight.normal,
-                              fontStyle:
-                                  ct.italic ? FontStyle.italic : FontStyle.normal,
+                              fontStyle: ct.italic
+                                  ? FontStyle.italic
+                                  : FontStyle.normal,
                               underline: ct.underline,
                               strikethrough: ct.strikethrough,
-                            ).copyWith(color: Colors.black),
-                            softWrap: ct.maxWidthMm != null || hasNewlines,
-                            maxLines: (ct.maxWidthMm != null || hasNewlines) ? null : 1,
-                            overflow: (ct.maxWidthMm != null || hasNewlines)
-                                ? TextOverflow.clip
-                                : TextOverflow.visible,
-                            textAlign: _parseTextAlign(ct.textAlign),
-                          ),
+                            ).copyWith(color: Colors.black);
+                            final textAlign = _parseTextAlign(ct.textAlign);
+                            if (ct.textType == 'markdown') {
+                              return TemplateMarkdownBody(
+                                data: formattedText,
+                                textStyle: textStyle,
+                                textAlign: textAlign,
+                              );
+                            }
+                            return Text(
+                              formattedText,
+                              style: textStyle,
+                              softWrap: ct.maxWidthMm != null || hasNewlines,
+                              maxLines: (ct.maxWidthMm != null || hasNewlines)
+                                  ? null
+                                  : 1,
+                              overflow: (ct.maxWidthMm != null || hasNewlines)
+                                  ? TextOverflow.clip
+                                  : TextOverflow.visible,
+                              textAlign: textAlign,
+                            );
+                          }),
                         );
-                      }
+                      },
                     ),
                   ),
                 ),

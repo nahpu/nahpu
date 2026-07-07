@@ -3,6 +3,38 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
 
+const _kNullFallbackField = 'field';
+const _kNullFallbackNa = 'na';
+const _kNullFallbackNone = 'none';
+const _kNullFallbackCustom = 'custom';
+
+String _fieldIdFromBracketLabel(String label) {
+  return label.replaceAll('[', '').replaceAll(']', '');
+}
+
+String _placeholderWithNullFallback(
+  String label,
+  String fallbackOption,
+  String customFallback,
+) {
+  final fieldId = _fieldIdFromBracketLabel(label);
+  if (fieldId.endsWith('-img')) return label;
+
+  final fallback = switch (fallbackOption) {
+    _kNullFallbackField => fieldId,
+    _kNullFallbackNa => 'N/A',
+    _kNullFallbackNone => 'None',
+    _kNullFallbackCustom => customFallback.trim(),
+    _ => '',
+  };
+  if (fallback.isEmpty) return label;
+  return '[$fieldId??$fallback]';
+}
+
+String _stripPlaceholderFallback(String fieldId) {
+  return fieldId.split('??').first;
+}
+
 class AvailableSymbolsWrap extends StatelessWidget {
   const AvailableSymbolsWrap({
     super.key,
@@ -75,7 +107,16 @@ class _AvailableFieldsSectionState
     extends ConsumerState<AvailableFieldsSection> {
   bool _showFields = false;
   String _fieldDisplayOption = 'short';
+  String _nullFallbackOption = _kNullFallbackField;
+  final TextEditingController _customNullFallbackController =
+      TextEditingController();
   String _selectedTaxon = 'All Taxa';
+
+  @override
+  void dispose() {
+    _customNullFallbackController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,40 +160,73 @@ class _AvailableFieldsSectionState
                   'Available Fields',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Row(
-                  children: [
-                    if (widget.recordType == RecordType.specimenRecord ||
-                        widget.recordType == RecordType.specimenParts) ...[
+                Flexible(
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8.0,
+                    runSpacing: 4.0,
+                    children: [
+                      if (widget.recordType == RecordType.specimenRecord ||
+                          widget.recordType == RecordType.specimenParts)
+                        DropdownButton<String>(
+                          value: _selectedTaxon,
+                          isDense: true,
+                          underline: const SizedBox.shrink(),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'All Taxa',
+                              child: Text(
+                                'All Taxa',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Mammals',
+                              child: Text(
+                                'Mammals',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Birds',
+                              child: Text(
+                                'Birds',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Herpetofauna',
+                              child: Text(
+                                'Herpetofauna',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) {
+                              setState(() {
+                                _selectedTaxon = v;
+                              });
+                            }
+                          },
+                        ),
                       DropdownButton<String>(
-                        value: _selectedTaxon,
+                        value: _fieldDisplayOption,
                         isDense: true,
                         underline: const SizedBox.shrink(),
                         items: const [
                           DropdownMenuItem(
-                            value: 'All Taxa',
+                            value: 'full',
                             child: Text(
-                              'All Taxa',
+                              'Table::Field',
                               style: TextStyle(fontSize: 12.0),
                             ),
                           ),
                           DropdownMenuItem(
-                            value: 'Mammals',
+                            value: 'short',
                             child: Text(
-                              'Mammals',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Birds',
-                            child: Text(
-                              'Birds',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Herpetofauna',
-                            child: Text(
-                              'Herpetofauna',
+                              'Field Only',
                               style: TextStyle(fontSize: 12.0),
                             ),
                           ),
@@ -160,55 +234,79 @@ class _AvailableFieldsSectionState
                         onChanged: (v) {
                           if (v != null) {
                             setState(() {
-                              _selectedTaxon = v;
+                              _fieldDisplayOption = v;
                             });
                           }
                         },
                       ),
-                      const SizedBox(width: 8.0),
-                    ],
-                    DropdownButton<String>(
-                      value: _fieldDisplayOption,
-                      isDense: true,
-                      underline: const SizedBox.shrink(),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'full',
-                          child: Text(
-                            'Table::Field',
-                            style: TextStyle(fontSize: 12.0),
+                      DropdownButton<String>(
+                        value: _nullFallbackOption,
+                        isDense: true,
+                        underline: const SizedBox.shrink(),
+                        items: const [
+                          DropdownMenuItem(
+                            value: _kNullFallbackField,
+                            child: Text(
+                              'Null: Table::Field',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
                           ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'short',
-                          child: Text(
-                            'Field Only',
-                            style: TextStyle(fontSize: 12.0),
+                          DropdownMenuItem(
+                            value: _kNullFallbackNa,
+                            child: Text(
+                              'Null: N/A',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
                           ),
-                        ),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) {
+                          DropdownMenuItem(
+                            value: _kNullFallbackNone,
+                            child: Text(
+                              'Null: None',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: _kNullFallbackCustom,
+                            child: Text(
+                              'Null: Custom',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) {
+                            setState(() {
+                              _nullFallbackOption = v;
+                            });
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 18.0),
+                        onPressed: () {
                           setState(() {
-                            _fieldDisplayOption = v;
+                            _showFields = false;
                           });
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8.0),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18.0),
-                      onPressed: () {
-                        setState(() {
-                          _showFields = false;
-                        });
-                      },
-                    ),
-                  ],
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
+          if (_nullFallbackOption == _kNullFallbackCustom)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 0),
+              child: TextField(
+                controller: _customNullFallbackController,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  labelText: 'Custom null text',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
           const Divider(height: 1.0),
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 250.0),
@@ -233,7 +331,13 @@ class _AvailableFieldsSectionState
                     return ListTile(
                       dense: true,
                       visualDensity: VisualDensity.compact,
-                      onTap: () => widget.onSelectField(label),
+                      onTap: () => widget.onSelectField(
+                        _placeholderWithNullFallback(
+                          label,
+                          _nullFallbackOption,
+                          _customNullFallbackController.text,
+                        ),
+                      ),
                       title: Text(
                         _getDisplayLabel(label),
                         style: const TextStyle(
@@ -329,7 +433,9 @@ class _AvailableFieldsSectionState
   }
 
   String _getDisplayLabel(String label) {
-    final stripped = label.replaceAll('[', '').replaceAll(']', '');
+    final stripped = _stripPlaceholderFallback(
+      _fieldIdFromBracketLabel(label),
+    );
     if (_fieldDisplayOption == 'short') {
       final parts = stripped.split('::');
       return parts.length > 1 ? parts.last : stripped;
@@ -529,13 +635,21 @@ class _TextElementEditorDialogState
 
     if (targetFormat == 'short') {
       String result = text;
-      for (final full in allFullFields) {
-        final parts = full.split('::');
-        final short = parts.last;
-        result = result.replaceAll('[$full]', '[$short]');
-        if (full.endsWith('.sex')) {
-          result = result.replaceAll('[$full-img]', '[$short-img]');
-        }
+      final regExp = RegExp(r'\[([^\]]+)\]');
+      final matches = regExp.allMatches(text).toList();
+      for (final match in matches.reversed) {
+        final matchedGroup = match.group(1);
+        if (matchedGroup == null) continue;
+        final parts = matchedGroup.split('??');
+        final base = parts.first;
+        final fallback =
+            parts.length > 1 ? '??${parts.sublist(1).join('??')}' : '';
+        final isImg = base.endsWith('-img');
+        final baseField = isImg ? base.substring(0, base.length - 4) : base;
+        if (!allFullFields.contains(baseField)) continue;
+        final short = baseField.split('::').last;
+        final replacement = isImg ? '$short-img$fallback' : '$short$fallback';
+        result = result.replaceRange(match.start, match.end, '[$replacement]');
       }
       _controller.value = TextEditingValue(
         text: result,
@@ -548,16 +662,19 @@ class _TextElementEditorDialogState
       for (final match in matches.reversed) {
         final matchedGroup = match.group(1);
         if (matchedGroup == null) continue;
-        if (matchedGroup.contains('::')) {
+        final parts = matchedGroup.split('??');
+        final base = parts.first;
+        final fallback =
+            parts.length > 1 ? '??${parts.sublist(1).join('??')}' : '';
+        if (base.contains('::')) {
           continue;
         }
-        final isImg = matchedGroup.endsWith('-img');
-        final baseName = isImg
-            ? matchedGroup.substring(0, matchedGroup.length - 4)
-            : matchedGroup;
+        final isImg = base.endsWith('-img');
+        final baseName = isImg ? base.substring(0, base.length - 4) : base;
         final fullBase = fieldToFull[baseName];
         if (fullBase != null) {
-          final replacement = isImg ? '$fullBase-img' : fullBase;
+          final replacement =
+              isImg ? '$fullBase-img$fallback' : '$fullBase$fallback';
           result =
               result.replaceRange(match.start, match.end, '[$replacement]');
         }
@@ -783,13 +900,21 @@ class _TextElementEditorBottomSheetState
 
     if (targetFormat == 'short') {
       String result = text;
-      for (final full in allFullFields) {
-        final parts = full.split('::');
-        final short = parts.last;
-        result = result.replaceAll('[$full]', '[$short]');
-        if (full.endsWith('.sex')) {
-          result = result.replaceAll('[$full-img]', '[$short-img]');
-        }
+      final regExp = RegExp(r'\[([^\]]+)\]');
+      final matches = regExp.allMatches(text).toList();
+      for (final match in matches.reversed) {
+        final matchedGroup = match.group(1);
+        if (matchedGroup == null) continue;
+        final parts = matchedGroup.split('??');
+        final base = parts.first;
+        final fallback =
+            parts.length > 1 ? '??${parts.sublist(1).join('??')}' : '';
+        final isImg = base.endsWith('-img');
+        final baseField = isImg ? base.substring(0, base.length - 4) : base;
+        if (!allFullFields.contains(baseField)) continue;
+        final short = baseField.split('::').last;
+        final replacement = isImg ? '$short-img$fallback' : '$short$fallback';
+        result = result.replaceRange(match.start, match.end, '[$replacement]');
       }
       _controller.value = TextEditingValue(
         text: result,
@@ -802,16 +927,19 @@ class _TextElementEditorBottomSheetState
       for (final match in matches.reversed) {
         final matchedGroup = match.group(1);
         if (matchedGroup == null) continue;
-        if (matchedGroup.contains('::')) {
+        final parts = matchedGroup.split('??');
+        final base = parts.first;
+        final fallback =
+            parts.length > 1 ? '??${parts.sublist(1).join('??')}' : '';
+        if (base.contains('::')) {
           continue;
         }
-        final isImg = matchedGroup.endsWith('-img');
-        final baseName = isImg
-            ? matchedGroup.substring(0, matchedGroup.length - 4)
-            : matchedGroup;
+        final isImg = base.endsWith('-img');
+        final baseName = isImg ? base.substring(0, base.length - 4) : base;
         final fullBase = fieldToFull[baseName];
         if (fullBase != null) {
-          final replacement = isImg ? '$fullBase-img' : fullBase;
+          final replacement =
+              isImg ? '$fullBase-img$fallback' : '$fullBase$fallback';
           result =
               result.replaceRange(match.start, match.end, '[$replacement]');
         }

@@ -6,6 +6,11 @@ import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
+const _kNullFallbackField = 'field';
+const _kNullFallbackNa = 'na';
+const _kNullFallbackNone = 'none';
+const _kNullFallbackCustom = 'custom';
+
 class TextPropertiesPanel extends StatelessWidget {
   const TextPropertiesPanel({
     super.key,
@@ -213,6 +218,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
   bool _showFormattingRow = false;
   bool _showStylingRow = false;
   late TextEditingController _separatorController;
+  late TextEditingController _customNullFallbackController;
 
   @override
   void initState() {
@@ -221,6 +227,9 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         ? widget.ct.formatOption.substring(7)
         : '';
     _separatorController = TextEditingController(text: initialSep);
+    _customNullFallbackController = TextEditingController(
+      text: _customNullFallbackText(widget.ct.text),
+    );
   }
 
   @override
@@ -235,12 +244,105 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         _separatorController.text = sep;
       }
     }
+    if (widget.ct.id != oldWidget.ct.id ||
+        widget.ct.text != oldWidget.ct.text) {
+      final customFallback = _customNullFallbackText(widget.ct.text);
+      if (_customNullFallbackController.text != customFallback) {
+        _customNullFallbackController.text = customFallback;
+      }
+    }
   }
 
   @override
   void dispose() {
     _separatorController.dispose();
+    _customNullFallbackController.dispose();
     super.dispose();
+  }
+
+  List<RegExpMatch> _placeholderMatches(String text) {
+    return RegExp(r'\[([^\]]+)\]').allMatches(text).toList();
+  }
+
+  String _placeholderFieldId(String placeholder) {
+    return placeholder.split('??').first.trim();
+  }
+
+  String? _placeholderFallback(String placeholder) {
+    final parts = placeholder.split('??');
+    if (parts.length <= 1) return null;
+    return parts.sublist(1).join('??').trim();
+  }
+
+  bool _isFallbackPlaceholder(String placeholder) {
+    return !_placeholderFieldId(placeholder).endsWith('-img');
+  }
+
+  String _nullFallbackOption(String text) {
+    for (final match in _placeholderMatches(text)) {
+      final placeholder = match.group(1);
+      if (placeholder == null || !_isFallbackPlaceholder(placeholder)) {
+        continue;
+      }
+      final fieldId = _placeholderFieldId(placeholder);
+      final fallback = _placeholderFallback(placeholder);
+      if (fallback == null || fallback == fieldId) {
+        return _kNullFallbackField;
+      }
+      if (fallback == 'N/A') return _kNullFallbackNa;
+      if (fallback == 'None') return _kNullFallbackNone;
+      return _kNullFallbackCustom;
+    }
+    return _kNullFallbackField;
+  }
+
+  String _customNullFallbackText(String text) {
+    for (final match in _placeholderMatches(text)) {
+      final placeholder = match.group(1);
+      if (placeholder == null || !_isFallbackPlaceholder(placeholder)) {
+        continue;
+      }
+      final fieldId = _placeholderFieldId(placeholder);
+      final fallback = _placeholderFallback(placeholder);
+      if (fallback == null ||
+          fallback == fieldId ||
+          fallback == 'N/A' ||
+          fallback == 'None') {
+        continue;
+      }
+      return fallback;
+    }
+    return '';
+  }
+
+  String _fallbackTextForOption(String option, String fieldId) {
+    return switch (option) {
+      _kNullFallbackField => fieldId,
+      _kNullFallbackNa => 'N/A',
+      _kNullFallbackNone => 'None',
+      _kNullFallbackCustom => _customNullFallbackController.text.trim(),
+      _ => fieldId,
+    };
+  }
+
+  String _textWithNullFallback(String text, String option) {
+    return text.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (match) {
+      final placeholder = match.group(1);
+      if (placeholder == null || !_isFallbackPlaceholder(placeholder)) {
+        return match.group(0)!;
+      }
+      final fieldId = _placeholderFieldId(placeholder);
+      final fallback = _fallbackTextForOption(option, fieldId);
+      if (fallback.isEmpty) return '[$fieldId]';
+      return '[$fieldId??$fallback]';
+    });
+  }
+
+  bool _hasFallbackPlaceholder(String text) {
+    return _placeholderMatches(text).any((match) {
+      final placeholder = match.group(1);
+      return placeholder != null && _isFallbackPlaceholder(placeholder);
+    });
   }
 
   String _getSexPresentation(String formatOption) {
@@ -822,6 +924,75 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
 
     final isCustomSep =
         ct.formatOption.startsWith('custom:') || ct.formatOption == 'custom';
+    final hasFallbackPlaceholder = _hasFallbackPlaceholder(ct.text);
+    final nullFallbackOption = _nullFallbackOption(ct.text);
+
+    final nullFallbackControls = <Widget>[
+      const SizedBox(width: 16),
+      Text(
+        'Null',
+        style: Theme.of(context).textTheme.labelMedium,
+      ),
+      const SizedBox(width: 8),
+      DropdownButton<String>(
+        value: nullFallbackOption,
+        isDense: true,
+        underline: const SizedBox.shrink(),
+        items: const [
+          DropdownMenuItem(
+            value: _kNullFallbackField,
+            child: Text('table::field'),
+          ),
+          DropdownMenuItem(
+            value: _kNullFallbackNa,
+            child: Text('N/A'),
+          ),
+          DropdownMenuItem(
+            value: _kNullFallbackNone,
+            child: Text('None'),
+          ),
+          DropdownMenuItem(
+            value: _kNullFallbackCustom,
+            child: Text('Custom'),
+          ),
+        ],
+        onChanged: hasFallbackPlaceholder
+            ? (v) {
+                if (v == null) return;
+                onUpdateCustomText(
+                  page1,
+                  ct.copyWith(text: _textWithNullFallback(ct.text, v)),
+                );
+              }
+            : null,
+      ),
+      if (hasFallbackPlaceholder &&
+          nullFallbackOption == _kNullFallbackCustom) ...[
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 120,
+          child: TextField(
+            controller: _customNullFallbackController,
+            decoration: const InputDecoration(
+              isDense: true,
+              hintText: 'Custom text',
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 8,
+              ),
+            ),
+            onChanged: (_) {
+              onUpdateCustomText(
+                page1,
+                ct.copyWith(
+                  text: _textWithNullFallback(ct.text, _kNullFallbackCustom),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    ];
 
     return Padding(
       padding: widget.inToolbar
@@ -1137,6 +1308,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               );
                             },
                           ),
+                          ...nullFallbackControls,
                         ] else ...[
                           const SizedBox(width: 16),
                           Text(
@@ -1173,6 +1345,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               );
                             },
                           ),
+                          ...nullFallbackControls,
                           const SizedBox(width: 16),
                           Text(
                             'Missing',

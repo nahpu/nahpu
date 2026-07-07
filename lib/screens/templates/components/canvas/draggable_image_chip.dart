@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -30,6 +31,7 @@ class DraggableImageChip extends StatefulWidget {
     this.onDragStateChanged,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapTargets = const [],
   });
 
   final String imagePath;
@@ -54,6 +56,7 @@ class DraggableImageChip extends StatefulWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final ValueChanged<bool>? onDragStateChanged;
+  final List<CanvasSnapTarget> snapTargets;
 
   /// When set, drawn instead of [imagePath] (e.g. sex icon for `[*.sex]-img`).
   final Widget? vectorChild;
@@ -67,6 +70,8 @@ class DraggableImageChip extends StatefulWidget {
 class DraggableImageChipState extends State<DraggableImageChip> {
   static const double _handleVisual = 16;
   static const double _handleHit = 36;
+  static const double _snapTolerancePx = 6;
+  static const double _snapGuideWidthPx = 1.5;
 
   void _deferSetState(VoidCallback fn) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -96,6 +101,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
   Offset? _imagePanOriginMm;
   Offset _imagePanAccumMm = Offset.zero;
   Offset? _imageDragLiveMm;
+  CanvasSnapResult? _snapResult;
   int _imageMoveSession = 0;
 
   Offset _mmDeltaFromGlobalDrag(Offset globalPos, Offset globalDelta) {
@@ -302,7 +308,10 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     _imagePanAccumMm = Offset.zero;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _imageMoveSession) return;
-      setState(() => _imageDragLiveMm = null);
+      setState(() {
+        _imageDragLiveMm = null;
+        _snapResult = null;
+      });
     });
   }
 
@@ -345,7 +354,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
       ..rotateZ(rad)
       ..translateByDouble(-pivotX, -pivotY, 0, 1);
 
-    return Positioned(
+    final chip = Positioned(
       left: left - padL,
       top: top - padT,
       child: Transform(
@@ -374,6 +383,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                           _imagePanOriginMm = widget.position;
                           _imagePanAccumMm = Offset.zero;
                           _imageDragLiveMm = null;
+                          _snapResult = null;
                           _deferSetState(() => _moving = true);
                           _imageMovePanLastGlobal = d.globalPosition;
                         },
@@ -407,19 +417,40 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                             _imagePanOriginMm = Offset(cx, cy);
                             _imagePanAccumMm = Offset.zero;
                           }
-                          setState(() => _imageDragLiveMm = clamped);
+                          final snapResult = resolveCanvasSnap(
+                            position: clamped,
+                            snapTargets: [
+                              CanvasSnapTarget(
+                                xMm: widget.templateWidthMm / 2,
+                                yMm: widget.templateHeightMm / 2,
+                              ),
+                              ...widget.snapTargets,
+                            ],
+                            toleranceMm: _snapTolerancePx / widget.scale,
+                          );
+                          setState(() {
+                            _imageDragLiveMm = snapResult.position;
+                            _snapResult =
+                                snapResult.hasGuide ? snapResult : null;
+                          });
                         },
                   onPanEnd: widget.isLocked
                       ? null
                       : (_) {
-                          _deferSetState(() => _moving = false);
+                          _deferSetState(() {
+                            _moving = false;
+                            _snapResult = null;
+                          });
                           _finishImageMoveGesture();
                           widget.onDragStateChanged?.call(false);
                         },
                   onPanCancel: widget.isLocked
                       ? null
                       : () {
-                          _deferSetState(() => _moving = false);
+                          _deferSetState(() {
+                            _moving = false;
+                            _snapResult = null;
+                          });
                           _finishImageMoveGesture();
                           widget.onDragStateChanged?.call(false);
                         },
@@ -648,6 +679,35 @@ class DraggableImageChipState extends State<DraggableImageChip> {
           ),
         ),
       ),
+    );
+    final snapResult = _snapResult;
+    if (snapResult == null) return chip;
+    final guideColor = scheme.primary.withValues(alpha: 0.65);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (snapResult.verticalGuideMm != null)
+          Positioned(
+            left: snapResult.verticalGuideMm! * widget.scale +
+                widget.canvasInsetXPx -
+                _snapGuideWidthPx / 2,
+            top: widget.canvasInsetYPx,
+            width: _snapGuideWidthPx,
+            height: widget.templateHeightMm * widget.scale,
+            child: ColoredBox(color: guideColor),
+          ),
+        if (snapResult.horizontalGuideMm != null)
+          Positioned(
+            left: widget.canvasInsetXPx,
+            top: widget.canvasInsetYPx +
+                snapResult.horizontalGuideMm! * widget.scale -
+                _snapGuideWidthPx / 2,
+            width: widget.templateWidthMm * widget.scale,
+            height: _snapGuideWidthPx,
+            child: ColoredBox(color: guideColor),
+          ),
+        chip,
+      ],
     );
   }
 }

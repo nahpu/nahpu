@@ -162,7 +162,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
         constrained: false,
         scaleEnabled: false,
         panEnabled: _canvasPanEnabled,
-        clipBehavior: Clip.none,
+        clipBehavior: Clip.hardEdge,
         boundaryMargin: const EdgeInsets.all(double.infinity),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -244,6 +244,70 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                             ]..sort((a, b) =>
                                 (a.zIndex as int).compareTo(b.zIndex as int));
 
+                            List<CanvasSnapTarget> snapTargetsFor(
+                              dynamic active,
+                            ) {
+                              final targets = <CanvasSnapTarget>[];
+                              for (final other in allElements) {
+                                if (identical(other, active)) continue;
+                                if (other is CustomImageElement) {
+                                  targets.addAll([
+                                    CanvasSnapTarget(
+                                      xMm: other.xMm,
+                                      yMm: other.yMm,
+                                    ),
+                                    CanvasSnapTarget(
+                                      xMm: other.xMm + other.widthMm / 2,
+                                      yMm: other.yMm + other.heightMm / 2,
+                                    ),
+                                  ]);
+                                } else if (other is CustomTextElement) {
+                                  targets.add(
+                                    CanvasSnapTarget(
+                                      xMm: other.xMm,
+                                      yMm: other.yMm,
+                                    ),
+                                  );
+                                  if (other.maxWidthMm != null ||
+                                      other.heightMm != null) {
+                                    targets.add(
+                                      CanvasSnapTarget(
+                                        xMm: other.maxWidthMm == null
+                                            ? null
+                                            : other.xMm + other.maxWidthMm! / 2,
+                                        yMm: other.heightMm == null
+                                            ? null
+                                            : other.yMm + other.heightMm! / 2,
+                                      ),
+                                    );
+                                  }
+                                } else if (other is CustomLineElement) {
+                                  targets.addAll([
+                                    CanvasSnapTarget(
+                                      xMm: other.xMm,
+                                      yMm: other.yMm,
+                                    ),
+                                    CanvasSnapTarget(
+                                      xMm: other.xMm + other.lengthMm / 2,
+                                      yMm: other.yMm,
+                                    ),
+                                  ]);
+                                } else if (other is CustomShapeElement) {
+                                  targets.addAll([
+                                    CanvasSnapTarget(
+                                      xMm: other.xMm,
+                                      yMm: other.yMm,
+                                    ),
+                                    CanvasSnapTarget(
+                                      xMm: other.xMm + other.widthMm / 2,
+                                      yMm: other.yMm + other.heightMm / 2,
+                                    ),
+                                  ]);
+                                }
+                              }
+                              return targets;
+                            }
+
                             return allElements.map<Widget>((element) {
                               if (element is CustomImageElement) {
                                 return DraggableImageChip(
@@ -267,6 +331,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onDragStateChanged: onDragStateChanged,
                                   isLocked: element.isLocked,
                                   isVisible: element.isVisible,
+                                  snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
                                     onScheduleTemplateImageUpdate(
                                       element.copyWith(
@@ -340,6 +405,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     onDragStateChanged: onDragStateChanged,
                                     isLocked: element.isLocked,
                                     isVisible: element.isVisible,
+                                    snapTargets: snapTargetsFor(element),
                                     onMoved: (pos) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
@@ -471,6 +537,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     isDynamic: element.isDynamic,
                                     isLocked: element.isLocked,
                                     isVisible: element.isVisible,
+                                    isMarkdown: element.textType == 'markdown',
+                                    snapTargets: snapTargetsFor(element),
                                     onMaxWidthChanged: (w) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(maxWidthMm: w),
@@ -538,6 +606,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onDragStateChanged: onDragStateChanged,
                                   isLocked: element.isLocked,
                                   isVisible: element.isVisible,
+                                  snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
                                     onScheduleTemplateLineUpdate(element
                                         .copyWith(xMm: pos.dx, yMm: pos.dy));
@@ -580,6 +649,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onDragStateChanged: onDragStateChanged,
                                   isLocked: element.isLocked,
                                   isVisible: element.isVisible,
+                                  snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
                                     onScheduleTemplateShapeUpdate(element
                                         .copyWith(xMm: pos.dx, yMm: pos.dy));

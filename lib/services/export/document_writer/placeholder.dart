@@ -13,12 +13,46 @@ String substituteDocumentPlaceholders(String input, Map<String, String> data) {
   if (isTemplateBracketGenderIconText(input)) return input;
   final isBlank = data['__blank__'] == 'true';
   return input.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (m) {
-    final k = m.group(1)!.trim();
-    if (data.containsKey(k)) return data[k]!;
-    final lower = k.toLowerCase();
-    for (final e in data.entries) {
-      if (e.key.toLowerCase() == lower) return e.value;
+    final placeholder = m.group(1)!.trim();
+    final fallbackSplit = placeholder.split('??');
+    final k = fallbackSplit.first.trim();
+    final fallback = fallbackSplit.length > 1
+        ? fallbackSplit.sublist(1).join('??').trim()
+        : null;
+    final value = _lookupDocumentPlaceholderValue(k, data);
+    if (value != null) {
+      return value.isEmpty && fallback != null ? fallback : value;
     }
+    if (fallback != null) return fallback;
     return isBlank ? '' : m.group(0)!;
   });
+}
+
+String? _lookupDocumentPlaceholderValue(String key, Map<String, String> data) {
+  final matches = <String>[];
+
+  void add(String? value) {
+    if (value != null) matches.add(value);
+  }
+
+  add(data[key]);
+
+  final lower = key.toLowerCase();
+  for (final e in data.entries) {
+    if (e.key.toLowerCase() == lower) add(e.value);
+  }
+
+  final shortKey = key.contains('::') ? key.split('::').last : key;
+  final shortLower = shortKey.toLowerCase();
+  for (final e in data.entries) {
+    if (e.key.split('::').last.toLowerCase() == shortLower) {
+      add(e.value);
+    }
+  }
+
+  if (matches.isEmpty) return null;
+  for (final value in matches) {
+    if (value.isNotEmpty) return value;
+  }
+  return matches.first;
 }

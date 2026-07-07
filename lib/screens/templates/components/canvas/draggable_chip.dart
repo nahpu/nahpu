@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
+import 'package:nahpu/screens/templates/template_markdown.dart';
 
 const double _kPdfPointsPerMm = 72.0 / 25.4;
 
@@ -47,6 +48,8 @@ class DraggableChip extends StatefulWidget {
     this.paddingPt = 2.0,
     this.isLocked = false,
     this.isVisible = true,
+    this.isMarkdown = false,
+    this.snapTargets = const [],
   });
 
   final String label;
@@ -97,6 +100,8 @@ class DraggableChip extends StatefulWidget {
   final double paddingPt;
   final bool isLocked;
   final bool isVisible;
+  final bool isMarkdown;
+  final List<CanvasSnapTarget> snapTargets;
 
   @override
   State<DraggableChip> createState() => DraggableChipState();
@@ -107,8 +112,11 @@ enum _TextCorner { tl, tr, bl, br }
 class DraggableChipState extends State<DraggableChip> {
   static const double _handleVisual = 18;
   static const double _handleHit = 36;
+  static const double _snapTolerancePx = 6;
+  static const double _snapGuideWidthPx = 1.5;
 
   bool _dragging = false;
+  CanvasSnapResult? _snapResult;
 
   void _deferSetState(VoidCallback fn) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -293,6 +301,7 @@ class DraggableChipState extends State<DraggableChip> {
     _panOriginMm = widget.position;
     _panAccumMm = Offset.zero;
     _dragLiveMm = null;
+    _snapResult = null;
     _deferSetState(() => _dragging = true);
     _templateDragLastGlobal = d.globalPosition;
   }
@@ -307,12 +316,18 @@ class DraggableChipState extends State<DraggableChip> {
     _panAccumMm = Offset.zero;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _templateDragSession) return;
-      setState(() => _dragLiveMm = null);
+      setState(() {
+        _dragLiveMm = null;
+        _snapResult = null;
+      });
     });
   }
 
   void _onTemplatePanEnd() {
-    _deferSetState(() => _dragging = false);
+    _deferSetState(() {
+      _dragging = false;
+      _snapResult = null;
+    });
     _finishTemplatePanGesture();
     widget.onDragStateChanged?.call(false);
   }
@@ -337,8 +352,21 @@ class DraggableChipState extends State<DraggableChip> {
       _panOriginMm = Offset(cx, cy);
       _panAccumMm = Offset.zero;
     }
-    final clamped = Offset(cx, cy);
-    setState(() => _dragLiveMm = clamped);
+    final snapResult = resolveCanvasSnap(
+      position: Offset(cx, cy),
+      snapTargets: [
+        CanvasSnapTarget(
+          xMm: widget.templateWidthMm / 2,
+          yMm: widget.templateHeightMm / 2,
+        ),
+        ...widget.snapTargets,
+      ],
+      toleranceMm: _snapTolerancePx / widget.scale,
+    );
+    setState(() {
+      _dragLiveMm = snapResult.position;
+      _snapResult = snapResult.hasGuide ? snapResult : null;
+    });
   }
 
   @override
@@ -471,6 +499,13 @@ class DraggableChipState extends State<DraggableChip> {
               padding: EdgeInsets.all(textBoxPaddingPx),
               child: Builder(builder: (context) {
                 final hasNewlines = widget.label.contains('\n');
+                if (widget.isMarkdown) {
+                  return TemplateMarkdownBody(
+                    data: widget.label,
+                    textStyle: textStyle,
+                    textAlign: widget.textAlign,
+                  );
+                }
                 return Text(
                   widget.label,
                   style: textStyle,
@@ -492,7 +527,7 @@ class DraggableChipState extends State<DraggableChip> {
         ..translateByDouble(handlePad, handlePad, 0, 1)
         ..rotateZ(degreesToRadians(widget.rotationDegrees))
         ..translateByDouble(-handlePad, -handlePad, 0, 1);
-      return Positioned(
+      final chip = Positioned(
         left: left - handlePad,
         top: top - handlePad,
         child: Transform(
@@ -580,6 +615,37 @@ class DraggableChipState extends State<DraggableChip> {
           ),
         ),
       );
+      final snapResult = _snapResult;
+      if (snapResult == null) {
+        return chip;
+      }
+      final guideColor = scheme.primary.withValues(alpha: 0.65);
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (snapResult.verticalGuideMm != null)
+            Positioned(
+              left: snapResult.verticalGuideMm! * widget.scale +
+                  widget.canvasInsetXPx -
+                  _snapGuideWidthPx / 2,
+              top: widget.canvasInsetYPx,
+              width: _snapGuideWidthPx,
+              height: widget.templateHeightMm * widget.scale,
+              child: ColoredBox(color: guideColor),
+            ),
+          if (snapResult.horizontalGuideMm != null)
+            Positioned(
+              left: widget.canvasInsetXPx,
+              top: widget.canvasInsetYPx +
+                  snapResult.horizontalGuideMm! * widget.scale -
+                  _snapGuideWidthPx / 2,
+              width: widget.templateWidthMm * widget.scale,
+              height: _snapGuideWidthPx,
+              child: ColoredBox(color: guideColor),
+            ),
+          chip,
+        ],
+      );
     }
 
     final Color bgColor;
@@ -664,6 +730,66 @@ class DraggableChipState extends State<DraggableChip> {
       ),
     );
   }
+}
+
+class CanvasSnapTarget {
+  const CanvasSnapTarget({
+    this.xMm,
+    this.yMm,
+  });
+
+  final double? xMm;
+  final double? yMm;
+}
+
+class CanvasSnapResult {
+  const CanvasSnapResult({
+    required this.position,
+    this.verticalGuideMm,
+    this.horizontalGuideMm,
+  });
+
+  final Offset position;
+  final double? verticalGuideMm;
+  final double? horizontalGuideMm;
+
+  bool get hasGuide => verticalGuideMm != null || horizontalGuideMm != null;
+}
+
+CanvasSnapResult resolveCanvasSnap({
+  required Offset position,
+  required List<CanvasSnapTarget> snapTargets,
+  required double toleranceMm,
+}) {
+  double? snapX;
+  double? snapY;
+  var bestDx = toleranceMm;
+  var bestDy = toleranceMm;
+
+  for (final target in snapTargets) {
+    final targetX = target.xMm;
+    if (targetX != null) {
+      final dx = (position.dx - targetX).abs();
+      if (dx <= bestDx) {
+        bestDx = dx;
+        snapX = targetX;
+      }
+    }
+    final targetY = target.yMm;
+    if (targetY != null) {
+      final dy = (position.dy - targetY).abs();
+      if (dy <= bestDy) {
+        bestDy = dy;
+        snapY = targetY;
+      }
+    }
+  }
+
+  return CanvasSnapResult(
+    position: Offset(snapX ?? position.dx, snapY ?? position.dy),
+    verticalGuideMm: snapX,
+    horizontalGuideMm: snapY,
+  );
 }
 
 class _TextBoxStrokePainter extends CustomPainter {

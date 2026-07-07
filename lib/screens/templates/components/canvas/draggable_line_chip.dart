@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -31,6 +32,7 @@ class DraggableLineChip extends StatefulWidget {
     this.onDragStateChanged,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapTargets = const [],
   });
 
   final Offset position;
@@ -58,6 +60,7 @@ class DraggableLineChip extends StatefulWidget {
   final ValueChanged<bool>? onDragStateChanged;
   final bool isLocked;
   final bool isVisible;
+  final List<CanvasSnapTarget> snapTargets;
 
   @override
   State<DraggableLineChip> createState() => DraggableLineChipState();
@@ -66,6 +69,8 @@ class DraggableLineChip extends StatefulWidget {
 class DraggableLineChipState extends State<DraggableLineChip> {
   static const double _handleVisual = 16;
   static const double _handleHit = 36;
+  static const double _snapTolerancePx = 6;
+  static const double _snapGuideWidthPx = 1.5;
 
   void _deferSetState(VoidCallback fn) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -93,6 +98,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   Offset? _resizePanLastGlobal;
 
   Offset? _imageDragLiveMm;
+  CanvasSnapResult? _snapResult;
   int _imageMoveSession = 0;
 
   Offset _mmDeltaFromGlobalDrag(Offset globalPos, Offset globalDelta) {
@@ -129,6 +135,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     widget.onTap?.call();
     _imageMoveSession++;
     _imageDragLiveMm = widget.position;
+    _snapResult = null;
     _deferSetState(() => _moving = true);
     _imageMovePanLastGlobal = d.globalPosition;
   }
@@ -159,12 +166,29 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       canvasWidthMm: widget.templateWidthMm,
       canvasHeightMm: widget.templateHeightMm,
     );
-    setState(() => _imageDragLiveMm = clamped);
+    final snapResult = resolveCanvasSnap(
+      position: clamped,
+      snapTargets: [
+        CanvasSnapTarget(
+          xMm: widget.templateWidthMm / 2,
+          yMm: widget.templateHeightMm / 2,
+        ),
+        ...widget.snapTargets,
+      ],
+      toleranceMm: _snapTolerancePx / widget.scale,
+    );
+    setState(() {
+      _imageDragLiveMm = snapResult.position;
+      _snapResult = snapResult.hasGuide ? snapResult : null;
+    });
   }
 
   void _onMovePanEnd() {
     if (widget.isLocked) return;
-    _deferSetState(() => _moving = false);
+    _deferSetState(() {
+      _moving = false;
+      _snapResult = null;
+    });
     _finishImageMoveGesture();
     widget.onDragStateChanged?.call(false);
   }
@@ -399,7 +423,10 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     _imageMovePanLastGlobal = null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _imageMoveSession) return;
-      setState(() => _imageDragLiveMm = null);
+      setState(() {
+        _imageDragLiveMm = null;
+        _snapResult = null;
+      });
     });
   }
 
@@ -451,7 +478,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       ..rotateZ(rad)
       ..translateByDouble(-pivotX, -pivotY, 0, 1);
 
-    return Positioned(
+    final chip = Positioned(
       left: left - padL,
       top: top - padT,
       child: Transform(
@@ -641,6 +668,35 @@ class DraggableLineChipState extends State<DraggableLineChip> {
           ),
         ),
       ),
+    );
+    final snapResult = _snapResult;
+    if (snapResult == null) return chip;
+    final guideColor = scheme.primary.withValues(alpha: 0.65);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (snapResult.verticalGuideMm != null)
+          Positioned(
+            left: snapResult.verticalGuideMm! * widget.scale +
+                widget.canvasInsetXPx -
+                _snapGuideWidthPx / 2,
+            top: widget.canvasInsetYPx,
+            width: _snapGuideWidthPx,
+            height: widget.templateHeightMm * widget.scale,
+            child: ColoredBox(color: guideColor),
+          ),
+        if (snapResult.horizontalGuideMm != null)
+          Positioned(
+            left: widget.canvasInsetXPx,
+            top: widget.canvasInsetYPx +
+                snapResult.horizontalGuideMm! * widget.scale -
+                _snapGuideWidthPx / 2,
+            width: widget.templateWidthMm * widget.scale,
+            height: _snapGuideWidthPx,
+            child: ColoredBox(color: guideColor),
+          ),
+        chip,
+      ],
     );
   }
 }

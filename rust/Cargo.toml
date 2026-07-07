@@ -18,4 +18,10 @@ nahpu_configs = "0.4.0"
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
 
+[patch.crates-io]
+nahpu_archive = { path = "../../../Rust/nahpu_api/crates/nahpu_archive" }
+nahpu_db = { path = "../../../Rust/nahpu_api/crates/nahpu_db" }
+nahpu_export = { path = "../../../Rust/nahpu_api/crates/nahpu_export" }
+nahpu_gis = { path = "../../../Rust/nahpu_api/crates/nahpu_gis" }
+nahpu_configs = { path = "../../../Rust/nahpu_api/crates/nahpu_configs" }
 

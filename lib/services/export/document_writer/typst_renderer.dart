@@ -345,7 +345,9 @@ class _DocumentTypstRenderer {
     if (t.italic) textProps += ', style: "italic"';
     textProps += ', font: "${_typstTemplateFont(t.fontFamily)}"';
 
-    String textElem = '#text($textProps)[$content]';
+    String textElem = isMarkdown
+        ? '#block[#set text($textProps)\n$content]'
+        : '#text($textProps)[$content]';
     if (t.underline) {
       textElem = '#underline[$textElem]';
     }

@@ -1,4 +1,3 @@
-//! Module for exporting database records
 use nahpu_db::io::export::RecordExporter;
 use nahpu_export::DocumentExport;
 use std::path::Path;
@@ -112,8 +111,6 @@ pub fn compile_typst_to_pdf(
 ) -> Result<Vec<u8>, String> {
     nahpu_export::typst_compiler::compile_to_pdf(&typst_content, font_bytes)
 }
-
 pub fn markdown_to_typst(md_content: String) -> String {
-    nahpu_export::document::markdown_to_typst(&md_content)
+    nahpu_export::markdown_to_typst(&md_content)
 }
-

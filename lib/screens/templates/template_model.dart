@@ -386,8 +386,11 @@ String formatNumberText(String text, String formatOption) {
 
 String formatFieldPlaceholderText(String text, bool showFieldOnly) {
   if (!showFieldOnly) return text;
-  final regex = RegExp(r'\[([^\]\s]+)::([^\]\s]+)\]');
-  return text.replaceAllMapped(regex, (match) => '[${match.group(2)}]');
+  final regex = RegExp(r'\[([^\]\s?]+)::([^\]\s?]+)(\?\?[^\]]+)?\]');
+  return text.replaceAllMapped(
+    regex,
+    (match) => '[${match.group(2)}${match.group(3) ?? ''}]',
+  );
 }
 
 String formatTemplateText(

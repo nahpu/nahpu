@@ -35,6 +35,42 @@ void main() {
       final result = substituteDocumentPlaceholders(text, data);
       expect(result, 'Age: Adult - Weight: [weight]');
     });
+
+    test('substituteDocumentPlaceholders uses fallback for missing keys', () {
+      final text =
+          'Catalog: [specimen::catalogNumber??specimen::catalogNumber]';
+      final result = substituteDocumentPlaceholders(text, {});
+
+      expect(result, 'Catalog: specimen::catalogNumber');
+    });
+
+    test('substituteDocumentPlaceholders uses fallback for empty values', () {
+      final text = 'Weight: [weight??N/A]';
+      final result = substituteDocumentPlaceholders(text, {'weight': ''});
+
+      expect(result, 'Weight: N/A');
+    });
+
+    test('substituteDocumentPlaceholders resolves short fallback keys', () {
+      final text = 'Catalog: [catalogNum??specimen::catalogNum]';
+      final result = substituteDocumentPlaceholders(
+        text,
+        {'specimen::catalogNum': 'NAHPU-001'},
+      );
+
+      expect(result, 'Catalog: NAHPU-001');
+    });
+
+    test('substituteDocumentPlaceholders resolves full keys from short data',
+        () {
+      final text = 'Catalog: [specimen::catalogNum??specimen::catalogNum]';
+      final result = substituteDocumentPlaceholders(
+        text,
+        {'catalogNum': 'NAHPU-002'},
+      );
+
+      expect(result, 'Catalog: NAHPU-002');
+    });
   });
 
   group('DocumentWriter z-index tests', () {
@@ -557,6 +593,12 @@ void main() {
       expect(
         formatFieldPlaceholderText(text, true),
         '[catalogNum] [locality]',
+      );
+
+      const textWithFallback = '[specimen::catalogNum??specimen::catalogNum]';
+      expect(
+        formatFieldPlaceholderText(textWithFallback, true),
+        '[catalogNum??specimen::catalogNum]',
       );
     });
 
