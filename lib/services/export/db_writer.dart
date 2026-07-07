@@ -10,7 +10,7 @@ import 'package:nahpu/src/rust/api/archive.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:nahpu/services/database/database.dart';
 import 'package:path/path.dart' as p;
-import 'package:nahpu/services/kdl_services.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 /// Export the database into a file
 /// If [isWithProjectData] is true, the project data will be included
@@ -37,8 +37,12 @@ class DbExport extends AppServices {
       }
 
       if (isWithAppSettings) {
-        String settingsPath = p.join(nahpuDir.path, 'settings.kdl');
-        settingsFile = await KdlServices().write(settingsPath);
+        String settingsPath = p.join(nahpuDir.path, 'user_configs.json');
+        await rust_config.exportConfigToFile(
+          filePath: settingsPath,
+          isJson: true,
+        );
+        settingsFile = File(settingsPath);
         allAppFiles.add(settingsFile.path);
       }
 
@@ -46,7 +50,7 @@ class DbExport extends AppServices {
       if (kDebugMode) print('Archiving files: ${allAppFiles.length}');
       await _archiveFiles(nahpuDir, allAppFiles, archivePath);
 
-      // Delete the newly created KDL app settings file, if it was created
+      // Delete the newly created app settings file, if it was created
       settingsFile?.deleteSync();
 
       // Delete the newly created database file
@@ -143,12 +147,22 @@ class DbWriter extends AppServices {
     }
 
     // Process app settings file
-    if (files.any((file) => file.path.endsWith('.kdl'))) {
-      FileSystemEntity settingsFileEntity =
-          files.firstWhere((file) => file.path.endsWith('.kdl'));
+    if (files.any((file) =>
+        file.path.endsWith('user_configs.json') ||
+        file.path.endsWith('settings.json'))) {
+      FileSystemEntity settingsFileEntity = files.firstWhere((file) =>
+          file.path.endsWith('user_configs.json') ||
+          file.path.endsWith('settings.json'));
       File settingsFile = File(settingsFileEntity.path);
-      KdlServices().readAndUpdateSettings(settingsFile.path);
-      files.remove(settingsFile);
+      await rust_config.importConfigFromFile(filePath: settingsFile.path);
+      files.remove(settingsFileEntity);
+    } else if (files.any((file) =>
+        file.path.endsWith('.json.nl') || file.path.endsWith('.jsonl'))) {
+      FileSystemEntity settingsFileEntity = files.firstWhere((file) =>
+          file.path.endsWith('.json.nl') || file.path.endsWith('.jsonl'));
+      File settingsFile = File(settingsFileEntity.path);
+      await rust_config.importConfigFromFile(filePath: settingsFile.path);
+      files.remove(settingsFileEntity);
     }
 
     for (var file in files) {

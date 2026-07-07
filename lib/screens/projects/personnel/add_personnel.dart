@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/projects/personnel/new_personnel.dart';
 import 'package:nahpu/screens/projects/personnel/select_personnel.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 
 enum PersonnelSelection { selectPersonnel, newPersonnel }
 

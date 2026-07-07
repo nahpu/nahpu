@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/events/components/personnel.dart';
 import 'package:nahpu/screens/events/components/weather_data.dart';
-import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 
 class CollEventTabBar extends StatefulWidget {
   const CollEventTabBar({
@@ -43,7 +43,7 @@ class _CollEventTabBarState extends State<CollEventTabBar>
       child: CommonTabBars(
         length: _length,
         tabController: _tabController,
-        height: 421,
+        height: 502,
         tabs: [
           const Tab(
             icon: Icon(Icons.groups_2_outlined),

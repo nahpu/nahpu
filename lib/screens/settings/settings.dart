@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/screens/templates/template_editor_screen.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
 import 'package:nahpu/screens/settings/catalog_format.dart';
@@ -8,12 +9,12 @@ import 'package:nahpu/screens/settings/collevent_settings.dart';
 import 'package:nahpu/screens/settings/site_settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/db_settings.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/settings/application_settings.dart';
 import 'package:nahpu/screens/settings/specimen_settings.dart';
+import 'package:nahpu/screens/settings/document_presets.dart';
 import 'package:nahpu/screens/settings/export_presets.dart';
-import 'package:nahpu/screens/settings/document_exports.dart';
 
 class AppSettings extends ConsumerStatefulWidget {
   const AppSettings({super.key});
@@ -223,18 +224,31 @@ class ExportSettingsSection extends StatelessWidget {
               );
             }),
         CommonSettingTile(
-            title: 'Document exports',
-            label: 'Import custom fonts and icons for document generation',
-            isNavigation: true,
-            icon: Icons.picture_as_pdf_outlined,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DocumentExportSettings(),
-                ),
-              );
-            }),
+          title: 'Documents',
+          label: 'Create and edit document export presets',
+          isNavigation: true,
+          icon: Icons.picture_as_pdf_outlined,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DocumentPresetsScreen(),
+              ),
+            );
+          },
+        ),
+        CommonSettingTile(
+          isNavigation: true,
+          icon: Icons.edit_note_outlined,
+          title: 'Template Editor',
+          label: 'Edit and create document templates',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (context) => const TemplateEditorScreen(),
+            ),
+          ),
+        ),
       ],
     );
   }

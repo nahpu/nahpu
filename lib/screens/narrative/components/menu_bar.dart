@@ -1,6 +1,6 @@
 import 'package:nahpu/screens/projects/collection_records.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/page_jump.dart';

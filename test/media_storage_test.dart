@@ -113,6 +113,7 @@ void main() {
     expect(media.taken, isEmpty);
     expect(media.camera, isEmpty);
     expect(media.lenses, isEmpty);
+    expect(media.additionalExif ?? '', contains('Type: Other'));
 
     final links = await SpecimenQuery(db).getSpecimenMedia(specimenUuid);
     expect(links, hasLength(1));

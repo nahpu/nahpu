@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/layout.dart';
-import 'package:nahpu/screens/shared/project_shell.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/providers/narrative.dart';

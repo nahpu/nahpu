@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/media.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/media/media.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/import.dart';

@@ -1,7 +1,3 @@
-enum DocumentExportType { narrative, site, event, specimen }
-
-enum DocumentExportFmt { md, typ, pdf }
-
 enum ExportFmt { csv, tsv, excel, json }
 
 const List<String> supportedTaxonClass = [
@@ -17,19 +13,6 @@ const List<String> supportedTaxonClass = [
   'Agnatha',
 ];
 
-const Map<DocumentExportType, String> documentExport = {
-  DocumentExportType.narrative: 'Narrative',
-  DocumentExportType.site: 'Sites',
-  DocumentExportType.event: 'Events',
-  DocumentExportType.specimen: 'Specimen records',
-};
-
-const Map<DocumentExportFmt, String> documentExportFmt = {
-  DocumentExportFmt.md: 'Markdown (.md)',
-  DocumentExportFmt.typ: 'Typst (.typ)',
-  DocumentExportFmt.pdf: 'PDF (.pdf)',
-};
-
 const List<String> exportFormats = [
   'Comma-separated (.csv)',
   'Tab-separated (.tsv)',
@@ -41,6 +24,13 @@ enum DbExportFmt { sqlite3 }
 
 const Map<DbExportFmt, String> dbExportFmt = {
   DbExportFmt.sqlite3: 'Database (.sqlite3)',
+};
+
+enum ConfigExportFmt { json, jsonl }
+
+const Map<ConfigExportFmt, String> configExportFmt = {
+  ConfigExportFmt.json: 'JSON (.json)',
+  ConfigExportFmt.jsonl: 'JSON Lines (.json.nl)',
 };
 
 enum ReportFmt { csv, kml, geojson, topojson, shp }
@@ -127,12 +117,13 @@ const List<String> mammalGroupList = [
   'All mammals',
 ];
 
-enum ExportRecordType {
+enum RecordType {
   narrative,
   site,
   collEvent,
   specimenRecord,
-  specimenParts
+  specimenParts,
+  none
 }
 
 const List<String> recordTypeList = [
@@ -141,6 +132,7 @@ const List<String> recordTypeList = [
   'Events',
   'Specimen records',
   'Specimen parts',
+  'None',
 ];
 
 const collectingRecordExportList = [
@@ -385,4 +377,20 @@ class ExportPresetModel {
       'combined': combinedFields.map((e) => e.toJson()).toList(),
     };
   }
+}
+
+RecordType parseRecordType(String? value) {
+  if (value == null) return RecordType.specimenRecord;
+  if (value == 'specimen') return RecordType.specimenRecord;
+  for (final val in RecordType.values) {
+    if (val.name == value) return val;
+  }
+  return RecordType.specimenRecord;
+}
+
+String recordTypeToString(RecordType type) {
+  if (type == RecordType.specimenRecord) {
+    return 'specimen';
+  }
+  return type.name;
 }

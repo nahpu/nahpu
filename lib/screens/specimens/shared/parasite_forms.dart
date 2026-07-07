@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 class ParasiteForms extends StatelessWidget {

@@ -46,6 +46,8 @@ void main() {
     expect(metadata.taken, isEmpty);
     expect(metadata.camera, isEmpty);
     expect(metadata.lenses, isEmpty);
+    expect(metadata.additionalExif, contains('Type: Other'));
+    expect(metadata.additionalExif, contains('Format: PDF'));
     expect(metadata.additionalExif, contains('Size: '));
     expect(metadata.additionalExif, contains('Modified: '));
   });
