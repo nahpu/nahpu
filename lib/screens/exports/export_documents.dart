@@ -197,6 +197,17 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     return tmpl?.recordType ?? RecordType.specimenRecord;
   }
 
+  Future<void> _syncTemplateSizeForLayout(
+      rust_config.DocumentLayoutPreset? layout) async {
+    if (layout == null || layout.blocks.isEmpty) return;
+    final templateName = layout.blocks.first.templateName;
+    final tmpl = await const TemplateService().getTemplate(templateName);
+    if (tmpl != null) {
+      await DocumentSettingsServices().setDocumentWidthMm(tmpl.widthMm);
+      await DocumentSettingsServices().setDocumentHeightMm(tmpl.heightMm);
+    }
+  }
+
   Future<void> _load() async {
     if (!mounted) return;
     setState(() {
@@ -206,6 +217,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
     try {
       final layout = await _layoutService.getCurrentLayout();
+      await _syncTemplateSizeForLayout(layout);
       final setupNames = await _layoutService.listLayoutNames();
       final templateNames = await rust_config.listTemplatePresets();
       final recordType = await _getRecordTypeForLayout(layout);
@@ -245,6 +257,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
   Future<void> _layoutChanged(
       rust_config.DocumentLayoutPreset newLayout) async {
+    await _syncTemplateSizeForLayout(newLayout);
     final recordType = await _getRecordTypeForLayout(newLayout);
     setState(() {
       _layout = newLayout;
@@ -257,6 +270,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   Future<void> _selectSetup(String name) async {
     final setup = await _layoutService.getLayout(name);
     if (setup == null) return;
+    await _syncTemplateSizeForLayout(setup);
     await _layoutService.setCurrentLayoutName(name);
     final recordType = await _getRecordTypeForLayout(setup);
     setState(() {

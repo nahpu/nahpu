@@ -1316,6 +1316,8 @@ class Template {
     required this.name,
     required this.page1,
     required this.page2,
+    required this.widthMm,
+    required this.heightMm,
     this.printOptions,
     this.outline,
     this.recordType = RecordType.specimenRecord,
@@ -1325,6 +1327,8 @@ class Template {
   final String name;
   final TemplatePage page1;
   final TemplatePage page2;
+  final double widthMm;
+  final double heightMm;
 
   /// When null (legacy files), the editor uses app template settings instead.
   final TemplatePrintOptions? printOptions;
@@ -1339,6 +1343,8 @@ class Template {
     String? name,
     TemplatePage? page1,
     TemplatePage? page2,
+    double? widthMm,
+    double? heightMm,
     TemplatePrintOptions? printOptions,
     bool clearPrintOptions = false,
     TemplateOutline? outline,
@@ -1350,6 +1356,8 @@ class Template {
       name: name ?? this.name,
       page1: page1 ?? this.page1,
       page2: page2 ?? this.page2,
+      widthMm: widthMm ?? this.widthMm,
+      heightMm: heightMm ?? this.heightMm,
       printOptions:
           clearPrintOptions ? null : (printOptions ?? this.printOptions),
       outline: clearOutline ? null : (outline ?? this.outline),
@@ -1362,6 +1370,8 @@ class Template {
         'name': name,
         'page1': page1.toJson(),
         'page2': page2.toJson(),
+        'widthMm': widthMm,
+        'heightMm': heightMm,
         if (printOptions != null) 'printOptions': printOptions!.toJson(),
         if (outline != null) 'outline': outline!.toJson(),
         'recordType': recordTypeToString(recordType),
@@ -1388,6 +1398,8 @@ class Template {
       page2: TemplatePage.fromJson(
         json['page2'] as Map<String, dynamic>? ?? {},
       ),
+      widthMm: (json['widthMm'] as num?)?.toDouble() ?? 215.9,
+      heightMm: (json['heightMm'] as num?)?.toDouble() ?? 279.4,
       printOptions: opts,
       outline: outline,
       recordType: parseRecordType(json['recordType'] as String?),
@@ -1411,11 +1423,15 @@ class DefaultTemplate {
     String name = 'Default',
     RecordType recordType = RecordType.specimenRecord,
     String description = '',
+    double widthMm = 215.9,
+    double heightMm = 279.4,
   ]) {
     return Template(
       name: name,
       page1: const TemplatePage(),
       page2: const TemplatePage(),
+      widthMm: widthMm,
+      heightMm: heightMm,
       printOptions: null,
       recordType: recordType,
       description: description,

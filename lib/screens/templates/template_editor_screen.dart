@@ -357,6 +357,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       final t = await _templateService.getTemplate(currentName);
       if (t != null) {
         _template = t;
+        _templateWidthMm = t.widthMm;
+        _templateHeightMm = t.heightMm;
+        await _documentSettings.setDocumentWidthMm(t.widthMm);
+        await _documentSettings.setDocumentHeightMm(t.heightMm);
         final o = t.printOptions;
         if (o != null) {
           _isDuplex = o.isDuplex;
@@ -524,6 +528,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     return _template.copyWith(
       name: name,
       printOptions: _currentPrintOptions,
+      widthMm: _templateWidthMm,
+      heightMm: _templateHeightMm,
     );
   }
 
@@ -948,6 +954,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       result.description,
     ).copyWith(
       printOptions: _currentPrintOptions,
+      widthMm: _templateWidthMm,
+      heightMm: _templateHeightMm,
     );
     await _templateService.saveTemplate(fresh);
     _savedNames = await _templateService.listTemplateNames();
@@ -1042,11 +1050,15 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         await _documentSettings.setMirrorFront(o.mirrorFront);
         await _documentSettings.setMirrorBack(o.mirrorBack);
       }
+      await _documentSettings.setDocumentWidthMm(merged.widthMm);
+      await _documentSettings.setDocumentHeightMm(merged.heightMm);
       if (!mounted) return;
       _savedNames = await _templateService.listTemplateNames();
       if (!mounted) return;
       setState(() {
         _template = merged;
+        _templateWidthMm = merged.widthMm;
+        _templateHeightMm = merged.heightMm;
         if (o != null) {
           _isDuplex = o.isDuplex;
           _mirrorFront = o.mirrorFront;
@@ -1079,9 +1091,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         await _documentSettings.setMirrorFront(o.mirrorFront);
         await _documentSettings.setMirrorBack(o.mirrorBack);
       }
+      await _documentSettings.setDocumentWidthMm(t.widthMm);
+      await _documentSettings.setDocumentHeightMm(t.heightMm);
       if (!mounted) return;
       setState(() {
         _template = t;
+        _templateWidthMm = t.widthMm;
+        _templateHeightMm = t.heightMm;
         if (o != null) {
           _isDuplex = o.isDuplex;
           _mirrorFront = o.mirrorFront;

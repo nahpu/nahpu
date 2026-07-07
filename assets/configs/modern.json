@@ -5,6 +5,8 @@
       "name": "Modern Narrative",
       "description": "Modern narrative page with compact metadata band.",
       "recordType": "narrative",
+      "widthMm": 215.9,
+      "heightMm": 279.4,
       "page1": {
         "customTexts": [
           {"id": "label", "text": "Narrative", "xMm": 10, "yMm": 9, "fontSizePt": 16, "fontFamily": "PlusJakartaSans", "bold": true, "colorArgb": 4278190080, "maxWidthMm": 170},
@@ -22,6 +24,8 @@
       "name": "Modern Site",
       "description": "Modern site card for locality and habitat summaries.",
       "recordType": "site",
+      "widthMm": 215.9,
+      "heightMm": 279.4,
       "page1": {
         "customTexts": [
           {"id": "label", "text": "Site", "xMm": 10, "yMm": 9, "fontSizePt": 16, "fontFamily": "PlusJakartaSans", "bold": true, "maxWidthMm": 170},
@@ -39,6 +43,8 @@
       "name": "Modern Event",
       "description": "Modern collecting event sheet with effort and personnel emphasis.",
       "recordType": "collEvent",
+      "widthMm": 215.9,
+      "heightMm": 279.4,
       "page1": {
         "customTexts": [
           {"id": "label", "text": "Event", "xMm": 10, "yMm": 9, "fontSizePt": 16, "fontFamily": "PlusJakartaSans", "bold": true, "maxWidthMm": 170},
@@ -57,6 +63,8 @@
       "name": "Modern Specimen - General Mammals",
       "description": "Modern mammal specimen label with scannable field blocks.",
       "recordType": "specimen",
+      "widthMm": 100.0,
+      "heightMm": 34.0,
       "page1": {
         "customTexts": [
           {"id": "field", "text": "[specimen::fieldNumber]", "xMm": 3, "yMm": 3, "fontSizePt": 13, "fontFamily": "PlusJakartaSans", "bold": true, "maxWidthMm": 28},
@@ -73,6 +81,8 @@
       "name": "Modern Specimen - Bats",
       "description": "Modern bat label with forearm and acoustic fields.",
       "recordType": "specimen",
+      "widthMm": 100.0,
+      "heightMm": 34.0,
       "page1": {
         "customTexts": [
           {"id": "field", "text": "[specimen::fieldNumber]", "xMm": 3, "yMm": 3, "fontSizePt": 13, "fontFamily": "PlusJakartaSans", "bold": true, "maxWidthMm": 28},
@@ -89,6 +99,8 @@
       "name": "Modern Specimen - Birds",
       "description": "Modern avian label with wing, fat, and reproductive fields.",
       "recordType": "specimen",
+      "widthMm": 100.0,
+      "heightMm": 34.0,
       "page1": {
         "customTexts": [
           {"id": "field", "text": "[specimen::fieldNumber]", "xMm": 3, "yMm": 3, "fontSizePt": 13, "fontFamily": "PlusJakartaSans", "bold": true, "maxWidthMm": 28},
@@ -105,6 +117,8 @@
       "name": "Modern Specimen - Herpetofauna",
       "description": "Modern herpetofauna label with SVL and mass.",
       "recordType": "specimen",
+      "widthMm": 100.0,
+      "heightMm": 34.0,
       "page1": {
         "customTexts": [
           {"id": "field", "text": "[specimen::fieldNumber]", "xMm": 3, "yMm": 3, "fontSizePt": 13, "fontFamily": "PlusJakartaSans", "bold": true, "maxWidthMm": 28},

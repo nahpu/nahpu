@@ -5,6 +5,8 @@
       "name": "Classic Narrative",
       "description": "Classic field journal page for narrative records.",
       "recordType": "narrative",
+      "widthMm": 215.9,
+      "heightMm": 279.4,
       "page1": {
         "customTexts": [
           {"id": "title", "text": "FIELD NARRATIVE", "xMm": 10, "yMm": 8, "fontSizePt": 14, "fontFamily": "LibertinusSerif", "bold": true, "maxWidthMm": 170},
@@ -19,6 +21,8 @@
       "name": "Classic Site",
       "description": "Classic locality sheet for site records.",
       "recordType": "site",
+      "widthMm": 215.9,
+      "heightMm": 279.4,
       "page1": {
         "customTexts": [
           {"id": "title", "text": "SITE RECORD: [site::siteID]", "xMm": 10, "yMm": 8, "fontSizePt": 14, "fontFamily": "LibertinusSerif", "bold": true, "maxWidthMm": 175},
@@ -36,6 +40,8 @@
       "name": "Classic Event",
       "description": "Classic collecting event sheet.",
       "recordType": "collEvent",
+      "widthMm": 215.9,
+      "heightMm": 279.4,
       "page1": {
         "customTexts": [
           {"id": "title", "text": "COLLECTING EVENT: [event::collEventID]", "xMm": 10, "yMm": 8, "fontSizePt": 14, "fontFamily": "LibertinusSerif", "bold": true, "maxWidthMm": 175},
@@ -54,6 +60,8 @@
       "name": "Classic Specimen - General Mammals",
       "description": "Classic mammal specimen label with standard external measurements.",
       "recordType": "specimen",
+      "widthMm": 100.0,
+      "heightMm": 34.0,
       "page1": {
         "customTexts": [
           {"id": "taxon", "text": "[taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 3, "yMm": 3, "fontSizePt": 10, "fontFamily": "LibertinusSerif", "italic": true, "maxWidthMm": 86},
@@ -70,6 +78,8 @@
       "name": "Classic Specimen - Bats",
       "description": "Classic bat specimen label with bat measurements and echolocation fields.",
       "recordType": "specimen",
+      "widthMm": 100.0,
+      "heightMm": 34.0,
       "page1": {
         "customTexts": [
           {"id": "taxon", "text": "[taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 3, "yMm": 3, "fontSizePt": 10, "fontFamily": "LibertinusSerif", "italic": true, "maxWidthMm": 86},
@@ -86,6 +96,8 @@
       "name": "Classic Specimen - Birds",
       "description": "Classic avian specimen label with plumage and reproductive fields.",
       "recordType": "specimen",
+      "widthMm": 100.0,
+      "heightMm": 34.0,
       "page1": {
         "customTexts": [
           {"id": "taxon", "text": "[taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 3, "yMm": 3, "fontSizePt": 10, "fontFamily": "LibertinusSerif", "italic": true, "maxWidthMm": 86},
@@ -102,6 +114,8 @@
       "name": "Classic Specimen - Herpetofauna",
       "description": "Classic herpetofauna specimen label with SVL and mass.",
       "recordType": "specimen",
+      "widthMm": 100.0,
+      "heightMm": 34.0,
       "page1": {
         "customTexts": [
           {"id": "taxon", "text": "[taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 3, "yMm": 3, "fontSizePt": 10, "fontFamily": "LibertinusSerif", "italic": true, "maxWidthMm": 86},
