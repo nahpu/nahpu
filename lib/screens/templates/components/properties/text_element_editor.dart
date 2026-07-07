@@ -3,36 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
 
-const _kNullFallbackField = 'field';
-const _kNullFallbackNa = 'na';
-const _kNullFallbackNone = 'none';
-const _kNullFallbackCustom = 'custom';
-
 String _fieldIdFromBracketLabel(String label) {
   return label.replaceAll('[', '').replaceAll(']', '');
 }
 
-String _placeholderWithNullFallback(
-  String label,
-  String fallbackOption,
-  String customFallback,
-) {
+String _placeholderForDisplayOption(String label, String displayOption) {
   final fieldId = _fieldIdFromBracketLabel(label);
-  if (fieldId.endsWith('-img')) return label;
-
-  final fallback = switch (fallbackOption) {
-    _kNullFallbackField => fieldId,
-    _kNullFallbackNa => 'N/A',
-    _kNullFallbackNone => 'None',
-    _kNullFallbackCustom => customFallback.trim(),
-    _ => '',
-  };
-  if (fallback.isEmpty) return label;
-  return '[$fieldId??$fallback]';
-}
-
-String _stripPlaceholderFallback(String fieldId) {
-  return fieldId.split('??').first;
+  if (displayOption == 'full') return '[$fieldId]';
+  final isImageField = fieldId.endsWith('-img');
+  final baseField =
+      isImageField ? fieldId.substring(0, fieldId.length - 4) : fieldId;
+  final parts = baseField.split('::');
+  final shortField = parts.length > 1 ? parts.last : baseField;
+  return isImageField ? '[$shortField-img]' : '[$shortField]';
 }
 
 class AvailableSymbolsWrap extends StatelessWidget {
@@ -107,16 +90,7 @@ class _AvailableFieldsSectionState
     extends ConsumerState<AvailableFieldsSection> {
   bool _showFields = false;
   String _fieldDisplayOption = 'short';
-  String _nullFallbackOption = _kNullFallbackField;
-  final TextEditingController _customNullFallbackController =
-      TextEditingController();
   String _selectedTaxon = 'All Taxa';
-
-  @override
-  void dispose() {
-    _customNullFallbackController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,48 +213,6 @@ class _AvailableFieldsSectionState
                           }
                         },
                       ),
-                      DropdownButton<String>(
-                        value: _nullFallbackOption,
-                        isDense: true,
-                        underline: const SizedBox.shrink(),
-                        items: const [
-                          DropdownMenuItem(
-                            value: _kNullFallbackField,
-                            child: Text(
-                              'Null: Table::Field',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: _kNullFallbackNa,
-                            child: Text(
-                              'Null: N/A',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: _kNullFallbackNone,
-                            child: Text(
-                              'Null: None',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: _kNullFallbackCustom,
-                            child: Text(
-                              'Null: Custom',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) {
-                            setState(() {
-                              _nullFallbackOption = v;
-                            });
-                          }
-                        },
-                      ),
                       IconButton(
                         icon: const Icon(Icons.close, size: 18.0),
                         onPressed: () {
@@ -295,18 +227,6 @@ class _AvailableFieldsSectionState
               ],
             ),
           ),
-          if (_nullFallbackOption == _kNullFallbackCustom)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 0),
-              child: TextField(
-                controller: _customNullFallbackController,
-                decoration: const InputDecoration(
-                  isDense: true,
-                  labelText: 'Custom null text',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ),
           const Divider(height: 1.0),
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 250.0),
@@ -332,10 +252,9 @@ class _AvailableFieldsSectionState
                       dense: true,
                       visualDensity: VisualDensity.compact,
                       onTap: () => widget.onSelectField(
-                        _placeholderWithNullFallback(
+                        _placeholderForDisplayOption(
                           label,
-                          _nullFallbackOption,
-                          _customNullFallbackController.text,
+                          _fieldDisplayOption,
                         ),
                       ),
                       title: Text(
@@ -433,14 +352,12 @@ class _AvailableFieldsSectionState
   }
 
   String _getDisplayLabel(String label) {
-    final stripped = _stripPlaceholderFallback(
-      _fieldIdFromBracketLabel(label),
-    );
+    final stripped = _fieldIdFromBracketLabel(label);
     if (_fieldDisplayOption == 'short') {
       final parts = stripped.split('::');
-      return parts.length > 1 ? parts.last : stripped;
+      return '[${parts.length > 1 ? parts.last : stripped}]';
     }
-    return stripped;
+    return '[$stripped]';
   }
 }
 
@@ -464,7 +381,6 @@ class TextElementEditorDialog extends ConsumerStatefulWidget {
 class _TextElementEditorDialogState
     extends ConsumerState<TextElementEditorDialog> {
   late TextEditingController _controller;
-  String _fieldDisplayOption = 'short';
 
   @override
   void initState() {
@@ -493,46 +409,12 @@ class _TextElementEditorDialogState
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Text Input',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.0,
-                        ),
-                      ),
-                      DropdownButton<String>(
-                        value: _fieldDisplayOption,
-                        isDense: true,
-                        underline: const SizedBox.shrink(),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'full',
-                            child: Text(
-                              'Table::Field',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'short',
-                            child: Text(
-                              'Field Only',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) {
-                            setState(() {
-                              _fieldDisplayOption = v;
-                            });
-                            _convertTextFormat(v);
-                          }
-                        },
-                      ),
-                    ],
+                  const Text(
+                    'Text Input',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.0,
+                    ),
                   ),
                   const SizedBox(height: 8.0),
                   TextField(
@@ -613,78 +495,6 @@ class _TextElementEditorDialogState
       ),
     );
   }
-
-  void _convertTextFormat(String targetFormat) {
-    final text = _controller.text;
-    final db = ref.read(databaseProvider);
-    final Map<String, String> fieldToFull = {};
-    final List<String> allFullFields = [];
-
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      for (var col in table.$columns) {
-        final colName = col.name;
-        final full = '$tableName::$colName';
-        allFullFields.add(full);
-        fieldToFull.putIfAbsent(colName, () => full);
-        if (colName.endsWith('.sex')) {
-          fieldToFull.putIfAbsent('$colName-img', () => '$full-img');
-        }
-      }
-    }
-
-    if (targetFormat == 'short') {
-      String result = text;
-      final regExp = RegExp(r'\[([^\]]+)\]');
-      final matches = regExp.allMatches(text).toList();
-      for (final match in matches.reversed) {
-        final matchedGroup = match.group(1);
-        if (matchedGroup == null) continue;
-        final parts = matchedGroup.split('??');
-        final base = parts.first;
-        final fallback =
-            parts.length > 1 ? '??${parts.sublist(1).join('??')}' : '';
-        final isImg = base.endsWith('-img');
-        final baseField = isImg ? base.substring(0, base.length - 4) : base;
-        if (!allFullFields.contains(baseField)) continue;
-        final short = baseField.split('::').last;
-        final replacement = isImg ? '$short-img$fallback' : '$short$fallback';
-        result = result.replaceRange(match.start, match.end, '[$replacement]');
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    } else {
-      final regExp = RegExp(r'\[([^\]]+)\]');
-      final matches = regExp.allMatches(text).toList();
-      String result = text;
-      for (final match in matches.reversed) {
-        final matchedGroup = match.group(1);
-        if (matchedGroup == null) continue;
-        final parts = matchedGroup.split('??');
-        final base = parts.first;
-        final fallback =
-            parts.length > 1 ? '??${parts.sublist(1).join('??')}' : '';
-        if (base.contains('::')) {
-          continue;
-        }
-        final isImg = base.endsWith('-img');
-        final baseName = isImg ? base.substring(0, base.length - 4) : base;
-        final fullBase = fieldToFull[baseName];
-        if (fullBase != null) {
-          final replacement =
-              isImg ? '$fullBase-img$fallback' : '$fullBase$fallback';
-          result =
-              result.replaceRange(match.start, match.end, '[$replacement]');
-        }
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    }
-  }
 }
 
 class TextElementEditorBottomSheet extends ConsumerStatefulWidget {
@@ -707,7 +517,6 @@ class TextElementEditorBottomSheet extends ConsumerStatefulWidget {
 class _TextElementEditorBottomSheetState
     extends ConsumerState<TextElementEditorBottomSheet> {
   late TextEditingController _controller;
-  String _fieldDisplayOption = 'short';
 
   @override
   void initState() {
@@ -779,45 +588,11 @@ class _TextElementEditorBottomSheetState
               ),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Text Input',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              DropdownButton<String>(
-                value: _fieldDisplayOption,
-                isDense: true,
-                underline: const SizedBox.shrink(),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'full',
-                    child: Text(
-                      'Table::Field',
-                      style: TextStyle(fontSize: 12.0),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'short',
-                    child: Text(
-                      'Field Only',
-                      style: TextStyle(fontSize: 12.0),
-                    ),
-                  ),
-                ],
-                onChanged: (v) {
-                  if (v != null) {
-                    setState(() {
-                      _fieldDisplayOption = v;
-                    });
-                    _convertTextFormat(v);
-                  }
-                },
-              ),
-            ],
+          Text(
+            'Text Input',
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8.0),
           TextField(
@@ -877,77 +652,5 @@ class _TextElementEditorBottomSheetState
         offset: (start < 0 ? 0 : start) + val.length,
       ),
     );
-  }
-
-  void _convertTextFormat(String targetFormat) {
-    final text = _controller.text;
-    final db = ref.read(databaseProvider);
-    final Map<String, String> fieldToFull = {};
-    final List<String> allFullFields = [];
-
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      for (var col in table.$columns) {
-        final colName = col.name;
-        final full = '$tableName::$colName';
-        allFullFields.add(full);
-        fieldToFull.putIfAbsent(colName, () => full);
-        if (colName.endsWith('.sex')) {
-          fieldToFull.putIfAbsent('$colName-img', () => '$full-img');
-        }
-      }
-    }
-
-    if (targetFormat == 'short') {
-      String result = text;
-      final regExp = RegExp(r'\[([^\]]+)\]');
-      final matches = regExp.allMatches(text).toList();
-      for (final match in matches.reversed) {
-        final matchedGroup = match.group(1);
-        if (matchedGroup == null) continue;
-        final parts = matchedGroup.split('??');
-        final base = parts.first;
-        final fallback =
-            parts.length > 1 ? '??${parts.sublist(1).join('??')}' : '';
-        final isImg = base.endsWith('-img');
-        final baseField = isImg ? base.substring(0, base.length - 4) : base;
-        if (!allFullFields.contains(baseField)) continue;
-        final short = baseField.split('::').last;
-        final replacement = isImg ? '$short-img$fallback' : '$short$fallback';
-        result = result.replaceRange(match.start, match.end, '[$replacement]');
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    } else {
-      final regExp = RegExp(r'\[([^\]]+)\]');
-      final matches = regExp.allMatches(text).toList();
-      String result = text;
-      for (final match in matches.reversed) {
-        final matchedGroup = match.group(1);
-        if (matchedGroup == null) continue;
-        final parts = matchedGroup.split('??');
-        final base = parts.first;
-        final fallback =
-            parts.length > 1 ? '??${parts.sublist(1).join('??')}' : '';
-        if (base.contains('::')) {
-          continue;
-        }
-        final isImg = base.endsWith('-img');
-        final baseName = isImg ? base.substring(0, base.length - 4) : base;
-        final fullBase = fieldToFull[baseName];
-        if (fullBase != null) {
-          final replacement =
-              isImg ? '$fullBase-img$fallback' : '$fullBase$fallback';
-          result =
-              result.replaceRange(match.start, match.end, '[$replacement]');
-        }
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    }
   }
 }

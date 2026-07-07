@@ -218,6 +218,10 @@ class _PreviewPage extends StatelessWidget {
                                     : substituteDocumentPlaceholders(
                                         ct.text,
                                         placeholderValues,
+                                        nullFallbackOption:
+                                            ct.nullFallbackOption,
+                                        customNullFallbackText:
+                                            ct.customNullFallbackText,
                                       ),
                                 ct.textType,
                                 ct.formatOption,

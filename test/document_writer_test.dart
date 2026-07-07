@@ -71,6 +71,28 @@ void main() {
 
       expect(result, 'Catalog: NAHPU-002');
     });
+
+    test('substituteDocumentPlaceholders uses text property null fallback', () {
+      const text = 'Weight: [weight]';
+      final result = substituteDocumentPlaceholders(
+        text,
+        {'weight': ''},
+        nullFallbackOption: kTemplateNullFallbackNa,
+      );
+
+      expect(result, 'Weight: N/A');
+      expect(text, 'Weight: [weight]');
+    });
+
+    test('substituteDocumentPlaceholders uses field name null fallback', () {
+      final result = substituteDocumentPlaceholders(
+        'Catalog: [specimen::catalogNum]',
+        {},
+        nullFallbackOption: kTemplateNullFallbackField,
+      );
+
+      expect(result, 'Catalog: specimen::catalogNum');
+    });
   });
 
   group('DocumentWriter z-index tests', () {
@@ -661,6 +683,8 @@ void main() {
         expect(ct.qrBgColorArgb, 0xFFFFFFFF);
         expect(ct.qrShape, 'square');
         expect(ct.isDynamic, false);
+        expect(ct.nullFallbackOption, kTemplateNullFallbackBlank);
+        expect(ct.customNullFallbackText, isEmpty);
         expect(ct.backgroundColorArgb, isNull);
         expect(ct.borderColorArgb, isNull);
         expect(ct.borderWidthPt, 0);
@@ -682,6 +706,18 @@ void main() {
 
         final deserialized = CustomTextElement.fromJson(json);
         expect(deserialized.isDynamic, true);
+      });
+
+      test('CustomTextElement migrates legacy placeholder fallbacks', () {
+        final ct = CustomTextElement.fromJson({
+          'id': 'ct_legacy_null',
+          'text': 'Catalog: [specimen::catalogNum??N/A]',
+          'xMm': 0,
+          'yMm': 0,
+        });
+
+        expect(ct.text, 'Catalog: [specimen::catalogNum]');
+        expect(ct.nullFallbackOption, kTemplateNullFallbackNa);
       });
 
       test('CustomTextElement JSON serialization retains background and border',

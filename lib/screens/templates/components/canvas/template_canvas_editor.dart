@@ -366,6 +366,10 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                         ? substituteDocumentPlaceholders(
                                             rawText,
                                             editorTemplateFieldPreview,
+                                            nullFallbackOption:
+                                                element.nullFallbackOption,
+                                            customNullFallbackText:
+                                                element.customNullFallbackText,
                                           )
                                         : formatFieldPlaceholderText(
                                             rawText,
@@ -495,6 +499,10 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                                 ? substituteDocumentPlaceholders(
                                                     element.text,
                                                     editorTemplateFieldPreview,
+                                                    nullFallbackOption: element
+                                                        .nullFallbackOption,
+                                                    customNullFallbackText: element
+                                                        .customNullFallbackText,
                                                   )
                                                 : formatFieldPlaceholderText(
                                                     element.text,

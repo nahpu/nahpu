@@ -16,7 +16,12 @@ class _DocumentTemplateSubstitutor {
         texts.add(ct);
         continue;
       }
-      var subbedText = substituteDocumentPlaceholders(ct.text, data);
+      var subbedText = substituteDocumentPlaceholders(
+        ct.text,
+        data,
+        nullFallbackOption: ct.nullFallbackOption,
+        customNullFallbackText: ct.customNullFallbackText,
+      );
       var textType = ct.textType;
       if (ct.textType == 'markdown' ||
           ct.text.toLowerCase().contains('narrative::narrative')) {

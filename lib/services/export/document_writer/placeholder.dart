@@ -9,7 +9,12 @@ double documentPdfMmToPt(double mm) => mm * 72.0 / 25.4;
 ///
 /// If a placeholder key (e.g. `[catalogNum]`) is found in [data], it is replaced
 /// with the associated value. Matches are performed case-insensitively.
-String substituteDocumentPlaceholders(String input, Map<String, String> data) {
+String substituteDocumentPlaceholders(
+  String input,
+  Map<String, String> data, {
+  String nullFallbackOption = kTemplateNullFallbackBlank,
+  String customNullFallbackText = '',
+}) {
   if (isTemplateBracketGenderIconText(input)) return input;
   final isBlank = data['__blank__'] == 'true';
   return input.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (m) {
@@ -18,7 +23,11 @@ String substituteDocumentPlaceholders(String input, Map<String, String> data) {
     final k = fallbackSplit.first.trim();
     final fallback = fallbackSplit.length > 1
         ? fallbackSplit.sublist(1).join('??').trim()
-        : null;
+        : _nullFallbackForPlaceholder(
+            k,
+            nullFallbackOption,
+            customNullFallbackText,
+          );
     final value = _lookupDocumentPlaceholderValue(k, data);
     if (value != null) {
       return value.isEmpty && fallback != null ? fallback : value;
@@ -26,6 +35,22 @@ String substituteDocumentPlaceholders(String input, Map<String, String> data) {
     if (fallback != null) return fallback;
     return isBlank ? '' : m.group(0)!;
   });
+}
+
+String? _nullFallbackForPlaceholder(
+  String key,
+  String option,
+  String customText,
+) {
+  if (key.endsWith('-img')) return null;
+  return switch (option) {
+    kTemplateNullFallbackField => key,
+    kTemplateNullFallbackNa => 'N/A',
+    kTemplateNullFallbackNone => 'None',
+    kTemplateNullFallbackCustom =>
+      customText.trim().isEmpty ? null : customText.trim(),
+    _ => null,
+  };
 }
 
 String? _lookupDocumentPlaceholderValue(String key, Map<String, String> data) {

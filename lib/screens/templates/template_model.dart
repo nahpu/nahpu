@@ -441,6 +441,52 @@ String formatTemplateText(
   return result;
 }
 
+const kTemplateNullFallbackBlank = 'blank';
+const kTemplateNullFallbackField = 'field';
+const kTemplateNullFallbackNa = 'na';
+const kTemplateNullFallbackNone = 'none';
+const kTemplateNullFallbackCustom = 'custom';
+
+String stripTemplatePlaceholderFallbacks(String text) {
+  return text.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (match) {
+    final placeholder = match.group(1);
+    if (placeholder == null) return match.group(0)!;
+    return '[${placeholder.split('??').first.trim()}]';
+  });
+}
+
+String inferTemplateNullFallbackOption(String text) {
+  for (final match in RegExp(r'\[([^\]]+)\]').allMatches(text)) {
+    final placeholder = match.group(1);
+    if (placeholder == null || placeholder.endsWith('-img')) continue;
+    final parts = placeholder.split('??');
+    if (parts.length <= 1) continue;
+    final fieldId = parts.first.trim();
+    final fallback = parts.sublist(1).join('??').trim();
+    if (fallback == fieldId) return kTemplateNullFallbackField;
+    if (fallback == 'N/A') return kTemplateNullFallbackNa;
+    if (fallback == 'None') return kTemplateNullFallbackNone;
+    return kTemplateNullFallbackCustom;
+  }
+  return kTemplateNullFallbackBlank;
+}
+
+String inferTemplateCustomNullFallback(String text) {
+  for (final match in RegExp(r'\[([^\]]+)\]').allMatches(text)) {
+    final placeholder = match.group(1);
+    if (placeholder == null || placeholder.endsWith('-img')) continue;
+    final parts = placeholder.split('??');
+    if (parts.length <= 1) continue;
+    final fieldId = parts.first.trim();
+    final fallback = parts.sublist(1).join('??').trim();
+    if (fallback == fieldId || fallback == 'N/A' || fallback == 'None') {
+      continue;
+    }
+    return fallback;
+  }
+  return '';
+}
+
 class CustomTextElement {
   const CustomTextElement({
     required this.id,
@@ -470,6 +516,8 @@ class CustomTextElement {
     this.paddingPt = 2.0,
     this.textType = 'normal',
     this.formatOption = 'normal',
+    this.nullFallbackOption = kTemplateNullFallbackBlank,
+    this.customNullFallbackText = '',
     this.isQrCode = false,
     this.qrSizeMm = 15.0,
     this.qrBgColorArgb = 0xFFFFFFFF,
@@ -503,6 +551,8 @@ class CustomTextElement {
   final double paddingPt;
   final String textType;
   final String formatOption;
+  final String nullFallbackOption;
+  final String customNullFallbackText;
 
   /// For [isTemplateBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
@@ -555,6 +605,8 @@ class CustomTextElement {
     bool clearHeightMm = false,
     String? textType,
     String? formatOption,
+    String? nullFallbackOption,
+    String? customNullFallbackText,
     bool? isQrCode,
     double? qrSizeMm,
     int? qrBgColorArgb,
@@ -596,6 +648,9 @@ class CustomTextElement {
       paddingPt: paddingPt ?? this.paddingPt,
       textType: textType ?? this.textType,
       formatOption: formatOption ?? this.formatOption,
+      nullFallbackOption: nullFallbackOption ?? this.nullFallbackOption,
+      customNullFallbackText:
+          customNullFallbackText ?? this.customNullFallbackText,
       isQrCode: isQrCode ?? this.isQrCode,
       qrSizeMm: qrSizeMm ?? this.qrSizeMm,
       qrBgColorArgb: qrBgColorArgb ?? this.qrBgColorArgb,
@@ -636,6 +691,9 @@ class CustomTextElement {
         'paddingPt': paddingPt,
         'textType': textType,
         'formatOption': formatOption,
+        'nullFallbackOption': nullFallbackOption,
+        if (customNullFallbackText.isNotEmpty)
+          'customNullFallbackText': customNullFallbackText,
         'isQrCode': isQrCode,
         'qrSizeMm': qrSizeMm,
         'qrBgColorArgb': qrBgColorArgb,
@@ -646,9 +704,15 @@ class CustomTextElement {
       };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
+    final rawText = json['text'] as String? ?? '';
+    final legacyNullFallbackOption = inferTemplateNullFallbackOption(rawText);
+    final nullFallbackOption =
+        json['nullFallbackOption'] as String? ?? legacyNullFallbackOption;
+    final customNullFallbackText = json['customNullFallbackText'] as String? ??
+        inferTemplateCustomNullFallback(rawText);
     return CustomTextElement(
       id: json['id'] as String,
-      text: json['text'] as String? ?? '',
+      text: stripTemplatePlaceholderFallbacks(rawText),
       xMm: (json['xMm'] as num?)?.toDouble() ?? 0,
       yMm: (json['yMm'] as num?)?.toDouble() ?? 0,
       fontSizePt: (json['fontSizePt'] as num?)?.toDouble() ?? 10,
@@ -674,6 +738,8 @@ class CustomTextElement {
       paddingPt: (json['paddingPt'] as num?)?.toDouble() ?? 2.0,
       textType: json['textType'] as String? ?? 'normal',
       formatOption: json['formatOption'] as String? ?? 'normal',
+      nullFallbackOption: nullFallbackOption,
+      customNullFallbackText: customNullFallbackText,
       isQrCode: json['isQrCode'] as bool? ?? false,
       qrSizeMm: (json['qrSizeMm'] as num?)?.toDouble() ?? 15.0,
       qrBgColorArgb: (json['qrBgColorArgb'] as num?)?.toInt() ?? 0xFFFFFFFF,
