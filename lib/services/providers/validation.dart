@@ -4,18 +4,46 @@ import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/utility_services.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'validation.freezed.dart';
+class ProjectFormField {
+  final String? errMsg;
+  final bool isValid;
 
-@freezed
-abstract class ProjectForm with _$ProjectForm {
-  const ProjectForm._();
+  ProjectFormField({
+    required this.errMsg,
+    this.isValid = false,
+  });
 
-  const factory ProjectForm({
-    required ProjectFormField projectName,
-    required ProjectFormField existingProject,
-  }) = _ProjectForm;
+  ProjectFormField copyWith({
+    String? errMsg,
+    bool? isValid,
+  }) {
+    return ProjectFormField(
+      errMsg: errMsg ?? this.errMsg,
+      isValid: isValid ?? this.isValid,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProjectFormField &&
+          runtimeType == other.runtimeType &&
+          errMsg == other.errMsg &&
+          isValid == other.isValid;
+
+  @override
+  int get hashCode => Object.hash(errMsg, isValid);
+}
+
+class ProjectForm {
+  final ProjectFormField projectName;
+  final ProjectFormField existingProject;
+
+  const ProjectForm({
+    required this.projectName,
+    required this.existingProject,
+  });
 
   factory ProjectForm.empty() => ProjectForm(
         projectName: ProjectFormField(errMsg: null, isValid: false),
@@ -25,15 +53,117 @@ abstract class ProjectForm with _$ProjectForm {
   bool get isValid {
     return projectName.isValid && existingProject.isValid;
   }
+
+  ProjectForm copyWith({
+    ProjectFormField? projectName,
+    ProjectFormField? existingProject,
+  }) {
+    return ProjectForm(
+      projectName: projectName ?? this.projectName,
+      existingProject: existingProject ?? this.existingProject,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProjectForm &&
+          runtimeType == other.runtimeType &&
+          projectName == other.projectName &&
+          existingProject == other.existingProject;
+
+  @override
+  int get hashCode => Object.hash(projectName, existingProject);
 }
 
-@freezed
-abstract class ProjectFormField with _$ProjectFormField {
-  factory ProjectFormField({
-    required String? errMsg,
-    @Default(false) bool isValid,
-  }) = _ProjectFormField;
+class PersonnelFormField {
+  final String? errMsg;
+  final bool isValid;
+
+  PersonnelFormField({
+    required this.errMsg,
+    this.isValid = false,
+  });
+
+  PersonnelFormField copyWith({
+    String? errMsg,
+    bool? isValid,
+  }) {
+    return PersonnelFormField(
+      errMsg: errMsg ?? this.errMsg,
+      isValid: isValid ?? this.isValid,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PersonnelFormField &&
+          runtimeType == other.runtimeType &&
+          errMsg == other.errMsg &&
+          isValid == other.isValid;
+
+  @override
+  int get hashCode => Object.hash(errMsg, isValid);
 }
+
+class PersonnelForm {
+  final PersonnelFormField name;
+  final PersonnelFormField email;
+  final PersonnelFormField initial;
+  final PersonnelFormField collNum;
+
+  const PersonnelForm({
+    required this.name,
+    required this.email,
+    required this.initial,
+    required this.collNum,
+  });
+
+  factory PersonnelForm.empty() => PersonnelForm(
+        name: PersonnelFormField(errMsg: null, isValid: false),
+        email: PersonnelFormField(errMsg: null, isValid: true),
+        initial: PersonnelFormField(errMsg: null, isValid: false),
+        collNum: PersonnelFormField(errMsg: null, isValid: false),
+      );
+
+  bool get isValidCataloger {
+    return name.isValid && email.isValid && initial.isValid && collNum.isValid;
+  }
+
+  bool get isValidOther => name.isValid && email.isValid;
+
+  PersonnelForm copyWith({
+    PersonnelFormField? name,
+    PersonnelFormField? email,
+    PersonnelFormField? initial,
+    PersonnelFormField? collNum,
+  }) {
+    return PersonnelForm(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      initial: initial ?? this.initial,
+      collNum: collNum ?? this.collNum,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PersonnelForm &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          email == other.email &&
+          initial == other.initial &&
+          collNum == other.collNum;
+
+  @override
+  int get hashCode => Object.hash(name, email, initial, collNum);
+}
+
+// ==========================================
+// NOTIFIERS & VALIDATORS (Unchanged)
+// ==========================================
 
 final projectFormValidatorProvider =
     AsyncNotifierProvider.autoDispose<ProjectFormValidator, ProjectForm>(
@@ -102,7 +232,7 @@ class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
   }
 
   Future<void> checkProjectNameExists(String? value) async {
-    if (value == null && value!.isEmpty) return;
+    if (value == null || value.isEmpty) return;
 
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -128,39 +258,6 @@ class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
   bool _findMatchingName(List<String> projectNames, String value) {
     return isListContains(projectNames, value);
   }
-}
-
-@freezed
-abstract class PersonnelForm with _$PersonnelForm {
-  const PersonnelForm._();
-
-  const factory PersonnelForm({
-    required PersonnelFormField name,
-    required PersonnelFormField email,
-    required PersonnelFormField initial,
-    required PersonnelFormField collNum,
-  }) = _PersonnelForm;
-
-  factory PersonnelForm.empty() => PersonnelForm(
-        name: PersonnelFormField(errMsg: null, isValid: false),
-        email: PersonnelFormField(errMsg: null, isValid: true),
-        initial: PersonnelFormField(errMsg: null, isValid: false),
-        collNum: PersonnelFormField(errMsg: null, isValid: false),
-      );
-
-  bool get isValidCataloger {
-    return name.isValid && email.isValid && initial.isValid && collNum.isValid;
-  }
-
-  bool get isValidOther => name.isValid && email.isValid;
-}
-
-@freezed
-abstract class PersonnelFormField with _$PersonnelFormField {
-  factory PersonnelFormField({
-    required String? errMsg,
-    @Default(false) bool isValid,
-  }) = _PersonnelFormField;
 }
 
 final personnelFormValidatorProvider =
@@ -213,7 +310,6 @@ class PersonnelFormValidator extends AsyncNotifier<PersonnelForm> {
   Future<void> validateEmail(String? value) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      // We allow email to be empty by default it is set to valid
       if (state.value == null) {
         return PersonnelForm.empty();
       }
