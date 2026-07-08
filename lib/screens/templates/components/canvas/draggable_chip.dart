@@ -114,10 +114,11 @@ enum _TextCorner { tl, tr, bl, br }
 class DraggableChipState extends State<DraggableChip> {
   static const double _handleVisual = 18;
   static const double _handleHit = 36;
-  static const double _snapTolerancePx = 6;
+  static const double _snapTolerancePx = 4;
   static const double _snapGuideWidthPx = 1.5;
 
   bool _dragging = false;
+  final CanvasSnapSession _snapSession = CanvasSnapSession();
   CanvasSnapResult? _snapResult;
 
   void _deferSetState(VoidCallback fn) {
@@ -303,6 +304,7 @@ class DraggableChipState extends State<DraggableChip> {
     _panOriginMm = widget.position;
     _panAccumMm = Offset.zero;
     _dragLiveMm = null;
+    _snapSession.reset();
     _snapResult = null;
     _deferSetState(() => _dragging = true);
     _templateDragLastGlobal = d.globalPosition;
@@ -316,6 +318,7 @@ class DraggableChipState extends State<DraggableChip> {
     _templateDragLastGlobal = null;
     _panOriginMm = null;
     _panAccumMm = Offset.zero;
+    _snapSession.reset();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _templateDragSession) return;
       setState(() {
@@ -354,7 +357,7 @@ class DraggableChipState extends State<DraggableChip> {
       _panOriginMm = Offset(cx, cy);
       _panAccumMm = Offset.zero;
     }
-    final snapResult = resolveCanvasMove(
+    final snapResult = _snapSession.resolve(
       position: Offset(cx, cy),
       snapEnabled: widget.snapEnabled,
       snapTargets: [
@@ -757,6 +760,82 @@ class CanvasSnapResult {
   final double? horizontalGuideMm;
 
   bool get hasGuide => verticalGuideMm != null || horizontalGuideMm != null;
+}
+
+class CanvasSnapSession {
+  double? _activeX;
+  double? _activeY;
+
+  void reset() {
+    _activeX = null;
+    _activeY = null;
+  }
+
+  CanvasSnapResult resolve({
+    required Offset position,
+    required bool snapEnabled,
+    required List<CanvasSnapTarget> snapTargets,
+    required double toleranceMm,
+  }) {
+    if (!snapEnabled) {
+      reset();
+      return CanvasSnapResult(position: position);
+    }
+
+    final acquireToleranceMm = math.max(0.0, toleranceMm);
+    final releaseToleranceMm = acquireToleranceMm * 1.5;
+    _activeX = _resolveAxisSnap(
+      value: position.dx,
+      targets: snapTargets.map((target) => target.xMm),
+      activeTarget: _activeX,
+      acquireToleranceMm: acquireToleranceMm,
+      releaseToleranceMm: releaseToleranceMm,
+    );
+    _activeY = _resolveAxisSnap(
+      value: position.dy,
+      targets: snapTargets.map((target) => target.yMm),
+      activeTarget: _activeY,
+      acquireToleranceMm: acquireToleranceMm,
+      releaseToleranceMm: releaseToleranceMm,
+    );
+
+    return CanvasSnapResult(
+      position: Offset(_activeX ?? position.dx, _activeY ?? position.dy),
+      verticalGuideMm: _activeX,
+      horizontalGuideMm: _activeY,
+    );
+  }
+
+  double? _resolveAxisSnap({
+    required double value,
+    required Iterable<double?> targets,
+    required double? activeTarget,
+    required double acquireToleranceMm,
+    required double releaseToleranceMm,
+  }) {
+    final availableTargets = targets
+        .whereType<double>()
+        .where((target) => target.isFinite)
+        .toList(growable: false);
+
+    if (activeTarget != null &&
+        availableTargets
+            .any((target) => (target - activeTarget).abs() < 1e-6) &&
+        (value - activeTarget).abs() <= releaseToleranceMm) {
+      return activeTarget;
+    }
+
+    double? snapTarget;
+    var bestDistance = acquireToleranceMm;
+    for (final target in availableTargets) {
+      final distance = (value - target).abs();
+      if (distance <= bestDistance) {
+        bestDistance = distance;
+        snapTarget = target;
+      }
+    }
+    return snapTarget;
+  }
 }
 
 CanvasSnapResult resolveCanvasSnap({

@@ -71,7 +71,7 @@ class DraggableLineChip extends StatefulWidget {
 class DraggableLineChipState extends State<DraggableLineChip> {
   static const double _handleVisual = 16;
   static const double _handleHit = 36;
-  static const double _snapTolerancePx = 6;
+  static const double _snapTolerancePx = 4;
   static const double _snapGuideWidthPx = 1.5;
 
   void _deferSetState(VoidCallback fn) {
@@ -99,7 +99,10 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   Offset? _imageMovePanLastGlobal;
   Offset? _resizePanLastGlobal;
 
+  Offset? _imagePanOriginMm;
+  Offset _imagePanAccumMm = Offset.zero;
   Offset? _imageDragLiveMm;
+  final CanvasSnapSession _snapSession = CanvasSnapSession();
   CanvasSnapResult? _snapResult;
   int _imageMoveSession = 0;
 
@@ -136,7 +139,10 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     widget.onDragStateChanged?.call(true);
     widget.onTap?.call();
     _imageMoveSession++;
-    _imageDragLiveMm = widget.position;
+    _imagePanOriginMm = widget.position;
+    _imagePanAccumMm = Offset.zero;
+    _imageDragLiveMm = null;
+    _snapSession.reset();
     _snapResult = null;
     _deferSetState(() => _moving = true);
     _imageMovePanLastGlobal = d.globalPosition;
@@ -158,8 +164,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final lr = _resizeLiveRect;
     final w = lr?.width ?? widget.lengthMm;
     final h = lr?.height ?? math.max(1.0, widget.thicknessPt * 0.3527);
-    final current = _imageDragLiveMm ?? widget.position;
-    final raw = current + dMm;
+    final origin = _imagePanOriginMm ?? widget.position;
+    _imagePanAccumMm += dMm;
+    final raw = origin + _imagePanAccumMm;
     final clamped = clampRotatedRectTopLeft(
       positionMm: raw,
       widthMm: w,
@@ -168,7 +175,11 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       canvasWidthMm: widget.templateWidthMm,
       canvasHeightMm: widget.templateHeightMm,
     );
-    final snapResult = resolveCanvasMove(
+    if (clamped != raw) {
+      _imagePanOriginMm = clamped;
+      _imagePanAccumMm = Offset.zero;
+    }
+    final snapResult = _snapSession.resolve(
       position: clamped,
       snapEnabled: widget.snapEnabled,
       snapTargets: [
@@ -424,6 +435,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       widget.onMoved(_imageDragLiveMm!);
     }
     _imageMovePanLastGlobal = null;
+    _imagePanOriginMm = null;
+    _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _imageMoveSession) return;
       setState(() {

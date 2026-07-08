@@ -132,6 +132,36 @@ void main() {
       expectOffsetClose(result.position, const Offset(49.4, 12.2));
       expect(result.hasGuide, isFalse);
     });
+
+    test('holds a snapped target briefly then releases outside hysteresis', () {
+      final session = CanvasSnapSession();
+      const targets = [CanvasSnapTarget(xMm: 50, yMm: 12)];
+
+      final acquired = session.resolve(
+        position: const Offset(49.6, 12.3),
+        snapEnabled: true,
+        snapTargets: targets,
+        toleranceMm: 0.5,
+      );
+      expectOffsetClose(acquired.position, const Offset(50, 12));
+
+      final held = session.resolve(
+        position: const Offset(50.7, 12.7),
+        snapEnabled: true,
+        snapTargets: targets,
+        toleranceMm: 0.5,
+      );
+      expectOffsetClose(held.position, const Offset(50, 12));
+
+      final released = session.resolve(
+        position: const Offset(50.8, 12.8),
+        snapEnabled: true,
+        snapTargets: targets,
+        toleranceMm: 0.5,
+      );
+      expectOffsetClose(released.position, const Offset(50.8, 12.8));
+      expect(released.hasGuide, isFalse);
+    });
   });
 
   group('rotated rectangle resize', () {

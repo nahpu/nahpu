@@ -56,7 +56,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   bool _loading = true;
   double _zoom = 1.0;
   bool _showGrid = true;
-  bool _snapEnabled = true;
+  bool _snapEnabled = false;
   late bool _isDuplex;
   late bool _mirrorFront;
   late bool _mirrorBack;

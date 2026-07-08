@@ -79,7 +79,7 @@ class DraggableShapeChip extends StatefulWidget {
 class DraggableShapeChipState extends State<DraggableShapeChip> {
   static const double _handleVisual = 16;
   static const double _handleHit = 36;
-  static const double _snapTolerancePx = 6;
+  static const double _snapTolerancePx = 4;
   static const double _snapGuideWidthPx = 1.5;
 
   void _deferSetState(VoidCallback fn) {
@@ -110,6 +110,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   Offset? _imagePanOriginMm;
   Offset _imagePanAccumMm = Offset.zero;
   Offset? _imageDragLiveMm;
+  final CanvasSnapSession _snapSession = CanvasSnapSession();
   CanvasSnapResult? _snapResult;
   int _imageMoveSession = 0;
 
@@ -315,6 +316,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
     _imageMovePanLastGlobal = null;
     _imagePanOriginMm = null;
     _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _imageMoveSession) return;
       setState(() {
@@ -392,6 +394,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                           _imagePanOriginMm = widget.position;
                           _imagePanAccumMm = Offset.zero;
                           _imageDragLiveMm = null;
+                          _snapSession.reset();
                           _snapResult = null;
                           _deferSetState(() => _moving = true);
                           _imageMovePanLastGlobal = d.globalPosition;
@@ -426,7 +429,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                             _imagePanOriginMm = Offset(cx, cy);
                             _imagePanAccumMm = Offset.zero;
                           }
-                          final snapResult = resolveCanvasMove(
+                          final snapResult = _snapSession.resolve(
                             position: clamped,
                             snapEnabled: widget.snapEnabled,
                             snapTargets: [
