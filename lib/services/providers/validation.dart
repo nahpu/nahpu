@@ -161,10 +161,6 @@ class PersonnelForm {
   int get hashCode => Object.hash(name, email, initial, collNum);
 }
 
-// ==========================================
-// NOTIFIERS & VALIDATORS (Unchanged)
-// ==========================================
-
 final projectFormValidatorProvider =
     AsyncNotifierProvider.autoDispose<ProjectFormValidator, ProjectForm>(
         ProjectFormValidator.new);
