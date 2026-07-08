@@ -30,6 +30,13 @@ TextAlign _parseTextAlign(String align) {
   }
 }
 
+/// Renders one side of a template and mediates direct canvas gestures.
+///
+/// This widget converts the current zoom into a millimeter-to-pixel scale,
+/// exposes viewport pan/pinch through [InteractiveViewer], and forwards element
+/// edits to the parent screen. [canvasMovementLocked] applies only to viewport
+/// movement; individual element lock state is still handled by each draggable
+/// element widget.
 class TemplateCanvasEditor extends StatefulWidget {
   const TemplateCanvasEditor({
     super.key,
@@ -38,6 +45,7 @@ class TemplateCanvasEditor extends StatefulWidget {
     required this.templateWidthMm,
     required this.templateHeightMm,
     required this.zoom,
+    required this.canvasMovementLocked,
     required this.showGrid,
     required this.snapEnabled,
     required this.mirrorFront,
@@ -57,6 +65,7 @@ class TemplateCanvasEditor extends StatefulWidget {
     required this.onRemoveCustomLine,
     required this.onScheduleTemplateShapeUpdate,
     required this.onRemoveCustomShape,
+    required this.onZoomChanged,
     this.fieldDisplayOption = 'short',
     this.onDragStateChanged,
   });
@@ -66,6 +75,7 @@ class TemplateCanvasEditor extends StatefulWidget {
   final double templateWidthMm;
   final double templateHeightMm;
   final double zoom;
+  final bool canvasMovementLocked;
   final bool showGrid;
   final bool snapEnabled;
   final bool mirrorFront;
@@ -90,6 +100,7 @@ class TemplateCanvasEditor extends StatefulWidget {
   final void Function(String id) onRemoveCustomLine;
   final void Function(CustomShapeElement element) onScheduleTemplateShapeUpdate;
   final void Function(String id) onRemoveCustomShape;
+  final ValueChanged<double> onZoomChanged;
 
   @override
   State<TemplateCanvasEditor> createState() => _TemplateCanvasEditorState();
@@ -97,6 +108,15 @@ class TemplateCanvasEditor extends StatefulWidget {
 
 class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
   bool _canvasPanEnabled = true;
+  final TransformationController _transformationController =
+      TransformationController();
+  double? _gestureStartZoom;
+
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +125,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
     final templateWidthMm = widget.templateWidthMm;
     final templateHeightMm = widget.templateHeightMm;
     final zoom = widget.zoom;
+    final canvasMovementLocked = widget.canvasMovementLocked;
     final showGrid = widget.showGrid;
     final snapEnabled = widget.snapEnabled;
     final mirrorFront = widget.mirrorFront;
@@ -162,9 +183,28 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
       }
 
       return InteractiveViewer(
+        transformationController: _transformationController,
         constrained: false,
-        scaleEnabled: false,
-        panEnabled: _canvasPanEnabled,
+        scaleEnabled: !canvasMovementLocked && _canvasPanEnabled,
+        panEnabled: !canvasMovementLocked && _canvasPanEnabled,
+        minScale: 0.5,
+        maxScale: 4.0,
+        onInteractionStart: (_) {
+          _gestureStartZoom = widget.zoom;
+        },
+        onInteractionUpdate: (details) {
+          if (canvasMovementLocked || !_canvasPanEnabled) return;
+          if ((details.scale - 1.0).abs() < 0.01) return;
+          final startZoom = _gestureStartZoom ?? widget.zoom;
+          widget.onZoomChanged(
+            (startZoom * details.scale).clamp(0.5, 4.0).toDouble(),
+          );
+          _resetViewerScale();
+        },
+        onInteractionEnd: (_) {
+          _gestureStartZoom = null;
+          _resetViewerScale();
+        },
         clipBehavior: Clip.hardEdge,
         boundaryMargin: const EdgeInsets.all(double.infinity),
         child: Padding(
@@ -701,5 +741,13 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
         ),
       );
     });
+  }
+
+  void _resetViewerScale() {
+    final storage = _transformationController.value.storage;
+    final tx = storage[12];
+    final ty = storage[13];
+    _transformationController.value = Matrix4.identity()
+      ..translateByDouble(tx, ty, 0, 1);
   }
 }

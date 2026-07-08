@@ -57,6 +57,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   double _zoom = 1.0;
   bool _showGrid = true;
   bool _snapEnabled = false;
+  bool _canvasMovementLocked = false;
   late bool _isDuplex;
   late bool _mirrorFront;
   late bool _mirrorBack;
@@ -143,6 +144,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         isBorderPanelOpen: _templateBorderPanelOpen,
         showGrid: _showGrid,
         snapEnabled: _snapEnabled,
+        canvasMovementLocked: _canvasMovementLocked,
         selectedElement: _selectedElement,
         tabController: _tabController,
         zoom: _zoom,
@@ -172,6 +174,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         onBorderPanelToggled: _toggleTemplateBorderPanel,
         onGridToggled: () => _deferSetState(() => _showGrid = !_showGrid),
         onSnapToggled: () => _deferSetState(() => _snapEnabled = !_snapEnabled),
+        onCanvasMovementLockToggled: () => _deferSetState(
+          () => _canvasMovementLocked = !_canvasMovementLocked,
+        ),
         onSelectPreviewSpecimen: _selectSpecimenForPreview,
         onClearSelection: _clearSelection,
         onSelectElement: _selectElement,
@@ -190,7 +195,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         onUpdateCustomLine: _updateCustomLine,
         onUpdateCustomShape: _updateCustomShape,
         onDismissProperties: _clearSelection,
-        onZoomChanged: (z) => _deferSetState(() => _zoom = z),
+        onZoomChanged: _setZoom,
         onUndo: _undo,
         onRedo: _redo,
         canUndo: _undoStack.isNotEmpty,
@@ -585,6 +590,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _templateWidthMm = widthMm;
       _templateHeightMm = heightMm;
     });
+  }
+
+  void _setZoom(double zoom) {
+    _deferSetState(() => _zoom = zoom.clamp(0.5, 4.0).toDouble());
   }
 
   void _updateTemplateDescription(String description) {

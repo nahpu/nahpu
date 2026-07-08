@@ -20,6 +20,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.isBorderPanelOpen,
     required this.showGrid,
     required this.snapEnabled,
+    required this.canvasMovementLocked,
     required this.selectedElement,
     required this.tabController,
     required this.zoom,
@@ -49,6 +50,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.onBorderPanelToggled,
     required this.onGridToggled,
     required this.onSnapToggled,
+    required this.onCanvasMovementLockToggled,
     required this.onSelectPreviewSpecimen,
     required this.onClearSelection,
     required this.onSelectElement,
@@ -87,6 +89,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   final bool isBorderPanelOpen;
   final bool showGrid;
   final bool snapEnabled;
+  final bool canvasMovementLocked;
   final String? selectedElement;
   final TabController tabController;
   final double zoom;
@@ -121,6 +124,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   final VoidCallback onBorderPanelToggled;
   final VoidCallback onGridToggled;
   final VoidCallback onSnapToggled;
+  final VoidCallback onCanvasMovementLockToggled;
   final VoidCallback onSelectPreviewSpecimen;
   final VoidCallback onClearSelection;
   final ValueChanged<String> onSelectElement;
@@ -157,6 +161,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = Platform.isIOS || Platform.isAndroid;
     final viewPadding = MediaQuery.viewPaddingOf(context);
+    final selected = selectedElement;
 
     return Scaffold(
       appBar: _TemplateEditorAppBar(
@@ -192,6 +197,7 @@ class TemplateEditorScaffold extends StatelessWidget {
               isBorderPanelOpen: isBorderPanelOpen,
               showGrid: showGrid,
               snapEnabled: snapEnabled,
+              canvasMovementLocked: canvasMovementLocked,
               onSaveTemplate: onSaveTemplate,
               onTemplateSelected: onTemplateSelected,
               onDuplexChanged: onDuplexChanged,
@@ -205,6 +211,7 @@ class TemplateEditorScaffold extends StatelessWidget {
               onBorderPanelToggled: onBorderPanelToggled,
               onGridToggled: onGridToggled,
               onSnapToggled: onSnapToggled,
+              onCanvasMovementLockToggled: onCanvasMovementLockToggled,
               onSelectPreviewSpecimen: onSelectPreviewSpecimen,
               onUndo: onUndo,
               onRedo: onRedo,
@@ -236,6 +243,7 @@ class TemplateEditorScaffold extends StatelessWidget {
                 templateWidthMm: templateWidthMm,
                 templateHeightMm: templateHeightMm,
                 zoom: zoom,
+                canvasMovementLocked: canvasMovementLocked,
                 showGrid: showGrid,
                 snapEnabled: snapEnabled,
                 mirrorFront: mirrorFront,
@@ -259,6 +267,19 @@ class TemplateEditorScaffold extends StatelessWidget {
                 onScheduleTemplateShapeUpdate: onScheduleTemplateShapeUpdate,
                 onRemoveCustomShape: onRemoveCustomShape,
                 onZoomChanged: onZoomChanged,
+                onCanvasMovementLockToggled: onCanvasMovementLockToggled,
+                onGridToggled: onGridToggled,
+                onSnapToggled: onSnapToggled,
+                onUndo: onUndo,
+                onRedo: onRedo,
+                canUndo: canUndo,
+                canRedo: canRedo,
+                onDeleteSelectedElement: selected == null
+                    ? null
+                    : () => _deleteSelectedElement(selected),
+                onDuplicateSelectedElement: selected == null
+                    ? null
+                    : () => onDuplicateElement(selected),
                 onDragStateChanged: onDragStateChanged,
               ),
             ),
@@ -266,6 +287,21 @@ class TemplateEditorScaffold extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _deleteSelectedElement(String selected) {
+    final selection = TemplateSelection.parse(selected);
+    if (selection == null) return;
+    switch (selection.type) {
+      case TemplateElementType.text:
+        onDeleteCustomText(selection.page1, selection.id);
+      case TemplateElementType.image:
+        onRemoveCustomImage(selection.page1, selection.id);
+      case TemplateElementType.line:
+        onRemoveCustomLine(selection.page1, selection.id);
+      case TemplateElementType.shape:
+        onRemoveCustomShape(selection.page1, selection.id);
+    }
   }
 }
 

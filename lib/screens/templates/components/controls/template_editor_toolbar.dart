@@ -5,6 +5,11 @@ import 'package:nahpu/screens/templates/template_size_selector.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
 
+/// Command bar for template editing actions and canvas-level view toggles.
+///
+/// The toolbar intentionally exposes canvas view state such as grid, snapping,
+/// and movement lock beside editing commands so keyboard shortcuts and visible
+/// buttons stay aligned.
 class TemplateEditorToolbar extends StatelessWidget {
   const TemplateEditorToolbar({
     super.key,
@@ -20,6 +25,7 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.isBorderPanelOpen,
     required this.showGrid,
     required this.snapEnabled,
+    required this.canvasMovementLocked,
     required this.onSaveTemplate,
     required this.onTemplateSelected,
     required this.onDuplexChanged,
@@ -33,6 +39,7 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.onBorderPanelToggled,
     required this.onGridToggled,
     required this.onSnapToggled,
+    required this.onCanvasMovementLockToggled,
     required this.onSelectPreviewSpecimen,
     this.onUndo,
     this.onRedo,
@@ -52,6 +59,7 @@ class TemplateEditorToolbar extends StatelessWidget {
   final bool isBorderPanelOpen;
   final bool showGrid;
   final bool snapEnabled;
+  final bool canvasMovementLocked;
   final VoidCallback onSaveTemplate;
   final ValueChanged<String> onTemplateSelected;
   final ValueChanged<bool> onDuplexChanged;
@@ -65,6 +73,7 @@ class TemplateEditorToolbar extends StatelessWidget {
   final VoidCallback onBorderPanelToggled;
   final VoidCallback onGridToggled;
   final VoidCallback onSnapToggled;
+  final VoidCallback onCanvasMovementLockToggled;
   final VoidCallback onSelectPreviewSpecimen;
   final VoidCallback? onUndo;
   final VoidCallback? onRedo;
@@ -233,6 +242,26 @@ class TemplateEditorToolbar extends StatelessWidget {
                       snapEnabled
                           ? Icons.center_focus_strong
                           : Icons.center_focus_weak,
+                      size: 22,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: canvasMovementLocked
+                        ? 'Unlock canvas movement'
+                        : 'Lock canvas movement',
+                    style: IconButton.styleFrom(
+                      foregroundColor: canvasMovementLocked
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                      backgroundColor: canvasMovementLocked
+                          ? scheme.primaryContainer.withValues(alpha: 0.45)
+                          : null,
+                    ),
+                    onPressed: onCanvasMovementLockToggled,
+                    icon: Icon(
+                      canvasMovementLocked
+                          ? Icons.lock_outline
+                          : Icons.lock_open_outlined,
                       size: 22,
                     ),
                   ),
