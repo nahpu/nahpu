@@ -32,6 +32,7 @@ class DraggableLineChip extends StatefulWidget {
     this.onDragStateChanged,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapEnabled = true,
     this.snapTargets = const [],
   });
 
@@ -60,6 +61,7 @@ class DraggableLineChip extends StatefulWidget {
   final ValueChanged<bool>? onDragStateChanged;
   final bool isLocked;
   final bool isVisible;
+  final bool snapEnabled;
   final List<CanvasSnapTarget> snapTargets;
 
   @override
@@ -166,8 +168,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       canvasWidthMm: widget.templateWidthMm,
       canvasHeightMm: widget.templateHeightMm,
     );
-    final snapResult = resolveCanvasSnap(
+    final snapResult = resolveCanvasMove(
       position: clamped,
+      snapEnabled: widget.snapEnabled,
       snapTargets: [
         CanvasSnapTarget(
           xMm: widget.templateWidthMm / 2,

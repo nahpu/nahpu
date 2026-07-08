@@ -56,6 +56,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   bool _loading = true;
   double _zoom = 1.0;
   bool _showGrid = true;
+  bool _snapEnabled = true;
   late bool _isDuplex;
   late bool _mirrorFront;
   late bool _mirrorBack;
@@ -141,6 +142,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         templateHeightMm: _templateHeightMm,
         isBorderPanelOpen: _templateBorderPanelOpen,
         showGrid: _showGrid,
+        snapEnabled: _snapEnabled,
         selectedElement: _selectedElement,
         tabController: _tabController,
         zoom: _zoom,
@@ -169,6 +171,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         onMirrorToggled: _toggleCurrentMirror,
         onBorderPanelToggled: _toggleTemplateBorderPanel,
         onGridToggled: () => _deferSetState(() => _showGrid = !_showGrid),
+        onSnapToggled: () => _deferSetState(() => _snapEnabled = !_snapEnabled),
         onSelectPreviewSpecimen: _selectSpecimenForPreview,
         onClearSelection: _clearSelection,
         onSelectElement: _selectElement,
@@ -444,7 +447,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         final projectUuid = ref.read(projectUuidProvider);
         if (projectUuid.isNotEmpty) {
           try {
-            final proj = await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
+            final proj =
+                await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
             for (var entry in proj.toJson().entries) {
               m['project::${entry.key}'] = entry.value?.toString() ?? '';
             }
@@ -474,8 +478,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         // Apply fallback values for preview in the editor
         m.putIfAbsent('project::name', () => 'Active Project');
         m.putIfAbsent('project::uuid', () => 'active-project-uuid');
-        m.putIfAbsent('project::description', () => 'Active Project Description');
-        m.putIfAbsent('project::principalInvestigator', () => 'Active Investigator');
+        m.putIfAbsent(
+            'project::description', () => 'Active Project Description');
+        m.putIfAbsent(
+            'project::principalInvestigator', () => 'Active Investigator');
         m.putIfAbsent('project::location', () => 'Active Project Location');
         m.putIfAbsent('project::timeZone', () => 'UTC');
         m.putIfAbsent('project::startDate', () => '2026-01-01');

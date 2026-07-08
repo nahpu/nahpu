@@ -48,6 +48,7 @@ class DraggableChip extends StatefulWidget {
     this.paddingPt = 2.0,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapEnabled = true,
     this.isMarkdown = false,
     this.snapTargets = const [],
   });
@@ -100,6 +101,7 @@ class DraggableChip extends StatefulWidget {
   final double paddingPt;
   final bool isLocked;
   final bool isVisible;
+  final bool snapEnabled;
   final bool isMarkdown;
   final List<CanvasSnapTarget> snapTargets;
 
@@ -352,8 +354,9 @@ class DraggableChipState extends State<DraggableChip> {
       _panOriginMm = Offset(cx, cy);
       _panAccumMm = Offset.zero;
     }
-    final snapResult = resolveCanvasSnap(
+    final snapResult = resolveCanvasMove(
       position: Offset(cx, cy),
+      snapEnabled: widget.snapEnabled,
       snapTargets: [
         CanvasSnapTarget(
           xMm: widget.templateWidthMm / 2,
@@ -789,6 +792,22 @@ CanvasSnapResult resolveCanvasSnap({
     position: Offset(snapX ?? position.dx, snapY ?? position.dy),
     verticalGuideMm: snapX,
     horizontalGuideMm: snapY,
+  );
+}
+
+CanvasSnapResult resolveCanvasMove({
+  required Offset position,
+  required bool snapEnabled,
+  required List<CanvasSnapTarget> snapTargets,
+  required double toleranceMm,
+}) {
+  if (!snapEnabled) {
+    return CanvasSnapResult(position: position);
+  }
+  return resolveCanvasSnap(
+    position: position,
+    snapTargets: snapTargets,
+    toleranceMm: toleranceMm,
   );
 }
 

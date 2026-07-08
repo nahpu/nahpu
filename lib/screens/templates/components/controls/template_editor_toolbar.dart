@@ -19,6 +19,7 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.templateHeightMm,
     required this.isBorderPanelOpen,
     required this.showGrid,
+    required this.snapEnabled,
     required this.onSaveTemplate,
     required this.onTemplateSelected,
     required this.onDuplexChanged,
@@ -31,6 +32,7 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.onMirrorToggled,
     required this.onBorderPanelToggled,
     required this.onGridToggled,
+    required this.onSnapToggled,
     required this.onSelectPreviewSpecimen,
     this.onUndo,
     this.onRedo,
@@ -49,6 +51,7 @@ class TemplateEditorToolbar extends StatelessWidget {
   final double templateHeightMm;
   final bool isBorderPanelOpen;
   final bool showGrid;
+  final bool snapEnabled;
   final VoidCallback onSaveTemplate;
   final ValueChanged<String> onTemplateSelected;
   final ValueChanged<bool> onDuplexChanged;
@@ -61,6 +64,7 @@ class TemplateEditorToolbar extends StatelessWidget {
   final VoidCallback onMirrorToggled;
   final VoidCallback onBorderPanelToggled;
   final VoidCallback onGridToggled;
+  final VoidCallback onSnapToggled;
   final VoidCallback onSelectPreviewSpecimen;
   final VoidCallback? onUndo;
   final VoidCallback? onRedo;
@@ -211,6 +215,24 @@ class TemplateEditorToolbar extends StatelessWidget {
                     onPressed: onGridToggled,
                     icon: Icon(
                       showGrid ? Icons.grid_on : Icons.grid_off,
+                      size: 22,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: snapEnabled ? 'Disable snap' : 'Enable snap',
+                    style: IconButton.styleFrom(
+                      foregroundColor: snapEnabled
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                      backgroundColor: snapEnabled
+                          ? scheme.primaryContainer.withValues(alpha: 0.45)
+                          : null,
+                    ),
+                    onPressed: onSnapToggled,
+                    icon: Icon(
+                      snapEnabled
+                          ? Icons.center_focus_strong
+                          : Icons.center_focus_weak,
                       size: 22,
                     ),
                   ),

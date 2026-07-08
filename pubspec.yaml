@@ -33,7 +33,7 @@ dependencies:
 
   cupertino_icons: ^1.0.5
   flutter_speed_dial: ^7.0.0
-  drift: ^2.34.0
+  drift: 2.34.0
   path_provider: ^2.0.15
   path: ^1.8.2
   uuid: ^4.1.0
@@ -80,7 +80,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  freezed: ^3.0.0
+  freezed: ^3.2.6-dev.1
   integration_test:
     sdk: flutter
 

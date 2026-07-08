@@ -39,6 +39,7 @@ class TemplateCanvasEditor extends StatefulWidget {
     required this.templateHeightMm,
     required this.zoom,
     required this.showGrid,
+    required this.snapEnabled,
     required this.mirrorFront,
     required this.mirrorBack,
     required this.isPreviewMode,
@@ -66,6 +67,7 @@ class TemplateCanvasEditor extends StatefulWidget {
   final double templateHeightMm;
   final double zoom;
   final bool showGrid;
+  final bool snapEnabled;
   final bool mirrorFront;
   final bool mirrorBack;
   final bool isPreviewMode;
@@ -104,6 +106,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
     final templateHeightMm = widget.templateHeightMm;
     final zoom = widget.zoom;
     final showGrid = widget.showGrid;
+    final snapEnabled = widget.snapEnabled;
     final mirrorFront = widget.mirrorFront;
     final mirrorBack = widget.mirrorBack;
     final isPreviewMode = widget.isPreviewMode;
@@ -331,6 +334,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onDragStateChanged: onDragStateChanged,
                                   isLocked: element.isLocked,
                                   isVisible: element.isVisible,
+                                  snapEnabled: snapEnabled,
                                   snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
                                     onScheduleTemplateImageUpdate(
@@ -409,6 +413,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     onDragStateChanged: onDragStateChanged,
                                     isLocked: element.isLocked,
                                     isVisible: element.isVisible,
+                                    snapEnabled: snapEnabled,
                                     snapTargets: snapTargetsFor(element),
                                     onMoved: (pos) {
                                       onScheduleTemplateTextPositionUpdate(
@@ -463,6 +468,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     onDragStateChanged: onDragStateChanged,
                                     isLocked: element.isLocked,
                                     isVisible: element.isVisible,
+                                    snapEnabled: snapEnabled,
                                     onMoved: (pos) {
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
@@ -546,6 +552,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     isLocked: element.isLocked,
                                     isVisible: element.isVisible,
                                     isMarkdown: element.textType == 'markdown',
+                                    snapEnabled: snapEnabled,
                                     snapTargets: snapTargetsFor(element),
                                     onMaxWidthChanged: (w) {
                                       onScheduleTemplateTextPositionUpdate(
@@ -614,6 +621,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onDragStateChanged: onDragStateChanged,
                                   isLocked: element.isLocked,
                                   isVisible: element.isVisible,
+                                  snapEnabled: snapEnabled,
                                   snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
                                     onScheduleTemplateLineUpdate(element
@@ -657,6 +665,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   onDragStateChanged: onDragStateChanged,
                                   isLocked: element.isLocked,
                                   isVisible: element.isVisible,
+                                  snapEnabled: snapEnabled,
                                   snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
                                     onScheduleTemplateShapeUpdate(element

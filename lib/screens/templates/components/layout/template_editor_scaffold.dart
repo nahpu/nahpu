@@ -19,6 +19,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.templateHeightMm,
     required this.isBorderPanelOpen,
     required this.showGrid,
+    required this.snapEnabled,
     required this.selectedElement,
     required this.tabController,
     required this.zoom,
@@ -47,6 +48,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.onMirrorToggled,
     required this.onBorderPanelToggled,
     required this.onGridToggled,
+    required this.onSnapToggled,
     required this.onSelectPreviewSpecimen,
     required this.onClearSelection,
     required this.onSelectElement,
@@ -84,6 +86,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   final double templateHeightMm;
   final bool isBorderPanelOpen;
   final bool showGrid;
+  final bool snapEnabled;
   final String? selectedElement;
   final TabController tabController;
   final double zoom;
@@ -117,6 +120,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   final VoidCallback onMirrorToggled;
   final VoidCallback onBorderPanelToggled;
   final VoidCallback onGridToggled;
+  final VoidCallback onSnapToggled;
   final VoidCallback onSelectPreviewSpecimen;
   final VoidCallback onClearSelection;
   final ValueChanged<String> onSelectElement;
@@ -187,6 +191,7 @@ class TemplateEditorScaffold extends StatelessWidget {
               templateHeightMm: templateHeightMm,
               isBorderPanelOpen: isBorderPanelOpen,
               showGrid: showGrid,
+              snapEnabled: snapEnabled,
               onSaveTemplate: onSaveTemplate,
               onTemplateSelected: onTemplateSelected,
               onDuplexChanged: onDuplexChanged,
@@ -199,6 +204,7 @@ class TemplateEditorScaffold extends StatelessWidget {
               onMirrorToggled: onMirrorToggled,
               onBorderPanelToggled: onBorderPanelToggled,
               onGridToggled: onGridToggled,
+              onSnapToggled: onSnapToggled,
               onSelectPreviewSpecimen: onSelectPreviewSpecimen,
               onUndo: onUndo,
               onRedo: onRedo,
@@ -231,6 +237,7 @@ class TemplateEditorScaffold extends StatelessWidget {
                 templateHeightMm: templateHeightMm,
                 zoom: zoom,
                 showGrid: showGrid,
+                snapEnabled: snapEnabled,
                 mirrorFront: mirrorFront,
                 mirrorBack: mirrorBack,
                 isPreviewMode: isPreviewMode,

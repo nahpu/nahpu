@@ -36,6 +36,7 @@ class DraggableShapeChip extends StatefulWidget {
     this.onDragStateChanged,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapEnabled = true,
     this.snapTargets = const [],
   });
 
@@ -68,6 +69,7 @@ class DraggableShapeChip extends StatefulWidget {
   final ValueChanged<bool>? onDragStateChanged;
   final bool isLocked;
   final bool isVisible;
+  final bool snapEnabled;
   final List<CanvasSnapTarget> snapTargets;
 
   @override
@@ -424,8 +426,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                             _imagePanOriginMm = Offset(cx, cy);
                             _imagePanAccumMm = Offset.zero;
                           }
-                          final snapResult = resolveCanvasSnap(
+                          final snapResult = resolveCanvasMove(
                             position: clamped,
+                            snapEnabled: widget.snapEnabled,
                             snapTargets: [
                               CanvasSnapTarget(
                                 xMm: widget.templateWidthMm / 2,

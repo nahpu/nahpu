@@ -31,6 +31,7 @@ class DraggableImageChip extends StatefulWidget {
     this.onDragStateChanged,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapEnabled = true,
     this.snapTargets = const [],
   });
 
@@ -56,6 +57,7 @@ class DraggableImageChip extends StatefulWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final ValueChanged<bool>? onDragStateChanged;
+  final bool snapEnabled;
   final List<CanvasSnapTarget> snapTargets;
 
   /// When set, drawn instead of [imagePath] (e.g. sex icon for `[*.sex]-img`).
@@ -417,8 +419,9 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                             _imagePanOriginMm = Offset(cx, cy);
                             _imagePanAccumMm = Offset.zero;
                           }
-                          final snapResult = resolveCanvasSnap(
+                          final snapResult = resolveCanvasMove(
                             position: clamped,
+                            snapEnabled: widget.snapEnabled,
                             snapTargets: [
                               CanvasSnapTarget(
                                 xMm: widget.templateWidthMm / 2,

@@ -13,6 +13,7 @@ class TemplateCanvasWorkspace extends StatelessWidget {
     required this.templateHeightMm,
     required this.zoom,
     required this.showGrid,
+    required this.snapEnabled,
     required this.mirrorFront,
     required this.mirrorBack,
     required this.isPreviewMode,
@@ -44,6 +45,7 @@ class TemplateCanvasWorkspace extends StatelessWidget {
   final double templateHeightMm;
   final double zoom;
   final bool showGrid;
+  final bool snapEnabled;
   final bool mirrorFront;
   final bool mirrorBack;
   final bool isPreviewMode;
@@ -110,6 +112,7 @@ class TemplateCanvasWorkspace extends StatelessWidget {
       templateHeightMm: templateHeightMm,
       zoom: zoom,
       showGrid: showGrid,
+      snapEnabled: snapEnabled,
       mirrorFront: mirrorFront,
       mirrorBack: mirrorBack,
       isPreviewMode: isPreviewMode,
