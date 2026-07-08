@@ -21,6 +21,7 @@ void main() async {
   await configService.initDb();
   await configService.migrate(prefs);
   await configService.loadDefaultDocumentPresetsOnce(prefs);
+
   if (kDebugMode) {
     print(await checkRust());
   }
