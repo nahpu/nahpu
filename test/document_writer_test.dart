@@ -544,6 +544,106 @@ void main() {
       expect(height, greaterThan(documentPdfMmToPt(20)));
     });
 
+    test('dynamic markdown tables are measured as rendered Typst content', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'dynamic_table',
+            text: '#table(columns: 3, [Name], [Lat], [Long], [A], [1], [2])',
+            xMm: 0,
+            yMm: 0,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            heightMm: 4,
+            textType: 'markdown',
+            isDynamic: true,
+          ),
+        ],
+        customLines: [
+          CustomLineElement(
+            id: 'below-table',
+            xMm: 0,
+            yMm: 8,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+      );
+
+      expect(
+        typst,
+        contains('measure(box(width: ${documentPdfMmToPt(55)}pt)['
+            '#block(above: 0pt, below: 0pt)[#set text(size: 10.0pt'),
+      );
+      expect(typst, contains('#table(columns: 3'));
+      expect(typst,
+          contains('dy: ${documentPdfMmToPt(8)}pt + grow_dynamic_table'));
+      expect(typst, isNot(contains(r'\#table')));
+    });
+
+    test('uses the canvas top-left origin for template element placement', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'rotated-text',
+            text: 'Text',
+            xMm: 12,
+            yMm: 18,
+            rotationDegrees: 90,
+          ),
+        ],
+        customLines: [
+          CustomLineElement(
+            id: 'line',
+            xMm: 20,
+            yMm: 24,
+            lengthMm: 30,
+          ),
+        ],
+        customShapes: [
+          CustomShapeElement(
+            id: 'shape',
+            xMm: 6,
+            yMm: 8,
+            widthMm: 10,
+            heightMm: 12,
+            shapeType: 'rect',
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+      );
+
+      expect(
+        typst,
+        contains(
+          '#place(top + left, dx: ${documentPdfMmToPt(12)}pt, '
+          'dy: ${documentPdfMmToPt(18)}pt)[#rotate(90deg, '
+          'origin: top + left)',
+        ),
+      );
+      expect(
+        typst,
+        contains('#place(top + left, dx: ${documentPdfMmToPt(20)}pt, '
+            'dy: ${documentPdfMmToPt(24)}pt)'),
+      );
+      expect(
+        typst,
+        contains('#place(top + left, dx: ${documentPdfMmToPt(6)}pt, '
+            'dy: ${documentPdfMmToPt(8)}pt)'),
+      );
+    });
+
     test('text box background and stroke add configured padding', () {
       final plainPage = TemplatePage(customTexts: [
         CustomTextElement(

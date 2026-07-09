@@ -12,6 +12,9 @@ import 'package:nahpu/screens/templates/components/canvas/draggable_line_chip.da
 import 'package:nahpu/screens/templates/components/canvas/draggable_shape_chip.dart';
 import 'package:nahpu/screens/shared/media/qr.dart' show QrImageView;
 import 'package:nahpu/services/templates/template_canvas_snap_service.dart';
+import 'package:nahpu/services/templates/template_nested_list_service.dart';
+import 'package:nahpu/services/templates/template_canvas_overflow_service.dart';
+import 'package:nahpu/services/templates/template_dynamic_layout_service.dart';
 
 import 'dart:math' as math;
 import 'package:nahpu/screens/templates/template_canvas_stack.dart';
@@ -112,6 +115,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
   final TransformationController _transformationController =
       TransformationController();
   double? _gestureStartZoom;
+  final Map<String, double> _dynamicTextContentHeightMmById = {};
 
   @override
   void dispose() {
@@ -164,8 +168,18 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
       final scale = baseScale * zoom;
       final canvasW = templateWidthMm * scale;
       final canvasH = templateHeightMm * scale;
-      final stackW = canvasW + _kTemplateCanvasHitPadPx;
-      final stackH = canvasH + 2 * _kTemplateCanvasHitPadPx;
+      final overflowPadding = calculateTemplateCanvasOverflowPadding(
+        page: page,
+        templateWidthMm: templateWidthMm,
+        templateHeightMm: templateHeightMm,
+        scalePxPerMm: scale,
+        basePaddingPx: _kTemplateCanvasHitPadPx,
+        dynamicTextContentHeightMmById: _dynamicTextContentHeightMmById,
+      );
+      final canvasInsetX = overflowPadding.left;
+      final canvasInsetY = overflowPadding.top;
+      final stackW = canvasW + overflowPadding.left + overflowPadding.right;
+      final stackH = canvasH + overflowPadding.top + overflowPadding.bottom;
 
       Offset? templatePanToMmDelta(Offset globalPosition, Offset globalDelta) {
         return templatePanGlobalDeltaToMm(
@@ -244,8 +258,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                         fit: StackFit.expand,
                         children: [
                           Positioned(
-                            left: 0,
-                            top: _kTemplateCanvasHitPadPx,
+                            left: canvasInsetX,
+                            top: canvasInsetY,
                             width: canvasW,
                             height: canvasH,
                             child: IgnorePointer(
@@ -291,40 +305,104 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                               ..sort((a, b) =>
                                   (a.zIndex as int).compareTo(b.zIndex as int));
 
+                            Offset renderedPosition(dynamic element) {
+                              final savedX = element.xMm as double;
+                              final savedY = element.yMm as double;
+                              final shift =
+                                  TemplateDynamicLayoutService.verticalShiftMm(
+                                texts: page.customTexts,
+                                targetYmm: savedY,
+                                excludeTextId: element is CustomTextElement
+                                    ? element.id
+                                    : null,
+                                contentHeightMmByTextId:
+                                    _dynamicTextContentHeightMmById,
+                              );
+                              return Offset(savedX, savedY + shift);
+                            }
+
+                            Offset savedPosition(
+                              Offset rendered,
+                              dynamic element,
+                            ) {
+                              final savedY = TemplateDynamicLayoutService
+                                  .savedYmmForRenderedY(
+                                texts: page.customTexts,
+                                renderedYmm: rendered.dy,
+                                excludeTextId: element is CustomTextElement
+                                    ? element.id
+                                    : null,
+                                contentHeightMmByTextId:
+                                    _dynamicTextContentHeightMmById,
+                              );
+                              return Offset(rendered.dx, savedY);
+                            }
+
+                            void reportDynamicTextSize(
+                              CustomTextElement element,
+                              Size size,
+                            ) {
+                              if (!TemplateDynamicLayoutService
+                                  .isFlowingDynamicText(element)) {
+                                return;
+                              }
+                              final heightMm = size.height / scale;
+                              if (!heightMm.isFinite || heightMm < 0) return;
+                              final oldHeight =
+                                  _dynamicTextContentHeightMmById[element.id];
+                              if (oldHeight != null &&
+                                  (oldHeight - heightMm).abs() < 0.01) {
+                                return;
+                              }
+                              if (!mounted) return;
+                              setState(() {
+                                _dynamicTextContentHeightMmById[element.id] =
+                                    heightMm;
+                              });
+                            }
+
                             List<CanvasSnapTarget> snapTargetsFor(
                               dynamic active,
                             ) {
                               final targets = <CanvasSnapTarget>[];
                               for (final other in allElements) {
                                 if (identical(other, active)) continue;
+                                final rendered = renderedPosition(other);
                                 if (other is CustomImageElement) {
                                   targets.addAll([
                                     CanvasSnapTarget(
                                       xMm: other.xMm,
-                                      yMm: other.yMm,
+                                      yMm: rendered.dy,
                                     ),
                                     CanvasSnapTarget(
                                       xMm: other.xMm + other.widthMm / 2,
-                                      yMm: other.yMm + other.heightMm / 2,
+                                      yMm: rendered.dy + other.heightMm / 2,
                                     ),
                                   ]);
                                 } else if (other is CustomTextElement) {
                                   targets.add(
                                     CanvasSnapTarget(
                                       xMm: other.xMm,
-                                      yMm: other.yMm,
+                                      yMm: rendered.dy,
                                     ),
                                   );
                                   if (other.maxWidthMm != null ||
                                       other.heightMm != null) {
+                                    final measuredHeightMm =
+                                        _dynamicTextContentHeightMmById[
+                                            other.id];
                                     targets.add(
                                       CanvasSnapTarget(
                                         xMm: other.maxWidthMm == null
                                             ? null
                                             : other.xMm + other.maxWidthMm! / 2,
-                                        yMm: other.heightMm == null
+                                        yMm: other.heightMm == null &&
+                                                measuredHeightMm == null
                                             ? null
-                                            : other.yMm + other.heightMm! / 2,
+                                            : rendered.dy +
+                                                (measuredHeightMm ??
+                                                        other.heightMm!) /
+                                                    2,
                                       ),
                                     );
                                   }
@@ -332,22 +410,22 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   targets.addAll([
                                     CanvasSnapTarget(
                                       xMm: other.xMm,
-                                      yMm: other.yMm,
+                                      yMm: rendered.dy,
                                     ),
                                     CanvasSnapTarget(
                                       xMm: other.xMm + other.lengthMm / 2,
-                                      yMm: other.yMm,
+                                      yMm: rendered.dy,
                                     ),
                                   ]);
                                 } else if (other is CustomShapeElement) {
                                   targets.addAll([
                                     CanvasSnapTarget(
                                       xMm: other.xMm,
-                                      yMm: other.yMm,
+                                      yMm: rendered.dy,
                                     ),
                                     CanvasSnapTarget(
                                       xMm: other.xMm + other.widthMm / 2,
-                                      yMm: other.yMm + other.heightMm / 2,
+                                      yMm: rendered.dy + other.heightMm / 2,
                                     ),
                                   ]);
                                 }
@@ -361,15 +439,15 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   key: ValueKey(
                                       'p${page1 ? '1' : '2'}_img_${element.id}'),
                                   imagePath: element.imagePath,
-                                  position: Offset(element.xMm, element.yMm),
+                                  position: renderedPosition(element),
                                   widthMm: element.widthMm,
                                   heightMm: element.heightMm,
                                   rotationDegrees: element.rotationDegrees,
                                   scale: scale,
                                   templateWidthMm: templateWidthMm,
                                   templateHeightMm: templateHeightMm,
-                                  canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                  canvasInsetXPx: canvasInsetX,
+                                  canvasInsetYPx: canvasInsetY,
                                   templatePanToMmDelta: templatePanToMmDelta,
                                   isSelected: selectedElement ==
                                       'image:${page1 ? '1' : '2'}:${element.id}',
@@ -381,18 +459,23 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   snapEnabled: snapEnabled,
                                   snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
+                                    final saved = savedPosition(pos, element);
                                     onScheduleTemplateImageUpdate(
                                       element.copyWith(
-                                        xMm: pos.dx,
-                                        yMm: pos.dy,
+                                        xMm: saved.dx,
+                                        yMm: saved.dy,
                                       ),
                                     );
                                   },
                                   onBoundsChanged: (x, y, w, h) {
+                                    final saved = savedPosition(
+                                      Offset(x, y),
+                                      element,
+                                    );
                                     onScheduleTemplateImageUpdate(
                                       element.copyWith(
-                                        xMm: x,
-                                        yMm: y,
+                                        xMm: saved.dx,
+                                        yMm: saved.dy,
                                         widthMm: w,
                                         heightMm: h,
                                       ),
@@ -412,7 +495,14 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   final textVal = formatTemplateText(
                                     isPreviewMode
                                         ? substituteDocumentPlaceholders(
-                                            rawText,
+                                            expandNestedListTextIfEnabled(
+                                              text: rawText,
+                                              textType: element.textType,
+                                              fieldValues:
+                                                  editorTemplateFieldPreview,
+                                              formatOption:
+                                                  element.formatOption,
+                                            ),
                                             editorTemplateFieldPreview,
                                             nullFallbackOption:
                                                 element.nullFallbackOption,
@@ -440,15 +530,15 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                           Color(element.qrBgColorArgb),
                                       shape: element.qrShape,
                                     ),
-                                    position: Offset(element.xMm, element.yMm),
+                                    position: renderedPosition(element),
                                     widthMm: element.qrSizeMm,
                                     heightMm: element.qrSizeMm,
                                     rotationDegrees: element.rotationDegrees,
                                     scale: scale,
                                     templateWidthMm: templateWidthMm,
                                     templateHeightMm: templateHeightMm,
-                                    canvasInsetXPx: 0,
-                                    canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                    canvasInsetXPx: canvasInsetX,
+                                    canvasInsetYPx: canvasInsetY,
                                     templatePanToMmDelta: templatePanToMmDelta,
                                     isSelected: selectedElement ==
                                         'custom:${page1 ? '1' : '2'}:${element.id}',
@@ -460,18 +550,23 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     snapEnabled: snapEnabled,
                                     snapTargets: snapTargetsFor(element),
                                     onMoved: (pos) {
+                                      final saved = savedPosition(pos, element);
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
-                                          xMm: pos.dx,
-                                          yMm: pos.dy,
+                                          xMm: saved.dx,
+                                          yMm: saved.dy,
                                         ),
                                       );
                                     },
                                     onBoundsChanged: (x, y, w, h) {
+                                      final saved = savedPosition(
+                                        Offset(x, y),
+                                        element,
+                                      );
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
-                                          xMm: x,
-                                          yMm: y,
+                                          xMm: saved.dx,
+                                          yMm: saved.dy,
                                           qrSizeMm: w,
                                         ),
                                       );
@@ -493,7 +588,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     vectorChild: Icon(
                                         templateGenderIconForFieldKey(
                                             editorTemplateFieldPreview, gKey)),
-                                    position: Offset(element.xMm, element.yMm),
+                                    position: renderedPosition(element),
                                     widthMm: element.iconWidthMm ??
                                         kTemplateGenderIconDefaultWidthMm,
                                     heightMm: element.iconHeightMm ??
@@ -502,8 +597,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     scale: scale,
                                     templateWidthMm: templateWidthMm,
                                     templateHeightMm: templateHeightMm,
-                                    canvasInsetXPx: 0,
-                                    canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                    canvasInsetXPx: canvasInsetX,
+                                    canvasInsetYPx: canvasInsetY,
                                     templatePanToMmDelta: templatePanToMmDelta,
                                     isSelected: selectedElement ==
                                         'custom:${page1 ? '1' : '2'}:${element.id}',
@@ -514,18 +609,23 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     isVisible: element.isVisible,
                                     snapEnabled: snapEnabled,
                                     onMoved: (pos) {
+                                      final saved = savedPosition(pos, element);
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
-                                          xMm: pos.dx,
-                                          yMm: pos.dy,
+                                          xMm: saved.dx,
+                                          yMm: saved.dy,
                                         ),
                                       );
                                     },
                                     onBoundsChanged: (x, y, w, h) {
+                                      final saved = savedPosition(
+                                        Offset(x, y),
+                                        element,
+                                      );
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
-                                          xMm: x,
-                                          yMm: y,
+                                          xMm: saved.dx,
+                                          yMm: saved.dy,
                                           iconWidthMm: w,
                                           iconHeightMm: h,
                                         ),
@@ -547,7 +647,15 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                         : formatTemplateText(
                                             isPreviewMode
                                                 ? substituteDocumentPlaceholders(
-                                                    element.text,
+                                                    expandNestedListTextIfEnabled(
+                                                      text: element.text,
+                                                      textType:
+                                                          element.textType,
+                                                      fieldValues:
+                                                          editorTemplateFieldPreview,
+                                                      formatOption:
+                                                          element.formatOption,
+                                                    ),
                                                     editorTemplateFieldPreview,
                                                     nullFallbackOption: element
                                                         .nullFallbackOption,
@@ -564,7 +672,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                             element.caseFormat,
                                           ),
                                     actualText: element.text,
-                                    position: Offset(element.xMm, element.yMm),
+                                    position: renderedPosition(element),
                                     fontSize: element.fontSizePt,
                                     fontFamily: element.fontFamily,
                                     bold: element.bold,
@@ -577,8 +685,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     scale: scale,
                                     templateWidthMm: templateWidthMm,
                                     templateHeightMm: templateHeightMm,
-                                    canvasInsetXPx: 0,
-                                    canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                    canvasInsetXPx: canvasInsetX,
+                                    canvasInsetYPx: canvasInsetY,
                                     templatePanToMmDelta: templatePanToMmDelta,
                                     isCustom: true,
                                     maxWidthMm: element.maxWidthMm,
@@ -595,7 +703,11 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     isDynamic: element.isDynamic,
                                     isLocked: element.isLocked,
                                     isVisible: element.isVisible,
-                                    isMarkdown: element.textType == 'markdown',
+                                    isMarkdown: isTemplateRichTextType(
+                                      element.textType,
+                                    ),
+                                    onContentSizeChanged: (size) =>
+                                        reportDynamicTextSize(element, size),
                                     snapEnabled: snapEnabled,
                                     snapTargets: snapTargetsFor(element),
                                     onMaxWidthChanged: (w) {
@@ -609,10 +721,11 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                       );
                                     },
                                     onResizeChanged: (pos, w, h) {
+                                      final saved = savedPosition(pos, element);
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
-                                          xMm: pos.dx,
-                                          yMm: pos.dy,
+                                          xMm: saved.dx,
+                                          yMm: saved.dy,
                                           maxWidthMm: w,
                                           heightMm:
                                               element.isDynamic ? null : h,
@@ -635,9 +748,12 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     },
                                     onDragStateChanged: onDragStateChanged,
                                     onMoved: (pos) {
+                                      final saved = savedPosition(pos, element);
                                       onScheduleTemplateTextPositionUpdate(
                                         element.copyWith(
-                                            xMm: pos.dx, yMm: pos.dy),
+                                          xMm: saved.dx,
+                                          yMm: saved.dy,
+                                        ),
                                       );
                                     },
                                   );
@@ -646,7 +762,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                 return DraggableLineChip(
                                   key: ValueKey(
                                       'p${page1 ? '1' : '2'}_line_${element.id}'),
-                                  position: Offset(element.xMm, element.yMm),
+                                  position: renderedPosition(element),
                                   lengthMm: element.lengthMm,
                                   thicknessPt: element.thicknessPt,
                                   colorArgb: element.colorArgb,
@@ -655,8 +771,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   scale: scale,
                                   templateWidthMm: templateWidthMm,
                                   templateHeightMm: templateHeightMm,
-                                  canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                  canvasInsetXPx: canvasInsetX,
+                                  canvasInsetYPx: canvasInsetY,
                                   templatePanToMmDelta: templatePanToMmDelta,
                                   isSelected: selectedElement ==
                                       'line:${page1 ? '1' : '2'}:${element.id}',
@@ -668,12 +784,21 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   snapEnabled: snapEnabled,
                                   snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
-                                    onScheduleTemplateLineUpdate(element
-                                        .copyWith(xMm: pos.dx, yMm: pos.dy));
+                                    final saved = savedPosition(pos, element);
+                                    onScheduleTemplateLineUpdate(
+                                        element.copyWith(
+                                            xMm: saved.dx, yMm: saved.dy));
                                   },
                                   onBoundsChanged: (x, y, w, h) {
-                                    onScheduleTemplateLineUpdate(element
-                                        .copyWith(xMm: x, yMm: y, lengthMm: w));
+                                    final saved = savedPosition(
+                                      Offset(x, y),
+                                      element,
+                                    );
+                                    onScheduleTemplateLineUpdate(
+                                        element.copyWith(
+                                            xMm: saved.dx,
+                                            yMm: saved.dy,
+                                            lengthMm: w));
                                   },
                                   onRotationChanged: (deg) {
                                     onScheduleTemplateLineUpdate(
@@ -688,7 +813,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                       'p${page1 ? '1' : '2'}_shape_${element.id}'),
                                   shapeType: element.shapeType,
                                   polygonSides: element.polygonSides,
-                                  position: Offset(element.xMm, element.yMm),
+                                  position: renderedPosition(element),
                                   widthMm: element.widthMm,
                                   heightMm: element.heightMm,
                                   strokeThicknessPt: element.strokeThicknessPt,
@@ -699,8 +824,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   scale: scale,
                                   templateWidthMm: templateWidthMm,
                                   templateHeightMm: templateHeightMm,
-                                  canvasInsetXPx: 0,
-                                  canvasInsetYPx: _kTemplateCanvasHitPadPx,
+                                  canvasInsetXPx: canvasInsetX,
+                                  canvasInsetYPx: canvasInsetY,
                                   templatePanToMmDelta: templatePanToMmDelta,
                                   isSelected: selectedElement ==
                                       'shape:${page1 ? '1' : '2'}:${element.id}',
@@ -712,14 +837,20 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   snapEnabled: snapEnabled,
                                   snapTargets: snapTargetsFor(element),
                                   onMoved: (pos) {
-                                    onScheduleTemplateShapeUpdate(element
-                                        .copyWith(xMm: pos.dx, yMm: pos.dy));
-                                  },
-                                  onBoundsChanged: (x, y, w, h) {
+                                    final saved = savedPosition(pos, element);
                                     onScheduleTemplateShapeUpdate(
                                         element.copyWith(
-                                            xMm: x,
-                                            yMm: y,
+                                            xMm: saved.dx, yMm: saved.dy));
+                                  },
+                                  onBoundsChanged: (x, y, w, h) {
+                                    final saved = savedPosition(
+                                      Offset(x, y),
+                                      element,
+                                    );
+                                    onScheduleTemplateShapeUpdate(
+                                        element.copyWith(
+                                            xMm: saved.dx,
+                                            yMm: saved.dy,
                                             widthMm: w,
                                             heightMm: h));
                                   },

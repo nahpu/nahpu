@@ -17,13 +17,18 @@ class _DocumentTemplateSubstitutor {
         continue;
       }
       var subbedText = substituteDocumentPlaceholders(
-        ct.text,
+        expandNestedListTextIfEnabled(
+          text: ct.text,
+          textType: ct.textType,
+          fieldValues: data,
+          formatOption: ct.formatOption,
+        ),
         data,
         nullFallbackOption: ct.nullFallbackOption,
         customNullFallbackText: ct.customNullFallbackText,
       );
       var textType = ct.textType;
-      if (ct.textType == 'markdown' ||
+      if (isTemplateRichTextType(ct.textType) ||
           ct.text.toLowerCase().contains('narrative::narrative')) {
         subbedText = await rust_export.markdownToTypst(mdContent: subbedText);
         textType = 'markdown';

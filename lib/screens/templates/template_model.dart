@@ -425,6 +425,7 @@ String formatTemplateText(
       result = formatNumberText(rawText, formatOption);
       break;
     case 'markdown':
+    case 'nestedList':
       result = rawText;
       break;
     case 'normal':

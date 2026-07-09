@@ -215,6 +215,28 @@ class DocumentWriter {
   }
 
   @visibleForTesting
+  static String renderSingleDocumentCellTypstForTesting({
+    required TemplatePage page,
+    required double wPt,
+    required double hPt,
+  }) {
+    final typst = StringBuffer();
+    const _DocumentTypstRenderer().writeSingleDocumentCell(
+      typst: typst,
+      page: page,
+      data: const {},
+      wPt: wPt,
+      hPt: hPt,
+      templatePadTopMm: 0,
+      templatePadLeftMm: 0,
+      templatePadRightMm: 0,
+      templatePadBottomMm: 0,
+      mirror: false,
+    );
+    return typst.toString();
+  }
+
+  @visibleForTesting
   static double estimateTemplatePageContentHeightPtForTesting({
     required TemplatePage page,
     required double wPt,

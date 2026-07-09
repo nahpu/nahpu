@@ -54,15 +54,17 @@ class TemplateMarkdownBody extends StatelessWidget {
     required this.data,
     required this.textStyle,
     required this.textAlign,
+    this.clipOverflow = false,
   });
 
   final String data;
   final TextStyle textStyle;
   final TextAlign textAlign;
+  final bool clipOverflow;
 
   @override
   Widget build(BuildContext context) {
-    return MarkdownBody(
+    final body = MarkdownBody(
       data: data,
       fitContent: false,
       softLineBreak: true,
@@ -70,6 +72,13 @@ class TemplateMarkdownBody extends StatelessWidget {
         context: context,
         textStyle: textStyle,
         textAlign: textAlign,
+      ),
+    );
+    if (!clipOverflow) return body;
+    return ClipRect(
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: body,
       ),
     );
   }

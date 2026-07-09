@@ -327,6 +327,17 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
             child: Text('Custom separator...'),
           ),
         ];
+      case 'nestedList':
+        return const [
+          DropdownMenuItem(
+            value: 'table',
+            child: Text('Table'),
+          ),
+          DropdownMenuItem(
+            value: 'cardList',
+            child: Text('Card list'),
+          ),
+        ];
       case 'date':
         return const [
           DropdownMenuItem(
@@ -843,79 +854,13 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
     final isCustomSep =
         ct.formatOption.startsWith('custom:') || ct.formatOption == 'custom';
     final hasTextPlaceholder = _hasTextPlaceholder(ct.text);
-    final nullFallbackOption = ct.nullFallbackOption;
-
-    final nullFallbackControls = <Widget>[
-      const SizedBox(width: 16),
-      Text(
-        'Null',
-        style: Theme.of(context).textTheme.labelMedium,
-      ),
-      const SizedBox(width: 8),
-      DropdownButton<String>(
-        value: nullFallbackOption,
-        isDense: true,
-        underline: const SizedBox.shrink(),
-        items: const [
-          DropdownMenuItem(
-            value: kTemplateNullFallbackBlank,
-            child: Text('Blank'),
-          ),
-          DropdownMenuItem(
-            value: kTemplateNullFallbackField,
-            child: Text('table::field'),
-          ),
-          DropdownMenuItem(
-            value: kTemplateNullFallbackNa,
-            child: Text('N/A'),
-          ),
-          DropdownMenuItem(
-            value: kTemplateNullFallbackNone,
-            child: Text('None'),
-          ),
-          DropdownMenuItem(
-            value: kTemplateNullFallbackCustom,
-            child: Text('Custom'),
-          ),
-        ],
-        onChanged: hasTextPlaceholder
-            ? (v) {
-                if (v == null) return;
-                onUpdateCustomText(
-                  page1,
-                  ct.copyWith(nullFallbackOption: v),
-                );
-              }
-            : null,
-      ),
-      if (hasTextPlaceholder &&
-          nullFallbackOption == kTemplateNullFallbackCustom) ...[
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 120,
-          child: TextField(
-            controller: _customNullFallbackController,
-            decoration: const InputDecoration(
-              isDense: true,
-              hintText: 'Custom text',
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 8,
-              ),
-            ),
-            onChanged: (_) {
-              onUpdateCustomText(
-                page1,
-                ct.copyWith(
-                  customNullFallbackText:
-                      _customNullFallbackController.text.trim(),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    ];
+    final nullFallbackControls = _NullFallbackControls(
+      text: ct,
+      page1: page1,
+      hasTextPlaceholder: hasTextPlaceholder,
+      customTextController: _customNullFallbackController,
+      onUpdate: onUpdateCustomText,
+    );
 
     return Padding(
       padding: widget.inToolbar
@@ -1163,6 +1108,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               child: Text('List Values'),
                             ),
                             DropdownMenuItem(
+                              value: 'nestedList',
+                              child: Text('Nested List'),
+                            ),
+                            DropdownMenuItem(
                               value: 'date',
                               child: Text('Dates'),
                             ),
@@ -1190,6 +1139,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               defaultOpt = 'decimal';
                             } else if (v == 'list') {
                               defaultOpt = 'pipe';
+                            } else if (v == 'nestedList') {
+                              defaultOpt = 'table';
                             } else if (v == 'date') {
                               defaultOpt = 'yyyy-mm-dd';
                             } else if (v == 'datetime') {
@@ -1231,7 +1182,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               );
                             },
                           ),
-                          ...nullFallbackControls,
+                          nullFallbackControls,
                         ] else ...[
                           const SizedBox(width: 16),
                           Text(
@@ -1268,7 +1219,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               );
                             },
                           ),
-                          ...nullFallbackControls,
+                          nullFallbackControls,
                           const SizedBox(width: 16),
                           Text(
                             'Missing',
@@ -1499,6 +1450,93 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
           widget.deleteButton,
         ],
       ),
+    );
+  }
+}
+
+/// Isolates placeholder fallback editing from the text formatting toolbar.
+class _NullFallbackControls extends StatelessWidget {
+  const _NullFallbackControls({
+    required this.text,
+    required this.page1,
+    required this.hasTextPlaceholder,
+    required this.customTextController,
+    required this.onUpdate,
+  });
+
+  final CustomTextElement text;
+  final bool page1;
+  final bool hasTextPlaceholder;
+  final TextEditingController customTextController;
+  final void Function(bool page1, CustomTextElement element) onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    final nullFallbackOption = text.nullFallbackOption;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(width: 16),
+        Text('Null', style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(width: 8),
+        DropdownButton<String>(
+          value: nullFallbackOption,
+          isDense: true,
+          underline: const SizedBox.shrink(),
+          items: const [
+            DropdownMenuItem(
+              value: kTemplateNullFallbackBlank,
+              child: Text('Blank'),
+            ),
+            DropdownMenuItem(
+              value: kTemplateNullFallbackField,
+              child: Text('table::field'),
+            ),
+            DropdownMenuItem(
+              value: kTemplateNullFallbackNa,
+              child: Text('N/A'),
+            ),
+            DropdownMenuItem(
+              value: kTemplateNullFallbackNone,
+              child: Text('None'),
+            ),
+            DropdownMenuItem(
+              value: kTemplateNullFallbackCustom,
+              child: Text('Custom'),
+            ),
+          ],
+          onChanged: hasTextPlaceholder
+              ? (value) {
+                  if (value == null) return;
+                  onUpdate(page1, text.copyWith(nullFallbackOption: value));
+                }
+              : null,
+        ),
+        if (hasTextPlaceholder &&
+            nullFallbackOption == kTemplateNullFallbackCustom) ...[
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 120,
+            child: TextField(
+              controller: customTextController,
+              decoration: const InputDecoration(
+                isDense: true,
+                hintText: 'Custom text',
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 8,
+                ),
+              ),
+              onChanged: (_) => onUpdate(
+                page1,
+                text.copyWith(
+                  customNullFallbackText: customTextController.text.trim(),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

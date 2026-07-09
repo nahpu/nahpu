@@ -52,6 +52,7 @@ class DraggableChip extends StatefulWidget {
     this.snapEnabled = true,
     this.isMarkdown = false,
     this.snapTargets = const [],
+    this.onContentSizeChanged,
   });
 
   final String label;
@@ -106,6 +107,12 @@ class DraggableChip extends StatefulWidget {
   final bool isMarkdown;
   final List<CanvasSnapTarget> snapTargets;
 
+  /// Reports the rendered text box size after its intrinsic content changes.
+  ///
+  /// The canvas uses this only for render-time dynamic flow; it never changes
+  /// the persisted element bounds.
+  final ValueChanged<Size>? onContentSizeChanged;
+
   @override
   State<DraggableChip> createState() => DraggableChipState();
 }
@@ -141,6 +148,8 @@ class DraggableChipState extends State<DraggableChip> {
   Offset _panAccumMm = Offset.zero;
   Offset? _dragLiveMm;
   int _templateDragSession = 0;
+  final GlobalKey _contentSizeKey = GlobalKey();
+  bool _contentSizeNotificationQueued = false;
 
   @override
   void initState() {
@@ -206,48 +215,60 @@ class DraggableChipState extends State<DraggableChip> {
           widget.borderWidthPt * widget.scale / _kPdfPointsPerMm;
       final textBoxRadiusPx =
           widget.cornerRadiusPt * widget.scale / _kPdfPointsPerMm;
-      final text = SizedBox(
-        width: activeWidthMm != null ? activeWidthMm * widget.scale : null,
-        height: activeHeightMm != null ? activeHeightMm * widget.scale : null,
-        child: CustomPaint(
-          foregroundPainter:
-              widget.borderColorArgb == null || widget.borderWidthPt <= 0
-                  ? null
-                  : _TextBoxStrokePainter(
-                      color: Color(widget.borderColorArgb!),
-                      width: textBoxBorderWidthPx,
-                      style: widget.borderStrokeStyle,
-                      radius: textBoxRadiusPx,
-                    ),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: widget.backgroundColorArgb == null
-                  ? null
-                  : Color(widget.backgroundColorArgb!),
-              borderRadius: BorderRadius.circular(textBoxRadiusPx),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(textBoxPaddingPx),
-              child: Builder(builder: (context) {
-                final hasNewlines = widget.label.contains('\n');
-                if (widget.isMarkdown) {
-                  return TemplateMarkdownBody(
-                    data: widget.label,
-                    textStyle: textStyle,
-                    textAlign: widget.textAlign,
-                  );
-                }
-                return Text(
-                  widget.label,
-                  style: textStyle,
-                  softWrap: activeWidthMm != null || hasNewlines,
-                  maxLines: (activeWidthMm != null || hasNewlines) ? null : 1,
-                  overflow: (activeWidthMm != null || hasNewlines)
-                      ? TextOverflow.clip
-                      : TextOverflow.visible,
-                  textAlign: widget.textAlign,
-                );
-              }),
+      final text = NotificationListener<SizeChangedLayoutNotification>(
+        onNotification: (_) {
+          _scheduleContentSizeReport();
+          return false;
+        },
+        child: SizeChangedLayoutNotifier(
+          child: SizedBox(
+            key: _contentSizeKey,
+            width: activeWidthMm != null ? activeWidthMm * widget.scale : null,
+            height:
+                activeHeightMm != null ? activeHeightMm * widget.scale : null,
+            child: CustomPaint(
+              foregroundPainter:
+                  widget.borderColorArgb == null || widget.borderWidthPt <= 0
+                      ? null
+                      : _TextBoxStrokePainter(
+                          color: Color(widget.borderColorArgb!),
+                          width: textBoxBorderWidthPx,
+                          style: widget.borderStrokeStyle,
+                          radius: textBoxRadiusPx,
+                        ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: widget.backgroundColorArgb == null
+                      ? null
+                      : Color(widget.backgroundColorArgb!),
+                  borderRadius: BorderRadius.circular(textBoxRadiusPx),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(textBoxPaddingPx),
+                  child: Builder(builder: (context) {
+                    final hasNewlines = widget.label.contains('\n');
+                    if (widget.isMarkdown) {
+                      return TemplateMarkdownBody(
+                        data: widget.label,
+                        textStyle: textStyle,
+                        textAlign: widget.textAlign,
+                        clipOverflow: true,
+                      );
+                    }
+                    return Text(
+                      widget.label,
+                      style: textStyle,
+                      softWrap: activeWidthMm != null || hasNewlines,
+                      maxLines:
+                          (activeWidthMm != null || hasNewlines) ? null : 1,
+                      overflow: (activeWidthMm != null || hasNewlines)
+                          ? TextOverflow.clip
+                          : TextOverflow.visible,
+                      textAlign: widget.textAlign,
+                    );
+                  }),
+                ),
+              ),
             ),
           ),
         ),
@@ -497,6 +518,20 @@ class DraggableChipState extends State<DraggableChip> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       setState(fn);
+    });
+  }
+
+  void _scheduleContentSizeReport() {
+    if (_contentSizeNotificationQueued || widget.onContentSizeChanged == null) {
+      return;
+    }
+    _contentSizeNotificationQueued = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _contentSizeNotificationQueued = false;
+      if (!mounted) return;
+      final renderObject = _contentSizeKey.currentContext?.findRenderObject();
+      if (renderObject is! RenderBox || !renderObject.hasSize) return;
+      widget.onContentSizeChanged?.call(renderObject.size);
     });
   }
 

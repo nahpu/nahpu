@@ -128,27 +128,7 @@ class _DocumentTypstRenderer {
       typst.writeln('  let cell_height = ${initialCellHeight}pt');
       for (final t in dynamicTexts) {
         final varSuffix = _typstVarSuffix(t.id);
-        final formatted = formatTemplateText(
-          t.text,
-          t.textType,
-          t.formatOption,
-          t.caseFormat,
-        );
-        String content = _escapeTypstMarkup(formatted);
-        final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
-        final colorStr = 'rgb("${hexColor.substring(2)}")';
-        String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
-        if (t.bold) textProps += ', weight: "bold"';
-        if (t.italic) textProps += ', style: "italic"';
-        textProps += ', font: "${_typstTemplateFont(t.fontFamily)}"';
-
-        String textElem = '#text($textProps)[$content]';
-        if (t.underline) {
-          textElem = '#underline[$textElem]';
-        }
-        if (t.strikethrough) {
-          textElem = '#strike[$textElem]';
-        }
+        final textElem = _typstTextElement(t, applyBox: false);
 
         final mwPt = t.maxWidthMm != null
             ? '${documentPdfMmToPt(t.maxWidthMm!)}pt'
@@ -271,13 +251,13 @@ class _DocumentTypstRenderer {
 
     if (outline.style == TemplateOutlineStyle.doubleLine) {
       typst.writeln(
-          '  #place(dx: 0pt, dy: 0pt)[#rect(width: 100%, height: 100%, stroke: ${outline.widthPt}pt + rgb($r, $g, $b))]');
+          '  #place(top + left, dx: 0pt, dy: 0pt)[#rect(width: 100%, height: 100%, stroke: ${outline.widthPt}pt + rgb($r, $g, $b))]');
       final inset = outline.widthPt + math.max(1.0, outline.widthPt * 1.25);
       typst.writeln(
-          '  #place(dx: ${inset}pt, dy: ${inset}pt)[#rect(width: 100% - ${2 * inset}pt, height: 100% - ${2 * inset}pt, stroke: ${outline.widthPt}pt + rgb($r, $g, $b))]');
+          '  #place(top + left, dx: ${inset}pt, dy: ${inset}pt)[#rect(width: 100% - ${2 * inset}pt, height: 100% - ${2 * inset}pt, stroke: ${outline.widthPt}pt + rgb($r, $g, $b))]');
     } else {
       typst.writeln(
-          '  #place(dx: 0pt, dy: 0pt)[#rect(width: 100%, height: 100%, stroke: (paint: rgb($r, $g, $b), thickness: ${outline.widthPt}pt, dash: $strokeStyle))]');
+          '  #place(top + left, dx: 0pt, dy: 0pt)[#rect(width: 100%, height: 100%, stroke: (paint: rgb($r, $g, $b), thickness: ${outline.widthPt}pt, dash: $strokeStyle))]');
     }
   }
 
@@ -327,7 +307,7 @@ class _DocumentTypstRenderer {
       String cleanPath = t.tempPath!.replaceAll(r'\', r'\\');
       final sizePt = documentPdfMmToPt(t.qrSizeMm);
       typst.writeln(
-          '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]');
+          '  #place(top + left, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]');
       return;
     }
 
@@ -337,6 +317,13 @@ class _DocumentTypstRenderer {
       return;
     }
 
+    final textElem = _typstTextElement(t, applyBox: true);
+
+    typst.writeln(
+        '  #place(top + left, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: top + left)[$textElem]]');
+  }
+
+  String _typstTextElement(CustomTextElement t, {required bool applyBox}) {
     final formatted = formatTemplateText(
       t.text,
       t.textType,
@@ -344,7 +331,7 @@ class _DocumentTypstRenderer {
       t.caseFormat,
     );
     final isMarkdown = t.textType == 'markdown';
-    String content = isMarkdown ? formatted : _escapeTypstMarkup(formatted);
+    final content = isMarkdown ? formatted : _escapeTypstMarkup(formatted);
     final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
     final colorStr = 'rgb("${hexColor.substring(2)}")';
     String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
@@ -353,7 +340,7 @@ class _DocumentTypstRenderer {
     textProps += ', font: "${_typstTemplateFont(t.fontFamily)}"';
 
     String textElem = isMarkdown
-        ? '#block[#set text($textProps)\n$content]'
+        ? '#block(above: 0pt, below: 0pt)[#set text($textProps)\n$content]'
         : '#text($textProps)[$content]';
     if (t.underline) {
       textElem = '#underline[$textElem]';
@@ -364,6 +351,8 @@ class _DocumentTypstRenderer {
     if (t.textAlign != 'left') {
       textElem = '#align(${t.textAlign})[$textElem]';
     }
+    if (!applyBox) return textElem;
+
     final hasWidth = t.maxWidthMm != null;
     final hasHeight = t.heightMm != null && !t.isDynamic;
     final hasBackground = t.backgroundColorArgb != null;
@@ -385,9 +374,7 @@ class _DocumentTypstRenderer {
           .join(', ');
       textElem = '#box($args)[$textElem]';
     }
-
-    typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg)[$textElem]]');
+    return textElem;
   }
 
   void _writeGenderIcon(StringBuffer typst, CustomTextElement t,
@@ -407,7 +394,7 @@ class _DocumentTypstRenderer {
     final fs = math.min(iconWPt, iconHPt) * 0.88;
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
+        '  #place(top + left, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
   }
 
   String _fieldValueCi(Map<String, String> m, String key) {
@@ -668,7 +655,7 @@ class _DocumentTypstRenderer {
     String path = im.imagePath.replaceAll(r'\', r'\\');
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(im.xMm)}pt, dy: ${_dyPt(im.yMm, dyShift)})[#rotate(${im.rotationDegrees}deg, origin: center)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
+        '  #place(top + left, dx: ${documentPdfMmToPt(im.xMm)}pt, dy: ${_dyPt(im.yMm, dyShift)})[#rotate(${im.rotationDegrees}deg, origin: center)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]');
   }
 
   void _writeSingleCustomLine(
@@ -683,9 +670,9 @@ class _DocumentTypstRenderer {
       final gap = line.thicknessPt * 1.25;
       final halfOffset = (line.thicknessPt + gap) / 2;
       final line1 =
-          '#place(dy: -${halfOffset}pt)[#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)]';
+          '#place(top + left, dy: -${halfOffset}pt)[#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)]';
       final line2 =
-          '#place(dy: ${halfOffset}pt)[#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)]';
+          '#place(top + left, dy: ${halfOffset}pt)[#line(length: ${lengthPt}pt, stroke: ${line.thicknessPt}pt + $colorStr)]';
       elem = '[$line1$line2]';
     } else {
       final strokeDash = line.strokeStyle == 'dashed'
@@ -698,7 +685,7 @@ class _DocumentTypstRenderer {
     }
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(line.xMm)}pt, dy: ${_dyPt(line.yMm, dyShift)})[#rotate(${line.rotationDegrees}deg, origin: center)[$elem]]');
+        '  #place(top + left, dx: ${documentPdfMmToPt(line.xMm)}pt, dy: ${_dyPt(line.yMm, dyShift)})[#rotate(${line.rotationDegrees}deg, origin: center)[$elem]]');
   }
 
   void _writeSingleCustomShape(
@@ -739,7 +726,7 @@ class _DocumentTypstRenderer {
 
       if (innerWPt > 0 && innerHPt > 0) {
         final innerElem =
-            '#place(dx: ${doubleInset}pt, dy: ${doubleInset}pt)[#$kind(width: ${innerWPt}pt, height: ${innerHPt}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor)]';
+            '#place(top + left, dx: ${doubleInset}pt, dy: ${doubleInset}pt)[#$kind(width: ${innerWPt}pt, height: ${innerHPt}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor)]';
         elem = '[$outerElem$innerElem]';
       } else {
         elem = outerElem;
@@ -755,7 +742,7 @@ class _DocumentTypstRenderer {
     }
 
     typst.writeln(
-        '  #place(dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: ${_dyPt(shape.yMm, dyShift)})[#rotate(${shape.rotationDegrees}deg, origin: center)[$elem]]');
+        '  #place(top + left, dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: ${_dyPt(shape.yMm, dyShift)})[#rotate(${shape.rotationDegrees}deg, origin: center)[$elem]]');
   }
 
   String _typstCustomShapeElement(
@@ -780,7 +767,7 @@ class _DocumentTypstRenderer {
       if (shape.strokeStyle == 'double') {
         final outerStroke = '${shape.strokeThicknessPt}pt + $strokeColor';
         final outerElem =
-            '#place(dx: ${dx}pt, dy: ${dy}pt)[#ellipse(width: ${side}pt, height: ${side}pt, stroke: $outerStroke$fillOpt)]';
+            '#place(top + left, dx: ${dx}pt, dy: ${dy}pt)[#ellipse(width: ${side}pt, height: ${side}pt, stroke: $outerStroke$fillOpt)]';
         final gap = (shape.strokeThicknessPt * 1.25).clamp(1.0, 10.0);
         final doubleInset = shape.strokeThicknessPt + gap;
         final innerSide = side - 2 * doubleInset;
@@ -788,10 +775,10 @@ class _DocumentTypstRenderer {
         final innerDx = dx + doubleInset;
         final innerDy = dy + doubleInset;
         final innerElem =
-            '#place(dx: ${innerDx}pt, dy: ${innerDy}pt)[#ellipse(width: ${innerSide}pt, height: ${innerSide}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor)]';
+            '#place(top + left, dx: ${innerDx}pt, dy: ${innerDy}pt)[#ellipse(width: ${innerSide}pt, height: ${innerSide}pt, stroke: ${shape.strokeThicknessPt}pt + $strokeColor)]';
         return '[$outerElem$innerElem]';
       }
-      return '#place(dx: ${dx}pt, dy: ${dy}pt)[#ellipse(width: ${side}pt, height: ${side}pt, stroke: $stroke$fillOpt)]';
+      return '#place(top + left, dx: ${dx}pt, dy: ${dy}pt)[#ellipse(width: ${side}pt, height: ${side}pt, stroke: $stroke$fillOpt)]';
     }
 
     if (shape.strokeStyle == 'double') {

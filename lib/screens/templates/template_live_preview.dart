@@ -9,6 +9,7 @@ import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_markdown.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/templates/template_nested_list_service.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;
@@ -216,7 +217,12 @@ class _PreviewPage extends StatelessWidget {
                                 placeholderValues.isEmpty
                                     ? ct.text
                                     : substituteDocumentPlaceholders(
-                                        ct.text,
+                                        expandNestedListTextIfEnabled(
+                                          text: ct.text,
+                                          textType: ct.textType,
+                                          fieldValues: placeholderValues,
+                                          formatOption: ct.formatOption,
+                                        ),
                                         placeholderValues,
                                         nullFallbackOption:
                                             ct.nullFallbackOption,
@@ -249,11 +255,12 @@ class _PreviewPage extends StatelessWidget {
                               strikethrough: ct.strikethrough,
                             ).copyWith(color: Colors.black);
                             final textAlign = _parseTextAlign(ct.textAlign);
-                            if (ct.textType == 'markdown') {
+                            if (isTemplateRichTextType(ct.textType)) {
                               return TemplateMarkdownBody(
                                 data: formattedText,
                                 textStyle: textStyle,
                                 textAlign: textAlign,
+                                clipOverflow: !ct.isDynamic,
                               );
                             }
                             return Text(
