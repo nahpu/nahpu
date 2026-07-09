@@ -121,13 +121,6 @@ class DraggableChipState extends State<DraggableChip> {
   final CanvasSnapSession _snapSession = CanvasSnapSession();
   CanvasSnapResult? _snapResult;
 
-  void _deferSetState(VoidCallback fn) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(fn);
-    });
-  }
-
   _TextCorner? _resizeCorner;
   double? _resizeStartWidthMm;
   double? _resizeStartHeightMm;
@@ -148,257 +141,12 @@ class DraggableChipState extends State<DraggableChip> {
   Offset? _dragLiveMm;
   int _templateDragSession = 0;
 
-  Offset _mmDeltaForTemplatePan(DragUpdateDetails d) {
-    final last = _templateDragLastGlobal ?? d.globalPosition;
-    final gDelta = d.globalPosition - last;
-    _templateDragLastGlobal = d.globalPosition;
-    final fromStack = widget.templatePanToMmDelta(d.globalPosition, gDelta);
-    if (fromStack != null) return fromStack;
-    return pixelsToTemplateMm(gDelta, widget.scale);
-  }
-
-  void _onResizePanStart(DragStartDetails d, _TextCorner corner) {
-    widget.onDragStateChanged?.call(true);
-    final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
-    final textStyle = customTemplateCanvasTextStyle(
-      fontFamilyRaw: widget.fontFamily,
-      fontSize: fontPx,
-      fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
-      fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
-      underline: widget.underline,
-      strikethrough: widget.strikethrough,
-    ).copyWith(color: Color(widget.colorArgb));
-
-    final tp = TextPainter(
-      text: TextSpan(text: widget.label, style: textStyle),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final initialHeight = widget.heightMm ?? (tp.height / widget.scale);
-
-    _deferSetState(() {
-      _resizeCorner = corner;
-      _resizeStartWidthMm = widget.maxWidthMm ?? (tp.width / widget.scale);
-      _resizeLiveWidthMm = _resizeStartWidthMm;
-      _resizeStartHeightMm = initialHeight;
-      _resizeLiveHeightMm = initialHeight;
-      _resizeStartPosMm = widget.position;
-      _resizeLivePosMm = widget.position;
-    });
-    _resizeStartGlobal = d.globalPosition;
-  }
-
-  void _onResizePanUpdate(DragUpdateDetails d) {
-    if (_resizeStartGlobal == null ||
-        _resizeStartWidthMm == null ||
-        _resizeCorner == null ||
-        _resizeStartPosMm == null) {
-      return;
-    }
-    final gDelta = d.globalPosition - _resizeStartGlobal!;
-    final fromStack = widget.templatePanToMmDelta(d.globalPosition, gDelta);
-    final templateDeltaMm =
-        fromStack ?? pixelsToTemplateMm(gDelta, widget.scale);
-    final localDeltaMm = templateDeltaToElementLocalMm(
-      templateDeltaMm,
-      widget.rotationDegrees,
-    );
-
-    if (widget.isDynamic) {
-      final deltaMm = localDeltaMm.dx;
-      var newWidth = _resizeStartWidthMm!;
-      var newPos = _resizeStartPosMm!;
-
-      switch (_resizeCorner!) {
-        case _TextCorner.tl:
-        case _TextCorner.bl:
-          newWidth = (_resizeStartWidthMm! - deltaMm).clamp(
-            5.0,
-            widget.templateWidthMm,
-          );
-          final appliedDeltaMm = _resizeStartWidthMm! - newWidth;
-          final radians = degreesToRadians(widget.rotationDegrees);
-          newPos = _resizeStartPosMm! +
-              Offset(
-                appliedDeltaMm * math.cos(radians),
-                appliedDeltaMm * math.sin(radians),
-              );
-          break;
-        case _TextCorner.tr:
-        case _TextCorner.br:
-          newWidth = (_resizeStartWidthMm! + deltaMm).clamp(
-            5.0,
-            widget.templateWidthMm,
-          );
-          break;
-      }
-
-      setState(() {
-        _resizeLiveWidthMm = newWidth;
-        _resizeLivePosMm = newPos;
-      });
-    } else {
-      final rect = resizedRotatedRectFromCorner(
-        startMm: Rect.fromLTWH(
-          _resizeStartPosMm!.dx,
-          _resizeStartPosMm!.dy,
-          _resizeStartWidthMm!,
-          _resizeStartHeightMm ?? 0.0,
-        ),
-        localDeltaMm: localDeltaMm,
-        corner: _resizeCorner!.name,
-        rotationDegrees: widget.rotationDegrees,
-        maxWidthMm: widget.templateWidthMm,
-        maxHeightMm: widget.templateHeightMm,
-      );
-      setState(() {
-        _resizeLiveWidthMm = rect.width;
-        _resizeLiveHeightMm = rect.height;
-        _resizeLivePosMm = rect.topLeft;
-      });
-    }
-  }
-
-  void _onResizePanEnd() {
-    widget.onDragStateChanged?.call(false);
-    if (_resizeLiveWidthMm != null) {
-      final pos = _resizeLivePosMm ?? _resizeStartPosMm ?? widget.position;
-      if (widget.onResizeChanged != null) {
-        widget.onResizeChanged!(
-          pos,
-          _resizeLiveWidthMm!,
-          widget.isDynamic
-              ? 0.0
-              : (_resizeLiveHeightMm ?? widget.heightMm ?? 0.0),
-        );
-      } else {
-        widget.onMaxWidthChanged?.call(_resizeLiveWidthMm!);
-        if (widget.onHeightChanged != null &&
-            !widget.isDynamic &&
-            _resizeLiveHeightMm != null) {
-          widget.onHeightChanged!(_resizeLiveHeightMm!);
-        }
-        if (_resizeLivePosMm != null && _resizeLivePosMm != _resizeStartPosMm) {
-          widget.onMoved(_resizeLivePosMm!);
-        }
-      }
-    }
-    _deferSetState(() {
-      _resizeCorner = null;
-      _resizeStartGlobal = null;
-      _resizeStartWidthMm = null;
-      _resizeLiveWidthMm = null;
-      _resizeStartHeightMm = null;
-      _resizeLiveHeightMm = null;
-      _resizeStartPosMm = null;
-      _resizeLivePosMm = null;
-    });
-  }
-
-  void _onTemplatePanStart(DragStartDetails d) {
-    widget.onDragStateChanged?.call(true);
-    if (widget.isCustom && !widget.isSelected) {
-      widget.onSelect?.call();
-    }
-    _templateDragSession++;
-    _panOriginMm = widget.position;
-    _panAccumMm = Offset.zero;
-    _dragLiveMm = null;
-    _snapSession.reset();
-    _snapResult = null;
-    _deferSetState(() => _dragging = true);
-    _templateDragLastGlobal = d.globalPosition;
-  }
-
-  void _finishTemplatePanGesture() {
-    final session = _templateDragSession;
-    if (_dragLiveMm != null) {
-      widget.onMoved(_dragLiveMm!);
-    }
-    _templateDragLastGlobal = null;
-    _panOriginMm = null;
-    _panAccumMm = Offset.zero;
-    _snapSession.reset();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || session != _templateDragSession) return;
-      setState(() {
-        _dragLiveMm = null;
-        _snapResult = null;
-      });
-    });
-  }
-
-  void _onTemplatePanEnd() {
-    _deferSetState(() {
-      _dragging = false;
-      _snapResult = null;
-    });
-    _finishTemplatePanGesture();
-    widget.onDragStateChanged?.call(false);
-  }
-
-  void _panMoveClampedToHitInset(DragUpdateDetails details) {
-    final dMm = _mmDeltaForTemplatePan(details);
-    if (dMm.dx.isNaN ||
-        dMm.dy.isNaN ||
-        dMm.dx.isInfinite ||
-        dMm.dy.isInfinite) {
-      return;
-    }
-    final origin = _panOriginMm ?? widget.position;
-    _panAccumMm += dMm;
-    final maxX = math.max(0.0, widget.templateWidthMm);
-    final maxY = math.max(0.0, widget.templateHeightMm);
-    final rawX = origin.dx + _panAccumMm.dx;
-    final rawY = origin.dy + _panAccumMm.dy;
-    final cx = clampFiniteMm(rawX, 0, maxX);
-    final cy = clampFiniteMm(rawY, 0, maxY);
-    if (cx != rawX || cy != rawY) {
-      _panOriginMm = Offset(cx, cy);
-      _panAccumMm = Offset.zero;
-    }
-    final snapResult = _snapSession.resolve(
-      position: Offset(cx, cy),
-      snapEnabled: widget.snapEnabled,
-      snapTargets: [
-        CanvasSnapTarget(
-          xMm: widget.templateWidthMm / 2,
-          yMm: widget.templateHeightMm / 2,
-        ),
-        ...widget.snapTargets,
-      ],
-      toleranceMm: _snapTolerancePx / widget.scale,
-    );
-    setState(() {
-      _dragLiveMm = snapResult.position;
-      _snapResult = snapResult.hasGuide ? snapResult : null;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
     if (widget.isCustom) {
       _scheduleCanvasGoogleFontPrime();
     }
-  }
-
-  void _scheduleCanvasGoogleFontPrime() {
-    if (!templateCanvasFontUsesGoogle(widget.fontFamily)) return;
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _loadCanvasGoogleFontIfNeeded());
-  }
-
-  Future<void> _loadCanvasGoogleFontIfNeeded() async {
-    if (!mounted || !widget.isCustom) return;
-    try {
-      await preloadGoogleFontForTemplateCanvas(
-        widget.fontFamily,
-        widget.bold ? FontWeight.bold : FontWeight.normal,
-        widget.italic ? FontStyle.italic : FontStyle.normal,
-      );
-    } catch (_) {}
-    if (mounted) setState(() {});
   }
 
   @override
@@ -419,37 +167,6 @@ class DraggableChipState extends State<DraggableChip> {
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Widget _cornerHandle(_TextCorner corner, ColorScheme scheme) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onPanStart: (d) => _onResizePanStart(d, corner),
-      onPanUpdate: _onResizePanUpdate,
-      onPanEnd: (_) => _onResizePanEnd(),
-      onPanCancel: _onResizePanEnd,
-      child: SizedBox(
-        width: _handleHit,
-        height: _handleHit,
-        child: Center(
-          child: Container(
-            width: _handleVisual,
-            height: _handleVisual,
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.primary, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -739,6 +456,289 @@ class DraggableChipState extends State<DraggableChip> {
         ),
       ),
     );
+  }
+
+  Widget _cornerHandle(_TextCorner corner, ColorScheme scheme) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanStart: (d) => _onResizePanStart(d, corner),
+      onPanUpdate: _onResizePanUpdate,
+      onPanEnd: (_) => _onResizePanEnd(),
+      onPanCancel: _onResizePanEnd,
+      child: SizedBox(
+        width: _handleHit,
+        height: _handleHit,
+        child: Center(
+          child: Container(
+            width: _handleVisual,
+            height: _handleVisual,
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _deferSetState(VoidCallback fn) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(fn);
+    });
+  }
+
+  Offset _mmDeltaForTemplatePan(DragUpdateDetails d) {
+    final last = _templateDragLastGlobal ?? d.globalPosition;
+    final gDelta = d.globalPosition - last;
+    _templateDragLastGlobal = d.globalPosition;
+    final fromStack = widget.templatePanToMmDelta(d.globalPosition, gDelta);
+    if (fromStack != null) return fromStack;
+    return pixelsToTemplateMm(gDelta, widget.scale);
+  }
+
+  void _onResizePanStart(DragStartDetails d, _TextCorner corner) {
+    widget.onDragStateChanged?.call(true);
+    final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
+    final textStyle = customTemplateCanvasTextStyle(
+      fontFamilyRaw: widget.fontFamily,
+      fontSize: fontPx,
+      fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
+      fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
+      underline: widget.underline,
+      strikethrough: widget.strikethrough,
+    ).copyWith(color: Color(widget.colorArgb));
+
+    final tp = TextPainter(
+      text: TextSpan(text: widget.label, style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final initialHeight = widget.heightMm ?? (tp.height / widget.scale);
+
+    _deferSetState(() {
+      _resizeCorner = corner;
+      _resizeStartWidthMm = widget.maxWidthMm ?? (tp.width / widget.scale);
+      _resizeLiveWidthMm = _resizeStartWidthMm;
+      _resizeStartHeightMm = initialHeight;
+      _resizeLiveHeightMm = initialHeight;
+      _resizeStartPosMm = widget.position;
+      _resizeLivePosMm = widget.position;
+    });
+    _resizeStartGlobal = d.globalPosition;
+  }
+
+  void _onResizePanUpdate(DragUpdateDetails d) {
+    if (_resizeStartGlobal == null ||
+        _resizeStartWidthMm == null ||
+        _resizeCorner == null ||
+        _resizeStartPosMm == null) {
+      return;
+    }
+    final gDelta = d.globalPosition - _resizeStartGlobal!;
+    final fromStack = widget.templatePanToMmDelta(d.globalPosition, gDelta);
+    final templateDeltaMm =
+        fromStack ?? pixelsToTemplateMm(gDelta, widget.scale);
+    final localDeltaMm = templateDeltaToElementLocalMm(
+      templateDeltaMm,
+      widget.rotationDegrees,
+    );
+
+    if (widget.isDynamic) {
+      final deltaMm = localDeltaMm.dx;
+      var newWidth = _resizeStartWidthMm!;
+      var newPos = _resizeStartPosMm!;
+
+      switch (_resizeCorner!) {
+        case _TextCorner.tl:
+        case _TextCorner.bl:
+          newWidth = (_resizeStartWidthMm! - deltaMm).clamp(
+            5.0,
+            widget.templateWidthMm,
+          );
+          final appliedDeltaMm = _resizeStartWidthMm! - newWidth;
+          final radians = degreesToRadians(widget.rotationDegrees);
+          newPos = _resizeStartPosMm! +
+              Offset(
+                appliedDeltaMm * math.cos(radians),
+                appliedDeltaMm * math.sin(radians),
+              );
+          break;
+        case _TextCorner.tr:
+        case _TextCorner.br:
+          newWidth = (_resizeStartWidthMm! + deltaMm).clamp(
+            5.0,
+            widget.templateWidthMm,
+          );
+          break;
+      }
+
+      setState(() {
+        _resizeLiveWidthMm = newWidth;
+        _resizeLivePosMm = newPos;
+      });
+    } else {
+      final rect = resizedRotatedRectFromCorner(
+        startMm: Rect.fromLTWH(
+          _resizeStartPosMm!.dx,
+          _resizeStartPosMm!.dy,
+          _resizeStartWidthMm!,
+          _resizeStartHeightMm ?? 0.0,
+        ),
+        localDeltaMm: localDeltaMm,
+        corner: _resizeCorner!.name,
+        rotationDegrees: widget.rotationDegrees,
+        maxWidthMm: widget.templateWidthMm,
+        maxHeightMm: widget.templateHeightMm,
+      );
+      setState(() {
+        _resizeLiveWidthMm = rect.width;
+        _resizeLiveHeightMm = rect.height;
+        _resizeLivePosMm = rect.topLeft;
+      });
+    }
+  }
+
+  void _onResizePanEnd() {
+    widget.onDragStateChanged?.call(false);
+    if (_resizeLiveWidthMm != null) {
+      final pos = _resizeLivePosMm ?? _resizeStartPosMm ?? widget.position;
+      if (widget.onResizeChanged != null) {
+        widget.onResizeChanged!(
+          pos,
+          _resizeLiveWidthMm!,
+          widget.isDynamic
+              ? 0.0
+              : (_resizeLiveHeightMm ?? widget.heightMm ?? 0.0),
+        );
+      } else {
+        widget.onMaxWidthChanged?.call(_resizeLiveWidthMm!);
+        if (widget.onHeightChanged != null &&
+            !widget.isDynamic &&
+            _resizeLiveHeightMm != null) {
+          widget.onHeightChanged!(_resizeLiveHeightMm!);
+        }
+        if (_resizeLivePosMm != null && _resizeLivePosMm != _resizeStartPosMm) {
+          widget.onMoved(_resizeLivePosMm!);
+        }
+      }
+    }
+    _deferSetState(() {
+      _resizeCorner = null;
+      _resizeStartGlobal = null;
+      _resizeStartWidthMm = null;
+      _resizeLiveWidthMm = null;
+      _resizeStartHeightMm = null;
+      _resizeLiveHeightMm = null;
+      _resizeStartPosMm = null;
+      _resizeLivePosMm = null;
+    });
+  }
+
+  void _onTemplatePanStart(DragStartDetails d) {
+    widget.onDragStateChanged?.call(true);
+    if (widget.isCustom && !widget.isSelected) {
+      widget.onSelect?.call();
+    }
+    _templateDragSession++;
+    _panOriginMm = widget.position;
+    _panAccumMm = Offset.zero;
+    _dragLiveMm = null;
+    _snapSession.reset();
+    _snapResult = null;
+    _deferSetState(() => _dragging = true);
+    _templateDragLastGlobal = d.globalPosition;
+  }
+
+  void _finishTemplatePanGesture() {
+    final session = _templateDragSession;
+    if (_dragLiveMm != null) {
+      widget.onMoved(_dragLiveMm!);
+    }
+    _templateDragLastGlobal = null;
+    _panOriginMm = null;
+    _panAccumMm = Offset.zero;
+    _snapSession.reset();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || session != _templateDragSession) return;
+      setState(() {
+        _dragLiveMm = null;
+        _snapResult = null;
+      });
+    });
+  }
+
+  void _onTemplatePanEnd() {
+    _deferSetState(() {
+      _dragging = false;
+      _snapResult = null;
+    });
+    _finishTemplatePanGesture();
+    widget.onDragStateChanged?.call(false);
+  }
+
+  void _panMoveClampedToHitInset(DragUpdateDetails details) {
+    final dMm = _mmDeltaForTemplatePan(details);
+    if (dMm.dx.isNaN ||
+        dMm.dy.isNaN ||
+        dMm.dx.isInfinite ||
+        dMm.dy.isInfinite) {
+      return;
+    }
+    final origin = _panOriginMm ?? widget.position;
+    _panAccumMm += dMm;
+    final maxX = math.max(0.0, widget.templateWidthMm);
+    final maxY = math.max(0.0, widget.templateHeightMm);
+    final rawX = origin.dx + _panAccumMm.dx;
+    final rawY = origin.dy + _panAccumMm.dy;
+    final cx = clampFiniteMm(rawX, 0, maxX);
+    final cy = clampFiniteMm(rawY, 0, maxY);
+    if (cx != rawX || cy != rawY) {
+      _panOriginMm = Offset(cx, cy);
+      _panAccumMm = Offset.zero;
+    }
+    final snapResult = _snapSession.resolve(
+      position: Offset(cx, cy),
+      snapEnabled: widget.snapEnabled,
+      snapTargets: [
+        CanvasSnapTarget(
+          xMm: widget.templateWidthMm / 2,
+          yMm: widget.templateHeightMm / 2,
+        ),
+        ...widget.snapTargets,
+      ],
+      toleranceMm: _snapTolerancePx / widget.scale,
+    );
+    setState(() {
+      _dragLiveMm = snapResult.position;
+      _snapResult = snapResult.hasGuide ? snapResult : null;
+    });
+  }
+
+  void _scheduleCanvasGoogleFontPrime() {
+    if (!templateCanvasFontUsesGoogle(widget.fontFamily)) return;
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _loadCanvasGoogleFontIfNeeded());
+  }
+
+  Future<void> _loadCanvasGoogleFontIfNeeded() async {
+    if (!mounted || !widget.isCustom) return;
+    try {
+      await preloadGoogleFontForTemplateCanvas(
+        widget.fontFamily,
+        widget.bold ? FontWeight.bold : FontWeight.normal,
+        widget.italic ? FontStyle.italic : FontStyle.normal,
+      );
+    } catch (_) {}
+    if (mounted) setState(() {});
   }
 }
 
