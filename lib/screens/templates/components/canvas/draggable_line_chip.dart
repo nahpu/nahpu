@@ -284,6 +284,10 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   @override
   void didUpdateWidget(covariant DraggableLineChip oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.snapEnabled && !widget.snapEnabled) {
+      _snapSession.reset();
+      _snapResult = null;
+    }
     final liveRect = _resizeLiveRect;
     if (liveRect == null) return;
 

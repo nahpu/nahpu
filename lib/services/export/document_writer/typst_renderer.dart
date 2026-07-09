@@ -106,7 +106,11 @@ class _DocumentTypstRenderer {
     final padLeft = documentPdfMmToPt(templatePadLeftMm);
     final padRight = documentPdfMmToPt(templatePadRightMm);
     final cellWPt = wPt + padLeft + padRight;
-    final cellHPt = hPt + padTop + padBottom;
+    final staticContentHeightPt = _staticContentHeightPt(page, wPt);
+    final autoContentHeightPt =
+        staticContentHeightPt > 0 ? staticContentHeightPt : hPt;
+    final fixedCellHPt = hPt + padTop + padBottom;
+    final autoCellHPt = autoContentHeightPt + padTop + padBottom;
 
     typst.writeln('  [');
 
@@ -119,8 +123,7 @@ class _DocumentTypstRenderer {
         .toList();
 
     if (dynamicTexts.isNotEmpty) {
-      final initialCellHeight =
-          autoHeight ? _staticContentHeightPt(page, wPt) : hPt;
+      final initialCellHeight = autoHeight ? autoContentHeightPt : hPt;
       typst.writeln('#style(styles => {');
       typst.writeln('  let cell_height = ${initialCellHeight}pt');
       for (final t in dynamicTexts) {
@@ -206,16 +209,20 @@ class _DocumentTypstRenderer {
     } else {
       if (continuous || autoHeight) {
         final width = continuous ? '${cellWPt}pt' : '100%';
+        final height = autoHeight ? autoCellHPt : fixedCellHPt;
+        final contentHeight = autoHeight ? autoContentHeightPt : hPt;
         typst.writeln(
-            '#box(width: $width, height: ${cellHPt}pt, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+            '#box(width: $width, height: ${height}pt, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+        if (mirror) typst.writeln('  #rotate(180deg, origin: center)[');
+        typst.writeln(
+            '    #box(width: ${wPt}pt, height: ${contentHeight}pt, clip: false)[');
       } else {
         typst.writeln(
             '#box(width: 100%, height: 100%, inset: (top: ${padTop}pt, bottom: ${padBottom}pt, left: ${padLeft}pt, right: ${padRight}pt))[');
+        if (mirror) typst.writeln('  #rotate(180deg, origin: center)[');
+        typst.writeln(
+            '    #box(width: ${wPt}pt, height: ${hPt}pt, clip: false)[');
       }
-
-      if (mirror) typst.writeln('  #rotate(180deg, origin: center)[');
-      typst
-          .writeln('    #box(width: ${wPt}pt, height: ${hPt}pt, clip: false)[');
     }
 
     _writeOutline(typst, outline, wPt, hPt);

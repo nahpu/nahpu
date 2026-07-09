@@ -404,6 +404,10 @@ class DraggableChipState extends State<DraggableChip> {
   @override
   void didUpdateWidget(covariant DraggableChip oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.snapEnabled && !widget.snapEnabled) {
+      _snapSession.reset();
+      _snapResult = null;
+    }
     if (!widget.isCustom) return;
     if (oldWidget.fontFamily != widget.fontFamily ||
         oldWidget.bold != widget.bold ||

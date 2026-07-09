@@ -183,6 +183,10 @@ class DraggableImageChipState extends State<DraggableImageChip> {
   @override
   void didUpdateWidget(covariant DraggableImageChip oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.snapEnabled && !widget.snapEnabled) {
+      _snapSession.reset();
+      _snapResult = null;
+    }
     final liveRect = _resizeLiveRect;
     if (liveRect == null) return;
 

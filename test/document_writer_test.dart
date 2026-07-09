@@ -214,6 +214,88 @@ void main() {
   });
 
   group('DocumentWriter auto-fill sizing tests', () {
+    test('static auto-fill height uses visible image bottom', () {
+      final page = TemplatePage(
+        customImages: const [
+          CustomImageElement(
+            id: 'image',
+            imagePath: 'logo.png',
+            xMm: 0,
+            yMm: 42,
+            widthMm: 20,
+            heightMm: 16,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 700,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, closeTo(documentPdfMmToPt(58), 0.001));
+    });
+
+    test('static auto-fill height uses visible shape bottom', () {
+      final page = TemplatePage(
+        customShapes: const [
+          CustomShapeElement(
+            id: 'shape',
+            shapeType: 'rect',
+            polygonSides: 4,
+            xMm: 0,
+            yMm: 24,
+            widthMm: 35,
+            heightMm: 12,
+            strokeThicknessPt: 2,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 700,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, closeTo(documentPdfMmToPt(36) + 2, 0.001));
+    });
+
+    test('static auto-fill height uses visible line bottom', () {
+      final page = TemplatePage(
+        customLines: const [
+          CustomLineElement(
+            id: 'line',
+            xMm: 0,
+            yMm: 64,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 700,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, closeTo(documentPdfMmToPt(64) + 1.5, 0.001));
+    });
+
     test('estimates taller cells for wrapped auto-height text', () {
       final shortPage = TemplatePage(customTexts: [
         CustomTextElement(

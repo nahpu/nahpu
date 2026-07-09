@@ -1128,10 +1128,12 @@ class _DocumentPdfBuilder {
       return _estimateFlowTemplateContentHeightPt(page: page, wPt: wPt);
     }
 
-    var height = hPt;
+    var height = 0.0;
+    var hasVisibleContent = false;
 
     for (final text in page.customTexts) {
       if (!text.isVisible) continue;
+      hasVisibleContent = true;
       final genderIconKey =
           templateGenderIconFieldKeyFromBracketText(text.text);
       if (hasDynamicText &&
@@ -1172,20 +1174,23 @@ class _DocumentPdfBuilder {
 
     for (final image in page.customImages) {
       if (!image.isVisible) continue;
+      hasVisibleContent = true;
       height = math.max(height, _customImageBottomPt(image));
     }
 
     for (final line in page.customLines) {
       if (!line.isVisible) continue;
+      hasVisibleContent = true;
       height = math.max(height, _customLineBottomPt(line));
     }
 
     for (final shape in page.customShapes) {
       if (!shape.isVisible) continue;
+      hasVisibleContent = true;
       height = math.max(height, _customShapeBottomPt(shape));
     }
 
-    return height;
+    return hasVisibleContent ? height : hPt;
   }
 
   static double _estimateFlowTemplateContentHeightPt({
