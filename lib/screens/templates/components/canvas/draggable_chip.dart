@@ -908,6 +908,14 @@ class _TextBoxStrokePainter extends CustomPainter {
   final double radius;
 
   @override
+  bool shouldRepaint(covariant _TextBoxStrokePainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.width != width ||
+        oldDelegate.style != style ||
+        oldDelegate.radius != radius;
+  }
+
+  @override
   void paint(Canvas canvas, Size size) {
     if (width <= 0 || size.isEmpty) return;
     final paint = Paint()
@@ -946,13 +954,5 @@ class _TextBoxStrokePainter extends CustomPainter {
     }
 
     canvas.drawRRect(rrect, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _TextBoxStrokePainter oldDelegate) {
-    return oldDelegate.color != color ||
-        oldDelegate.width != width ||
-        oldDelegate.style != style ||
-        oldDelegate.radius != radius;
   }
 }
