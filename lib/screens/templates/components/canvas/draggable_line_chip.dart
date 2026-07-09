@@ -74,13 +74,6 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   static const double _snapTolerancePx = 4;
   static const double _snapGuideWidthPx = 1.5;
 
-  void _deferSetState(VoidCallback fn) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(fn);
-    });
-  }
-
   final GlobalKey _measureKey = GlobalKey();
 
   bool _moving = false;
@@ -105,181 +98,6 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   final CanvasSnapSession _snapSession = CanvasSnapSession();
   CanvasSnapResult? _snapResult;
   int _imageMoveSession = 0;
-
-  Offset _mmDeltaFromGlobalDrag(Offset globalPos, Offset globalDelta) {
-    final fromStack = widget.templatePanToMmDelta(globalPos, globalDelta);
-    if (fromStack != null) return fromStack;
-    return pixelsToTemplateMm(globalDelta, widget.scale);
-  }
-
-  int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
-
-  Rect get _widgetRect => Rect.fromLTWH(
-        widget.position.dx,
-        widget.position.dy,
-        widget.lengthMm,
-        math.max(2.0, widget.thicknessPt * 0.3527),
-      );
-
-  bool _isSameRect(Rect a, Rect b) {
-    const tolerance = 1e-6;
-    return (a.left - b.left).abs() < tolerance &&
-        (a.top - b.top).abs() < tolerance &&
-        (a.width - b.width).abs() < tolerance &&
-        (a.height - b.height).abs() < tolerance;
-  }
-
-  /// Drag in template mm -> delta along the line's unrotated local axis.
-  Offset _labelDeltaToImageLocalMm(Offset dLabelMm) {
-    return templateDeltaToElementLocalMm(dLabelMm, _effectiveRotationDeg);
-  }
-
-  void _onMovePanStart(DragStartDetails d) {
-    if (widget.isLocked) return;
-    widget.onDragStateChanged?.call(true);
-    widget.onTap?.call();
-    _imageMoveSession++;
-    _imagePanOriginMm = widget.position;
-    _imagePanAccumMm = Offset.zero;
-    _imageDragLiveMm = null;
-    _snapSession.reset();
-    _snapResult = null;
-    _deferSetState(() => _moving = true);
-    _imageMovePanLastGlobal = d.globalPosition;
-  }
-
-  void _onMovePanUpdate(DragUpdateDetails details) {
-    if (widget.isLocked) return;
-    final last = _imageMovePanLastGlobal ?? details.globalPosition;
-    final gDelta = details.globalPosition - last;
-    _imageMovePanLastGlobal = details.globalPosition;
-    final dMm = _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
-    if (dMm.dx.isNaN ||
-        dMm.dy.isNaN ||
-        dMm.dx.isInfinite ||
-        dMm.dy.isInfinite) {
-      return;
-    }
-
-    final lr = _resizeLiveRect;
-    final w = lr?.width ?? widget.lengthMm;
-    final h = lr?.height ?? math.max(1.0, widget.thicknessPt * 0.3527);
-    final origin = _imagePanOriginMm ?? widget.position;
-    _imagePanAccumMm += dMm;
-    final raw = origin + _imagePanAccumMm;
-    final clamped = clampRotatedRectTopLeft(
-      positionMm: raw,
-      widthMm: w,
-      heightMm: h,
-      rotationDegrees: _effectiveRotationDeg,
-      canvasWidthMm: widget.templateWidthMm,
-      canvasHeightMm: widget.templateHeightMm,
-    );
-    if (clamped != raw) {
-      _imagePanOriginMm = clamped;
-      _imagePanAccumMm = Offset.zero;
-    }
-    final snapResult = _snapSession.resolve(
-      position: clamped,
-      snapEnabled: widget.snapEnabled,
-      snapTargets: [
-        CanvasSnapTarget(
-          xMm: widget.templateWidthMm / 2,
-          yMm: widget.templateHeightMm / 2,
-        ),
-        ...widget.snapTargets,
-      ],
-      toleranceMm: _snapTolerancePx / widget.scale,
-    );
-    setState(() {
-      _imageDragLiveMm = snapResult.position;
-      _snapResult = snapResult.hasGuide ? snapResult : null;
-    });
-  }
-
-  void _onMovePanEnd() {
-    if (widget.isLocked) return;
-    _deferSetState(() {
-      _moving = false;
-      _snapResult = null;
-    });
-    _finishImageMoveGesture();
-    widget.onDragStateChanged?.call(false);
-  }
-
-  void _onResizePanStart(DragStartDetails d, _LineHandle h) {
-    widget.onDragStateChanged?.call(true);
-    _beginResize(h);
-    _resizePanLastGlobal = d.globalPosition;
-  }
-
-  void _beginResize(_LineHandle h) {
-    _resizeHandle = h;
-    _resizeStart = _resizeLiveRect ?? _widgetRect;
-    _resizeAccum = Offset.zero;
-  }
-
-  void _onResizePanUpdate(DragUpdateDetails d) {
-    if (_resizeHandle == null || _resizeStart == null) return;
-    final last = _resizePanLastGlobal ?? d.globalPosition;
-    final gDelta = d.globalPosition - last;
-    _resizePanLastGlobal = d.globalPosition;
-    final dLabelMm = _mmDeltaFromGlobalDrag(d.globalPosition, gDelta);
-    _resizeAccum += _labelDeltaToImageLocalMm(dLabelMm);
-    final s = _resizeStart!;
-    final a = _resizeAccum;
-
-    final rad = degreesToRadians(_effectiveRotationDeg);
-    final cosT = math.cos(rad);
-    final sinT = math.sin(rad);
-
-    final hMm = math.max(2.0, widget.thicknessPt * 0.3527);
-    final lStart = s.width;
-
-    late double rw;
-    late double x;
-    late double y;
-
-    switch (_resizeHandle!) {
-      case _LineHandle.right:
-        final startXFixed = s.left + lStart / 2 * (1 - cosT);
-        final startYFixed = s.top + hMm / 2 - lStart / 2 * sinT;
-
-        rw = (s.width + a.dx).clamp(2.0, widget.templateWidthMm);
-
-        x = startXFixed - rw / 2 * (1 - cosT);
-        y = startYFixed - hMm / 2 + rw / 2 * sinT;
-        break;
-
-      case _LineHandle.left:
-        final endXFixed = s.left + lStart / 2 * (1 + cosT);
-        final endYFixed = s.top + hMm / 2 + lStart / 2 * sinT;
-
-        rw = (s.width - a.dx).clamp(2.0, widget.templateWidthMm);
-
-        x = endXFixed - rw / 2 * (1 + cosT);
-        y = endYFixed - hMm / 2 - rw / 2 * sinT;
-        break;
-    }
-
-    setState(() => _resizeLiveRect = Rect.fromLTWH(x, y, rw, s.height));
-  }
-
-  void _endResize() {
-    widget.onDragStateChanged?.call(false);
-    if (_resizeLiveRect != null) {
-      widget.onBoundsChanged(
-        _resizeLiveRect!.left,
-        _resizeLiveRect!.top,
-        _resizeLiveRect!.width,
-        _resizeLiveRect!.height,
-      );
-    }
-    _resizeHandle = null;
-    _resizeStart = null;
-    _resizeAccum = Offset.zero;
-    _resizePanLastGlobal = null;
-  }
 
   @override
   void didUpdateWidget(covariant DraggableLineChip oldWidget) {
@@ -306,149 +124,6 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     if (!_isSameRect(oldRect, currentRect)) {
       _resizeLiveRect = null;
     }
-  }
-
-  void _beginRotate(DragStartDetails d) {
-    widget.onDragStateChanged?.call(true);
-    _rotateStartElemDeg = widget.rotationDegrees;
-    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    _rotateStartFingerRad =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
-  }
-
-  void _onRotatePanUpdate(DragUpdateDetails d) {
-    if (_rotateStartFingerRad == null || _rotateStartElemDeg == null) return;
-    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    final cur =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
-    final delta = normalizeRadiansDelta(cur - _rotateStartFingerRad!);
-    final deg = CustomImageElement.normalizeImageRotationDegrees(
-      _rotateStartElemDeg! + radiansToDegrees(delta),
-    );
-    setState(() => _rotateLiveDeg = deg);
-  }
-
-  void _endRotate() {
-    widget.onDragStateChanged?.call(false);
-    if (_rotateLiveDeg != null) {
-      widget.onRotationChanged(_rotateLiveDeg!);
-    }
-    _rotateStartFingerRad = null;
-    _rotateStartElemDeg = null;
-    _rotateLiveDeg = null;
-  }
-
-  /// [innerLeft]/[innerTop] = top-left of the image rect inside the padded stack.
-  Widget _lineHandle(
-    _LineHandle handle,
-    ColorScheme scheme, {
-    required double innerLeft,
-    required double innerTop,
-    required double innerW,
-    required double innerH,
-  }) {
-    final o = _handleHit / 2;
-    late final double left;
-    final double top = innerTop + innerH / 2 - o;
-    switch (handle) {
-      case _LineHandle.left:
-        left = innerLeft - o;
-        break;
-      case _LineHandle.right:
-        left = innerLeft + innerW - o;
-        break;
-    }
-    return Positioned(
-      left: left,
-      top: top,
-      width: _handleHit,
-      height: _handleHit,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanStart: (d) => _onResizePanStart(d, handle),
-        onPanUpdate: _onResizePanUpdate,
-        onPanEnd: (_) => setState(_endResize),
-        onPanCancel: () => setState(_endResize),
-        child: Center(
-          child: Container(
-            width: _handleVisual,
-            height: _handleVisual,
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.primary, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _moveHandle(ColorScheme scheme) {
-    const handleSize = 40.0;
-    return SizedBox(
-      width: handleSize,
-      height: handleSize,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanStart: widget.isLocked ? null : _onMovePanStart,
-        onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
-        onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
-        onPanCancel: widget.isLocked ? null : _onMovePanEnd,
-        onTap: widget.onTap,
-        child: Tooltip(
-          message: 'Drag to move',
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.primary),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 3,
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.open_with,
-              size: 22,
-              color: scheme.onPrimaryContainer,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _finishImageMoveGesture() {
-    final session = _imageMoveSession;
-    if (_imageDragLiveMm != null) {
-      widget.onMoved(_imageDragLiveMm!);
-    }
-    _imageMovePanLastGlobal = null;
-    _imagePanOriginMm = null;
-    _imagePanAccumMm = Offset.zero;
-    _snapSession.reset();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || session != _imageMoveSession) return;
-      setState(() {
-        _imageDragLiveMm = null;
-        _snapResult = null;
-      });
-    });
   }
 
   @override
@@ -649,8 +324,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                       _moveHandle(scheme),
                       const SizedBox(height: 4),
                       SizedBox(
-                        width: 48,
-                        height: 48,
+                        width: 40,
+                        height: 40,
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onPanStart: _beginRotate,
@@ -674,7 +349,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                               ),
                               child: Icon(
                                 Icons.rotate_right,
-                                size: 22,
+                                size: 16,
                                 color: scheme.onPrimaryContainer,
                               ),
                             ),
@@ -719,6 +394,331 @@ class DraggableLineChipState extends State<DraggableLineChip> {
         chip,
       ],
     );
+  }
+
+  /// [innerLeft]/[innerTop] = top-left of the image rect inside the padded stack.
+  Widget _lineHandle(
+    _LineHandle handle,
+    ColorScheme scheme, {
+    required double innerLeft,
+    required double innerTop,
+    required double innerW,
+    required double innerH,
+  }) {
+    final o = _handleHit / 2;
+    late final double left;
+    final double top = innerTop + innerH / 2 - o;
+    switch (handle) {
+      case _LineHandle.left:
+        left = innerLeft - o;
+        break;
+      case _LineHandle.right:
+        left = innerLeft + innerW - o;
+        break;
+    }
+    return Positioned(
+      left: left,
+      top: top,
+      width: _handleHit,
+      height: _handleHit,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanStart: (d) => _onResizePanStart(d, handle),
+        onPanUpdate: _onResizePanUpdate,
+        onPanEnd: (_) => setState(_endResize),
+        onPanCancel: () => setState(_endResize),
+        child: Center(
+          child: Container(
+            width: _handleVisual,
+            height: _handleVisual,
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _moveHandle(ColorScheme scheme) {
+    const handleSize = 32.0;
+    return SizedBox(
+      width: handleSize,
+      height: handleSize,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanStart: widget.isLocked ? null : _onMovePanStart,
+        onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
+        onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
+        onPanCancel: widget.isLocked ? null : _onMovePanEnd,
+        onTap: widget.onTap,
+        child: Tooltip(
+          message: 'Drag to move',
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 3,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.open_with,
+              size: 16,
+              color: scheme.onPrimaryContainer,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _deferSetState(VoidCallback fn) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(fn);
+    });
+  }
+
+  void _beginRotate(DragStartDetails d) {
+    widget.onDragStateChanged?.call(true);
+    _rotateStartElemDeg = widget.rotationDegrees;
+    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final c =
+        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
+    _rotateStartFingerRad =
+        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+  }
+
+  void _onRotatePanUpdate(DragUpdateDetails d) {
+    if (_rotateStartFingerRad == null || _rotateStartElemDeg == null) return;
+    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final c =
+        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
+    final cur =
+        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+    final delta = normalizeRadiansDelta(cur - _rotateStartFingerRad!);
+    final deg = CustomImageElement.normalizeImageRotationDegrees(
+      _rotateStartElemDeg! + radiansToDegrees(delta),
+    );
+    setState(() => _rotateLiveDeg = deg);
+  }
+
+  void _endRotate() {
+    widget.onDragStateChanged?.call(false);
+    if (_rotateLiveDeg != null) {
+      widget.onRotationChanged(_rotateLiveDeg!);
+    }
+    _rotateStartFingerRad = null;
+    _rotateStartElemDeg = null;
+    _rotateLiveDeg = null;
+  }
+
+  void _finishImageMoveGesture() {
+    final session = _imageMoveSession;
+    if (_imageDragLiveMm != null) {
+      widget.onMoved(_imageDragLiveMm!);
+    }
+    _imageMovePanLastGlobal = null;
+    _imagePanOriginMm = null;
+    _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || session != _imageMoveSession) return;
+      setState(() {
+        _imageDragLiveMm = null;
+        _snapResult = null;
+      });
+    });
+  }
+
+  Offset _mmDeltaFromGlobalDrag(Offset globalPos, Offset globalDelta) {
+    final fromStack = widget.templatePanToMmDelta(globalPos, globalDelta);
+    if (fromStack != null) return fromStack;
+    return pixelsToTemplateMm(globalDelta, widget.scale);
+  }
+
+  int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
+
+  Rect get _widgetRect => Rect.fromLTWH(
+        widget.position.dx,
+        widget.position.dy,
+        widget.lengthMm,
+        math.max(2.0, widget.thicknessPt * 0.3527),
+      );
+
+  bool _isSameRect(Rect a, Rect b) {
+    const tolerance = 1e-6;
+    return (a.left - b.left).abs() < tolerance &&
+        (a.top - b.top).abs() < tolerance &&
+        (a.width - b.width).abs() < tolerance &&
+        (a.height - b.height).abs() < tolerance;
+  }
+
+  /// Drag in template mm -> delta along the line's unrotated local axis.
+  Offset _labelDeltaToImageLocalMm(Offset dLabelMm) {
+    return templateDeltaToElementLocalMm(dLabelMm, _effectiveRotationDeg);
+  }
+
+  void _onMovePanStart(DragStartDetails d) {
+    if (widget.isLocked) return;
+    widget.onDragStateChanged?.call(true);
+    widget.onTap?.call();
+    _imageMoveSession++;
+    _imagePanOriginMm = widget.position;
+    _imagePanAccumMm = Offset.zero;
+    _imageDragLiveMm = null;
+    _snapSession.reset();
+    _snapResult = null;
+    _deferSetState(() => _moving = true);
+    _imageMovePanLastGlobal = d.globalPosition;
+  }
+
+  void _onMovePanUpdate(DragUpdateDetails details) {
+    if (widget.isLocked) return;
+    final last = _imageMovePanLastGlobal ?? details.globalPosition;
+    final gDelta = details.globalPosition - last;
+    _imageMovePanLastGlobal = details.globalPosition;
+    final dMm = _mmDeltaFromGlobalDrag(details.globalPosition, gDelta);
+    if (dMm.dx.isNaN ||
+        dMm.dy.isNaN ||
+        dMm.dx.isInfinite ||
+        dMm.dy.isInfinite) {
+      return;
+    }
+
+    final lr = _resizeLiveRect;
+    final w = lr?.width ?? widget.lengthMm;
+    final h = lr?.height ?? math.max(1.0, widget.thicknessPt * 0.3527);
+    final origin = _imagePanOriginMm ?? widget.position;
+    _imagePanAccumMm += dMm;
+    final raw = origin + _imagePanAccumMm;
+    final clamped = clampRotatedRectTopLeft(
+      positionMm: raw,
+      widthMm: w,
+      heightMm: h,
+      rotationDegrees: _effectiveRotationDeg,
+      canvasWidthMm: widget.templateWidthMm,
+      canvasHeightMm: widget.templateHeightMm,
+    );
+    if (clamped != raw) {
+      _imagePanOriginMm = clamped;
+      _imagePanAccumMm = Offset.zero;
+    }
+    final snapResult = _snapSession.resolve(
+      position: clamped,
+      snapEnabled: widget.snapEnabled,
+      snapTargets: [
+        CanvasSnapTarget(
+          xMm: widget.templateWidthMm / 2,
+          yMm: widget.templateHeightMm / 2,
+        ),
+        ...widget.snapTargets,
+      ],
+      toleranceMm: _snapTolerancePx / widget.scale,
+    );
+    setState(() {
+      _imageDragLiveMm = snapResult.position;
+      _snapResult = snapResult.hasGuide ? snapResult : null;
+    });
+  }
+
+  void _onMovePanEnd() {
+    if (widget.isLocked) return;
+    _deferSetState(() {
+      _moving = false;
+      _snapResult = null;
+    });
+    _finishImageMoveGesture();
+    widget.onDragStateChanged?.call(false);
+  }
+
+  void _onResizePanStart(DragStartDetails d, _LineHandle h) {
+    widget.onDragStateChanged?.call(true);
+    _beginResize(h);
+    _resizePanLastGlobal = d.globalPosition;
+  }
+
+  void _beginResize(_LineHandle h) {
+    _resizeHandle = h;
+    _resizeStart = _resizeLiveRect ?? _widgetRect;
+    _resizeAccum = Offset.zero;
+  }
+
+  void _onResizePanUpdate(DragUpdateDetails d) {
+    if (_resizeHandle == null || _resizeStart == null) return;
+    final last = _resizePanLastGlobal ?? d.globalPosition;
+    final gDelta = d.globalPosition - last;
+    _resizePanLastGlobal = d.globalPosition;
+    final dLabelMm = _mmDeltaFromGlobalDrag(d.globalPosition, gDelta);
+    _resizeAccum += _labelDeltaToImageLocalMm(dLabelMm);
+    final s = _resizeStart!;
+    final a = _resizeAccum;
+
+    final rad = degreesToRadians(_effectiveRotationDeg);
+    final cosT = math.cos(rad);
+    final sinT = math.sin(rad);
+
+    final hMm = math.max(2.0, widget.thicknessPt * 0.3527);
+    final lStart = s.width;
+
+    late double rw;
+    late double x;
+    late double y;
+
+    switch (_resizeHandle!) {
+      case _LineHandle.right:
+        final startXFixed = s.left + lStart / 2 * (1 - cosT);
+        final startYFixed = s.top + hMm / 2 - lStart / 2 * sinT;
+
+        rw = (s.width + a.dx).clamp(2.0, widget.templateWidthMm);
+
+        x = startXFixed - rw / 2 * (1 - cosT);
+        y = startYFixed - hMm / 2 + rw / 2 * sinT;
+        break;
+
+      case _LineHandle.left:
+        final endXFixed = s.left + lStart / 2 * (1 + cosT);
+        final endYFixed = s.top + hMm / 2 + lStart / 2 * sinT;
+
+        rw = (s.width - a.dx).clamp(2.0, widget.templateWidthMm);
+
+        x = endXFixed - rw / 2 * (1 + cosT);
+        y = endYFixed - hMm / 2 - rw / 2 * sinT;
+        break;
+    }
+
+    setState(() => _resizeLiveRect = Rect.fromLTWH(x, y, rw, s.height));
+  }
+
+  void _endResize() {
+    widget.onDragStateChanged?.call(false);
+    if (_resizeLiveRect != null) {
+      widget.onBoundsChanged(
+        _resizeLiveRect!.left,
+        _resizeLiveRect!.top,
+        _resizeLiveRect!.width,
+        _resizeLiveRect!.height,
+      );
+    }
+    _resizeHandle = null;
+    _resizeStart = null;
+    _resizeAccum = Offset.zero;
+    _resizePanLastGlobal = null;
   }
 }
 

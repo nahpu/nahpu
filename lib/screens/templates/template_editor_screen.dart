@@ -680,8 +680,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _customIdCounter++;
     final element = CustomLineElement(
       id: id,
-      xMm: 5,
-      yMm: 5,
+      xMm: 15,
+      yMm: 15,
       lengthMm: 10,
     );
     final sel = 'line:${page1 ? '1' : '2'}:$id';
