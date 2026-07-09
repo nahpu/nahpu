@@ -288,7 +288,7 @@ class _AvailableFieldsSectionState
         allowedTables = {'narrative', 'site', 'personnel'};
         break;
       case RecordType.site:
-        allowedTables = {'site', 'personnel'};
+        allowedTables = {'site', 'personnel', 'coordinate'};
         break;
       case RecordType.collEvent:
         allowedTables = {

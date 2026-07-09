@@ -51,6 +51,11 @@ Future<Map<String, String>> documentFieldValuesForSite(
   m['site::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
   m['site::coordinates'] = await writer.getCoordinates(s.id);
 
+  final coordinates = await CoordinateServices(ref: ref).getCoordinatesBySiteID(
+    s.id,
+  );
+  m.addAll(buildCoordinateFieldValues(coordinates));
+
   if (s.leadStaffId != null) {
     try {
       final p =
@@ -61,6 +66,47 @@ Future<Map<String, String>> documentFieldValuesForSite(
     } catch (_) {}
   }
   return m;
+}
+
+Map<String, String> buildCoordinateFieldValues(
+  List<CoordinateData> coordinates,
+) {
+  final values = <String, String>{};
+  const coordinateColumns = [
+    'id',
+    'nameId',
+    'decimalLatitude',
+    'decimalLongitude',
+    'elevationInMeter',
+    'datum',
+    'uncertaintyInMeters',
+    'gpsUnit',
+    'notes',
+    'siteID',
+  ];
+  for (final col in coordinateColumns) {
+    values['coordinate::$col'] = '';
+  }
+
+  if (coordinates.isEmpty) {
+    return values;
+  }
+
+  final coordinateJsonList = coordinates.map((c) => c.toJson()).toList();
+  final keys = <String>{};
+  for (final coordinateJson in coordinateJsonList) {
+    keys.addAll(coordinateJson.keys);
+  }
+
+  for (final key in keys) {
+    final combined = coordinateJsonList
+        .map((coordinateJson) => coordinateJson[key]?.toString() ?? '')
+        .where((value) => value.isNotEmpty)
+        .join(writerSeparator);
+    values['coordinate::$key'] = combined;
+  }
+
+  return values;
 }
 
 /// Builds template field values for a collecting event document record.

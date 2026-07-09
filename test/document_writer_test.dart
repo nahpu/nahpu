@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -92,6 +93,40 @@ void main() {
       );
 
       expect(result, 'Catalog: specimen::catalogNum');
+    });
+  });
+
+  group('Site coordinate field values', () {
+    test('buildCoordinateFieldValues exposes coordinate namespace fields', () {
+      final values = buildCoordinateFieldValues([
+        const CoordinateData(
+          id: 7,
+          nameId: 'COORD-A',
+          decimalLatitude: 1.2345,
+          decimalLongitude: 6.789,
+          elevationInMeter: 12.0,
+          datum: 'WGS84',
+          uncertaintyInMeters: 25,
+          gpsUnit: 'GPS',
+          notes: 'First',
+          siteID: 3,
+        ),
+        const CoordinateData(
+          id: 8,
+          nameId: 'COORD-B',
+          decimalLatitude: -2.5,
+          decimalLongitude: 10.25,
+          siteID: 3,
+        ),
+      ]);
+
+      expect(values['coordinate::id'], '7|8');
+      expect(values['coordinate::nameId'], 'COORD-A|COORD-B');
+      expect(values['coordinate::decimalLatitude'], '1.2345|-2.5');
+      expect(values['coordinate::decimalLongitude'], '6.789|10.25');
+      expect(values['coordinate::datum'], 'WGS84');
+      expect(values['coordinate::notes'], 'First');
+      expect(values['coordinate::siteID'], '3|3');
     });
   });
 
