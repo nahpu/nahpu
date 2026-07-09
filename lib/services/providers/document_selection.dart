@@ -4,7 +4,7 @@ import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/template_service.dart';
+import 'package:nahpu/services/templates/template_service.dart';
 
 final documentSpecimenSelectionProvider =
     NotifierProvider.autoDispose<DocumentSpecimenSelection, Set<String>>(

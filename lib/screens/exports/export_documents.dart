@@ -8,7 +8,7 @@ import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/template_service.dart';
+import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/export/export_document.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,7 +16,7 @@ import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/settings/document_presets.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
-import 'package:nahpu/services/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_settings_services.dart';
 
 class ExportDocumentsView extends ConsumerStatefulWidget {
   const ExportDocumentsView({super.key});
