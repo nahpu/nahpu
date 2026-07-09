@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/templates/components/canvas/line_hit_test_region.dart';
+import 'package:nahpu/services/templates/template_canvas_hit_test_service.dart';
 
 void main() {
-  group('pointToLineSegmentDistance', () {
+  group('TemplateCanvasHitTestService.pointToLineSegmentDistance', () {
     test('uses the perpendicular distance within the line endpoints', () {
       expect(
-        pointToLineSegmentDistance(
+        TemplateCanvasHitTestService.pointToLineSegmentDistance(
           const Offset(50, 6),
           const Offset(0, 0),
           const Offset(100, 0),
@@ -16,7 +16,7 @@ void main() {
 
     test('uses the nearest endpoint beyond the segment', () {
       expect(
-        pointToLineSegmentDistance(
+        TemplateCanvasHitTestService.pointToLineSegmentDistance(
           const Offset(110, 8),
           const Offset(0, 0),
           const Offset(100, 0),

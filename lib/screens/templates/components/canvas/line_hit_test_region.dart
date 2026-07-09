@@ -2,22 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-
-/// Returns the shortest distance in pixels from [point] to the finite segment
-/// from [start] to [end].
-double pointToLineSegmentDistance(Offset point, Offset start, Offset end) {
-  final segment = end - start;
-  final lengthSquared = segment.dx * segment.dx + segment.dy * segment.dy;
-  if (lengthSquared == 0) return (point - start).distance;
-
-  final offset = point - start;
-  final projection =
-      ((offset.dx * segment.dx + offset.dy * segment.dy) / lengthSquared)
-          .clamp(0.0, 1.0)
-          .toDouble();
-  final closest = start + segment * projection;
-  return (point - closest).distance;
-}
+import 'package:nahpu/services/templates/template_canvas_hit_test_service.dart';
 
 /// Only contributes to hit testing close to a line segment.
 ///
@@ -93,7 +78,12 @@ class RenderLineHitTestRegion extends RenderProxyBox {
   @override
   bool hitTest(BoxHitTestResult result, {required Offset position}) {
     if (!size.contains(position) ||
-        pointToLineSegmentDistance(position, _start, _end) > _tolerancePx) {
+        TemplateCanvasHitTestService.pointToLineSegmentDistance(
+              position,
+              _start,
+              _end,
+            ) >
+            _tolerancePx) {
       return false;
     }
     return super.hitTest(result, position: position);
