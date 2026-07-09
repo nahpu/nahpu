@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
+import 'package:nahpu/screens/templates/components/canvas/line_hit_test_region.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -102,6 +103,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   @override
   void didUpdateWidget(covariant DraggableLineChip oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isSelected && !widget.isSelected) {
+      _clearTransientInteractionState();
+    }
     if (oldWidget.snapEnabled && !widget.snapEnabled) {
       _snapSession.reset();
       _snapResult = null;
@@ -190,62 +194,22 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                 top: moveStripTop,
                 width: w,
                 height: moveStripH,
-                child: GestureDetector(
-                  key: _measureKey,
-                  behavior: HitTestBehavior.translucent,
-                  onTap: widget.onTap,
-                  onPanStart: widget.isLocked ? null : _onMovePanStart,
-                  onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
-                  onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
-                  onPanCancel: widget.isLocked ? null : _onMovePanEnd,
-                  child: Center(
-                    child: widget.isVisible
-                        ? AnimatedContainer(
-                            duration: (_resizeHandle != null ||
-                                    _rotateStartFingerRad != null ||
-                                    _moving)
-                                ? Duration.zero
-                                : const Duration(milliseconds: 100),
-                            width: w,
-                            height: h,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: borderColor,
-                                width:
-                                    (widget.isSelected || _moving) ? 2.0 : 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                              color: scheme.surfaceContainerHighest,
-                              boxShadow: _moving
-                                  ? [
-                                      BoxShadow(
-                                        color: scheme.primary
-                                            .withValues(alpha: 0.25),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              fit: StackFit.expand,
-                              children: [
-                                CustomPaint(
-                                  size: Size(w, h),
-                                  painter: LinePainter(
-                                    color: Color(widget.colorArgb),
-                                    thicknessPx: lineThicknessPx,
-                                    strokeStyle: widget.strokeStyle,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : Opacity(
-                            opacity: 0.35,
-                            child: AnimatedContainer(
+                child: LineHitTestRegion(
+                  start: Offset(0, moveStripH / 2),
+                  end: Offset(w, moveStripH / 2),
+                  tolerancePx: math.max(8.0, lineThicknessPx / 2 + 4.0),
+                  child: GestureDetector(
+                    key: _measureKey,
+                    behavior: HitTestBehavior.translucent,
+                    onTapDown: (_) => widget.onTap?.call(),
+                    onTap: widget.onTap,
+                    onPanStart: widget.isLocked ? null : _onMovePanStart,
+                    onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
+                    onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
+                    onPanCancel: widget.isLocked ? null : _onMovePanEnd,
+                    child: Center(
+                      child: widget.isVisible
+                          ? AnimatedContainer(
                               duration: (_resizeHandle != null ||
                                       _rotateStartFingerRad != null ||
                                       _moving)
@@ -288,8 +252,55 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                                   ),
                                 ],
                               ),
+                            )
+                          : Opacity(
+                              opacity: 0.35,
+                              child: AnimatedContainer(
+                                duration: (_resizeHandle != null ||
+                                        _rotateStartFingerRad != null ||
+                                        _moving)
+                                    ? Duration.zero
+                                    : const Duration(milliseconds: 100),
+                                width: w,
+                                height: h,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: borderColor,
+                                    width: (widget.isSelected || _moving)
+                                        ? 2.0
+                                        : 1.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: scheme.surfaceContainerHighest,
+                                  boxShadow: _moving
+                                      ? [
+                                          BoxShadow(
+                                            color: scheme.primary
+                                                .withValues(alpha: 0.25),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  fit: StackFit.expand,
+                                  children: [
+                                    CustomPaint(
+                                      size: Size(w, h),
+                                      painter: LinePainter(
+                                        color: Color(widget.colorArgb),
+                                        thicknessPx: lineThicknessPx,
+                                        strokeStyle: widget.strokeStyle,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
+                    ),
                   ),
                 ),
               ),
@@ -379,7 +390,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
             top: widget.canvasInsetYPx,
             width: _snapGuideWidthPx,
             height: widget.templateHeightMm * widget.scale,
-            child: ColoredBox(color: guideColor),
+            child: IgnorePointer(child: ColoredBox(color: guideColor)),
           ),
         if (snapResult.horizontalGuideMm != null)
           Positioned(
@@ -389,7 +400,7 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                 _snapGuideWidthPx / 2,
             width: widget.templateWidthMm * widget.scale,
             height: _snapGuideWidthPx,
-            child: ColoredBox(color: guideColor),
+            child: IgnorePointer(child: ColoredBox(color: guideColor)),
           ),
         chip,
       ],
@@ -639,12 +650,30 @@ class DraggableLineChipState extends State<DraggableLineChip> {
 
   void _onMovePanEnd() {
     if (widget.isLocked) return;
-    _deferSetState(() {
+    setState(() {
       _moving = false;
       _snapResult = null;
     });
     _finishImageMoveGesture();
     widget.onDragStateChanged?.call(false);
+  }
+
+  void _clearTransientInteractionState() {
+    _moving = false;
+    _imageDragLiveMm = null;
+    _imageMovePanLastGlobal = null;
+    _imagePanOriginMm = null;
+    _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
+    _snapResult = null;
+    _resizeHandle = null;
+    _resizeStart = null;
+    _resizeAccum = Offset.zero;
+    _resizeLiveRect = null;
+    _resizePanLastGlobal = null;
+    _rotateStartFingerRad = null;
+    _rotateStartElemDeg = null;
+    _rotateLiveDeg = null;
   }
 
   void _onResizePanStart(DragStartDetails d, _LineHandle h) {

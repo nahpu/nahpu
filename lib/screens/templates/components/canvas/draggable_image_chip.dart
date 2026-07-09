@@ -183,6 +183,9 @@ class DraggableImageChipState extends State<DraggableImageChip> {
   @override
   void didUpdateWidget(covariant DraggableImageChip oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isSelected && !widget.isSelected) {
+      _clearTransientInteractionState();
+    }
     if (oldWidget.snapEnabled && !widget.snapEnabled) {
       _snapSession.reset();
       _snapResult = null;
@@ -323,6 +326,24 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     });
   }
 
+  void _clearTransientInteractionState() {
+    _moving = false;
+    _imageDragLiveMm = null;
+    _imageMovePanLastGlobal = null;
+    _imagePanOriginMm = null;
+    _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
+    _snapResult = null;
+    _resizeCorner = null;
+    _resizeStart = null;
+    _resizeAccum = Offset.zero;
+    _resizeLiveRect = null;
+    _resizePanLastGlobal = null;
+    _rotateStartFingerRad = null;
+    _rotateStartElemDeg = null;
+    _rotateLiveDeg = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final insetX = widget.canvasInsetXPx;
@@ -447,7 +468,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                   onPanEnd: widget.isLocked
                       ? null
                       : (_) {
-                          _deferSetState(() {
+                          setState(() {
                             _moving = false;
                             _snapResult = null;
                           });
@@ -457,7 +478,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                   onPanCancel: widget.isLocked
                       ? null
                       : () {
-                          _deferSetState(() {
+                          setState(() {
                             _moving = false;
                             _snapResult = null;
                           });
@@ -704,7 +725,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
             top: widget.canvasInsetYPx,
             width: _snapGuideWidthPx,
             height: widget.templateHeightMm * widget.scale,
-            child: ColoredBox(color: guideColor),
+            child: IgnorePointer(child: ColoredBox(color: guideColor)),
           ),
         if (snapResult.horizontalGuideMm != null)
           Positioned(
@@ -714,7 +735,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                 _snapGuideWidthPx / 2,
             width: widget.templateWidthMm * widget.scale,
             height: _snapGuideWidthPx,
-            child: ColoredBox(color: guideColor),
+            child: IgnorePointer(child: ColoredBox(color: guideColor)),
           ),
         chip,
       ],

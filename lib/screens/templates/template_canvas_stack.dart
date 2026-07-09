@@ -24,6 +24,13 @@ class RenderTemplateCanvasStack extends RenderStack {
     }
     return super.hitTest(result, position: position);
   }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    // Stack children paint in list order. This helper walks from last child to
+    // first, so pointer input always reaches the visually topmost layer first.
+    return defaultHitTestChildren(result, position: position);
+  }
 }
 
 /// Stack for template chips; use [Clip.none] so overflow stays interactive.

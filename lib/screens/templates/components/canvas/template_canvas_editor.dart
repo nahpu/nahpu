@@ -284,8 +284,11 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                               ...page.customTexts,
                               ...page.customLines,
                               ...page.customShapes,
-                            ]..sort((a, b) =>
-                                (a.zIndex as int).compareTo(b.zIndex as int));
+                            ]
+                              // Lowest layer paints first; the canvas stack
+                              // hit-tests this order in reverse.
+                              ..sort((a, b) =>
+                                  (a.zIndex as int).compareTo(b.zIndex as int));
 
                             List<CanvasSnapTarget> snapTargetsFor(
                               dynamic active,

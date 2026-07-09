@@ -152,6 +152,9 @@ class DraggableChipState extends State<DraggableChip> {
   @override
   void didUpdateWidget(covariant DraggableChip oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isSelected && !widget.isSelected) {
+      _clearTransientInteractionState();
+    }
     if (oldWidget.snapEnabled && !widget.snapEnabled) {
       _snapSession.reset();
       _snapResult = null;
@@ -358,7 +361,7 @@ class DraggableChipState extends State<DraggableChip> {
               top: widget.canvasInsetYPx,
               width: _snapGuideWidthPx,
               height: widget.templateHeightMm * widget.scale,
-              child: ColoredBox(color: guideColor),
+              child: IgnorePointer(child: ColoredBox(color: guideColor)),
             ),
           if (snapResult.horizontalGuideMm != null)
             Positioned(
@@ -368,7 +371,7 @@ class DraggableChipState extends State<DraggableChip> {
                   _snapGuideWidthPx / 2,
               width: widget.templateWidthMm * widget.scale,
               height: _snapGuideWidthPx,
-              child: ColoredBox(color: guideColor),
+              child: IgnorePointer(child: ColoredBox(color: guideColor)),
             ),
           chip,
         ],
@@ -677,12 +680,30 @@ class DraggableChipState extends State<DraggableChip> {
   }
 
   void _onTemplatePanEnd() {
-    _deferSetState(() {
+    setState(() {
       _dragging = false;
       _snapResult = null;
     });
     _finishTemplatePanGesture();
     widget.onDragStateChanged?.call(false);
+  }
+
+  void _clearTransientInteractionState() {
+    _dragging = false;
+    _dragLiveMm = null;
+    _templateDragLastGlobal = null;
+    _panOriginMm = null;
+    _panAccumMm = Offset.zero;
+    _snapSession.reset();
+    _snapResult = null;
+    _resizeCorner = null;
+    _resizeStartGlobal = null;
+    _resizeStartWidthMm = null;
+    _resizeLiveWidthMm = null;
+    _resizeStartHeightMm = null;
+    _resizeLiveHeightMm = null;
+    _resizeStartPosMm = null;
+    _resizeLivePosMm = null;
   }
 
   void _panMoveClampedToHitInset(DragUpdateDetails details) {
