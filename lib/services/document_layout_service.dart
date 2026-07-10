@@ -111,6 +111,12 @@ class DocumentLayoutService {
 }
 
 extension DocumentLayoutBlockExtension on rust_config.DocumentLayoutBlock {
+  /// A negative row count stores auto-fill at block scope while preserving the
+  /// last fixed row count for when auto-fill is disabled again.
+  bool get autoFillPage => rows < 0;
+
+  int get fixedRows => rows.abs().clamp(1, 200);
+
   rust_config.DocumentLayoutBlock copyWith({
     String? templateName,
     int? templateCount,
@@ -133,6 +139,10 @@ extension DocumentLayoutBlockExtension on rust_config.DocumentLayoutBlock {
       templatePadBottomMm: templatePadBottomMm ?? this.templatePadBottomMm,
       pageBreakAfter: pageBreakAfter ?? this.pageBreakAfter,
     );
+  }
+
+  rust_config.DocumentLayoutBlock copyWithAutoFill(bool enabled) {
+    return copyWith(rows: enabled ? -fixedRows : fixedRows);
   }
 }
 

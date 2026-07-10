@@ -54,7 +54,9 @@ class _DocumentTypstRenderer {
     required double hPt,
     required bool pageBreakAfter,
   }) {
-    typst.writeln('#box(width: 100%, height: ${usableH}pt, clip: true)[');
+    // Do not clip the grid. Height estimates are used only for pagination;
+    // Typst remains the source of truth for dynamic text measurement.
+    typst.writeln('#box(width: 100%, height: ${usableH}pt, clip: false)[');
     typst.writeln('#grid(');
     typst.writeln('  columns: (${cellW}pt, ) * $cols,');
     typst.writeln('  column-gutter: 0pt,');
@@ -74,7 +76,7 @@ class _DocumentTypstRenderer {
         templatePadBottomMm: cell.block.templatePadBottomMm,
         mirror: cell.mirror,
         outline: cell.outline,
-        autoHeight: true,
+        autoHeight: cell.autoHeight,
       );
     }
 

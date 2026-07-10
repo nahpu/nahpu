@@ -659,16 +659,16 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 if (!isContinuous) ...[
-                                  if (!widget.layout.fillPage)
+                                  if (!_isAutoFillEnabled(block))
                                     NumberField(
                                       label: 'Rows',
-                                      initialValue: '${block.rows}',
+                                      initialValue: '${block.fixedRows}',
                                       onChanged: (value) {
                                         _updateBlock(
                                           idx,
                                           block.copyWith(
                                             rows: _parseIntOrCurrent(
-                                                value, block.rows),
+                                                value, block.fixedRows),
                                           ),
                                         );
                                       },
@@ -690,11 +690,10 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Checkbox(
-                                        value: widget.layout.fillPage,
+                                        value: _isAutoFillEnabled(block),
                                         onChanged: (v) {
                                           if (v != null) {
-                                            widget.onLayoutChanged(widget.layout
-                                                .copyWith(fillPage: v));
+                                            _updateBlockAutoFill(idx, v);
                                           }
                                         },
                                       ),
@@ -931,6 +930,21 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
           ],
         ],
       ),
+    );
+  }
+
+  bool _isAutoFillEnabled(rust_config.DocumentLayoutBlock block) {
+    return block.autoFillPage || widget.layout.fillPage;
+  }
+
+  void _updateBlockAutoFill(int index, bool enabled) {
+    final blocks = widget.layout.blocks
+        .map((block) =>
+            widget.layout.fillPage ? block.copyWithAutoFill(true) : block)
+        .toList();
+    blocks[index] = blocks[index].copyWithAutoFill(enabled);
+    widget.onLayoutChanged(
+      widget.layout.copyWith(blocks: blocks, fillPage: false),
     );
   }
 

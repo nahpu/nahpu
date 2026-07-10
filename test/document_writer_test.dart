@@ -130,6 +130,32 @@ void main() {
     });
   });
 
+  group('Collecting personnel field values', () {
+    test('uses collPersonnel rows and preserves event-specific roles', () {
+      final values = buildCollPersonnelFieldValues(const [
+        CollPersonnelData(
+          id: 1,
+          eventID: 7,
+          personnelId: 'person-a',
+          name: 'Collector A',
+          role: 'Recorder',
+        ),
+        CollPersonnelData(
+          id: 2,
+          eventID: 7,
+          personnelId: 'person-b',
+          name: 'Collector B',
+          role: 'Preparator',
+        ),
+      ]);
+
+      expect(values['collPersonnel::name'], 'Collector A|Collector B');
+      expect(values['collPersonnel::role'], 'Recorder|Preparator');
+      expect(values['collPersonnel::personnelId'], 'person-a|person-b');
+      expect(values, isNot(contains('personnel::role')));
+    });
+  });
+
   group('DocumentWriter z-index tests', () {
     test('Elements are correctly sorted by zIndex', () {
       final page = TemplatePage(customImages: [
@@ -249,6 +275,25 @@ void main() {
   });
 
   group('DocumentWriter auto-fill sizing tests', () {
+    test('fills every complete row without exceeding the usable page', () {
+      expect(
+        DocumentWriter.maxAutoFillRepeatCountForTesting(
+          rowHeight: 24,
+          usedHeight: 48,
+          usableHeight: 120,
+        ),
+        3,
+      );
+      expect(
+        DocumentWriter.maxAutoFillRepeatCountForTesting(
+          rowHeight: 24,
+          usedHeight: 49,
+          usableHeight: 120,
+        ),
+        2,
+      );
+    });
+
     test('static auto-fill height uses visible image bottom', () {
       final page = TemplatePage(
         customImages: const [

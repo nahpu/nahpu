@@ -269,4 +269,17 @@ class DocumentWriter {
       templatePadBottomMm: templatePadBottomMm,
     );
   }
+
+  @visibleForTesting
+  static int maxAutoFillRepeatCountForTesting({
+    required double rowHeight,
+    required double usedHeight,
+    required double usableHeight,
+  }) {
+    return _DocumentPdfBuilder.maxAutoFillRepeatCount(
+      rowHeight: rowHeight,
+      usedHeight: usedHeight,
+      usableHeight: usableHeight,
+    );
+  }
 }

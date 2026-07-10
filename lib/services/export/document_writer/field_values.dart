@@ -199,7 +199,30 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
     }
   }
 
+  final collectingPersonnel =
+      await CollEventServices(ref: ref).getAllCollPersonnel(s.id);
+  m.addAll(buildCollPersonnelFieldValues(collectingPersonnel));
+
   return m;
+}
+
+/// Builds repeated `collPersonnel::` values from collecting-event personnel.
+///
+/// This deliberately reads [CollPersonnelData] rather than the project-wide
+/// personnel table. Linked personnel UUIDs remain available as `personnelId`,
+/// while the event-specific name and collecting role come from the join table.
+Map<String, String> buildCollPersonnelFieldValues(
+  List<CollPersonnelData> personnel,
+) {
+  const columns = ['id', 'eventID', 'personnelId', 'name', 'role'];
+  final values = <String, String>{};
+  final rows = personnel.map((entry) => entry.toJson()).toList();
+
+  for (final column in columns) {
+    values['collPersonnel::$column'] =
+        rows.map((row) => row[column]?.toString() ?? '').join(writerSeparator);
+  }
+  return values;
 }
 
 Future<String> _getEventEffort(WidgetRef ref, int id) async {
