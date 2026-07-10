@@ -11,6 +11,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/config_services.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,6 @@ void main() async {
   await configService.initDb();
   await configService.migrate(prefs);
   await configService.loadDefaultDocumentPresetsOnce(prefs);
-
   if (kDebugMode) {
     print(await checkRust());
   }
