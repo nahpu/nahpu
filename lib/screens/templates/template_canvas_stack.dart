@@ -71,3 +71,76 @@ class TemplateCanvasStack extends MultiChildRenderObjectWidget {
       ..clipBehavior = clipBehavior;
   }
 }
+
+/// A sized box that bypasses the boundary check during hit testing.
+class CanvasSizedBox extends SingleChildRenderObjectWidget {
+  const CanvasSizedBox({
+    super.key,
+    required this.width,
+    required this.height,
+    super.child,
+  });
+
+  final double width;
+  final double height;
+
+  @override
+  RenderCanvasSizedBox createRenderObject(BuildContext context) {
+    return RenderCanvasSizedBox(width: width, height: height);
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant RenderCanvasSizedBox renderObject,
+  ) {
+    renderObject
+      ..width = width
+      ..height = height;
+  }
+}
+
+class RenderCanvasSizedBox extends RenderProxyBox {
+  RenderCanvasSizedBox({
+    required double width,
+    required double height,
+  })  : _width = width,
+        _height = height;
+
+  double _width;
+  double get width => _width;
+  set width(double value) {
+    if (_width == value) return;
+    _width = value;
+    markNeedsLayout();
+  }
+
+  double _height;
+  double get height => _height;
+  set height(double value) {
+    if (_height == value) return;
+    _height = value;
+    markNeedsLayout();
+  }
+
+  @override
+  void performLayout() {
+    if (child != null) {
+      child!.layout(BoxConstraints.tight(Size(width, height)), parentUsesSize: true);
+      size = child!.size;
+    } else {
+      size = Size(width, height);
+    }
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    if (child != null) {
+      if (child!.hitTest(result, position: position)) {
+        result.add(BoxHitTestEntry(this, position));
+        return true;
+      }
+    }
+    return false;
+  }
+}

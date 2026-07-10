@@ -56,6 +56,16 @@ void main() {
     expect(savedY, closeTo(25, 0.001));
   });
 
+  test('clamps target coordinate falling inside the dynamic growth gap of an element', () {
+    final savedY = TemplateDynamicLayoutService.savedYmmForRenderedY(
+      texts: const [growingTable],
+      renderedYmm: 15,
+      contentHeightMmByTextId: const {'table': 18},
+    );
+
+    expect(savedY, 10.0);
+  });
+
   test('ignores non-dynamic and non-rendered text', () {
     const staticText = CustomTextElement(
       id: 'static',

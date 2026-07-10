@@ -47,19 +47,32 @@ class TemplateDynamicLayoutService {
     required Map<String, double> contentHeightMmByTextId,
     String? excludeTextId,
   }) {
-    var savedYmm = renderedYmm;
-    for (var index = 0; index < 16; index++) {
-      final nextYmm = renderedYmm -
-          verticalShiftMm(
-            texts: texts,
-            targetYmm: savedYmm,
-            excludeTextId: excludeTextId,
-            contentHeightMmByTextId: contentHeightMmByTextId,
-          );
-      if ((nextYmm - savedYmm).abs() < 0.001) return nextYmm;
-      savedYmm = nextYmm;
+    final sortedTexts = texts
+        .where((text) => _canFlow(text) && text.id != excludeTextId)
+        .toList()
+      ..sort((a, b) => a.yMm.compareTo(b.yMm));
+
+    var accumulatedShift = 0.0;
+    for (final text in sortedTexts) {
+      final contentHeight = contentHeightMmByTextId[text.id];
+      if (contentHeight == null || !contentHeight.isFinite) continue;
+      final baselineHeight = text.heightMm ?? 0.0;
+      final growth = math.max(0.0, contentHeight - baselineHeight);
+
+      final renderedBoundary = text.yMm + accumulatedShift;
+
+      if (renderedYmm <= renderedBoundary) {
+        return renderedYmm - accumulatedShift;
+      }
+
+      if (renderedYmm <= renderedBoundary + growth) {
+        return text.yMm;
+      }
+
+      accumulatedShift += growth;
     }
-    return savedYmm;
+
+    return renderedYmm - accumulatedShift;
   }
 
   /// Whether [text] participates in dynamic vertical flow.

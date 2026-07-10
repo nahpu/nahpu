@@ -249,7 +249,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                   alignment: Alignment.center,
                   child: Transform.rotate(
                     angle: (page1 ? mirrorFront : mirrorBack) ? math.pi : 0,
-                    child: SizedBox(
+                    child: CanvasSizedBox(
                       width: stackW,
                       height: stackH,
                       child: TemplateCanvasStack(
@@ -306,8 +306,10 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                   (a.zIndex as int).compareTo(b.zIndex as int));
 
                             Offset renderedPosition(dynamic element) {
-                              final savedX = element.xMm as double;
-                              final savedY = element.yMm as double;
+                              final savedX = (element.xMm as double)
+                                  .clamp(0.0, widget.templateWidthMm);
+                              final savedY = (element.yMm as double)
+                                  .clamp(0.0, widget.templateHeightMm);
                               final shift =
                                   TemplateDynamicLayoutService.verticalShiftMm(
                                 texts: page.customTexts,
@@ -335,7 +337,10 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                 contentHeightMmByTextId:
                                     _dynamicTextContentHeightMmById,
                               );
-                              return Offset(rendered.dx, savedY);
+                              return Offset(
+                                rendered.dx.clamp(0.0, widget.templateWidthMm),
+                                savedY.clamp(0.0, widget.templateHeightMm),
+                              );
                             }
 
                             void reportDynamicTextSize(
