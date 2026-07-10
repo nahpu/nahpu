@@ -33,7 +33,7 @@ const List<String> specimenSexList = [
 ];
 
 const List<String> conditionList = [
-  'Freshly Euthanized',
+  'Freshly euthanized',
   'Good',
   'Fair',
   'Poor',
