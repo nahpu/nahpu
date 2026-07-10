@@ -296,7 +296,9 @@ class _AvailableFieldsSectionState
           'site',
           'weather',
           'personnel',
-          'collEffort'
+          'coordinate',
+          'collEffort',
+          'collPersonnel',
         };
         break;
       case RecordType.specimenRecord:
