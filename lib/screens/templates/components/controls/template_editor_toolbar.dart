@@ -130,6 +130,7 @@ class TemplateEditorToolbar extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                   ],
+                  const SizedBox(width: 12),
                   Text(
                     'Template size:',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -144,17 +145,6 @@ class TemplateEditorToolbar extends StatelessWidget {
                     onControlledDimensionsApplied: onTemplateSizeChanged,
                   ),
                   const SizedBox(width: 8),
-                  SegmentedButton<bool>(
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: false, label: Text('1 sided')),
-                      ButtonSegment(value: true, label: Text('2 sided')),
-                    ],
-                    selected: {isDuplex},
-                    onSelectionChanged: (values) =>
-                        onDuplexChanged(values.first),
-                  ),
-                  const SizedBox(width: 12),
                   _ToolbarIconButton(
                     icon: Icons.text_fields,
                     tooltip: 'Add text',
@@ -191,7 +181,7 @@ class TemplateEditorToolbar extends StatelessWidget {
                     icon: Icons.save_outlined,
                     onPressed: onSaveTemplate,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 12),
                   _ToolbarIconButton(
                     tooltip: 'Undo',
                     icon: Icons.undo,
@@ -275,6 +265,17 @@ class TemplateEditorToolbar extends StatelessWidget {
                       onPressed: onSelectPreviewSpecimen,
                       icon: const Icon(Icons.manage_search, size: 22),
                     ),
+                  const SizedBox(width: 24),
+                  SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: false, label: Text('1 sided')),
+                      ButtonSegment(value: true, label: Text('2 sided')),
+                    ],
+                    selected: {isDuplex},
+                    onSelectionChanged: (values) =>
+                        onDuplexChanged(values.first),
+                  ),
                 ],
               ),
             ),

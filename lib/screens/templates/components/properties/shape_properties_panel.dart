@@ -1,7 +1,7 @@
-import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_dim_field.dart';
+import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
 class ShapePropertiesPanel extends StatefulWidget {
@@ -150,7 +150,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            _ColorSwatch(
+                            TemplateColorSwatch(
                               color: Color(widget.shape.strokeColorArgb),
                               borderColor: scheme.outline,
                               title: 'Select stroke color',
@@ -428,81 +428,15 @@ class _NullableFillSwatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return _ColorSwatch(
+    return TemplateColorSwatch(
       color: colorArgb != null ? Color(colorArgb!) : Colors.white,
       borderColor: borderColor,
       title: 'Select fill color',
       onPicked: onPicked,
+      transparentBackground: colorArgb == null,
       child: colorArgb == null
           ? Icon(Icons.close, size: 16, color: scheme.onSurfaceVariant)
           : null,
-    );
-  }
-}
-
-class _ColorSwatch extends StatelessWidget {
-  const _ColorSwatch({
-    required this.color,
-    required this.borderColor,
-    required this.title,
-    required this.onPicked,
-    this.child,
-  });
-
-  final Color color;
-  final Color borderColor;
-  final String title;
-  final ValueChanged<Color> onPicked;
-  final Widget? child;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () async {
-        var selectedColor = color;
-        final picked = await ColorPicker(
-          color: selectedColor,
-          onColorChanged: (c) => selectedColor = c,
-          enableShadesSelection: true,
-          heading: Text(title, style: Theme.of(context).textTheme.titleSmall),
-          subheading: Text(
-            'Select color shade',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          wheelSubheading: Text(
-            'Selected color and its shades',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          showColorName: true,
-          showColorCode: false,
-          copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-            copyButton: true,
-            pasteButton: true,
-            longPressMenu: true,
-          ),
-          colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-          colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-          pickersEnabled: const <ColorPickerType, bool>{
-            ColorPickerType.both: false,
-            ColorPickerType.primary: true,
-            ColorPickerType.accent: true,
-            ColorPickerType.bw: true,
-            ColorPickerType.custom: true,
-            ColorPickerType.wheel: true,
-          },
-        ).showPickerDialog(context);
-        if (picked) onPicked(selectedColor);
-      },
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: child == null ? color : Colors.transparent,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: child,
-      ),
     );
   }
 }

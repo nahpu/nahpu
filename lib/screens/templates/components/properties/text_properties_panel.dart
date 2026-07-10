@@ -3,9 +3,9 @@ import 'package:nahpu/screens/templates/components/properties/synced_font_size_f
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
 import 'package:nahpu/screens/templates/components/properties/text_format_options.dart';
+import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
 
 class TextPropertiesPanel extends StatelessWidget {
   const TextPropertiesPanel({
@@ -587,33 +587,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             },
                           ),
                           const SizedBox(width: 12),
-                          SegmentedButton<String>(
-                            segments: const [
-                              ButtonSegment(
-                                value: 'left',
-                                icon: Icon(Icons.format_align_left, size: 20),
-                                tooltip: 'Align left',
-                              ),
-                              ButtonSegment(
-                                value: 'center',
-                                icon: Icon(Icons.format_align_center, size: 20),
-                                tooltip: 'Align center',
-                              ),
-                              ButtonSegment(
-                                value: 'right',
-                                icon: Icon(Icons.format_align_right, size: 20),
-                                tooltip: 'Align right',
-                              ),
-                            ],
-                            selected: {ct.textAlign},
-                            onSelectionChanged: (next) {
-                              if (next.isEmpty) return;
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(textAlign: next.first),
-                              );
-                            },
-                            showSelectedIcon: false,
+                          _TextAlignPicker(
+                            ct: ct,
+                            page1: page1,
+                            onUpdateCustomText: onUpdateCustomText,
                           ),
                           const SizedBox(width: 12),
                           IconButton(
@@ -667,100 +644,27 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           Text('Foreground',
                               style: Theme.of(context).textTheme.labelMedium),
                           const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () async {
-                              Color selectedColor = Color(ct.colorArgb);
-                              final picked = await ColorPicker(
-                                color: selectedColor,
-                                onColorChanged: (c) => selectedColor = c,
-                                heading: Text('Select QR foreground color',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                subheading: Text('Select color shade',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                wheelSubheading: Text(
-                                    'Selected color and its shades',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                showColorName: true,
-                                showColorCode: false,
-                                pickersEnabled: const <ColorPickerType, bool>{
-                                  ColorPickerType.both: false,
-                                  ColorPickerType.primary: true,
-                                  ColorPickerType.accent: true,
-                                  ColorPickerType.bw: true,
-                                  ColorPickerType.custom: true,
-                                  ColorPickerType.wheel: true,
-                                },
-                              ).showPickerDialog(context);
-                              if (picked) {
-                                onUpdateCustomText(
-                                  page1,
-                                  ct.copyWith(
-                                    colorArgb: selectedColor.toARGB32(),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: Color(ct.colorArgb),
-                                border: Border.all(color: scheme.outline),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                          TemplateColorSwatch(
+                            color: Color(ct.colorArgb),
+                            title: 'Select QR foreground color',
+                            enableCopyPaste: false,
+                            onPicked: (color) => onUpdateCustomText(
+                              page1,
+                              ct.copyWith(colorArgb: color.toARGB32()),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Text('Background',
                               style: Theme.of(context).textTheme.labelMedium),
                           const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () async {
-                              Color selectedColor = Color(ct.qrBgColorArgb);
-                              final picked = await ColorPicker(
-                                color: selectedColor,
-                                onColorChanged: (c) => selectedColor = c,
-                                heading: Text('Select QR background color',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                subheading: Text('Select color shade',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                wheelSubheading: Text(
-                                    'Selected color and its shades',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                showColorName: true,
-                                showColorCode: true,
-                                pickersEnabled: const <ColorPickerType, bool>{
-                                  ColorPickerType.both: false,
-                                  ColorPickerType.primary: true,
-                                  ColorPickerType.accent: true,
-                                  ColorPickerType.bw: true,
-                                  ColorPickerType.custom: true,
-                                  ColorPickerType.wheel: true,
-                                },
-                              ).showPickerDialog(context);
-                              if (picked) {
-                                onUpdateCustomText(
-                                  page1,
-                                  ct.copyWith(
-                                    qrBgColorArgb: selectedColor.toARGB32(),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: Color(ct.qrBgColorArgb),
-                                border: Border.all(color: scheme.outline),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                          TemplateColorSwatch(
+                            color: Color(ct.qrBgColorArgb),
+                            title: 'Select QR background color',
+                            showColorCode: true,
+                            enableCopyPaste: false,
+                            onPicked: (color) => onUpdateCustomText(
+                              page1,
+                              ct.copyWith(qrBgColorArgb: color.toARGB32()),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -1068,6 +972,50 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
   }
 }
 
+class _TextAlignPicker extends StatelessWidget {
+  const _TextAlignPicker({
+    required this.ct,
+    required this.page1,
+    required this.onUpdateCustomText,
+  });
+
+  final CustomTextElement ct;
+  final bool page1;
+  final void Function(bool, CustomTextElement) onUpdateCustomText;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<String>(
+      segments: const [
+        ButtonSegment(
+          value: 'left',
+          icon: Icon(Icons.format_align_left, size: 20),
+          tooltip: 'Align left',
+        ),
+        ButtonSegment(
+          value: 'center',
+          icon: Icon(Icons.format_align_center, size: 20),
+          tooltip: 'Align center',
+        ),
+        ButtonSegment(
+          value: 'right',
+          icon: Icon(Icons.format_align_right, size: 20),
+          tooltip: 'Align right',
+        ),
+      ],
+      selected: {ct.textAlign},
+      onSelectionChanged: (next) {
+        if (next.isEmpty) return;
+        onUpdateCustomText(
+          page1,
+          ct.copyWith(textAlign: next.first),
+        );
+      },
+      showSelectedIcon: false,
+    );
+  }
+}
+
 class _TextColorSwatch extends StatelessWidget {
   const _TextColorSwatch({
     required this.label,
@@ -1085,23 +1033,17 @@ class _TextColorSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(label, style: Theme.of(context).textTheme.labelMedium),
         const SizedBox(width: 8),
-        InkWell(
-          onTap: () => _showPicker(context),
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: color,
-              border: Border.all(color: scheme.outline),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
+        TemplateColorSwatch(
+          color: color,
+          title: pickerTitle,
+          showColorCode: true,
+          enableCopyPaste: false,
+          onPicked: onPicked,
         ),
         if (onClear != null)
           IconButton(
@@ -1111,40 +1053,6 @@ class _TextColorSwatch extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  Future<void> _showPicker(BuildContext context) async {
-    var selectedColor = color;
-    final picked = await ColorPicker(
-      color: selectedColor,
-      onColorChanged: (next) => selectedColor = next,
-      heading: Text(
-        pickerTitle,
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-      subheading: Text(
-        'Select color shade',
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-      wheelSubheading: Text(
-        'Selected color and its shades',
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-      showColorName: true,
-      colorCodeHasColor: true,
-      showColorCode: true,
-      colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-      colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-      pickersEnabled: const <ColorPickerType, bool>{
-        ColorPickerType.both: false,
-        ColorPickerType.primary: true,
-        ColorPickerType.accent: true,
-        ColorPickerType.bw: true,
-        ColorPickerType.custom: true,
-        ColorPickerType.wheel: true,
-      },
-    ).showPickerDialog(context);
-    if (picked) onPicked(selectedColor);
   }
 }
 
