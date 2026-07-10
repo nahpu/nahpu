@@ -22,6 +22,7 @@ void main() async {
   await configService.initDb();
   await configService.migrate(prefs);
   await configService.loadDefaultDocumentPresetsOnce(prefs);
+  pdfrxFlutterInitialize();
   if (kDebugMode) {
     print(await checkRust());
   }
