@@ -282,4 +282,17 @@ class DocumentWriter {
       usableHeight: usableHeight,
     );
   }
+
+  @visibleForTesting
+  static double usablePageHeightPtForTesting({
+    required double sheetHeightPt,
+    required double topPaddingMm,
+    required double bottomPaddingMm,
+  }) {
+    return _DocumentPdfBuilder.usablePageHeightPt(
+      sheetHeightPt: sheetHeightPt,
+      topPaddingMm: topPaddingMm,
+      bottomPaddingMm: bottomPaddingMm,
+    );
+  }
 }

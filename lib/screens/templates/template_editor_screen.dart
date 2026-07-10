@@ -68,6 +68,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   /// Currently selected element for the properties panel.
   /// Format: `builtin:<componentId>`, `custom:<page>:<ct_id>`, or `image:<page>:<img_id>`.
   String? _selectedElement;
+  _TemplateElementClipboard? _elementClipboard;
 
   /// Custom text key (`custom:1:ct_0`) when typing on the canvas; null = preview only.
   int _customIdCounter = 0;
@@ -202,6 +203,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         canUndo: _history.canUndo,
         canRedo: _history.canRedo,
         onDuplicateElement: _duplicateElement,
+        onCopyElement: _copyElement,
+        onPasteElement: _pasteElement,
+        canPasteElement: _elementClipboard != null,
         onDragStateChanged: _onDragStateChanged,
         borderPanel: TemplateBorderPanel(
           session: _templateBorderPanelSession,
@@ -1418,6 +1422,110 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     }
   }
 
+  void _copyElement(String sel) {
+    final selection = TemplateSelection.parse(sel);
+    if (selection == null) return;
+
+    final dynamic element = switch (selection.type) {
+      TemplateElementType.text =>
+        _findCustomText(selection.page1, selection.id),
+      TemplateElementType.image =>
+        _findCustomImage(selection.page1, selection.id),
+      TemplateElementType.line =>
+        _findCustomLine(selection.page1, selection.id),
+      TemplateElementType.shape =>
+        _findCustomShape(selection.page1, selection.id),
+    };
+    if (element == null) return;
+
+    setState(() {
+      _elementClipboard = _TemplateElementClipboard(
+        type: selection.type,
+        element: element,
+      );
+    });
+  }
+
+  void _pasteElement() {
+    final clipboard = _elementClipboard;
+    if (clipboard == null) return;
+    final page1 = _isPage1;
+    _pushToUndo();
+
+    switch (clipboard.type) {
+      case TemplateElementType.text:
+        final original = clipboard.element as CustomTextElement;
+        final id = 'ct_$_customIdCounter';
+        _customIdCounter++;
+        final pasted = original.copyWith(
+          id: id,
+          xMm: original.xMm + 4,
+          yMm: original.yMm + 4,
+        );
+        _insertPastedElement(
+          page1: page1,
+          selection: 'custom:${page1 ? '1' : '2'}:$id',
+          updatePage: (page) => page.withCustomText(pasted),
+        );
+      case TemplateElementType.image:
+        final original = clipboard.element as CustomImageElement;
+        final id = 'img_$_imageIdCounter';
+        _imageIdCounter++;
+        final pasted = original.copyWith(
+          id: id,
+          xMm: original.xMm + 4,
+          yMm: original.yMm + 4,
+        );
+        _insertPastedElement(
+          page1: page1,
+          selection: 'image:${page1 ? '1' : '2'}:$id',
+          updatePage: (page) => page.withCustomImage(pasted),
+        );
+      case TemplateElementType.line:
+        final original = clipboard.element as CustomLineElement;
+        final id = 'line_$_customIdCounter';
+        _customIdCounter++;
+        final pasted = original.copyWith(
+          id: id,
+          xMm: original.xMm + 4,
+          yMm: original.yMm + 4,
+        );
+        _insertPastedElement(
+          page1: page1,
+          selection: 'line:${page1 ? '1' : '2'}:$id',
+          updatePage: (page) => page.withCustomLine(pasted),
+        );
+      case TemplateElementType.shape:
+        final original = clipboard.element as CustomShapeElement;
+        final id = 'shape_$_customIdCounter';
+        _customIdCounter++;
+        final pasted = original.copyWith(
+          id: id,
+          xMm: original.xMm + 4,
+          yMm: original.yMm + 4,
+        );
+        _insertPastedElement(
+          page1: page1,
+          selection: 'shape:${page1 ? '1' : '2'}:$id',
+          updatePage: (page) => page.withCustomShape(pasted),
+        );
+    }
+  }
+
+  void _insertPastedElement({
+    required bool page1,
+    required String selection,
+    required TemplatePage Function(TemplatePage page) updatePage,
+  }) {
+    setState(() {
+      _template = page1
+          ? _template.copyWith(page1: updatePage(_template.page1))
+          : _template.copyWith(page2: updatePage(_template.page2));
+      _selectedElement = selection;
+      _templateBorderPanelOpen = false;
+    });
+  }
+
   void _onDragStateChanged(bool dragging) {
     if (dragging) {
       _pushToUndo();
@@ -1450,6 +1558,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       return null;
     }
   }
+}
+
+class _TemplateElementClipboard {
+  const _TemplateElementClipboard({required this.type, required this.element});
+
+  final TemplateElementType type;
+  final Object element;
 }
 
 class _CreateTemplateResult {

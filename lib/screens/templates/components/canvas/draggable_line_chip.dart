@@ -201,8 +201,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                   child: GestureDetector(
                     key: _measureKey,
                     behavior: HitTestBehavior.translucent,
-                    onTapDown: (_) => widget.onTap?.call(),
-                    onTap: widget.onTap,
+                    onTapDown:
+                        widget.isLocked ? (_) => widget.onTap?.call() : null,
+                    onTap: widget.isLocked ? null : widget.onTap,
                     onPanStart: widget.isLocked ? null : _onMovePanStart,
                     onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
                     onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),

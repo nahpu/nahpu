@@ -294,6 +294,24 @@ void main() {
       );
     });
 
+    test('page padding reduces the height available to auto-fill rows', () {
+      final usableHeight = DocumentWriter.usablePageHeightPtForTesting(
+        sheetHeightPt: documentPdfMmToPt(297),
+        topPaddingMm: 10,
+        bottomPaddingMm: 20,
+      );
+
+      expect(usableHeight, closeTo(documentPdfMmToPt(267), 0.001));
+      expect(
+        DocumentWriter.maxAutoFillRepeatCountForTesting(
+          rowHeight: documentPdfMmToPt(50),
+          usedHeight: 0,
+          usableHeight: usableHeight,
+        ),
+        5,
+      );
+    });
+
     test('static auto-fill height uses visible image bottom', () {
       final page = TemplatePage(
         customImages: const [

@@ -287,10 +287,10 @@ class DraggableChipState extends State<DraggableChip> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapDown: (_) {
-              widget.onTap?.call();
               widget.onSelect?.call();
+              if (widget.isLocked) widget.onTap?.call();
             },
-            onTap: widget.onTap,
+            onTap: widget.isLocked ? null : widget.onTap,
             onDoubleTap: widget.onDoubleTap,
             onPanStart: widget.isLocked ? null : _onTemplatePanStart,
             onPanUpdate: widget.isLocked ? null : _panMoveClampedToHitInset,
@@ -469,10 +469,10 @@ class DraggableChipState extends State<DraggableChip> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapDown: (_) {
-            widget.onTap?.call();
             widget.onSelect?.call();
+            if (widget.isLocked) widget.onTap?.call();
           },
-          onTap: widget.onTap,
+          onTap: widget.isLocked ? null : widget.onTap,
           onPanStart: widget.isLocked ? null : _onTemplatePanStart,
           onPanUpdate: widget.isLocked ? null : _panMoveClampedToHitInset,
           onPanEnd: widget.isLocked ? null : (_) => _onTemplatePanEnd(),

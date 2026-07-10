@@ -409,8 +409,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                 child: GestureDetector(
                   key: _measureKey,
                   behavior: HitTestBehavior.opaque,
-                  onTapDown: (_) => widget.onTap?.call(),
-                  onTap: widget.onTap,
+                  onTapDown:
+                      widget.isLocked ? (_) => widget.onTap?.call() : null,
+                  onTap: widget.isLocked ? null : widget.onTap,
                   onPanStart: widget.isLocked
                       ? null
                       : (d) {

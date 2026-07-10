@@ -19,6 +19,32 @@ class _DocumentPdfBuilder {
     return layout.fillPage || block.autoFillPage;
   }
 
+  static double usablePageWidthPt({
+    required double sheetWidthPt,
+    required double leftPaddingMm,
+    required double rightPaddingMm,
+  }) {
+    return math.max(
+      1.0,
+      sheetWidthPt -
+          documentPdfMmToPt(leftPaddingMm) -
+          documentPdfMmToPt(rightPaddingMm),
+    );
+  }
+
+  static double usablePageHeightPt({
+    required double sheetHeightPt,
+    required double topPaddingMm,
+    required double bottomPaddingMm,
+  }) {
+    return math.max(
+      1.0,
+      sheetHeightPt -
+          documentPdfMmToPt(topPaddingMm) -
+          documentPdfMmToPt(bottomPaddingMm),
+    );
+  }
+
   Future<Uint8List> _generateRecordsPdfGeneric<T>(
     List<T> records, {
     required double sheetWidthPt,
@@ -144,8 +170,16 @@ class _DocumentPdfBuilder {
       typst.writeln(
           '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt, margin: (top: ${ptTop}pt, left: ${ptLeft}pt, bottom: ${ptBottom}pt, right: ${ptRight}pt))');
 
-      final usableW = math.max(1.0, sheetWidthPt - ptLeft - ptRight);
-      final usableH = math.max(1.0, sheetHeightPt - ptTop - ptBottom);
+      final usableW = usablePageWidthPt(
+        sheetWidthPt: sheetWidthPt,
+        leftPaddingMm: layout.pagePadLeftMm,
+        rightPaddingMm: layout.pagePadRightMm,
+      );
+      final usableH = usablePageHeightPt(
+        sheetHeightPt: sheetHeightPt,
+        topPaddingMm: layout.pagePadTopMm,
+        bottomPaddingMm: layout.pagePadBottomMm,
+      );
 
       if (layout.multiBlockMode == 'Alternate') {
         final List<_DocumentSheetCell> allFrontCells = [];
@@ -714,8 +748,16 @@ class _DocumentPdfBuilder {
       typst.writeln(
           '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt, margin: (top: ${ptTop}pt, left: ${ptLeft}pt, bottom: ${ptBottom}pt, right: ${ptRight}pt))');
 
-      final usableW = math.max(1.0, sheetWidthPt - ptLeft - ptRight);
-      final usableH = math.max(1.0, sheetHeightPt - ptTop - ptBottom);
+      final usableW = usablePageWidthPt(
+        sheetWidthPt: sheetWidthPt,
+        leftPaddingMm: layout.pagePadLeftMm,
+        rightPaddingMm: layout.pagePadRightMm,
+      );
+      final usableH = usablePageHeightPt(
+        sheetHeightPt: sheetHeightPt,
+        topPaddingMm: layout.pagePadTopMm,
+        bottomPaddingMm: layout.pagePadBottomMm,
+      );
 
       if (layout.multiBlockMode == 'Alternate') {
         final List<_DocumentSheetCell> allFrontCells = [];

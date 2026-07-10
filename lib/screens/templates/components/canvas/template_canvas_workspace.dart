@@ -49,6 +49,8 @@ class TemplateCanvasWorkspace extends StatefulWidget {
     this.onRedo,
     this.onDeleteSelectedElement,
     this.onDuplicateSelectedElement,
+    this.onCopySelectedElement,
+    this.onPasteElement,
     this.canUndo = false,
     this.canRedo = false,
     this.onDragStateChanged,
@@ -100,6 +102,8 @@ class TemplateCanvasWorkspace extends StatefulWidget {
   final VoidCallback? onRedo;
   final VoidCallback? onDeleteSelectedElement;
   final VoidCallback? onDuplicateSelectedElement;
+  final VoidCallback? onCopySelectedElement;
+  final VoidCallback? onPasteElement;
   final bool canUndo;
   final bool canRedo;
 
@@ -215,6 +219,18 @@ class _TemplateCanvasWorkspaceState extends State<TemplateCanvasWorkspace> {
         if (widget.onDuplicateSelectedElement != null)
           const SingleActivator(LogicalKeyboardKey.keyD, control: true):
               widget.onDuplicateSelectedElement!,
+        if (widget.onCopySelectedElement != null)
+          const SingleActivator(LogicalKeyboardKey.keyC, meta: true):
+              widget.onCopySelectedElement!,
+        if (widget.onCopySelectedElement != null)
+          const SingleActivator(LogicalKeyboardKey.keyC, control: true):
+              widget.onCopySelectedElement!,
+        if (widget.onPasteElement != null)
+          const SingleActivator(LogicalKeyboardKey.keyV, meta: true):
+              widget.onPasteElement!,
+        if (widget.onPasteElement != null)
+          const SingleActivator(LogicalKeyboardKey.keyV, control: true):
+              widget.onPasteElement!,
         const SingleActivator(LogicalKeyboardKey.escape):
             widget.onClearSelection,
       };

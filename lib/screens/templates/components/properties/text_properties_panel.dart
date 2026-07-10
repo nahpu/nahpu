@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_font_size_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
+import 'package:nahpu/screens/templates/components/properties/text_format_options.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -271,323 +272,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
   String _getSexMissing(String formatOption) {
     final parts = formatOption.split(':');
     return parts.length > 1 ? parts[1] : 'unknown';
-  }
-
-  List<DropdownMenuItem<String>> _getFormatDropdownItems(String textType) {
-    switch (textType) {
-      case 'coordinates':
-        return const [
-          DropdownMenuItem(
-            value: 'decimal',
-            child: Text('Decimal (45.123, -122.543)'),
-          ),
-          DropdownMenuItem(
-            value: 'cardinalDecimal',
-            child: Text(
-              'Cardinal Dec (45.123° N, 122.543° W)',
-            ),
-          ),
-          DropdownMenuItem(
-            value: 'dms',
-            child: Text('DMS (45° 7\' 24" N, 122° 32\' 35" W)'),
-          ),
-          DropdownMenuItem(
-            value: 'ddm',
-            child: Text('DDM (45° 7.407\' N, 122° 32.592\' W)'),
-          ),
-        ];
-      case 'list':
-        return const [
-          DropdownMenuItem(
-            value: 'pipe',
-            child: Text('Pipe separated (A | B | C)'),
-          ),
-          DropdownMenuItem(
-            value: 'comma',
-            child: Text('Comma separated (A, B, C)'),
-          ),
-          DropdownMenuItem(
-            value: 'semicolon',
-            child: Text('Semicolon separated (A; B; C)'),
-          ),
-          DropdownMenuItem(
-            value: 'slash',
-            child: Text('Slash separated (A / B / C)'),
-          ),
-          DropdownMenuItem(
-            value: 'newline',
-            child: Text('New line (A\\nB\\nC)'),
-          ),
-          DropdownMenuItem(
-            value: 'bullet',
-            child: Text('Bulleted (• A\\n• B)'),
-          ),
-          DropdownMenuItem(
-            value: 'custom',
-            child: Text('Custom separator...'),
-          ),
-        ];
-      case 'nestedList':
-        return const [
-          DropdownMenuItem(
-            value: 'table',
-            child: Text('Table'),
-          ),
-          DropdownMenuItem(
-            value: 'cardList',
-            child: Text('Card list'),
-          ),
-        ];
-      case 'date':
-        return const [
-          DropdownMenuItem(
-            value: 'yyyy-mm-dd',
-            child: Text('YYYY-MM-DD (2026-06-28)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd-mm-yyyy',
-            child: Text('DD-MM-YYYY (28-06-2026)'),
-          ),
-          DropdownMenuItem(
-            value: 'mm-dd-yyyy',
-            child: Text('MM-DD-YYYY (06-28-2026)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd/mm/yyyy',
-            child: Text('DD/MM/YYYY (28/06/2026)'),
-          ),
-          DropdownMenuItem(
-            value: 'mm/dd/yyyy',
-            child: Text('MM/DD/YYYY (06/28/2026)'),
-          ),
-          DropdownMenuItem(
-            value: 'month-dd-yyyy',
-            child: Text(
-              'Month DD, YYYY (June 28, 2026)',
-            ),
-          ),
-          DropdownMenuItem(
-            value: 'dd-month-yyyy',
-            child: Text(
-              'DD Month YYYY (28 June 2026)',
-            ),
-          ),
-          DropdownMenuItem(
-            value: 'dd-month-abbr-yyyy',
-            child: Text(
-              'DD Month (Abbr) (28 Jun 2026)',
-            ),
-          ),
-        ];
-      case 'datetime':
-        return const [
-          DropdownMenuItem(
-            value: 'yyyy-mm-dd-hm',
-            child: Text('YYYY-MM-DD 24h (2026-06-28 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'yyyy-mm-dd-hms',
-            child: Text('YYYY-MM-DD seconds (2026-06-28 14:05:09)'),
-          ),
-          DropdownMenuItem(
-            value: 'iso-minutes',
-            child: Text('ISO minutes (2026-06-28T14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'iso-seconds',
-            child: Text('ISO seconds (2026-06-28T14:05:09)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd-mm-yyyy-hm',
-            child: Text('DD-MM-YYYY 24h (28-06-2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'mm-dd-yyyy-hm',
-            child: Text('MM-DD-YYYY 24h (06-28-2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd/mm/yyyy-hm',
-            child: Text('DD/MM/YYYY 24h (28/06/2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'mm/dd/yyyy-hm',
-            child: Text('MM/DD/YYYY 12h (06/28/2026 2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'yyyy/mm/dd-hm',
-            child: Text('YYYY/MM/DD 24h (2026/06/28 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd-month-yyyy-hm',
-            child: Text('DD Month YYYY 24h (28 June 2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'month-dd-yyyy-hm',
-            child: Text('Month DD, YYYY 12h (June 28, 2026 2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd-month-abbr-yyyy-hm',
-            child: Text('DD Mon YYYY 24h (28 Jun 2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'month-abbr-dd-yyyy-hm',
-            child: Text('Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-24',
-            child: Text('Time 24h (14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-24-seconds',
-            child: Text('Time 24h seconds (14:05:09)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-12',
-            child: Text('Time 12h (2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-12-padded',
-            child: Text('Time 12h padded (02:05 PM)'),
-          ),
-        ];
-      case 'time':
-        return const [
-          DropdownMenuItem(
-            value: 'time-24',
-            child: Text('Time 24h (14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-24-seconds',
-            child: Text('Time 24h seconds (14:05:09)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-12',
-            child: Text('Time 12h (2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-12-padded',
-            child: Text('Time 12h padded (02:05 PM)'),
-          ),
-        ];
-      case 'number':
-        return const [
-          DropdownMenuItem(
-            value: 'original',
-            child: Text('Original'),
-          ),
-          DropdownMenuItem(
-            value: '0',
-            child: Text('0 decimal places (e.g. 12)'),
-          ),
-          DropdownMenuItem(
-            value: '1',
-            child: Text('1 decimal place (e.g. 12.3)'),
-          ),
-          DropdownMenuItem(
-            value: '2',
-            child: Text('2 decimal places (e.g. 12.34)'),
-          ),
-          DropdownMenuItem(
-            value: '3',
-            child: Text('3 decimal places (e.g. 12.345)'),
-          ),
-        ];
-      case 'markdown':
-        return const [
-          DropdownMenuItem(
-            value: 'normal',
-            child: Text('Normal'),
-          ),
-        ];
-      case 'normal':
-      default:
-        return const [
-          DropdownMenuItem(
-            value: 'normal',
-            child: Text('Normal'),
-          ),
-          DropdownMenuItem(
-            value: 'uppercase',
-            child: Text('Uppercase'),
-          ),
-          DropdownMenuItem(
-            value: 'lowercase',
-            child: Text('Lowercase'),
-          ),
-          DropdownMenuItem(
-            value: 'capitalize',
-            child: Text('Capitalize'),
-          ),
-        ];
-    }
-  }
-
-  Widget _colorSwatch({
-    required BuildContext context,
-    required String label,
-    required Color color,
-    required String pickerTitle,
-    required ValueChanged<Color> onPicked,
-    VoidCallback? onClear,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(width: 8),
-        InkWell(
-          onTap: () async {
-            Color selectedColor = color;
-            final picked = await ColorPicker(
-              color: selectedColor,
-              onColorChanged: (c) => selectedColor = c,
-              heading: Text(
-                pickerTitle,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              subheading: Text(
-                'Select color shade',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              wheelSubheading: Text(
-                'Selected color and its shades',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              showColorName: true,
-              colorCodeHasColor: true,
-              showColorCode: true,
-              colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-              colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-              pickersEnabled: const <ColorPickerType, bool>{
-                ColorPickerType.both: false,
-                ColorPickerType.primary: true,
-                ColorPickerType.accent: true,
-                ColorPickerType.bw: true,
-                ColorPickerType.custom: true,
-                ColorPickerType.wheel: true,
-              },
-            ).showPickerDialog(context);
-            if (picked) onPicked(selectedColor);
-          },
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: color,
-              border: Border.all(color: scheme.outline),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ),
-        if (onClear != null)
-          IconButton(
-            icon: const Icon(Icons.close, size: 18),
-            tooltip: 'Clear $label',
-            onPressed: onClear,
-          ),
-      ],
-    );
   }
 
   @override
@@ -1090,48 +774,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           value: ct.textType,
                           isDense: true,
                           underline: const SizedBox.shrink(),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'normal',
-                              child: Text('Normal Text'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'markdown',
-                              child: Text('Markdown'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'coordinates',
-                              child: Text('Coordinates'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'list',
-                              child: Text('List Values'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'nestedList',
-                              child: Text('Nested List'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'date',
-                              child: Text('Dates'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'datetime',
-                              child: Text('Date and Time'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'time',
-                              child: Text('Time'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'sex',
-                              child: Text('Sex'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'number',
-                              child: Text('Number'),
-                            ),
-                          ],
+                          items: textDropdownItems(kTextTypeOptions),
                           onChanged: (v) {
                             if (v == null) return;
                             String defaultOpt = 'normal';
@@ -1172,7 +815,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             value: isCustomSep ? 'custom' : ct.formatOption,
                             isDense: true,
                             underline: const SizedBox.shrink(),
-                            items: _getFormatDropdownItems(ct.textType),
+                            items: textFormatDropdownItems(ct.textType),
                             onChanged: (v) {
                               if (v == null) return;
                               final nextOpt = v == 'custom' ? 'custom:' : v;
@@ -1194,20 +837,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             value: _getSexPresentation(ct.formatOption),
                             isDense: true,
                             underline: const SizedBox.shrink(),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'symbol',
-                                child: Text('Symbol (♂/♀)'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'letter',
-                                child: Text('Letter (M/F)'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'text',
-                                child: Text('Text (Male/Female)'),
-                              ),
-                            ],
+                            items: textDropdownItems(kSexPresentationOptions),
                             onChanged: (v) {
                               if (v == null) return;
                               final missing = _getSexMissing(ct.formatOption);
@@ -1230,20 +860,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             value: _getSexMissing(ct.formatOption),
                             isDense: true,
                             underline: const SizedBox.shrink(),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'unknown',
-                                child: Text('Unknown'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'na',
-                                child: Text('N/A'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'none',
-                                child: Text('None'),
-                              ),
-                            ],
+                            items: textDropdownItems(kSexMissingOptions),
                             onChanged: (v) {
                               if (v == null) return;
                               final presentation =
@@ -1296,8 +913,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _colorSwatch(
-                          context: context,
+                        _TextColorSwatch(
                           label: 'Text',
                           color: Color(ct.colorArgb),
                           pickerTitle: 'Select text color',
@@ -1309,8 +925,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           },
                         ),
                         const SizedBox(width: 12),
-                        _colorSwatch(
-                          context: context,
+                        _TextColorSwatch(
                           label: 'Background',
                           color: ct.backgroundColorArgb == null
                               ? Colors.transparent
@@ -1332,8 +947,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           },
                         ),
                         const SizedBox(width: 12),
-                        _colorSwatch(
-                          context: context,
+                        _TextColorSwatch(
                           label: 'Stroke',
                           color: ct.borderColorArgb == null
                               ? Colors.black
@@ -1451,6 +1065,86 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         ],
       ),
     );
+  }
+}
+
+class _TextColorSwatch extends StatelessWidget {
+  const _TextColorSwatch({
+    required this.label,
+    required this.color,
+    required this.pickerTitle,
+    required this.onPicked,
+    this.onClear,
+  });
+
+  final String label;
+  final Color color;
+  final String pickerTitle;
+  final ValueChanged<Color> onPicked;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: () => _showPicker(context),
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: color,
+              border: Border.all(color: scheme.outline),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        if (onClear != null)
+          IconButton(
+            icon: const Icon(Icons.close, size: 18),
+            tooltip: 'Clear $label',
+            onPressed: onClear,
+          ),
+      ],
+    );
+  }
+
+  Future<void> _showPicker(BuildContext context) async {
+    var selectedColor = color;
+    final picked = await ColorPicker(
+      color: selectedColor,
+      onColorChanged: (next) => selectedColor = next,
+      heading: Text(
+        pickerTitle,
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      subheading: Text(
+        'Select color shade',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      wheelSubheading: Text(
+        'Selected color and its shades',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      showColorName: true,
+      colorCodeHasColor: true,
+      showColorCode: true,
+      colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
+      colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
+      pickersEnabled: const <ColorPickerType, bool>{
+        ColorPickerType.both: false,
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: true,
+        ColorPickerType.bw: true,
+        ColorPickerType.custom: true,
+        ColorPickerType.wheel: true,
+      },
+    ).showPickerDialog(context);
+    if (picked) onPicked(selectedColor);
   }
 }
 

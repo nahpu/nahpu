@@ -104,16 +104,6 @@ class TemplateEditorToolbar extends StatelessWidget {
                   icon: const Icon(Icons.info_outline_rounded),
                   onPressed: () => _showTemplateInfoDialog(context),
                 ),
-                const SizedBox(width: 8),
-                SegmentedButton<bool>(
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(value: false, label: Text('1 sided')),
-                    ButtonSegment(value: true, label: Text('2 sided')),
-                  ],
-                  selected: {isDuplex},
-                  onSelectionChanged: (values) => onDuplexChanged(values.first),
-                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -154,6 +144,17 @@ class TemplateEditorToolbar extends StatelessWidget {
                     onControlledDimensionsApplied: onTemplateSizeChanged,
                   ),
                   const SizedBox(width: 8),
+                  SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: false, label: Text('1 sided')),
+                      ButtonSegment(value: true, label: Text('2 sided')),
+                    ],
+                    selected: {isDuplex},
+                    onSelectionChanged: (values) =>
+                        onDuplexChanged(values.first),
+                  ),
+                  const SizedBox(width: 12),
                   _ToolbarIconButton(
                     icon: Icons.text_fields,
                     tooltip: 'Add text',

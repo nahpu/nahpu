@@ -705,7 +705,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'Template padding',
+                              'Template padding (mm)',
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
@@ -1202,29 +1202,43 @@ class _PageSetupControls extends StatelessWidget {
                   onChanged: _setPageOrientation,
                 ),
               ),
+            ],
+          ],
+        ),
+        if (showMore) ...[
+          const SizedBox(height: 12),
+          Text(
+            'Page padding (mm)',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
               NumberField(
-                label: 'Page top',
+                label: 'Top',
                 initialValue: layout.pagePadTopMm.toStringAsFixed(1),
                 onChanged: _setPagePadTop,
               ),
               NumberField(
-                label: 'Page left',
+                label: 'Left',
                 initialValue: layout.pagePadLeftMm.toStringAsFixed(1),
                 onChanged: _setPagePadLeft,
               ),
               NumberField(
-                label: 'Page right',
+                label: 'Right',
                 initialValue: layout.pagePadRightMm.toStringAsFixed(1),
                 onChanged: _setPagePadRight,
               ),
               NumberField(
-                label: 'Page bottom',
+                label: 'Bottom',
                 initialValue: layout.pagePadBottomMm.toStringAsFixed(1),
                 onChanged: _setPagePadBottom,
               ),
             ],
-          ],
-        ),
+          ),
+        ],
       ],
     );
   }
