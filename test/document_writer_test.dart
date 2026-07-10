@@ -493,6 +493,33 @@ void main() {
       expect(height, greaterThan(0));
     });
 
+    test('dynamic text element includes its own growth in estimated height', () {
+      final page = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'dynamic',
+          text: List.filled(20, 'Very long dynamic text narrative').join(' '),
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+          heightMm: 5,
+          isDynamic: true,
+        ),
+      ]);
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 700,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, greaterThan(documentPdfMmToPt(20)));
+    });
+
     test('dynamic text row height includes bottom line elements', () {
       final page = TemplatePage(
         customTexts: [

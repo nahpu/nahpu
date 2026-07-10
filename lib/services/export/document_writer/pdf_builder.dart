@@ -158,9 +158,7 @@ class _DocumentPdfBuilder {
           continuous: true,
         );
 
-        if (i < continuousItems.length - 1) {
-          typst.writeln('#pagebreak()');
-        }
+
       }
     } else {
       final ptTop = documentPdfMmToPt(layout.pagePadTopMm);
@@ -245,6 +243,14 @@ class _DocumentPdfBuilder {
                 ));
               }
             }
+          }
+        }
+
+        if (duplex) {
+          for (var i = 0; i < allFrontCells.length; i++) {
+            final maxH = math.max(allFrontCells[i].heightPt, allBackCells[i].heightPt);
+            allFrontCells[i] = allFrontCells[i].copyWithHeight(maxH);
+            allBackCells[i] = allBackCells[i].copyWithHeight(maxH);
           }
         }
 
@@ -406,6 +412,14 @@ class _DocumentPdfBuilder {
                   autoHeight: backAutoFill,
                 ));
               }
+            }
+          }
+
+          if (duplex) {
+            for (var i = 0; i < blockFrontCells.length; i++) {
+              final maxH = math.max(blockFrontCells[i].heightPt, blockBackCells[i].heightPt);
+              blockFrontCells[i] = blockFrontCells[i].copyWithHeight(maxH);
+              blockBackCells[i] = blockBackCells[i].copyWithHeight(maxH);
             }
           }
 
@@ -736,9 +750,7 @@ class _DocumentPdfBuilder {
           continuous: true,
         );
 
-        if (i < continuousItems.length - 1) {
-          typst.writeln('#pagebreak()');
-        }
+
       }
     } else {
       final ptTop = documentPdfMmToPt(layout.pagePadTopMm);
@@ -836,6 +848,14 @@ class _DocumentPdfBuilder {
                 ));
               }
             }
+          }
+        }
+
+        if (duplex) {
+          for (var i = 0; i < allFrontCells.length; i++) {
+            final maxH = math.max(allFrontCells[i].heightPt, allBackCells[i].heightPt);
+            allFrontCells[i] = allFrontCells[i].copyWithHeight(maxH);
+            allBackCells[i] = allBackCells[i].copyWithHeight(maxH);
           }
         }
 
@@ -997,6 +1017,14 @@ class _DocumentPdfBuilder {
                   autoHeight: backAutoFill,
                 ));
               }
+            }
+          }
+
+          if (duplex) {
+            for (var i = 0; i < blockFrontCells.length; i++) {
+              final maxH = math.max(blockFrontCells[i].heightPt, blockBackCells[i].heightPt);
+              blockFrontCells[i] = blockFrontCells[i].copyWithHeight(maxH);
+              blockBackCells[i] = blockBackCells[i].copyWithHeight(maxH);
             }
           }
 
@@ -1293,8 +1321,14 @@ class _DocumentPdfBuilder {
 
     var height = 0.0;
     for (final element in _sortTemplateElements(page)) {
-      final bottom = _elementBottomPt(element, wPt);
+      var bottom = _elementBottomPt(element, wPt);
       if (bottom <= 0) continue;
+      if (element is CustomTextElement &&
+          element.isDynamic &&
+          !element.isQrCode &&
+          templateGenderIconFieldKeyFromBracketText(element.text) == null) {
+        bottom += _dynamicTextGrowthPt(element, wPt);
+      }
       height = math.max(
         height,
         bottom + _dynamicGrowthBeforePt(dynamicTexts, element, wPt),
@@ -1525,4 +1559,16 @@ class _DocumentSheetCell {
   final TemplateOutline? outline;
   final bool mirror;
   final bool autoHeight;
+
+  _DocumentSheetCell copyWithHeight(double maxH) {
+    return _DocumentSheetCell(
+      page: page,
+      data: data,
+      heightPt: maxH,
+      block: block,
+      outline: outline,
+      mirror: mirror,
+      autoHeight: autoHeight,
+    );
+  }
 }

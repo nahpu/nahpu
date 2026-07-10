@@ -40,7 +40,7 @@ class _DocumentTypstRenderer {
     _fillRemainingGridSpaces(typst, cells.length, cols);
     typst.writeln(')');
     if (pageBreakAfter) {
-      typst.writeln('#pagebreak()');
+      typst.writeln('#pagebreak(weak: true)');
     }
   }
 
@@ -84,7 +84,7 @@ class _DocumentTypstRenderer {
     typst.writeln(')');
     typst.writeln(']');
     if (pageBreakAfter) {
-      typst.writeln('#pagebreak()');
+      typst.writeln('#pagebreak(weak: true)');
     }
   }
 
