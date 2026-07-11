@@ -9,7 +9,7 @@ import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_markdown.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/template_nested_list_service.dart';
+import 'package:nahpu/services/templates/nested_list_service.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;

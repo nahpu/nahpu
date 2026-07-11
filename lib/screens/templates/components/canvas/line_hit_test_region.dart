@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:nahpu/services/templates/template_canvas_hit_test_service.dart';
+import 'package:nahpu/services/templates/canvas_hit_test_service.dart';
 
 /// Only contributes to hit testing close to a line segment.
 ///

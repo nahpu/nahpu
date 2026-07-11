@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/template_canvas_overflow_service.dart';
+import 'package:nahpu/services/templates/canvas_overflow_service.dart';
 
 void main() {
   test('adds right and bottom hit padding for oversized text boxes', () {

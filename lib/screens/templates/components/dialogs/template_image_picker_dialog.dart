@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/template_image_service.dart';
+import 'package:nahpu/services/templates/image_service.dart';
 import 'package:path/path.dart' as path;
 
 class TemplateImagePickerDialog extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/template_dynamic_layout_service.dart';
+import 'package:nahpu/services/templates/dynamic_layout_service.dart';
 
 void main() {
   const growingTable = CustomTextElement(

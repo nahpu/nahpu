@@ -4,7 +4,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/template_image_service.dart';
+import 'package:nahpu/services/templates/image_service.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
