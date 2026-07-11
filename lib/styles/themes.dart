@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 
 class NahpuTheme {
-  static const _primary = Color(0xFF1B9E77);
-  static const _secondary = Color(0xFF4D625B);
-  static const _tertiary = Color(0xFF9E4733);
+  static const _canopyTeal = Color(0xFF1B9E77);
+  static const _mistySage = Color(0xFF4D625B);
+  static const _mossShadow = Color(0xFF1E352F);
 
   static final _lightColorScheme = ColorScheme.fromSeed(
-    seedColor: _primary,
+    seedColor: _canopyTeal,
     brightness: Brightness.light,
-    primary: _primary,
-    secondary: _secondary,
-    tertiary: _tertiary,
+    primary: _canopyTeal,
+    secondary: _mistySage,
+    tertiary: _mossShadow,
   );
 
   static final _darkColorScheme = ColorScheme.fromSeed(
-    seedColor: _primary,
+    seedColor: _canopyTeal,
     brightness: Brightness.dark,
-    primary: _primary,
-    secondary: _secondary,
-    tertiary: _tertiary,
+    primary: _canopyTeal,
+    secondary: _mistySage,
+    tertiary: _mossShadow,
   );
 
   static ThemeData lightTheme() {
