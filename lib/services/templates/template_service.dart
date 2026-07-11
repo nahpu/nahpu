@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class TemplateService {

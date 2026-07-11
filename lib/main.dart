@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nahpu/src/rust/api/common.dart';
@@ -11,6 +10,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/config_services.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +21,7 @@ void main() async {
   await configService.initDb();
   await configService.migrate(prefs);
   await configService.loadDefaultDocumentPresetsOnce(prefs);
+  pdfrxFlutterInitialize();
   if (kDebugMode) {
     print(await checkRust());
   }
@@ -35,19 +36,17 @@ class NahpuApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DynamicColorBuilder(builder: (lightColorScheme, darkColorScheme) {
-      return MaterialApp(
-        title: 'Nahpu',
-        home: const Home(),
-        debugShowCheckedModeBanner: false,
-        theme: NahpuTheme.lightTheme(lightColorScheme),
-        darkTheme: NahpuTheme.darkTheme(darkColorScheme),
-        themeMode: ref.watch(themeSettingProvider).when(
-              data: (theme) => theme,
-              loading: () => ThemeMode.system,
-              error: (error, stackTrace) => ThemeMode.system,
-            ),
-      );
-    });
+    return MaterialApp(
+      title: 'NAHPU',
+      home: const Home(),
+      debugShowCheckedModeBanner: false,
+      theme: NahpuTheme.lightTheme(),
+      darkTheme: NahpuTheme.darkTheme(),
+      themeMode: ref.watch(themeSettingProvider).when(
+            data: (theme) => theme,
+            loading: () => ThemeMode.system,
+            error: (error, stackTrace) => ThemeMode.system,
+          ),
+    );
   }
 }

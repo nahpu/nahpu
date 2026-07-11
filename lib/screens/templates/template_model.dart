@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/mammals.dart' as mammals;
+import 'package:nahpu/services/types/birds.dart' as birds;
+import 'package:nahpu/services/types/specimens.dart' as specimens;
+import 'package:nahpu/services/types/herps.dart' as herps;
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
 bool isTemplateImagePathUsable(String path) {
@@ -333,6 +337,80 @@ String formatListText(String text, String formatOption) {
   }
 }
 
+String? getEncodedDefaultValue(String key, String value) {
+  final cleanKey = key.toLowerCase();
+  final intVal = int.tryParse(value);
+  if (intVal == null) return null;
+
+  if (cleanKey.endsWith('::sex')) {
+    if (intVal >= 0 && intVal < specimens.specimenSexList.length) {
+      return specimens.specimenSexList[intVal];
+    }
+  } else if (cleanKey == 'mammalmeasurement::age') {
+    if (intVal >= 0 && intVal < mammals.specimenAgeList.length) {
+      return mammals.specimenAgeList[intVal];
+    }
+  } else if (cleanKey == 'herpmeasurement::age') {
+    if (intVal >= 0 && intVal < herps.specimenAgeList.length) {
+      return herps.specimenAgeList[intVal];
+    }
+  } else if (cleanKey.endsWith('::testisposition')) {
+    if (intVal >= 0 && intVal < mammals.testisPositionList.length) {
+      return mammals.testisPositionList[intVal];
+    }
+  } else if (cleanKey.endsWith('::epididymisappearance')) {
+    if (intVal >= 0 && intVal < mammals.epididymisAppearanceList.length) {
+      return mammals.epididymisAppearanceList[intVal];
+    }
+  } else if (cleanKey.endsWith('::vaginaopening')) {
+    if (intVal >= 0 && intVal < mammals.vaginaOpeningList.length) {
+      return mammals.vaginaOpeningList[intVal];
+    }
+  } else if (cleanKey.endsWith('::pubicsymphysis')) {
+    if (intVal >= 0 && intVal < mammals.pubicSymphysisList.length) {
+      return mammals.pubicSymphysisList[intVal];
+    }
+  } else if (cleanKey.endsWith('::reproductivestage')) {
+    if (intVal >= 0 && intVal < mammals.reproductiveStageList.length) {
+      return mammals.reproductiveStageList[intVal];
+    }
+  } else if (cleanKey.endsWith('::mammaecondition')) {
+    if (intVal >= 0 && intVal < mammals.mammaeConditionList.length) {
+      return mammals.mammaeConditionList[intVal];
+    }
+  } else if (cleanKey.endsWith('::ovaryappearance')) {
+    if (intVal >= 0 && intVal < birds.ovaryAppearanceList.length) {
+      return birds.ovaryAppearanceList[intVal];
+    }
+  } else if (cleanKey.endsWith('::oviductappearance')) {
+    if (intVal >= 0 && intVal < birds.oviductAppearanceList.length) {
+      return birds.oviductAppearanceList[intVal];
+    }
+  } else if (cleanKey.endsWith('::fat')) {
+    if (intVal >= 0 && intVal < birds.fatCategoryList.length) {
+      return birds.fatCategoryList[intVal];
+    }
+  } else if (cleanKey.endsWith('::bodymolt')) {
+    if (intVal >= 0 && intVal < birds.bodyMoltList.length) {
+      return birds.bodyMoltList[intVal];
+    }
+  } else if (cleanKey.endsWith('::echolocation')) {
+    if (intVal >= 0 && intVal < mammals.echolocationList.length) {
+      return mammals.echolocationList[intVal];
+    }
+  } else if (cleanKey.endsWith('::broodpatch') ||
+      cleanKey.endsWith('::hasbursa') ||
+      cleanKey.endsWith('::wingismolt') ||
+      cleanKey.endsWith('::tailismolt') ||
+      cleanKey.endsWith('::showbatfields') ||
+      cleanKey.endsWith('::showechofields')) {
+    if (intVal == 1) return 'Yes';
+    if (intVal == 0) return 'No';
+  }
+
+  return null;
+}
+
 String formatSexText(String text, String formatOption) {
   final cleanText = text.trim().toLowerCase();
 
@@ -386,8 +464,11 @@ String formatNumberText(String text, String formatOption) {
 
 String formatFieldPlaceholderText(String text, bool showFieldOnly) {
   if (!showFieldOnly) return text;
-  final regex = RegExp(r'\[([^\]\s]+)::([^\]\s]+)\]');
-  return text.replaceAllMapped(regex, (match) => '[${match.group(2)}]');
+  final regex = RegExp(r'\[([^\]\s?]+)::([^\]\s?]+)(\?\?[^\]]+)?\]');
+  return text.replaceAllMapped(
+    regex,
+    (match) => '[${match.group(2)}${match.group(3) ?? ''}]',
+  );
 }
 
 String formatTemplateText(
@@ -422,7 +503,11 @@ String formatTemplateText(
       result = formatNumberText(rawText, formatOption);
       break;
     case 'markdown':
+    case 'nestedList':
       result = rawText;
+      break;
+    case 'encoded':
+      result = formatTextWithCase(rawText, oldCaseFormat ?? 'normal');
       break;
     case 'normal':
     default:
@@ -436,6 +521,52 @@ String formatTemplateText(
       break;
   }
   return result;
+}
+
+const kTemplateNullFallbackBlank = 'blank';
+const kTemplateNullFallbackField = 'field';
+const kTemplateNullFallbackNa = 'na';
+const kTemplateNullFallbackNone = 'none';
+const kTemplateNullFallbackCustom = 'custom';
+
+String stripTemplatePlaceholderFallbacks(String text) {
+  return text.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (match) {
+    final placeholder = match.group(1);
+    if (placeholder == null) return match.group(0)!;
+    return '[${placeholder.split('??').first.trim()}]';
+  });
+}
+
+String inferTemplateNullFallbackOption(String text) {
+  for (final match in RegExp(r'\[([^\]]+)\]').allMatches(text)) {
+    final placeholder = match.group(1);
+    if (placeholder == null || placeholder.endsWith('-img')) continue;
+    final parts = placeholder.split('??');
+    if (parts.length <= 1) continue;
+    final fieldId = parts.first.trim();
+    final fallback = parts.sublist(1).join('??').trim();
+    if (fallback == fieldId) return kTemplateNullFallbackField;
+    if (fallback == 'N/A') return kTemplateNullFallbackNa;
+    if (fallback == 'None') return kTemplateNullFallbackNone;
+    return kTemplateNullFallbackCustom;
+  }
+  return kTemplateNullFallbackBlank;
+}
+
+String inferTemplateCustomNullFallback(String text) {
+  for (final match in RegExp(r'\[([^\]]+)\]').allMatches(text)) {
+    final placeholder = match.group(1);
+    if (placeholder == null || placeholder.endsWith('-img')) continue;
+    final parts = placeholder.split('??');
+    if (parts.length <= 1) continue;
+    final fieldId = parts.first.trim();
+    final fallback = parts.sublist(1).join('??').trim();
+    if (fallback == fieldId || fallback == 'N/A' || fallback == 'None') {
+      continue;
+    }
+    return fallback;
+  }
+  return '';
 }
 
 class CustomTextElement {
@@ -467,6 +598,8 @@ class CustomTextElement {
     this.paddingPt = 2.0,
     this.textType = 'normal',
     this.formatOption = 'normal',
+    this.nullFallbackOption = kTemplateNullFallbackBlank,
+    this.customNullFallbackText = '',
     this.isQrCode = false,
     this.qrSizeMm = 15.0,
     this.qrBgColorArgb = 0xFFFFFFFF,
@@ -500,6 +633,8 @@ class CustomTextElement {
   final double paddingPt;
   final String textType;
   final String formatOption;
+  final String nullFallbackOption;
+  final String customNullFallbackText;
 
   /// For [isTemplateBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
@@ -552,6 +687,8 @@ class CustomTextElement {
     bool clearHeightMm = false,
     String? textType,
     String? formatOption,
+    String? nullFallbackOption,
+    String? customNullFallbackText,
     bool? isQrCode,
     double? qrSizeMm,
     int? qrBgColorArgb,
@@ -593,6 +730,9 @@ class CustomTextElement {
       paddingPt: paddingPt ?? this.paddingPt,
       textType: textType ?? this.textType,
       formatOption: formatOption ?? this.formatOption,
+      nullFallbackOption: nullFallbackOption ?? this.nullFallbackOption,
+      customNullFallbackText:
+          customNullFallbackText ?? this.customNullFallbackText,
       isQrCode: isQrCode ?? this.isQrCode,
       qrSizeMm: qrSizeMm ?? this.qrSizeMm,
       qrBgColorArgb: qrBgColorArgb ?? this.qrBgColorArgb,
@@ -633,6 +773,9 @@ class CustomTextElement {
         'paddingPt': paddingPt,
         'textType': textType,
         'formatOption': formatOption,
+        'nullFallbackOption': nullFallbackOption,
+        if (customNullFallbackText.isNotEmpty)
+          'customNullFallbackText': customNullFallbackText,
         'isQrCode': isQrCode,
         'qrSizeMm': qrSizeMm,
         'qrBgColorArgb': qrBgColorArgb,
@@ -643,9 +786,15 @@ class CustomTextElement {
       };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
+    final rawText = json['text'] as String? ?? '';
+    final legacyNullFallbackOption = inferTemplateNullFallbackOption(rawText);
+    final nullFallbackOption =
+        json['nullFallbackOption'] as String? ?? legacyNullFallbackOption;
+    final customNullFallbackText = json['customNullFallbackText'] as String? ??
+        inferTemplateCustomNullFallback(rawText);
     return CustomTextElement(
       id: json['id'] as String,
-      text: json['text'] as String? ?? '',
+      text: stripTemplatePlaceholderFallbacks(rawText),
       xMm: (json['xMm'] as num?)?.toDouble() ?? 0,
       yMm: (json['yMm'] as num?)?.toDouble() ?? 0,
       fontSizePt: (json['fontSizePt'] as num?)?.toDouble() ?? 10,
@@ -671,6 +820,8 @@ class CustomTextElement {
       paddingPt: (json['paddingPt'] as num?)?.toDouble() ?? 2.0,
       textType: json['textType'] as String? ?? 'normal',
       formatOption: json['formatOption'] as String? ?? 'normal',
+      nullFallbackOption: nullFallbackOption,
+      customNullFallbackText: customNullFallbackText,
       isQrCode: json['isQrCode'] as bool? ?? false,
       qrSizeMm: (json['qrSizeMm'] as num?)?.toDouble() ?? 15.0,
       qrBgColorArgb: (json['qrBgColorArgb'] as num?)?.toInt() ?? 0xFFFFFFFF,
@@ -1316,6 +1467,8 @@ class Template {
     required this.name,
     required this.page1,
     required this.page2,
+    required this.widthMm,
+    required this.heightMm,
     this.printOptions,
     this.outline,
     this.recordType = RecordType.specimenRecord,
@@ -1325,6 +1478,8 @@ class Template {
   final String name;
   final TemplatePage page1;
   final TemplatePage page2;
+  final double widthMm;
+  final double heightMm;
 
   /// When null (legacy files), the editor uses app template settings instead.
   final TemplatePrintOptions? printOptions;
@@ -1339,6 +1494,8 @@ class Template {
     String? name,
     TemplatePage? page1,
     TemplatePage? page2,
+    double? widthMm,
+    double? heightMm,
     TemplatePrintOptions? printOptions,
     bool clearPrintOptions = false,
     TemplateOutline? outline,
@@ -1350,6 +1507,8 @@ class Template {
       name: name ?? this.name,
       page1: page1 ?? this.page1,
       page2: page2 ?? this.page2,
+      widthMm: widthMm ?? this.widthMm,
+      heightMm: heightMm ?? this.heightMm,
       printOptions:
           clearPrintOptions ? null : (printOptions ?? this.printOptions),
       outline: clearOutline ? null : (outline ?? this.outline),
@@ -1362,6 +1521,8 @@ class Template {
         'name': name,
         'page1': page1.toJson(),
         'page2': page2.toJson(),
+        'widthMm': widthMm,
+        'heightMm': heightMm,
         if (printOptions != null) 'printOptions': printOptions!.toJson(),
         if (outline != null) 'outline': outline!.toJson(),
         'recordType': recordTypeToString(recordType),
@@ -1388,6 +1549,8 @@ class Template {
       page2: TemplatePage.fromJson(
         json['page2'] as Map<String, dynamic>? ?? {},
       ),
+      widthMm: (json['widthMm'] as num?)?.toDouble() ?? 215.9,
+      heightMm: (json['heightMm'] as num?)?.toDouble() ?? 279.4,
       printOptions: opts,
       outline: outline,
       recordType: parseRecordType(json['recordType'] as String?),
@@ -1411,11 +1574,15 @@ class DefaultTemplate {
     String name = 'Default',
     RecordType recordType = RecordType.specimenRecord,
     String description = '',
+    double widthMm = 215.9,
+    double heightMm = 279.4,
   ]) {
     return Template(
       name: name,
       page1: const TemplatePage(),
       page2: const TemplatePage(),
+      widthMm: widthMm,
+      heightMm: heightMm,
       printOptions: null,
       recordType: recordType,
       description: description,

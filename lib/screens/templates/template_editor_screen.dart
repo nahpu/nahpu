@@ -11,9 +11,11 @@ import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/template_settings_services.dart';
-import 'package:nahpu/services/template_service.dart';
-import 'package:nahpu/services/template_editor_service.dart';
+import 'package:nahpu/services/templates/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_service.dart';
+import 'package:nahpu/services/templates/template_editor_service.dart';
+import 'package:nahpu/services/templates/template_canvas_placement_service.dart';
+import 'package:nahpu/services/templates/template_editor_history_service.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_scaffold.dart';
 import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
@@ -45,8 +47,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   Template _template = DefaultTemplate.defaultTemplate();
   List<String> _savedNames = [];
   String? _lastSavedJson;
-  final List<_EditorStateSnapshot> _undoStack = [];
-  final List<_EditorStateSnapshot> _redoStack = [];
+  final TemplateEditorHistoryService _history = TemplateEditorHistoryService();
 
   bool get _isDirty {
     if (_lastSavedJson == null) return false;
@@ -56,6 +57,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   bool _loading = true;
   double _zoom = 1.0;
   bool _showGrid = true;
+  bool _snapEnabled = false;
+  bool _canvasMovementLocked = false;
   late bool _isDuplex;
   late bool _mirrorFront;
   late bool _mirrorBack;
@@ -65,6 +68,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   /// Currently selected element for the properties panel.
   /// Format: `builtin:<componentId>`, `custom:<page>:<ct_id>`, or `image:<page>:<img_id>`.
   String? _selectedElement;
+  _TemplateElementClipboard? _elementClipboard;
 
   /// Custom text key (`custom:1:ct_0`) when typing on the canvas; null = preview only.
   int _customIdCounter = 0;
@@ -141,6 +145,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         templateHeightMm: _templateHeightMm,
         isBorderPanelOpen: _templateBorderPanelOpen,
         showGrid: _showGrid,
+        snapEnabled: _snapEnabled,
+        canvasMovementLocked: _canvasMovementLocked,
         selectedElement: _selectedElement,
         tabController: _tabController,
         zoom: _zoom,
@@ -169,6 +175,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         onMirrorToggled: _toggleCurrentMirror,
         onBorderPanelToggled: _toggleTemplateBorderPanel,
         onGridToggled: () => _deferSetState(() => _showGrid = !_showGrid),
+        onSnapToggled: () => _deferSetState(() => _snapEnabled = !_snapEnabled),
+        onCanvasMovementLockToggled: () => _deferSetState(
+          () => _canvasMovementLocked = !_canvasMovementLocked,
+        ),
         onSelectPreviewSpecimen: _selectSpecimenForPreview,
         onClearSelection: _clearSelection,
         onSelectElement: _selectElement,
@@ -187,12 +197,15 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         onUpdateCustomLine: _updateCustomLine,
         onUpdateCustomShape: _updateCustomShape,
         onDismissProperties: _clearSelection,
-        onZoomChanged: (z) => _deferSetState(() => _zoom = z),
+        onZoomChanged: _setZoom,
         onUndo: _undo,
         onRedo: _redo,
-        canUndo: _undoStack.isNotEmpty,
-        canRedo: _redoStack.isNotEmpty,
+        canUndo: _history.canUndo,
+        canRedo: _history.canRedo,
         onDuplicateElement: _duplicateElement,
+        onCopyElement: _copyElement,
+        onPasteElement: _pasteElement,
+        canPasteElement: _elementClipboard != null,
         onDragStateChanged: _onDragStateChanged,
         borderPanel: TemplateBorderPanel(
           session: _templateBorderPanelSession,
@@ -346,6 +359,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     });
   }
 
+  /// Loads persisted editor settings, the active template, and preview data.
   Future<void> _loadInitial() async {
     _isDuplex = await _documentSettings.getDuplex();
     _mirrorFront = await _documentSettings.getMirrorFront();
@@ -357,6 +371,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       final t = await _templateService.getTemplate(currentName);
       if (t != null) {
         _template = t;
+        _templateWidthMm = t.widthMm;
+        _templateHeightMm = t.heightMm;
+        await _documentSettings.setDocumentWidthMm(t.widthMm);
+        await _documentSettings.setDocumentHeightMm(t.heightMm);
         final o = t.printOptions;
         if (o != null) {
           _isDuplex = o.isDuplex;
@@ -379,6 +397,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     }
   }
 
+  /// Loads representative record values used to render field placeholders.
   Future<void> _loadEditorTemplateFieldPreview() async {
     try {
       if (mounted) {
@@ -440,7 +459,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         final projectUuid = ref.read(projectUuidProvider);
         if (projectUuid.isNotEmpty) {
           try {
-            final proj = await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
+            final proj =
+                await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
             for (var entry in proj.toJson().entries) {
               m['project::${entry.key}'] = entry.value?.toString() ?? '';
             }
@@ -470,8 +490,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         // Apply fallback values for preview in the editor
         m.putIfAbsent('project::name', () => 'Active Project');
         m.putIfAbsent('project::uuid', () => 'active-project-uuid');
-        m.putIfAbsent('project::description', () => 'Active Project Description');
-        m.putIfAbsent('project::principalInvestigator', () => 'Active Investigator');
+        m.putIfAbsent(
+            'project::description', () => 'Active Project Description');
+        m.putIfAbsent(
+            'project::principalInvestigator', () => 'Active Investigator');
         m.putIfAbsent('project::location', () => 'Active Project Location');
         m.putIfAbsent('project::timeZone', () => 'UTC');
         m.putIfAbsent('project::startDate', () => '2026-01-01');
@@ -520,10 +542,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         mirrorBack: _mirrorBack,
       );
 
+  /// Applies the current editor-only print settings before saving or exporting.
   Template _templateWithCurrentPrintOptions({String? name}) {
     return _template.copyWith(
       name: name,
       printOptions: _currentPrintOptions,
+      widthMm: _templateWidthMm,
+      heightMm: _templateHeightMm,
     );
   }
 
@@ -573,6 +598,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _templateWidthMm = widthMm;
       _templateHeightMm = heightMm;
     });
+  }
+
+  void _setZoom(double zoom) {
+    _deferSetState(() => _zoom = zoom.clamp(0.5, 4.0).toDouble());
   }
 
   void _updateTemplateDescription(String description) {
@@ -633,11 +662,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _pushToUndo();
     final id = 'ct_$_customIdCounter';
     _customIdCounter++;
+    final position = _newElementPosition();
     final element = CustomTextElement(
       id: id,
       text: text,
-      xMm: 5,
-      yMm: 5,
+      xMm: position.dx,
+      yMm: position.dy,
     );
     final sel = 'custom:${page1 ? '1' : '2'}:$id';
     setState(() {
@@ -657,11 +687,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _pushToUndo();
     final id = 'line_$_customIdCounter';
     _customIdCounter++;
+    const lengthMm = 10.0;
+    final position = _newElementPosition(widthMm: lengthMm);
     final element = CustomLineElement(
       id: id,
-      xMm: 5,
-      yMm: 5,
-      lengthMm: 10,
+      xMm: position.dx,
+      yMm: position.dy,
+      lengthMm: lengthMm,
     );
     final sel = 'line:${page1 ? '1' : '2'}:$id';
     setState(() {
@@ -681,12 +713,18 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _pushToUndo();
     final id = 'shape_$_customIdCounter';
     _customIdCounter++;
+    const widthMm = 10.0;
+    const heightMm = 10.0;
+    final position = _newElementPosition(
+      widthMm: widthMm,
+      heightMm: heightMm,
+    );
     final element = CustomShapeElement(
       id: id,
-      xMm: 5,
-      yMm: 5,
-      widthMm: 10,
-      heightMm: 10,
+      xMm: position.dx,
+      yMm: position.dy,
+      widthMm: widthMm,
+      heightMm: heightMm,
       shapeType: 'rect',
     );
     final sel = 'shape:${page1 ? '1' : '2'}:$id';
@@ -909,11 +947,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _imageIdCounter++;
     final dw = (_templateWidthMm * 0.35).clamp(8.0, 48.0);
     final dh = (_templateHeightMm * 0.35).clamp(8.0, 48.0);
+    final position = _newElementPosition(widthMm: dw, heightMm: dh);
     final element = CustomImageElement(
       id: id,
       imagePath: filePath,
-      xMm: 2,
-      yMm: 2,
+      xMm: position.dx,
+      yMm: position.dy,
       widthMm: dw,
       heightMm: dh,
     );
@@ -928,6 +967,15 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _selectedElement = 'image:${page1 ? '1' : '2'}:$id';
       _templateBorderPanelOpen = false;
     });
+  }
+
+  Offset _newElementPosition({double widthMm = 0, double heightMm = 0}) {
+    return TemplateCanvasPlacementService.centeredPosition(
+      templateWidthMm: _templateWidthMm,
+      templateHeightMm: _templateHeightMm,
+      elementWidthMm: widthMm,
+      elementHeightMm: heightMm,
+    );
   }
 
   Future<_CreateTemplateResult?> _promptCreateNewTemplate() async {
@@ -948,6 +996,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       result.description,
     ).copyWith(
       printOptions: _currentPrintOptions,
+      widthMm: _templateWidthMm,
+      heightMm: _templateHeightMm,
     );
     await _templateService.saveTemplate(fresh);
     _savedNames = await _templateService.listTemplateNames();
@@ -980,7 +1030,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     await _saveTemplateWithName(name);
   }
 
-  /// When import would overwrite an existing saved template, user picks a new unique name.
+  /// Persists the current canvas and editor print settings under [name].
   Future<void> _saveTemplateWithName(String name) async {
     final merged = _templateWithCurrentPrintOptions(name: name);
     await _templateService.saveTemplate(merged);
@@ -999,6 +1049,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     await _editorService.exportTemplate(context, merged);
   }
 
+  /// Imports a template, synchronizes its size/settings, and makes it active.
   Future<void> _importTemplate() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -1042,11 +1093,15 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         await _documentSettings.setMirrorFront(o.mirrorFront);
         await _documentSettings.setMirrorBack(o.mirrorBack);
       }
+      await _documentSettings.setDocumentWidthMm(merged.widthMm);
+      await _documentSettings.setDocumentHeightMm(merged.heightMm);
       if (!mounted) return;
       _savedNames = await _templateService.listTemplateNames();
       if (!mounted) return;
       setState(() {
         _template = merged;
+        _templateWidthMm = merged.widthMm;
+        _templateHeightMm = merged.heightMm;
         if (o != null) {
           _isDuplex = o.isDuplex;
           _mirrorFront = o.mirrorFront;
@@ -1069,6 +1124,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     }
   }
 
+  /// Loads [name] as the active template and refreshes dependent editor state.
   Future<void> _loadTemplate(String name) async {
     final t = await _templateService.getTemplate(name);
     if (t != null) {
@@ -1079,9 +1135,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         await _documentSettings.setMirrorFront(o.mirrorFront);
         await _documentSettings.setMirrorBack(o.mirrorBack);
       }
+      await _documentSettings.setDocumentWidthMm(t.widthMm);
+      await _documentSettings.setDocumentHeightMm(t.heightMm);
       if (!mounted) return;
       setState(() {
         _template = t;
+        _templateWidthMm = t.widthMm;
+        _templateHeightMm = t.heightMm;
         if (o != null) {
           _isDuplex = o.isDuplex;
           _mirrorFront = o.mirrorFront;
@@ -1215,56 +1275,37 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     }
   }
 
+  /// Captures the current editor state before a user-visible mutation.
   void _pushToUndo() {
-    _undoStack.add(_EditorStateSnapshot(
+    _history.push(_currentEditorSnapshot);
+  }
+
+  TemplateEditorSnapshot get _currentEditorSnapshot {
+    return TemplateEditorSnapshot(
       template: _template.copyWith(),
       isDuplex: _isDuplex,
       mirrorFront: _mirrorFront,
       mirrorBack: _mirrorBack,
       templateWidthMm: _templateWidthMm,
       templateHeightMm: _templateHeightMm,
-    ));
-    if (_undoStack.length > 50) {
-      _undoStack.removeAt(0);
-    }
-    _redoStack.clear();
+    );
   }
 
+  /// Restores the latest saved history state and persists its print settings.
   void _undo() {
-    if (_undoStack.isEmpty) return;
-    _redoStack.add(_EditorStateSnapshot(
-      template: _template.copyWith(),
-      isDuplex: _isDuplex,
-      mirrorFront: _mirrorFront,
-      mirrorBack: _mirrorBack,
-      templateWidthMm: _templateWidthMm,
-      templateHeightMm: _templateHeightMm,
-    ));
-    final snapshot = _undoStack.removeLast();
-    setState(() {
-      _template = snapshot.template;
-      _isDuplex = snapshot.isDuplex;
-      _mirrorFront = snapshot.mirrorFront;
-      _mirrorBack = snapshot.mirrorBack;
-      _templateWidthMm = snapshot.templateWidthMm;
-      _templateHeightMm = snapshot.templateHeightMm;
-    });
-    _documentSettings.setDuplex(snapshot.isDuplex);
-    _documentSettings.setMirrorFront(snapshot.mirrorFront);
-    _documentSettings.setMirrorBack(snapshot.mirrorBack);
+    final snapshot = _history.undo(_currentEditorSnapshot);
+    if (snapshot == null) return;
+    _restoreHistorySnapshot(snapshot);
   }
 
+  /// Reapplies the latest undone history state and persists its print settings.
   void _redo() {
-    if (_redoStack.isEmpty) return;
-    _undoStack.add(_EditorStateSnapshot(
-      template: _template.copyWith(),
-      isDuplex: _isDuplex,
-      mirrorFront: _mirrorFront,
-      mirrorBack: _mirrorBack,
-      templateWidthMm: _templateWidthMm,
-      templateHeightMm: _templateHeightMm,
-    ));
-    final snapshot = _redoStack.removeLast();
+    final snapshot = _history.redo(_currentEditorSnapshot);
+    if (snapshot == null) return;
+    _restoreHistorySnapshot(snapshot);
+  }
+
+  void _restoreHistorySnapshot(TemplateEditorSnapshot snapshot) {
     setState(() {
       _template = snapshot.template;
       _isDuplex = snapshot.isDuplex;
@@ -1381,6 +1422,110 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     }
   }
 
+  void _copyElement(String sel) {
+    final selection = TemplateSelection.parse(sel);
+    if (selection == null) return;
+
+    final dynamic element = switch (selection.type) {
+      TemplateElementType.text =>
+        _findCustomText(selection.page1, selection.id),
+      TemplateElementType.image =>
+        _findCustomImage(selection.page1, selection.id),
+      TemplateElementType.line =>
+        _findCustomLine(selection.page1, selection.id),
+      TemplateElementType.shape =>
+        _findCustomShape(selection.page1, selection.id),
+    };
+    if (element == null) return;
+
+    setState(() {
+      _elementClipboard = _TemplateElementClipboard(
+        type: selection.type,
+        element: element,
+      );
+    });
+  }
+
+  void _pasteElement() {
+    final clipboard = _elementClipboard;
+    if (clipboard == null) return;
+    final page1 = _isPage1;
+    _pushToUndo();
+
+    switch (clipboard.type) {
+      case TemplateElementType.text:
+        final original = clipboard.element as CustomTextElement;
+        final id = 'ct_$_customIdCounter';
+        _customIdCounter++;
+        final pasted = original.copyWith(
+          id: id,
+          xMm: original.xMm + 4,
+          yMm: original.yMm + 4,
+        );
+        _insertPastedElement(
+          page1: page1,
+          selection: 'custom:${page1 ? '1' : '2'}:$id',
+          updatePage: (page) => page.withCustomText(pasted),
+        );
+      case TemplateElementType.image:
+        final original = clipboard.element as CustomImageElement;
+        final id = 'img_$_imageIdCounter';
+        _imageIdCounter++;
+        final pasted = original.copyWith(
+          id: id,
+          xMm: original.xMm + 4,
+          yMm: original.yMm + 4,
+        );
+        _insertPastedElement(
+          page1: page1,
+          selection: 'image:${page1 ? '1' : '2'}:$id',
+          updatePage: (page) => page.withCustomImage(pasted),
+        );
+      case TemplateElementType.line:
+        final original = clipboard.element as CustomLineElement;
+        final id = 'line_$_customIdCounter';
+        _customIdCounter++;
+        final pasted = original.copyWith(
+          id: id,
+          xMm: original.xMm + 4,
+          yMm: original.yMm + 4,
+        );
+        _insertPastedElement(
+          page1: page1,
+          selection: 'line:${page1 ? '1' : '2'}:$id',
+          updatePage: (page) => page.withCustomLine(pasted),
+        );
+      case TemplateElementType.shape:
+        final original = clipboard.element as CustomShapeElement;
+        final id = 'shape_$_customIdCounter';
+        _customIdCounter++;
+        final pasted = original.copyWith(
+          id: id,
+          xMm: original.xMm + 4,
+          yMm: original.yMm + 4,
+        );
+        _insertPastedElement(
+          page1: page1,
+          selection: 'shape:${page1 ? '1' : '2'}:$id',
+          updatePage: (page) => page.withCustomShape(pasted),
+        );
+    }
+  }
+
+  void _insertPastedElement({
+    required bool page1,
+    required String selection,
+    required TemplatePage Function(TemplatePage page) updatePage,
+  }) {
+    setState(() {
+      _template = page1
+          ? _template.copyWith(page1: updatePage(_template.page1))
+          : _template.copyWith(page2: updatePage(_template.page2));
+      _selectedElement = selection;
+      _templateBorderPanelOpen = false;
+    });
+  }
+
   void _onDragStateChanged(bool dragging) {
     if (dragging) {
       _pushToUndo();
@@ -1415,22 +1560,11 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 }
 
-class _EditorStateSnapshot {
-  final Template template;
-  final bool isDuplex;
-  final bool mirrorFront;
-  final bool mirrorBack;
-  final double templateWidthMm;
-  final double templateHeightMm;
+class _TemplateElementClipboard {
+  const _TemplateElementClipboard({required this.type, required this.element});
 
-  _EditorStateSnapshot({
-    required this.template,
-    required this.isDuplex,
-    required this.mirrorFront,
-    required this.mirrorBack,
-    required this.templateWidthMm,
-    required this.templateHeightMm,
-  });
+  final TemplateElementType type;
+  final Object element;
 }
 
 class _CreateTemplateResult {

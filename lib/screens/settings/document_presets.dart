@@ -23,9 +23,9 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
-import 'package:nahpu/services/template_service.dart';
+import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/export/export_document.dart';
@@ -284,6 +284,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         final tmpl = await const TemplateService().getTemplate(templateName);
         if (tmpl != null) {
           recordType = tmpl.recordType;
+          await DocumentSettingsServices().setDocumentWidthMm(tmpl.widthMm);
+          await DocumentSettingsServices().setDocumentHeightMm(tmpl.heightMm);
         }
       }
 
@@ -407,12 +409,12 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
             rust_config.DocumentLayoutBlock(
               templateName: templateName,
               templateCount: 1,
-              rows: 8,
-              cols: 4,
-              templatePadTopMm: 1.0,
-              templatePadLeftMm: 1.0,
-              templatePadRightMm: 1.0,
-              templatePadBottomMm: 1.0,
+              rows: 1,
+              cols: 1,
+              templatePadTopMm: 0,
+              templatePadLeftMm: 0,
+              templatePadRightMm: 0,
+              templatePadBottomMm: 0,
               pageBreakAfter: false,
             ),
           ]

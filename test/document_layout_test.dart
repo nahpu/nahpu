@@ -49,6 +49,11 @@ void main() {
       expect(updatedBlock.templatePadTopMm, 1.5);
       expect(updatedBlock.pageBreakAfter, false);
 
+      final autoFillBlock = block.copyWithAutoFill(true);
+      expect(autoFillBlock.autoFillPage, isTrue);
+      expect(autoFillBlock.fixedRows, 4);
+      expect(autoFillBlock.copyWithAutoFill(false).rows, 4);
+
       final layout = rust_config.DocumentLayoutPreset(
         name: 'LayoutA',
         layoutType: 'WholePage',

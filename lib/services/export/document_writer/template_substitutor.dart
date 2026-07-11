@@ -16,9 +16,22 @@ class _DocumentTemplateSubstitutor {
         texts.add(ct);
         continue;
       }
-      var subbedText = substituteDocumentPlaceholders(ct.text, data);
+      var subbedText = substituteDocumentPlaceholders(
+        expandNestedListTextIfEnabled(
+          text: ct.text,
+          textType: ct.textType,
+          fieldValues: data,
+          formatOption: ct.formatOption,
+          caseFormat: ct.caseFormat,
+        ),
+        data,
+        nullFallbackOption: ct.nullFallbackOption,
+        customNullFallbackText: ct.customNullFallbackText,
+        textType: ct.textType,
+        formatOption: ct.formatOption,
+      );
       var textType = ct.textType;
-      if (ct.textType == 'markdown' ||
+      if (isTemplateRichTextType(ct.textType) ||
           ct.text.toLowerCase().contains('narrative::narrative')) {
         subbedText = await rust_export.markdownToTypst(mdContent: subbedText);
         textType = 'markdown';
@@ -49,8 +62,14 @@ class _DocumentTemplateSubstitutor {
           textType: textType,
         ));
       } else {
+        final formattedText = formatTemplateText(
+          subbedText,
+          textType,
+          ct.formatOption,
+          ct.caseFormat,
+        );
         texts.add(ct.copyWith(
-          text: subbedText,
+          text: formattedText,
           textType: textType,
         ));
       }

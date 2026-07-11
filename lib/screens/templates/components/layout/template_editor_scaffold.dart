@@ -19,6 +19,8 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.templateHeightMm,
     required this.isBorderPanelOpen,
     required this.showGrid,
+    required this.snapEnabled,
+    required this.canvasMovementLocked,
     required this.selectedElement,
     required this.tabController,
     required this.zoom,
@@ -47,6 +49,8 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.onMirrorToggled,
     required this.onBorderPanelToggled,
     required this.onGridToggled,
+    required this.onSnapToggled,
+    required this.onCanvasMovementLockToggled,
     required this.onSelectPreviewSpecimen,
     required this.onClearSelection,
     required this.onSelectElement,
@@ -70,6 +74,9 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.canUndo,
     required this.canRedo,
     required this.onDuplicateElement,
+    required this.onCopyElement,
+    required this.onPasteElement,
+    required this.canPasteElement,
     this.onDragStateChanged,
     this.borderPanel,
   });
@@ -84,6 +91,8 @@ class TemplateEditorScaffold extends StatelessWidget {
   final double templateHeightMm;
   final bool isBorderPanelOpen;
   final bool showGrid;
+  final bool snapEnabled;
+  final bool canvasMovementLocked;
   final String? selectedElement;
   final TabController tabController;
   final double zoom;
@@ -117,6 +126,8 @@ class TemplateEditorScaffold extends StatelessWidget {
   final VoidCallback onMirrorToggled;
   final VoidCallback onBorderPanelToggled;
   final VoidCallback onGridToggled;
+  final VoidCallback onSnapToggled;
+  final VoidCallback onCanvasMovementLockToggled;
   final VoidCallback onSelectPreviewSpecimen;
   final VoidCallback onClearSelection;
   final ValueChanged<String> onSelectElement;
@@ -146,6 +157,9 @@ class TemplateEditorScaffold extends StatelessWidget {
   final bool canUndo;
   final bool canRedo;
   final ValueChanged<String> onDuplicateElement;
+  final ValueChanged<String> onCopyElement;
+  final VoidCallback onPasteElement;
+  final bool canPasteElement;
   final ValueChanged<bool>? onDragStateChanged;
   final Widget? borderPanel;
 
@@ -153,6 +167,30 @@ class TemplateEditorScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = Platform.isIOS || Platform.isAndroid;
     final viewPadding = MediaQuery.viewPaddingOf(context);
+    final useBottomProperties = MediaQuery.sizeOf(context).width < 600;
+    final selected = selectedElement;
+
+    final properties = _TemplatePropertiesStrip(
+      selectedElement: selectedElement,
+      isPage1: isPage1,
+      template: template,
+      onUpdateCustomText: onUpdateCustomText,
+      onDeleteCustomText: onDeleteCustomText,
+      onUpdateCustomImage: onUpdateCustomImage,
+      onDeleteCustomImage: onRemoveCustomImage,
+      onUpdateCustomLine: onUpdateCustomLine,
+      onDeleteCustomLine: onRemoveCustomLine,
+      onUpdateCustomShape: onUpdateCustomShape,
+      onDeleteCustomShape: onRemoveCustomShape,
+      onDismiss: onDismissProperties,
+      isBorderPanelOpen: isBorderPanelOpen,
+      onDuplicateElement: onDuplicateElement,
+      onCopyElement: onCopyElement,
+      onPasteElement: onPasteElement,
+      canPasteElement: canPasteElement,
+      borderPanel: borderPanel,
+      useBottomSheetStyle: useBottomProperties,
+    );
 
     return Scaffold(
       appBar: _TemplateEditorAppBar(
@@ -187,6 +225,8 @@ class TemplateEditorScaffold extends StatelessWidget {
               templateHeightMm: templateHeightMm,
               isBorderPanelOpen: isBorderPanelOpen,
               showGrid: showGrid,
+              snapEnabled: snapEnabled,
+              canvasMovementLocked: canvasMovementLocked,
               onSaveTemplate: onSaveTemplate,
               onTemplateSelected: onTemplateSelected,
               onDuplexChanged: onDuplexChanged,
@@ -199,29 +239,15 @@ class TemplateEditorScaffold extends StatelessWidget {
               onMirrorToggled: onMirrorToggled,
               onBorderPanelToggled: onBorderPanelToggled,
               onGridToggled: onGridToggled,
+              onSnapToggled: onSnapToggled,
+              onCanvasMovementLockToggled: onCanvasMovementLockToggled,
               onSelectPreviewSpecimen: onSelectPreviewSpecimen,
               onUndo: onUndo,
               onRedo: onRedo,
               canUndo: canUndo,
               canRedo: canRedo,
             ),
-            _TemplatePropertiesStrip(
-              selectedElement: selectedElement,
-              isPage1: isPage1,
-              template: template,
-              onUpdateCustomText: onUpdateCustomText,
-              onDeleteCustomText: onDeleteCustomText,
-              onUpdateCustomImage: onUpdateCustomImage,
-              onDeleteCustomImage: onRemoveCustomImage,
-              onUpdateCustomLine: onUpdateCustomLine,
-              onDeleteCustomLine: onRemoveCustomLine,
-              onUpdateCustomShape: onUpdateCustomShape,
-              onDeleteCustomShape: onRemoveCustomShape,
-              onDismiss: onDismissProperties,
-              isBorderPanelOpen: isBorderPanelOpen,
-              onDuplicateElement: onDuplicateElement,
-              borderPanel: borderPanel,
-            ),
+            if (!useBottomProperties) properties,
             Expanded(
               child: TemplateCanvasWorkspace(
                 isDuplex: isDuplex,
@@ -230,7 +256,9 @@ class TemplateEditorScaffold extends StatelessWidget {
                 templateWidthMm: templateWidthMm,
                 templateHeightMm: templateHeightMm,
                 zoom: zoom,
+                canvasMovementLocked: canvasMovementLocked,
                 showGrid: showGrid,
+                snapEnabled: snapEnabled,
                 mirrorFront: mirrorFront,
                 mirrorBack: mirrorBack,
                 isPreviewMode: isPreviewMode,
@@ -252,13 +280,48 @@ class TemplateEditorScaffold extends StatelessWidget {
                 onScheduleTemplateShapeUpdate: onScheduleTemplateShapeUpdate,
                 onRemoveCustomShape: onRemoveCustomShape,
                 onZoomChanged: onZoomChanged,
+                onCanvasMovementLockToggled: onCanvasMovementLockToggled,
+                onGridToggled: onGridToggled,
+                onSnapToggled: onSnapToggled,
+                onUndo: onUndo,
+                onRedo: onRedo,
+                canUndo: canUndo,
+                canRedo: canRedo,
+                onDeleteSelectedElement: selected == null
+                    ? null
+                    : () => _deleteSelectedElement(selected),
+                onDuplicateSelectedElement: selected == null
+                    ? null
+                    : () => onDuplicateElement(selected),
+                onCopySelectedElement:
+                    selected == null ? null : () => onCopyElement(selected),
+                onPasteElement: canPasteElement ? onPasteElement : null,
                 onDragStateChanged: onDragStateChanged,
               ),
             ),
           ],
         ),
       ),
+      bottomSheet:
+          useBottomProperties && (selectedElement != null || isBorderPanelOpen)
+              ? properties
+              : null,
     );
+  }
+
+  void _deleteSelectedElement(String selected) {
+    final selection = TemplateSelection.parse(selected);
+    if (selection == null) return;
+    switch (selection.type) {
+      case TemplateElementType.text:
+        onDeleteCustomText(selection.page1, selection.id);
+      case TemplateElementType.image:
+        onRemoveCustomImage(selection.page1, selection.id);
+      case TemplateElementType.line:
+        onRemoveCustomLine(selection.page1, selection.id);
+      case TemplateElementType.shape:
+        onRemoveCustomShape(selection.page1, selection.id);
+    }
   }
 }
 
@@ -404,6 +467,10 @@ class _TemplatePropertiesStrip extends StatelessWidget {
     required this.onDismiss,
     required this.isBorderPanelOpen,
     required this.onDuplicateElement,
+    required this.onCopyElement,
+    required this.onPasteElement,
+    required this.canPasteElement,
+    this.useBottomSheetStyle = false,
     this.borderPanel,
   });
 
@@ -445,6 +512,10 @@ class _TemplatePropertiesStrip extends StatelessWidget {
   final VoidCallback onDismiss;
   final bool isBorderPanelOpen;
   final ValueChanged<String> onDuplicateElement;
+  final ValueChanged<String> onCopyElement;
+  final VoidCallback onPasteElement;
+  final bool canPasteElement;
+  final bool useBottomSheetStyle;
   final Widget? borderPanel;
 
   @override
@@ -464,6 +535,9 @@ class _TemplatePropertiesStrip extends StatelessWidget {
         onUpdateCustomShape: onUpdateCustomShape,
         onDeleteCustomShape: onDeleteCustomShape,
         onDuplicateElement: onDuplicateElement,
+        onCopyElement: onCopyElement,
+        onPasteElement: onPasteElement,
+        canPasteElement: canPasteElement,
         onDismiss: onDismiss,
       );
     } else if (isBorderPanelOpen && borderPanel != null) {
@@ -474,7 +548,7 @@ class _TemplatePropertiesStrip extends StatelessWidget {
       return const SizedBox(width: double.infinity, height: 0);
     }
 
-    return AnimatedSize(
+    final content = AnimatedSize(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
       alignment: Alignment.topCenter,
@@ -485,6 +559,21 @@ class _TemplatePropertiesStrip extends StatelessWidget {
           vertical: 8,
         ),
         child: activeChild,
+      ),
+    );
+    if (!useBottomSheetStyle) return content;
+
+    return Material(
+      elevation: 12,
+      color: Theme.of(context).colorScheme.surfaceContainer,
+      child: SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+          ),
+          child: SingleChildScrollView(child: content),
+        ),
       ),
     );
   }

@@ -3,6 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
 
+String _fieldIdFromBracketLabel(String label) {
+  return label.replaceAll('[', '').replaceAll(']', '');
+}
+
+String _placeholderForDisplayOption(String label, String displayOption) {
+  final fieldId = _fieldIdFromBracketLabel(label);
+  if (displayOption == 'full') return '[$fieldId]';
+  final isImageField = fieldId.endsWith('-img');
+  final baseField =
+      isImageField ? fieldId.substring(0, fieldId.length - 4) : fieldId;
+  final parts = baseField.split('::');
+  final shortField = parts.length > 1 ? parts.last : baseField;
+  return isImageField ? '[$shortField-img]' : '[$shortField]';
+}
+
 class AvailableSymbolsWrap extends StatelessWidget {
   const AvailableSymbolsWrap({
     super.key,
@@ -119,40 +134,73 @@ class _AvailableFieldsSectionState
                   'Available Fields',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Row(
-                  children: [
-                    if (widget.recordType == RecordType.specimenRecord ||
-                        widget.recordType == RecordType.specimenParts) ...[
+                Flexible(
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8.0,
+                    runSpacing: 4.0,
+                    children: [
+                      if (widget.recordType == RecordType.specimenRecord ||
+                          widget.recordType == RecordType.specimenParts)
+                        DropdownButton<String>(
+                          value: _selectedTaxon,
+                          isDense: true,
+                          underline: const SizedBox.shrink(),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'All Taxa',
+                              child: Text(
+                                'All Taxa',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Mammals',
+                              child: Text(
+                                'Mammals',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Birds',
+                              child: Text(
+                                'Birds',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Herpetofauna',
+                              child: Text(
+                                'Herpetofauna',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) {
+                              setState(() {
+                                _selectedTaxon = v;
+                              });
+                            }
+                          },
+                        ),
                       DropdownButton<String>(
-                        value: _selectedTaxon,
+                        value: _fieldDisplayOption,
                         isDense: true,
                         underline: const SizedBox.shrink(),
                         items: const [
                           DropdownMenuItem(
-                            value: 'All Taxa',
+                            value: 'full',
                             child: Text(
-                              'All Taxa',
+                              'Table::Field',
                               style: TextStyle(fontSize: 12.0),
                             ),
                           ),
                           DropdownMenuItem(
-                            value: 'Mammals',
+                            value: 'short',
                             child: Text(
-                              'Mammals',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Birds',
-                            child: Text(
-                              'Birds',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Herpetofauna',
-                            child: Text(
-                              'Herpetofauna',
+                              'Field Only',
                               style: TextStyle(fontSize: 12.0),
                             ),
                           ),
@@ -160,51 +208,21 @@ class _AvailableFieldsSectionState
                         onChanged: (v) {
                           if (v != null) {
                             setState(() {
-                              _selectedTaxon = v;
+                              _fieldDisplayOption = v;
                             });
                           }
                         },
                       ),
-                      const SizedBox(width: 8.0),
-                    ],
-                    DropdownButton<String>(
-                      value: _fieldDisplayOption,
-                      isDense: true,
-                      underline: const SizedBox.shrink(),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'full',
-                          child: Text(
-                            'Table::Field',
-                            style: TextStyle(fontSize: 12.0),
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'short',
-                          child: Text(
-                            'Field Only',
-                            style: TextStyle(fontSize: 12.0),
-                          ),
-                        ),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) {
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 18.0),
+                        onPressed: () {
                           setState(() {
-                            _fieldDisplayOption = v;
+                            _showFields = false;
                           });
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8.0),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18.0),
-                      onPressed: () {
-                        setState(() {
-                          _showFields = false;
-                        });
-                      },
-                    ),
-                  ],
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -233,7 +251,12 @@ class _AvailableFieldsSectionState
                     return ListTile(
                       dense: true,
                       visualDensity: VisualDensity.compact,
-                      onTap: () => widget.onSelectField(label),
+                      onTap: () => widget.onSelectField(
+                        _placeholderForDisplayOption(
+                          label,
+                          _fieldDisplayOption,
+                        ),
+                      ),
                       title: Text(
                         _getDisplayLabel(label),
                         style: const TextStyle(
@@ -265,15 +288,16 @@ class _AvailableFieldsSectionState
         allowedTables = {'narrative', 'site', 'personnel'};
         break;
       case RecordType.site:
-        allowedTables = {'site', 'personnel'};
+        allowedTables = {'site', 'personnel', 'coordinate'};
         break;
       case RecordType.collEvent:
         allowedTables = {
           'collEvent',
           'site',
           'weather',
-          'personnel',
-          'collEffort'
+          'coordinate',
+          'collEffort',
+          'collPersonnel',
         };
         break;
       case RecordType.specimenRecord:
@@ -329,12 +353,12 @@ class _AvailableFieldsSectionState
   }
 
   String _getDisplayLabel(String label) {
-    final stripped = label.replaceAll('[', '').replaceAll(']', '');
+    final stripped = _fieldIdFromBracketLabel(label);
     if (_fieldDisplayOption == 'short') {
       final parts = stripped.split('::');
-      return parts.length > 1 ? parts.last : stripped;
+      return '[${parts.length > 1 ? parts.last : stripped}]';
     }
-    return stripped;
+    return '[$stripped]';
   }
 }
 
@@ -358,7 +382,6 @@ class TextElementEditorDialog extends ConsumerStatefulWidget {
 class _TextElementEditorDialogState
     extends ConsumerState<TextElementEditorDialog> {
   late TextEditingController _controller;
-  String _fieldDisplayOption = 'short';
 
   @override
   void initState() {
@@ -387,46 +410,12 @@ class _TextElementEditorDialogState
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Text Input',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.0,
-                        ),
-                      ),
-                      DropdownButton<String>(
-                        value: _fieldDisplayOption,
-                        isDense: true,
-                        underline: const SizedBox.shrink(),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'full',
-                            child: Text(
-                              'Table::Field',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'short',
-                            child: Text(
-                              'Field Only',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                          ),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) {
-                            setState(() {
-                              _fieldDisplayOption = v;
-                            });
-                            _convertTextFormat(v);
-                          }
-                        },
-                      ),
-                    ],
+                  const Text(
+                    'Text Input',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.0,
+                    ),
                   ),
                   const SizedBox(height: 8.0),
                   TextField(
@@ -507,67 +496,6 @@ class _TextElementEditorDialogState
       ),
     );
   }
-
-  void _convertTextFormat(String targetFormat) {
-    final text = _controller.text;
-    final db = ref.read(databaseProvider);
-    final Map<String, String> fieldToFull = {};
-    final List<String> allFullFields = [];
-
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      for (var col in table.$columns) {
-        final colName = col.name;
-        final full = '$tableName::$colName';
-        allFullFields.add(full);
-        fieldToFull.putIfAbsent(colName, () => full);
-        if (colName.endsWith('.sex')) {
-          fieldToFull.putIfAbsent('$colName-img', () => '$full-img');
-        }
-      }
-    }
-
-    if (targetFormat == 'short') {
-      String result = text;
-      for (final full in allFullFields) {
-        final parts = full.split('::');
-        final short = parts.last;
-        result = result.replaceAll('[$full]', '[$short]');
-        if (full.endsWith('.sex')) {
-          result = result.replaceAll('[$full-img]', '[$short-img]');
-        }
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    } else {
-      final regExp = RegExp(r'\[([^\]]+)\]');
-      final matches = regExp.allMatches(text).toList();
-      String result = text;
-      for (final match in matches.reversed) {
-        final matchedGroup = match.group(1);
-        if (matchedGroup == null) continue;
-        if (matchedGroup.contains('::')) {
-          continue;
-        }
-        final isImg = matchedGroup.endsWith('-img');
-        final baseName = isImg
-            ? matchedGroup.substring(0, matchedGroup.length - 4)
-            : matchedGroup;
-        final fullBase = fieldToFull[baseName];
-        if (fullBase != null) {
-          final replacement = isImg ? '$fullBase-img' : fullBase;
-          result =
-              result.replaceRange(match.start, match.end, '[$replacement]');
-        }
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    }
-  }
 }
 
 class TextElementEditorBottomSheet extends ConsumerStatefulWidget {
@@ -590,7 +518,6 @@ class TextElementEditorBottomSheet extends ConsumerStatefulWidget {
 class _TextElementEditorBottomSheetState
     extends ConsumerState<TextElementEditorBottomSheet> {
   late TextEditingController _controller;
-  String _fieldDisplayOption = 'short';
 
   @override
   void initState() {
@@ -662,45 +589,11 @@ class _TextElementEditorBottomSheetState
               ),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Text Input',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              DropdownButton<String>(
-                value: _fieldDisplayOption,
-                isDense: true,
-                underline: const SizedBox.shrink(),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'full',
-                    child: Text(
-                      'Table::Field',
-                      style: TextStyle(fontSize: 12.0),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'short',
-                    child: Text(
-                      'Field Only',
-                      style: TextStyle(fontSize: 12.0),
-                    ),
-                  ),
-                ],
-                onChanged: (v) {
-                  if (v != null) {
-                    setState(() {
-                      _fieldDisplayOption = v;
-                    });
-                    _convertTextFormat(v);
-                  }
-                },
-              ),
-            ],
+          Text(
+            'Text Input',
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8.0),
           TextField(
@@ -760,66 +653,5 @@ class _TextElementEditorBottomSheetState
         offset: (start < 0 ? 0 : start) + val.length,
       ),
     );
-  }
-
-  void _convertTextFormat(String targetFormat) {
-    final text = _controller.text;
-    final db = ref.read(databaseProvider);
-    final Map<String, String> fieldToFull = {};
-    final List<String> allFullFields = [];
-
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      for (var col in table.$columns) {
-        final colName = col.name;
-        final full = '$tableName::$colName';
-        allFullFields.add(full);
-        fieldToFull.putIfAbsent(colName, () => full);
-        if (colName.endsWith('.sex')) {
-          fieldToFull.putIfAbsent('$colName-img', () => '$full-img');
-        }
-      }
-    }
-
-    if (targetFormat == 'short') {
-      String result = text;
-      for (final full in allFullFields) {
-        final parts = full.split('::');
-        final short = parts.last;
-        result = result.replaceAll('[$full]', '[$short]');
-        if (full.endsWith('.sex')) {
-          result = result.replaceAll('[$full-img]', '[$short-img]');
-        }
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    } else {
-      final regExp = RegExp(r'\[([^\]]+)\]');
-      final matches = regExp.allMatches(text).toList();
-      String result = text;
-      for (final match in matches.reversed) {
-        final matchedGroup = match.group(1);
-        if (matchedGroup == null) continue;
-        if (matchedGroup.contains('::')) {
-          continue;
-        }
-        final isImg = matchedGroup.endsWith('-img');
-        final baseName = isImg
-            ? matchedGroup.substring(0, matchedGroup.length - 4)
-            : matchedGroup;
-        final fullBase = fieldToFull[baseName];
-        if (fullBase != null) {
-          final replacement = isImg ? '$fullBase-img' : fullBase;
-          result =
-              result.replaceRange(match.start, match.end, '[$replacement]');
-        }
-      }
-      _controller.value = TextEditingValue(
-        text: result,
-        selection: TextSelection.collapsed(offset: result.length),
-      );
-    }
   }
 }

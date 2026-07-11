@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_font_size_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
+import 'package:nahpu/screens/templates/components/properties/text_format_options.dart';
+import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:nahpu/screens/templates/components/dialogs/map_encoded_values_dialog.dart';
 
 class TextPropertiesPanel extends StatelessWidget {
   const TextPropertiesPanel({
@@ -243,6 +245,13 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
     super.dispose();
   }
 
+  bool _hasTextPlaceholder(String text) {
+    return RegExp(r'\[([^\]]+)\]').allMatches(text).any((match) {
+      final placeholder = match.group(1);
+      return placeholder != null && !placeholder.trim().endsWith('-img');
+    });
+  }
+
   String _getSexPresentation(String formatOption) {
     final parts = formatOption.split(':');
     return parts.isNotEmpty ? parts[0] : 'text';
@@ -251,316 +260,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
   String _getSexMissing(String formatOption) {
     final parts = formatOption.split(':');
     return parts.length > 1 ? parts[1] : 'unknown';
-  }
-
-  List<DropdownMenuItem<String>> _getFormatDropdownItems(String textType) {
-    switch (textType) {
-      case 'coordinates':
-        return const [
-          DropdownMenuItem(
-            value: 'decimal',
-            child: Text('Decimal (45.123, -122.543)'),
-          ),
-          DropdownMenuItem(
-            value: 'cardinalDecimal',
-            child: Text(
-              'Cardinal Dec (45.123° N, 122.543° W)',
-            ),
-          ),
-          DropdownMenuItem(
-            value: 'dms',
-            child: Text('DMS (45° 7\' 24" N, 122° 32\' 35" W)'),
-          ),
-          DropdownMenuItem(
-            value: 'ddm',
-            child: Text('DDM (45° 7.407\' N, 122° 32.592\' W)'),
-          ),
-        ];
-      case 'list':
-        return const [
-          DropdownMenuItem(
-            value: 'pipe',
-            child: Text('Pipe separated (A | B | C)'),
-          ),
-          DropdownMenuItem(
-            value: 'comma',
-            child: Text('Comma separated (A, B, C)'),
-          ),
-          DropdownMenuItem(
-            value: 'semicolon',
-            child: Text('Semicolon separated (A; B; C)'),
-          ),
-          DropdownMenuItem(
-            value: 'slash',
-            child: Text('Slash separated (A / B / C)'),
-          ),
-          DropdownMenuItem(
-            value: 'newline',
-            child: Text('New line (A\\nB\\nC)'),
-          ),
-          DropdownMenuItem(
-            value: 'bullet',
-            child: Text('Bulleted (• A\\n• B)'),
-          ),
-          DropdownMenuItem(
-            value: 'custom',
-            child: Text('Custom separator...'),
-          ),
-        ];
-      case 'date':
-        return const [
-          DropdownMenuItem(
-            value: 'yyyy-mm-dd',
-            child: Text('YYYY-MM-DD (2026-06-28)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd-mm-yyyy',
-            child: Text('DD-MM-YYYY (28-06-2026)'),
-          ),
-          DropdownMenuItem(
-            value: 'mm-dd-yyyy',
-            child: Text('MM-DD-YYYY (06-28-2026)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd/mm/yyyy',
-            child: Text('DD/MM/YYYY (28/06/2026)'),
-          ),
-          DropdownMenuItem(
-            value: 'mm/dd/yyyy',
-            child: Text('MM/DD/YYYY (06/28/2026)'),
-          ),
-          DropdownMenuItem(
-            value: 'month-dd-yyyy',
-            child: Text(
-              'Month DD, YYYY (June 28, 2026)',
-            ),
-          ),
-          DropdownMenuItem(
-            value: 'dd-month-yyyy',
-            child: Text(
-              'DD Month YYYY (28 June 2026)',
-            ),
-          ),
-          DropdownMenuItem(
-            value: 'dd-month-abbr-yyyy',
-            child: Text(
-              'DD Month (Abbr) (28 Jun 2026)',
-            ),
-          ),
-        ];
-      case 'datetime':
-        return const [
-          DropdownMenuItem(
-            value: 'yyyy-mm-dd-hm',
-            child: Text('YYYY-MM-DD 24h (2026-06-28 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'yyyy-mm-dd-hms',
-            child: Text('YYYY-MM-DD seconds (2026-06-28 14:05:09)'),
-          ),
-          DropdownMenuItem(
-            value: 'iso-minutes',
-            child: Text('ISO minutes (2026-06-28T14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'iso-seconds',
-            child: Text('ISO seconds (2026-06-28T14:05:09)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd-mm-yyyy-hm',
-            child: Text('DD-MM-YYYY 24h (28-06-2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'mm-dd-yyyy-hm',
-            child: Text('MM-DD-YYYY 24h (06-28-2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd/mm/yyyy-hm',
-            child: Text('DD/MM/YYYY 24h (28/06/2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'mm/dd/yyyy-hm',
-            child: Text('MM/DD/YYYY 12h (06/28/2026 2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'yyyy/mm/dd-hm',
-            child: Text('YYYY/MM/DD 24h (2026/06/28 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd-month-yyyy-hm',
-            child: Text('DD Month YYYY 24h (28 June 2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'month-dd-yyyy-hm',
-            child: Text('Month DD, YYYY 12h (June 28, 2026 2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'dd-month-abbr-yyyy-hm',
-            child: Text('DD Mon YYYY 24h (28 Jun 2026 14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'month-abbr-dd-yyyy-hm',
-            child: Text('Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-24',
-            child: Text('Time 24h (14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-24-seconds',
-            child: Text('Time 24h seconds (14:05:09)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-12',
-            child: Text('Time 12h (2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-12-padded',
-            child: Text('Time 12h padded (02:05 PM)'),
-          ),
-        ];
-      case 'time':
-        return const [
-          DropdownMenuItem(
-            value: 'time-24',
-            child: Text('Time 24h (14:05)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-24-seconds',
-            child: Text('Time 24h seconds (14:05:09)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-12',
-            child: Text('Time 12h (2:05 PM)'),
-          ),
-          DropdownMenuItem(
-            value: 'time-12-padded',
-            child: Text('Time 12h padded (02:05 PM)'),
-          ),
-        ];
-      case 'number':
-        return const [
-          DropdownMenuItem(
-            value: 'original',
-            child: Text('Original'),
-          ),
-          DropdownMenuItem(
-            value: '0',
-            child: Text('0 decimal places (e.g. 12)'),
-          ),
-          DropdownMenuItem(
-            value: '1',
-            child: Text('1 decimal place (e.g. 12.3)'),
-          ),
-          DropdownMenuItem(
-            value: '2',
-            child: Text('2 decimal places (e.g. 12.34)'),
-          ),
-          DropdownMenuItem(
-            value: '3',
-            child: Text('3 decimal places (e.g. 12.345)'),
-          ),
-        ];
-      case 'markdown':
-        return const [
-          DropdownMenuItem(
-            value: 'normal',
-            child: Text('Normal'),
-          ),
-        ];
-      case 'normal':
-      default:
-        return const [
-          DropdownMenuItem(
-            value: 'normal',
-            child: Text('Normal'),
-          ),
-          DropdownMenuItem(
-            value: 'uppercase',
-            child: Text('Uppercase'),
-          ),
-          DropdownMenuItem(
-            value: 'lowercase',
-            child: Text('Lowercase'),
-          ),
-          DropdownMenuItem(
-            value: 'capitalize',
-            child: Text('Capitalize'),
-          ),
-        ];
-    }
-  }
-
-  Widget _colorSwatch({
-    required BuildContext context,
-    required String label,
-    required Color color,
-    required String pickerTitle,
-    required ValueChanged<Color> onPicked,
-    VoidCallback? onClear,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(width: 8),
-        InkWell(
-          onTap: () async {
-            Color selectedColor = color;
-            final picked = await ColorPicker(
-              color: selectedColor,
-              onColorChanged: (c) => selectedColor = c,
-              heading: Text(
-                pickerTitle,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              subheading: Text(
-                'Select color shade',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              wheelSubheading: Text(
-                'Selected color and its shades',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              showColorName: true,
-              showColorCode: false,
-              copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                copyButton: true,
-                pasteButton: true,
-                longPressMenu: true,
-              ),
-              colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-              colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-              pickersEnabled: const <ColorPickerType, bool>{
-                ColorPickerType.both: false,
-                ColorPickerType.primary: true,
-                ColorPickerType.accent: true,
-                ColorPickerType.bw: true,
-                ColorPickerType.custom: true,
-                ColorPickerType.wheel: true,
-              },
-            ).showPickerDialog(context);
-            if (picked) onPicked(selectedColor);
-          },
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: color,
-              border: Border.all(color: scheme.outline),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ),
-        if (onClear != null)
-          IconButton(
-            icon: const Icon(Icons.close, size: 18),
-            tooltip: 'Clear $label',
-            onPressed: onClear,
-          ),
-      ],
-    );
   }
 
   @override
@@ -581,7 +280,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
       child: Row(
         children: [
           widget.actionControls,
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           FilterChip(
             label: const Text('QR Code'),
             selected: ct.isQrCode,
@@ -589,7 +288,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               onUpdateCustomText(page1, ct.copyWith(isQrCode: selected));
             },
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           if (ct.isQrCode) ...[
             Text('QR Size (mm)',
                 style: Theme.of(context).textTheme.labelMedium),
@@ -611,7 +310,18 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.palette_outlined, size: 24),
+              isSelected: _showFormattingRow,
+              tooltip: 'Content formatting options',
+              onPressed: () {
+                setState(() {
+                  _showFormattingRow = !_showFormattingRow;
+                });
+              },
+            ),
+            const SizedBox(width: 8),
             Text('Shape', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(width: 8),
             SegmentedButton<String>(
@@ -647,17 +357,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 );
               },
             ),
-            const SizedBox(width: 12),
-            IconButton(
-              icon: const Icon(Icons.settings_outlined, size: 24),
-              isSelected: _showFormattingRow,
-              tooltip: 'Content formatting options',
-              onPressed: () {
-                setState(() {
-                  _showFormattingRow = !_showFormattingRow;
-                });
-              },
-            ),
           ] else ...[
             FilterChip(
               label: const Text('Dynamic'),
@@ -666,7 +365,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 onUpdateCustomText(page1, ct.copyWith(isDynamic: selected));
               },
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Text('Size (pt)', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(width: 8),
             SizedBox(
@@ -826,6 +525,15 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
 
     final isCustomSep =
         ct.formatOption.startsWith('custom:') || ct.formatOption == 'custom';
+    final isCustomMap = ct.formatOption.startsWith('custom_map:') ||
+        ct.formatOption == 'custom_map';
+    final hasTextPlaceholder = _hasTextPlaceholder(ct.text);
+    final nullFallbackControls = _NullFallbackControls(
+      text: ct,
+      page1: page1,
+      hasTextPlaceholder: hasTextPlaceholder,
+      onUpdate: onUpdateCustomText,
+    );
 
     return Padding(
       padding: widget.inToolbar
@@ -868,33 +576,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             },
                           ),
                           const SizedBox(width: 12),
-                          SegmentedButton<String>(
-                            segments: const [
-                              ButtonSegment(
-                                value: 'left',
-                                icon: Icon(Icons.format_align_left, size: 20),
-                                tooltip: 'Align left',
-                              ),
-                              ButtonSegment(
-                                value: 'center',
-                                icon: Icon(Icons.format_align_center, size: 20),
-                                tooltip: 'Align center',
-                              ),
-                              ButtonSegment(
-                                value: 'right',
-                                icon: Icon(Icons.format_align_right, size: 20),
-                                tooltip: 'Align right',
-                              ),
-                            ],
-                            selected: {ct.textAlign},
-                            onSelectionChanged: (next) {
-                              if (next.isEmpty) return;
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(textAlign: next.first),
-                              );
-                            },
-                            showSelectedIcon: false,
+                          _TextAlignPicker(
+                            ct: ct,
+                            page1: page1,
+                            onUpdateCustomText: onUpdateCustomText,
                           ),
                           const SizedBox(width: 12),
                           IconButton(
@@ -948,100 +633,27 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           Text('Foreground',
                               style: Theme.of(context).textTheme.labelMedium),
                           const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () async {
-                              Color selectedColor = Color(ct.colorArgb);
-                              final picked = await ColorPicker(
-                                color: selectedColor,
-                                onColorChanged: (c) => selectedColor = c,
-                                heading: Text('Select QR foreground color',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                subheading: Text('Select color shade',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                wheelSubheading: Text(
-                                    'Selected color and its shades',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                showColorName: true,
-                                showColorCode: false,
-                                pickersEnabled: const <ColorPickerType, bool>{
-                                  ColorPickerType.both: false,
-                                  ColorPickerType.primary: true,
-                                  ColorPickerType.accent: true,
-                                  ColorPickerType.bw: false,
-                                  ColorPickerType.custom: true,
-                                  ColorPickerType.wheel: true,
-                                },
-                              ).showPickerDialog(context);
-                              if (picked) {
-                                onUpdateCustomText(
-                                  page1,
-                                  ct.copyWith(
-                                    colorArgb: selectedColor.toARGB32(),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: Color(ct.colorArgb),
-                                border: Border.all(color: scheme.outline),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                          TemplateColorSwatch(
+                            color: Color(ct.colorArgb),
+                            title: 'Select QR foreground color',
+                            enableCopyPaste: false,
+                            onPicked: (color) => onUpdateCustomText(
+                              page1,
+                              ct.copyWith(colorArgb: color.toARGB32()),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Text('Background',
                               style: Theme.of(context).textTheme.labelMedium),
                           const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () async {
-                              Color selectedColor = Color(ct.qrBgColorArgb);
-                              final picked = await ColorPicker(
-                                color: selectedColor,
-                                onColorChanged: (c) => selectedColor = c,
-                                heading: Text('Select QR background color',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                subheading: Text('Select color shade',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                wheelSubheading: Text(
-                                    'Selected color and its shades',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                showColorName: true,
-                                showColorCode: false,
-                                pickersEnabled: const <ColorPickerType, bool>{
-                                  ColorPickerType.both: false,
-                                  ColorPickerType.primary: true,
-                                  ColorPickerType.accent: true,
-                                  ColorPickerType.bw: true,
-                                  ColorPickerType.custom: true,
-                                  ColorPickerType.wheel: true,
-                                },
-                              ).showPickerDialog(context);
-                              if (picked) {
-                                onUpdateCustomText(
-                                  page1,
-                                  ct.copyWith(
-                                    qrBgColorArgb: selectedColor.toARGB32(),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: Color(ct.qrBgColorArgb),
-                                border: Border.all(color: scheme.outline),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                          TemplateColorSwatch(
+                            color: Color(ct.qrBgColorArgb),
+                            title: 'Select QR background color',
+                            showColorCode: true,
+                            enableCopyPaste: false,
+                            onPicked: (color) => onUpdateCustomText(
+                              page1,
+                              ct.copyWith(qrBgColorArgb: color.toARGB32()),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -1055,44 +667,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           value: ct.textType,
                           isDense: true,
                           underline: const SizedBox.shrink(),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'normal',
-                              child: Text('Normal Text'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'markdown',
-                              child: Text('Markdown'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'coordinates',
-                              child: Text('Coordinates'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'list',
-                              child: Text('List Values'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'date',
-                              child: Text('Dates'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'datetime',
-                              child: Text('Date and Time'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'time',
-                              child: Text('Time'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'sex',
-                              child: Text('Sex'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'number',
-                              child: Text('Number'),
-                            ),
-                          ],
+                          items: textDropdownItems(kTextTypeOptions),
                           onChanged: (v) {
                             if (v == null) return;
                             String defaultOpt = 'normal';
@@ -1100,6 +675,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               defaultOpt = 'decimal';
                             } else if (v == 'list') {
                               defaultOpt = 'pipe';
+                            } else if (v == 'nestedList') {
+                              defaultOpt = 'table';
                             } else if (v == 'date') {
                               defaultOpt = 'yyyy-mm-dd';
                             } else if (v == 'datetime') {
@@ -1110,6 +687,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               defaultOpt = 'text:unknown';
                             } else if (v == 'number') {
                               defaultOpt = 'original';
+                            } else if (v == 'encoded') {
+                              defaultOpt = 'enum';
                             }
                             onUpdateCustomText(
                               page1,
@@ -1128,19 +707,100 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           ),
                           const SizedBox(width: 8),
                           DropdownButton<String>(
-                            value: isCustomSep ? 'custom' : ct.formatOption,
+                            value: isCustomSep
+                                ? 'custom'
+                                : (isCustomMap ? 'custom' : ct.formatOption),
                             isDense: true,
                             underline: const SizedBox.shrink(),
-                            items: _getFormatDropdownItems(ct.textType),
+                            items: textFormatDropdownItems(ct.textType),
                             onChanged: (v) {
                               if (v == null) return;
-                              final nextOpt = v == 'custom' ? 'custom:' : v;
+                              String nextOpt = v;
+                              if (v == 'custom') {
+                                if (ct.textType == 'encoded') {
+                                  final placeholder =
+                                      _detectPlaceholderKey(ct.text);
+                                  if (placeholder != null) {
+                                    final defaultMap =
+                                        _getDefaultEnumMapForPlaceholder(
+                                            placeholder);
+                                    final pairs = defaultMap.entries
+                                        .map((e) => '${e.key}=${e.value}')
+                                        .join(',');
+                                    nextOpt = 'custom_map:$pairs';
+                                  } else {
+                                    nextOpt = 'custom_map:';
+                                  }
+                                } else {
+                                  nextOpt = 'custom:';
+                                }
+                              }
                               onUpdateCustomText(
                                 page1,
                                 ct.copyWith(formatOption: nextOpt),
                               );
                             },
                           ),
+                          if (ct.textType == 'encoded' && isCustomMap) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.edit_note, size: 24),
+                              tooltip: 'Map encoded values',
+                              onPressed: () async {
+                                final result = await showDialog<String>(
+                                  context: context,
+                                  builder: (context) => MapEncodedValuesDialog(
+                                    placeholderKey:
+                                        _detectPlaceholderKey(ct.text) ?? '',
+                                    currentOption: ct.formatOption,
+                                  ),
+                                );
+                                if (result != null) {
+                                  onUpdateCustomText(
+                                    page1,
+                                    ct.copyWith(formatOption: result),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                          nullFallbackControls,
+                          if (ct.textType == 'nestedList' &&
+                              ct.formatOption == 'table') ...[
+                            const SizedBox(width: 16),
+                            Text(
+                              'Header Case',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: ct.caseFormat == 'normal'
+                                  ? 'title'
+                                  : ct.caseFormat,
+                              isDense: true,
+                              underline: const SizedBox.shrink(),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'title', child: Text('Title Case')),
+                                DropdownMenuItem(
+                                    value: 'sentence',
+                                    child: Text('Sentence Case')),
+                                DropdownMenuItem(
+                                    value: 'uppercase',
+                                    child: Text('Uppercase')),
+                                DropdownMenuItem(
+                                    value: 'lowercase',
+                                    child: Text('Lowercase')),
+                              ],
+                              onChanged: (v) {
+                                if (v == null) return;
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(caseFormat: v),
+                                );
+                              },
+                            ),
+                          ],
                         ] else ...[
                           const SizedBox(width: 16),
                           Text(
@@ -1152,20 +812,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             value: _getSexPresentation(ct.formatOption),
                             isDense: true,
                             underline: const SizedBox.shrink(),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'symbol',
-                                child: Text('Symbol (♂/♀)'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'letter',
-                                child: Text('Letter (M/F)'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'text',
-                                child: Text('Text (Male/Female)'),
-                              ),
-                            ],
+                            items: textDropdownItems(kSexPresentationOptions),
                             onChanged: (v) {
                               if (v == null) return;
                               final missing = _getSexMissing(ct.formatOption);
@@ -1177,6 +824,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               );
                             },
                           ),
+                          nullFallbackControls,
                           const SizedBox(width: 16),
                           Text(
                             'Missing',
@@ -1187,20 +835,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             value: _getSexMissing(ct.formatOption),
                             isDense: true,
                             underline: const SizedBox.shrink(),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'unknown',
-                                child: Text('Unknown'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'na',
-                                child: Text('N/A'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'none',
-                                child: Text('None'),
-                              ),
-                            ],
+                            items: textDropdownItems(kSexMissingOptions),
                             onChanged: (v) {
                               if (v == null) return;
                               final presentation =
@@ -1253,8 +888,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _colorSwatch(
-                          context: context,
+                        _TextColorSwatch(
                           label: 'Text',
                           color: Color(ct.colorArgb),
                           pickerTitle: 'Select text color',
@@ -1266,8 +900,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           },
                         ),
                         const SizedBox(width: 12),
-                        _colorSwatch(
-                          context: context,
+                        _TextColorSwatch(
                           label: 'Background',
                           color: ct.backgroundColorArgb == null
                               ? Colors.transparent
@@ -1289,8 +922,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           },
                         ),
                         const SizedBox(width: 12),
-                        _colorSwatch(
-                          context: context,
+                        _TextColorSwatch(
                           label: 'Stroke',
                           color: ct.borderColorArgb == null
                               ? Colors.black
@@ -1407,6 +1039,342 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
           widget.deleteButton,
         ],
       ),
+    );
+  }
+}
+
+class _TextAlignPicker extends StatelessWidget {
+  const _TextAlignPicker({
+    required this.ct,
+    required this.page1,
+    required this.onUpdateCustomText,
+  });
+
+  final CustomTextElement ct;
+  final bool page1;
+  final void Function(bool, CustomTextElement) onUpdateCustomText;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<String>(
+      segments: const [
+        ButtonSegment(
+          value: 'left',
+          icon: Icon(Icons.format_align_left, size: 20),
+          tooltip: 'Align left',
+        ),
+        ButtonSegment(
+          value: 'center',
+          icon: Icon(Icons.format_align_center, size: 20),
+          tooltip: 'Align center',
+        ),
+        ButtonSegment(
+          value: 'right',
+          icon: Icon(Icons.format_align_right, size: 20),
+          tooltip: 'Align right',
+        ),
+      ],
+      selected: {ct.textAlign},
+      onSelectionChanged: (next) {
+        if (next.isEmpty) return;
+        onUpdateCustomText(
+          page1,
+          ct.copyWith(textAlign: next.first),
+        );
+      },
+      showSelectedIcon: false,
+    );
+  }
+}
+
+class _TextColorSwatch extends StatelessWidget {
+  const _TextColorSwatch({
+    required this.label,
+    required this.color,
+    required this.pickerTitle,
+    required this.onPicked,
+    this.onClear,
+  });
+
+  final String label;
+  final Color color;
+  final String pickerTitle;
+  final ValueChanged<Color> onPicked;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(width: 8),
+        TemplateColorSwatch(
+          color: color,
+          title: pickerTitle,
+          showColorCode: true,
+          enableCopyPaste: false,
+          onPicked: onPicked,
+        ),
+        if (onClear != null)
+          IconButton(
+            icon: const Icon(Icons.close, size: 18),
+            tooltip: 'Clear $label',
+            onPressed: onClear,
+          ),
+      ],
+    );
+  }
+}
+
+class _NullFallbackContent extends StatefulWidget {
+  const _NullFallbackContent({
+    required this.text,
+    required this.page1,
+    required this.onUpdate,
+  });
+
+  final CustomTextElement text;
+  final bool page1;
+  final void Function(bool page1, CustomTextElement element) onUpdate;
+
+  @override
+  State<_NullFallbackContent> createState() => _NullFallbackContentState();
+}
+
+class _NullFallbackContentState extends State<_NullFallbackContent> {
+  late String _nullFallbackOption;
+  late TextEditingController _customTextController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nullFallbackOption = widget.text.nullFallbackOption;
+    _customTextController = TextEditingController(
+      text: widget.text.customNullFallbackText,
+    );
+  }
+
+  @override
+  void dispose() {
+    _customTextController.dispose();
+    super.dispose();
+  }
+
+  void _onOptionChanged(String? val) {
+    if (val == null) return;
+    setState(() {
+      _nullFallbackOption = val;
+    });
+    widget.onUpdate(
+      widget.page1,
+      widget.text.copyWith(nullFallbackOption: val),
+    );
+  }
+
+  void _onTextChanged(String val) {
+    widget.onUpdate(
+      widget.page1,
+      widget.text.copyWith(customNullFallbackText: val.trim()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DropdownButtonFormField<String>(
+          initialValue: _nullFallbackOption,
+          decoration: const InputDecoration(
+            labelText: 'No Content Placeholder',
+            border: OutlineInputBorder(),
+          ),
+          items: const [
+            DropdownMenuItem(
+              value: kTemplateNullFallbackBlank,
+              child: Text('Blank'),
+            ),
+            DropdownMenuItem(
+              value: kTemplateNullFallbackField,
+              child: Text('table::field'),
+            ),
+            DropdownMenuItem(
+              value: kTemplateNullFallbackNa,
+              child: Text('N/A'),
+            ),
+            DropdownMenuItem(
+              value: kTemplateNullFallbackNone,
+              child: Text('None'),
+            ),
+            DropdownMenuItem(
+              value: kTemplateNullFallbackCustom,
+              child: Text('Custom'),
+            ),
+          ],
+          onChanged: _onOptionChanged,
+        ),
+        if (_nullFallbackOption == kTemplateNullFallbackCustom) ...[
+          const SizedBox(height: 16),
+          TextField(
+            controller: _customTextController,
+            decoration: const InputDecoration(
+              labelText: 'Custom Text',
+              hintText: 'Enter custom fallback text',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: _onTextChanged,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _NullFallbackDialog extends StatelessWidget {
+  const _NullFallbackDialog({
+    required this.text,
+    required this.page1,
+    required this.onUpdate,
+  });
+
+  final CustomTextElement text;
+  final bool page1;
+  final void Function(bool page1, CustomTextElement element) onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('No Content Placeholder'),
+      content: SizedBox(
+        width: 320.0,
+        child: _NullFallbackContent(
+          text: text,
+          page1: page1,
+          onUpdate: onUpdate,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Done'),
+        ),
+      ],
+    );
+  }
+}
+
+class _NullFallbackBottomSheet extends StatelessWidget {
+  const _NullFallbackBottomSheet({
+    required this.text,
+    required this.page1,
+    required this.onUpdate,
+  });
+
+  final CustomTextElement text;
+  final bool page1;
+  final void Function(bool page1, CustomTextElement element) onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        16.0,
+        8.0,
+        16.0,
+        media.viewInsets.bottom + 24.0,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40.0,
+              height: 4.0,
+              margin: const EdgeInsets.only(bottom: 12.0),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.4,
+                ),
+                borderRadius: BorderRadius.circular(2.0),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'No Content Placeholder',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Done'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _NullFallbackContent(
+            text: text,
+            page1: page1,
+            onUpdate: onUpdate,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NullFallbackControls extends StatelessWidget {
+  const _NullFallbackControls({
+    required this.text,
+    required this.page1,
+    required this.hasTextPlaceholder,
+    required this.onUpdate,
+  });
+
+  final CustomTextElement text;
+  final bool page1;
+  final bool hasTextPlaceholder;
+  final void Function(bool page1, CustomTextElement element) onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasTextPlaceholder) return const SizedBox.shrink();
+
+    return IconButton(
+      icon: const Icon(Icons.pending_outlined, size: 24),
+      tooltip: 'No Content Placeholder',
+      onPressed: () {
+        final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+        if (isLargeScreen) {
+          showDialog(
+            context: context,
+            builder: (context) => _NullFallbackDialog(
+              text: text,
+              page1: page1,
+              onUpdate: onUpdate,
+            ),
+          );
+        } else {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => _NullFallbackBottomSheet(
+              text: text,
+              page1: page1,
+              onUpdate: onUpdate,
+            ),
+          );
+        }
+      },
     );
   }
 }
@@ -1545,4 +1513,72 @@ class _StylePreviewPainter extends CustomPainter {
   bool shouldRepaint(covariant _StylePreviewPainter oldDelegate) {
     return oldDelegate.style != style || oldDelegate.color != color;
   }
+}
+
+String? _detectPlaceholderKey(String text) {
+  final match = RegExp(r'\[([^\]]+)\]').firstMatch(text);
+  if (match != null) {
+    return match.group(1)!.trim().split('??').first.trim();
+  }
+  return null;
+}
+
+Map<String, String> _getDefaultEnumMapForPlaceholder(String key) {
+  final cleanKey = key.trim().toLowerCase();
+  if (cleanKey.endsWith('::sex')) {
+    return {'0': 'Male', '1': 'Female', '2': 'Unknown'};
+  } else if (cleanKey == 'mammalmeasurement::age') {
+    return {'0': 'Adult', '1': 'Subadult', '2': 'Juvenile', '3': 'Unknown'};
+  } else if (cleanKey == 'herpmeasurement::age') {
+    return {
+      '0': 'Adult',
+      '1': 'Juvenile',
+      '2': 'Neonate',
+      '3': 'Metamorph',
+      '4': 'Unknown'
+    };
+  } else if (cleanKey.endsWith('::testisposition')) {
+    return {'0': 'Scrotal', '1': 'Abdominal'};
+  } else if (cleanKey.endsWith('::epididymisappearance')) {
+    return {'0': 'Tubular', '1': 'Partial', '2': 'Not Tubular'};
+  } else if (cleanKey.endsWith('::vaginaopening')) {
+    return {'0': 'Imperforate', '1': 'Perforate'};
+  } else if (cleanKey.endsWith('::pubicsymphysis')) {
+    return {'0': 'Close', '1': 'Small Open', '2': 'Open'};
+  } else if (cleanKey.endsWith('::reproductivestage')) {
+    return {'0': 'Nulliparous', '1': 'Primiparous', '2': 'Multiparous'};
+  } else if (cleanKey.endsWith('::mammaecondition')) {
+    return {'0': 'Small', '1': 'Large', '2': 'Lactating'};
+  } else if (cleanKey.endsWith('::ovaryappearance')) {
+    return {'0': 'Smooth', '1': 'Small', '2': 'At least one ovum >1 mm'};
+  } else if (cleanKey.endsWith('::oviductappearance')) {
+    return {'0': 'Straight', '1': 'Convoluted'};
+  } else if (cleanKey.endsWith('::fat')) {
+    return {
+      '0': 'No Fat',
+      '1': 'Trace',
+      '2': 'Light',
+      '3': 'Moderate',
+      '4': 'Heavy',
+      '5': 'Extremely Heavy'
+    };
+  } else if (cleanKey.endsWith('::bodymolt')) {
+    return {
+      '0': 'None',
+      '1': 'Trace',
+      '2': 'Light',
+      '3': 'Moderate',
+      '4': 'Heavy'
+    };
+  } else if (cleanKey.endsWith('::echolocation')) {
+    return {'0': 'FM', '1': 'CF', '2': 'QCF', '3': 'None'};
+  } else if (cleanKey.endsWith('::broodpatch') ||
+      cleanKey.endsWith('::hasbursa') ||
+      cleanKey.endsWith('::wingismolt') ||
+      cleanKey.endsWith('::tailismolt') ||
+      cleanKey.endsWith('::showbatfields') ||
+      cleanKey.endsWith('::showechofields')) {
+    return {'0': 'No', '1': 'Yes'};
+  }
+  return {};
 }

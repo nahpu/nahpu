@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:nahpu/services/templates/template_canvas_snap_service.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -35,6 +36,8 @@ class DraggableShapeChip extends StatefulWidget {
     this.onDragStateChanged,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapEnabled = true,
+    this.snapTargets = const [],
   });
 
   final String shapeType; // 'rect', 'ellipse', 'circle', 'triangle', 'polygon'
@@ -66,6 +69,8 @@ class DraggableShapeChip extends StatefulWidget {
   final ValueChanged<bool>? onDragStateChanged;
   final bool isLocked;
   final bool isVisible;
+  final bool snapEnabled;
+  final List<CanvasSnapTarget> snapTargets;
 
   @override
   State<DraggableShapeChip> createState() => DraggableShapeChipState();
@@ -74,6 +79,8 @@ class DraggableShapeChip extends StatefulWidget {
 class DraggableShapeChipState extends State<DraggableShapeChip> {
   static const double _handleVisual = 16;
   static const double _handleHit = 36;
+  static const double _snapTolerancePx = 4;
+  static const double _snapGuideWidthPx = 1.5;
 
   void _deferSetState(VoidCallback fn) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -103,6 +110,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   Offset? _imagePanOriginMm;
   Offset _imagePanAccumMm = Offset.zero;
   Offset? _imageDragLiveMm;
+  final CanvasSnapSession _snapSession = CanvasSnapSession();
+  CanvasSnapResult? _snapResult;
   int _imageMoveSession = 0;
 
   Offset _mmDeltaFromGlobalDrag(Offset globalPos, Offset globalDelta) {
@@ -181,6 +190,13 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   @override
   void didUpdateWidget(covariant DraggableShapeChip oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isSelected && !widget.isSelected) {
+      _clearTransientInteractionState();
+    }
+    if (oldWidget.snapEnabled && !widget.snapEnabled) {
+      _snapSession.reset();
+      _snapResult = null;
+    }
     final liveRect = _resizeLiveRect;
     if (liveRect == null) return;
 
@@ -307,10 +323,32 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
     _imageMovePanLastGlobal = null;
     _imagePanOriginMm = null;
     _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _imageMoveSession) return;
-      setState(() => _imageDragLiveMm = null);
+      setState(() {
+        _imageDragLiveMm = null;
+        _snapResult = null;
+      });
     });
+  }
+
+  void _clearTransientInteractionState() {
+    _moving = false;
+    _imageDragLiveMm = null;
+    _imageMovePanLastGlobal = null;
+    _imagePanOriginMm = null;
+    _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
+    _snapResult = null;
+    _resizeCorner = null;
+    _resizeStart = null;
+    _resizeAccum = Offset.zero;
+    _resizeLiveRect = null;
+    _resizePanLastGlobal = null;
+    _rotateStartFingerRad = null;
+    _rotateStartElemDeg = null;
+    _rotateLiveDeg = null;
   }
 
   @override
@@ -352,7 +390,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
       ..rotateZ(rad)
       ..translateByDouble(-pivotX, -pivotY, 0, 1);
 
-    return Positioned(
+    final chip = Positioned(
       left: left - padL,
       top: top - padT,
       child: Transform(
@@ -371,8 +409,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                 child: GestureDetector(
                   key: _measureKey,
                   behavior: HitTestBehavior.opaque,
-                  onTapDown: (_) => widget.onTap?.call(),
-                  onTap: widget.onTap,
+                  onTapDown:
+                      widget.isLocked ? (_) => widget.onTap?.call() : null,
+                  onTap: widget.isLocked ? null : widget.onTap,
                   onPanStart: widget.isLocked
                       ? null
                       : (d) {
@@ -381,6 +420,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                           _imagePanOriginMm = widget.position;
                           _imagePanAccumMm = Offset.zero;
                           _imageDragLiveMm = null;
+                          _snapSession.reset();
+                          _snapResult = null;
                           _deferSetState(() => _moving = true);
                           _imageMovePanLastGlobal = d.globalPosition;
                         },
@@ -414,19 +455,41 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                             _imagePanOriginMm = Offset(cx, cy);
                             _imagePanAccumMm = Offset.zero;
                           }
-                          setState(() => _imageDragLiveMm = clamped);
+                          final snapResult = _snapSession.resolve(
+                            position: clamped,
+                            snapEnabled: widget.snapEnabled,
+                            snapTargets: [
+                              CanvasSnapTarget(
+                                xMm: widget.templateWidthMm / 2,
+                                yMm: widget.templateHeightMm / 2,
+                              ),
+                              ...widget.snapTargets,
+                            ],
+                            toleranceMm: _snapTolerancePx / widget.scale,
+                          );
+                          setState(() {
+                            _imageDragLiveMm = snapResult.position;
+                            _snapResult =
+                                snapResult.hasGuide ? snapResult : null;
+                          });
                         },
                   onPanEnd: widget.isLocked
                       ? null
                       : (_) {
-                          _deferSetState(() => _moving = false);
+                          setState(() {
+                            _moving = false;
+                            _snapResult = null;
+                          });
                           _finishImageMoveGesture();
                           widget.onDragStateChanged?.call(false);
                         },
                   onPanCancel: widget.isLocked
                       ? null
                       : () {
-                          _deferSetState(() => _moving = false);
+                          setState(() {
+                            _moving = false;
+                            _snapResult = null;
+                          });
                           _finishImageMoveGesture();
                           widget.onDragStateChanged?.call(false);
                         },
@@ -629,6 +692,35 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
           ),
         ),
       ),
+    );
+    final snapResult = _snapResult;
+    if (snapResult == null) return chip;
+    final guideColor = scheme.primary.withValues(alpha: 0.65);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (snapResult.verticalGuideMm != null)
+          Positioned(
+            left: snapResult.verticalGuideMm! * widget.scale +
+                widget.canvasInsetXPx -
+                _snapGuideWidthPx / 2,
+            top: widget.canvasInsetYPx,
+            width: _snapGuideWidthPx,
+            height: widget.templateHeightMm * widget.scale,
+            child: IgnorePointer(child: ColoredBox(color: guideColor)),
+          ),
+        if (snapResult.horizontalGuideMm != null)
+          Positioned(
+            left: widget.canvasInsetXPx,
+            top: widget.canvasInsetYPx +
+                snapResult.horizontalGuideMm! * widget.scale -
+                _snapGuideWidthPx / 2,
+            width: widget.templateWidthMm * widget.scale,
+            height: _snapGuideWidthPx,
+            child: IgnorePointer(child: ColoredBox(color: guideColor)),
+          ),
+        chip,
+      ],
     );
   }
 }

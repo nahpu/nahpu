@@ -1,7 +1,7 @@
-import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_dim_field.dart';
+import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
 class LinePropertiesPanel extends StatefulWidget {
@@ -92,7 +92,18 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.palette_outlined, size: 22),
+                            isSelected: _showStrokeOptions,
+                            tooltip: 'Line stroke options',
+                            onPressed: () {
+                              setState(() {
+                                _showStrokeOptions = !_showStrokeOptions;
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
                           Text(
                             'Rotation',
                             style: Theme.of(context).textTheme.labelMedium,
@@ -104,17 +115,6 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                               widget.page1,
                               widget.line.copyWith(rotationDegrees: v),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          IconButton(
-                            icon: const Icon(Icons.settings_outlined, size: 22),
-                            isSelected: _showStrokeOptions,
-                            tooltip: 'Line stroke options',
-                            onPressed: () {
-                              setState(() {
-                                _showStrokeOptions = !_showStrokeOptions;
-                              });
-                            },
                           ),
                         ],
                       ),
@@ -146,7 +146,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
-                            _ColorSwatch(
+                            TemplateColorSwatch(
                               color: Color(widget.line.colorArgb),
                               borderColor: scheme.outline,
                               title: 'Select color',
@@ -242,69 +242,6 @@ class _RotationPicker extends StatelessWidget {
       onSelectionChanged: (next) {
         if (next.isNotEmpty) onChanged(next.first);
       },
-    );
-  }
-}
-
-class _ColorSwatch extends StatelessWidget {
-  const _ColorSwatch({
-    required this.color,
-    required this.borderColor,
-    required this.title,
-    required this.onPicked,
-  });
-
-  final Color color;
-  final Color borderColor;
-  final String title;
-  final ValueChanged<Color> onPicked;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () async {
-        var selectedColor = color;
-        final picked = await ColorPicker(
-          color: selectedColor,
-          onColorChanged: (c) => selectedColor = c,
-          heading: Text(title, style: Theme.of(context).textTheme.titleSmall),
-          subheading: Text(
-            'Select color shade',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          wheelSubheading: Text(
-            'Selected color and its shades',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          showColorName: true,
-          showColorCode: false,
-          copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-            copyButton: true,
-            pasteButton: true,
-            longPressMenu: true,
-          ),
-          colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
-          colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
-          pickersEnabled: const <ColorPickerType, bool>{
-            ColorPickerType.both: false,
-            ColorPickerType.primary: true,
-            ColorPickerType.accent: true,
-            ColorPickerType.bw: false,
-            ColorPickerType.custom: true,
-            ColorPickerType.wheel: true,
-          },
-        ).showPickerDialog(context);
-        if (picked) onPicked(selectedColor);
-      },
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: color,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(4),
-        ),
-      ),
     );
   }
 }

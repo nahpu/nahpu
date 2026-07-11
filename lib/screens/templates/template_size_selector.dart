@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_settings_services.dart';
 
 class TemplatePreset {
   final String name;

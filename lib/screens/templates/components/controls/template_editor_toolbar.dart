@@ -5,6 +5,11 @@ import 'package:nahpu/screens/templates/template_size_selector.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
 
+/// Command bar for template editing actions and canvas-level view toggles.
+///
+/// The toolbar intentionally exposes canvas view state such as grid, snapping,
+/// and movement lock beside editing commands so keyboard shortcuts and visible
+/// buttons stay aligned.
 class TemplateEditorToolbar extends StatelessWidget {
   const TemplateEditorToolbar({
     super.key,
@@ -19,6 +24,8 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.templateHeightMm,
     required this.isBorderPanelOpen,
     required this.showGrid,
+    required this.snapEnabled,
+    required this.canvasMovementLocked,
     required this.onSaveTemplate,
     required this.onTemplateSelected,
     required this.onDuplexChanged,
@@ -31,6 +38,8 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.onMirrorToggled,
     required this.onBorderPanelToggled,
     required this.onGridToggled,
+    required this.onSnapToggled,
+    required this.onCanvasMovementLockToggled,
     required this.onSelectPreviewSpecimen,
     this.onUndo,
     this.onRedo,
@@ -49,6 +58,8 @@ class TemplateEditorToolbar extends StatelessWidget {
   final double templateHeightMm;
   final bool isBorderPanelOpen;
   final bool showGrid;
+  final bool snapEnabled;
+  final bool canvasMovementLocked;
   final VoidCallback onSaveTemplate;
   final ValueChanged<String> onTemplateSelected;
   final ValueChanged<bool> onDuplexChanged;
@@ -61,6 +72,8 @@ class TemplateEditorToolbar extends StatelessWidget {
   final VoidCallback onMirrorToggled;
   final VoidCallback onBorderPanelToggled;
   final VoidCallback onGridToggled;
+  final VoidCallback onSnapToggled;
+  final VoidCallback onCanvasMovementLockToggled;
   final VoidCallback onSelectPreviewSpecimen;
   final VoidCallback? onUndo;
   final VoidCallback? onRedo;
@@ -91,16 +104,6 @@ class TemplateEditorToolbar extends StatelessWidget {
                   icon: const Icon(Icons.info_outline_rounded),
                   onPressed: () => _showTemplateInfoDialog(context),
                 ),
-                const SizedBox(width: 8),
-                SegmentedButton<bool>(
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(value: false, label: Text('1 sided')),
-                    ButtonSegment(value: true, label: Text('2 sided')),
-                  ],
-                  selected: {isDuplex},
-                  onSelectionChanged: (values) => onDuplexChanged(values.first),
-                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -127,6 +130,7 @@ class TemplateEditorToolbar extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                   ],
+                  const SizedBox(width: 12),
                   Text(
                     'Template size:',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -177,7 +181,7 @@ class TemplateEditorToolbar extends StatelessWidget {
                     icon: Icons.save_outlined,
                     onPressed: onSaveTemplate,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 12),
                   _ToolbarIconButton(
                     tooltip: 'Undo',
                     icon: Icons.undo,
@@ -214,6 +218,44 @@ class TemplateEditorToolbar extends StatelessWidget {
                       size: 22,
                     ),
                   ),
+                  IconButton(
+                    tooltip: snapEnabled ? 'Disable snap' : 'Enable snap',
+                    style: IconButton.styleFrom(
+                      foregroundColor: snapEnabled
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                      backgroundColor: snapEnabled
+                          ? scheme.primaryContainer.withValues(alpha: 0.45)
+                          : null,
+                    ),
+                    onPressed: onSnapToggled,
+                    icon: Icon(
+                      snapEnabled
+                          ? Icons.center_focus_strong
+                          : Icons.center_focus_weak,
+                      size: 22,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: canvasMovementLocked
+                        ? 'Unlock canvas movement'
+                        : 'Lock canvas movement',
+                    style: IconButton.styleFrom(
+                      foregroundColor: canvasMovementLocked
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                      backgroundColor: canvasMovementLocked
+                          ? scheme.primaryContainer.withValues(alpha: 0.45)
+                          : null,
+                    ),
+                    onPressed: onCanvasMovementLockToggled,
+                    icon: Icon(
+                      canvasMovementLocked
+                          ? Icons.lock_outline
+                          : Icons.lock_open_outlined,
+                      size: 22,
+                    ),
+                  ),
                   if (template.recordType != RecordType.none)
                     IconButton(
                       tooltip: 'Select specimen for text preview',
@@ -223,6 +265,17 @@ class TemplateEditorToolbar extends StatelessWidget {
                       onPressed: onSelectPreviewSpecimen,
                       icon: const Icon(Icons.manage_search, size: 22),
                     ),
+                  const SizedBox(width: 24),
+                  SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: false, label: Text('1 sided')),
+                      ButtonSegment(value: true, label: Text('2 sided')),
+                    ],
+                    selected: {isDuplex},
+                    onSelectionChanged: (values) =>
+                        onDuplexChanged(values.first),
+                  ),
                 ],
               ),
             ),

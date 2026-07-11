@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/templates/template_canvas_snap_service.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 
 void main() {
@@ -100,6 +101,66 @@ void main() {
       );
 
       expectOffsetClose(clamped, const Offset(-10, 30));
+    });
+  });
+
+  group('canvas snap', () {
+    test('snaps to the nearest target within tolerance', () {
+      final result = resolveCanvasMove(
+        position: const Offset(49.4, 12.2),
+        snapEnabled: true,
+        snapTargets: const [
+          CanvasSnapTarget(xMm: 50, yMm: 10),
+          CanvasSnapTarget(xMm: 60, yMm: 12),
+        ],
+        toleranceMm: 1,
+      );
+
+      expectOffsetClose(result.position, const Offset(50, 12));
+      expect(result.verticalGuideMm, 50);
+      expect(result.horizontalGuideMm, 12);
+    });
+
+    test('returns raw position and no guides when snap is disabled', () {
+      final result = resolveCanvasMove(
+        position: const Offset(49.4, 12.2),
+        snapEnabled: false,
+        snapTargets: const [CanvasSnapTarget(xMm: 50, yMm: 12)],
+        toleranceMm: 1,
+      );
+
+      expectOffsetClose(result.position, const Offset(49.4, 12.2));
+      expect(result.hasGuide, isFalse);
+    });
+
+    test('holds a snapped target briefly then releases outside hysteresis', () {
+      final session = CanvasSnapSession();
+      const targets = [CanvasSnapTarget(xMm: 50, yMm: 12)];
+
+      final acquired = session.resolve(
+        position: const Offset(49.6, 12.3),
+        snapEnabled: true,
+        snapTargets: targets,
+        toleranceMm: 0.5,
+      );
+      expectOffsetClose(acquired.position, const Offset(50, 12));
+
+      final held = session.resolve(
+        position: const Offset(50.7, 12.7),
+        snapEnabled: true,
+        snapTargets: targets,
+        toleranceMm: 0.5,
+      );
+      expectOffsetClose(held.position, const Offset(50, 12));
+
+      final released = session.resolve(
+        position: const Offset(50.8, 12.8),
+        snapEnabled: true,
+        snapTargets: targets,
+        toleranceMm: 0.5,
+      );
+      expectOffsetClose(released.position, const Offset(50.8, 12.8));
+      expect(released.hasGuide, isFalse);
     });
   });
 

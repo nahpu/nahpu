@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -34,6 +35,206 @@ void main() {
 
       final result = substituteDocumentPlaceholders(text, data);
       expect(result, 'Age: Adult - Weight: [weight]');
+    });
+
+    test('substituteDocumentPlaceholders uses fallback for missing keys', () {
+      final text =
+          'Catalog: [specimen::catalogNumber??specimen::catalogNumber]';
+      final result = substituteDocumentPlaceholders(text, {});
+
+      expect(result, 'Catalog: specimen::catalogNumber');
+    });
+
+    test('substituteDocumentPlaceholders uses fallback for empty values', () {
+      final text = 'Weight: [weight??N/A]';
+      final result = substituteDocumentPlaceholders(text, {'weight': ''});
+
+      expect(result, 'Weight: N/A');
+    });
+
+    test('substituteDocumentPlaceholders resolves short fallback keys', () {
+      final text = 'Catalog: [catalogNum??specimen::catalogNum]';
+      final result = substituteDocumentPlaceholders(
+        text,
+        {'specimen::catalogNum': 'NAHPU-001'},
+      );
+
+      expect(result, 'Catalog: NAHPU-001');
+    });
+
+    test('substituteDocumentPlaceholders resolves full keys from short data',
+        () {
+      final text = 'Catalog: [specimen::catalogNum??specimen::catalogNum]';
+      final result = substituteDocumentPlaceholders(
+        text,
+        {'catalogNum': 'NAHPU-002'},
+      );
+
+      expect(result, 'Catalog: NAHPU-002');
+    });
+
+    test('substituteDocumentPlaceholders uses text property null fallback', () {
+      const text = 'Weight: [weight]';
+      final result = substituteDocumentPlaceholders(
+        text,
+        {'weight': ''},
+        nullFallbackOption: kTemplateNullFallbackNa,
+      );
+
+      expect(result, 'Weight: N/A');
+      expect(text, 'Weight: [weight]');
+    });
+
+    test('substituteDocumentPlaceholders uses field name null fallback', () {
+      final result = substituteDocumentPlaceholders(
+        'Catalog: [specimen::catalogNum]',
+        {},
+        nullFallbackOption: kTemplateNullFallbackField,
+      );
+
+      expect(result, 'Catalog: specimen::catalogNum');
+    });
+
+    test(
+        'substituteDocumentPlaceholders maps encoded fields using enum default',
+        () {
+      final text = 'Testis: [mammalMeasurement::testisPosition]';
+      final data = {
+        'mammalMeasurement::testisPosition': '0',
+      };
+      final result = substituteDocumentPlaceholders(
+        text,
+        data,
+        textType: 'encoded',
+        formatOption: 'enum',
+      );
+      expect(result, 'Testis: Scrotal');
+    });
+
+    test(
+        'substituteDocumentPlaceholders maps encoded fields using custom mappings',
+        () {
+      final text = 'Sex: [measurement::sex]';
+      final data = {
+        'measurement::sex': '1',
+      };
+      final result = substituteDocumentPlaceholders(
+        text,
+        data,
+        textType: 'encoded',
+        formatOption: 'custom_map:0=M,1=F,2=U',
+      );
+      expect(result, 'Sex: F');
+    });
+
+    test(
+        'substituteDocumentPlaceholders maps encoded short keys using enum default',
+        () {
+      final text = 'Testis: [testisPosition]';
+      final data = {
+        'mammalMeasurement::testisPosition': '0',
+      };
+      final result = substituteDocumentPlaceholders(
+        text,
+        data,
+        textType: 'encoded',
+        formatOption: 'enum',
+      );
+      expect(result, 'Testis: Scrotal');
+    });
+  });
+
+  group('Site coordinate field values', () {
+    test('buildCoordinateFieldValues exposes coordinate namespace fields', () {
+      final values = buildCoordinateFieldValues([
+        const CoordinateData(
+          id: 7,
+          nameId: 'COORD-A',
+          decimalLatitude: 1.2345,
+          decimalLongitude: 6.789,
+          elevationInMeter: 12.0,
+          datum: 'WGS84',
+          uncertaintyInMeters: 25,
+          gpsUnit: 'GPS',
+          notes: 'First',
+          siteID: 3,
+        ),
+        const CoordinateData(
+          id: 8,
+          nameId: 'COORD-B',
+          decimalLatitude: -2.5,
+          decimalLongitude: 10.25,
+          siteID: 3,
+        ),
+      ]);
+
+      expect(values['coordinate::id'], '7|8');
+      expect(values['coordinate::nameId'], 'COORD-A|COORD-B');
+      expect(values['coordinate::decimalLatitude'], '1.2345|-2.5');
+      expect(values['coordinate::decimalLongitude'], '6.789|10.25');
+      expect(values['coordinate::datum'], 'WGS84');
+      expect(values['coordinate::notes'], 'First');
+      expect(values['coordinate::siteID'], '3|3');
+    });
+  });
+
+  group('Collecting personnel field values', () {
+    test('uses collPersonnel rows and preserves event-specific roles', () {
+      final values = buildCollPersonnelFieldValues(const [
+        CollPersonnelData(
+          id: 1,
+          eventID: 7,
+          personnelId: 'person-a',
+          name: 'Collector A',
+          role: 'Recorder',
+        ),
+        CollPersonnelData(
+          id: 2,
+          eventID: 7,
+          personnelId: 'person-b',
+          name: 'Collector B',
+          role: 'Preparator',
+        ),
+      ]);
+
+      expect(values['collPersonnel::name'], 'Collector A|Collector B');
+      expect(values['collPersonnel::role'], 'Recorder|Preparator');
+      expect(values['collPersonnel::personnelId'], 'person-a|person-b');
+      expect(values, isNot(contains('personnel::role')));
+      expect(
+        buildCollPersonnelSummary(const [
+          CollPersonnelData(
+            id: 1,
+            eventID: 7,
+            personnelId: 'person-a',
+            name: 'Collector A',
+            role: 'Recorder',
+          ),
+          CollPersonnelData(
+            id: 2,
+            eventID: 7,
+            personnelId: 'person-b',
+            name: 'Collector B',
+            role: 'Preparator',
+          ),
+        ]),
+        'Collector A;Recorder|Collector B;Preparator',
+      );
+    });
+
+    test('does not create a summary row without an event personnel name', () {
+      expect(
+        buildCollPersonnelSummary(const [
+          CollPersonnelData(
+            id: 1,
+            eventID: 7,
+            personnelId: 'person-a',
+            name: null,
+            role: 'Recorder',
+          ),
+        ]),
+        isEmpty,
+      );
     });
   });
 
@@ -156,6 +357,151 @@ void main() {
   });
 
   group('DocumentWriter auto-fill sizing tests', () {
+    test('fills every complete row without exceeding the usable page', () {
+      expect(
+        DocumentWriter.maxAutoFillRepeatCountForTesting(
+          rowHeight: 24,
+          usedHeight: 48,
+          usableHeight: 120,
+        ),
+        3,
+      );
+      expect(
+        DocumentWriter.maxAutoFillRepeatCountForTesting(
+          rowHeight: 24,
+          usedHeight: 49,
+          usableHeight: 120,
+        ),
+        2,
+      );
+    });
+
+    test('page padding reduces the height available to auto-fill rows', () {
+      final usableHeight = DocumentWriter.usablePageHeightPtForTesting(
+        sheetHeightPt: documentPdfMmToPt(297),
+        topPaddingMm: 10,
+        bottomPaddingMm: 20,
+      );
+
+      expect(usableHeight, closeTo(documentPdfMmToPt(267), 0.001));
+      expect(
+        DocumentWriter.maxAutoFillRepeatCountForTesting(
+          rowHeight: documentPdfMmToPt(50),
+          usedHeight: 0,
+          usableHeight: usableHeight,
+        ),
+        5,
+      );
+    });
+
+    test('static auto-fill height expands to the visible image bottom', () {
+      final page = TemplatePage(
+        customImages: const [
+          CustomImageElement(
+            id: 'image',
+            imagePath: 'logo.png',
+            xMm: 0,
+            yMm: 42,
+            widthMm: 20,
+            heightMm: 16,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(50),
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, closeTo(documentPdfMmToPt(58), 0.001));
+    });
+
+    test('static auto-fill height expands to the visible shape bottom', () {
+      final page = TemplatePage(
+        customShapes: const [
+          CustomShapeElement(
+            id: 'shape',
+            shapeType: 'rect',
+            polygonSides: 4,
+            xMm: 0,
+            yMm: 24,
+            widthMm: 35,
+            heightMm: 12,
+            strokeThicknessPt: 2,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(30),
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, closeTo(documentPdfMmToPt(36) + 2, 0.001));
+    });
+
+    test('static auto-fill height expands to the visible line bottom', () {
+      final page = TemplatePage(
+        customLines: const [
+          CustomLineElement(
+            id: 'line',
+            xMm: 0,
+            yMm: 64,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(60),
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, closeTo(documentPdfMmToPt(64) + 1.5, 0.001));
+    });
+
+    test('auto-fill retains the configured template height for short content',
+        () {
+      final page = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'short',
+          text: 'Short label',
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+        ),
+      ]);
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(50),
+        templatePadTopMm: 2,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 3,
+      );
+
+      expect(height, closeTo(documentPdfMmToPt(55), 0.001));
+    });
+
     test('estimates taller cells for wrapped auto-height text', () {
       final shortPage = TemplatePage(customTexts: [
         CustomTextElement(
@@ -233,7 +579,7 @@ void main() {
       final page = TemplatePage(customTexts: [
         CustomTextElement(
           id: 'dynamic',
-          text: 'Short dynamic narrative.',
+          text: List.filled(20, 'Dynamic narrative text').join(' '),
           xMm: 0,
           yMm: 0,
           fontSizePt: 10,
@@ -245,14 +591,42 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
         templatePadBottomMm: 0,
       );
 
-      expect(height, greaterThan(0));
+      expect(height, greaterThan(documentPdfMmToPt(10)));
+    });
+
+    test('dynamic text element includes its own growth in estimated height',
+        () {
+      final page = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'dynamic',
+          text: List.filled(20, 'Very long dynamic text narrative').join(' '),
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+          heightMm: 5,
+          isDynamic: true,
+        ),
+      ]);
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(10),
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(height, greaterThan(documentPdfMmToPt(20)));
     });
 
     test('dynamic text row height includes bottom line elements', () {
@@ -282,7 +656,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -290,7 +664,7 @@ void main() {
       );
 
       expect(height, greaterThan(documentPdfMmToPt(80)));
-      expect(height, lessThan(700));
+      expect(height, lessThan(documentPdfMmToPt(100)));
     });
 
     test('dynamic text growth pushes lower elements in row height', () {
@@ -321,7 +695,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -329,7 +703,7 @@ void main() {
       );
 
       expect(height, greaterThan(documentPdfMmToPt(35)));
-      expect(height, lessThan(700));
+      expect(height, lessThan(documentPdfMmToPt(100)));
     });
 
     test('dynamic text without height pushes lower elements', () {
@@ -359,7 +733,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -367,6 +741,202 @@ void main() {
       );
 
       expect(height, greaterThan(documentPdfMmToPt(20)));
+    });
+
+    test('dynamic markdown tables are measured as rendered Typst content', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'dynamic_table',
+            text: '#table(columns: 3, [Name], [Lat], [Long], [A], [1], [2])',
+            xMm: 0,
+            yMm: 0,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            heightMm: 4,
+            textType: 'markdown',
+            isDynamic: true,
+          ),
+        ],
+        customLines: [
+          CustomLineElement(
+            id: 'below-table',
+            xMm: 0,
+            yMm: 8,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+      );
+
+      expect(
+        typst,
+        contains('measure(box(width: ${documentPdfMmToPt(55)}pt)['
+            '#block(above: 0pt, below: 0pt)[#set text(size: 10.0pt'),
+      );
+      expect(typst, contains('#table(columns: 3'));
+      expect(typst, contains('flow_clearance_dynamic_table'));
+      expect(typst, contains('${documentPdfMmToPt(2)}pt'));
+      expect(typst, isNot(contains(r'\#table')));
+    });
+
+    test('multiple dynamic texts flow with clearance before lower elements',
+        () {
+      final page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'first',
+            text: List.filled(12, 'First dynamic paragraph').join(' '),
+            xMm: 0,
+            yMm: 0,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+          CustomTextElement(
+            id: 'second',
+            text: List.filled(12, 'Second dynamic paragraph').join(' '),
+            xMm: 0,
+            yMm: 6,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+        ],
+        customLines: const [
+          CustomLineElement(
+            id: 'below-dynamic',
+            xMm: 0,
+            yMm: 10,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(10),
+      );
+      final estimatedHeight =
+          DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(10),
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(
+        typst,
+        contains('flow_top_second = calc.max(flow_top_second, '
+            'flow_clearance_first)'),
+      );
+      expect(typst, contains('flow_clearance_second'));
+      expect(typst, contains('${documentPdfMmToPt(2)}pt'));
+      expect(estimatedHeight, greaterThan(documentPdfMmToPt(25)));
+    });
+
+    test('near-aligned dynamic texts stay in the same PDF flow row', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'left',
+            text: 'Left dynamic text',
+            xMm: 0,
+            yMm: 10,
+            fontSizePt: 10,
+            maxWidthMm: 25,
+            isDynamic: true,
+          ),
+          CustomTextElement(
+            id: 'right',
+            text: 'Right dynamic text',
+            xMm: 30,
+            yMm: 10.8,
+            fontSizePt: 10,
+            maxWidthMm: 25,
+            isDynamic: true,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(30),
+      );
+
+      expect(
+        typst,
+        isNot(contains('flow_top_right = calc.max(flow_top_right')),
+      );
+    });
+
+    test('uses the canvas top-left origin for template element placement', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'rotated-text',
+            text: 'Text',
+            xMm: 12,
+            yMm: 18,
+            rotationDegrees: 90,
+          ),
+        ],
+        customLines: [
+          CustomLineElement(
+            id: 'line',
+            xMm: 20,
+            yMm: 24,
+            lengthMm: 30,
+          ),
+        ],
+        customShapes: [
+          CustomShapeElement(
+            id: 'shape',
+            xMm: 6,
+            yMm: 8,
+            widthMm: 10,
+            heightMm: 12,
+            shapeType: 'rect',
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+      );
+
+      expect(
+        typst,
+        contains(
+          '#place(top + left, dx: ${documentPdfMmToPt(12)}pt, '
+          'dy: ${documentPdfMmToPt(18)}pt)[#rotate(90deg, '
+          'origin: top + left)',
+        ),
+      );
+      expect(
+        typst,
+        contains('#place(top + left, dx: ${documentPdfMmToPt(20)}pt, '
+            'dy: ${documentPdfMmToPt(24)}pt)'),
+      );
+      expect(
+        typst,
+        contains('#place(top + left, dx: ${documentPdfMmToPt(6)}pt, '
+            'dy: ${documentPdfMmToPt(8)}pt)'),
+      );
     });
 
     test('text box background and stroke add configured padding', () {
@@ -558,6 +1128,12 @@ void main() {
         formatFieldPlaceholderText(text, true),
         '[catalogNum] [locality]',
       );
+
+      const textWithFallback = '[specimen::catalogNum??specimen::catalogNum]';
+      expect(
+        formatFieldPlaceholderText(textWithFallback, true),
+        '[catalogNum??specimen::catalogNum]',
+      );
     });
 
     test('Number formatting formats double values to specified decimals', () {
@@ -574,6 +1150,17 @@ void main() {
       const textWithUnits = 'Weight: 12.34 g';
       expect(
           formatTemplateText(textWithUnits, 'number', '1'), 'Weight: 12.3 g');
+    });
+
+    test('Encoded text formatting applies casing styles to mapped values', () {
+      expect(
+        formatTemplateText('scrotal', 'encoded', 'enum', 'uppercase'),
+        'SCROTAL',
+      );
+      expect(
+        formatTemplateText('scrotal', 'encoded', 'enum', 'capitalize'),
+        'Scrotal',
+      );
     });
 
     group('Integrated Text-to-QR tests', () {
@@ -619,6 +1206,8 @@ void main() {
         expect(ct.qrBgColorArgb, 0xFFFFFFFF);
         expect(ct.qrShape, 'square');
         expect(ct.isDynamic, false);
+        expect(ct.nullFallbackOption, kTemplateNullFallbackBlank);
+        expect(ct.customNullFallbackText, isEmpty);
         expect(ct.backgroundColorArgb, isNull);
         expect(ct.borderColorArgb, isNull);
         expect(ct.borderWidthPt, 0);
@@ -640,6 +1229,18 @@ void main() {
 
         final deserialized = CustomTextElement.fromJson(json);
         expect(deserialized.isDynamic, true);
+      });
+
+      test('CustomTextElement migrates legacy placeholder fallbacks', () {
+        final ct = CustomTextElement.fromJson({
+          'id': 'ct_legacy_null',
+          'text': 'Catalog: [specimen::catalogNum??N/A]',
+          'xMm': 0,
+          'yMm': 0,
+        });
+
+        expect(ct.text, 'Catalog: [specimen::catalogNum]');
+        expect(ct.nullFallbackOption, kTemplateNullFallbackNa);
       });
 
       test('CustomTextElement JSON serialization retains background and border',

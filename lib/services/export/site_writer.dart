@@ -159,8 +159,7 @@ class SiteWriterServices extends AppServices {
     String datum = data.datum != null ? '${data.datum};' : 'Unknown datum;';
     String gpsUnit =
         data.gpsUnit != null ? '${data.gpsUnit}' : 'Unknown GPS unit';
-    String notes =
-        data.notes != null || data.notes!.isNotEmpty ? '${data.notes}' : '';
+    final notes = data.notes?.isNotEmpty == true ? '${data.notes}' : '';
     return [nameId, latLong, elevation, uncertainty, datum, gpsUnit, notes];
   }
 

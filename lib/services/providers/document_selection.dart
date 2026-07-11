@@ -4,7 +4,7 @@ import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/template_service.dart';
+import 'package:nahpu/services/templates/template_service.dart';
 
 final documentSpecimenSelectionProvider =
     NotifierProvider.autoDispose<DocumentSpecimenSelection, Set<String>>(
@@ -12,14 +12,25 @@ final documentSpecimenSelectionProvider =
 );
 
 class DocumentSpecimenSelection extends Notifier<Set<String>> {
+  bool _hasUserSelection = false;
+  Set<String> _selection = <String>{};
+
   @override
   Set<String> build() {
     final specimens = ref.watch(specimenEntryProvider).value ?? [];
-    return specimens.map((e) => e.uuid).toSet();
+    final allIds = specimens.map((e) => e.uuid).toSet();
+    if (!_hasUserSelection) {
+      _selection = allIds;
+      return allIds;
+    }
+    _selection = _selection.intersection(allIds);
+    return _selection;
   }
 
   void updateSelection(Set<String> selection) {
-    state = selection;
+    _hasUserSelection = true;
+    _selection = selection;
+    state = _selection;
   }
 }
 
@@ -29,14 +40,25 @@ final documentSiteSelectionProvider =
 );
 
 class DocumentSiteSelection extends Notifier<Set<int>> {
+  bool _hasUserSelection = false;
+  Set<int> _selection = <int>{};
+
   @override
   Set<int> build() {
     final sites = ref.watch(siteEntryProvider).value ?? [];
-    return sites.map((e) => e.id).toSet();
+    final allIds = sites.map((e) => e.id).toSet();
+    if (!_hasUserSelection) {
+      _selection = allIds;
+      return allIds;
+    }
+    _selection = _selection.intersection(allIds);
+    return _selection;
   }
 
   void updateSelection(Set<int> selection) {
-    state = selection;
+    _hasUserSelection = true;
+    _selection = selection;
+    state = _selection;
   }
 }
 
@@ -46,14 +68,25 @@ final documentEventSelectionProvider =
 );
 
 class DocumentEventSelection extends Notifier<Set<int>> {
+  bool _hasUserSelection = false;
+  Set<int> _selection = <int>{};
+
   @override
   Set<int> build() {
     final events = ref.watch(collEventEntryProvider).value ?? [];
-    return events.map((e) => e.id).toSet();
+    final allIds = events.map((e) => e.id).toSet();
+    if (!_hasUserSelection) {
+      _selection = allIds;
+      return allIds;
+    }
+    _selection = _selection.intersection(allIds);
+    return _selection;
   }
 
   void updateSelection(Set<int> selection) {
-    state = selection;
+    _hasUserSelection = true;
+    _selection = selection;
+    state = _selection;
   }
 }
 
@@ -63,14 +96,25 @@ final documentNarrativeSelectionProvider =
 );
 
 class DocumentNarrativeSelection extends Notifier<Set<int>> {
+  bool _hasUserSelection = false;
+  Set<int> _selection = <int>{};
+
   @override
   Set<int> build() {
     final narratives = ref.watch(narrativeEntryProvider).value ?? [];
-    return narratives.map((e) => e.id).toSet();
+    final allIds = narratives.map((e) => e.id).toSet();
+    if (!_hasUserSelection) {
+      _selection = allIds;
+      return allIds;
+    }
+    _selection = _selection.intersection(allIds);
+    return _selection;
   }
 
   void updateSelection(Set<int> selection) {
-    state = selection;
+    _hasUserSelection = true;
+    _selection = selection;
+    state = _selection;
   }
 }
 
@@ -103,9 +147,23 @@ final blockRecordSelectionProvider = NotifierProvider.family<
 class BlockRecordSelection extends Notifier<Set<String>> {
   BlockRecordSelection(this.arg);
   final BlockRecordSelectionParam arg;
+  bool _hasUserSelection = false;
+  Set<String> _selection = <String>{};
+
+  bool get hasUserSelection => _hasUserSelection;
 
   @override
   Set<String> build() {
+    final allIds = _allRecordIds();
+    if (!_hasUserSelection) {
+      _selection = allIds;
+      return allIds;
+    }
+    _selection = _selection.intersection(allIds);
+    return _selection;
+  }
+
+  Set<String> _allRecordIds() {
     if (arg.recordType == RecordType.specimenRecord) {
       final specimens = ref.watch(specimenEntryProvider).value ?? [];
       return specimens.map((e) => e.uuid).toSet();
@@ -123,7 +181,9 @@ class BlockRecordSelection extends Notifier<Set<String>> {
   }
 
   void updateSelection(Set<String> selection) {
-    state = selection;
+    _hasUserSelection = true;
+    _selection = selection;
+    state = _selection;
   }
 }
 

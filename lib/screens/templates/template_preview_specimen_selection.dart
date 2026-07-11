@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
-import 'package:nahpu/services/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -33,24 +33,6 @@ class _TemplatePreviewSpecimenSelectionScreenState
     super.initState();
     if (widget.recordType == RecordType.specimenRecord) {
       _loadColumns();
-    }
-  }
-
-  Future<void> _loadColumns() async {
-    final db = ref.read(databaseProvider);
-    final settings = DocumentSettingsServices();
-    final storedCols = await settings.getPrintSpecimenTableColumnIds();
-    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
-    if (visible.isEmpty) {
-      visible = normalizePrintSpecimenTableColumnIds(
-        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-        db,
-      );
-    }
-    if (mounted) {
-      setState(() {
-        _visibleColumnIds = visible;
-      });
     }
   }
 
@@ -126,6 +108,24 @@ class _TemplatePreviewSpecimenSelectionScreenState
         ),
       ),
     );
+  }
+
+  Future<void> _loadColumns() async {
+    final db = ref.read(databaseProvider);
+    final settings = DocumentSettingsServices();
+    final storedCols = await settings.getPrintSpecimenTableColumnIds();
+    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
+    if (visible.isEmpty) {
+      visible = normalizePrintSpecimenTableColumnIds(
+        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
+        db,
+      );
+    }
+    if (mounted) {
+      setState(() {
+        _visibleColumnIds = visible;
+      });
+    }
   }
 
   Future<void> _pickColumns() async {

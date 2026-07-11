@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:nahpu/services/templates/template_canvas_snap_service.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
+import 'package:nahpu/screens/templates/template_markdown.dart';
 
 const double _kPdfPointsPerMm = 72.0 / 25.4;
 
@@ -47,6 +49,10 @@ class DraggableChip extends StatefulWidget {
     this.paddingPt = 2.0,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapEnabled = true,
+    this.isMarkdown = false,
+    this.snapTargets = const [],
+    this.onContentSizeChanged,
   });
 
   final String label;
@@ -97,6 +103,15 @@ class DraggableChip extends StatefulWidget {
   final double paddingPt;
   final bool isLocked;
   final bool isVisible;
+  final bool snapEnabled;
+  final bool isMarkdown;
+  final List<CanvasSnapTarget> snapTargets;
+
+  /// Reports the rendered text box size after its intrinsic content changes.
+  ///
+  /// The canvas uses this only for render-time dynamic flow; it never changes
+  /// the persisted element bounds.
+  final ValueChanged<Size>? onContentSizeChanged;
 
   @override
   State<DraggableChip> createState() => DraggableChipState();
@@ -107,15 +122,12 @@ enum _TextCorner { tl, tr, bl, br }
 class DraggableChipState extends State<DraggableChip> {
   static const double _handleVisual = 18;
   static const double _handleHit = 36;
+  static const double _snapTolerancePx = 4;
+  static const double _snapGuideWidthPx = 1.5;
 
   bool _dragging = false;
-
-  void _deferSetState(VoidCallback fn) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(fn);
-    });
-  }
+  final CanvasSnapSession _snapSession = CanvasSnapSession();
+  CanvasSnapResult? _snapResult;
 
   _TextCorner? _resizeCorner;
   double? _resizeStartWidthMm;
@@ -136,6 +148,392 @@ class DraggableChipState extends State<DraggableChip> {
   Offset _panAccumMm = Offset.zero;
   Offset? _dragLiveMm;
   int _templateDragSession = 0;
+  final GlobalKey _contentSizeKey = GlobalKey();
+  bool _contentSizeNotificationQueued = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isCustom) {
+      _scheduleCanvasGoogleFontPrime();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant DraggableChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isSelected && !widget.isSelected) {
+      _clearTransientInteractionState();
+    }
+    if (oldWidget.snapEnabled && !widget.snapEnabled) {
+      _snapSession.reset();
+      _snapResult = null;
+    }
+    if (!widget.isCustom) return;
+    if (oldWidget.fontFamily != widget.fontFamily ||
+        oldWidget.bold != widget.bold ||
+        oldWidget.italic != widget.italic) {
+      _scheduleCanvasGoogleFontPrime();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final insetX = widget.canvasInsetXPx;
+    final insetY = widget.canvasInsetYPx;
+    final posMm = _resizeLivePosMm ?? _dragLiveMm ?? widget.position;
+    final left = posMm.dx * widget.scale + insetX;
+    final top = posMm.dy * widget.scale + insetY;
+    final scheme = Theme.of(context).colorScheme;
+
+    if (widget.isCustom) {
+      // Match PDF: pw.Text at (xMm,yMm), fontSize in pt, rotateZ about top-left.
+      final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
+      final textStyle = customTemplateCanvasTextStyle(
+        fontFamilyRaw: widget.fontFamily,
+        fontSize: fontPx,
+        fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
+        fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
+        underline: widget.underline,
+        strikethrough: widget.strikethrough,
+      ).copyWith(color: Color(widget.colorArgb));
+
+      final activeWidthMm = _resizeLiveWidthMm ?? widget.maxWidthMm;
+      final activeHeightMm =
+          widget.isDynamic ? null : (_resizeLiveHeightMm ?? widget.heightMm);
+      final hasTextBoxStyle = widget.backgroundColorArgb != null ||
+          (widget.borderColorArgb != null && widget.borderWidthPt > 0);
+      final textBoxPaddingPx = hasTextBoxStyle
+          ? widget.paddingPt * widget.scale / _kPdfPointsPerMm
+          : 0.0;
+      final textBoxBorderWidthPx =
+          widget.borderWidthPt * widget.scale / _kPdfPointsPerMm;
+      final textBoxRadiusPx =
+          widget.cornerRadiusPt * widget.scale / _kPdfPointsPerMm;
+      final text = NotificationListener<SizeChangedLayoutNotification>(
+        onNotification: (_) {
+          _scheduleContentSizeReport();
+          return false;
+        },
+        child: SizeChangedLayoutNotifier(
+          child: SizedBox(
+            key: _contentSizeKey,
+            width: activeWidthMm != null ? activeWidthMm * widget.scale : null,
+            height:
+                activeHeightMm != null ? activeHeightMm * widget.scale : null,
+            child: CustomPaint(
+              foregroundPainter:
+                  widget.borderColorArgb == null || widget.borderWidthPt <= 0
+                      ? null
+                      : _TextBoxStrokePainter(
+                          color: Color(widget.borderColorArgb!),
+                          width: textBoxBorderWidthPx,
+                          style: widget.borderStrokeStyle,
+                          radius: textBoxRadiusPx,
+                        ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: widget.backgroundColorArgb == null
+                      ? null
+                      : Color(widget.backgroundColorArgb!),
+                  borderRadius: BorderRadius.circular(textBoxRadiusPx),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(textBoxPaddingPx),
+                  child: Builder(builder: (context) {
+                    final hasNewlines = widget.label.contains('\n');
+                    if (widget.isMarkdown) {
+                      return TemplateMarkdownBody(
+                        data: widget.label,
+                        textStyle: textStyle,
+                        textAlign: widget.textAlign,
+                        clipOverflow: true,
+                      );
+                    }
+                    return Text(
+                      widget.label,
+                      style: textStyle,
+                      softWrap: activeWidthMm != null || hasNewlines,
+                      maxLines:
+                          (activeWidthMm != null || hasNewlines) ? null : 1,
+                      overflow: (activeWidthMm != null || hasNewlines)
+                          ? TextOverflow.clip
+                          : TextOverflow.visible,
+                      textAlign: widget.textAlign,
+                    );
+                  }),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final handleSize = fontPx.clamp(20.0, 32.0);
+      final handlePad = _handleHit / 2;
+      final rot = Matrix4.identity()
+        ..translateByDouble(handlePad, handlePad, 0, 1)
+        ..rotateZ(degreesToRadians(widget.rotationDegrees))
+        ..translateByDouble(-handlePad, -handlePad, 0, 1);
+      final chip = Positioned(
+        left: left - handlePad,
+        top: top - handlePad,
+        child: Transform(
+          transform: rot,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (_) {
+              widget.onSelect?.call();
+              if (widget.isLocked) widget.onTap?.call();
+            },
+            onTap: widget.isLocked ? null : widget.onTap,
+            onDoubleTap: widget.onDoubleTap,
+            onPanStart: widget.isLocked ? null : _onTemplatePanStart,
+            onPanUpdate: widget.isLocked ? null : _panMoveClampedToHitInset,
+            onPanEnd: widget.isLocked ? null : (_) => _onTemplatePanEnd(),
+            onPanCancel: widget.isLocked ? null : _onTemplatePanEnd,
+            child: Opacity(
+              opacity: widget.isVisible ? 1.0 : 0.35,
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(handlePad),
+                    child: Container(
+                      foregroundDecoration: (widget.isSelected || _dragging)
+                          ? BoxDecoration(
+                              border: Border.all(
+                                color: scheme.primary,
+                                width: 2,
+                              ),
+                            )
+                          : (widget.isDynamic
+                              ? BoxDecoration(
+                                  border: Border.all(
+                                    color:
+                                        scheme.secondary.withValues(alpha: 0.5),
+                                    width: 1.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(2),
+                                )
+                              : null),
+                      child: text,
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    top: handlePad,
+                    width: handleSize,
+                    height: handleSize,
+                    child: Center(
+                      child: Icon(
+                        Icons.drag_indicator,
+                        size: handleSize * 0.65,
+                        color: scheme.primary.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                  if (!widget.isLocked &&
+                      (widget.isSelected || _resizeCorner != null) &&
+                      (widget.onMaxWidthChanged != null ||
+                          widget.onHeightChanged != null)) ...[
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: _cornerHandle(_TextCorner.tl, scheme),
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: _cornerHandle(_TextCorner.tr, scheme),
+                    ),
+                    Positioned(
+                      left: 0,
+                      bottom: 0,
+                      child: _cornerHandle(_TextCorner.bl, scheme),
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: _cornerHandle(_TextCorner.br, scheme),
+                    ),
+                  ]
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      final snapResult = _snapResult;
+      if (snapResult == null) {
+        return chip;
+      }
+      final guideColor = scheme.primary.withValues(alpha: 0.65);
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (snapResult.verticalGuideMm != null)
+            Positioned(
+              left: snapResult.verticalGuideMm! * widget.scale +
+                  widget.canvasInsetXPx -
+                  _snapGuideWidthPx / 2,
+              top: widget.canvasInsetYPx,
+              width: _snapGuideWidthPx,
+              height: widget.templateHeightMm * widget.scale,
+              child: IgnorePointer(child: ColoredBox(color: guideColor)),
+            ),
+          if (snapResult.horizontalGuideMm != null)
+            Positioned(
+              left: widget.canvasInsetXPx,
+              top: widget.canvasInsetYPx +
+                  snapResult.horizontalGuideMm! * widget.scale -
+                  _snapGuideWidthPx / 2,
+              width: widget.templateWidthMm * widget.scale,
+              height: _snapGuideWidthPx,
+              child: IgnorePointer(child: ColoredBox(color: guideColor)),
+            ),
+          chip,
+        ],
+      );
+    }
+
+    final Color bgColor;
+    final Color fgColor;
+    final Color borderColor;
+    if (_dragging) {
+      bgColor = scheme.primaryContainer;
+      fgColor = Colors.black;
+      borderColor = scheme.primary;
+    } else if (widget.isSelected) {
+      bgColor = Colors.amber.shade50;
+      fgColor = Colors.black;
+      borderColor = scheme.primary;
+    } else {
+      bgColor = Colors.grey.shade200;
+      fgColor = Colors.black87;
+      borderColor = Colors.grey.shade500;
+    }
+
+    final chip = AnimatedContainer(
+      duration: const Duration(milliseconds: 100),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: borderColor,
+          width: (widget.isSelected || _dragging) ? 2.0 : 1.0,
+        ),
+        boxShadow: _dragging
+            ? [
+                BoxShadow(
+                  color: scheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.drag_indicator, size: 16, color: fgColor),
+          const SizedBox(width: 4),
+          Text(
+            widget.label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: fgColor,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${widget.fontSize.toStringAsFixed(0)}pt',
+            style:
+                TextStyle(fontSize: 9, color: fgColor.withValues(alpha: 0.7)),
+          ),
+        ],
+      ),
+    );
+
+    return Positioned(
+      left: left,
+      top: top,
+      child: Transform.rotate(
+        angle: degreesToRadians(widget.rotationDegrees),
+        alignment: Alignment.center,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) {
+            widget.onSelect?.call();
+            if (widget.isLocked) widget.onTap?.call();
+          },
+          onTap: widget.isLocked ? null : widget.onTap,
+          onPanStart: widget.isLocked ? null : _onTemplatePanStart,
+          onPanUpdate: widget.isLocked ? null : _panMoveClampedToHitInset,
+          onPanEnd: widget.isLocked ? null : (_) => _onTemplatePanEnd(),
+          onPanCancel: widget.isLocked ? null : _onTemplatePanEnd,
+          child: widget.isVisible ? chip : Opacity(opacity: 0.35, child: chip),
+        ),
+      ),
+    );
+  }
+
+  Widget _cornerHandle(_TextCorner corner, ColorScheme scheme) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanStart: (d) => _onResizePanStart(d, corner),
+      onPanUpdate: _onResizePanUpdate,
+      onPanEnd: (_) => _onResizePanEnd(),
+      onPanCancel: _onResizePanEnd,
+      child: SizedBox(
+        width: _handleHit,
+        height: _handleHit,
+        child: Center(
+          child: Container(
+            width: _handleVisual,
+            height: _handleVisual,
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _deferSetState(VoidCallback fn) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(fn);
+    });
+  }
+
+  void _scheduleContentSizeReport() {
+    if (_contentSizeNotificationQueued || widget.onContentSizeChanged == null) {
+      return;
+    }
+    _contentSizeNotificationQueued = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _contentSizeNotificationQueued = false;
+      if (!mounted) return;
+      final renderObject = _contentSizeKey.currentContext?.findRenderObject();
+      if (renderObject is! RenderBox || !renderObject.hasSize) return;
+      widget.onContentSizeChanged?.call(renderObject.size);
+    });
+  }
 
   Offset _mmDeltaForTemplatePan(DragUpdateDetails d) {
     final last = _templateDragLastGlobal ?? d.globalPosition;
@@ -293,6 +691,8 @@ class DraggableChipState extends State<DraggableChip> {
     _panOriginMm = widget.position;
     _panAccumMm = Offset.zero;
     _dragLiveMm = null;
+    _snapSession.reset();
+    _snapResult = null;
     _deferSetState(() => _dragging = true);
     _templateDragLastGlobal = d.globalPosition;
   }
@@ -305,16 +705,41 @@ class DraggableChipState extends State<DraggableChip> {
     _templateDragLastGlobal = null;
     _panOriginMm = null;
     _panAccumMm = Offset.zero;
+    _snapSession.reset();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || session != _templateDragSession) return;
-      setState(() => _dragLiveMm = null);
+      setState(() {
+        _dragLiveMm = null;
+        _snapResult = null;
+      });
     });
   }
 
   void _onTemplatePanEnd() {
-    _deferSetState(() => _dragging = false);
+    setState(() {
+      _dragging = false;
+      _snapResult = null;
+    });
     _finishTemplatePanGesture();
     widget.onDragStateChanged?.call(false);
+  }
+
+  void _clearTransientInteractionState() {
+    _dragging = false;
+    _dragLiveMm = null;
+    _templateDragLastGlobal = null;
+    _panOriginMm = null;
+    _panAccumMm = Offset.zero;
+    _snapSession.reset();
+    _snapResult = null;
+    _resizeCorner = null;
+    _resizeStartGlobal = null;
+    _resizeStartWidthMm = null;
+    _resizeLiveWidthMm = null;
+    _resizeStartHeightMm = null;
+    _resizeLiveHeightMm = null;
+    _resizeStartPosMm = null;
+    _resizeLivePosMm = null;
   }
 
   void _panMoveClampedToHitInset(DragUpdateDetails details) {
@@ -337,16 +762,22 @@ class DraggableChipState extends State<DraggableChip> {
       _panOriginMm = Offset(cx, cy);
       _panAccumMm = Offset.zero;
     }
-    final clamped = Offset(cx, cy);
-    setState(() => _dragLiveMm = clamped);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isCustom) {
-      _scheduleCanvasGoogleFontPrime();
-    }
+    final snapResult = _snapSession.resolve(
+      position: Offset(cx, cy),
+      snapEnabled: widget.snapEnabled,
+      snapTargets: [
+        CanvasSnapTarget(
+          xMm: widget.templateWidthMm / 2,
+          yMm: widget.templateHeightMm / 2,
+        ),
+        ...widget.snapTargets,
+      ],
+      toleranceMm: _snapTolerancePx / widget.scale,
+    );
+    setState(() {
+      _dragLiveMm = snapResult.position;
+      _snapResult = snapResult.hasGuide ? snapResult : null;
+    });
   }
 
   void _scheduleCanvasGoogleFontPrime() {
@@ -366,304 +797,6 @@ class DraggableChipState extends State<DraggableChip> {
     } catch (_) {}
     if (mounted) setState(() {});
   }
-
-  @override
-  void didUpdateWidget(covariant DraggableChip oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!widget.isCustom) return;
-    if (oldWidget.fontFamily != widget.fontFamily ||
-        oldWidget.bold != widget.bold ||
-        oldWidget.italic != widget.italic) {
-      _scheduleCanvasGoogleFontPrime();
-    }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  Widget _cornerHandle(_TextCorner corner, ColorScheme scheme) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onPanStart: (d) => _onResizePanStart(d, corner),
-      onPanUpdate: _onResizePanUpdate,
-      onPanEnd: (_) => _onResizePanEnd(),
-      onPanCancel: _onResizePanEnd,
-      child: SizedBox(
-        width: _handleHit,
-        height: _handleHit,
-        child: Center(
-          child: Container(
-            width: _handleVisual,
-            height: _handleVisual,
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.primary, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final insetX = widget.canvasInsetXPx;
-    final insetY = widget.canvasInsetYPx;
-    final posMm = _resizeLivePosMm ?? _dragLiveMm ?? widget.position;
-    final left = posMm.dx * widget.scale + insetX;
-    final top = posMm.dy * widget.scale + insetY;
-    final scheme = Theme.of(context).colorScheme;
-
-    if (widget.isCustom) {
-      // Match PDF: pw.Text at (xMm,yMm), fontSize in pt, rotateZ about top-left.
-      final fontPx = widget.fontSize * widget.scale / _kPdfPointsPerMm;
-      final textStyle = customTemplateCanvasTextStyle(
-        fontFamilyRaw: widget.fontFamily,
-        fontSize: fontPx,
-        fontWeight: widget.bold ? FontWeight.bold : FontWeight.normal,
-        fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
-        underline: widget.underline,
-        strikethrough: widget.strikethrough,
-      ).copyWith(color: Color(widget.colorArgb));
-
-      final activeWidthMm = _resizeLiveWidthMm ?? widget.maxWidthMm;
-      final activeHeightMm =
-          widget.isDynamic ? null : (_resizeLiveHeightMm ?? widget.heightMm);
-      final hasTextBoxStyle = widget.backgroundColorArgb != null ||
-          (widget.borderColorArgb != null && widget.borderWidthPt > 0);
-      final textBoxPaddingPx = hasTextBoxStyle
-          ? widget.paddingPt * widget.scale / _kPdfPointsPerMm
-          : 0.0;
-      final textBoxBorderWidthPx =
-          widget.borderWidthPt * widget.scale / _kPdfPointsPerMm;
-      final textBoxRadiusPx =
-          widget.cornerRadiusPt * widget.scale / _kPdfPointsPerMm;
-      final text = SizedBox(
-        width: activeWidthMm != null ? activeWidthMm * widget.scale : null,
-        height: activeHeightMm != null ? activeHeightMm * widget.scale : null,
-        child: CustomPaint(
-          foregroundPainter:
-              widget.borderColorArgb == null || widget.borderWidthPt <= 0
-                  ? null
-                  : _TextBoxStrokePainter(
-                      color: Color(widget.borderColorArgb!),
-                      width: textBoxBorderWidthPx,
-                      style: widget.borderStrokeStyle,
-                      radius: textBoxRadiusPx,
-                    ),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: widget.backgroundColorArgb == null
-                  ? null
-                  : Color(widget.backgroundColorArgb!),
-              borderRadius: BorderRadius.circular(textBoxRadiusPx),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(textBoxPaddingPx),
-              child: Builder(builder: (context) {
-                final hasNewlines = widget.label.contains('\n');
-                return Text(
-                  widget.label,
-                  style: textStyle,
-                  softWrap: activeWidthMm != null || hasNewlines,
-                  maxLines: (activeWidthMm != null || hasNewlines) ? null : 1,
-                  overflow: (activeWidthMm != null || hasNewlines)
-                      ? TextOverflow.clip
-                      : TextOverflow.visible,
-                  textAlign: widget.textAlign,
-                );
-              }),
-            ),
-          ),
-        ),
-      );
-      final handleSize = fontPx.clamp(20.0, 32.0);
-      final handlePad = _handleHit / 2;
-      final rot = Matrix4.identity()
-        ..translateByDouble(handlePad, handlePad, 0, 1)
-        ..rotateZ(degreesToRadians(widget.rotationDegrees))
-        ..translateByDouble(-handlePad, -handlePad, 0, 1);
-      return Positioned(
-        left: left - handlePad,
-        top: top - handlePad,
-        child: Transform(
-          transform: rot,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapDown: (_) {
-              widget.onTap?.call();
-              widget.onSelect?.call();
-            },
-            onTap: widget.onTap,
-            onDoubleTap: widget.onDoubleTap,
-            onPanStart: widget.isLocked ? null : _onTemplatePanStart,
-            onPanUpdate: widget.isLocked ? null : _panMoveClampedToHitInset,
-            onPanEnd: widget.isLocked ? null : (_) => _onTemplatePanEnd(),
-            onPanCancel: widget.isLocked ? null : _onTemplatePanEnd,
-            child: Opacity(
-              opacity: widget.isVisible ? 1.0 : 0.35,
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(handlePad),
-                    child: Container(
-                      foregroundDecoration: (widget.isSelected || _dragging)
-                          ? BoxDecoration(
-                              border: Border.all(
-                                color: scheme.primary,
-                                width: 2,
-                              ),
-                            )
-                          : (widget.isDynamic
-                              ? BoxDecoration(
-                                  border: Border.all(
-                                    color:
-                                        scheme.secondary.withValues(alpha: 0.5),
-                                    width: 1.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(2),
-                                )
-                              : null),
-                      child: text,
-                    ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    top: handlePad,
-                    width: handleSize,
-                    height: handleSize,
-                    child: Center(
-                      child: Icon(
-                        Icons.drag_indicator,
-                        size: handleSize * 0.65,
-                        color: scheme.primary.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
-                  if (!widget.isLocked &&
-                      (widget.isSelected || _resizeCorner != null) &&
-                      (widget.onMaxWidthChanged != null ||
-                          widget.onHeightChanged != null)) ...[
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: _cornerHandle(_TextCorner.tl, scheme),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: _cornerHandle(_TextCorner.tr, scheme),
-                    ),
-                    Positioned(
-                      left: 0,
-                      bottom: 0,
-                      child: _cornerHandle(_TextCorner.bl, scheme),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: _cornerHandle(_TextCorner.br, scheme),
-                    ),
-                  ]
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    final Color bgColor;
-    final Color fgColor;
-    final Color borderColor;
-    if (_dragging) {
-      bgColor = scheme.primaryContainer;
-      fgColor = Colors.black;
-      borderColor = scheme.primary;
-    } else if (widget.isSelected) {
-      bgColor = Colors.amber.shade50;
-      fgColor = Colors.black;
-      borderColor = scheme.primary;
-    } else {
-      bgColor = Colors.grey.shade200;
-      fgColor = Colors.black87;
-      borderColor = Colors.grey.shade500;
-    }
-
-    final chip = AnimatedContainer(
-      duration: const Duration(milliseconds: 100),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: borderColor,
-          width: (widget.isSelected || _dragging) ? 2.0 : 1.0,
-        ),
-        boxShadow: _dragging
-            ? [
-                BoxShadow(
-                  color: scheme.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.drag_indicator, size: 16, color: fgColor),
-          const SizedBox(width: 4),
-          Text(
-            widget.label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: fgColor,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${widget.fontSize.toStringAsFixed(0)}pt',
-            style:
-                TextStyle(fontSize: 9, color: fgColor.withValues(alpha: 0.7)),
-          ),
-        ],
-      ),
-    );
-
-    return Positioned(
-      left: left,
-      top: top,
-      child: Transform.rotate(
-        angle: degreesToRadians(widget.rotationDegrees),
-        alignment: Alignment.center,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (_) {
-            widget.onTap?.call();
-            widget.onSelect?.call();
-          },
-          onTap: widget.onTap,
-          onPanStart: widget.isLocked ? null : _onTemplatePanStart,
-          onPanUpdate: widget.isLocked ? null : _panMoveClampedToHitInset,
-          onPanEnd: widget.isLocked ? null : (_) => _onTemplatePanEnd(),
-          onPanCancel: widget.isLocked ? null : _onTemplatePanEnd,
-          child: widget.isVisible ? chip : Opacity(opacity: 0.35, child: chip),
-        ),
-      ),
-    );
-  }
 }
 
 class _TextBoxStrokePainter extends CustomPainter {
@@ -678,6 +811,14 @@ class _TextBoxStrokePainter extends CustomPainter {
   final double width;
   final String style;
   final double radius;
+
+  @override
+  bool shouldRepaint(covariant _TextBoxStrokePainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.width != width ||
+        oldDelegate.style != style ||
+        oldDelegate.radius != radius;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -718,13 +859,5 @@ class _TextBoxStrokePainter extends CustomPainter {
     }
 
     canvas.drawRRect(rrect, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _TextBoxStrokePainter oldDelegate) {
-    return oldDelegate.color != color ||
-        oldDelegate.width != width ||
-        oldDelegate.style != style ||
-        oldDelegate.radius != radius;
   }
 }

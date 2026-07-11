@@ -12,6 +12,39 @@ class _DocumentPdfBuilder {
   final _DocumentTypstRenderer _renderer = const _DocumentTypstRenderer();
   final _DocumentFontLoader _fontLoader = const _DocumentFontLoader();
 
+  static bool _usesAutoFill(
+    rust_config.DocumentLayoutPreset layout,
+    rust_config.DocumentLayoutBlock block,
+  ) {
+    return layout.fillPage || block.autoFillPage;
+  }
+
+  static double usablePageWidthPt({
+    required double sheetWidthPt,
+    required double leftPaddingMm,
+    required double rightPaddingMm,
+  }) {
+    return math.max(
+      1.0,
+      sheetWidthPt -
+          documentPdfMmToPt(leftPaddingMm) -
+          documentPdfMmToPt(rightPaddingMm),
+    );
+  }
+
+  static double usablePageHeightPt({
+    required double sheetHeightPt,
+    required double topPaddingMm,
+    required double bottomPaddingMm,
+  }) {
+    return math.max(
+      1.0,
+      sheetHeightPt -
+          documentPdfMmToPt(topPaddingMm) -
+          documentPdfMmToPt(bottomPaddingMm),
+    );
+  }
+
   Future<Uint8List> _generateRecordsPdfGeneric<T>(
     List<T> records, {
     required double sheetWidthPt,
@@ -124,10 +157,6 @@ class _DocumentPdfBuilder {
           outline: item.template.outline,
           continuous: true,
         );
-
-        if (i < continuousItems.length - 1) {
-          typst.writeln('#pagebreak()');
-        }
       }
     } else {
       final ptTop = documentPdfMmToPt(layout.pagePadTopMm);
@@ -137,8 +166,16 @@ class _DocumentPdfBuilder {
       typst.writeln(
           '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt, margin: (top: ${ptTop}pt, left: ${ptLeft}pt, bottom: ${ptBottom}pt, right: ${ptRight}pt))');
 
-      final usableW = math.max(1.0, sheetWidthPt - ptLeft - ptRight);
-      final usableH = math.max(1.0, sheetHeightPt - ptTop - ptBottom);
+      final usableW = usablePageWidthPt(
+        sheetWidthPt: sheetWidthPt,
+        leftPaddingMm: layout.pagePadLeftMm,
+        rightPaddingMm: layout.pagePadRightMm,
+      );
+      final usableH = usablePageHeightPt(
+        sheetHeightPt: sheetHeightPt,
+        topPaddingMm: layout.pagePadTopMm,
+        bottomPaddingMm: layout.pagePadBottomMm,
+      );
 
       if (layout.multiBlockMode == 'Alternate') {
         final List<_DocumentSheetCell> allFrontCells = [];
@@ -148,13 +185,14 @@ class _DocumentPdfBuilder {
           final data = await recordToFields(record);
           for (final block in layout.blocks) {
             final tmpl = templates[block.templateName]!;
-            final rows = block.rows > 0 ? block.rows : 8;
+            final rows = block.fixedRows;
             final cellH = usableH / rows;
 
             for (var c = 0; c < block.templateCount; c++) {
               final frontPage =
                   await _substitutor.substitutePage(tmpl.page1, data);
-              final frontHeight = layout.fillPage
+              final frontAutoFill = _usesAutoFill(layout, block);
+              final frontHeight = frontAutoFill
                   ? estimateAutoFillCellHeightPt(
                       page: frontPage,
                       wPt: wPt,
@@ -173,12 +211,14 @@ class _DocumentPdfBuilder {
                 block: block,
                 outline: tmpl.outline,
                 mirror: mirrorFront,
+                autoHeight: frontAutoFill,
               ));
 
               if (duplex) {
                 final backPage =
                     await _substitutor.substitutePage(tmpl.page2, data);
-                final backHeight = layout.fillPage
+                final backAutoFill = _usesAutoFill(layout, block);
+                final backHeight = backAutoFill
                     ? estimateAutoFillCellHeightPt(
                         page: backPage,
                         wPt: wPt,
@@ -197,19 +237,30 @@ class _DocumentPdfBuilder {
                   block: block,
                   outline: tmpl.outline,
                   mirror: mirrorBack,
+                  autoHeight: backAutoFill,
                 ));
               }
             }
           }
         }
 
+        if (duplex) {
+          for (var i = 0; i < allFrontCells.length; i++) {
+            final maxH =
+                math.max(allFrontCells[i].heightPt, allBackCells[i].heightPt);
+            allFrontCells[i] = allFrontCells[i].copyWithHeight(maxH);
+            allBackCells[i] = allBackCells[i].copyWithHeight(maxH);
+          }
+        }
+
         final firstBlock = layout.blocks.first;
         final cols = firstBlock.cols > 0 ? firstBlock.cols : 4;
-        final rows = firstBlock.rows > 0 ? firstBlock.rows : 8;
+        final rows = firstBlock.fixedRows;
         final cellW = usableW / cols;
         final cellH = usableH / rows;
 
-        final frontBatches = layout.fillPage
+        final frontAutoFill = allFrontCells.any((cell) => cell.autoHeight);
+        final frontBatches = frontAutoFill
             ? _buildAutoFillBatches(
                 cells: allFrontCells,
                 cols: cols,
@@ -222,7 +273,7 @@ class _DocumentPdfBuilder {
 
         List<_DocumentSheetBatch>? backBatches;
         if (duplex) {
-          backBatches = layout.fillPage
+          backBatches = allBackCells.any((cell) => cell.autoHeight)
               ? _buildAutoFillBatches(
                   cells: allBackCells,
                   cols: cols,
@@ -240,13 +291,12 @@ class _DocumentPdfBuilder {
           final breakAfterBack = !isLastBatch;
 
           final frontBatch = frontBatches[batchIdx];
-          if (layout.fillPage) {
+          if (frontAutoFill) {
             _renderer.writeAutoFillDocumentSheet(
               typst: typst,
               cells: frontBatch.cells,
               cols: cols,
               cellW: cellW,
-              usableH: usableH,
               wPt: wPt,
               hPt: hPt,
               pageBreakAfter: breakAfterFront,
@@ -267,13 +317,12 @@ class _DocumentPdfBuilder {
 
           if (duplex) {
             final backBatch = backBatches![batchIdx];
-            if (layout.fillPage) {
+            if (backBatch.cells.any((cell) => cell.autoHeight)) {
               _renderer.writeAutoFillDocumentSheet(
                 typst: typst,
                 cells: backBatch.cells,
                 cols: cols,
                 cellW: cellW,
-                usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
                 pageBreakAfter: breakAfterBack,
@@ -298,7 +347,7 @@ class _DocumentPdfBuilder {
           final block = layout.blocks[bIdx];
           final tmpl = templates[block.templateName]!;
           final cols = block.cols > 0 ? block.cols : 4;
-          final rows = block.rows > 0 ? block.rows : 8;
+          final rows = block.fixedRows;
 
           final cellW = usableW / cols;
           final cellH = usableH / rows;
@@ -311,7 +360,8 @@ class _DocumentPdfBuilder {
             for (var c = 0; c < block.templateCount; c++) {
               final frontPage =
                   await _substitutor.substitutePage(tmpl.page1, data);
-              final frontHeight = layout.fillPage
+              final frontAutoFill = _usesAutoFill(layout, block);
+              final frontHeight = frontAutoFill
                   ? estimateAutoFillCellHeightPt(
                       page: frontPage,
                       wPt: wPt,
@@ -330,12 +380,14 @@ class _DocumentPdfBuilder {
                 block: block,
                 outline: tmpl.outline,
                 mirror: mirrorFront,
+                autoHeight: frontAutoFill,
               ));
 
               if (duplex) {
                 final backPage =
                     await _substitutor.substitutePage(tmpl.page2, data);
-                final backHeight = layout.fillPage
+                final backAutoFill = _usesAutoFill(layout, block);
+                final backHeight = backAutoFill
                     ? estimateAutoFillCellHeightPt(
                         page: backPage,
                         wPt: wPt,
@@ -354,12 +406,23 @@ class _DocumentPdfBuilder {
                   block: block,
                   outline: tmpl.outline,
                   mirror: mirrorBack,
+                  autoHeight: backAutoFill,
                 ));
               }
             }
           }
 
-          final frontBatches = layout.fillPage
+          if (duplex) {
+            for (var i = 0; i < blockFrontCells.length; i++) {
+              final maxH = math.max(
+                  blockFrontCells[i].heightPt, blockBackCells[i].heightPt);
+              blockFrontCells[i] = blockFrontCells[i].copyWithHeight(maxH);
+              blockBackCells[i] = blockBackCells[i].copyWithHeight(maxH);
+            }
+          }
+
+          final blockAutoFill = _usesAutoFill(layout, block);
+          final frontBatches = blockAutoFill
               ? _buildAutoFillBatches(
                   cells: blockFrontCells,
                   cols: cols,
@@ -372,7 +435,7 @@ class _DocumentPdfBuilder {
 
           List<_DocumentSheetBatch>? backBatches;
           if (duplex) {
-            backBatches = layout.fillPage
+            backBatches = blockAutoFill
                 ? _buildAutoFillBatches(
                     cells: blockBackCells,
                     cols: cols,
@@ -394,13 +457,12 @@ class _DocumentPdfBuilder {
                 (isLastBatch && !isLastBlock && block.pageBreakAfter);
 
             final frontBatch = frontBatches[batchIdx];
-            if (layout.fillPage) {
+            if (blockAutoFill) {
               _renderer.writeAutoFillDocumentSheet(
                 typst: typst,
                 cells: frontBatch.cells,
                 cols: cols,
                 cellW: cellW,
-                usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
                 pageBreakAfter: breakAfterFront,
@@ -421,13 +483,12 @@ class _DocumentPdfBuilder {
 
             if (duplex) {
               final backBatch = backBatches![batchIdx];
-              if (layout.fillPage) {
+              if (blockAutoFill) {
                 _renderer.writeAutoFillDocumentSheet(
                   typst: typst,
                   cells: backBatch.cells,
                   cols: cols,
                   cellW: cellW,
-                  usableH: usableH,
                   wPt: wPt,
                   hPt: hPt,
                   pageBreakAfter: breakAfterBack,
@@ -684,10 +745,6 @@ class _DocumentPdfBuilder {
           outline: item.template.outline,
           continuous: true,
         );
-
-        if (i < continuousItems.length - 1) {
-          typst.writeln('#pagebreak()');
-        }
       }
     } else {
       final ptTop = documentPdfMmToPt(layout.pagePadTopMm);
@@ -697,8 +754,16 @@ class _DocumentPdfBuilder {
       typst.writeln(
           '#set page(width: ${sheetWidthPt}pt, height: ${sheetHeightPt}pt, margin: (top: ${ptTop}pt, left: ${ptLeft}pt, bottom: ${ptBottom}pt, right: ${ptRight}pt))');
 
-      final usableW = math.max(1.0, sheetWidthPt - ptLeft - ptRight);
-      final usableH = math.max(1.0, sheetHeightPt - ptTop - ptBottom);
+      final usableW = usablePageWidthPt(
+        sheetWidthPt: sheetWidthPt,
+        leftPaddingMm: layout.pagePadLeftMm,
+        rightPaddingMm: layout.pagePadRightMm,
+      );
+      final usableH = usablePageHeightPt(
+        sheetHeightPt: sheetHeightPt,
+        topPaddingMm: layout.pagePadTopMm,
+        bottomPaddingMm: layout.pagePadBottomMm,
+      );
 
       if (layout.multiBlockMode == 'Alternate') {
         final List<_DocumentSheetCell> allFrontCells = [];
@@ -721,13 +786,14 @@ class _DocumentPdfBuilder {
             }
             final data = dataList[idx];
             final tmpl = templates[block.templateName]!;
-            final rows = block.rows > 0 ? block.rows : 8;
+            final rows = block.fixedRows;
             final cellH = usableH / rows;
 
             for (var c = 0; c < block.templateCount; c++) {
               final frontPage =
                   await _substitutor.substitutePage(tmpl.page1, data);
-              final frontHeight = layout.fillPage
+              final frontAutoFill = _usesAutoFill(layout, block);
+              final frontHeight = frontAutoFill
                   ? estimateAutoFillCellHeightPt(
                       page: frontPage,
                       wPt: wPt,
@@ -746,12 +812,14 @@ class _DocumentPdfBuilder {
                 block: block,
                 outline: tmpl.outline,
                 mirror: mirrorFront,
+                autoHeight: frontAutoFill,
               ));
 
               if (duplex) {
                 final backPage =
                     await _substitutor.substitutePage(tmpl.page2, data);
-                final backHeight = layout.fillPage
+                final backAutoFill = _usesAutoFill(layout, block);
+                final backHeight = backAutoFill
                     ? estimateAutoFillCellHeightPt(
                         page: backPage,
                         wPt: wPt,
@@ -770,19 +838,30 @@ class _DocumentPdfBuilder {
                   block: block,
                   outline: tmpl.outline,
                   mirror: mirrorBack,
+                  autoHeight: backAutoFill,
                 ));
               }
             }
           }
         }
 
+        if (duplex) {
+          for (var i = 0; i < allFrontCells.length; i++) {
+            final maxH =
+                math.max(allFrontCells[i].heightPt, allBackCells[i].heightPt);
+            allFrontCells[i] = allFrontCells[i].copyWithHeight(maxH);
+            allBackCells[i] = allBackCells[i].copyWithHeight(maxH);
+          }
+        }
+
         final firstBlock = layout.blocks.first;
         final cols = firstBlock.cols > 0 ? firstBlock.cols : 4;
-        final rows = firstBlock.rows > 0 ? firstBlock.rows : 8;
+        final rows = firstBlock.fixedRows;
         final cellW = usableW / cols;
         final cellH = usableH / rows;
 
-        final frontBatches = layout.fillPage
+        final frontAutoFill = allFrontCells.any((cell) => cell.autoHeight);
+        final frontBatches = frontAutoFill
             ? _buildAutoFillBatches(
                 cells: allFrontCells,
                 cols: cols,
@@ -795,7 +874,7 @@ class _DocumentPdfBuilder {
 
         List<_DocumentSheetBatch>? backBatches;
         if (duplex) {
-          backBatches = layout.fillPage
+          backBatches = allBackCells.any((cell) => cell.autoHeight)
               ? _buildAutoFillBatches(
                   cells: allBackCells,
                   cols: cols,
@@ -813,13 +892,12 @@ class _DocumentPdfBuilder {
           final breakAfterBack = !isLastBatch;
 
           final frontBatch = frontBatches[batchIdx];
-          if (layout.fillPage) {
+          if (frontAutoFill) {
             _renderer.writeAutoFillDocumentSheet(
               typst: typst,
               cells: frontBatch.cells,
               cols: cols,
               cellW: cellW,
-              usableH: usableH,
               wPt: wPt,
               hPt: hPt,
               pageBreakAfter: breakAfterFront,
@@ -840,13 +918,12 @@ class _DocumentPdfBuilder {
 
           if (duplex) {
             final backBatch = backBatches![batchIdx];
-            if (layout.fillPage) {
+            if (backBatch.cells.any((cell) => cell.autoHeight)) {
               _renderer.writeAutoFillDocumentSheet(
                 typst: typst,
                 cells: backBatch.cells,
                 cols: cols,
                 cellW: cellW,
-                usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
                 pageBreakAfter: breakAfterBack,
@@ -871,7 +948,7 @@ class _DocumentPdfBuilder {
           final block = layout.blocks[bIdx];
           final tmpl = templates[block.templateName]!;
           final cols = block.cols > 0 ? block.cols : 4;
-          final rows = block.rows > 0 ? block.rows : 8;
+          final rows = block.fixedRows;
 
           final cellW = usableW / cols;
           final cellH = usableH / rows;
@@ -884,7 +961,8 @@ class _DocumentPdfBuilder {
             for (var c = 0; c < block.templateCount; c++) {
               final frontPage =
                   await _substitutor.substitutePage(tmpl.page1, data);
-              final frontHeight = layout.fillPage
+              final frontAutoFill = _usesAutoFill(layout, block);
+              final frontHeight = frontAutoFill
                   ? estimateAutoFillCellHeightPt(
                       page: frontPage,
                       wPt: wPt,
@@ -903,12 +981,14 @@ class _DocumentPdfBuilder {
                 block: block,
                 outline: tmpl.outline,
                 mirror: mirrorFront,
+                autoHeight: frontAutoFill,
               ));
 
               if (duplex) {
                 final backPage =
                     await _substitutor.substitutePage(tmpl.page2, data);
-                final backHeight = layout.fillPage
+                final backAutoFill = _usesAutoFill(layout, block);
+                final backHeight = backAutoFill
                     ? estimateAutoFillCellHeightPt(
                         page: backPage,
                         wPt: wPt,
@@ -927,12 +1007,23 @@ class _DocumentPdfBuilder {
                   block: block,
                   outline: tmpl.outline,
                   mirror: mirrorBack,
+                  autoHeight: backAutoFill,
                 ));
               }
             }
           }
 
-          final frontBatches = layout.fillPage
+          if (duplex) {
+            for (var i = 0; i < blockFrontCells.length; i++) {
+              final maxH = math.max(
+                  blockFrontCells[i].heightPt, blockBackCells[i].heightPt);
+              blockFrontCells[i] = blockFrontCells[i].copyWithHeight(maxH);
+              blockBackCells[i] = blockBackCells[i].copyWithHeight(maxH);
+            }
+          }
+
+          final blockAutoFill = _usesAutoFill(layout, block);
+          final frontBatches = blockAutoFill
               ? _buildAutoFillBatches(
                   cells: blockFrontCells,
                   cols: cols,
@@ -945,7 +1036,7 @@ class _DocumentPdfBuilder {
 
           List<_DocumentSheetBatch>? backBatches;
           if (duplex) {
-            backBatches = layout.fillPage
+            backBatches = blockAutoFill
                 ? _buildAutoFillBatches(
                     cells: blockBackCells,
                     cols: cols,
@@ -967,13 +1058,12 @@ class _DocumentPdfBuilder {
                 (isLastBatch && !isLastBlock && block.pageBreakAfter);
 
             final frontBatch = frontBatches[batchIdx];
-            if (layout.fillPage) {
+            if (blockAutoFill) {
               _renderer.writeAutoFillDocumentSheet(
                 typst: typst,
                 cells: frontBatch.cells,
                 cols: cols,
                 cellW: cellW,
-                usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
                 pageBreakAfter: breakAfterFront,
@@ -994,13 +1084,12 @@ class _DocumentPdfBuilder {
 
             if (duplex) {
               final backBatch = backBatches![batchIdx];
-              if (layout.fillPage) {
+              if (blockAutoFill) {
                 _renderer.writeAutoFillDocumentSheet(
                   typst: typst,
                   cells: backBatch.cells,
                   cols: cols,
                   cellW: cellW,
-                  usableH: usableH,
                   wPt: wPt,
                   hPt: hPt,
                   pageBreakAfter: breakAfterBack,
@@ -1077,14 +1166,16 @@ class _DocumentPdfBuilder {
         rowIndex++;
       }
 
-      final repeatRows = List<_DocumentSheetRow>.from(sheetRows);
-      var repeatIndex = 0;
-      while (repeatRows.isNotEmpty) {
-        final row = repeatRows[repeatIndex % repeatRows.length];
-        if (usedHeight + row.heightPt > usableH) break;
-        sheetRows.add(row);
-        usedHeight += row.heightPt;
-        repeatIndex++;
+      if (sheetRows.isNotEmpty) {
+        final shortestRow = sheetRows.reduce(
+          (a, b) => a.heightPt <= b.heightPt ? a : b,
+        );
+        final repeatCount = maxAutoFillRepeatCount(
+          rowHeight: shortestRow.heightPt,
+          usedHeight: usedHeight,
+          usableHeight: usableH,
+        );
+        sheetRows.addAll(List.filled(repeatCount, shortestRow));
       }
 
       batches.add(_DocumentSheetBatch(
@@ -1093,6 +1184,20 @@ class _DocumentPdfBuilder {
     }
 
     return batches;
+  }
+
+  static int maxAutoFillRepeatCount({
+    required double rowHeight,
+    required double usedHeight,
+    required double usableHeight,
+  }) {
+    if (rowHeight <= 0 || usedHeight >= usableHeight) return 0;
+    const floatingPointTolerancePt = 0.001;
+    return math.max(
+      0,
+      ((usableHeight - usedHeight + floatingPointTolerancePt) / rowHeight)
+          .floor(),
+    );
   }
 
   static double estimateAutoFillCellHeightPt({
@@ -1111,7 +1216,11 @@ class _DocumentPdfBuilder {
       wPt: wPt,
       hPt: hPt,
     );
-    return bodyHeight + padTop + padBottom;
+    // A template's configured canvas height is its minimum physical height.
+    // Dynamic content may extend that canvas, but sparse content must not make
+    // neighbouring templates move closer together than the template design
+    // permits.
+    return math.max(hPt, bodyHeight) + padTop + padBottom;
   }
 
   static double estimateTemplatePageContentHeightPt({
@@ -1128,10 +1237,12 @@ class _DocumentPdfBuilder {
       return _estimateFlowTemplateContentHeightPt(page: page, wPt: wPt);
     }
 
-    var height = hPt;
+    var height = 0.0;
+    var hasVisibleContent = false;
 
     for (final text in page.customTexts) {
       if (!text.isVisible) continue;
+      hasVisibleContent = true;
       final genderIconKey =
           templateGenderIconFieldKeyFromBracketText(text.text);
       if (hasDynamicText &&
@@ -1172,20 +1283,23 @@ class _DocumentPdfBuilder {
 
     for (final image in page.customImages) {
       if (!image.isVisible) continue;
+      hasVisibleContent = true;
       height = math.max(height, _customImageBottomPt(image));
     }
 
     for (final line in page.customLines) {
       if (!line.isVisible) continue;
+      hasVisibleContent = true;
       height = math.max(height, _customLineBottomPt(line));
     }
 
     for (final shape in page.customShapes) {
       if (!shape.isVisible) continue;
+      hasVisibleContent = true;
       height = math.max(height, _customShapeBottomPt(shape));
     }
 
-    return height;
+    return hasVisibleContent ? height : hPt;
   }
 
   static double _estimateFlowTemplateContentHeightPt({
@@ -1201,36 +1315,65 @@ class _DocumentPdfBuilder {
         .toList()
       ..sort((a, b) => a.yMm.compareTo(b.yMm));
 
+    final dynamicHeightByText = <CustomTextElement, double>{
+      for (final text in dynamicTexts) text: _dynamicTextHeightPt(text, wPt),
+    };
+    final flowTopByText = <CustomTextElement, double>{};
+    final clearanceBottomByText = <CustomTextElement, double>{};
+    final dynamicGapPt = documentPdfMmToPt(2);
+
+    for (final text in dynamicTexts) {
+      var flowedTop = documentPdfMmToPt(text.yMm);
+      for (final previous in dynamicTexts) {
+        if (text.yMm - previous.yMm <=
+            TemplateDynamicLayoutService.verticalRowToleranceMm) {
+          continue;
+        }
+        flowedTop = math.max(flowedTop, clearanceBottomByText[previous]!);
+      }
+      flowTopByText[text] = flowedTop;
+      clearanceBottomByText[text] =
+          flowedTop + dynamicHeightByText[text]! + dynamicGapPt;
+    }
+
     var height = 0.0;
     for (final element in _sortTemplateElements(page)) {
-      final bottom = _elementBottomPt(element, wPt);
+      final bottom = element is CustomTextElement &&
+              dynamicHeightByText.containsKey(element)
+          ? flowTopByText[element]! + dynamicHeightByText[element]!
+          : _elementBottomPt(element, wPt) +
+              _dynamicFlowShiftPt(
+                dynamicTexts: dynamicTexts,
+                clearanceBottomByText: clearanceBottomByText,
+                targetYmm: _elementTopMm(element),
+                excludeElement: element,
+              );
       if (bottom <= 0) continue;
-      height = math.max(
-        height,
-        bottom + _dynamicGrowthBeforePt(dynamicTexts, element, wPt),
-      );
+      height = math.max(height, bottom);
     }
     return height;
   }
 
-  static double _dynamicGrowthBeforePt(
-    List<CustomTextElement> dynamicTexts,
-    dynamic element,
-    double wPt,
-  ) {
-    final yMm = _elementTopMm(element);
-    var growth = 0.0;
+  static double _dynamicFlowShiftPt({
+    required List<CustomTextElement> dynamicTexts,
+    required Map<CustomTextElement, double> clearanceBottomByText,
+    required double targetYmm,
+    required dynamic excludeElement,
+  }) {
+    final base = documentPdfMmToPt(targetYmm);
+    var renderedTop = base;
     for (final text in dynamicTexts) {
-      if (identical(text, element)) continue;
-      if (yMm > text.yMm) {
-        growth += _dynamicTextGrowthPt(text, wPt);
+      if (identical(text, excludeElement)) continue;
+      if (targetYmm - text.yMm >
+          TemplateDynamicLayoutService.verticalRowToleranceMm) {
+        renderedTop = math.max(renderedTop, clearanceBottomByText[text]!);
       }
     }
-    return growth;
+    return renderedTop - base;
   }
 
-  static double _dynamicTextGrowthPt(CustomTextElement text, double wPt) {
-    final measuredHeight = _estimateTextHeightPt(
+  static double _dynamicTextHeightPt(CustomTextElement text, double wPt) {
+    return _estimateTextHeightPt(
           formatTemplateText(
             text.text,
             text.textType,
@@ -1241,9 +1384,6 @@ class _DocumentPdfBuilder {
           _textContentWidthPt(text, wPt),
         ) +
         _textBoxVerticalExtraPt(text);
-    final baselineHeight =
-        text.heightMm != null ? documentPdfMmToPt(text.heightMm!) : 0.0;
-    return math.max(0.0, measuredHeight - baselineHeight);
   }
 
   static List<dynamic> _sortTemplateElements(TemplatePage page) {
@@ -1425,6 +1565,7 @@ class _DocumentSheetCell {
     required this.block,
     required this.outline,
     required this.mirror,
+    required this.autoHeight,
   });
 
   final TemplatePage page;
@@ -1433,4 +1574,17 @@ class _DocumentSheetCell {
   final rust_config.DocumentLayoutBlock block;
   final TemplateOutline? outline;
   final bool mirror;
+  final bool autoHeight;
+
+  _DocumentSheetCell copyWithHeight(double maxH) {
+    return _DocumentSheetCell(
+      page: page,
+      data: data,
+      heightPt: maxH,
+      block: block,
+      outline: outline,
+      mirror: mirror,
+      autoHeight: autoHeight,
+    );
+  }
 }
