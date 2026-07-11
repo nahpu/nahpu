@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/templates/template_gender_icon.dart';
+import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_outline.dart';
 import 'package:nahpu/services/export/document_writer.dart';
@@ -167,19 +167,20 @@ class _PreviewPage extends StatelessWidget {
                 ),
               ),
             for (final ct in page.customTexts)
-              if (templateGenderIconFieldKeyFromBracketText(ct.text)
+              if (templateSpecimenSexIconFieldKeyFromBracketText(ct.text)
                   case final gKey?)
                 Positioned(
                   left: ct.xMm * scale,
                   top: ct.yMm * scale,
                   width: math.max(
                     1.0,
-                    (ct.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm) *
+                    (ct.iconWidthMm ?? kTemplateSpecimenSexIconDefaultWidthMm) *
                         scale,
                   ),
                   height: math.max(
                     1.0,
-                    (ct.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm) *
+                    (ct.iconHeightMm ??
+                            kTemplateSpecimenSexIconDefaultHeightMm) *
                         scale,
                   ),
                   child: Transform.rotate(
@@ -188,17 +189,18 @@ class _PreviewPage extends StatelessWidget {
                       data: IconThemeData(
                         size: math.min(
                               (ct.iconWidthMm ??
-                                      kTemplateGenderIconDefaultWidthMm) *
+                                      kTemplateSpecimenSexIconDefaultWidthMm) *
                                   scale,
                               (ct.iconHeightMm ??
-                                      kTemplateGenderIconDefaultHeightMm) *
+                                      kTemplateSpecimenSexIconDefaultHeightMm) *
                                   scale,
                             ) *
                             0.88,
                         color: Colors.black,
                       ),
                       child: Icon(
-                        templateGenderIconForFieldKey(placeholderValues, gKey),
+                        templateSpecimenSexIconForFieldKey(
+                            placeholderValues, gKey),
                       ),
                     ),
                   ),

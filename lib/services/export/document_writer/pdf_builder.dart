@@ -1232,7 +1232,7 @@ class _DocumentPdfBuilder {
         text.isVisible &&
         text.isDynamic &&
         !text.isQrCode &&
-        templateGenderIconFieldKeyFromBracketText(text.text) == null);
+        templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null);
     if (hasDynamicText) {
       return _estimateFlowTemplateContentHeightPt(page: page, wPt: wPt);
     }
@@ -1243,12 +1243,12 @@ class _DocumentPdfBuilder {
     for (final text in page.customTexts) {
       if (!text.isVisible) continue;
       hasVisibleContent = true;
-      final genderIconKey =
-          templateGenderIconFieldKeyFromBracketText(text.text);
+      final specimenSexIconKey =
+          templateSpecimenSexIconFieldKeyFromBracketText(text.text);
       if (hasDynamicText &&
           !text.isDynamic &&
           !text.isQrCode &&
-          genderIconKey == null) {
+          specimenSexIconKey == null) {
         continue;
       }
 
@@ -1260,12 +1260,12 @@ class _DocumentPdfBuilder {
         continue;
       }
 
-      if (genderIconKey != null) {
+      if (specimenSexIconKey != null) {
         height = math.max(
           height,
           documentPdfMmToPt(
             text.yMm +
-                (text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+                (text.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm),
           ),
         );
         continue;
@@ -1311,7 +1311,7 @@ class _DocumentPdfBuilder {
             text.isVisible &&
             text.isDynamic &&
             !text.isQrCode &&
-            templateGenderIconFieldKeyFromBracketText(text.text) == null)
+            templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null)
         .toList()
       ..sort((a, b) => a.yMm.compareTo(b.yMm));
 
@@ -1408,15 +1408,15 @@ class _DocumentPdfBuilder {
     if (element is CustomLineElement) return _customLineBottomPt(element);
     if (element is CustomShapeElement) return _customShapeBottomPt(element);
     if (element is CustomTextElement) {
-      final genderIconKey =
-          templateGenderIconFieldKeyFromBracketText(element.text);
+      final specimenSexIconKey =
+          templateSpecimenSexIconFieldKeyFromBracketText(element.text);
       if (element.isQrCode) {
         return documentPdfMmToPt(element.yMm + element.qrSizeMm);
       }
-      if (genderIconKey != null) {
+      if (specimenSexIconKey != null) {
         return documentPdfMmToPt(
           element.yMm +
-              (element.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+              (element.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm),
         );
       }
       final heightPt = element.heightMm != null

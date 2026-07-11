@@ -145,7 +145,7 @@ class TextPropertiesPanel extends StatelessWidget {
       onPressed: () => onDeleteCustomText(page1, id),
     );
 
-    if (isTemplateBracketGenderIconText(ct.text)) {
+    if (isTemplateBracketSpecimenSexIconText(ct.text)) {
       final content = Padding(
         padding: inToolbar
             ? const EdgeInsets.fromLTRB(8, 8, 8, 8)

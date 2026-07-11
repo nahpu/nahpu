@@ -126,7 +126,7 @@ class _DocumentTypstRenderer {
             t.isVisible &&
             t.isDynamic &&
             !t.isQrCode &&
-            templateGenderIconFieldKeyFromBracketText(t.text) == null)
+            templateSpecimenSexIconFieldKeyFromBracketText(t.text) == null)
         .toList()
       ..sort((a, b) => a.yMm.compareTo(b.yMm));
 
@@ -177,7 +177,7 @@ class _DocumentTypstRenderer {
         if (el is CustomTextElement &&
             el.isDynamic &&
             !el.isQrCode &&
-            templateGenderIconFieldKeyFromBracketText(el.text) == null) {
+            templateSpecimenSexIconFieldKeyFromBracketText(el.text) == null) {
           final varSuffix = _typstVarSuffix(el.id);
           typst.writeln(
               '  cell_height = calc.max(cell_height, flow_top_$varSuffix + h_$varSuffix)');
@@ -333,9 +333,9 @@ class _DocumentTypstRenderer {
       return;
     }
 
-    final gKey = templateGenderIconFieldKeyFromBracketText(t.text);
+    final gKey = templateSpecimenSexIconFieldKeyFromBracketText(t.text);
     if (gKey != null) {
-      _writeGenderIcon(typst, t, data, gKey, dyShift);
+      _writeSpecimenSexIcon(typst, t, data, gKey, dyShift);
       return;
     }
 
@@ -399,7 +399,7 @@ class _DocumentTypstRenderer {
     return textElem;
   }
 
-  void _writeGenderIcon(StringBuffer typst, CustomTextElement t,
+  void _writeSpecimenSexIcon(StringBuffer typst, CustomTextElement t,
       Map<String, String> data, String gKey, String dyShift) {
     final display = _fieldValueCi(data, gKey);
     final s = display.trim().toLowerCase();
@@ -409,10 +409,10 @@ class _DocumentTypstRenderer {
             ? '\u2640'
             : '?';
 
-    final iconWPt =
-        documentPdfMmToPt(t.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm);
-    final iconHPt =
-        documentPdfMmToPt(t.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm);
+    final iconWPt = documentPdfMmToPt(
+        t.iconWidthMm ?? kTemplateSpecimenSexIconDefaultWidthMm);
+    final iconHPt = documentPdfMmToPt(
+        t.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm);
     final fs = math.min(iconWPt, iconHPt) * 0.88;
 
     typst.writeln(
@@ -489,9 +489,9 @@ class _DocumentTypstRenderer {
 
     for (final text in page.customTexts) {
       if (!text.isVisible) continue;
-      final genderIconKey =
-          templateGenderIconFieldKeyFromBracketText(text.text);
-      if (text.isDynamic && !text.isQrCode && genderIconKey == null) {
+      final specimenSexIconKey =
+          templateSpecimenSexIconFieldKeyFromBracketText(text.text);
+      if (text.isDynamic && !text.isQrCode && specimenSexIconKey == null) {
         continue;
       }
 
@@ -503,12 +503,12 @@ class _DocumentTypstRenderer {
         continue;
       }
 
-      if (genderIconKey != null) {
+      if (specimenSexIconKey != null) {
         height = math.max(
           height,
           documentPdfMmToPt(
             text.yMm +
-                (text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+                (text.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm),
           ),
         );
         continue;
@@ -557,15 +557,15 @@ class _DocumentTypstRenderer {
     if (element is CustomLineElement) return _customLineBottomPt(element);
     if (element is CustomShapeElement) return _customShapeBottomPt(element);
     if (element is CustomTextElement) {
-      final genderIconKey =
-          templateGenderIconFieldKeyFromBracketText(element.text);
+      final specimenSexIconKey =
+          templateSpecimenSexIconFieldKeyFromBracketText(element.text);
       if (element.isQrCode) {
         return documentPdfMmToPt(element.yMm + element.qrSizeMm);
       }
-      if (genderIconKey != null) {
+      if (specimenSexIconKey != null) {
         return documentPdfMmToPt(
           element.yMm +
-              (element.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+              (element.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm),
         );
       }
       final heightPt = element.heightMm != null

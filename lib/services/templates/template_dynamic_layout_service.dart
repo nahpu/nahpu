@@ -116,7 +116,7 @@ class TemplateDynamicLayoutService {
     return text.isVisible &&
         text.isDynamic &&
         !text.isQrCode &&
-        templateGenderIconFieldKeyFromBracketText(text.text) == null;
+        templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null;
   }
 }
 

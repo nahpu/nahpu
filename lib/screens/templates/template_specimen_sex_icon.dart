@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
-IconData templateGenderIconDataForDisplayValue(String? display) {
+IconData templateSpecimenSexIconDataForDisplayValue(String? display) {
   if (display == null || display.trim().isEmpty) {
     return Icons.question_mark;
   }
@@ -15,7 +15,7 @@ IconData templateGenderIconDataForDisplayValue(String? display) {
   return Icons.question_mark;
 }
 
-IconData templateGenderIconForFieldKey(
+IconData templateSpecimenSexIconForFieldKey(
     Map<String, String> data, String fieldKey) {
   String? v;
   if (data.containsKey(fieldKey)) {
@@ -29,5 +29,5 @@ IconData templateGenderIconForFieldKey(
       }
     }
   }
-  return templateGenderIconDataForDisplayValue(v);
+  return templateSpecimenSexIconDataForDisplayValue(v);
 }

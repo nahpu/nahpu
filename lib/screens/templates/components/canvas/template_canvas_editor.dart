@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/template_outline.dart'
     show templateAreaStackDecoration, TemplateOutlineOverlayPainter;
-import 'package:nahpu/screens/templates/template_gender_icon.dart'
-    show templateGenderIconForFieldKey;
+import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart'
+    show templateSpecimenSexIconForFieldKey;
 import 'package:nahpu/services/export/document_writer.dart'
     show substituteDocumentPlaceholders;
 import 'package:nahpu/screens/templates/template_model.dart';
@@ -586,7 +586,7 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     },
                                     onDelete: null,
                                   );
-                                } else if (templateGenderIconFieldKeyFromBracketText(
+                                } else if (templateSpecimenSexIconFieldKeyFromBracketText(
                                         element.text)
                                     case final gKey?) {
                                   return DraggableImageChip(
@@ -594,13 +594,13 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                         'p${page1 ? '1' : '2'}_gct_${element.id}'),
                                     imagePath: '',
                                     vectorChild: Icon(
-                                        templateGenderIconForFieldKey(
+                                        templateSpecimenSexIconForFieldKey(
                                             editorTemplateFieldPreview, gKey)),
                                     position: renderedPosition(element),
                                     widthMm: element.iconWidthMm ??
-                                        kTemplateGenderIconDefaultWidthMm,
+                                        kTemplateSpecimenSexIconDefaultWidthMm,
                                     heightMm: element.iconHeightMm ??
-                                        kTemplateGenderIconDefaultHeightMm,
+                                        kTemplateSpecimenSexIconDefaultHeightMm,
                                     rotationDegrees: element.rotationDegrees,
                                     scale: scale,
                                     templateWidthMm: templateWidthMm,

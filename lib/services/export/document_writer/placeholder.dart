@@ -17,7 +17,7 @@ String substituteDocumentPlaceholders(
   String? textType,
   String? formatOption,
 }) {
-  if (isTemplateBracketGenderIconText(input)) return input;
+  if (isTemplateBracketSpecimenSexIconText(input)) return input;
   final isBlank = data['__blank__'] == 'true';
   return input.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (m) {
     final placeholder = m.group(1)!.trim();

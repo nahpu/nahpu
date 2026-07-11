@@ -134,8 +134,8 @@ TemplateCanvasOverflowPadding calculateTemplateCanvasOverflowPadding({
   }
   if (text.iconWidthMm != null || text.iconHeightMm != null) {
     return (
-      widthMm: text.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm,
-      heightMm: text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm,
+      widthMm: text.iconWidthMm ?? kTemplateSpecimenSexIconDefaultWidthMm,
+      heightMm: text.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm,
     );
   }
   final lineHeightMm = math.max(2.0, text.fontSizePt / _kPdfPointsPerMm);

@@ -17,26 +17,26 @@ bool isTemplateImagePathUsable(String path) {
   }
 }
 
-/// Whole-line text `[mammal.sex]-img` → show sex as a resizable icon (see [isTemplateBracketGenderIconText]).
-final RegExp kTemplateGenderIconBracketText = RegExp(
+/// Whole-line text `[mammal.sex]-img` → show sex as a resizable icon (see [isTemplateBracketSpecimenSexIconText]).
+final RegExp kTemplateSpecimenSexIconBracketText = RegExp(
   r'^\s*\[([^\]]+)\]-img\s*$',
   caseSensitive: false,
 );
 
 /// Field id inside brackets, e.g. `mammal.sex`, when [text] is `[mammal.sex]-img`.
-String? templateGenderIconFieldKeyFromBracketText(String text) {
-  final m = kTemplateGenderIconBracketText.firstMatch(text.trim());
+String? templateSpecimenSexIconFieldKeyFromBracketText(String text) {
+  final m = kTemplateSpecimenSexIconBracketText.firstMatch(text.trim());
   if (m == null) return null;
   final key = m.group(1)!.trim();
   if (!key.toLowerCase().endsWith('.sex')) return null;
   return key;
 }
 
-bool isTemplateBracketGenderIconText(String text) =>
-    templateGenderIconFieldKeyFromBracketText(text) != null;
+bool isTemplateBracketSpecimenSexIconText(String text) =>
+    templateSpecimenSexIconFieldKeyFromBracketText(text) != null;
 
-const double kTemplateGenderIconDefaultWidthMm = 6.0;
-const double kTemplateGenderIconDefaultHeightMm = 6.0;
+const double kTemplateSpecimenSexIconDefaultWidthMm = 6.0;
+const double kTemplateSpecimenSexIconDefaultHeightMm = 6.0;
 
 String formatTextWithCase(String rawText, String caseFormat) {
   switch (caseFormat) {
@@ -636,7 +636,7 @@ class CustomTextElement {
   final String nullFallbackOption;
   final String customNullFallbackText;
 
-  /// For [isTemplateBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
+  /// For [isTemplateBracketSpecimenSexIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
   final double? iconHeightMm;
 
