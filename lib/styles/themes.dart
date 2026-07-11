@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 class NahpuTheme {
-  static final _defaultLightColorScheme =
-      FlexThemeData.light(scheme: FlexScheme.jungle).colorScheme;
+  static const _primary = Color(0xFF1B9E77);
+  static const _secondary = Color(0xFF4D625B);
+  static const _tertiary = Color(0xFF9E4733);
 
-  static final _defaultDarkColorScheme =
-      FlexThemeData.dark(scheme: FlexScheme.jungle).colorScheme;
+  static final _lightColorScheme = ColorScheme.fromSeed(
+    seedColor: _primary,
+    brightness: Brightness.light,
+    primary: _primary,
+    secondary: _secondary,
+    tertiary: _tertiary,
+  );
 
-  static ThemeData lightTheme(ColorScheme? lightColorScheme) {
+  static final _darkColorScheme = ColorScheme.fromSeed(
+    seedColor: _primary,
+    brightness: Brightness.dark,
+    primary: _primary,
+    secondary: _secondary,
+    tertiary: _tertiary,
+  );
+
+  static ThemeData lightTheme() {
     return ThemeData(
-      colorScheme: lightColorScheme ?? _defaultLightColorScheme,
+      colorScheme: _lightColorScheme,
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: appBarLightTheme,
@@ -18,9 +31,9 @@ class NahpuTheme {
     );
   }
 
-  static ThemeData darkTheme(ColorScheme? darkColorScheme) {
+  static ThemeData darkTheme() {
     return ThemeData(
-      colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
+      colorScheme: _darkColorScheme,
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: appBarDarkTheme,
