@@ -60,7 +60,7 @@ void main() {
     expect(padding.bottom, 16);
   });
 
-  test('accounts for widgets shifted by dynamic text growth', () {
+  test('preserves sufficient saved spacing below dynamic text', () {
     const page = TemplatePage(
       customTexts: [
         CustomTextElement(
@@ -93,6 +93,6 @@ void main() {
       dynamicTextContentHeightMmById: const {'table': 30},
     );
 
-    expect(padding.bottom, 25);
+    expect(padding.bottom, 20);
   });
 }

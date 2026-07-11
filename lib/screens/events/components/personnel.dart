@@ -296,6 +296,7 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
                   CollPersonnelCompanion(
                     eventID: db.Value(widget.eventID),
                     personnelId: db.Value(value),
+                    name: db.Value(_personnelNameFor(value)),
                   ),
                 );
               },
@@ -311,6 +312,20 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
         ],
       ),
     );
+  }
+
+  String? _personnelNameFor(String? personnelId) {
+    if (personnelId == null) return null;
+    return ref.read(projectPersonnelProvider).when(
+          data: (personnel) {
+            for (final person in personnel) {
+              if (person.uuid == personnelId) return person.name;
+            }
+            return null;
+          },
+          loading: () => null,
+          error: (_, __) => null,
+        );
   }
 }
 

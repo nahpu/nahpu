@@ -94,6 +94,54 @@ void main() {
 
       expect(result, 'Catalog: specimen::catalogNum');
     });
+
+    test(
+        'substituteDocumentPlaceholders maps encoded fields using enum default',
+        () {
+      final text = 'Testis: [mammalMeasurement::testisPosition]';
+      final data = {
+        'mammalMeasurement::testisPosition': '0',
+      };
+      final result = substituteDocumentPlaceholders(
+        text,
+        data,
+        textType: 'encoded',
+        formatOption: 'enum',
+      );
+      expect(result, 'Testis: Scrotal');
+    });
+
+    test(
+        'substituteDocumentPlaceholders maps encoded fields using custom mappings',
+        () {
+      final text = 'Sex: [measurement::sex]';
+      final data = {
+        'measurement::sex': '1',
+      };
+      final result = substituteDocumentPlaceholders(
+        text,
+        data,
+        textType: 'encoded',
+        formatOption: 'custom_map:0=M,1=F,2=U',
+      );
+      expect(result, 'Sex: F');
+    });
+
+    test(
+        'substituteDocumentPlaceholders maps encoded short keys using enum default',
+        () {
+      final text = 'Testis: [testisPosition]';
+      final data = {
+        'mammalMeasurement::testisPosition': '0',
+      };
+      final result = substituteDocumentPlaceholders(
+        text,
+        data,
+        textType: 'encoded',
+        formatOption: 'enum',
+      );
+      expect(result, 'Testis: Scrotal');
+    });
   });
 
   group('Site coordinate field values', () {
@@ -153,6 +201,40 @@ void main() {
       expect(values['collPersonnel::role'], 'Recorder|Preparator');
       expect(values['collPersonnel::personnelId'], 'person-a|person-b');
       expect(values, isNot(contains('personnel::role')));
+      expect(
+        buildCollPersonnelSummary(const [
+          CollPersonnelData(
+            id: 1,
+            eventID: 7,
+            personnelId: 'person-a',
+            name: 'Collector A',
+            role: 'Recorder',
+          ),
+          CollPersonnelData(
+            id: 2,
+            eventID: 7,
+            personnelId: 'person-b',
+            name: 'Collector B',
+            role: 'Preparator',
+          ),
+        ]),
+        'Collector A;Recorder|Collector B;Preparator',
+      );
+    });
+
+    test('does not create a summary row without an event personnel name', () {
+      expect(
+        buildCollPersonnelSummary(const [
+          CollPersonnelData(
+            id: 1,
+            eventID: 7,
+            personnelId: 'person-a',
+            name: null,
+            role: 'Recorder',
+          ),
+        ]),
+        isEmpty,
+      );
     });
   });
 
@@ -312,7 +394,7 @@ void main() {
       );
     });
 
-    test('static auto-fill height uses visible image bottom', () {
+    test('static auto-fill height expands to the visible image bottom', () {
       final page = TemplatePage(
         customImages: const [
           CustomImageElement(
@@ -329,7 +411,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(50),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -339,7 +421,7 @@ void main() {
       expect(height, closeTo(documentPdfMmToPt(58), 0.001));
     });
 
-    test('static auto-fill height uses visible shape bottom', () {
+    test('static auto-fill height expands to the visible shape bottom', () {
       final page = TemplatePage(
         customShapes: const [
           CustomShapeElement(
@@ -358,7 +440,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(30),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -368,7 +450,7 @@ void main() {
       expect(height, closeTo(documentPdfMmToPt(36) + 2, 0.001));
     });
 
-    test('static auto-fill height uses visible line bottom', () {
+    test('static auto-fill height expands to the visible line bottom', () {
       final page = TemplatePage(
         customLines: const [
           CustomLineElement(
@@ -384,7 +466,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(60),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -392,6 +474,32 @@ void main() {
       );
 
       expect(height, closeTo(documentPdfMmToPt(64) + 1.5, 0.001));
+    });
+
+    test('auto-fill retains the configured template height for short content',
+        () {
+      final page = TemplatePage(customTexts: [
+        CustomTextElement(
+          id: 'short',
+          text: 'Short label',
+          xMm: 0,
+          yMm: 0,
+          fontSizePt: 10,
+          maxWidthMm: 55,
+        ),
+      ]);
+
+      final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(50),
+        templatePadTopMm: 2,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 3,
+      );
+
+      expect(height, closeTo(documentPdfMmToPt(55), 0.001));
     });
 
     test('estimates taller cells for wrapped auto-height text', () {
@@ -471,7 +579,7 @@ void main() {
       final page = TemplatePage(customTexts: [
         CustomTextElement(
           id: 'dynamic',
-          text: 'Short dynamic narrative.',
+          text: List.filled(20, 'Dynamic narrative text').join(' '),
           xMm: 0,
           yMm: 0,
           fontSizePt: 10,
@@ -483,17 +591,18 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
         templatePadBottomMm: 0,
       );
 
-      expect(height, greaterThan(0));
+      expect(height, greaterThan(documentPdfMmToPt(10)));
     });
 
-    test('dynamic text element includes its own growth in estimated height', () {
+    test('dynamic text element includes its own growth in estimated height',
+        () {
       final page = TemplatePage(customTexts: [
         CustomTextElement(
           id: 'dynamic',
@@ -510,7 +619,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -547,7 +656,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -555,7 +664,7 @@ void main() {
       );
 
       expect(height, greaterThan(documentPdfMmToPt(80)));
-      expect(height, lessThan(700));
+      expect(height, lessThan(documentPdfMmToPt(100)));
     });
 
     test('dynamic text growth pushes lower elements in row height', () {
@@ -586,7 +695,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -594,7 +703,7 @@ void main() {
       );
 
       expect(height, greaterThan(documentPdfMmToPt(35)));
-      expect(height, lessThan(700));
+      expect(height, lessThan(documentPdfMmToPt(100)));
     });
 
     test('dynamic text without height pushes lower elements', () {
@@ -624,7 +733,7 @@ void main() {
       final height = DocumentWriter.estimateAutoFillCellHeightPtForTesting(
         page: page,
         wPt: 180,
-        hPt: 700,
+        hPt: documentPdfMmToPt(10),
         templatePadTopMm: 0,
         templatePadLeftMm: 0,
         templatePadRightMm: 0,
@@ -672,9 +781,105 @@ void main() {
             '#block(above: 0pt, below: 0pt)[#set text(size: 10.0pt'),
       );
       expect(typst, contains('#table(columns: 3'));
-      expect(typst,
-          contains('dy: ${documentPdfMmToPt(8)}pt + grow_dynamic_table'));
+      expect(typst, contains('flow_clearance_dynamic_table'));
+      expect(typst, contains('${documentPdfMmToPt(2)}pt'));
       expect(typst, isNot(contains(r'\#table')));
+    });
+
+    test('multiple dynamic texts flow with clearance before lower elements',
+        () {
+      final page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'first',
+            text: List.filled(12, 'First dynamic paragraph').join(' '),
+            xMm: 0,
+            yMm: 0,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+          CustomTextElement(
+            id: 'second',
+            text: List.filled(12, 'Second dynamic paragraph').join(' '),
+            xMm: 0,
+            yMm: 6,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+        ],
+        customLines: const [
+          CustomLineElement(
+            id: 'below-dynamic',
+            xMm: 0,
+            yMm: 10,
+            lengthMm: 55,
+            thicknessPt: 1,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(10),
+      );
+      final estimatedHeight =
+          DocumentWriter.estimateAutoFillCellHeightPtForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(10),
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+      );
+
+      expect(
+        typst,
+        contains('flow_top_second = calc.max(flow_top_second, '
+            'flow_clearance_first)'),
+      );
+      expect(typst, contains('flow_clearance_second'));
+      expect(typst, contains('${documentPdfMmToPt(2)}pt'));
+      expect(estimatedHeight, greaterThan(documentPdfMmToPt(25)));
+    });
+
+    test('near-aligned dynamic texts stay in the same PDF flow row', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'left',
+            text: 'Left dynamic text',
+            xMm: 0,
+            yMm: 10,
+            fontSizePt: 10,
+            maxWidthMm: 25,
+            isDynamic: true,
+          ),
+          CustomTextElement(
+            id: 'right',
+            text: 'Right dynamic text',
+            xMm: 30,
+            yMm: 10.8,
+            fontSizePt: 10,
+            maxWidthMm: 25,
+            isDynamic: true,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: documentPdfMmToPt(30),
+      );
+
+      expect(
+        typst,
+        isNot(contains('flow_top_right = calc.max(flow_top_right')),
+      );
     });
 
     test('uses the canvas top-left origin for template element placement', () {
@@ -945,6 +1150,17 @@ void main() {
       const textWithUnits = 'Weight: 12.34 g';
       expect(
           formatTemplateText(textWithUnits, 'number', '1'), 'Weight: 12.3 g');
+    });
+
+    test('Encoded text formatting applies casing styles to mapped values', () {
+      expect(
+        formatTemplateText('scrotal', 'encoded', 'enum', 'uppercase'),
+        'SCROTAL',
+      );
+      expect(
+        formatTemplateText('scrotal', 'encoded', 'enum', 'capitalize'),
+        'Scrotal',
+      );
     });
 
     group('Integrated Text-to-QR tests', () {

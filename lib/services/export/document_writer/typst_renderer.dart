@@ -49,14 +49,15 @@ class _DocumentTypstRenderer {
     required List<_DocumentSheetCell> cells,
     required int cols,
     required double cellW,
-    required double usableH,
     required double wPt,
     required double hPt,
     required bool pageBreakAfter,
   }) {
-    // Do not clip the grid. Height estimates are used only for pagination;
-    // Typst remains the source of truth for dynamic text measurement.
-    typst.writeln('#box(width: 100%, height: ${usableH}pt, clip: false)[');
+    // Do not reserve the whole usable page for every batch. The grid's natural
+    // height is the sum of its rows, so the next template or block starts
+    // immediately after the preceding row. Height estimates are used only for
+    // pagination; Typst remains the source of truth for dynamic text
+    // measurement.
     typst.writeln('#grid(');
     typst.writeln('  columns: (${cellW}pt, ) * $cols,');
     typst.writeln('  column-gutter: 0pt,');
@@ -82,7 +83,6 @@ class _DocumentTypstRenderer {
 
     _fillRemainingGridSpaces(typst, cells.length, cols);
     typst.writeln(')');
-    typst.writeln(']');
     if (pageBreakAfter) {
       typst.writeln('#pagebreak(weak: true)');
     }
@@ -109,8 +109,13 @@ class _DocumentTypstRenderer {
     final padRight = documentPdfMmToPt(templatePadRightMm);
     final cellWPt = wPt + padLeft + padRight;
     final staticContentHeightPt = _staticContentHeightPt(page, wPt);
-    final autoContentHeightPt =
-        staticContentHeightPt > 0 ? staticContentHeightPt : hPt;
+    // Auto-fill templates retain their configured canvas height as a minimum.
+    // Their visible content can grow beyond it, but it cannot collapse the
+    // template and override the spacing defined by template padding.
+    final autoContentHeightPt = math.max(
+      hPt,
+      staticContentHeightPt > 0 ? staticContentHeightPt : hPt,
+    );
     final fixedCellHPt = hPt + padTop + padBottom;
     final autoCellHPt = autoContentHeightPt + padTop + padBottom;
 
@@ -122,7 +127,8 @@ class _DocumentTypstRenderer {
             t.isDynamic &&
             !t.isQrCode &&
             templateGenderIconFieldKeyFromBracketText(t.text) == null)
-        .toList();
+        .toList()
+      ..sort((a, b) => a.yMm.compareTo(b.yMm));
 
     if (dynamicTexts.isNotEmpty) {
       final initialCellHeight = autoHeight ? autoContentHeightPt : hPt;
@@ -135,9 +141,6 @@ class _DocumentTypstRenderer {
         final mwPt = t.maxWidthMm != null
             ? '${documentPdfMmToPt(t.maxWidthMm!)}pt'
             : '${wPt - documentPdfMmToPt(t.xMm)}pt';
-        final dyPt = '${documentPdfMmToPt(t.yMm)}pt';
-        final baselinePt =
-            t.heightMm != null ? documentPdfMmToPt(t.heightMm!) : 0.0;
         final measureBoxArgs = _textBoxArgs(t, width: mwPt);
         final measureBox = measureBoxArgs.isEmpty
             ? 'box(width: $mwPt)'
@@ -145,10 +148,24 @@ class _DocumentTypstRenderer {
 
         typst.writeln(
             '  let h_$varSuffix = measure($measureBox[$textElem], styles).height');
+      }
+
+      for (var index = 0; index < dynamicTexts.length; index++) {
+        final text = dynamicTexts[index];
+        final varSuffix = _typstVarSuffix(text.id);
         typst.writeln(
-            '  let grow_$varSuffix = calc.max(0pt, h_$varSuffix - ${baselinePt}pt)');
+            '  let flow_top_$varSuffix = ${documentPdfMmToPt(text.yMm)}pt');
+        for (var priorIndex = 0; priorIndex < index; priorIndex++) {
+          final prior = dynamicTexts[priorIndex];
+          if (text.yMm - prior.yMm <=
+              TemplateDynamicLayoutService.verticalRowToleranceMm) {
+            continue;
+          }
+          typst.writeln(
+              '  flow_top_$varSuffix = calc.max(flow_top_$varSuffix, flow_clearance_${_typstVarSuffix(prior.id)})');
+        }
         typst.writeln(
-            '  cell_height = calc.max(cell_height, $dyPt + h_$varSuffix)');
+            '  let flow_clearance_$varSuffix = flow_top_$varSuffix + h_$varSuffix + ${documentPdfMmToPt(2)}pt');
       }
 
       for (final el in sortElements(page)) {
@@ -163,7 +180,7 @@ class _DocumentTypstRenderer {
             templateGenderIconFieldKeyFromBracketText(el.text) == null) {
           final varSuffix = _typstVarSuffix(el.id);
           typst.writeln(
-              '  cell_height = calc.max(cell_height, ${documentPdfMmToPt(el.yMm)}pt + h_$varSuffix${shift == '0pt' ? '' : ' + $shift'})');
+              '  cell_height = calc.max(cell_height, flow_top_$varSuffix + h_$varSuffix)');
         } else {
           final bottom = _elementBottomPt(el, wPt);
           if (bottom <= 0) continue;
@@ -283,14 +300,17 @@ class _DocumentTypstRenderer {
     double yMm, {
     required dynamic excludeElement,
   }) {
-    final shifts = <String>[];
+    final base = '${documentPdfMmToPt(yMm)}pt';
+    var requiredBottom = base;
     for (final text in dynamicTexts) {
       if (identical(text, excludeElement)) continue;
-      if (yMm > text.yMm) {
-        shifts.add('grow_${_typstVarSuffix(text.id)}');
+      if (yMm - text.yMm >
+          TemplateDynamicLayoutService.verticalRowToleranceMm) {
+        requiredBottom =
+            'calc.max($requiredBottom, flow_clearance_${_typstVarSuffix(text.id)})';
       }
     }
-    return shifts.isEmpty ? '0pt' : shifts.join(' + ');
+    return requiredBottom == base ? '0pt' : '$requiredBottom - $base';
   }
 
   String _dyPt(double yMm, String dyShift) {

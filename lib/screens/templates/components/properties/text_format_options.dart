@@ -13,9 +13,14 @@ const kTextTypeOptions = <TextFormatOption>[
   (value: 'time', label: 'Time'),
   (value: 'sex', label: 'Sex'),
   (value: 'number', label: 'Number'),
+  (value: 'encoded', label: 'Encoded Text'),
 ];
 
 const kTextFormatOptions = <String, List<TextFormatOption>>{
+  'encoded': [
+    (value: 'enum', label: 'Default mapping'),
+    (value: 'custom', label: 'Custom mapping...'),
+  ],
   'coordinates': [
     (value: 'decimal', label: 'Decimal (45.123, -122.543)'),
     (value: 'cardinalDecimal', label: 'Cardinal Dec (45.123° N, 122.543° W)'),

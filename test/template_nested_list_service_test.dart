@@ -90,5 +90,45 @@ void main() {
         text,
       );
     });
+
+    test('respects title case for table headers (default)', () {
+      final result = expandNestedListPlaceholders(
+        '[coordinate::decimalLatitude]',
+        fields,
+        kTemplateNestedListTableFormat,
+        'title',
+      );
+      expect(result, contains('| Decimal Latitude |'));
+    });
+
+    test('respects sentence case for table headers', () {
+      final result = expandNestedListPlaceholders(
+        '[coordinate::decimalLatitude]',
+        fields,
+        kTemplateNestedListTableFormat,
+        'sentence',
+      );
+      expect(result, contains('| Decimal latitude |'));
+    });
+
+    test('respects uppercase for table headers', () {
+      final result = expandNestedListPlaceholders(
+        '[coordinate::decimalLatitude]',
+        fields,
+        kTemplateNestedListTableFormat,
+        'uppercase',
+      );
+      expect(result, contains('| DECIMAL LATITUDE |'));
+    });
+
+    test('respects lowercase for table headers', () {
+      final result = expandNestedListPlaceholders(
+        '[coordinate::decimalLatitude]',
+        fields,
+        kTemplateNestedListTableFormat,
+        'lowercase',
+      );
+      expect(result, contains('| decimal latitude |'));
+    });
   });
 }

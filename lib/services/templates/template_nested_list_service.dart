@@ -21,9 +21,11 @@ String expandNestedListTextIfEnabled({
   required String textType,
   required Map<String, String> fieldValues,
   required String formatOption,
+  String? caseFormat,
 }) {
   if (textType != kTemplateNestedListTextType) return text;
-  return expandNestedListPlaceholders(text, fieldValues, formatOption);
+  return expandNestedListPlaceholders(
+      text, fieldValues, formatOption, caseFormat);
 }
 
 /// Expands `[namespace::*]` placeholders into a Markdown table or card list.
@@ -34,14 +36,16 @@ String expandNestedListTextIfEnabled({
 String expandNestedListPlaceholders(
   String template,
   Map<String, String> fieldValues,
-  String formatOption,
-) {
+  String formatOption, [
+  String? caseFormat,
+]) {
   final wildcardExpanded = template.replaceAllMapped(
     RegExp(r'\[([A-Za-z0-9_-]+)::\*\]'),
     (match) => _formatNamespace(
       namespace: match.group(1)!,
       fieldValues: fieldValues,
       formatOption: formatOption,
+      caseFormat: caseFormat,
     ),
   );
   if (wildcardExpanded != template) return wildcardExpanded;
@@ -67,6 +71,7 @@ String expandNestedListPlaceholders(
       fieldValues: fieldValues,
       formatOption: formatOption,
       fields: placeholders.map((placeholder) => placeholder.field).toList(),
+      caseFormat: caseFormat,
     );
   }
 
@@ -81,6 +86,7 @@ String expandNestedListPlaceholders(
         .map((field) => MapEntry(field, _lookupShortField(field, fieldValues)))
         .toList(growable: false),
     formatOption,
+    caseFormat,
   );
 }
 
@@ -89,6 +95,7 @@ String _formatNamespace({
   required Map<String, String> fieldValues,
   required String formatOption,
   List<String>? fields,
+  String? caseFormat,
 }) {
   final prefix = '${namespace.toLowerCase()}::';
   final fieldEntries = fields == null
@@ -113,13 +120,14 @@ String _formatNamespace({
         }).toList(growable: false);
   if (fieldEntries.isEmpty) return '';
 
-  return _formatFields(fieldEntries, formatOption);
+  return _formatFields(fieldEntries, formatOption, caseFormat);
 }
 
 String _formatFields(
   List<MapEntry<String, String>> fields,
-  String formatOption,
-) {
+  String formatOption, [
+  String? caseFormat,
+]) {
   final values = fields
       .map((field) =>
           field.value.split('|').map((value) => value.trim()).toList())
@@ -137,8 +145,8 @@ String _formatFields(
     growable: false,
   );
   return formatOption == kTemplateNestedListCardListFormat
-      ? _formatCards(fields, rows)
-      : _formatTable(fields, rows);
+      ? _formatCards(fields, rows, caseFormat)
+      : _formatTable(fields, rows, caseFormat);
 }
 
 String _lookupShortField(String field, Map<String, String> values) {
@@ -155,10 +163,12 @@ String _lookupShortField(String field, Map<String, String> values) {
 
 String _formatTable(
   List<MapEntry<String, String>> fields,
-  List<List<String>> rows,
-) {
-  final headers =
-      fields.map((field) => _displayFieldName(field.key)).join(' | ');
+  List<List<String>> rows, [
+  String? caseFormat,
+]) {
+  final headers = fields
+      .map((field) => _displayFieldName(field.key, caseFormat))
+      .join(' | ');
   final divider = List.filled(fields.length, '---').join(' | ');
   final body = rows
       .map((row) => '| ${row.map(_escapeTableCell).join(' | ')} |')
@@ -168,29 +178,47 @@ String _formatTable(
 
 String _formatCards(
   List<MapEntry<String, String>> fields,
-  List<List<String>> rows,
-) {
+  List<List<String>> rows, [
+  String? caseFormat,
+]) {
   return rows.asMap().entries.map((entry) {
     final details = List.generate(
       fields.length,
       (column) {
         final value = entry.value[column];
         if (value.isEmpty) return null;
-        return '- **${_displayFieldName(fields[column].key)}:** $value';
+        return '- **${_displayFieldName(fields[column].key, caseFormat)}:** $value';
       },
     ).whereType<String>().join('\n');
     return '**${entry.key + 1}**${details.isEmpty ? '' : '\n$details'}';
   }).join('\n\n');
 }
 
-String _displayFieldName(String field) {
+String _displayFieldName(String field, [String? caseFormat]) {
   final spaced = field.replaceAllMapped(
     RegExp(r'([a-z0-9])([A-Z])'),
     (match) => '${match.group(1)} ${match.group(2)}',
   );
   final result = spaced.replaceAll('_', ' ').trim();
   if (result.isEmpty) return result;
-  return '${result[0].toUpperCase()}${result.substring(1)}';
+
+  final cf =
+      (caseFormat == null || caseFormat == 'normal') ? 'title' : caseFormat;
+  switch (cf) {
+    case 'uppercase':
+      return result.toUpperCase();
+    case 'lowercase':
+      return result.toLowerCase();
+    case 'sentence':
+      final lower = result.toLowerCase();
+      return '${lower[0].toUpperCase()}${lower.substring(1)}';
+    case 'title':
+    default:
+      return result.split(' ').map((word) {
+        if (word.isEmpty) return word;
+        return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+      }).join(' ');
+  }
 }
 
 String _escapeTableCell(String value) {

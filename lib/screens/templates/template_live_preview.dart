@@ -222,12 +222,15 @@ class _PreviewPage extends StatelessWidget {
                                           textType: ct.textType,
                                           fieldValues: placeholderValues,
                                           formatOption: ct.formatOption,
+                                          caseFormat: ct.caseFormat,
                                         ),
                                         placeholderValues,
                                         nullFallbackOption:
                                             ct.nullFallbackOption,
                                         customNullFallbackText:
                                             ct.customNullFallbackText,
+                                        textType: ct.textType,
+                                        formatOption: ct.formatOption,
                                       ),
                                 ct.textType,
                                 ct.formatOption,

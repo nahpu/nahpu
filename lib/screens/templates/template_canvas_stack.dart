@@ -125,11 +125,12 @@ class RenderCanvasSizedBox extends RenderProxyBox {
 
   @override
   void performLayout() {
+    final targetSize = constraints.constrain(Size(width, height));
     if (child != null) {
-      child!.layout(BoxConstraints.tight(Size(width, height)), parentUsesSize: true);
+      child!.layout(BoxConstraints.tight(targetSize), parentUsesSize: true);
       size = child!.size;
     } else {
-      size = Size(width, height);
+      size = targetSize;
     }
   }
 

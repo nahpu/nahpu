@@ -13,14 +13,14 @@ void main() {
     isDynamic: true,
   );
 
-  test('shifts every lower widget by dynamic content growth', () {
+  test('shifts every lower widget below dynamic content plus the gap', () {
     final shift = TemplateDynamicLayoutService.verticalShiftMm(
       texts: const [growingTable],
       targetYmm: 25,
       contentHeightMmByTextId: const {'table': 18},
     );
 
-    expect(shift, 10);
+    expect(shift, 5);
   });
 
   test('does not shift elements above or at a dynamic text origin', () {
@@ -53,17 +53,95 @@ void main() {
       contentHeightMmByTextId: const {'table': 18},
     );
 
-    expect(savedY, closeTo(25, 0.001));
+    expect(savedY, closeTo(35, 0.001));
   });
 
-  test('clamps target coordinate falling inside the dynamic growth gap of an element', () {
+  test('clamps a target coordinate inside a dynamic clearance gap', () {
     final savedY = TemplateDynamicLayoutService.savedYmmForRenderedY(
       texts: const [growingTable],
-      renderedYmm: 15,
+      renderedYmm: 20,
       contentHeightMmByTextId: const {'table': 18},
     );
 
-    expect(savedY, 10.0);
+    expect(savedY, closeTo(11.0, 0.001));
+  });
+
+  test('flows each lower dynamic text after the previous rendered bottom', () {
+    const secondText = CustomTextElement(
+      id: 'second',
+      text: '[second]',
+      xMm: 5,
+      yMm: 22,
+      heightMm: 5,
+      isDynamic: true,
+    );
+    const thirdText = CustomTextElement(
+      id: 'third',
+      text: '[third]',
+      xMm: 5,
+      yMm: 30,
+      heightMm: 5,
+      isDynamic: true,
+    );
+
+    final secondShift = TemplateDynamicLayoutService.verticalShiftMm(
+      texts: const [growingTable, secondText, thirdText],
+      targetYmm: secondText.yMm,
+      excludeTextId: secondText.id,
+      contentHeightMmByTextId: const {
+        'table': 18,
+        'second': 10,
+        'third': 6,
+      },
+    );
+    final thirdShift = TemplateDynamicLayoutService.verticalShiftMm(
+      texts: const [growingTable, secondText, thirdText],
+      targetYmm: thirdText.yMm,
+      excludeTextId: thirdText.id,
+      contentHeightMmByTextId: const {
+        'table': 18,
+        'second': 10,
+        'third': 6,
+      },
+    );
+
+    expect(secondText.yMm + secondShift, 30);
+    expect(thirdText.yMm + thirdShift, 42);
+  });
+
+  test('keeps dynamic text at the same saved Y layered', () {
+    const layeredText = CustomTextElement(
+      id: 'layered',
+      text: '[layered]',
+      xMm: 5,
+      yMm: 10,
+      isDynamic: true,
+    );
+
+    final shift = TemplateDynamicLayoutService.verticalShiftMm(
+      texts: const [growingTable, layeredText],
+      targetYmm: layeredText.yMm,
+      excludeTextId: layeredText.id,
+      contentHeightMmByTextId: const {'table': 18, 'layered': 20},
+    );
+
+    expect(shift, 0);
+  });
+
+  test('keeps elements within one millimeter in the same visual row', () {
+    final alignedShift = TemplateDynamicLayoutService.verticalShiftMm(
+      texts: const [growingTable],
+      targetYmm: 10.9,
+      contentHeightMmByTextId: const {'table': 18},
+    );
+    final lowerRowShift = TemplateDynamicLayoutService.verticalShiftMm(
+      texts: const [growingTable],
+      targetYmm: 11.01,
+      contentHeightMmByTextId: const {'table': 18},
+    );
+
+    expect(alignedShift, 0);
+    expect(lowerRowShift, greaterThan(0));
   });
 
   test('ignores non-dynamic and non-rendered text', () {

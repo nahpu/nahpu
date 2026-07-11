@@ -157,8 +157,6 @@ class _DocumentPdfBuilder {
           outline: item.template.outline,
           continuous: true,
         );
-
-
       }
     } else {
       final ptTop = documentPdfMmToPt(layout.pagePadTopMm);
@@ -248,7 +246,8 @@ class _DocumentPdfBuilder {
 
         if (duplex) {
           for (var i = 0; i < allFrontCells.length; i++) {
-            final maxH = math.max(allFrontCells[i].heightPt, allBackCells[i].heightPt);
+            final maxH =
+                math.max(allFrontCells[i].heightPt, allBackCells[i].heightPt);
             allFrontCells[i] = allFrontCells[i].copyWithHeight(maxH);
             allBackCells[i] = allBackCells[i].copyWithHeight(maxH);
           }
@@ -298,7 +297,6 @@ class _DocumentPdfBuilder {
               cells: frontBatch.cells,
               cols: cols,
               cellW: cellW,
-              usableH: usableH,
               wPt: wPt,
               hPt: hPt,
               pageBreakAfter: breakAfterFront,
@@ -325,7 +323,6 @@ class _DocumentPdfBuilder {
                 cells: backBatch.cells,
                 cols: cols,
                 cellW: cellW,
-                usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
                 pageBreakAfter: breakAfterBack,
@@ -417,7 +414,8 @@ class _DocumentPdfBuilder {
 
           if (duplex) {
             for (var i = 0; i < blockFrontCells.length; i++) {
-              final maxH = math.max(blockFrontCells[i].heightPt, blockBackCells[i].heightPt);
+              final maxH = math.max(
+                  blockFrontCells[i].heightPt, blockBackCells[i].heightPt);
               blockFrontCells[i] = blockFrontCells[i].copyWithHeight(maxH);
               blockBackCells[i] = blockBackCells[i].copyWithHeight(maxH);
             }
@@ -465,7 +463,6 @@ class _DocumentPdfBuilder {
                 cells: frontBatch.cells,
                 cols: cols,
                 cellW: cellW,
-                usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
                 pageBreakAfter: breakAfterFront,
@@ -492,7 +489,6 @@ class _DocumentPdfBuilder {
                   cells: backBatch.cells,
                   cols: cols,
                   cellW: cellW,
-                  usableH: usableH,
                   wPt: wPt,
                   hPt: hPt,
                   pageBreakAfter: breakAfterBack,
@@ -749,8 +745,6 @@ class _DocumentPdfBuilder {
           outline: item.template.outline,
           continuous: true,
         );
-
-
       }
     } else {
       final ptTop = documentPdfMmToPt(layout.pagePadTopMm);
@@ -853,7 +847,8 @@ class _DocumentPdfBuilder {
 
         if (duplex) {
           for (var i = 0; i < allFrontCells.length; i++) {
-            final maxH = math.max(allFrontCells[i].heightPt, allBackCells[i].heightPt);
+            final maxH =
+                math.max(allFrontCells[i].heightPt, allBackCells[i].heightPt);
             allFrontCells[i] = allFrontCells[i].copyWithHeight(maxH);
             allBackCells[i] = allBackCells[i].copyWithHeight(maxH);
           }
@@ -903,7 +898,6 @@ class _DocumentPdfBuilder {
               cells: frontBatch.cells,
               cols: cols,
               cellW: cellW,
-              usableH: usableH,
               wPt: wPt,
               hPt: hPt,
               pageBreakAfter: breakAfterFront,
@@ -930,7 +924,6 @@ class _DocumentPdfBuilder {
                 cells: backBatch.cells,
                 cols: cols,
                 cellW: cellW,
-                usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
                 pageBreakAfter: breakAfterBack,
@@ -1022,7 +1015,8 @@ class _DocumentPdfBuilder {
 
           if (duplex) {
             for (var i = 0; i < blockFrontCells.length; i++) {
-              final maxH = math.max(blockFrontCells[i].heightPt, blockBackCells[i].heightPt);
+              final maxH = math.max(
+                  blockFrontCells[i].heightPt, blockBackCells[i].heightPt);
               blockFrontCells[i] = blockFrontCells[i].copyWithHeight(maxH);
               blockBackCells[i] = blockBackCells[i].copyWithHeight(maxH);
             }
@@ -1070,7 +1064,6 @@ class _DocumentPdfBuilder {
                 cells: frontBatch.cells,
                 cols: cols,
                 cellW: cellW,
-                usableH: usableH,
                 wPt: wPt,
                 hPt: hPt,
                 pageBreakAfter: breakAfterFront,
@@ -1097,7 +1090,6 @@ class _DocumentPdfBuilder {
                   cells: backBatch.cells,
                   cols: cols,
                   cellW: cellW,
-                  usableH: usableH,
                   wPt: wPt,
                   hPt: hPt,
                   pageBreakAfter: breakAfterBack,
@@ -1224,7 +1216,11 @@ class _DocumentPdfBuilder {
       wPt: wPt,
       hPt: hPt,
     );
-    return bodyHeight + padTop + padBottom;
+    // A template's configured canvas height is its minimum physical height.
+    // Dynamic content may extend that canvas, but sparse content must not make
+    // neighbouring templates move closer together than the template design
+    // permits.
+    return math.max(hPt, bodyHeight) + padTop + padBottom;
   }
 
   static double estimateTemplatePageContentHeightPt({
@@ -1319,42 +1315,65 @@ class _DocumentPdfBuilder {
         .toList()
       ..sort((a, b) => a.yMm.compareTo(b.yMm));
 
+    final dynamicHeightByText = <CustomTextElement, double>{
+      for (final text in dynamicTexts) text: _dynamicTextHeightPt(text, wPt),
+    };
+    final flowTopByText = <CustomTextElement, double>{};
+    final clearanceBottomByText = <CustomTextElement, double>{};
+    final dynamicGapPt = documentPdfMmToPt(2);
+
+    for (final text in dynamicTexts) {
+      var flowedTop = documentPdfMmToPt(text.yMm);
+      for (final previous in dynamicTexts) {
+        if (text.yMm - previous.yMm <=
+            TemplateDynamicLayoutService.verticalRowToleranceMm) {
+          continue;
+        }
+        flowedTop = math.max(flowedTop, clearanceBottomByText[previous]!);
+      }
+      flowTopByText[text] = flowedTop;
+      clearanceBottomByText[text] =
+          flowedTop + dynamicHeightByText[text]! + dynamicGapPt;
+    }
+
     var height = 0.0;
     for (final element in _sortTemplateElements(page)) {
-      var bottom = _elementBottomPt(element, wPt);
+      final bottom = element is CustomTextElement &&
+              dynamicHeightByText.containsKey(element)
+          ? flowTopByText[element]! + dynamicHeightByText[element]!
+          : _elementBottomPt(element, wPt) +
+              _dynamicFlowShiftPt(
+                dynamicTexts: dynamicTexts,
+                clearanceBottomByText: clearanceBottomByText,
+                targetYmm: _elementTopMm(element),
+                excludeElement: element,
+              );
       if (bottom <= 0) continue;
-      if (element is CustomTextElement &&
-          element.isDynamic &&
-          !element.isQrCode &&
-          templateGenderIconFieldKeyFromBracketText(element.text) == null) {
-        bottom += _dynamicTextGrowthPt(element, wPt);
-      }
-      height = math.max(
-        height,
-        bottom + _dynamicGrowthBeforePt(dynamicTexts, element, wPt),
-      );
+      height = math.max(height, bottom);
     }
     return height;
   }
 
-  static double _dynamicGrowthBeforePt(
-    List<CustomTextElement> dynamicTexts,
-    dynamic element,
-    double wPt,
-  ) {
-    final yMm = _elementTopMm(element);
-    var growth = 0.0;
+  static double _dynamicFlowShiftPt({
+    required List<CustomTextElement> dynamicTexts,
+    required Map<CustomTextElement, double> clearanceBottomByText,
+    required double targetYmm,
+    required dynamic excludeElement,
+  }) {
+    final base = documentPdfMmToPt(targetYmm);
+    var renderedTop = base;
     for (final text in dynamicTexts) {
-      if (identical(text, element)) continue;
-      if (yMm > text.yMm) {
-        growth += _dynamicTextGrowthPt(text, wPt);
+      if (identical(text, excludeElement)) continue;
+      if (targetYmm - text.yMm >
+          TemplateDynamicLayoutService.verticalRowToleranceMm) {
+        renderedTop = math.max(renderedTop, clearanceBottomByText[text]!);
       }
     }
-    return growth;
+    return renderedTop - base;
   }
 
-  static double _dynamicTextGrowthPt(CustomTextElement text, double wPt) {
-    final measuredHeight = _estimateTextHeightPt(
+  static double _dynamicTextHeightPt(CustomTextElement text, double wPt) {
+    return _estimateTextHeightPt(
           formatTemplateText(
             text.text,
             text.textType,
@@ -1365,9 +1384,6 @@ class _DocumentPdfBuilder {
           _textContentWidthPt(text, wPt),
         ) +
         _textBoxVerticalExtraPt(text);
-    final baselineHeight =
-        text.heightMm != null ? documentPdfMmToPt(text.heightMm!) : 0.0;
-    return math.max(0.0, measuredHeight - baselineHeight);
   }
 
   static List<dynamic> _sortTemplateElements(TemplatePage page) {

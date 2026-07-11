@@ -6,6 +6,7 @@ import 'package:nahpu/screens/templates/components/properties/text_format_option
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/screens/templates/components/dialogs/map_encoded_values_dialog.dart';
 
 class TextPropertiesPanel extends StatelessWidget {
   const TextPropertiesPanel({
@@ -214,7 +215,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
   bool _showFormattingRow = false;
   bool _showStylingRow = false;
   late TextEditingController _separatorController;
-  late TextEditingController _customNullFallbackController;
 
   @override
   void initState() {
@@ -223,9 +223,6 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         ? widget.ct.formatOption.substring(7)
         : '';
     _separatorController = TextEditingController(text: initialSep);
-    _customNullFallbackController = TextEditingController(
-      text: widget.ct.customNullFallbackText,
-    );
   }
 
   @override
@@ -240,20 +237,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
         _separatorController.text = sep;
       }
     }
-    if (widget.ct.id != oldWidget.ct.id ||
-        widget.ct.customNullFallbackText !=
-            oldWidget.ct.customNullFallbackText) {
-      final customFallback = widget.ct.customNullFallbackText;
-      if (_customNullFallbackController.text != customFallback) {
-        _customNullFallbackController.text = customFallback;
-      }
-    }
   }
 
   @override
   void dispose() {
     _separatorController.dispose();
-    _customNullFallbackController.dispose();
     super.dispose();
   }
 
@@ -537,12 +525,13 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
 
     final isCustomSep =
         ct.formatOption.startsWith('custom:') || ct.formatOption == 'custom';
+    final isCustomMap = ct.formatOption.startsWith('custom_map:') ||
+        ct.formatOption == 'custom_map';
     final hasTextPlaceholder = _hasTextPlaceholder(ct.text);
     final nullFallbackControls = _NullFallbackControls(
       text: ct,
       page1: page1,
       hasTextPlaceholder: hasTextPlaceholder,
-      customTextController: _customNullFallbackController,
       onUpdate: onUpdateCustomText,
     );
 
@@ -698,6 +687,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               defaultOpt = 'text:unknown';
                             } else if (v == 'number') {
                               defaultOpt = 'original';
+                            } else if (v == 'encoded') {
+                              defaultOpt = 'enum';
                             }
                             onUpdateCustomText(
                               page1,
@@ -716,20 +707,100 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           ),
                           const SizedBox(width: 8),
                           DropdownButton<String>(
-                            value: isCustomSep ? 'custom' : ct.formatOption,
+                            value: isCustomSep
+                                ? 'custom'
+                                : (isCustomMap ? 'custom' : ct.formatOption),
                             isDense: true,
                             underline: const SizedBox.shrink(),
                             items: textFormatDropdownItems(ct.textType),
                             onChanged: (v) {
                               if (v == null) return;
-                              final nextOpt = v == 'custom' ? 'custom:' : v;
+                              String nextOpt = v;
+                              if (v == 'custom') {
+                                if (ct.textType == 'encoded') {
+                                  final placeholder =
+                                      _detectPlaceholderKey(ct.text);
+                                  if (placeholder != null) {
+                                    final defaultMap =
+                                        _getDefaultEnumMapForPlaceholder(
+                                            placeholder);
+                                    final pairs = defaultMap.entries
+                                        .map((e) => '${e.key}=${e.value}')
+                                        .join(',');
+                                    nextOpt = 'custom_map:$pairs';
+                                  } else {
+                                    nextOpt = 'custom_map:';
+                                  }
+                                } else {
+                                  nextOpt = 'custom:';
+                                }
+                              }
                               onUpdateCustomText(
                                 page1,
                                 ct.copyWith(formatOption: nextOpt),
                               );
                             },
                           ),
+                          if (ct.textType == 'encoded' && isCustomMap) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.edit_note, size: 24),
+                              tooltip: 'Map encoded values',
+                              onPressed: () async {
+                                final result = await showDialog<String>(
+                                  context: context,
+                                  builder: (context) => MapEncodedValuesDialog(
+                                    placeholderKey:
+                                        _detectPlaceholderKey(ct.text) ?? '',
+                                    currentOption: ct.formatOption,
+                                  ),
+                                );
+                                if (result != null) {
+                                  onUpdateCustomText(
+                                    page1,
+                                    ct.copyWith(formatOption: result),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                           nullFallbackControls,
+                          if (ct.textType == 'nestedList' &&
+                              ct.formatOption == 'table') ...[
+                            const SizedBox(width: 16),
+                            Text(
+                              'Header Case',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: ct.caseFormat == 'normal'
+                                  ? 'title'
+                                  : ct.caseFormat,
+                              isDense: true,
+                              underline: const SizedBox.shrink(),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'title', child: Text('Title Case')),
+                                DropdownMenuItem(
+                                    value: 'sentence',
+                                    child: Text('Sentence Case')),
+                                DropdownMenuItem(
+                                    value: 'uppercase',
+                                    child: Text('Uppercase')),
+                                DropdownMenuItem(
+                                    value: 'lowercase',
+                                    child: Text('Lowercase')),
+                              ],
+                              onChanged: (v) {
+                                if (v == null) return;
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(caseFormat: v),
+                                );
+                              },
+                            ),
+                          ],
                         ] else ...[
                           const SizedBox(width: 16),
                           Text(
@@ -1056,35 +1127,70 @@ class _TextColorSwatch extends StatelessWidget {
   }
 }
 
-/// Isolates placeholder fallback editing from the text formatting toolbar.
-class _NullFallbackControls extends StatelessWidget {
-  const _NullFallbackControls({
+class _NullFallbackContent extends StatefulWidget {
+  const _NullFallbackContent({
     required this.text,
     required this.page1,
-    required this.hasTextPlaceholder,
-    required this.customTextController,
     required this.onUpdate,
   });
 
   final CustomTextElement text;
   final bool page1;
-  final bool hasTextPlaceholder;
-  final TextEditingController customTextController;
   final void Function(bool page1, CustomTextElement element) onUpdate;
 
   @override
+  State<_NullFallbackContent> createState() => _NullFallbackContentState();
+}
+
+class _NullFallbackContentState extends State<_NullFallbackContent> {
+  late String _nullFallbackOption;
+  late TextEditingController _customTextController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nullFallbackOption = widget.text.nullFallbackOption;
+    _customTextController = TextEditingController(
+      text: widget.text.customNullFallbackText,
+    );
+  }
+
+  @override
+  void dispose() {
+    _customTextController.dispose();
+    super.dispose();
+  }
+
+  void _onOptionChanged(String? val) {
+    if (val == null) return;
+    setState(() {
+      _nullFallbackOption = val;
+    });
+    widget.onUpdate(
+      widget.page1,
+      widget.text.copyWith(nullFallbackOption: val),
+    );
+  }
+
+  void _onTextChanged(String val) {
+    widget.onUpdate(
+      widget.page1,
+      widget.text.copyWith(customNullFallbackText: val.trim()),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final nullFallbackOption = text.nullFallbackOption;
-    return Row(
+    return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(width: 16),
-        Text('Null', style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(width: 8),
-        DropdownButton<String>(
-          value: nullFallbackOption,
-          isDense: true,
-          underline: const SizedBox.shrink(),
+        DropdownButtonFormField<String>(
+          initialValue: _nullFallbackOption,
+          decoration: const InputDecoration(
+            labelText: 'No Content Placeholder',
+            border: OutlineInputBorder(),
+          ),
           items: const [
             DropdownMenuItem(
               value: kTemplateNullFallbackBlank,
@@ -1107,38 +1213,168 @@ class _NullFallbackControls extends StatelessWidget {
               child: Text('Custom'),
             ),
           ],
-          onChanged: hasTextPlaceholder
-              ? (value) {
-                  if (value == null) return;
-                  onUpdate(page1, text.copyWith(nullFallbackOption: value));
-                }
-              : null,
+          onChanged: _onOptionChanged,
         ),
-        if (hasTextPlaceholder &&
-            nullFallbackOption == kTemplateNullFallbackCustom) ...[
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 120,
-            child: TextField(
-              controller: customTextController,
-              decoration: const InputDecoration(
-                isDense: true,
-                hintText: 'Custom text',
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 8,
-                ),
-              ),
-              onChanged: (_) => onUpdate(
-                page1,
-                text.copyWith(
-                  customNullFallbackText: customTextController.text.trim(),
-                ),
-              ),
+        if (_nullFallbackOption == kTemplateNullFallbackCustom) ...[
+          const SizedBox(height: 16),
+          TextField(
+            controller: _customTextController,
+            decoration: const InputDecoration(
+              labelText: 'Custom Text',
+              hintText: 'Enter custom fallback text',
+              border: OutlineInputBorder(),
             ),
+            onChanged: _onTextChanged,
           ),
         ],
       ],
+    );
+  }
+}
+
+class _NullFallbackDialog extends StatelessWidget {
+  const _NullFallbackDialog({
+    required this.text,
+    required this.page1,
+    required this.onUpdate,
+  });
+
+  final CustomTextElement text;
+  final bool page1;
+  final void Function(bool page1, CustomTextElement element) onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('No Content Placeholder'),
+      content: SizedBox(
+        width: 320.0,
+        child: _NullFallbackContent(
+          text: text,
+          page1: page1,
+          onUpdate: onUpdate,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Done'),
+        ),
+      ],
+    );
+  }
+}
+
+class _NullFallbackBottomSheet extends StatelessWidget {
+  const _NullFallbackBottomSheet({
+    required this.text,
+    required this.page1,
+    required this.onUpdate,
+  });
+
+  final CustomTextElement text;
+  final bool page1;
+  final void Function(bool page1, CustomTextElement element) onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        16.0,
+        8.0,
+        16.0,
+        media.viewInsets.bottom + 24.0,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40.0,
+              height: 4.0,
+              margin: const EdgeInsets.only(bottom: 12.0),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.4,
+                ),
+                borderRadius: BorderRadius.circular(2.0),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'No Content Placeholder',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Done'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _NullFallbackContent(
+            text: text,
+            page1: page1,
+            onUpdate: onUpdate,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NullFallbackControls extends StatelessWidget {
+  const _NullFallbackControls({
+    required this.text,
+    required this.page1,
+    required this.hasTextPlaceholder,
+    required this.onUpdate,
+  });
+
+  final CustomTextElement text;
+  final bool page1;
+  final bool hasTextPlaceholder;
+  final void Function(bool page1, CustomTextElement element) onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasTextPlaceholder) return const SizedBox.shrink();
+
+    return IconButton(
+      icon: const Icon(Icons.pending_outlined, size: 24),
+      tooltip: 'No Content Placeholder',
+      onPressed: () {
+        final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+        if (isLargeScreen) {
+          showDialog(
+            context: context,
+            builder: (context) => _NullFallbackDialog(
+              text: text,
+              page1: page1,
+              onUpdate: onUpdate,
+            ),
+          );
+        } else {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => _NullFallbackBottomSheet(
+              text: text,
+              page1: page1,
+              onUpdate: onUpdate,
+            ),
+          );
+        }
+      },
     );
   }
 }
@@ -1277,4 +1513,72 @@ class _StylePreviewPainter extends CustomPainter {
   bool shouldRepaint(covariant _StylePreviewPainter oldDelegate) {
     return oldDelegate.style != style || oldDelegate.color != color;
   }
+}
+
+String? _detectPlaceholderKey(String text) {
+  final match = RegExp(r'\[([^\]]+)\]').firstMatch(text);
+  if (match != null) {
+    return match.group(1)!.trim().split('??').first.trim();
+  }
+  return null;
+}
+
+Map<String, String> _getDefaultEnumMapForPlaceholder(String key) {
+  final cleanKey = key.trim().toLowerCase();
+  if (cleanKey.endsWith('::sex')) {
+    return {'0': 'Male', '1': 'Female', '2': 'Unknown'};
+  } else if (cleanKey == 'mammalmeasurement::age') {
+    return {'0': 'Adult', '1': 'Subadult', '2': 'Juvenile', '3': 'Unknown'};
+  } else if (cleanKey == 'herpmeasurement::age') {
+    return {
+      '0': 'Adult',
+      '1': 'Juvenile',
+      '2': 'Neonate',
+      '3': 'Metamorph',
+      '4': 'Unknown'
+    };
+  } else if (cleanKey.endsWith('::testisposition')) {
+    return {'0': 'Scrotal', '1': 'Abdominal'};
+  } else if (cleanKey.endsWith('::epididymisappearance')) {
+    return {'0': 'Tubular', '1': 'Partial', '2': 'Not Tubular'};
+  } else if (cleanKey.endsWith('::vaginaopening')) {
+    return {'0': 'Imperforate', '1': 'Perforate'};
+  } else if (cleanKey.endsWith('::pubicsymphysis')) {
+    return {'0': 'Close', '1': 'Small Open', '2': 'Open'};
+  } else if (cleanKey.endsWith('::reproductivestage')) {
+    return {'0': 'Nulliparous', '1': 'Primiparous', '2': 'Multiparous'};
+  } else if (cleanKey.endsWith('::mammaecondition')) {
+    return {'0': 'Small', '1': 'Large', '2': 'Lactating'};
+  } else if (cleanKey.endsWith('::ovaryappearance')) {
+    return {'0': 'Smooth', '1': 'Small', '2': 'At least one ovum >1 mm'};
+  } else if (cleanKey.endsWith('::oviductappearance')) {
+    return {'0': 'Straight', '1': 'Convoluted'};
+  } else if (cleanKey.endsWith('::fat')) {
+    return {
+      '0': 'No Fat',
+      '1': 'Trace',
+      '2': 'Light',
+      '3': 'Moderate',
+      '4': 'Heavy',
+      '5': 'Extremely Heavy'
+    };
+  } else if (cleanKey.endsWith('::bodymolt')) {
+    return {
+      '0': 'None',
+      '1': 'Trace',
+      '2': 'Light',
+      '3': 'Moderate',
+      '4': 'Heavy'
+    };
+  } else if (cleanKey.endsWith('::echolocation')) {
+    return {'0': 'FM', '1': 'CF', '2': 'QCF', '3': 'None'};
+  } else if (cleanKey.endsWith('::broodpatch') ||
+      cleanKey.endsWith('::hasbursa') ||
+      cleanKey.endsWith('::wingismolt') ||
+      cleanKey.endsWith('::tailismolt') ||
+      cleanKey.endsWith('::showbatfields') ||
+      cleanKey.endsWith('::showechofields')) {
+    return {'0': 'No', '1': 'Yes'};
+  }
+  return {};
 }

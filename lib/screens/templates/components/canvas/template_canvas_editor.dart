@@ -244,8 +244,8 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                   ),
                 ),
                 Container(
-                  width: availW,
-                  height: availH,
+                  width: math.max(availW, stackW),
+                  height: math.max(availH, stackH),
                   alignment: Alignment.center,
                   child: Transform.rotate(
                     angle: (page1 ? mirrorFront : mirrorBack) ? math.pi : 0,
@@ -507,12 +507,15 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                                   editorTemplateFieldPreview,
                                               formatOption:
                                                   element.formatOption,
+                                              caseFormat: element.caseFormat,
                                             ),
                                             editorTemplateFieldPreview,
                                             nullFallbackOption:
                                                 element.nullFallbackOption,
                                             customNullFallbackText:
                                                 element.customNullFallbackText,
+                                            textType: element.textType,
+                                            formatOption: element.formatOption,
                                           )
                                         : formatFieldPlaceholderText(
                                             rawText,
@@ -660,12 +663,17 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                                           editorTemplateFieldPreview,
                                                       formatOption:
                                                           element.formatOption,
+                                                      caseFormat:
+                                                          element.caseFormat,
                                                     ),
                                                     editorTemplateFieldPreview,
                                                     nullFallbackOption: element
                                                         .nullFallbackOption,
                                                     customNullFallbackText: element
                                                         .customNullFallbackText,
+                                                    textType: element.textType,
+                                                    formatOption:
+                                                        element.formatOption,
                                                   )
                                                 : formatFieldPlaceholderText(
                                                     element.text,

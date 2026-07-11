@@ -14,6 +14,8 @@ String substituteDocumentPlaceholders(
   Map<String, String> data, {
   String nullFallbackOption = kTemplateNullFallbackBlank,
   String customNullFallbackText = '',
+  String? textType,
+  String? formatOption,
 }) {
   if (isTemplateBracketGenderIconText(input)) return input;
   final isBlank = data['__blank__'] == 'true';
@@ -28,8 +30,13 @@ String substituteDocumentPlaceholders(
             nullFallbackOption,
             customNullFallbackText,
           );
-    final value = _lookupDocumentPlaceholderValue(k, data);
-    if (value != null) {
+    final lookup = _lookupDocumentPlaceholderValue(k, data);
+    if (lookup != null) {
+      var value = lookup.value;
+      final resolvedKey = lookup.key;
+      if (textType == 'encoded') {
+        value = _mapEncodedValue(resolvedKey, value, formatOption);
+      }
       return value.isEmpty && fallback != null ? fallback : value;
     }
     if (fallback != null) return fallback;
@@ -53,31 +60,53 @@ String? _nullFallbackForPlaceholder(
   };
 }
 
-String? _lookupDocumentPlaceholderValue(String key, Map<String, String> data) {
-  final matches = <String>[];
+({String value, String key})? _lookupDocumentPlaceholderValue(
+  String key,
+  Map<String, String> data,
+) {
+  final matches = <({String value, String key})>[];
 
-  void add(String? value) {
-    if (value != null) matches.add(value);
+  void add(String? value, String matchedKey) {
+    if (value != null) matches.add((value: value, key: matchedKey));
   }
 
-  add(data[key]);
+  if (data.containsKey(key)) {
+    add(data[key], key);
+  }
 
   final lower = key.toLowerCase();
   for (final e in data.entries) {
-    if (e.key.toLowerCase() == lower) add(e.value);
+    if (e.key.toLowerCase() == lower) {
+      add(e.value, e.key);
+    }
   }
 
   final shortKey = key.contains('::') ? key.split('::').last : key;
   final shortLower = shortKey.toLowerCase();
   for (final e in data.entries) {
     if (e.key.split('::').last.toLowerCase() == shortLower) {
-      add(e.value);
+      add(e.value, e.key);
     }
   }
 
   if (matches.isEmpty) return null;
-  for (final value in matches) {
-    if (value.isNotEmpty) return value;
+  for (final item in matches) {
+    if (item.value.isNotEmpty) return item;
   }
   return matches.first;
+}
+
+String _mapEncodedValue(String key, String value, String? formatOption) {
+  if (formatOption != null && formatOption.startsWith('custom_map:')) {
+    final mapStr = formatOption.substring(11);
+    final map = <String, String>{};
+    for (final pair in mapStr.split(',')) {
+      final parts = pair.split('=');
+      if (parts.length == 2) {
+        map[parts[0].trim()] = parts[1].trim();
+      }
+    }
+    return map[value.trim()] ?? value;
+  }
+  return getEncodedDefaultValue(key, value) ?? value;
 }

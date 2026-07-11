@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/mammals.dart' as mammals;
+import 'package:nahpu/services/types/birds.dart' as birds;
+import 'package:nahpu/services/types/specimens.dart' as specimens;
+import 'package:nahpu/services/types/herps.dart' as herps;
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
 bool isTemplateImagePathUsable(String path) {
@@ -333,6 +337,80 @@ String formatListText(String text, String formatOption) {
   }
 }
 
+String? getEncodedDefaultValue(String key, String value) {
+  final cleanKey = key.toLowerCase();
+  final intVal = int.tryParse(value);
+  if (intVal == null) return null;
+
+  if (cleanKey.endsWith('::sex')) {
+    if (intVal >= 0 && intVal < specimens.specimenSexList.length) {
+      return specimens.specimenSexList[intVal];
+    }
+  } else if (cleanKey == 'mammalmeasurement::age') {
+    if (intVal >= 0 && intVal < mammals.specimenAgeList.length) {
+      return mammals.specimenAgeList[intVal];
+    }
+  } else if (cleanKey == 'herpmeasurement::age') {
+    if (intVal >= 0 && intVal < herps.specimenAgeList.length) {
+      return herps.specimenAgeList[intVal];
+    }
+  } else if (cleanKey.endsWith('::testisposition')) {
+    if (intVal >= 0 && intVal < mammals.testisPositionList.length) {
+      return mammals.testisPositionList[intVal];
+    }
+  } else if (cleanKey.endsWith('::epididymisappearance')) {
+    if (intVal >= 0 && intVal < mammals.epididymisAppearanceList.length) {
+      return mammals.epididymisAppearanceList[intVal];
+    }
+  } else if (cleanKey.endsWith('::vaginaopening')) {
+    if (intVal >= 0 && intVal < mammals.vaginaOpeningList.length) {
+      return mammals.vaginaOpeningList[intVal];
+    }
+  } else if (cleanKey.endsWith('::pubicsymphysis')) {
+    if (intVal >= 0 && intVal < mammals.pubicSymphysisList.length) {
+      return mammals.pubicSymphysisList[intVal];
+    }
+  } else if (cleanKey.endsWith('::reproductivestage')) {
+    if (intVal >= 0 && intVal < mammals.reproductiveStageList.length) {
+      return mammals.reproductiveStageList[intVal];
+    }
+  } else if (cleanKey.endsWith('::mammaecondition')) {
+    if (intVal >= 0 && intVal < mammals.mammaeConditionList.length) {
+      return mammals.mammaeConditionList[intVal];
+    }
+  } else if (cleanKey.endsWith('::ovaryappearance')) {
+    if (intVal >= 0 && intVal < birds.ovaryAppearanceList.length) {
+      return birds.ovaryAppearanceList[intVal];
+    }
+  } else if (cleanKey.endsWith('::oviductappearance')) {
+    if (intVal >= 0 && intVal < birds.oviductAppearanceList.length) {
+      return birds.oviductAppearanceList[intVal];
+    }
+  } else if (cleanKey.endsWith('::fat')) {
+    if (intVal >= 0 && intVal < birds.fatCategoryList.length) {
+      return birds.fatCategoryList[intVal];
+    }
+  } else if (cleanKey.endsWith('::bodymolt')) {
+    if (intVal >= 0 && intVal < birds.bodyMoltList.length) {
+      return birds.bodyMoltList[intVal];
+    }
+  } else if (cleanKey.endsWith('::echolocation')) {
+    if (intVal >= 0 && intVal < mammals.echolocationList.length) {
+      return mammals.echolocationList[intVal];
+    }
+  } else if (cleanKey.endsWith('::broodpatch') ||
+      cleanKey.endsWith('::hasbursa') ||
+      cleanKey.endsWith('::wingismolt') ||
+      cleanKey.endsWith('::tailismolt') ||
+      cleanKey.endsWith('::showbatfields') ||
+      cleanKey.endsWith('::showechofields')) {
+    if (intVal == 1) return 'Yes';
+    if (intVal == 0) return 'No';
+  }
+
+  return null;
+}
+
 String formatSexText(String text, String formatOption) {
   final cleanText = text.trim().toLowerCase();
 
@@ -427,6 +505,9 @@ String formatTemplateText(
     case 'markdown':
     case 'nestedList':
       result = rawText;
+      break;
+    case 'encoded':
+      result = formatTextWithCase(rawText, oldCaseFormat ?? 'normal');
       break;
     case 'normal':
     default:

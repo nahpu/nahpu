@@ -150,7 +150,12 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
     final site = await SiteServices(ref: ref).getSite(s.siteID!);
     if (site != null) {
       final siteVals = await documentFieldValuesForSite(db, site, ref);
-      m.addAll(siteVals);
+      // A collecting event owns personnel through collPersonnel. Site lead
+      // staff remains a site concern and must not leak into the event template
+      // as a second, unrelated personnel table.
+      m.addEntries(siteVals.entries.where(
+        (entry) => !entry.key.toLowerCase().startsWith('personnel::'),
+      ));
     }
   }
 
@@ -177,7 +182,11 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
   m['event::endTime'] = s.endTime ?? '';
 
   final methods = await _getEventEffort(ref, s.id);
-  final personnel = await _getEventPersonnel(ref, s.id);
+  final collectingPersonnel =
+      await CollEventServices(ref: ref).getAllCollPersonnel(s.id);
+  final resolvedCollectingPersonnel =
+      await _resolveCollPersonnelNames(ref, collectingPersonnel);
+  final personnel = buildCollPersonnelSummary(resolvedCollectingPersonnel);
   m['collEvent::methods'] = methods;
   m['event::methods'] = methods;
   m['collEvent::personnel'] = personnel;
@@ -199,9 +208,7 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
     }
   }
 
-  final collectingPersonnel =
-      await CollEventServices(ref: ref).getAllCollPersonnel(s.id);
-  m.addAll(buildCollPersonnelFieldValues(collectingPersonnel));
+  m.addAll(buildCollPersonnelFieldValues(resolvedCollectingPersonnel));
 
   return m;
 }
@@ -225,24 +232,50 @@ Map<String, String> buildCollPersonnelFieldValues(
   return values;
 }
 
+/// Builds the collecting-event personnel summary from the same event rows used
+/// for `collPersonnel::*` template fields.
+String buildCollPersonnelSummary(List<CollPersonnelData> personnel) {
+  return personnel
+      .map((entry) {
+        final name = entry.name?.trim() ?? '';
+        if (name.isEmpty) return '';
+        final role = entry.role?.trim() ?? '';
+        return role.isEmpty ? name : '$name;$role';
+      })
+      .where((value) => value.isNotEmpty)
+      .join(writerSeparator);
+}
+
+/// Keeps collPersonnel as the event relationship while repairing legacy rows
+/// whose cached name was never saved when a person was selected.
+Future<List<CollPersonnelData>> _resolveCollPersonnelNames(
+  WidgetRef ref,
+  List<CollPersonnelData> personnel,
+) async {
+  return Future.wait(personnel.map((entry) async {
+    if ((entry.name?.trim().isNotEmpty ?? false) || entry.personnelId == null) {
+      return entry;
+    }
+    try {
+      final linked = await PersonnelServices(ref: ref)
+          .getPersonnelByUuid(entry.personnelId!);
+      return CollPersonnelData(
+        id: entry.id,
+        eventID: entry.eventID,
+        personnelId: entry.personnelId,
+        name: linked.name,
+        role: entry.role,
+      );
+    } catch (_) {
+      return entry;
+    }
+  }));
+}
+
 Future<String> _getEventEffort(WidgetRef ref, int id) async {
   List<CollEffortData> effort =
       await CollEventServices(ref: ref).getAllCollEffort(id);
   return effort.map((e) => '"${e.method}";${e.count}').join(writerSeparator);
-}
-
-Future<String> _getEventPersonnel(WidgetRef ref, int id) async {
-  List<CollPersonnelData> personnel =
-      await CollEventServices(ref: ref).getAllCollPersonnel(id);
-
-  String person = await Future.wait(personnel.map((e) async {
-    if (e.personnelId == null) return '';
-    final p =
-        await PersonnelServices(ref: ref).getPersonnelByUuid(e.personnelId!);
-    return '${p.name};${e.role}';
-  })).then((value) => value.where((v) => v.isNotEmpty).join(writerSeparator));
-
-  return person;
 }
 
 /// Builds template field values for a narrative document record.

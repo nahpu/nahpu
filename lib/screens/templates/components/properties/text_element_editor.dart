@@ -295,7 +295,6 @@ class _AvailableFieldsSectionState
           'collEvent',
           'site',
           'weather',
-          'personnel',
           'coordinate',
           'collEffort',
           'collPersonnel',
