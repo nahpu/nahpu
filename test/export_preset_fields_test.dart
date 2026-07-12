@@ -42,6 +42,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('Apply source fields'), findsOneWidget);
+    expect(find.text('Preview'), findsOneWidget);
+
     await tester.tap(find.byTooltip('Customize'));
     await tester.pumpAndSettle();
 

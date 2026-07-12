@@ -28,17 +28,32 @@ class _ExportPresetFieldsScreenState
     _preset = widget.preset;
   }
 
-  void _addStandard(String field) {
-    _update(mappings: [
-      ..._preset.mappings,
-      ExportFieldMapping(expression: '[$field]'),
-    ]);
+  void _applyStandardFields(Set<String> selectedFields) {
+    final mappings = List<ExportFieldMapping>.from(_preset.mappings)
+      ..removeWhere((mapping) {
+        if (mapping.isNested) return false;
+        final field = _directSourceField(mapping.expression);
+        return field != null && !selectedFields.contains(field);
+      });
+
+    final mappedFields = mappings
+        .where((mapping) => !mapping.isNested)
+        .map((mapping) => _directSourceField(mapping.expression))
+        .whereType<String>()
+        .toSet();
+    for (final field in selectedFields) {
+      if (!mappedFields.contains(field)) {
+        mappings.add(ExportFieldMapping(expression: '[$field]'));
+      }
+    }
+    _update(mappings: mappings);
   }
 
-  void _removeStandard(String field) {
-    final updated = List<ExportFieldMapping>.from(_preset.mappings)
-      ..removeWhere((m) => !m.isNested && m.expression == '[$field]');
-    _update(mappings: updated);
+  String? _directSourceField(String expression) {
+    return RegExp(r'^\s*\[([^\]]+)\]\s*$')
+        .firstMatch(expression)
+        ?.group(1)
+        ?.trim();
   }
 
   void _remove(int index) {
@@ -64,26 +79,17 @@ class _ExportPresetFieldsScreenState
       groups.containsKey,
       orElse: () => groups.keys.first,
     );
-    const recommendedFields = {
-      'coordinate': ['decimalLatitude', 'decimalLongitude'],
-      'collEffort': ['method', 'count'],
-      'collPersonnel': ['name', 'role'],
-      'specimenPart': ['type', 'count'],
-    };
-    final available =
-        groups[namespace]!.map((field) => field.split('::').last).toSet();
-    final initialFields = (recommendedFields[namespace] ?? const <String>[])
-        .where(available.contains)
-        .toList();
-    _update(mappings: [
-      ..._preset.mappings,
+    _openMappingCustomizer(
       ExportFieldMapping(
         expression: '',
         nestedNamespace: namespace,
-        nestedFields: initialFields,
         nestedMode: NestedExportMode.spreadColumns,
       ),
-    ]);
+      allowExpandRows: !_preset.mappings.any((mapping) =>
+          mapping.isNested &&
+          mapping.nestedMode == NestedExportMode.expandRows),
+      onSave: (mapping) => _update(mappings: [..._preset.mappings, mapping]),
+    );
   }
 
   void _replace(int index, ExportFieldMapping mapping) {
@@ -114,11 +120,24 @@ class _ExportPresetFieldsScreenState
 
   void _customizeMapping(int index) {
     final mapping = _preset.mappings[index];
-    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
     final allowExpandRows = !_preset.mappings.asMap().entries.any((entry) =>
         entry.key != index &&
         entry.value.isNested &&
         entry.value.nestedMode == NestedExportMode.expandRows);
+
+    _openMappingCustomizer(
+      mapping,
+      allowExpandRows: allowExpandRows,
+      onSave: (updated) => _replace(index, updated),
+    );
+  }
+
+  void _openMappingCustomizer(
+    ExportFieldMapping mapping, {
+    required bool allowExpandRows,
+    required ValueChanged<ExportFieldMapping> onSave,
+  }) {
+    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     if (isLargeScreen) {
       showDialog(
@@ -129,7 +148,7 @@ class _ExportPresetFieldsScreenState
           specimenRecordType: _preset.specimenRecordType,
           headerFormat: _preset.headerFormat,
           allowExpandRows: allowExpandRows,
-          onSave: (updated) => _replace(index, updated),
+          onSave: onSave,
         ),
       );
     } else {
@@ -142,7 +161,7 @@ class _ExportPresetFieldsScreenState
           specimenRecordType: _preset.specimenRecordType,
           headerFormat: _preset.headerFormat,
           allowExpandRows: allowExpandRows,
-          onSave: (updated) => _replace(index, updated),
+          onSave: onSave,
         ),
       );
     }
@@ -247,13 +266,7 @@ class _ExportPresetFieldsScreenState
       recordType: _preset.recordType,
       specimenRecordType: _preset.specimenRecordType,
       mappings: _preset.mappings,
-      onToggleField: (field, selected) {
-        if (selected) {
-          _addStandard(field);
-        } else {
-          _removeStandard(field);
-        }
-      },
+      onApplyFields: _applyStandardFields,
     );
 
     final selectedFieldsWidget = Material(
@@ -307,6 +320,18 @@ class _ExportPresetFieldsScreenState
               ),
             ),
           ),
+          const Divider(height: 1.0),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.visibility_outlined),
+                label: const Text('Preview'),
+                onPressed: _showPreview,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -318,14 +343,6 @@ class _ExportPresetFieldsScreenState
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.maybePop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.visibility_outlined),
-            tooltip: 'Preview Export Table',
-            onPressed: _showPreview,
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: PopScope(
         canPop: false,
@@ -426,13 +443,13 @@ class _AvailableFieldsSection extends ConsumerStatefulWidget {
     required this.recordType,
     required this.specimenRecordType,
     required this.mappings,
-    required this.onToggleField,
+    required this.onApplyFields,
   });
 
   final RecordType recordType;
   final SpecimenRecordType specimenRecordType;
   final List<ExportFieldMapping> mappings;
-  final void Function(String field, bool selected) onToggleField;
+  final ValueChanged<Set<String>> onApplyFields;
 
   @override
   ConsumerState<_AvailableFieldsSection> createState() =>
@@ -442,10 +459,35 @@ class _AvailableFieldsSection extends ConsumerStatefulWidget {
 class _AvailableFieldsSectionState
     extends ConsumerState<_AvailableFieldsSection> {
   String _fieldDisplayOption = 'short';
+  late Set<String> _selectedFields;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedFields = _selectedSourceFields(widget.mappings);
+  }
+
+  @override
+  void didUpdateWidget(covariant _AvailableFieldsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mappings != widget.mappings) {
+      _selectedFields = _selectedSourceFields(widget.mappings);
+    }
+  }
 
   bool _isFieldSelected(String field) {
-    return widget.mappings
-        .any((m) => !m.isNested && m.expression == '[$field]');
+    return _selectedFields.contains(field);
+  }
+
+  Set<String> _selectedSourceFields(List<ExportFieldMapping> mappings) {
+    return mappings
+        .where((mapping) => !mapping.isNested)
+        .map((mapping) => RegExp(r'^\s*\[([^\]]+)\]\s*$')
+            .firstMatch(mapping.expression)
+            ?.group(1)
+            ?.trim())
+        .whereType<String>()
+        .toSet();
   }
 
   @override
@@ -549,13 +591,31 @@ class _AvailableFieldsSectionState
                       ),
                       onChanged: (bool? val) {
                         if (val != null) {
-                          widget.onToggleField(field, val);
+                          setState(() {
+                            if (val) {
+                              _selectedFields.add(field);
+                            } else {
+                              _selectedFields.remove(field);
+                            }
+                          });
                         }
                       },
                     );
                   }).toList(),
                 );
               },
+            ),
+          ),
+          const Divider(height: 1.0),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.icon(
+                onPressed: () => widget.onApplyFields(_selectedFields),
+                icon: const Icon(Icons.check),
+                label: const Text('Apply source fields'),
+              ),
             ),
           ),
         ],
@@ -643,15 +703,10 @@ Map<String, List<String>> _availableFieldGroups(
 Map<String, List<String>> _nestedFieldGroups(
   Map<String, List<String>> groups,
 ) {
-  const repeatedNamespaces = {
-    'coordinate',
-    'collEffort',
-    'collPersonnel',
-    'specimenPart',
-  };
-  return Map.fromEntries(
-    groups.entries.where((entry) => repeatedNamespaces.contains(entry.key)),
-  );
+  // Nested mappings retain the same table choices as the source-field picker.
+  // Some sources are repeated in only certain record types, but preserving the
+  // full set keeps existing and advanced mappings editable.
+  return Map<String, List<String>>.from(groups);
 }
 
 class _ExportMappingCard extends StatelessWidget {
