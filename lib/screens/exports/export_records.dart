@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/screens/settings/export_presets.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
@@ -21,7 +24,8 @@ class ExportForm extends ConsumerStatefulWidget {
   ConsumerState<ExportForm> createState() => ExportFormState();
 }
 
-class ExportFormState extends ConsumerState<ExportForm> {
+class ExportFormState extends ConsumerState<ExportForm>
+    with SingleTickerProviderStateMixin {
   final FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   String _fileStem = 'export';
   Directory? _selectedDir;
@@ -30,85 +34,166 @@ class ExportFormState extends ConsumerState<ExportForm> {
   bool _hasSaved = false;
   bool _isRunning = false;
   late File _savePath;
+  late TabController _mobileTabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _mobileTabController = TabController(length: 2, vsync: this);
+    _initPresets();
+  }
+
+  Future<void> _initPresets() async {
+    final presets = await ref.read(exportPresetNotifierProvider.future);
+    if (presets.isNotEmpty && mounted) {
+      setState(() {
+        _selectedPresetName = presets.keys.first;
+        _selectedPreset = presets.values.first;
+      });
+    }
+  }
 
   @override
   void dispose() {
     exportCtr.dispose();
+    _mobileTabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final presets = ref.watch(exportPresetNotifierProvider);
+    final presetsAsync = ref.watch(exportPresetNotifierProvider);
+    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Export records')),
-      body: FileOperationPage(
-        children: [
-          FileFormatIcon(path: _matchFileIconPath()),
-          const SizedBox(height: 8),
-          presets.when(
-            data: (presets) => _PresetPicker(
-              presets: presets,
+      body: presetsAsync.when(
+        data: (presets) {
+          // Synchronize selection with updated map of presets
+          if (_selectedPresetName != null && !presets.containsKey(_selectedPresetName)) {
+            _selectedPresetName = null;
+            _selectedPreset = null;
+          } else if (_selectedPresetName != null) {
+            _selectedPreset = presets[_selectedPresetName];
+          }
+
+          final settingsPane = ScrollableConstrainedLayout(
+            child: Column(
+              children: [
+                FileFormatIcon(path: _matchFileIconPath()),
+                const SizedBox(height: 8),
+                _PresetPicker(
+                  presets: presets,
+                  selectedPresetName: _selectedPresetName,
+                  onPresetChanged: (name) {
+                    setState(() {
+                      _selectedPresetName = name;
+                      _selectedPreset = name == null ? null : presets[name];
+                      _hasSaved = false;
+                    });
+                  },
+                  onManagePresets: _managePresets,
+                ),
+                const SizedBox(height: 16),
+                FileSettingsCard(
+                  exportCtr: exportCtr,
+                  selectedDir: _selectedDir,
+                  onExportFmtChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      exportCtr.exportFmtCtr = value;
+                      _hasSaved = false;
+                    });
+                  },
+                  onFileNameChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _fileStem = value;
+                      _hasSaved = false;
+                    });
+                  },
+                  onSelectDir: () async {
+                    final path = await FilePickerServices().selectDir();
+                    if (path != null) setState(() => _selectedDir = path);
+                  },
+                  onClearDir: () => setState(() {
+                    _selectedDir = null;
+                    _hasSaved = false;
+                  }),
+                ),
+                const SizedBox(height: 24),
+                Wrap(
+                  spacing: 20,
+                  children: [
+                    SaveSecondaryButton(hasSaved: _hasSaved),
+                    if (!_hasSaved)
+                      ProgressButton(
+                        label: 'Save',
+                        icon: Icons.save_alt_outlined,
+                        isRunning: _isRunning,
+                        onPressed: _isValid() ? _exportFile : null,
+                      )
+                    else
+                      ShareButton(onPressed: () => _shareFile(context)),
+                  ],
+                ),
+              ],
+            ),
+          );
+
+          final previewPane = Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: PresetPreviewPane(
               selectedPresetName: _selectedPresetName,
-              onPresetChanged: (name) {
-                setState(() {
-                  _selectedPresetName = name;
-                  _selectedPreset = name == null ? null : presets[name];
-                  _hasSaved = false;
-                });
+              selectedPreset: _selectedPreset,
+              onSeeTable: () {
+                if (_selectedPreset != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ExportPresetTablePreviewScreen(
+                        preset: _selectedPreset!,
+                      ),
+                    ),
+                  );
+                }
               },
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Text('Unable to load export presets: $error'),
-          ),
-          if (_selectedPreset != null) ...[
-            const SizedBox(height: 16),
-            PresetFieldViewer(preset: _selectedPreset!),
-          ],
-          const SizedBox(height: 16),
-          FileSettingsCard(
-            exportCtr: exportCtr,
-            selectedDir: _selectedDir,
-            onExportFmtChanged: (value) {
-              if (value == null) return;
-              setState(() {
-                exportCtr.exportFmtCtr = value;
-                _hasSaved = false;
-              });
-            },
-            onFileNameChanged: (value) {
-              if (value == null) return;
-              setState(() {
-                _fileStem = value;
-                _hasSaved = false;
-              });
-            },
-            onSelectDir: () async {
-              final path = await FilePickerServices().selectDir();
-              if (path != null) setState(() => _selectedDir = path);
-            },
-            onClearDir: () => setState(() {
-              _selectedDir = null;
-              _hasSaved = false;
-            }),
-          ),
-          const SizedBox(height: 24),
-          Wrap(
-            spacing: 20,
-            children: [
-              SaveSecondaryButton(hasSaved: _hasSaved),
-              if (!_hasSaved)
-                ProgressButton(
-                  label: 'Save',
-                  icon: Icons.save_alt_outlined,
-                  isRunning: _isRunning,
-                  onPressed: _isValid() ? _exportFile : null,
-                )
-              else
-                ShareButton(onPressed: () => _shareFile(context)),
-            ],
-          ),
-        ],
+          );
+
+          if (isLargeScreen) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: settingsPane),
+                Expanded(child: previewPane),
+              ],
+            );
+          } else {
+            return Column(
+              children: [
+                TabBar(
+                  controller: _mobileTabController,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
+                    Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _mobileTabController,
+                    children: [
+                      settingsPane,
+                      previewPane,
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('Unable to load export presets: $error')),
       ),
     );
   }
@@ -177,6 +262,16 @@ class ExportFormState extends ConsumerState<ExportForm> {
       }
     }
   }
+
+  void _managePresets() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ExportPresetsScreen(),
+      ),
+    );
+    setState(() {});
+  }
 }
 
 class _PresetPicker extends StatelessWidget {
@@ -184,76 +279,392 @@ class _PresetPicker extends StatelessWidget {
     required this.presets,
     required this.selectedPresetName,
     required this.onPresetChanged,
+    required this.onManagePresets,
   });
 
   final Map<String, ExportPresetModel> presets;
   final String? selectedPresetName;
   final ValueChanged<String?> onPresetChanged;
+  final VoidCallback onManagePresets;
 
   @override
   Widget build(BuildContext context) {
     if (presets.isEmpty) {
-      return const Card(
+      return FormCard(
+        title: 'Export preset',
         child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-              'Create an export preset in Settings before exporting records.'),
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.warning_amber_rounded, size: 48),
+              const SizedBox(height: 12),
+              const Text(
+                'No export presets found. Manage presets in settings to create one.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              PrimaryButton(
+                label: 'Manage Presets',
+                icon: Icons.settings_outlined,
+                onPressed: onManagePresets,
+              ),
+            ],
+          ),
         ),
       );
     }
-    return DropdownButtonFormField<String>(
-      initialValue: selectedPresetName,
-      decoration: const InputDecoration(
-        labelText: 'Export preset',
-        helperText:
-            'Record type, headers, and field mappings are set by the preset.',
-      ),
-      items: presets.keys
-          .map((name) => DropdownMenuItem(value: name, child: Text(name)))
-          .toList(growable: false),
-      onChanged: onPresetChanged,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          initialValue: selectedPresetName,
+          decoration: const InputDecoration(
+            labelText: 'Export preset',
+            helperText:
+                'Record type, headers, and field mappings are set by the preset.',
+          ),
+          items: presets.keys
+              .map((name) => DropdownMenuItem(value: name, child: Text(name)))
+              .toList(growable: false),
+          onChanged: onPresetChanged,
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: onManagePresets,
+            icon: const Icon(Icons.settings_outlined, size: 16),
+            label: const Text('Manage presets'),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class PresetFieldViewer extends StatelessWidget {
-  const PresetFieldViewer({super.key, required this.preset});
+class PresetPreviewPane extends StatelessWidget {
+  const PresetPreviewPane({
+    super.key,
+    required this.selectedPresetName,
+    required this.selectedPreset,
+    required this.onSeeTable,
+  });
+
+  final String? selectedPresetName;
+  final ExportPresetModel? selectedPreset;
+  final VoidCallback onSeeTable;
+
+  @override
+  Widget build(BuildContext context) {
+    if (selectedPresetName == null || selectedPreset == null) {
+      return const FormCard(
+        title: 'Preset details',
+        isExpanded: true,
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Select an export preset to see details and preview.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final preset = selectedPreset!;
+    final isValid = preset.mappings.isNotEmpty;
+
+    return FormCard(
+      title: 'Preset: $selectedPresetName',
+      isExpanded: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Chip(
+                        label: Text('Record: ${recordTypeToString(preset.recordType)}'),
+                        avatar: const Icon(Icons.description_outlined, size: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      if (preset.recordType == RecordType.specimenRecord)
+                        Chip(
+                          label: Text('Taxon: ${preset.specimenRecordType.name}'),
+                          avatar: const Icon(Icons.pets_outlined, size: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      Chip(
+                        label: Text('Header: ${preset.headerFormat.name}'),
+                        avatar: const Icon(Icons.title_outlined, size: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Selected Columns (${preset.mappings.length}):',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  PresetColumnChips(preset: preset),
+                  if (isValid) ...[
+                    const SizedBox(height: 24),
+                    Center(
+                      child: PrimaryButton(
+                        label: 'See Table',
+                        icon: Icons.table_chart_outlined,
+                        onPressed: onSeeTable,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PresetColumnChips extends StatelessWidget {
+  const PresetColumnChips({super.key, required this.preset});
 
   final ExportPresetModel preset;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Preset summary',
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text('Record type: ${recordTypeToString(preset.recordType)}'),
-            if (preset.recordType == RecordType.specimenRecord)
-              Text('Taxon group: ${preset.specimenRecordType.name}'),
-            Text('Header format: ${preset.headerFormat.name}'),
-            const SizedBox(height: 12),
-            ...preset.mappings.map(
-              (mapping) => ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(mapping.headerOverride ?? mapping.expression),
-                subtitle: Text(mapping.isNested
-                    ? '${mapping.nestedMode.name}: ${mapping.nestedNamespace}::${mapping.nestedFields.join(', ')}'
-                    : '${mapping.textType} · ${mapping.formatOption}'),
-              ),
-            ),
-          ],
-        ),
+    if (preset.mappings.isEmpty) {
+      return const Text('No fields mapped in this preset.');
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: preset.mappings.map((mapping) {
+        final label = _getMappingLabel(mapping, preset.headerFormat);
+        return Chip(
+          label: Text(label),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.secondary.withAlpha(24),
+            width: 1.5,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  String _getMappingLabel(ExportFieldMapping mapping, ExportHeaderFormat format) {
+    final override = mapping.headerOverride?.trim();
+    if (override != null && override.isNotEmpty) return override;
+    if (mapping.isNested) {
+      return '${mapping.nestedNamespace} (${mapping.nestedFields.length} fields)';
+    }
+    final expr = mapping.expression.trim();
+    final match = RegExp(r'\[([^\]?\s]+)').firstMatch(expr);
+    final key = match?.group(1) ?? expr;
+    if (format == ExportHeaderFormat.fieldName) {
+      return key.split('::').last;
+    }
+    return key;
+  }
+}
+
+class ExportPresetTablePreviewScreen extends ConsumerStatefulWidget {
+  const ExportPresetTablePreviewScreen({super.key, required this.preset});
+
+  final ExportPresetModel preset;
+
+  @override
+  ConsumerState<ExportPresetTablePreviewScreen> createState() =>
+      _ExportPresetTablePreviewScreenState();
+}
+
+class _ExportPresetTablePreviewScreenState
+    extends ConsumerState<ExportPresetTablePreviewScreen> {
+  final ScrollController _hScrollController = ScrollController();
+  final ScrollController _vScrollController = ScrollController();
+  List<String> _headers = [];
+  List<Map<String, String>> _rows = [];
+  bool _isLoading = true;
+  int _currentPage = 0;
+  final int _pageSize = 50;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void dispose() {
+    _hScrollController.dispose();
+    _vScrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() => _isLoading = true);
+    try {
+      final data = await PresetRecordExporter(ref: ref, preset: widget.preset)
+          .getPreviewData();
+      if (mounted) {
+        setState(() {
+          _headers = data.headers;
+          _rows = data.rows;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final startIndex = _currentPage * _pageSize;
+    final endIndex = (startIndex + _pageSize) < _rows.length
+        ? (startIndex + _pageSize)
+        : _rows.length;
+    final currentPageData = _isLoading || _rows.isEmpty
+        ? <Map<String, String>>[]
+        : _rows.sublist(startIndex, endIndex);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Table preview'),
+      ),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _rows.isEmpty
+                ? const Center(child: Text('No records found for this preset.'))
+                : Column(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Scrollbar(
+                              controller: _vScrollController,
+                              child: SingleChildScrollView(
+                                controller: _vScrollController,
+                                scrollDirection: Axis.vertical,
+                                child: Scrollbar(
+                                  controller: _hScrollController,
+                                  child: SingleChildScrollView(
+                                    controller: _hScrollController,
+                                    scrollDirection: Axis.horizontal,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth: constraints.maxWidth,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(16.0),
+                                        ),
+                                        child: DataTable(
+                                          headingRowColor: WidgetStateProperty.all(
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer,
+                                          ),
+                                          columnSpacing: 16,
+                                          horizontalMargin: 12,
+                                          dataRowMinHeight: 40,
+                                          columns: [
+                                            for (final col in _headers)
+                                              DataColumn(
+                                                label: ConstrainedBox(
+                                                  constraints: const BoxConstraints(
+                                                    minWidth: 72,
+                                                    maxWidth: 160,
+                                                  ),
+                                                  child: Text(
+                                                    col,
+                                                    softWrap: true,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                          rows: [
+                                            for (final row in currentPageData)
+                                              DataRow(
+                                                cells: [
+                                                  for (final col in _headers)
+                                                    DataCell(
+                                                      ConstrainedBox(
+                                                        constraints: const BoxConstraints(
+                                                          maxWidth: 200,
+                                                        ),
+                                                        child: Text(
+                                                          row[col] ?? '',
+                                                          maxLines: 2,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Showing ${startIndex + 1}-$endIndex of ${_rows.length} records',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_left),
+                              onPressed: _currentPage > 0
+                                  ? () {
+                                      setState(() => _currentPage--);
+                                    }
+                                  : null,
+                            ),
+                            Text(
+                              'Page ${_currentPage + 1} of ${(_rows.isNotEmpty ? (_rows.length / _pageSize).ceil() : 1)}',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right),
+                              onPressed: (_currentPage + 1) * _pageSize < _rows.length
+                                  ? () {
+                                      setState(() => _currentPage++);
+                                    }
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
       ),
     );
   }

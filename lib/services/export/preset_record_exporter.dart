@@ -16,12 +16,32 @@ import 'package:nahpu/screens/templates/template_model.dart'
     show formatTemplateText;
 import 'package:nahpu/src/rust/api/export.dart';
 
+class PresetExportPreviewData {
+  const PresetExportPreviewData({required this.headers, required this.rows});
+  final List<String> headers;
+  final List<Map<String, String>> rows;
+}
+
 /// Executes a versioned record export preset without relying on screen state.
 class PresetRecordExporter {
   const PresetRecordExporter({required this.ref, required this.preset});
 
   final WidgetRef ref;
   final ExportPresetModel preset;
+
+  Future<PresetExportPreviewData> getPreviewData() async {
+    final errors = validateExportPreset(preset);
+    if (errors.isNotEmpty) {
+      return const PresetExportPreviewData(headers: [], rows: []);
+    }
+    final sourceRecords = await _sourceRecords();
+    final headers = _headers(sourceRecords);
+    final rows = <Map<String, String>>[];
+    for (final source in sourceRecords) {
+      rows.addAll(_mapRecord(source, headers));
+    }
+    return PresetExportPreviewData(headers: headers, rows: rows);
+  }
 
   Future<void> write(File file, ExportFmt format) async {
     final errors = validateExportPreset(preset);
