@@ -66,6 +66,8 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
           m1.nestedNamespace != m2.nestedNamespace ||
           m1.nestedFields.join(',') != m2.nestedFields.join(',') ||
           m1.nestedMode != m2.nestedMode ||
+          m1.listMode != m2.listMode ||
+          m1.indexedHeaderStyle != m2.indexedHeaderStyle ||
           m1.fieldSeparator != m2.fieldSeparator ||
           m1.recordSeparator != m2.recordSeparator) {
         return false;
@@ -159,15 +161,14 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final hasChanges =
-            _preset.mappings.length != widget.initialPreset.mappings.length ||
-                _nameController.text.trim() != widget.presetName ||
-                _preset.recordType != widget.initialPreset.recordType ||
-                _preset.specimenRecordType !=
-                    widget.initialPreset.specimenRecordType ||
-                _preset.headerFormat != widget.initialPreset.headerFormat ||
-                !_areMappingsEqual(
-                    _preset.mappings, widget.initialPreset.mappings);
+        final hasChanges = _preset.mappings.length !=
+                widget.initialPreset.mappings.length ||
+            _nameController.text.trim() != widget.presetName ||
+            _preset.recordType != widget.initialPreset.recordType ||
+            _preset.specimenRecordType !=
+                widget.initialPreset.specimenRecordType ||
+            _preset.headerFormat != widget.initialPreset.headerFormat ||
+            !_areMappingsEqual(_preset.mappings, widget.initialPreset.mappings);
 
         if (!hasChanges) {
           Navigator.pop(context);

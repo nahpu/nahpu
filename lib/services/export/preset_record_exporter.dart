@@ -22,6 +22,25 @@ class PresetExportPreviewData {
   final List<Map<String, String>> rows;
 }
 
+/// Formats a one-based index using the style selected for an export mapping.
+String formatIndexedExportHeader(
+  String base,
+  int index,
+  IndexedHeaderStyle style,
+) {
+  return switch (style) {
+    IndexedHeaderStyle.underscore => '${base}_$index',
+    IndexedHeaderStyle.compact => '$base$index',
+    IndexedHeaderStyle.brackets => '$base[$index]',
+  };
+}
+
+/// Splits NAHPU's pipe-delimited repeated values without losing empty slots.
+List<String> splitExportListValue(String value) {
+  if (value.isEmpty) return const [];
+  return value.split('|').map((item) => item.trim()).toList(growable: false);
+}
+
 /// Executes a versioned record export preset without relying on screen state.
 class PresetRecordExporter {
   const PresetRecordExporter({required this.ref, required this.preset});
@@ -36,6 +55,7 @@ class PresetRecordExporter {
     }
     final sourceRecords = await _sourceRecords();
     final headers = _headers(sourceRecords);
+    _ensureUniqueHeaders(headers);
     final rows = <Map<String, String>>[];
     for (final source in sourceRecords) {
       rows.addAll(_mapRecord(source, headers));
@@ -49,6 +69,7 @@ class PresetRecordExporter {
 
     final sourceRecords = await _sourceRecords();
     final headers = _headers(sourceRecords);
+    _ensureUniqueHeaders(headers);
     final rows = <Map<String, String>>[];
     for (final source in sourceRecords) {
       rows.addAll(_mapRecord(source, headers));
@@ -116,10 +137,27 @@ class PresetRecordExporter {
 
   List<String> _headers(List<Map<String, String>> sourceRecords) {
     final headers = <String>[];
-    for (final mapping in preset.mappings.where((item) => !item.isNested)) {
-      headers.add(_headerFor(mapping));
-    }
-    for (final mapping in preset.mappings.where((item) => item.isNested)) {
+    for (final mapping in preset.mappings) {
+      if (!mapping.isNested) {
+        if (mapping.textType == 'list' &&
+            mapping.listMode == ListExportMode.spreadColumns) {
+          final count = sourceRecords.fold<int>(0, (maxCount, record) {
+            final current = _listValues(record, mapping).length;
+            return current > maxCount ? current : maxCount;
+          });
+          for (var index = 1; index <= count; index++) {
+            headers.add(formatIndexedExportHeader(
+              _headerFor(mapping),
+              index,
+              mapping.indexedHeaderStyle,
+            ));
+          }
+        } else {
+          headers.add(_headerFor(mapping));
+        }
+        continue;
+      }
+
       final fields = mapping.nestedFields;
       if (mapping.nestedMode == NestedExportMode.concatenate) {
         headers.add(_headerFor(mapping));
@@ -146,7 +184,19 @@ class PresetRecordExporter {
   ) {
     final base = <String, String>{};
     for (final mapping in preset.mappings.where((item) => !item.isNested)) {
-      base[_headerFor(mapping)] = _formatScalar(source, mapping);
+      if (mapping.textType == 'list' &&
+          mapping.listMode == ListExportMode.spreadColumns) {
+        final values = _listValues(source, mapping);
+        for (var index = 0; index < values.length; index++) {
+          base[formatIndexedExportHeader(
+            _headerFor(mapping),
+            index + 1,
+            mapping.indexedHeaderStyle,
+          )] = values[index];
+        }
+      } else {
+        base[_headerFor(mapping)] = _formatScalar(source, mapping);
+      }
     }
 
     ExportFieldMapping? rowMapping;
@@ -209,16 +259,27 @@ class PresetRecordExporter {
     );
   }
 
+  List<String> _listValues(
+    Map<String, String> source,
+    ExportFieldMapping mapping,
+  ) {
+    final substituted = substituteDocumentPlaceholders(
+      mapping.expression,
+      source,
+      nullFallbackOption: mapping.nullFallbackOption,
+      customNullFallbackText: mapping.customNullFallbackText,
+    );
+    if (substituted.isEmpty) return const [];
+    return splitExportListValue(substituted);
+  }
+
   List<Map<String, String>> _nestedRows(
     Map<String, String> source,
     ExportFieldMapping mapping,
   ) {
     final values = mapping.nestedFields.map((field) {
       final key = '${mapping.nestedNamespace}::$field';
-      return (source[key] ?? '')
-          .split('|')
-          .map((value) => value.trim())
-          .toList();
+      return splitExportListValue(source[key] ?? '');
     }).toList(growable: false);
     final count = values.fold<int>(
         0, (max, value) => value.length > max ? value.length : max);
@@ -265,7 +326,17 @@ class PresetRecordExporter {
         : '${mapping.nestedNamespace}::$field';
     return index == null
         ? '${prefix}_$fieldName'
-        : '${prefix}_${index}_$fieldName';
+        : '${formatIndexedExportHeader(prefix, index, mapping.indexedHeaderStyle)}_'
+            '$fieldName';
+  }
+
+  void _ensureUniqueHeaders(List<String> headers) {
+    final seen = <String>{};
+    for (final header in headers) {
+      if (!seen.add(header.toLowerCase())) {
+        throw ArgumentError('Export headers must be unique: $header.');
+      }
+    }
   }
 }
 
@@ -284,6 +355,10 @@ List<String> validateExportPreset(ExportPresetModel preset) {
       }
     } else if (mapping.expression.trim().isEmpty) {
       errors.add('Scalar mappings require a source expression.');
+    } else if (mapping.textType == 'list' &&
+        mapping.listMode == ListExportMode.spreadColumns &&
+        !RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(mapping.expression)) {
+      errors.add('Indexed list mappings require exactly one source field.');
     }
     final header = mapping.headerOverride?.trim();
     if (header != null &&

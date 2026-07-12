@@ -13,7 +13,9 @@ void main() {
           ExportFieldMapping(
             expression: '[specimen::catalogNum]',
             headerOverride: 'Catalog number',
-            textType: 'normal',
+            textType: 'list',
+            listMode: ListExportMode.spreadColumns,
+            indexedHeaderStyle: IndexedHeaderStyle.brackets,
           ),
           ExportFieldMapping(
             expression: '',
@@ -29,7 +31,31 @@ void main() {
       expect(restored.recordType, RecordType.specimenRecord);
       expect(restored.specimenRecordType, SpecimenRecordType.birds);
       expect(restored.mappings, hasLength(2));
+      expect(restored.mappings.first.listMode, ListExportMode.spreadColumns);
+      expect(restored.mappings.first.indexedHeaderStyle,
+          IndexedHeaderStyle.brackets);
       expect(restored.mappings.last.nestedMode, NestedExportMode.spreadColumns);
+    });
+
+    test('migrates schema version 2 mappings with compatible defaults', () {
+      final restored = ExportPresetModel.fromJson({
+        'schemaVersion': 2,
+        'recordType': 'site',
+        'specimenRecordType': 'allTaxa',
+        'headerFormat': 'fieldName',
+        'mappings': [
+          {
+            'expression': '[site::habitatType]',
+            'textType': 'list',
+            'formatOption': 'comma',
+          },
+        ],
+      });
+
+      expect(restored.schemaVersion, recordExportPresetSchemaVersion);
+      expect(restored.mappings.single.listMode, ListExportMode.concatenate);
+      expect(restored.mappings.single.indexedHeaderStyle,
+          IndexedHeaderStyle.underscore);
     });
 
     test('rejects the removed legacy schema', () {
@@ -55,6 +81,46 @@ void main() {
 
       expect(validateExportPreset(preset),
           contains('Only one nested mapping can expand export rows.'));
+    });
+
+    test('indexed lists require one source placeholder', () {
+      const preset = ExportPresetModel(
+        recordType: RecordType.site,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [
+          ExportFieldMapping(
+            expression: 'Prefix [site::habitatType]',
+            textType: 'list',
+            listMode: ListExportMode.spreadColumns,
+          ),
+        ],
+      );
+
+      expect(validateExportPreset(preset),
+          contains('Indexed list mappings require exactly one source field.'));
+    });
+  });
+
+  group('indexed list export helpers', () {
+    test('formats every supported indexed header style', () {
+      expect(
+        formatIndexedExportHeader('method', 2, IndexedHeaderStyle.underscore),
+        'method_2',
+      );
+      expect(
+        formatIndexedExportHeader('method', 2, IndexedHeaderStyle.compact),
+        'method2',
+      );
+      expect(
+        formatIndexedExportHeader('method', 2, IndexedHeaderStyle.brackets),
+        'method[2]',
+      );
+    });
+
+    test('preserves blank positions when splitting repeated values', () {
+      expect(splitExportListValue('A | | C'), ['A', '', 'C']);
+      expect(splitExportListValue(''), isEmpty);
     });
   });
 }

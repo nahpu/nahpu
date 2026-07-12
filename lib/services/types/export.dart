@@ -330,7 +330,14 @@ enum ExportHeaderFormat { tableFieldName, fieldName }
 /// The way a related, repeated record is represented in a flat export.
 enum NestedExportMode { concatenate, spreadColumns, expandRows }
 
-const int recordExportPresetSchemaVersion = 2;
+/// How a scalar field containing repeated values is flattened for export.
+enum ListExportMode { concatenate, spreadColumns }
+
+/// How a one-based index is added to an exported column name.
+enum IndexedHeaderStyle { underscore, compact, brackets }
+
+const int recordExportPresetSchemaVersion = 3;
+const int _previousRecordExportPresetSchemaVersion = 2;
 
 /// A single ordered output mapping in a record export preset.
 ///
@@ -350,6 +357,8 @@ class ExportFieldMapping {
     this.nestedNamespace,
     this.nestedFields = const [],
     this.nestedMode = NestedExportMode.concatenate,
+    this.listMode = ListExportMode.concatenate,
+    this.indexedHeaderStyle = IndexedHeaderStyle.underscore,
     this.fieldSeparator = '|',
     this.recordSeparator = ';',
   });
@@ -364,6 +373,8 @@ class ExportFieldMapping {
   final String? nestedNamespace;
   final List<String> nestedFields;
   final NestedExportMode nestedMode;
+  final ListExportMode listMode;
+  final IndexedHeaderStyle indexedHeaderStyle;
   final String fieldSeparator;
   final String recordSeparator;
 
@@ -379,8 +390,11 @@ class ExportFieldMapping {
     String? nullFallbackOption,
     String? customNullFallbackText,
     String? nestedNamespace,
+    bool clearNestedNamespace = false,
     List<String>? nestedFields,
     NestedExportMode? nestedMode,
+    ListExportMode? listMode,
+    IndexedHeaderStyle? indexedHeaderStyle,
     String? fieldSeparator,
     String? recordSeparator,
   }) {
@@ -394,9 +408,13 @@ class ExportFieldMapping {
       nullFallbackOption: nullFallbackOption ?? this.nullFallbackOption,
       customNullFallbackText:
           customNullFallbackText ?? this.customNullFallbackText,
-      nestedNamespace: nestedNamespace ?? this.nestedNamespace,
+      nestedNamespace: clearNestedNamespace
+          ? null
+          : (nestedNamespace ?? this.nestedNamespace),
       nestedFields: nestedFields ?? this.nestedFields,
       nestedMode: nestedMode ?? this.nestedMode,
+      listMode: listMode ?? this.listMode,
+      indexedHeaderStyle: indexedHeaderStyle ?? this.indexedHeaderStyle,
       fieldSeparator: fieldSeparator ?? this.fieldSeparator,
       recordSeparator: recordSeparator ?? this.recordSeparator,
     );
@@ -416,6 +434,13 @@ class ExportFieldMapping {
       nestedMode: NestedExportMode.values.byName(
         json['nestedMode'] as String? ?? NestedExportMode.concatenate.name,
       ),
+      listMode: ListExportMode.values.byName(
+        json['listMode'] as String? ?? ListExportMode.concatenate.name,
+      ),
+      indexedHeaderStyle: IndexedHeaderStyle.values.byName(
+        json['indexedHeaderStyle'] as String? ??
+            IndexedHeaderStyle.underscore.name,
+      ),
       fieldSeparator: json['fieldSeparator'] as String? ?? '|',
       recordSeparator: json['recordSeparator'] as String? ?? ';',
     );
@@ -432,6 +457,8 @@ class ExportFieldMapping {
         if (nestedNamespace != null) 'nestedNamespace': nestedNamespace,
         'nestedFields': nestedFields,
         'nestedMode': nestedMode.name,
+        'listMode': listMode.name,
+        'indexedHeaderStyle': indexedHeaderStyle.name,
         'fieldSeparator': fieldSeparator,
         'recordSeparator': recordSeparator,
       };
@@ -462,11 +489,12 @@ class ExportPresetModel {
 
   factory ExportPresetModel.fromJson(Map<String, dynamic> json) {
     final schemaVersion = json['schemaVersion'] as int?;
-    if (schemaVersion != recordExportPresetSchemaVersion) {
+    if (schemaVersion != recordExportPresetSchemaVersion &&
+        schemaVersion != _previousRecordExportPresetSchemaVersion) {
       throw const FormatException('Unsupported record export preset schema.');
     }
     return ExportPresetModel(
-      schemaVersion: schemaVersion!,
+      schemaVersion: recordExportPresetSchemaVersion,
       recordType: parseRecordType(json['recordType'] as String?),
       specimenRecordType: SpecimenRecordType.values.byName(
         json['specimenRecordType'] as String? ??

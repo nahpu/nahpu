@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -46,6 +47,45 @@ class _ExportPresetFieldsScreenState
     _update(mappings: mappings);
   }
 
+  void _addNested() {
+    const preferredNamespaces = [
+      'coordinate',
+      'collEffort',
+      'collPersonnel',
+      'specimenPart',
+    ];
+    final groups = _nestedFieldGroups(_availableFieldGroups(
+      ref.read(databaseProvider),
+      _preset.recordType,
+      _preset.specimenRecordType,
+    ));
+    if (groups.isEmpty) return;
+    final namespace = preferredNamespaces.firstWhere(
+      groups.containsKey,
+      orElse: () => groups.keys.first,
+    );
+    const recommendedFields = {
+      'coordinate': ['decimalLatitude', 'decimalLongitude'],
+      'collEffort': ['method', 'count'],
+      'collPersonnel': ['name', 'role'],
+      'specimenPart': ['type', 'count'],
+    };
+    final available =
+        groups[namespace]!.map((field) => field.split('::').last).toSet();
+    final initialFields = (recommendedFields[namespace] ?? const <String>[])
+        .where(available.contains)
+        .toList();
+    _update(mappings: [
+      ..._preset.mappings,
+      ExportFieldMapping(
+        expression: '',
+        nestedNamespace: namespace,
+        nestedFields: initialFields,
+        nestedMode: NestedExportMode.spreadColumns,
+      ),
+    ]);
+  }
+
   void _replace(int index, ExportFieldMapping mapping) {
     final mappings = List<ExportFieldMapping>.from(_preset.mappings);
     mappings[index] = mapping;
@@ -75,12 +115,20 @@ class _ExportPresetFieldsScreenState
   void _customizeMapping(int index) {
     final mapping = _preset.mappings[index];
     final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final allowExpandRows = !_preset.mappings.asMap().entries.any((entry) =>
+        entry.key != index &&
+        entry.value.isNested &&
+        entry.value.nestedMode == NestedExportMode.expandRows);
 
     if (isLargeScreen) {
       showDialog(
         context: context,
         builder: (context) => _MappingCustomizerDialog(
           mapping: mapping,
+          recordType: _preset.recordType,
+          specimenRecordType: _preset.specimenRecordType,
+          headerFormat: _preset.headerFormat,
+          allowExpandRows: allowExpandRows,
           onSave: (updated) => _replace(index, updated),
         ),
       );
@@ -90,6 +138,10 @@ class _ExportPresetFieldsScreenState
         isScrollControlled: true,
         builder: (context) => _MappingCustomizerBottomSheet(
           mapping: mapping,
+          recordType: _preset.recordType,
+          specimenRecordType: _preset.specimenRecordType,
+          headerFormat: _preset.headerFormat,
+          allowExpandRows: allowExpandRows,
           onSave: (updated) => _replace(index, updated),
         ),
       );
@@ -176,6 +228,8 @@ class _ExportPresetFieldsScreenState
           m1.nestedNamespace != m2.nestedNamespace ||
           m1.nestedFields.join(',') != m2.nestedFields.join(',') ||
           m1.nestedMode != m2.nestedMode ||
+          m1.listMode != m2.listMode ||
+          m1.indexedHeaderStyle != m2.indexedHeaderStyle ||
           m1.fieldSeparator != m2.fieldSeparator ||
           m1.recordSeparator != m2.recordSeparator) {
         return false;
@@ -217,11 +271,24 @@ class _ExportPresetFieldsScreenState
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(
               children: [
-                Text(
-                  'Selected Mappings',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                Expanded(
+                  child: Text(
+                    'Selected Mappings',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _nestedFieldGroups(_availableFieldGroups(
+                    ref.read(databaseProvider),
+                    _preset.recordType,
+                    _preset.specimenRecordType,
+                  )).isEmpty
+                      ? null
+                      : _addNested,
+                  icon: const Icon(Icons.account_tree_outlined),
+                  label: const Text('Add nested'),
                 ),
               ],
             ),
@@ -405,37 +472,42 @@ class _AvailableFieldsSectionState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Insert Source Field',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                const Expanded(
+                  child: Text(
+                    'Insert Source Field',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-                DropdownButton<String>(
-                  value: _fieldDisplayOption,
-                  isDense: true,
-                  underline: const SizedBox.shrink(),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'full',
-                      child: Text(
-                        'Table::Field',
-                        style: TextStyle(fontSize: 12.0),
+                Flexible(
+                  child: DropdownButton<String>(
+                    value: _fieldDisplayOption,
+                    isDense: true,
+                    isExpanded: true,
+                    underline: const SizedBox.shrink(),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'full',
+                        child: Text(
+                          'Table::Field',
+                          style: TextStyle(fontSize: 12.0),
+                        ),
                       ),
-                    ),
-                    DropdownMenuItem(
-                      value: 'short',
-                      child: Text(
-                        'Field Only',
-                        style: TextStyle(fontSize: 12.0),
+                      DropdownMenuItem(
+                        value: 'short',
+                        child: Text(
+                          'Field Only',
+                          style: TextStyle(fontSize: 12.0),
+                        ),
                       ),
-                    ),
-                  ],
-                  onChanged: (v) {
-                    if (v != null) {
-                      setState(() {
-                        _fieldDisplayOption = v;
-                      });
-                    }
-                  },
+                    ],
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() {
+                          _fieldDisplayOption = v;
+                        });
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -492,71 +564,94 @@ class _AvailableFieldsSectionState
   }
 
   Map<String, List<String>> _getAllGroups() {
-    final db = ref.read(databaseProvider);
-    final Map<String, List<String>> groups = {};
-
-    final Set<String> allowedTables;
-    switch (widget.recordType) {
-      case RecordType.none:
-        allowedTables = {'personnel', 'project'};
-        break;
-      case RecordType.narrative:
-        allowedTables = {'narrative', 'site', 'personnel'};
-        break;
-      case RecordType.site:
-        allowedTables = {'site', 'personnel', 'coordinate'};
-        break;
-      case RecordType.collEvent:
-        allowedTables = {
-          'collEvent',
-          'site',
-          'weather',
-          'coordinate',
-          'collEffort',
-          'collPersonnel',
-        };
-        break;
-      case RecordType.specimenRecord:
-      case RecordType.specimenParts:
-        allowedTables = {
-          'specimen',
-          'taxonomy',
-          'personnel',
-          'project',
-          'collEvent',
-          'site',
-          'coordinate',
-          'weather',
-          'mammalMeasurement',
-          'avianMeasurement',
-          'herpMeasurement',
-          'specimenPart',
-        };
-        if (widget.specimenRecordType == SpecimenRecordType.generalMammals ||
-            widget.specimenRecordType == SpecimenRecordType.bats ||
-            widget.specimenRecordType == SpecimenRecordType.allMammals) {
-          allowedTables.remove('avianMeasurement');
-          allowedTables.remove('herpMeasurement');
-        } else if (widget.specimenRecordType == SpecimenRecordType.birds) {
-          allowedTables.remove('mammalMeasurement');
-          allowedTables.remove('herpMeasurement');
-        } else if (widget.specimenRecordType ==
-            SpecimenRecordType.herpetofauna) {
-          allowedTables.remove('mammalMeasurement');
-          allowedTables.remove('avianMeasurement');
-        }
-        break;
-    }
-
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      if (allowedTables.contains(tableName)) {
-        groups[tableName] =
-            table.$columns.map((c) => '$tableName::${c.name}').toList();
-      }
-    }
-    return groups;
+    return _availableFieldGroups(
+      ref.read(databaseProvider),
+      widget.recordType,
+      widget.specimenRecordType,
+    );
   }
+}
+
+Map<String, List<String>> _availableFieldGroups(
+  Database db,
+  RecordType recordType,
+  SpecimenRecordType specimenRecordType,
+) {
+  final Map<String, List<String>> groups = {};
+  final Set<String> allowedTables;
+  switch (recordType) {
+    case RecordType.none:
+      allowedTables = {'personnel', 'project'};
+      break;
+    case RecordType.narrative:
+      allowedTables = {'narrative', 'site', 'personnel'};
+      break;
+    case RecordType.site:
+      allowedTables = {'site', 'personnel', 'coordinate'};
+      break;
+    case RecordType.collEvent:
+      allowedTables = {
+        'collEvent',
+        'site',
+        'weather',
+        'coordinate',
+        'collEffort',
+        'collPersonnel',
+      };
+      break;
+    case RecordType.specimenRecord:
+    case RecordType.specimenParts:
+      allowedTables = {
+        'specimen',
+        'taxonomy',
+        'personnel',
+        'project',
+        'collEvent',
+        'site',
+        'coordinate',
+        'weather',
+        'mammalMeasurement',
+        'avianMeasurement',
+        'herpMeasurement',
+        'specimenPart',
+      };
+      if (specimenRecordType == SpecimenRecordType.generalMammals ||
+          specimenRecordType == SpecimenRecordType.bats ||
+          specimenRecordType == SpecimenRecordType.allMammals) {
+        allowedTables.remove('avianMeasurement');
+        allowedTables.remove('herpMeasurement');
+      } else if (specimenRecordType == SpecimenRecordType.birds) {
+        allowedTables.remove('mammalMeasurement');
+        allowedTables.remove('herpMeasurement');
+      } else if (specimenRecordType == SpecimenRecordType.herpetofauna) {
+        allowedTables.remove('mammalMeasurement');
+        allowedTables.remove('avianMeasurement');
+      }
+      break;
+  }
+
+  for (var table in db.allTables) {
+    final tableName = table.actualTableName;
+    if (allowedTables.contains(tableName)) {
+      groups[tableName] =
+          table.$columns.map<String>((c) => '$tableName::${c.name}').toList();
+    }
+  }
+  return groups;
+}
+
+Map<String, List<String>> _nestedFieldGroups(
+  Map<String, List<String>> groups,
+) {
+  const repeatedNamespaces = {
+    'coordinate',
+    'collEffort',
+    'collPersonnel',
+    'specimenPart',
+  };
+  return Map.fromEntries(
+    groups.entries.where((entry) => repeatedNamespaces.contains(entry.key)),
+  );
 }
 
 class _ExportMappingCard extends StatelessWidget {
@@ -581,8 +676,15 @@ class _ExportMappingCard extends StatelessWidget {
 
     if (mapping.isNested) {
       title = 'Nested: ${mapping.nestedNamespace ?? 'Unnamed'}';
-      subtitle = 'Fields: ${mapping.nestedFields.join(', ')}';
+      subtitle = '${_nestedModeLabel(mapping.nestedMode)} · '
+          '${mapping.nestedFields.join(', ')}';
       icon = Icons.account_tree_outlined;
+    } else if (mapping.textType == 'list') {
+      title = 'List: ${mapping.expression}';
+      subtitle = mapping.listMode == ListExportMode.spreadColumns
+          ? 'Indexed columns · ${_indexedStyleLabel(mapping.indexedHeaderStyle)}'
+          : 'One column · ${mapping.formatOption} separator';
+      icon = Icons.view_column_outlined;
     } else {
       title = 'Field: ${mapping.expression}';
       subtitle =
@@ -622,39 +724,66 @@ class _ExportMappingCard extends StatelessWidget {
       ),
     );
   }
+
+  String _nestedModeLabel(NestedExportMode mode) => switch (mode) {
+        NestedExportMode.concatenate => 'One column',
+        NestedExportMode.spreadColumns => 'Indexed columns',
+        NestedExportMode.expandRows => 'Repeated rows',
+      };
+
+  String _indexedStyleLabel(IndexedHeaderStyle style) => switch (style) {
+        IndexedHeaderStyle.underscore => 'field_1',
+        IndexedHeaderStyle.compact => 'field1',
+        IndexedHeaderStyle.brackets => 'field[1]',
+      };
 }
 
-class _MappingCustomizerForm extends StatefulWidget {
+class _MappingCustomizerForm extends ConsumerStatefulWidget {
   const _MappingCustomizerForm({
     required this.mapping,
+    required this.recordType,
+    required this.specimenRecordType,
+    required this.headerFormat,
+    required this.allowExpandRows,
     required this.onSave,
     required this.onCancel,
   });
 
   final ExportFieldMapping mapping;
+  final RecordType recordType;
+  final SpecimenRecordType specimenRecordType;
+  final ExportHeaderFormat headerFormat;
+  final bool allowExpandRows;
   final ValueChanged<ExportFieldMapping> onSave;
   final VoidCallback onCancel;
 
   @override
-  State<_MappingCustomizerForm> createState() => _MappingCustomizerFormState();
+  ConsumerState<_MappingCustomizerForm> createState() =>
+      _MappingCustomizerFormState();
 }
 
-class _MappingCustomizerFormState extends State<_MappingCustomizerForm> {
+class _MappingCustomizerFormState
+    extends ConsumerState<_MappingCustomizerForm> {
   late ExportFieldMapping _localMapping;
+  late String _mappingKind;
   late TextEditingController _expressionController;
   late TextEditingController _headerController;
   late TextEditingController _formatOptionController;
   late TextEditingController _customNullTextController;
-
   late TextEditingController _nestedNamespaceController;
-  late TextEditingController _nestedFieldsController;
   late TextEditingController _fieldSepController;
   late TextEditingController _recordSepController;
+  late List<String> _nestedFields;
 
   @override
   void initState() {
     super.initState();
     _localMapping = widget.mapping;
+    _mappingKind = _localMapping.isNested
+        ? 'nested'
+        : _localMapping.textType == 'list'
+            ? 'list'
+            : 'scalar';
 
     _expressionController =
         TextEditingController(text: _localMapping.expression);
@@ -667,8 +796,7 @@ class _MappingCustomizerFormState extends State<_MappingCustomizerForm> {
 
     _nestedNamespaceController =
         TextEditingController(text: _localMapping.nestedNamespace ?? '');
-    _nestedFieldsController =
-        TextEditingController(text: _localMapping.nestedFields.join(', '));
+    _nestedFields = List<String>.from(_localMapping.nestedFields);
     _fieldSepController =
         TextEditingController(text: _localMapping.fieldSeparator);
     _recordSepController =
@@ -682,7 +810,6 @@ class _MappingCustomizerFormState extends State<_MappingCustomizerForm> {
     _formatOptionController.dispose();
     _customNullTextController.dispose();
     _nestedNamespaceController.dispose();
-    _nestedFieldsController.dispose();
     _fieldSepController.dispose();
     _recordSepController.dispose();
     super.dispose();
@@ -690,60 +817,410 @@ class _MappingCustomizerFormState extends State<_MappingCustomizerForm> {
 
   @override
   Widget build(BuildContext context) {
+    final groups = _availableFieldGroups(
+      ref.read(databaseProvider),
+      widget.recordType,
+      widget.specimenRecordType,
+    );
+    final allFields = groups.values.expand((fields) => fields).toList();
+    final selectedSource = _exactSourceField(_expressionController.text);
+    if (selectedSource != null && !allFields.contains(selectedSource)) {
+      allFields.add(selectedSource);
+    }
+    final namespace = _nestedNamespaceController.text.trim();
+    final nestedGroups = _nestedFieldGroups(groups);
+    if (namespace.isNotEmpty &&
+        groups.containsKey(namespace) &&
+        !nestedGroups.containsKey(namespace)) {
+      nestedGroups[namespace] = groups[namespace]!;
+    }
+    final namespaces = nestedGroups.keys.toList();
+    if (namespace.isNotEmpty && !namespaces.contains(namespace)) {
+      namespaces.add(namespace);
+    }
+    final availableNestedFields = (nestedGroups[namespace] ?? const <String>[])
+        .map((field) => field.split('::').last)
+        .toList();
+    for (final field in _nestedFields) {
+      if (!availableNestedFields.contains(field)) {
+        availableNestedFields.add(field);
+      }
+    }
+    final canSave = _canSave();
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButtonFormField<String>(
-          initialValue: _localMapping.isNested ? 'nested' : 'scalar',
+          key: ValueKey('mapping-kind-$_mappingKind'),
+          initialValue: _mappingKind,
           decoration: const InputDecoration(labelText: 'Mapping type'),
           items: const [
-            DropdownMenuItem(value: 'scalar', child: Text('Standard Field')),
-            DropdownMenuItem(value: 'nested', child: Text('Nested Record')),
+            DropdownMenuItem(value: 'scalar', child: Text('Single field')),
+            DropdownMenuItem(value: 'list', child: Text('List field')),
+            DropdownMenuItem(value: 'nested', child: Text('Nested records')),
           ],
-          onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                if (value == 'nested') {
-                  String? defaultNamespace;
-                  final match = RegExp(r'\[([^\]?\s]+)')
-                      .firstMatch(_localMapping.expression);
-                  final key =
-                      match?.group(1) ?? _localMapping.expression.trim();
-                  if (key.contains('::')) {
-                    defaultNamespace = key.split('::').first;
-                  }
-                  _localMapping = _localMapping.copyWith(
-                    nestedNamespace: _localMapping.nestedNamespace ??
-                        defaultNamespace ??
-                        'specimen',
-                  );
-                } else {
-                  _localMapping = ExportFieldMapping(
-                    expression: _localMapping.expression,
-                    headerOverride: _localMapping.headerOverride,
-                    textType: _localMapping.textType,
-                    formatOption: _localMapping.formatOption,
-                    caseFormat: _localMapping.caseFormat,
-                    nullFallbackOption: _localMapping.nullFallbackOption,
-                    customNullFallbackText:
-                        _localMapping.customNullFallbackText,
-                    nestedNamespace: null,
-                    nestedFields: _localMapping.nestedFields,
-                    nestedMode: _localMapping.nestedMode,
-                    fieldSeparator: _localMapping.fieldSeparator,
-                    recordSeparator: _localMapping.recordSeparator,
-                  );
-                }
-              });
-            }
-          },
+          onChanged: (value) => value == null ? null : _setMappingKind(value),
         ),
-        const SizedBox(height: 8),
-        if (_localMapping.isNested)
-          ..._buildNestedFields()
-        else
-          ..._buildStandardFields(),
+        const SizedBox(height: 16),
+        if (_mappingKind != 'nested') ...[
+          DropdownButtonFormField<String>(
+            key: ValueKey('source-$selectedSource'),
+            initialValue:
+                selectedSource != null && allFields.contains(selectedSource)
+                    ? selectedSource
+                    : null,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Source field',
+              helperText: 'Choose the NAHPU field that supplies this column.',
+            ),
+            items: allFields
+                .map((field) => DropdownMenuItem(
+                      value: field,
+                      child: Text(field, overflow: TextOverflow.ellipsis),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _expressionController.text = '[$value]');
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _headerController,
+            onChanged: (_) => setState(() {}),
+            decoration: const InputDecoration(
+              labelText: 'Column name (optional)',
+              helperText: 'Leave blank to use the source field name.',
+            ),
+          ),
+          if (_mappingKind == 'list') ...[
+            const SizedBox(height: 16),
+            Text('List output', style: Theme.of(context).textTheme.titleSmall),
+            RadioGroup<ListExportMode>(
+              groupValue: _localMapping.listMode,
+              onChanged: _setListMode,
+              child: Column(
+                children: const [
+                  RadioListTile<ListExportMode>(
+                    value: ListExportMode.concatenate,
+                    title: Text('One column'),
+                    subtitle: Text('Example: A, B, C'),
+                  ),
+                  RadioListTile<ListExportMode>(
+                    value: ListExportMode.spreadColumns,
+                    title: Text('Indexed columns'),
+                    subtitle: Text('Example: field_1, field_2, field_3'),
+                  ),
+                ],
+              ),
+            ),
+            if (_localMapping.listMode == ListExportMode.concatenate) ...[
+              DropdownButtonFormField<String>(
+                key: ValueKey(
+                  'separator-${_listSeparatorOption(_localMapping.formatOption)}',
+                ),
+                initialValue: _listSeparatorOption(_localMapping.formatOption),
+                decoration: const InputDecoration(labelText: 'Separator'),
+                items: const [
+                  DropdownMenuItem(value: 'pipe', child: Text('Pipe (A | B)')),
+                  DropdownMenuItem(value: 'comma', child: Text('Comma (A, B)')),
+                  DropdownMenuItem(
+                    value: 'semicolon',
+                    child: Text('Semicolon (A; B)'),
+                  ),
+                  DropdownMenuItem(
+                      value: 'slash', child: Text('Slash (A / B)')),
+                  DropdownMenuItem(value: 'newline', child: Text('New line')),
+                  DropdownMenuItem(value: 'bullet', child: Text('Bulleted')),
+                  DropdownMenuItem(value: 'custom', child: Text('Custom')),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    final option = value == 'custom' ? 'custom:' : value;
+                    _localMapping =
+                        _localMapping.copyWith(formatOption: option);
+                    _formatOptionController.text = option;
+                  });
+                },
+              ),
+              if (_localMapping.formatOption.startsWith('custom:')) ...[
+                const SizedBox(height: 8),
+                TextFormField(
+                  initialValue: _localMapping.formatOption.substring(7),
+                  decoration: const InputDecoration(
+                    labelText: 'Custom separator',
+                  ),
+                  onChanged: (value) => setState(() {
+                    _localMapping = _localMapping.copyWith(
+                      formatOption: 'custom:$value',
+                    );
+                    _formatOptionController.text = 'custom:$value';
+                  }),
+                ),
+              ],
+            ] else ...[
+              const SizedBox(height: 8),
+              _IndexedStyleField(
+                value: _localMapping.indexedHeaderStyle,
+                onChanged: _setIndexedStyle,
+              ),
+            ],
+          ] else ...[
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              key: ValueKey('format-${_localMapping.textType}'),
+              initialValue: _standardTextType(_localMapping.textType),
+              decoration: const InputDecoration(labelText: 'Value format'),
+              items: const [
+                DropdownMenuItem(value: 'normal', child: Text('Normal text')),
+                DropdownMenuItem(value: 'encoded', child: Text('Encoded text')),
+                DropdownMenuItem(
+                  value: 'coordinates',
+                  child: Text('Coordinates'),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _localMapping = _localMapping.copyWith(textType: value);
+                  });
+                }
+              },
+            ),
+          ],
+        ] else ...[
+          DropdownButtonFormField<String>(
+            key: ValueKey('namespace-$namespace'),
+            initialValue: namespaces.contains(namespace) ? namespace : null,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Related records',
+              helperText: 'Select the repeated record group to export.',
+            ),
+            items: namespaces
+                .map((value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(value),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() {
+                _nestedNamespaceController.text = value;
+                _nestedFields = [];
+                _localMapping = _localMapping.copyWith(
+                  nestedNamespace: value,
+                  nestedFields: const [],
+                );
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          Text('Selected child fields',
+              style: Theme.of(context).textTheme.titleSmall),
+          if (_nestedFields.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text('Select at least one child field below.'),
+            )
+          else
+            ..._nestedFields.asMap().entries.map((entry) => ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    radius: 12,
+                    child: Text('${entry.key + 1}'),
+                  ),
+                  title: Text(entry.value),
+                  trailing: Wrap(
+                    children: [
+                      IconButton(
+                        tooltip: 'Move up',
+                        onPressed: entry.key == 0
+                            ? null
+                            : () => _moveNestedField(entry.key, -1),
+                        icon: const Icon(Icons.arrow_upward),
+                      ),
+                      IconButton(
+                        tooltip: 'Move down',
+                        onPressed: entry.key == _nestedFields.length - 1
+                            ? null
+                            : () => _moveNestedField(entry.key, 1),
+                        icon: const Icon(Icons.arrow_downward),
+                      ),
+                      IconButton(
+                        tooltip: 'Remove field',
+                        onPressed: () => _toggleNestedField(entry.value, false),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                )),
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            title: const Text('Choose child fields'),
+            children: availableNestedFields
+                .map((field) => CheckboxListTile(
+                      dense: true,
+                      value: _nestedFields.contains(field),
+                      title: Text(field),
+                      onChanged: (selected) =>
+                          _toggleNestedField(field, selected ?? false),
+                    ))
+                .toList(),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _headerController,
+            onChanged: (_) => setState(() {}),
+            decoration: const InputDecoration(
+              labelText: 'Column prefix (optional)',
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text('Nested output', style: Theme.of(context).textTheme.titleSmall),
+          RadioGroup<NestedExportMode>(
+            groupValue: _localMapping.nestedMode,
+            onChanged: _setNestedMode,
+            child: Column(
+              children: [
+                const RadioListTile<NestedExportMode>(
+                  value: NestedExportMode.concatenate,
+                  title: Text('One column'),
+                  subtitle: Text('Combine all child records into one cell.'),
+                ),
+                const RadioListTile<NestedExportMode>(
+                  value: NestedExportMode.spreadColumns,
+                  title: Text('Indexed columns'),
+                  subtitle: Text('Create a group of columns for each record.'),
+                ),
+                RadioListTile<NestedExportMode>(
+                  value: NestedExportMode.expandRows,
+                  title: const Text('Repeated rows'),
+                  subtitle: Text(widget.allowExpandRows
+                      ? 'Create one export row per child record.'
+                      : 'Another mapping already expands export rows.'),
+                  enabled: widget.allowExpandRows,
+                ),
+              ],
+            ),
+          ),
+          if (_localMapping.nestedMode == NestedExportMode.concatenate) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _fieldSepController,
+                    onChanged: (_) => setState(() {}),
+                    decoration:
+                        const InputDecoration(labelText: 'Field separator'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    controller: _recordSepController,
+                    onChanged: (_) => setState(() {}),
+                    decoration:
+                        const InputDecoration(labelText: 'Record separator'),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (_localMapping.nestedMode ==
+              NestedExportMode.spreadColumns) ...[
+            _IndexedStyleField(
+              value: _localMapping.indexedHeaderStyle,
+              onChanged: _setIndexedStyle,
+            ),
+          ],
+        ],
+        const SizedBox(height: 16),
+        _MappingOutputExample(
+          mappingKind: _mappingKind,
+          sourceExpression: _expressionController.text,
+          headerOverride: _headerController.text,
+          namespace: _nestedNamespaceController.text,
+          nestedFields: _nestedFields,
+          listMode: _localMapping.listMode,
+          nestedMode: _localMapping.nestedMode,
+          indexedHeaderStyle: _localMapping.indexedHeaderStyle,
+          headerFormat: widget.headerFormat,
+        ),
+        ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          title: const Text('Advanced'),
+          children: [
+            if (_mappingKind != 'nested') ...[
+              TextFormField(
+                controller: _expressionController,
+                onChanged: (_) => setState(() {}),
+                decoration: const InputDecoration(
+                  labelText: 'Raw source expression',
+                  helperText: 'Example: [specimen::catalogNum]',
+                ),
+              ),
+              if (_mappingKind == 'scalar') ...[
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _formatOptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Raw format option',
+                    helperText: 'For example: enum, dms, or custom_map:0=No.',
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                key: ValueKey(
+                  'null-fallback-${_localMapping.nullFallbackOption}',
+                ),
+                initialValue: _localMapping.nullFallbackOption,
+                decoration: const InputDecoration(
+                  labelText: 'Empty value',
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'blank', child: Text('Blank')),
+                  DropdownMenuItem(value: 'custom', child: Text('Custom text')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _localMapping =
+                          _localMapping.copyWith(nullFallbackOption: value);
+                    });
+                  }
+                },
+              ),
+              if (_localMapping.nullFallbackOption == 'custom') ...[
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _customNullTextController,
+                  decoration: const InputDecoration(
+                    labelText: 'Custom empty text',
+                  ),
+                ),
+              ],
+            ] else
+              TextFormField(
+                controller: _nestedNamespaceController,
+                onChanged: (_) => setState(() {}),
+                decoration: const InputDecoration(
+                  labelText: 'Raw related-record namespace',
+                ),
+              ),
+          ],
+        ),
+        if (!canSave)
+          Text(
+            _validationMessage(),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         const SizedBox(height: 24),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -754,7 +1231,7 @@ class _MappingCustomizerFormState extends State<_MappingCustomizerForm> {
             ),
             const SizedBox(width: 8),
             ElevatedButton(
-              onPressed: _submit,
+              onPressed: canSave ? _submit : null,
               child: const Text('Save'),
             ),
           ],
@@ -765,15 +1242,10 @@ class _MappingCustomizerFormState extends State<_MappingCustomizerForm> {
 
   void _submit() {
     ExportFieldMapping finalMapping;
-    if (_localMapping.isNested) {
-      final fields = _nestedFieldsController.text
-          .split(',')
-          .map((f) => f.trim())
-          .where((f) => f.isNotEmpty)
-          .toList();
+    if (_mappingKind == 'nested') {
       finalMapping = _localMapping.copyWith(
         nestedNamespace: _nestedNamespaceController.text.trim(),
-        nestedFields: fields,
+        nestedFields: _nestedFields,
         headerOverride: _headerController.text.trim(),
         clearHeaderOverride: _headerController.text.trim().isEmpty,
         fieldSeparator: _fieldSepController.text,
@@ -782,6 +1254,8 @@ class _MappingCustomizerFormState extends State<_MappingCustomizerForm> {
     } else {
       finalMapping = _localMapping.copyWith(
         expression: _expressionController.text.trim(),
+        textType: _mappingKind == 'list' ? 'list' : _localMapping.textType,
+        clearNestedNamespace: true,
         headerOverride: _headerController.text.trim(),
         clearHeaderOverride: _headerController.text.trim().isEmpty,
         formatOption: _formatOptionController.text.trim(),
@@ -791,160 +1265,261 @@ class _MappingCustomizerFormState extends State<_MappingCustomizerForm> {
     widget.onSave(finalMapping);
   }
 
-  List<Widget> _buildStandardFields() {
-    final textType = {'normal', 'encoded', 'list', 'coordinates'}
-            .contains(_localMapping.textType)
-        ? _localMapping.textType
-        : 'normal';
-
-    return [
-      TextFormField(
-        controller: _expressionController,
-        decoration: const InputDecoration(
-          labelText: 'Source expression',
-          helperText: 'Use document placeholders, e.g. [specimen::catalogNum].',
-        ),
-      ),
-      const SizedBox(height: 8),
-      TextFormField(
-        controller: _headerController,
-        decoration:
-            const InputDecoration(labelText: 'Custom header (optional)'),
-      ),
-      const SizedBox(height: 8),
-      DropdownButtonFormField<String>(
-        initialValue: textType,
-        decoration: const InputDecoration(labelText: 'Mapping format'),
-        items: const [
-          DropdownMenuItem(value: 'normal', child: Text('Normal text')),
-          DropdownMenuItem(value: 'encoded', child: Text('Encoded text')),
-          DropdownMenuItem(value: 'list', child: Text('List values')),
-          DropdownMenuItem(value: 'coordinates', child: Text('Coordinates')),
-        ],
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              _localMapping = _localMapping.copyWith(textType: value);
-            });
-          }
-        },
-      ),
-      const SizedBox(height: 8),
-      TextFormField(
-        controller: _formatOptionController,
-        decoration: const InputDecoration(
-          labelText: 'Format option',
-          helperText: 'Examples: enum, comma, dms, or custom_map:0=No,1=Yes.',
-        ),
-      ),
-      const SizedBox(height: 8),
-      DropdownButtonFormField<String>(
-        initialValue: _localMapping.nullFallbackOption,
-        decoration:
-            const InputDecoration(labelText: 'Empty content placeholder'),
-        items: const [
-          DropdownMenuItem(value: 'blank', child: Text('Blank')),
-          DropdownMenuItem(value: 'custom', child: Text('Custom text')),
-        ],
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              _localMapping = _localMapping.copyWith(nullFallbackOption: value);
-            });
-          }
-        },
-      ),
-      if (_localMapping.nullFallbackOption == 'custom') ...[
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _customNullTextController,
-          decoration: const InputDecoration(
-            labelText: 'Custom null text',
-            helperText: 'Text to use when field value is null/empty.',
-          ),
-        ),
-      ],
-    ];
+  void _setMappingKind(String kind) {
+    setState(() {
+      _mappingKind = kind;
+      if (kind == 'nested') {
+        final source = _exactSourceField(_expressionController.text);
+        final namespace = _nestedNamespaceController.text.trim().isNotEmpty
+            ? _nestedNamespaceController.text.trim()
+            : source?.split('::').first ?? 'coordinate';
+        _nestedNamespaceController.text = namespace;
+        _localMapping = _localMapping.copyWith(nestedNamespace: namespace);
+      } else {
+        _localMapping = _localMapping.copyWith(
+          textType: kind == 'list' ? 'list' : 'normal',
+          clearNestedNamespace: true,
+        );
+        if (kind == 'list' &&
+            !_isListFormatOption(_localMapping.formatOption)) {
+          _localMapping = _localMapping.copyWith(formatOption: 'comma');
+          _formatOptionController.text = 'comma';
+        }
+      }
+    });
   }
 
-  List<Widget> _buildNestedFields() {
-    return [
-      TextFormField(
-        controller: _nestedNamespaceController,
-        decoration:
-            const InputDecoration(labelText: 'Related record namespace'),
-      ),
-      const SizedBox(height: 8),
-      TextFormField(
-        controller: _nestedFieldsController,
-        decoration: const InputDecoration(
-          labelText: 'Child fields (comma separated)',
+  void _setListMode(ListExportMode? value) {
+    if (value != null) {
+      setState(() => _localMapping = _localMapping.copyWith(listMode: value));
+    }
+  }
+
+  void _setNestedMode(NestedExportMode? value) {
+    if (value != null) {
+      setState(() => _localMapping = _localMapping.copyWith(nestedMode: value));
+    }
+  }
+
+  void _setIndexedStyle(IndexedHeaderStyle? value) {
+    if (value != null) {
+      setState(() {
+        _localMapping = _localMapping.copyWith(indexedHeaderStyle: value);
+      });
+    }
+  }
+
+  void _toggleNestedField(String field, bool selected) {
+    setState(() {
+      if (selected && !_nestedFields.contains(field)) {
+        _nestedFields.add(field);
+      } else if (!selected) {
+        _nestedFields.remove(field);
+      }
+      _localMapping = _localMapping.copyWith(nestedFields: _nestedFields);
+    });
+  }
+
+  void _moveNestedField(int index, int offset) {
+    setState(() {
+      final field = _nestedFields.removeAt(index);
+      _nestedFields.insert(index + offset, field);
+      _localMapping = _localMapping.copyWith(nestedFields: _nestedFields);
+    });
+  }
+
+  bool _canSave() => _validationMessage().isEmpty;
+
+  String _validationMessage() {
+    if (_mappingKind == 'nested') {
+      if (_nestedNamespaceController.text.trim().isEmpty) {
+        return 'Choose a related-record group.';
+      }
+      if (_nestedFields.isEmpty) return 'Choose at least one child field.';
+      if (_localMapping.nestedMode == NestedExportMode.concatenate &&
+          (_fieldSepController.text.isEmpty ||
+              _recordSepController.text.isEmpty)) {
+        return 'Field and record separators cannot be empty.';
+      }
+      return '';
+    }
+    if (_expressionController.text.trim().isEmpty) {
+      return 'Choose a source field.';
+    }
+    if (_mappingKind == 'list' &&
+        _localMapping.listMode == ListExportMode.spreadColumns &&
+        _exactSourceField(_expressionController.text) == null) {
+      return 'Indexed lists require exactly one source field.';
+    }
+    return '';
+  }
+
+  String _standardTextType(String value) =>
+      {'normal', 'encoded', 'coordinates'}.contains(value) ? value : 'normal';
+
+  String _listSeparatorOption(String value) {
+    if (value.startsWith('custom:')) return 'custom';
+    return _isListFormatOption(value) ? value : 'pipe';
+  }
+
+  bool _isListFormatOption(String value) =>
+      {'pipe', 'comma', 'semicolon', 'slash', 'newline', 'bullet'}
+          .contains(value) ||
+      value.startsWith('custom:');
+
+  String? _exactSourceField(String expression) {
+    final match = RegExp(r'^\s*\[([^\]]+)\]\s*$').firstMatch(expression);
+    return match?.group(1)?.trim();
+  }
+}
+
+class _IndexedStyleField extends StatelessWidget {
+  const _IndexedStyleField({required this.value, required this.onChanged});
+
+  final IndexedHeaderStyle value;
+  final ValueChanged<IndexedHeaderStyle?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<IndexedHeaderStyle>(
+      key: ValueKey('indexed-style-$value'),
+      initialValue: value,
+      decoration: const InputDecoration(labelText: 'Indexed column names'),
+      items: const [
+        DropdownMenuItem(
+          value: IndexedHeaderStyle.underscore,
+          child: Text('Underscore: field_1'),
         ),
-      ),
-      const SizedBox(height: 8),
-      TextFormField(
-        controller: _headerController,
-        decoration:
-            const InputDecoration(labelText: 'Header prefix (optional)'),
-      ),
-      const SizedBox(height: 8),
-      DropdownButtonFormField<NestedExportMode>(
-        initialValue: _localMapping.nestedMode,
-        decoration: const InputDecoration(labelText: 'Nested output'),
-        items: const [
-          DropdownMenuItem(
-            value: NestedExportMode.concatenate,
-            child: Text('Concatenate into one column'),
-          ),
-          DropdownMenuItem(
-            value: NestedExportMode.spreadColumns,
-            child: Text('Spread indexed columns'),
-          ),
-          DropdownMenuItem(
-            value: NestedExportMode.expandRows,
-            child: Text('Expand rows'),
-          ),
-        ],
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              _localMapping = _localMapping.copyWith(nestedMode: value);
-            });
-          }
-        },
-      ),
-      if (_localMapping.nestedMode == NestedExportMode.concatenate) ...[
-        const SizedBox(height: 8),
-        Row(
+        DropdownMenuItem(
+          value: IndexedHeaderStyle.compact,
+          child: Text('Compact: field1'),
+        ),
+        DropdownMenuItem(
+          value: IndexedHeaderStyle.brackets,
+          child: Text('Brackets: field[1]'),
+        ),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _MappingOutputExample extends StatelessWidget {
+  const _MappingOutputExample({
+    required this.mappingKind,
+    required this.sourceExpression,
+    required this.headerOverride,
+    required this.namespace,
+    required this.nestedFields,
+    required this.listMode,
+    required this.nestedMode,
+    required this.indexedHeaderStyle,
+    required this.headerFormat,
+  });
+
+  final String mappingKind;
+  final String sourceExpression;
+  final String headerOverride;
+  final String namespace;
+  final List<String> nestedFields;
+  final ListExportMode listMode;
+  final NestedExportMode nestedMode;
+  final IndexedHeaderStyle indexedHeaderStyle;
+  final ExportHeaderFormat headerFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    final headers = _headers();
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: TextFormField(
-                controller: _fieldSepController,
-                decoration: const InputDecoration(labelText: 'Field separator'),
+            Text('Output example',
+                style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 8),
+            if (headers.isEmpty)
+              const Text('Complete the mapping to see its output shape.')
+            else
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children:
+                    headers.map((header) => Chip(label: Text(header))).toList(),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextFormField(
-                controller: _recordSepController,
-                decoration:
-                    const InputDecoration(labelText: 'Record separator'),
+            if (mappingKind == 'nested' &&
+                nestedMode == NestedExportMode.expandRows)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text('Each child record creates another export row.'),
               ),
-            ),
           ],
         ),
-      ],
+      ),
+    );
+  }
+
+  List<String> _headers() {
+    final sourceKey =
+        RegExp(r'^\s*\[([^\]]+)\]\s*$').firstMatch(sourceExpression)?.group(1);
+    final source = headerFormat == ExportHeaderFormat.fieldName
+        ? sourceKey?.split('::').last
+        : sourceKey;
+    final base = headerOverride.trim().isNotEmpty
+        ? headerOverride.trim()
+        : mappingKind == 'nested'
+            ? namespace.trim()
+            : source ?? '';
+    if (base.isEmpty) return const [];
+    if (mappingKind == 'scalar') return [base];
+    if (mappingKind == 'list') {
+      if (listMode == ListExportMode.concatenate) return [base];
+      return List.generate(3, (index) => _indexed(base, index + 1));
+    }
+    if (nestedFields.isEmpty) return const [];
+    if (nestedMode == NestedExportMode.concatenate) return [base];
+    if (nestedMode == NestedExportMode.expandRows) {
+      return nestedFields
+          .map((field) => '${base}_${_nestedFieldName(field)}')
+          .toList();
+    }
+    return [
+      for (var index = 1; index <= 2; index++)
+        for (final field in nestedFields)
+          '${_indexed(base, index)}_${_nestedFieldName(field)}',
     ];
   }
+
+  String _nestedFieldName(String field) =>
+      headerFormat == ExportHeaderFormat.fieldName
+          ? field
+          : '${namespace.trim()}::$field';
+
+  String _indexed(String base, int index) => switch (indexedHeaderStyle) {
+        IndexedHeaderStyle.underscore => '${base}_$index',
+        IndexedHeaderStyle.compact => '$base$index',
+        IndexedHeaderStyle.brackets => '$base[$index]',
+      };
 }
 
 class _MappingCustomizerDialog extends StatelessWidget {
   const _MappingCustomizerDialog({
     required this.mapping,
+    required this.recordType,
+    required this.specimenRecordType,
+    required this.headerFormat,
+    required this.allowExpandRows,
     required this.onSave,
   });
 
   final ExportFieldMapping mapping;
+  final RecordType recordType;
+  final SpecimenRecordType specimenRecordType;
+  final ExportHeaderFormat headerFormat;
+  final bool allowExpandRows;
   final ValueChanged<ExportFieldMapping> onSave;
 
   @override
@@ -958,6 +1533,10 @@ class _MappingCustomizerDialog extends StatelessWidget {
         child: SingleChildScrollView(
           child: _MappingCustomizerForm(
             mapping: mapping,
+            recordType: recordType,
+            specimenRecordType: specimenRecordType,
+            headerFormat: headerFormat,
+            allowExpandRows: allowExpandRows,
             onSave: (updated) {
               onSave(updated);
               Navigator.pop(context);
@@ -973,10 +1552,18 @@ class _MappingCustomizerDialog extends StatelessWidget {
 class _MappingCustomizerBottomSheet extends StatelessWidget {
   const _MappingCustomizerBottomSheet({
     required this.mapping,
+    required this.recordType,
+    required this.specimenRecordType,
+    required this.headerFormat,
+    required this.allowExpandRows,
     required this.onSave,
   });
 
   final ExportFieldMapping mapping;
+  final RecordType recordType;
+  final SpecimenRecordType specimenRecordType;
+  final ExportHeaderFormat headerFormat;
+  final bool allowExpandRows;
   final ValueChanged<ExportFieldMapping> onSave;
 
   @override
@@ -1012,6 +1599,10 @@ class _MappingCustomizerBottomSheet extends StatelessWidget {
             const SizedBox(height: 16),
             _MappingCustomizerForm(
               mapping: mapping,
+              recordType: recordType,
+              specimenRecordType: specimenRecordType,
+              headerFormat: headerFormat,
+              allowExpandRows: allowExpandRows,
               onSave: (updated) {
                 onSave(updated);
                 Navigator.pop(context);
