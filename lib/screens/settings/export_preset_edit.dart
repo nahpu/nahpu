@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/settings/export_preset_fields.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
-import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -27,7 +27,6 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
 class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   late TextEditingController _nameController;
   late ExportPresetModel _preset;
-  String? _fieldToAdd;
 
   @override
   void initState() {
@@ -51,104 +50,92 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final availableFields = _availableFields();
-    return FormCard(
-      title: 'Edit ${widget.presetName}',
-      isExpanded: true,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Preset name'),
-            ),
-          ),
-          _PresetSettingsCard(
-            preset: _preset,
-            onRecordTypeChanged: (value) => _update(recordType: value),
-            onSpecimenRecordTypeChanged: (value) =>
-                _update(specimenRecordType: value),
-            onHeaderFormatChanged: (value) => _update(headerFormat: value),
-          ),
-          _AddMappingControls(
-            availableFields: availableFields,
-            selectedField: _fieldToAdd,
-            onSelectedFieldChanged: (value) =>
-                setState(() => _fieldToAdd = value),
-            onAddScalar: _fieldToAdd == null ? null : _addScalar,
-            onAddNested: _addNested,
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ReorderableListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              itemCount: _preset.mappings.length,
-              onReorderItem: _reorder,
-              itemBuilder: (context, index) => _ExportMappingCard(
-                key: ValueKey('mapping-$index'),
-                mapping: _preset.mappings[index],
-                onRemove: () => _remove(index),
-                onChanged: (mapping) => _replace(index, mapping),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: PrimaryButton(
-                label: 'Save', icon: Icons.save, onPressed: _save),
-          ),
-        ],
-      ),
+  bool _areMappingsEqual(
+      List<ExportFieldMapping> list1, List<ExportFieldMapping> list2) {
+    if (list1.length != list2.length) return false;
+    for (var i = 0; i < list1.length; i++) {
+      final m1 = list1[i];
+      final m2 = list2[i];
+      if (m1.expression != m2.expression ||
+          m1.headerOverride != m2.headerOverride ||
+          m1.textType != m2.textType ||
+          m1.formatOption != m2.formatOption ||
+          m1.caseFormat != m2.caseFormat ||
+          m1.nullFallbackOption != m2.nullFallbackOption ||
+          m1.customNullFallbackText != m2.customNullFallbackText ||
+          m1.nestedNamespace != m2.nestedNamespace ||
+          m1.nestedFields.join(',') != m2.nestedFields.join(',') ||
+          m1.nestedMode != m2.nestedMode ||
+          m1.fieldSeparator != m2.fieldSeparator ||
+          m1.recordSeparator != m2.recordSeparator) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void _showPreview() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-  }
 
-  List<String> _availableFields() {
-    final db = ref.read(databaseProvider);
-    return [
-      for (final table in db.allTables)
-        for (final column in table.$columns)
-          '${table.actualTableName}::${column.name}',
-    ];
-  }
+    try {
+      final exporter = PresetRecordExporter(ref: ref, preset: _preset);
+      final previewData = await exporter.getPreviewData();
+      if (mounted) {
+        Navigator.pop(context);
+      }
 
-  void _addScalar() {
-    final field = _fieldToAdd;
-    if (field == null) return;
-    _update(mappings: [
-      ..._preset.mappings,
-      ExportFieldMapping(expression: '[$field]'),
-    ]);
-  }
+      if (previewData.headers.isEmpty || previewData.rows.isEmpty) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('No Preview Data'),
+              content: const Text(
+                'No records matched the selected filters, or mappings are empty.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
 
-  void _addNested() => _update(mappings: [
-        ..._preset.mappings,
-        const ExportFieldMapping(
-          expression: '',
-          nestedNamespace: 'coordinate',
-          nestedFields: ['decimalLatitude', 'decimalLongitude'],
-        ),
-      ]);
-
-  void _remove(int index) {
-    final mappings = List<ExportFieldMapping>.from(_preset.mappings)
-      ..removeAt(index);
-    _update(mappings: mappings);
-  }
-
-  void _replace(int index, ExportFieldMapping mapping) {
-    final mappings = List<ExportFieldMapping>.from(_preset.mappings);
-    mappings[index] = mapping;
-    _update(mappings: mappings);
-  }
-
-  void _reorder(int oldIndex, int newIndex) {
-    final mappings = List<ExportFieldMapping>.from(_preset.mappings);
-    final item = mappings.removeAt(oldIndex);
-    mappings.insert(newIndex, item);
-    _update(mappings: mappings);
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => PreviewTableDialog(
+            headers: previewData.headers,
+            rows: previewData.rows,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to generate preview: $e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   void _update({
@@ -165,6 +152,122 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
           mappings: mappings ?? _preset.mappings,
         );
       });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final hasChanges =
+            _preset.mappings.length != widget.initialPreset.mappings.length ||
+                _nameController.text.trim() != widget.presetName ||
+                _preset.recordType != widget.initialPreset.recordType ||
+                _preset.specimenRecordType !=
+                    widget.initialPreset.specimenRecordType ||
+                _preset.headerFormat != widget.initialPreset.headerFormat ||
+                !_areMappingsEqual(
+                    _preset.mappings, widget.initialPreset.mappings);
+
+        if (!hasChanges) {
+          Navigator.pop(context);
+          return;
+        }
+
+        final exit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Unsaved Changes'),
+            content: const Text(
+              'You have unsaved changes to your preset settings. Are you sure you want to leave?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                  foregroundColor:
+                      Theme.of(context).colorScheme.onErrorContainer,
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Leave without saving'),
+              ),
+            ],
+          ),
+        );
+
+        if (exit == true && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: FormCard(
+        title: 'Edit ${widget.presetName}',
+        isExpanded: true,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Preset name'),
+              ),
+            ),
+            _PresetSettingsCard(
+              preset: _preset,
+              onRecordTypeChanged: (value) => _update(recordType: value),
+              onSpecimenRecordTypeChanged: (value) =>
+                  _update(specimenRecordType: value),
+              onHeaderFormatChanged: (value) => _update(headerFormat: value),
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      label: 'Edit Mappings',
+                      icon: Icons.list_alt_outlined,
+                      onPressed: () async {
+                        final updated = await Navigator.push<ExportPresetModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ExportPresetFieldsScreen(
+                              preset: _preset,
+                            ),
+                          ),
+                        );
+                        if (updated != null) {
+                          setState(() {
+                            _preset = updated;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton.filledTonal(
+                    icon: const Icon(Icons.visibility_outlined),
+                    tooltip: 'Preview Export Table',
+                    onPressed: _showPreview,
+                  ),
+                ],
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: PrimaryButton(
+                  label: 'Save', icon: Icons.save, onPressed: _save),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
@@ -271,270 +374,6 @@ class _PresetSettingsCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _AddMappingControls extends StatelessWidget {
-  const _AddMappingControls({
-    required this.availableFields,
-    required this.selectedField,
-    required this.onSelectedFieldChanged,
-    required this.onAddScalar,
-    required this.onAddNested,
-  });
-
-  final List<String> availableFields;
-  final String? selectedField;
-  final ValueChanged<String?> onSelectedFieldChanged;
-  final VoidCallback? onAddScalar;
-  final VoidCallback onAddNested;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: DropdownButtonFormField<String>(
-              initialValue: selectedField,
-              decoration: const InputDecoration(labelText: 'Add source field'),
-              items: availableFields
-                  .map(
-                    (field) =>
-                        DropdownMenuItem(value: field, child: Text(field)),
-                  )
-                  .toList(growable: false),
-              onChanged: onSelectedFieldChanged,
-            ),
-          ),
-          IconButton(
-            tooltip: 'Add field mapping',
-            icon: const Icon(Icons.add),
-            onPressed: onAddScalar,
-          ),
-          IconButton(
-            tooltip: 'Add nested mapping',
-            icon: const Icon(Icons.account_tree_outlined),
-            onPressed: onAddNested,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ExportMappingCard extends StatelessWidget {
-  const _ExportMappingCard({
-    super.key,
-    required this.mapping,
-    required this.onRemove,
-    required this.onChanged,
-  });
-
-  final ExportFieldMapping mapping;
-  final VoidCallback onRemove;
-  final ValueChanged<ExportFieldMapping> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                      mapping.isNested ? 'Nested mapping' : 'Field mapping'),
-                ),
-                IconButton(
-                  tooltip: 'Remove mapping',
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: onRemove,
-                ),
-                const Icon(Icons.drag_handle),
-              ],
-            ),
-            if (mapping.isNested)
-              _NestedMappingFields(mapping: mapping, onChanged: onChanged)
-            else
-              _ScalarMappingFields(mapping: mapping, onChanged: onChanged),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ScalarMappingFields extends StatelessWidget {
-  const _ScalarMappingFields({required this.mapping, required this.onChanged});
-
-  final ExportFieldMapping mapping;
-  final ValueChanged<ExportFieldMapping> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final textType =
-        {'normal', 'encoded', 'list', 'coordinates'}.contains(mapping.textType)
-            ? mapping.textType
-            : 'normal';
-    return Column(
-      children: [
-        TextFormField(
-          key: ValueKey('expression-${mapping.expression}'),
-          initialValue: mapping.expression,
-          decoration: const InputDecoration(
-            labelText: 'Source expression',
-            helperText:
-                'Use document placeholders, e.g. [specimen::catalogNum].',
-          ),
-          onChanged: (value) => onChanged(mapping.copyWith(expression: value)),
-        ),
-        TextFormField(
-          key: ValueKey('header-${mapping.headerOverride}'),
-          initialValue: mapping.headerOverride ?? '',
-          decoration:
-              const InputDecoration(labelText: 'Custom header (optional)'),
-          onChanged: (value) => onChanged(
-            mapping.copyWith(
-              headerOverride: value,
-              clearHeaderOverride: value.trim().isEmpty,
-            ),
-          ),
-        ),
-        DropdownButtonFormField<String>(
-          initialValue: textType,
-          decoration: const InputDecoration(labelText: 'Mapping format'),
-          items: const [
-            DropdownMenuItem(value: 'normal', child: Text('Normal text')),
-            DropdownMenuItem(value: 'encoded', child: Text('Encoded text')),
-            DropdownMenuItem(value: 'list', child: Text('List values')),
-            DropdownMenuItem(value: 'coordinates', child: Text('Coordinates')),
-          ],
-          onChanged: (value) {
-            if (value != null) onChanged(mapping.copyWith(textType: value));
-          },
-        ),
-        TextFormField(
-          key: ValueKey('format-${mapping.formatOption}'),
-          initialValue: mapping.formatOption,
-          decoration: const InputDecoration(
-            labelText: 'Format option',
-            helperText: 'Examples: enum, comma, dms, or custom_map:0=No,1=Yes.',
-          ),
-          onChanged: (value) =>
-              onChanged(mapping.copyWith(formatOption: value)),
-        ),
-      ],
-    );
-  }
-}
-
-class _NestedMappingFields extends StatelessWidget {
-  const _NestedMappingFields({required this.mapping, required this.onChanged});
-
-  final ExportFieldMapping mapping;
-  final ValueChanged<ExportFieldMapping> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TextFormField(
-          key: ValueKey('namespace-${mapping.nestedNamespace}'),
-          initialValue: mapping.nestedNamespace,
-          decoration:
-              const InputDecoration(labelText: 'Related record namespace'),
-          onChanged: (value) =>
-              onChanged(mapping.copyWith(nestedNamespace: value)),
-        ),
-        TextFormField(
-          key: ValueKey('nested-fields-${mapping.nestedFields.join(',')}'),
-          initialValue: mapping.nestedFields.join(', '),
-          decoration: const InputDecoration(
-              labelText: 'Child fields (comma separated)'),
-          onChanged: (value) => onChanged(
-            mapping.copyWith(
-              nestedFields: value
-                  .split(',')
-                  .map((field) => field.trim())
-                  .where((field) => field.isNotEmpty)
-                  .toList(),
-            ),
-          ),
-        ),
-        TextFormField(
-          key: ValueKey('nested-header-${mapping.headerOverride}'),
-          initialValue: mapping.headerOverride ?? '',
-          decoration:
-              const InputDecoration(labelText: 'Header prefix (optional)'),
-          onChanged: (value) => onChanged(
-            mapping.copyWith(
-              headerOverride: value,
-              clearHeaderOverride: value.trim().isEmpty,
-            ),
-          ),
-        ),
-        DropdownButtonFormField<NestedExportMode>(
-          initialValue: mapping.nestedMode,
-          decoration: const InputDecoration(labelText: 'Nested output'),
-          items: const [
-            DropdownMenuItem(
-              value: NestedExportMode.concatenate,
-              child: Text('Concatenate into one column'),
-            ),
-            DropdownMenuItem(
-              value: NestedExportMode.spreadColumns,
-              child: Text('Spread indexed columns'),
-            ),
-            DropdownMenuItem(
-              value: NestedExportMode.expandRows,
-              child: Text('Expand rows'),
-            ),
-          ],
-          onChanged: (value) {
-            if (value != null) onChanged(mapping.copyWith(nestedMode: value));
-          },
-        ),
-        if (mapping.nestedMode == NestedExportMode.concatenate)
-          _NestedSeparatorFields(mapping: mapping, onChanged: onChanged),
-      ],
-    );
-  }
-}
-
-class _NestedSeparatorFields extends StatelessWidget {
-  const _NestedSeparatorFields(
-      {required this.mapping, required this.onChanged});
-
-  final ExportFieldMapping mapping;
-  final ValueChanged<ExportFieldMapping> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            initialValue: mapping.fieldSeparator,
-            decoration: const InputDecoration(labelText: 'Field separator'),
-            onChanged: (value) =>
-                onChanged(mapping.copyWith(fieldSeparator: value)),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TextFormField(
-            initialValue: mapping.recordSeparator,
-            decoration: const InputDecoration(labelText: 'Record separator'),
-            onChanged: (value) =>
-                onChanged(mapping.copyWith(recordSeparator: value)),
-          ),
-        ),
-      ],
     );
   }
 }
