@@ -324,58 +324,172 @@ const allMediaExportList = [
   'media::fileName',
 ];
 
-class CombinedField {
-  CombinedField({
-    required this.fieldId,
-    required this.fields,
+/// How automatically generated export headers identify a source field.
+enum ExportHeaderFormat { tableFieldName, fieldName }
+
+/// The way a related, repeated record is represented in a flat export.
+enum NestedExportMode { concatenate, spreadColumns, expandRows }
+
+const int recordExportPresetSchemaVersion = 2;
+
+/// A single ordered output mapping in a record export preset.
+///
+/// Scalar mappings use [expression] exactly like a document text element: it
+/// can contain full or short bracket placeholders and literal text. Nested
+/// mappings use [nestedNamespace] and [nestedFields] to map repeated child
+/// records.
+class ExportFieldMapping {
+  const ExportFieldMapping({
+    required this.expression,
+    this.headerOverride,
+    this.textType = 'normal',
+    this.formatOption = 'normal',
+    this.caseFormat = 'normal',
+    this.nullFallbackOption = 'blank',
+    this.customNullFallbackText = '',
+    this.nestedNamespace,
+    this.nestedFields = const [],
+    this.nestedMode = NestedExportMode.concatenate,
+    this.fieldSeparator = '|',
+    this.recordSeparator = ';',
   });
 
-  final String fieldId;
-  final List<String> fields;
+  final String expression;
+  final String? headerOverride;
+  final String textType;
+  final String formatOption;
+  final String caseFormat;
+  final String nullFallbackOption;
+  final String customNullFallbackText;
+  final String? nestedNamespace;
+  final List<String> nestedFields;
+  final NestedExportMode nestedMode;
+  final String fieldSeparator;
+  final String recordSeparator;
 
-  factory CombinedField.fromJson(Map<String, dynamic> json) {
-    return CombinedField(
-      fieldId: json['fieldId'] as String,
-      fields: List<String>.from(json['fields'] as List),
+  bool get isNested => nestedNamespace != null;
+
+  ExportFieldMapping copyWith({
+    String? expression,
+    String? headerOverride,
+    bool clearHeaderOverride = false,
+    String? textType,
+    String? formatOption,
+    String? caseFormat,
+    String? nullFallbackOption,
+    String? customNullFallbackText,
+    String? nestedNamespace,
+    List<String>? nestedFields,
+    NestedExportMode? nestedMode,
+    String? fieldSeparator,
+    String? recordSeparator,
+  }) {
+    return ExportFieldMapping(
+      expression: expression ?? this.expression,
+      headerOverride:
+          clearHeaderOverride ? null : (headerOverride ?? this.headerOverride),
+      textType: textType ?? this.textType,
+      formatOption: formatOption ?? this.formatOption,
+      caseFormat: caseFormat ?? this.caseFormat,
+      nullFallbackOption: nullFallbackOption ?? this.nullFallbackOption,
+      customNullFallbackText:
+          customNullFallbackText ?? this.customNullFallbackText,
+      nestedNamespace: nestedNamespace ?? this.nestedNamespace,
+      nestedFields: nestedFields ?? this.nestedFields,
+      nestedMode: nestedMode ?? this.nestedMode,
+      fieldSeparator: fieldSeparator ?? this.fieldSeparator,
+      recordSeparator: recordSeparator ?? this.recordSeparator,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'fieldId': fieldId,
-      'fields': fields,
-    };
+  factory ExportFieldMapping.fromJson(Map<String, dynamic> json) {
+    return ExportFieldMapping(
+      expression: json['expression'] as String? ?? '',
+      headerOverride: json['headerOverride'] as String?,
+      textType: json['textType'] as String? ?? 'normal',
+      formatOption: json['formatOption'] as String? ?? 'normal',
+      caseFormat: json['caseFormat'] as String? ?? 'normal',
+      nullFallbackOption: json['nullFallbackOption'] as String? ?? 'blank',
+      customNullFallbackText: json['customNullFallbackText'] as String? ?? '',
+      nestedNamespace: json['nestedNamespace'] as String?,
+      nestedFields: List<String>.from(json['nestedFields'] as List? ?? []),
+      nestedMode: NestedExportMode.values.byName(
+        json['nestedMode'] as String? ?? NestedExportMode.concatenate.name,
+      ),
+      fieldSeparator: json['fieldSeparator'] as String? ?? '|',
+      recordSeparator: json['recordSeparator'] as String? ?? ';',
+    );
   }
+
+  Map<String, dynamic> toJson() => {
+        'expression': expression,
+        if (headerOverride != null) 'headerOverride': headerOverride,
+        'textType': textType,
+        'formatOption': formatOption,
+        'caseFormat': caseFormat,
+        'nullFallbackOption': nullFallbackOption,
+        'customNullFallbackText': customNullFallbackText,
+        if (nestedNamespace != null) 'nestedNamespace': nestedNamespace,
+        'nestedFields': nestedFields,
+        'nestedMode': nestedMode.name,
+        'fieldSeparator': fieldSeparator,
+        'recordSeparator': recordSeparator,
+      };
 }
 
+/// A complete, versioned configuration for one record export.
 class ExportPresetModel {
-  ExportPresetModel({
-    required this.fields,
-    required this.combinedFields,
+  const ExportPresetModel({
+    required this.recordType,
+    required this.specimenRecordType,
+    required this.headerFormat,
+    required this.mappings,
+    this.schemaVersion = recordExportPresetSchemaVersion,
   });
 
-  final Map<String, String> fields;
-  final List<CombinedField> combinedFields;
+  final int schemaVersion;
+  final RecordType recordType;
+  final SpecimenRecordType specimenRecordType;
+  final ExportHeaderFormat headerFormat;
+  final List<ExportFieldMapping> mappings;
 
-  factory ExportPresetModel.empty() {
-    return ExportPresetModel(fields: {}, combinedFields: []);
-  }
+  factory ExportPresetModel.empty() => const ExportPresetModel(
+        recordType: RecordType.specimenRecord,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.tableFieldName,
+        mappings: [],
+      );
 
   factory ExportPresetModel.fromJson(Map<String, dynamic> json) {
+    final schemaVersion = json['schemaVersion'] as int?;
+    if (schemaVersion != recordExportPresetSchemaVersion) {
+      throw const FormatException('Unsupported record export preset schema.');
+    }
     return ExportPresetModel(
-      fields: Map<String, String>.from(json['fields'] as Map),
-      combinedFields: (json['combined'] as List? ?? [])
-          .map((e) => CombinedField.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      schemaVersion: schemaVersion!,
+      recordType: parseRecordType(json['recordType'] as String?),
+      specimenRecordType: SpecimenRecordType.values.byName(
+        json['specimenRecordType'] as String? ??
+            SpecimenRecordType.allTaxa.name,
+      ),
+      headerFormat: ExportHeaderFormat.values.byName(
+        json['headerFormat'] as String? ??
+            ExportHeaderFormat.tableFieldName.name,
+      ),
+      mappings: (json['mappings'] as List? ?? [])
+          .map((value) => ExportFieldMapping.fromJson(
+              Map<String, dynamic>.from(value as Map)))
+          .toList(growable: false),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'fields': fields,
-      'combined': combinedFields.map((e) => e.toJson()).toList(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'schemaVersion': schemaVersion,
+        'recordType': recordTypeToString(recordType),
+        'specimenRecordType': specimenRecordType.name,
+        'headerFormat': headerFormat.name,
+        'mappings': mappings.map((mapping) => mapping.toJson()).toList(),
+      };
 }
 
 RecordType parseRecordType(String? value) {

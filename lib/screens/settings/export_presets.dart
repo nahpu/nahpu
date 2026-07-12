@@ -184,7 +184,7 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                   : const Icon(Icons.radio_button_unchecked),
                               title: Text(name),
                               subtitle: Text(
-                                  '${preset.fields.length + preset.combinedFields.length} fields selected'),
+                                  '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}'),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [

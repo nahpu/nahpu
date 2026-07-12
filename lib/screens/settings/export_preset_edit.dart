@@ -2,19 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/services/export/preset_record_exporter.dart';
+import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/screens/settings/export_presets.dart';
-import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/screens/settings/components/combined_field_dialog.dart';
-
-const Map<SpecimenRecordType, String> taxonGroupDropdownMap = {
-  SpecimenRecordType.allTaxa: 'All taxa',
-  SpecimenRecordType.birds: 'Birds',
-  SpecimenRecordType.bats: 'Bats',
-  SpecimenRecordType.generalMammals: 'General mammals',
-  SpecimenRecordType.herpetofauna: 'Herpetofauna',
-};
 
 class ExportPresetEditForm extends ConsumerStatefulWidget {
   const ExportPresetEditForm({
@@ -29,24 +20,29 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
   final void Function(String, String) onPresetRenamed;
 
   @override
-  ExportPresetEditFormState createState() => ExportPresetEditFormState();
+  ConsumerState<ExportPresetEditForm> createState() =>
+      _ExportPresetEditFormState();
 }
 
-class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
-  late ExportPresetModel _currentPreset;
+class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   late TextEditingController _nameController;
-  SpecimenRecordType _selectedTaxon = SpecimenRecordType.allTaxa;
-  String _namingConvention = 'table::fieldName';
-  int _updateCount = 0;
+  late ExportPresetModel _preset;
+  String? _fieldToAdd;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.presetName);
-    _currentPreset = ExportPresetModel(
-      fields: Map.from(widget.initialPreset.fields),
-      combinedFields: List.from(widget.initialPreset.combinedFields),
-    );
+    _preset = widget.initialPreset;
+  }
+
+  @override
+  void didUpdateWidget(covariant ExportPresetEditForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.presetName != widget.presetName) {
+      _nameController.text = widget.presetName;
+      _preset = widget.initialPreset;
+    }
   }
 
   @override
@@ -56,486 +52,489 @@ class ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   }
 
   @override
-  void didUpdateWidget(ExportPresetEditForm oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.presetName != widget.presetName) {
-      setState(() {
-        _nameController.text = widget.presetName;
-        _currentPreset = ExportPresetModel(
-          fields: Map.from(widget.initialPreset.fields),
-          combinedFields: List.from(widget.initialPreset.combinedFields),
-        );
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final groups = _getAllGroups(ref);
-    final groupKeys = groups.keys.toList();
-
+    final availableFields = _availableFields();
     return FormCard(
       title: 'Edit ${widget.presetName}',
-      infoContent: const ExportPresetInfoContent(),
       isExpanded: true,
       child: Column(
         children: [
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.all(16),
             child: TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Preset Name',
-                border: OutlineInputBorder(),
+              decoration: const InputDecoration(labelText: 'Preset name'),
+            ),
+          ),
+          _PresetSettingsCard(
+            preset: _preset,
+            onRecordTypeChanged: (value) => _update(recordType: value),
+            onSpecimenRecordTypeChanged: (value) =>
+                _update(specimenRecordType: value),
+            onHeaderFormatChanged: (value) => _update(headerFormat: value),
+          ),
+          _AddMappingControls(
+            availableFields: availableFields,
+            selectedField: _fieldToAdd,
+            onSelectedFieldChanged: (value) =>
+                setState(() => _fieldToAdd = value),
+            onAddScalar: _fieldToAdd == null ? null : _addScalar,
+            onAddNested: _addNested,
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ReorderableListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              itemCount: _preset.mappings.length,
+              onReorderItem: _reorder,
+              itemBuilder: (context, index) => _ExportMappingCard(
+                key: ValueKey('mapping-$index'),
+                mapping: _preset.mappings[index],
+                onRemove: () => _remove(index),
+                onChanged: (mapping) => _replace(index, mapping),
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Flexible(
-                  child: Text(
-                    'Taxon Group:',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                DropdownButton<SpecimenRecordType>(
-                  value: _selectedTaxon,
-                  items: taxonGroupDropdownMap.entries.map((entry) {
-                    return DropdownMenuItem(
-                      value: entry.key,
-                      child: Text(entry.value),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      setState(() {
-                        _selectedTaxon = val;
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
+            padding: const EdgeInsets.all(16),
+            child: PrimaryButton(
+                label: 'Save', icon: Icons.save, onPressed: _save),
           ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Flexible(
-                  child: Text(
-                    'Apply naming convention:',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                DropdownButton<String>(
-                  value: _namingConvention,
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'table::fieldName',
-                      child: Text('table::fieldName'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'fieldName',
-                      child: Text('fieldName'),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) {
-                      _applyNamingConvention(val);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Select Fields',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.reorder),
-                      tooltip: 'Reorder Fields',
-                      onPressed: _showReorderDialog,
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: _selectAll,
-                      child: const Text('Select All'),
-                    ),
-                    TextButton(
-                      onPressed: _deselectAll,
-                      child: const Text('Clear All'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              children: [
-                ...groupKeys.map((table) {
-                  List<String> columns = groups[table]!;
-                  final selectedCount = columns
-                      .where((col) => _currentPreset.fields.containsKey(col))
-                      .length;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Material(
-                      borderRadius: BorderRadius.circular(16.0),
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.8),
-                      child: ExpansionTile(
-                        shape: const Border(),
-                        title: Text(
-                          table.toUpperCase(),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          '$selectedCount / ${columns.length} selected',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        initiallyExpanded: false,
-                        children: columns.map((col) {
-                          final isSelected =
-                              _currentPreset.fields.containsKey(col);
-                          return ListTile(
-                            leading: Checkbox(
-                              value: isSelected,
-                              onChanged: (bool? val) {
-                                setState(() {
-                                  if (val == true) {
-                                    if (_namingConvention == 'fieldName') {
-                                      _currentPreset.fields[col] =
-                                          col.split('::').last;
-                                    } else {
-                                      _currentPreset.fields[col] = col;
-                                    }
-                                  } else {
-                                    _currentPreset.fields.remove(col);
-                                  }
-                                });
-                              },
-                            ),
-                            title: Text(col.split('::').last),
-                            subtitle: isSelected
-                                ? TextFormField(
-                                    key: ValueKey('$_updateCount-$col'),
-                                    initialValue: _currentPreset.fields[col],
-                                    decoration: const InputDecoration(
-                                      labelText: 'Custom Name',
-                                      isDense: true,
-                                    ),
-                                    onChanged: (val) {
-                                      _currentPreset.fields[col] = val;
-                                    },
-                                  )
-                                : null,
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  );
-                }),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Material(
-                    borderRadius: BorderRadius.circular(16.0),
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.8),
-                    child: ExpansionTile(
-                      shape: const Border(),
-                      title: const Text(
-                        'COMBINED FIELDS',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      initiallyExpanded: true,
-                      children: [
-                        ..._currentPreset.combinedFields.map((field) {
-                          return ListTile(
-                            title: Text(field.fieldId),
-                            subtitle: Text(field.fields.join(' ')),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () async {
-                                    final newField =
-                                        await showCombinedFieldDialog(
-                                            context, field);
-                                    if (newField != null) {
-                                      setState(() {
-                                        final index = _currentPreset
-                                            .combinedFields
-                                            .indexOf(field);
-                                        _currentPreset.combinedFields[index] =
-                                            newField;
-                                      });
-                                    }
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () {
-                                    setState(() {
-                                      _currentPreset.combinedFields
-                                          .remove(field);
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: SecondaryButton(
-                            text: 'Add Combined Field',
-                            onPressed: () async {
-                              final field =
-                                  await showCombinedFieldDialog(context);
-                              if (field != null) {
-                                setState(() {
-                                  _currentPreset.combinedFields.add(field);
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: 'Save',
-            icon: Icons.save,
-            onPressed: _save,
-          ),
-          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Map<String, List<String>> _getAllGroups(WidgetRef ref) {
+  List<String> _availableFields() {
     final db = ref.read(databaseProvider);
-    Map<String, List<String>> groups = {};
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      groups[tableName] =
-          table.$columns.map((c) => '$tableName::${c.name}').toList();
-    }
-    return groups;
+    return [
+      for (final table in db.allTables)
+        for (final column in table.$columns)
+          '${table.actualTableName}::${column.name}',
+    ];
   }
 
-  void _applyNamingConvention(String type) {
-    setState(() {
-      _namingConvention = type;
-      _updateCount++;
-      for (final key in _currentPreset.fields.keys) {
-        if (type == 'table::fieldName') {
-          _currentPreset.fields[key] = key;
-        } else if (type == 'fieldName') {
-          _currentPreset.fields[key] = key.split('::').last;
-        }
-      }
-    });
+  void _addScalar() {
+    final field = _fieldToAdd;
+    if (field == null) return;
+    _update(mappings: [
+      ..._preset.mappings,
+      ExportFieldMapping(expression: '[$field]'),
+    ]);
   }
 
-  void _selectAll() {
-    setState(() {
-      _updateCount++;
-      final groups = _getAllGroups(ref);
-      for (final table in groups.keys) {
-        for (final col in groups[table]!) {
-          if (_namingConvention == 'fieldName') {
-            _currentPreset.fields[col] = col.split('::').last;
-          } else {
-            _currentPreset.fields[col] = col;
-          }
-        }
-      }
-    });
+  void _addNested() => _update(mappings: [
+        ..._preset.mappings,
+        const ExportFieldMapping(
+          expression: '',
+          nestedNamespace: 'coordinate',
+          nestedFields: ['decimalLatitude', 'decimalLongitude'],
+        ),
+      ]);
+
+  void _remove(int index) {
+    final mappings = List<ExportFieldMapping>.from(_preset.mappings)
+      ..removeAt(index);
+    _update(mappings: mappings);
   }
 
-  void _deselectAll() {
-    setState(() {
-      _currentPreset.fields.clear();
-    });
+  void _replace(int index, ExportFieldMapping mapping) {
+    final mappings = List<ExportFieldMapping>.from(_preset.mappings);
+    mappings[index] = mapping;
+    _update(mappings: mappings);
   }
 
-  void _save() async {
-    final newName = _nameController.text.trim();
-    if (newName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preset name cannot be empty')),
-      );
+  void _reorder(int oldIndex, int newIndex) {
+    final mappings = List<ExportFieldMapping>.from(_preset.mappings);
+    final item = mappings.removeAt(oldIndex);
+    mappings.insert(newIndex, item);
+    _update(mappings: mappings);
+  }
+
+  void _update({
+    RecordType? recordType,
+    SpecimenRecordType? specimenRecordType,
+    ExportHeaderFormat? headerFormat,
+    List<ExportFieldMapping>? mappings,
+  }) =>
+      setState(() {
+        _preset = ExportPresetModel(
+          recordType: recordType ?? _preset.recordType,
+          specimenRecordType: specimenRecordType ?? _preset.specimenRecordType,
+          headerFormat: headerFormat ?? _preset.headerFormat,
+          mappings: mappings ?? _preset.mappings,
+        );
+      });
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    final errors = validateExportPreset(_preset);
+    if (name.isEmpty) errors.insert(0, 'Preset name cannot be empty.');
+    if (errors.isNotEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(errors.join('\n'))));
       return;
     }
-
-    if (newName != widget.presetName) {
+    if (name != widget.presetName) {
       await ref
           .read(exportPresetNotifierProvider.notifier)
           .deletePreset(widget.presetName);
-      widget.onPresetRenamed(widget.presetName, newName);
+      widget.onPresetRenamed(widget.presetName, name);
     }
-
-    await ref.read(exportPresetNotifierProvider.notifier).savePreset(
-          newName,
-          _currentPreset,
-        );
+    await ref
+        .read(exportPresetNotifierProvider.notifier)
+        .savePreset(name, _preset);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preset saved')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Preset saved')));
     }
   }
+}
 
-  Future<void> _showReorderDialog() async {
-    final entries = _currentPreset.fields.entries.toList();
-    if (entries.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No fields selected to reorder.')),
-      );
-      return;
-    }
+class _PresetSettingsCard extends StatelessWidget {
+  const _PresetSettingsCard({
+    required this.preset,
+    required this.onRecordTypeChanged,
+    required this.onSpecimenRecordTypeChanged,
+    required this.onHeaderFormatChanged,
+  });
 
-    bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+  final ExportPresetModel preset;
+  final ValueChanged<RecordType> onRecordTypeChanged;
+  final ValueChanged<SpecimenRecordType> onSpecimenRecordTypeChanged;
+  final ValueChanged<ExportHeaderFormat> onHeaderFormatChanged;
 
-    Widget buildReorderList(BuildContext context, StateSetter setStateDialog) {
-      return ReorderableListView(
-        onReorderItem: (oldIndex, newIndex) {
-          setStateDialog(() {
-            final item = entries.removeAt(oldIndex);
-            entries.insert(newIndex, item);
-          });
-        },
-        children: entries.map((e) {
-          return ListTile(
-            key: ValueKey(e.key),
-            title: Text(e.value),
-            subtitle: Text(e.key),
-            trailing: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                setStateDialog(() {
-                  final currentIndex = entries.indexOf(e);
-                  if (currentIndex == -1) return;
-                  final item = entries.removeAt(currentIndex);
-                  if (value == 'first') {
-                    entries.insert(0, item);
-                  } else if (value == 'last') {
-                    entries.add(item);
-                  }
-                });
-              },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem(
-                  value: 'first',
-                  child: Text('Move to First'),
-                ),
-                const PopupMenuItem(
-                  value: 'last',
-                  child: Text('Move to Last'),
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              DropdownButtonFormField<RecordType>(
+                initialValue: preset.recordType,
+                decoration: const InputDecoration(labelText: 'Record type'),
+                items: RecordType.values
+                    .where((type) => type != RecordType.none)
+                    .map(
+                      (type) => DropdownMenuItem(
+                        value: type,
+                        child: Text(recordTypeToString(type)),
+                      ),
+                    )
+                    .toList(growable: false),
+                onChanged: (value) {
+                  if (value != null) onRecordTypeChanged(value);
+                },
+              ),
+              if (preset.recordType == RecordType.specimenRecord) ...[
+                const SizedBox(height: 8),
+                DropdownButtonFormField<SpecimenRecordType>(
+                  initialValue: preset.specimenRecordType,
+                  decoration:
+                      const InputDecoration(labelText: 'Specimen taxon group'),
+                  items: SpecimenRecordType.values
+                      .map(
+                        (type) => DropdownMenuItem(
+                          value: type,
+                          child: Text(type.name),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (value) {
+                    if (value != null) onSpecimenRecordTypeChanged(value);
+                  },
                 ),
               ],
-            ),
-          );
-        }).toList(),
-      );
-    }
-
-    if (isLargeScreen) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return AlertDialog(
-                title: const Text('Reorder Fields'),
-                content: SizedBox(
-                  width: double.maxFinite,
-                  height: MediaQuery.sizeOf(context).height * 0.6,
-                  child: buildReorderList(context, setStateDialog),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Done'),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<ExportHeaderFormat>(
+                initialValue: preset.headerFormat,
+                decoration:
+                    const InputDecoration(labelText: 'Generated header format'),
+                items: const [
+                  DropdownMenuItem(
+                    value: ExportHeaderFormat.tableFieldName,
+                    child: Text('table::fieldName'),
+                  ),
+                  DropdownMenuItem(
+                    value: ExportHeaderFormat.fieldName,
+                    child: Text('fieldName'),
                   ),
                 ],
-              );
-            },
-          );
-        },
-      );
-    } else {
-      await showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) {
-          return StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return FractionallySizedBox(
-                heightFactor: 0.8,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Reorder Fields',
-                              style: Theme.of(context).textTheme.titleLarge),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Done'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: buildReorderList(context, setStateDialog),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      );
-    }
+                onChanged: (value) {
+                  if (value != null) onHeaderFormatChanged(value);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-    setState(() {
-      _currentPreset.fields.clear();
-      _currentPreset.fields.addEntries(entries);
-    });
+class _AddMappingControls extends StatelessWidget {
+  const _AddMappingControls({
+    required this.availableFields,
+    required this.selectedField,
+    required this.onSelectedFieldChanged,
+    required this.onAddScalar,
+    required this.onAddNested,
+  });
+
+  final List<String> availableFields;
+  final String? selectedField;
+  final ValueChanged<String?> onSelectedFieldChanged;
+  final VoidCallback? onAddScalar;
+  final VoidCallback onAddNested;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              initialValue: selectedField,
+              decoration: const InputDecoration(labelText: 'Add source field'),
+              items: availableFields
+                  .map(
+                    (field) =>
+                        DropdownMenuItem(value: field, child: Text(field)),
+                  )
+                  .toList(growable: false),
+              onChanged: onSelectedFieldChanged,
+            ),
+          ),
+          IconButton(
+            tooltip: 'Add field mapping',
+            icon: const Icon(Icons.add),
+            onPressed: onAddScalar,
+          ),
+          IconButton(
+            tooltip: 'Add nested mapping',
+            icon: const Icon(Icons.account_tree_outlined),
+            onPressed: onAddNested,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExportMappingCard extends StatelessWidget {
+  const _ExportMappingCard({
+    super.key,
+    required this.mapping,
+    required this.onRemove,
+    required this.onChanged,
+  });
+
+  final ExportFieldMapping mapping;
+  final VoidCallback onRemove;
+  final ValueChanged<ExportFieldMapping> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                      mapping.isNested ? 'Nested mapping' : 'Field mapping'),
+                ),
+                IconButton(
+                  tooltip: 'Remove mapping',
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: onRemove,
+                ),
+                const Icon(Icons.drag_handle),
+              ],
+            ),
+            if (mapping.isNested)
+              _NestedMappingFields(mapping: mapping, onChanged: onChanged)
+            else
+              _ScalarMappingFields(mapping: mapping, onChanged: onChanged),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScalarMappingFields extends StatelessWidget {
+  const _ScalarMappingFields({required this.mapping, required this.onChanged});
+
+  final ExportFieldMapping mapping;
+  final ValueChanged<ExportFieldMapping> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final textType =
+        {'normal', 'encoded', 'list', 'coordinates'}.contains(mapping.textType)
+            ? mapping.textType
+            : 'normal';
+    return Column(
+      children: [
+        TextFormField(
+          key: ValueKey('expression-${mapping.expression}'),
+          initialValue: mapping.expression,
+          decoration: const InputDecoration(
+            labelText: 'Source expression',
+            helperText:
+                'Use document placeholders, e.g. [specimen::catalogNum].',
+          ),
+          onChanged: (value) => onChanged(mapping.copyWith(expression: value)),
+        ),
+        TextFormField(
+          key: ValueKey('header-${mapping.headerOverride}'),
+          initialValue: mapping.headerOverride ?? '',
+          decoration:
+              const InputDecoration(labelText: 'Custom header (optional)'),
+          onChanged: (value) => onChanged(
+            mapping.copyWith(
+              headerOverride: value,
+              clearHeaderOverride: value.trim().isEmpty,
+            ),
+          ),
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: textType,
+          decoration: const InputDecoration(labelText: 'Mapping format'),
+          items: const [
+            DropdownMenuItem(value: 'normal', child: Text('Normal text')),
+            DropdownMenuItem(value: 'encoded', child: Text('Encoded text')),
+            DropdownMenuItem(value: 'list', child: Text('List values')),
+            DropdownMenuItem(value: 'coordinates', child: Text('Coordinates')),
+          ],
+          onChanged: (value) {
+            if (value != null) onChanged(mapping.copyWith(textType: value));
+          },
+        ),
+        TextFormField(
+          key: ValueKey('format-${mapping.formatOption}'),
+          initialValue: mapping.formatOption,
+          decoration: const InputDecoration(
+            labelText: 'Format option',
+            helperText: 'Examples: enum, comma, dms, or custom_map:0=No,1=Yes.',
+          ),
+          onChanged: (value) =>
+              onChanged(mapping.copyWith(formatOption: value)),
+        ),
+      ],
+    );
+  }
+}
+
+class _NestedMappingFields extends StatelessWidget {
+  const _NestedMappingFields({required this.mapping, required this.onChanged});
+
+  final ExportFieldMapping mapping;
+  final ValueChanged<ExportFieldMapping> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextFormField(
+          key: ValueKey('namespace-${mapping.nestedNamespace}'),
+          initialValue: mapping.nestedNamespace,
+          decoration:
+              const InputDecoration(labelText: 'Related record namespace'),
+          onChanged: (value) =>
+              onChanged(mapping.copyWith(nestedNamespace: value)),
+        ),
+        TextFormField(
+          key: ValueKey('nested-fields-${mapping.nestedFields.join(',')}'),
+          initialValue: mapping.nestedFields.join(', '),
+          decoration: const InputDecoration(
+              labelText: 'Child fields (comma separated)'),
+          onChanged: (value) => onChanged(
+            mapping.copyWith(
+              nestedFields: value
+                  .split(',')
+                  .map((field) => field.trim())
+                  .where((field) => field.isNotEmpty)
+                  .toList(),
+            ),
+          ),
+        ),
+        TextFormField(
+          key: ValueKey('nested-header-${mapping.headerOverride}'),
+          initialValue: mapping.headerOverride ?? '',
+          decoration:
+              const InputDecoration(labelText: 'Header prefix (optional)'),
+          onChanged: (value) => onChanged(
+            mapping.copyWith(
+              headerOverride: value,
+              clearHeaderOverride: value.trim().isEmpty,
+            ),
+          ),
+        ),
+        DropdownButtonFormField<NestedExportMode>(
+          initialValue: mapping.nestedMode,
+          decoration: const InputDecoration(labelText: 'Nested output'),
+          items: const [
+            DropdownMenuItem(
+              value: NestedExportMode.concatenate,
+              child: Text('Concatenate into one column'),
+            ),
+            DropdownMenuItem(
+              value: NestedExportMode.spreadColumns,
+              child: Text('Spread indexed columns'),
+            ),
+            DropdownMenuItem(
+              value: NestedExportMode.expandRows,
+              child: Text('Expand rows'),
+            ),
+          ],
+          onChanged: (value) {
+            if (value != null) onChanged(mapping.copyWith(nestedMode: value));
+          },
+        ),
+        if (mapping.nestedMode == NestedExportMode.concatenate)
+          _NestedSeparatorFields(mapping: mapping, onChanged: onChanged),
+      ],
+    );
+  }
+}
+
+class _NestedSeparatorFields extends StatelessWidget {
+  const _NestedSeparatorFields(
+      {required this.mapping, required this.onChanged});
+
+  final ExportFieldMapping mapping;
+  final ValueChanged<ExportFieldMapping> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            initialValue: mapping.fieldSeparator,
+            decoration: const InputDecoration(labelText: 'Field separator'),
+            onChanged: (value) =>
+                onChanged(mapping.copyWith(fieldSeparator: value)),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextFormField(
+            initialValue: mapping.recordSeparator,
+            decoration: const InputDecoration(labelText: 'Record separator'),
+            onChanged: (value) =>
+                onChanged(mapping.copyWith(recordSeparator: value)),
+          ),
+        ),
+      ],
+    );
   }
 }

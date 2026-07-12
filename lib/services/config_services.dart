@@ -69,43 +69,11 @@ class ConfigDbService {
       }
     }
 
-    // Migrate export presets
+    // Record export presets from SharedPreferences used the unsupported v1
+    // schema. They are intentionally not migrated because they lack record
+    // type and mapping metadata required for reproducible exports.
     if (prefs.containsKey('exportPresets')) {
-      final presetString = prefs.getString('exportPresets');
-      if (presetString != null) {
-        try {
-          final decoded = jsonDecode(presetString) as Map<String, dynamic>;
-          for (final entry in decoded.entries) {
-            final name = entry.key;
-            final dynamic val = entry.value;
-
-            Map<String, String> fields = {};
-            List<rust_config.ConfigCombinedField> combinedFields = [];
-
-            if (val is Map<String, dynamic> && val.containsKey('fields')) {
-              // Version 2 format
-              fields = Map<String, String>.from(val['fields'] as Map);
-              combinedFields = (val['combined'] as List? ?? [])
-                  .map((e) => rust_config.ConfigCombinedField(
-                        fieldId: e['fieldId'] as String,
-                        fields: List<String>.from(e['fields'] as List),
-                      ))
-                  .toList();
-            } else if (val is Map) {
-              // Version 1 format (legacy)
-              fields = Map<String, String>.from(val);
-            }
-
-            final preset = rust_config.ConfigExportPreset(
-              fields: fields,
-              combinedFields: combinedFields,
-            );
-            await rust_config.setRecordExportPreset(name: name, preset: preset);
-          }
-        } catch (_) {
-          // Ignore json decoding/migration errors for invalid legacy formats
-        }
-      }
+      // Cleared below with the remaining deprecated SharedPreferences keys.
     }
 
     // After migration, clear only the deprecated keys from SharedPreferences
