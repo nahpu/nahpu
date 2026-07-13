@@ -2,6 +2,62 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+
+rust_config.DocumentLayoutPreset _layout({
+  required List<rust_config.DocumentLayoutBlock> blocks,
+  String layoutType = 'WholePage',
+  String multiBlockMode = 'Continuous',
+}) {
+  return rust_config.DocumentLayoutPreset(
+    name: 'Test layout',
+    layoutType: layoutType,
+    pageSizeKey: 'Letter',
+    pageOrientation: 'portrait',
+    pagePadTopMm: 0,
+    pagePadLeftMm: 0,
+    pagePadRightMm: 0,
+    pagePadBottomMm: 0,
+    blocks: blocks,
+    fillPage: false,
+    multiBlockMode: multiBlockMode,
+  );
+}
+
+rust_config.DocumentLayoutBlock _block({
+  String templateName = 'template',
+  required int templateCount,
+  required int rows,
+  required int cols,
+}) {
+  return rust_config.DocumentLayoutBlock(
+    templateName: templateName,
+    templateCount: templateCount,
+    rows: rows,
+    cols: cols,
+    templatePadTopMm: 0,
+    templatePadLeftMm: 0,
+    templatePadRightMm: 0,
+    templatePadBottomMm: 0,
+    pageBreakAfter: false,
+  );
+}
+
+Template _template(
+  String name, {
+  double widthMm = 10,
+  double heightMm = 10,
+  TemplatePrintOptions? printOptions,
+}) {
+  return Template(
+    name: name,
+    page1: const TemplatePage(),
+    page2: const TemplatePage(),
+    widthMm: widthMm,
+    heightMm: heightMm,
+    printOptions: printOptions,
+  );
+}
 
 void main() {
   group('DocumentWriter text substitutions', () {
@@ -315,44 +371,337 @@ void main() {
     });
   });
 
-  group('DocumentWriter pagination tests', () {
-    test('does not add a trailing page break for simplex documents', () {
+  group('DocumentWriter sheet planning tests', () {
+    test('uses production page-break policy without a trailing break', () {
       expect(
-        DocumentWriter.pageBreakPlanForTesting(
-          specimenCount: 8,
-          documentsPerSheet: 8,
-          duplex: false,
+        DocumentWriter.sheetPageBreakPlanForTesting(
+          forcePageBreakAfter: const [],
+        ),
+        isEmpty,
+      );
+      expect(
+        DocumentWriter.sheetPageBreakPlanForTesting(
+          forcePageBreakAfter: const [true],
         ),
         [false],
       );
       expect(
-        DocumentWriter.pageBreakPlanForTesting(
-          specimenCount: 9,
-          documentsPerSheet: 8,
-          duplex: false,
+        DocumentWriter.sheetPageBreakPlanForTesting(
+          forcePageBreakAfter: const [true, false, true],
+        ),
+        [true, false, false],
+      );
+    });
+
+    test('grouped fixed-grid planning repeats every configured template',
+        () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [_block(templateCount: 3, rows: 2, cols: 2)],
+        ),
+        templates: [_template('grouped')],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+            {'id': 'B'},
+          ],
+        ],
+      );
+
+      expect(sheets.map((sheet) => sheet.cellData.length), [4, 2]);
+      expect(
+        [
+          for (final sheet in sheets)
+            for (final data in sheet.cellData) data['id'],
+        ],
+        ['A', 'A', 'A', 'B', 'B', 'B'],
+      );
+      expect(
+        DocumentWriter.sheetPageBreakPlanForTesting(
+          forcePageBreakAfter: [
+            for (final sheet in sheets) sheet.forcePageBreakAfter,
+          ],
         ),
         [true, false],
       );
     });
 
-    test('does not add a trailing page break after the last duplex back side',
-        () {
-      expect(
-        DocumentWriter.pageBreakPlanForTesting(
-          specimenCount: 8,
-          documentsPerSheet: 8,
-          duplex: true,
+    test('continuous planning repeats every configured template', () {
+      final items = DocumentWriter.planContinuousItemsForTesting(
+        layout: _layout(
+          layoutType: 'Continuous',
+          blocks: [_block(templateCount: 3, rows: 1, cols: 1)],
         ),
-        [true, false],
+        templates: [_template('continuous')],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+        ],
+        duplex: true,
+        mirrorBack: true,
+      );
+
+      expect(
+        items.map((item) => item.data['id']),
+        ['A', 'A', 'A', 'A', 'A', 'A'],
       );
       expect(
-        DocumentWriter.pageBreakPlanForTesting(
-          specimenCount: 9,
-          documentsPerSheet: 8,
-          duplex: true,
+        items.map((item) => item.mirror),
+        [false, true, false, true, false, true],
+      );
+    });
+
+    test('continuous planning uses each template side profile', () {
+      final items = DocumentWriter.planContinuousItemsForTesting(
+        layout: _layout(
+          layoutType: 'Continuous',
+          multiBlockMode: 'Alternate',
+          blocks: [
+            _block(templateName: 'duplex', templateCount: 1, rows: 1, cols: 1),
+            _block(templateName: 'simplex', templateCount: 1, rows: 1, cols: 1),
+          ],
+        ),
+        templates: [
+          _template(
+            'duplex',
+            printOptions: const TemplatePrintOptions(
+              isDuplex: true,
+              mirrorFront: false,
+              mirrorBack: true,
+            ),
+          ),
+          _template(
+            'simplex',
+            printOptions: const TemplatePrintOptions(
+              isDuplex: false,
+              mirrorFront: false,
+              mirrorBack: false,
+            ),
+          ),
+        ],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+          [
+            {'id': 'B'},
+          ],
+        ],
+      );
+
+      expect(items.map((item) => item.data['id']), ['A', 'A', 'B']);
+      expect(items.map((item) => item.mirror), [false, true, false]);
+    });
+
+    test('alternate planning preserves record, block, and copy order',
+        () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          multiBlockMode: 'Alternate',
+          blocks: [
+            _block(templateName: 'first', templateCount: 2, rows: 2, cols: 4),
+            _block(
+              templateName: 'second',
+              templateCount: 1,
+              rows: 2,
+              cols: 4,
+            ),
+          ],
+        ),
+        templates: [_template('first'), _template('second')],
+        dataByBlock: const [
+          [
+            {'id': 'A1'},
+            {'id': 'A2'},
+          ],
+          [
+            {'id': 'B1'},
+          ],
+        ],
+      );
+
+      expect(
+        [
+          for (final sheet in sheets)
+            for (final data in sheet.cellData) data['id'],
+        ],
+        ['A1', 'A1', 'B1', 'A2', 'A2'],
+      );
+    });
+
+    test('duplex planning pairs copies and omits the last back-side break',
+        () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [_block(templateCount: 2, rows: 1, cols: 1)],
+        ),
+        templates: [_template('duplex')],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+        ],
+        duplex: true,
+        mirrorBack: true,
+      );
+
+      expect(sheets.map((sheet) => sheet.cellData.length), [1, 1, 1, 1]);
+      expect(sheets.map((sheet) => sheet.mirrors.single),
+          [false, true, false, true]);
+      expect(
+        DocumentWriter.sheetPageBreakPlanForTesting(
+          forcePageBreakAfter: [
+            for (final sheet in sheets) sheet.forcePageBreakAfter,
+          ],
         ),
         [true, true, true, false],
       );
+    });
+
+    test('alternate planning splits simplex and duplex template runs',
+        () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          multiBlockMode: 'Alternate',
+          blocks: [
+            _block(templateName: 'duplex', templateCount: 1, rows: 1, cols: 1),
+            _block(templateName: 'simplex', templateCount: 1, rows: 1, cols: 1),
+          ],
+        ),
+        templates: [
+          _template(
+            'duplex',
+            printOptions: const TemplatePrintOptions(
+              isDuplex: true,
+              mirrorFront: false,
+              mirrorBack: true,
+            ),
+          ),
+          _template(
+            'simplex',
+            printOptions: const TemplatePrintOptions(
+              isDuplex: false,
+              mirrorFront: false,
+              mirrorBack: false,
+            ),
+          ),
+        ],
+        dataByBlock: const [
+          [
+            {'id': 'A1'},
+            {'id': 'A2'},
+          ],
+          [
+            {'id': 'B1'},
+            {'id': 'B2'},
+          ],
+        ],
+      );
+
+      expect(
+        [for (final sheet in sheets) sheet.cellData.single['id']],
+        ['A1', 'A1', 'B1', 'A2', 'A2', 'B2'],
+      );
+      expect(
+        [for (final sheet in sheets) sheet.mirrors.single],
+        [false, true, false, false, true, false],
+      );
+      expect(
+        DocumentWriter.sheetPageBreakPlanForTesting(
+          forcePageBreakAfter: [
+            for (final sheet in sheets) sheet.forcePageBreakAfter,
+          ],
+        ),
+        [true, true, true, true, true, false],
+      );
+    });
+
+    test('legacy templates default to simplex output', () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [_block(templateCount: 1, rows: 1, cols: 1)],
+        ),
+        templates: [_template('legacy')],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+        ],
+      );
+
+      expect(sheets, hasLength(1));
+      expect(sheets.single.mirrors, [false]);
+    });
+
+    test('uses each block template canvas dimensions', () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [
+            _block(templateName: 'small', templateCount: 1, rows: 1, cols: 1),
+            _block(templateName: 'large', templateCount: 1, rows: 1, cols: 1),
+          ],
+        ),
+        templates: [
+          _template('small', widthMm: 25, heightMm: 10),
+          _template('large', widthMm: 50, heightMm: 20),
+        ],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+          [
+            {'id': 'B'},
+          ],
+        ],
+        useTemplateDimensions: true,
+      );
+
+      expect(sheets.map((sheet) => sheet.canvasWidths.single), [
+        closeTo(25 * 72 / 25.4, 0.001),
+        closeTo(50 * 72 / 25.4, 0.001),
+      ]);
+      expect(sheets.map((sheet) => sheet.canvasHeights.single), [
+        closeTo(10 * 72 / 25.4, 0.001),
+        closeTo(20 * 72 / 25.4, 0.001),
+      ]);
+    });
+
+    test('nonpositive template counts produce no tiled cells', () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [_block(templateCount: 0, rows: 1, cols: 1)],
+        ),
+        templates: [_template('none')],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+        ],
+      );
+
+      expect(sheets, isEmpty);
+    });
+
+    test('auto-fill planning repeats configured copies before fill rows',
+        () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [_block(templateCount: 2, rows: -1, cols: 2)],
+        ),
+        templates: [_template('auto-fill')],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+        ],
+        documentHeightPt: 100,
+        usableHeightPt: 100,
+      );
+
+      expect(sheets, hasLength(1));
+      expect(sheets.single.autoFill, isTrue);
+      expect(sheets.single.cellData.map((data) => data['id']), ['A', 'A']);
     });
   });
 
@@ -1116,6 +1465,61 @@ void main() {
       expect(formatTemplateText('2', 'sex', 'symbol:unknown'), '?');
       expect(formatTemplateText('', 'sex', 'letter:na'), 'N/A');
       expect(formatTemplateText('Unknown', 'sex', 'text:none'), '');
+
+      // PDF export formats substituted text a second time while building the
+      // Typst document. Already-rendered symbols must remain stable.
+      expect(formatTemplateText('\u2642', 'sex', 'symbol:unknown'), '\u2642');
+      expect(formatTemplateText('\u2640', 'sex', 'symbol:unknown'), '\u2640');
+      expect(formatTemplateText('\u2642', 'sex', 'letter:na'), 'M');
+      expect(formatTemplateText('\u2640', 'sex', 'text:none'), 'Female');
+    });
+
+    test('Typst keeps sex symbols and selects a glyph-capable font', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'sex-symbol',
+            text: '\u2642',
+            xMm: 0,
+            yMm: 0,
+            fontFamily: 'Merriweather',
+            textType: 'sex',
+            formatOption: 'symbol:unknown',
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+      );
+
+      expect(typst, contains('font: "DejaVu Sans")[\u2642]'));
+      expect(typst, isNot(contains('font: "Merriweather")[?]')));
+    });
+
+    test('gender icon export accepts encoded sex values', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'sex-icon',
+            text: '[mammal.sex]-img',
+            xMm: 0,
+            yMm: 0,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+        data: {'mammal.sex': '0'},
+      );
+
+      expect(typst, contains('font: "DejaVu Sans")[\u2642]'));
+      expect(typst, isNot(contains('font: "DejaVu Sans")[?]')));
     });
 
     test('Field display formatting displays full/field-only placeholders', () {
