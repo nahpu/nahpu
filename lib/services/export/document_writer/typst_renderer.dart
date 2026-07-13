@@ -10,8 +10,6 @@ class _DocumentTypstRenderer {
     required int rows,
     required double cellW,
     required double cellH,
-    required double wPt,
-    required double hPt,
   }) {
     typst.writeln('#grid(');
     typst.writeln('  columns: (${cellW}pt, ) * $cols,');
@@ -25,8 +23,8 @@ class _DocumentTypstRenderer {
         typst: typst,
         page: cell.page,
         data: cell.data,
-        wPt: wPt,
-        hPt: hPt,
+        wPt: cell.widthPt,
+        hPt: cell.canvasHeightPt,
         templatePadTopMm: cell.block.templatePadTopMm,
         templatePadLeftMm: cell.block.templatePadLeftMm,
         templatePadRightMm: cell.block.templatePadRightMm,
@@ -45,8 +43,6 @@ class _DocumentTypstRenderer {
     required List<_DocumentSheetCell> cells,
     required int cols,
     required double cellW,
-    required double wPt,
-    required double hPt,
   }) {
     // Do not reserve the whole usable page for every batch. The grid's natural
     // height is the sum of its rows, so the next template or block starts
@@ -64,8 +60,8 @@ class _DocumentTypstRenderer {
         typst: typst,
         page: cell.page,
         data: cell.data,
-        wPt: wPt,
-        hPt: hPt,
+        wPt: cell.widthPt,
+        hPt: cell.canvasHeightPt,
         templatePadTopMm: cell.block.templatePadTopMm,
         templatePadLeftMm: cell.block.templatePadLeftMm,
         templatePadRightMm: cell.block.templatePadRightMm,

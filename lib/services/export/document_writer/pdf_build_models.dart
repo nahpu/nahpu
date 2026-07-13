@@ -16,19 +16,37 @@ class _DocumentPdfBlockInput {
   final rust_config.DocumentLayoutBlock block;
   final Template template;
   final List<Map<String, String>> data;
+
+  _DocumentTemplateRenderProfile get profile =>
+      _DocumentTemplateRenderProfile.fromTemplate(template);
 }
 
-class _DocumentPdfBuildContext {
-  const _DocumentPdfBuildContext({
-    required this.wPt,
-    required this.hPt,
+/// Physical canvas and side settings stored with a template.
+///
+/// PDF output must be independent of the template most recently opened in the
+/// editor, so legacy templates resolve to a deterministic simplex profile.
+class _DocumentTemplateRenderProfile {
+  const _DocumentTemplateRenderProfile({
+    required this.widthPt,
+    required this.heightPt,
     required this.duplex,
     required this.mirrorFront,
     required this.mirrorBack,
   });
 
-  final double wPt;
-  final double hPt;
+  factory _DocumentTemplateRenderProfile.fromTemplate(Template template) {
+    final options = template.printOptions;
+    return _DocumentTemplateRenderProfile(
+      widthPt: documentPdfMmToPt(template.widthMm),
+      heightPt: documentPdfMmToPt(template.heightMm),
+      duplex: options?.isDuplex ?? false,
+      mirrorFront: options?.mirrorFront ?? false,
+      mirrorBack: options?.mirrorBack ?? false,
+    );
+  }
+
+  final double widthPt;
+  final double heightPt;
   final bool duplex;
   final bool mirrorFront;
   final bool mirrorBack;
@@ -47,8 +65,6 @@ class _DocumentSheetRenderSpec {
     required this.rows,
     required this.cellW,
     required this.cellH,
-    required this.wPt,
-    required this.hPt,
     required this.autoFill,
     required this.forcePageBreakAfter,
   });
@@ -58,8 +74,6 @@ class _DocumentSheetRenderSpec {
   final int rows;
   final double cellW;
   final double cellH;
-  final double wPt;
-  final double hPt;
   final bool autoFill;
   final bool forcePageBreakAfter;
 }
@@ -84,6 +98,8 @@ class _DocumentSheetCell {
     required this.outline,
     required this.mirror,
     required this.autoHeight,
+    required this.widthPt,
+    required this.canvasHeightPt,
   });
 
   final TemplatePage page;
@@ -93,6 +109,8 @@ class _DocumentSheetCell {
   final TemplateOutline? outline;
   final bool mirror;
   final bool autoHeight;
+  final double widthPt;
+  final double canvasHeightPt;
 
   _DocumentSheetCell copyWithHeight(double maxH) {
     return _DocumentSheetCell(
@@ -103,6 +121,8 @@ class _DocumentSheetCell {
       outline: outline,
       mirror: mirror,
       autoHeight: autoHeight,
+      widthPt: widthPt,
+      canvasHeightPt: canvasHeightPt,
     );
   }
 }

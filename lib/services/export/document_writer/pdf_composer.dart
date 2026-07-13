@@ -13,7 +13,6 @@ class _DocumentPdfComposer {
     required double sheetWidthPt,
     required double sheetHeightPt,
     required rust_config.DocumentLayoutPreset layout,
-    required _DocumentPdfBuildContext context,
     required List<_DocumentPdfBlockInput> blocks,
   }) async {
     final typst = StringBuffer();
@@ -25,7 +24,6 @@ class _DocumentPdfComposer {
         typst: typst,
         layout: layout,
         blocks: blocks,
-        context: context,
       );
     } else {
       await _writeTiled(
@@ -34,7 +32,6 @@ class _DocumentPdfComposer {
         sheetHeightPt: sheetHeightPt,
         layout: layout,
         blocks: blocks,
-        context: context,
       );
     }
     return typst.toString();
@@ -49,20 +46,15 @@ class _DocumentPdfComposer {
     required StringBuffer typst,
     required rust_config.DocumentLayoutPreset layout,
     required List<_DocumentPdfBlockInput> blocks,
-    required _DocumentPdfBuildContext context,
   }) async {
     final items = _continuousPlanner.plan(
       blocks: blocks,
-      duplex: context.duplex,
-      mirrorFront: context.mirrorFront,
-      mirrorBack: context.mirrorBack,
       multiBlockMode: layout.multiBlockMode,
     );
     for (final item in items) {
       await _writeContinuousItem(
         typst: typst,
         item: item,
-        context: context,
       );
     }
   }
@@ -70,10 +62,9 @@ class _DocumentPdfComposer {
   Future<void> _writeContinuousItem({
     required StringBuffer typst,
     required _DocumentContinuousPrintItem item,
-    required _DocumentPdfBuildContext context,
   }) async {
     final block = item.block;
-    final cellW = context.wPt +
+    final cellW = item.profile.widthPt +
         documentPdfMmToPt(block.templatePadLeftMm) +
         documentPdfMmToPt(block.templatePadRightMm);
     typst.writeln('#set page(width: ${cellW}pt, height: auto, margin: 0pt)');
@@ -85,8 +76,8 @@ class _DocumentPdfComposer {
       typst: typst,
       page: page,
       data: item.data,
-      wPt: context.wPt,
-      hPt: context.hPt,
+      wPt: item.profile.widthPt,
+      hPt: item.profile.heightPt,
       templatePadTopMm: block.templatePadTopMm,
       templatePadLeftMm: block.templatePadLeftMm,
       templatePadRightMm: block.templatePadRightMm,
@@ -103,7 +94,6 @@ class _DocumentPdfComposer {
     required double sheetHeightPt,
     required rust_config.DocumentLayoutPreset layout,
     required List<_DocumentPdfBlockInput> blocks,
-    required _DocumentPdfBuildContext context,
   }) async {
     _writePageSetup(
       typst: typst,
@@ -126,7 +116,6 @@ class _DocumentPdfComposer {
     ).plan(
       layout: layout,
       blocks: blocks,
-      context: context,
       usableW: usableW,
       usableH: usableH,
     );
@@ -165,8 +154,6 @@ class _DocumentPdfComposer {
           cells: sheet.cells,
           cols: sheet.cols,
           cellW: sheet.cellW,
-          wPt: sheet.wPt,
-          hPt: sheet.hPt,
         );
       } else {
         _renderer.writeTiledDocumentSheet(
@@ -176,8 +163,6 @@ class _DocumentPdfComposer {
           rows: sheet.rows,
           cellW: sheet.cellW,
           cellH: sheet.cellH,
-          wPt: sheet.wPt,
-          hPt: sheet.hPt,
         );
       }
       if (pageBreaks[index]) {

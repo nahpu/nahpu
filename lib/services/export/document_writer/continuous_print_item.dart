@@ -6,11 +6,13 @@ class _DocumentContinuousPrintItem {
     required this.template,
     required this.pageTemplate,
     required this.block,
+    required this.profile,
     required this.mirror,
   });
   final Map<String, String> data;
   final Template template;
   final TemplatePage pageTemplate;
   final rust_config.DocumentLayoutBlock block;
+  final _DocumentTemplateRenderProfile profile;
   final bool mirror;
 }

@@ -7,17 +7,6 @@ class _DocumentPdfInputResolver {
 
   final _DocumentLayoutRecordCollector collector;
 
-  Future<_DocumentPdfBuildContext> loadBuildContext() async {
-    final settings = DocumentSettingsServices();
-    return _DocumentPdfBuildContext(
-      wPt: documentPdfMmToPt(await settings.getDocumentWidthMm()),
-      hPt: documentPdfMmToPt(await settings.getDocumentHeightMm()),
-      duplex: await settings.getDuplex(),
-      mirrorFront: await settings.getMirrorFront(),
-      mirrorBack: await settings.getMirrorBack(),
-    );
-  }
-
   Future<Map<String, Template>> _loadTemplates(
     rust_config.DocumentLayoutPreset layout,
   ) async {

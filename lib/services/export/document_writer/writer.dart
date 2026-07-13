@@ -293,23 +293,30 @@ class DocumentWriter {
   }
 
   /// Plans sheets with an identity page substitutor for regression tests.
+  ///
+  /// The optional side arguments emulate saved template print options for
+  /// existing callers. Production planning always reads those options from the
+  /// template attached to each block.
   @visibleForTesting
   static Future<
       List<
           ({
             List<Map<String, String>> cellData,
             List<bool> mirrors,
+            List<double> canvasWidths,
+            List<double> canvasHeights,
             bool autoFill,
             bool forcePageBreakAfter,
           })>> planDocumentSheetsForTesting({
     required rust_config.DocumentLayoutPreset layout,
     required List<Template> templates,
     required List<List<Map<String, String>>> dataByBlock,
-    bool duplex = false,
-    bool mirrorFront = false,
-    bool mirrorBack = false,
+    bool? duplex,
+    bool? mirrorFront,
+    bool? mirrorBack,
     double documentWidthPt = 100,
     double documentHeightPt = 100,
+    bool useTemplateDimensions = false,
     double usableWidthPt = 200,
     double usableHeightPt = 200,
   }) async {
@@ -319,11 +326,34 @@ class DocumentWriter {
         'Templates and dataByBlock must each match the layout block count.',
       );
     }
+    final testTemplates = [
+      for (final template in templates)
+        template.copyWith(
+          printOptions: duplex == null &&
+                  mirrorFront == null &&
+                  mirrorBack == null
+              ? template.printOptions
+              : TemplatePrintOptions(
+                  isDuplex: duplex ?? template.printOptions?.isDuplex ?? false,
+                  mirrorFront: mirrorFront ??
+                      template.printOptions?.mirrorFront ??
+                      false,
+                  mirrorBack:
+                      mirrorBack ?? template.printOptions?.mirrorBack ?? false,
+                ),
+          widthMm: useTemplateDimensions
+              ? template.widthMm
+              : documentWidthPt * 25.4 / 72,
+          heightMm: useTemplateDimensions
+              ? template.heightMm
+              : documentHeightPt * 25.4 / 72,
+        ),
+    ];
     final blocks = [
       for (var index = 0; index < layout.blocks.length; index++)
         _DocumentPdfBlockInput(
           block: layout.blocks[index],
-          template: templates[index],
+          template: testTemplates[index],
           data: dataByBlock[index],
         ),
     ];
@@ -332,13 +362,6 @@ class DocumentWriter {
     ).plan(
       layout: layout,
       blocks: blocks,
-      context: _DocumentPdfBuildContext(
-        wPt: documentWidthPt,
-        hPt: documentHeightPt,
-        duplex: duplex,
-        mirrorFront: mirrorFront,
-        mirrorBack: mirrorBack,
-      ),
       usableW: usableWidthPt,
       usableH: usableHeightPt,
     );
@@ -347,6 +370,8 @@ class DocumentWriter {
         (
           cellData: [for (final cell in sheet.cells) cell.data],
           mirrors: [for (final cell in sheet.cells) cell.mirror],
+          canvasWidths: [for (final cell in sheet.cells) cell.widthPt],
+          canvasHeights: [for (final cell in sheet.cells) cell.canvasHeightPt],
           autoFill: sheet.autoFill,
           forcePageBreakAfter: sheet.forcePageBreakAfter,
         ),
@@ -360,9 +385,9 @@ class DocumentWriter {
     required rust_config.DocumentLayoutPreset layout,
     required List<Template> templates,
     required List<List<Map<String, String>>> dataByBlock,
-    bool duplex = false,
-    bool mirrorFront = false,
-    bool mirrorBack = false,
+    bool? duplex,
+    bool? mirrorFront,
+    bool? mirrorBack,
   }) {
     if (templates.length != layout.blocks.length ||
         dataByBlock.length != layout.blocks.length) {
@@ -370,20 +395,34 @@ class DocumentWriter {
         'Templates and dataByBlock must each match the layout block count.',
       );
     }
+    final testTemplates = [
+      for (final template in templates)
+        template.copyWith(
+          printOptions: duplex == null &&
+                  mirrorFront == null &&
+                  mirrorBack == null
+              ? template.printOptions
+              : TemplatePrintOptions(
+                  isDuplex: duplex ?? template.printOptions?.isDuplex ?? false,
+                  mirrorFront: mirrorFront ??
+                      template.printOptions?.mirrorFront ??
+                      false,
+                  mirrorBack:
+                      mirrorBack ?? template.printOptions?.mirrorBack ?? false,
+                ),
+        ),
+    ];
     final blocks = [
       for (var index = 0; index < layout.blocks.length; index++)
         _DocumentPdfBlockInput(
           block: layout.blocks[index],
-          template: templates[index],
+          template: testTemplates[index],
           data: dataByBlock[index],
         ),
     ];
     return const _DocumentPdfContinuousPlanner()
         .plan(
           blocks: blocks,
-          duplex: duplex,
-          mirrorFront: mirrorFront,
-          mirrorBack: mirrorBack,
           multiBlockMode: layout.multiBlockMode,
         )
         .map((item) => (data: item.data, mirror: item.mirror))

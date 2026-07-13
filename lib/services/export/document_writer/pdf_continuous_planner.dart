@@ -5,9 +5,6 @@ class _DocumentPdfContinuousPlanner {
 
   List<_DocumentContinuousPrintItem> plan({
     required List<_DocumentPdfBlockInput> blocks,
-    required bool duplex,
-    required bool mirrorFront,
-    required bool mirrorBack,
     required String multiBlockMode,
   }) {
     final items = <_DocumentContinuousPrintItem>[];
@@ -15,17 +12,11 @@ class _DocumentPdfContinuousPlanner {
       _appendAlternate(
         items: items,
         blocks: blocks,
-        duplex: duplex,
-        mirrorFront: mirrorFront,
-        mirrorBack: mirrorBack,
       );
     } else {
       _appendGrouped(
         items: items,
         blocks: blocks,
-        duplex: duplex,
-        mirrorFront: mirrorFront,
-        mirrorBack: mirrorBack,
       );
     }
     return items;
@@ -34,9 +25,6 @@ class _DocumentPdfContinuousPlanner {
   void _appendAlternate({
     required List<_DocumentContinuousPrintItem> items,
     required List<_DocumentPdfBlockInput> blocks,
-    required bool duplex,
-    required bool mirrorFront,
-    required bool mirrorBack,
   }) {
     final maxLength = blocks.fold<int>(
       0,
@@ -49,9 +37,6 @@ class _DocumentPdfContinuousPlanner {
           items: items,
           block: block,
           data: block.data[index],
-          duplex: duplex,
-          mirrorFront: mirrorFront,
-          mirrorBack: mirrorBack,
         );
       }
     }
@@ -60,9 +45,6 @@ class _DocumentPdfContinuousPlanner {
   void _appendGrouped({
     required List<_DocumentContinuousPrintItem> items,
     required List<_DocumentPdfBlockInput> blocks,
-    required bool duplex,
-    required bool mirrorFront,
-    required bool mirrorBack,
   }) {
     for (final block in blocks) {
       for (final data in block.data) {
@@ -70,9 +52,6 @@ class _DocumentPdfContinuousPlanner {
           items: items,
           block: block,
           data: data,
-          duplex: duplex,
-          mirrorFront: mirrorFront,
-          mirrorBack: mirrorBack,
         );
       }
     }
@@ -82,10 +61,8 @@ class _DocumentPdfContinuousPlanner {
     required List<_DocumentContinuousPrintItem> items,
     required _DocumentPdfBlockInput block,
     required Map<String, String> data,
-    required bool duplex,
-    required bool mirrorFront,
-    required bool mirrorBack,
   }) {
+    final profile = block.profile;
     for (var copy = 0; copy < block.block.templateCount; copy++) {
       items.add(
         _DocumentContinuousPrintItem(
@@ -93,17 +70,19 @@ class _DocumentPdfContinuousPlanner {
           template: block.template,
           pageTemplate: block.template.page1,
           block: block.block,
-          mirror: mirrorFront,
+          profile: profile,
+          mirror: profile.mirrorFront,
         ),
       );
-      if (duplex) {
+      if (profile.duplex) {
         items.add(
           _DocumentContinuousPrintItem(
             data: data,
             template: block.template,
             pageTemplate: block.template.page2,
             block: block.block,
-            mirror: mirrorBack,
+            profile: profile,
+            mirror: profile.mirrorBack,
           ),
         );
       }

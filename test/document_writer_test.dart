@@ -43,13 +43,19 @@ rust_config.DocumentLayoutBlock _block({
   );
 }
 
-Template _template(String name) {
+Template _template(
+  String name, {
+  double widthMm = 10,
+  double heightMm = 10,
+  TemplatePrintOptions? printOptions,
+}) {
   return Template(
     name: name,
     page1: const TemplatePage(),
     page2: const TemplatePage(),
-    widthMm: 10,
-    heightMm: 10,
+    widthMm: widthMm,
+    heightMm: heightMm,
+    printOptions: printOptions,
   );
 }
 
@@ -446,6 +452,48 @@ void main() {
       );
     });
 
+    test('continuous planning uses each template side profile', () {
+      final items = DocumentWriter.planContinuousItemsForTesting(
+        layout: _layout(
+          layoutType: 'Continuous',
+          multiBlockMode: 'Alternate',
+          blocks: [
+            _block(templateName: 'duplex', templateCount: 1, rows: 1, cols: 1),
+            _block(templateName: 'simplex', templateCount: 1, rows: 1, cols: 1),
+          ],
+        ),
+        templates: [
+          _template(
+            'duplex',
+            printOptions: const TemplatePrintOptions(
+              isDuplex: true,
+              mirrorFront: false,
+              mirrorBack: true,
+            ),
+          ),
+          _template(
+            'simplex',
+            printOptions: const TemplatePrintOptions(
+              isDuplex: false,
+              mirrorFront: false,
+              mirrorBack: false,
+            ),
+          ),
+        ],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+          [
+            {'id': 'B'},
+          ],
+        ],
+      );
+
+      expect(items.map((item) => item.data['id']), ['A', 'A', 'B']);
+      expect(items.map((item) => item.mirror), [false, true, false]);
+    });
+
     test('alternate planning preserves record, block, and copy order',
         () async {
       final sheets = await DocumentWriter.planDocumentSheetsForTesting(
@@ -509,6 +557,114 @@ void main() {
         ),
         [true, true, true, false],
       );
+    });
+
+    test('alternate planning splits simplex and duplex template runs',
+        () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          multiBlockMode: 'Alternate',
+          blocks: [
+            _block(templateName: 'duplex', templateCount: 1, rows: 1, cols: 1),
+            _block(templateName: 'simplex', templateCount: 1, rows: 1, cols: 1),
+          ],
+        ),
+        templates: [
+          _template(
+            'duplex',
+            printOptions: const TemplatePrintOptions(
+              isDuplex: true,
+              mirrorFront: false,
+              mirrorBack: true,
+            ),
+          ),
+          _template(
+            'simplex',
+            printOptions: const TemplatePrintOptions(
+              isDuplex: false,
+              mirrorFront: false,
+              mirrorBack: false,
+            ),
+          ),
+        ],
+        dataByBlock: const [
+          [
+            {'id': 'A1'},
+            {'id': 'A2'},
+          ],
+          [
+            {'id': 'B1'},
+            {'id': 'B2'},
+          ],
+        ],
+      );
+
+      expect(
+        [for (final sheet in sheets) sheet.cellData.single['id']],
+        ['A1', 'A1', 'B1', 'A2', 'A2', 'B2'],
+      );
+      expect(
+        [for (final sheet in sheets) sheet.mirrors.single],
+        [false, true, false, false, true, false],
+      );
+      expect(
+        DocumentWriter.sheetPageBreakPlanForTesting(
+          forcePageBreakAfter: [
+            for (final sheet in sheets) sheet.forcePageBreakAfter,
+          ],
+        ),
+        [true, true, true, true, true, false],
+      );
+    });
+
+    test('legacy templates default to simplex output', () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [_block(templateCount: 1, rows: 1, cols: 1)],
+        ),
+        templates: [_template('legacy')],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+        ],
+      );
+
+      expect(sheets, hasLength(1));
+      expect(sheets.single.mirrors, [false]);
+    });
+
+    test('uses each block template canvas dimensions', () async {
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [
+            _block(templateName: 'small', templateCount: 1, rows: 1, cols: 1),
+            _block(templateName: 'large', templateCount: 1, rows: 1, cols: 1),
+          ],
+        ),
+        templates: [
+          _template('small', widthMm: 25, heightMm: 10),
+          _template('large', widthMm: 50, heightMm: 20),
+        ],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+          ],
+          [
+            {'id': 'B'},
+          ],
+        ],
+        useTemplateDimensions: true,
+      );
+
+      expect(sheets.map((sheet) => sheet.canvasWidths.single), [
+        closeTo(25 * 72 / 25.4, 0.001),
+        closeTo(50 * 72 / 25.4, 0.001),
+      ]);
+      expect(sheets.map((sheet) => sheet.canvasHeights.single), [
+        closeTo(10 * 72 / 25.4, 0.001),
+        closeTo(20 * 72 / 25.4, 0.001),
+      ]);
     });
 
     test('nonpositive template counts produce no tiled cells', () async {

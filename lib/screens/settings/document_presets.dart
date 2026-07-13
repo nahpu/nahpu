@@ -284,8 +284,6 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         final tmpl = await const TemplateService().getTemplate(templateName);
         if (tmpl != null) {
           recordType = tmpl.recordType;
-          await DocumentSettingsServices().setDocumentWidthMm(tmpl.widthMm);
-          await DocumentSettingsServices().setDocumentHeightMm(tmpl.heightMm);
         }
       }
 

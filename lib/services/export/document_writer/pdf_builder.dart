@@ -20,14 +20,12 @@ class _DocumentPdfBuilder {
     required rust_config.DocumentLayoutPreset layout,
     required List<_DocumentPdfBlockInput> blocks,
   }) async {
-    final context = await _inputs.loadBuildContext();
     final typst = await _DocumentPdfComposer(
       substitutePage: _substitutor.substitutePage,
     ).compose(
       sheetWidthPt: sheetWidthPt,
       sheetHeightPt: sheetHeightPt,
       layout: layout,
-      context: context,
       blocks: blocks,
     );
     final fontBytes = await const _DocumentFontLoader().loadFontBytes();
