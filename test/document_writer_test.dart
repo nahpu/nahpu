@@ -316,6 +316,21 @@ void main() {
   });
 
   group('DocumentWriter pagination tests', () {
+    test('does not add a trailing page break for multiple rendered sheets', () {
+      expect(
+        DocumentWriter.sheetPageBreakPlanForTesting(sheetCount: 0),
+        isEmpty,
+      );
+      expect(
+        DocumentWriter.sheetPageBreakPlanForTesting(sheetCount: 1),
+        [false],
+      );
+      expect(
+        DocumentWriter.sheetPageBreakPlanForTesting(sheetCount: 3),
+        [true, true, false],
+      );
+    });
+
     test('does not add a trailing page break for simplex documents', () {
       expect(
         DocumentWriter.pageBreakPlanForTesting(
@@ -1116,6 +1131,61 @@ void main() {
       expect(formatTemplateText('2', 'sex', 'symbol:unknown'), '?');
       expect(formatTemplateText('', 'sex', 'letter:na'), 'N/A');
       expect(formatTemplateText('Unknown', 'sex', 'text:none'), '');
+
+      // PDF export formats substituted text a second time while building the
+      // Typst document. Already-rendered symbols must remain stable.
+      expect(formatTemplateText('\u2642', 'sex', 'symbol:unknown'), '\u2642');
+      expect(formatTemplateText('\u2640', 'sex', 'symbol:unknown'), '\u2640');
+      expect(formatTemplateText('\u2642', 'sex', 'letter:na'), 'M');
+      expect(formatTemplateText('\u2640', 'sex', 'text:none'), 'Female');
+    });
+
+    test('Typst keeps sex symbols and selects a glyph-capable font', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'sex-symbol',
+            text: '\u2642',
+            xMm: 0,
+            yMm: 0,
+            fontFamily: 'Merriweather',
+            textType: 'sex',
+            formatOption: 'symbol:unknown',
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+      );
+
+      expect(typst, contains('font: "DejaVu Sans")[\u2642]'));
+      expect(typst, isNot(contains('font: "Merriweather")[?]')));
+    });
+
+    test('gender icon export accepts encoded sex values', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'sex-icon',
+            text: '[mammal.sex]-img',
+            xMm: 0,
+            yMm: 0,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+        data: {'mammal.sex': '0'},
+      );
+
+      expect(typst, contains('font: "DejaVu Sans")[\u2642]'));
+      expect(typst, isNot(contains('font: "DejaVu Sans")[?]')));
     });
 
     test('Field display formatting displays full/field-only placeholders', () {

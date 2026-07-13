@@ -19,6 +19,61 @@ class _DocumentPdfBuilder {
     return layout.fillPage || block.autoFillPage;
   }
 
+  /// Writes a sequence of already planned sheet sections.
+  ///
+  /// Pagination belongs to the document builder rather than an individual
+  /// block.  In particular, a block may be followed by another block and the
+  /// final section must not emit a trailing page break.  Keeping this decision
+  /// here also makes duplex front/back ordering explicit.
+  void _writeSheetSequence({
+    required StringBuffer typst,
+    required List<_DocumentSheetRenderSpec> sheets,
+  }) {
+    final pageBreaks = _sheetPageBreakPlan(sheets.length);
+    for (var index = 0; index < sheets.length; index++) {
+      final sheet = sheets[index];
+      final pageBreakAfter = pageBreaks[index] && sheet.forcePageBreakAfter;
+      if (sheet.autoFill) {
+        _renderer.writeAutoFillDocumentSheet(
+          typst: typst,
+          cells: sheet.cells,
+          cols: sheet.cols,
+          cellW: sheet.cellW,
+          wPt: sheet.wPt,
+          hPt: sheet.hPt,
+        );
+      } else {
+        _renderer.writeTiledDocumentSheet(
+          typst: typst,
+          cells: sheet.cells,
+          cols: sheet.cols,
+          rows: sheet.rows,
+          cellW: sheet.cellW,
+          cellH: sheet.cellH,
+          wPt: sheet.wPt,
+          hPt: sheet.hPt,
+        );
+      }
+      if (pageBreakAfter) {
+        typst.writeln('#pagebreak(weak: true)');
+      }
+    }
+  }
+
+  static List<bool> _sheetPageBreakPlan(int sheetCount) {
+    if (sheetCount <= 0) return const [];
+    return List<bool>.generate(
+      sheetCount,
+      (index) => index < sheetCount - 1,
+      growable: false,
+    );
+  }
+
+  @visibleForTesting
+  static List<bool> sheetPageBreakPlanForTesting({required int sheetCount}) {
+    return _sheetPageBreakPlan(sheetCount);
+  }
+
   static double usablePageWidthPt({
     required double sheetWidthPt,
     required double leftPaddingMm,
@@ -253,96 +308,20 @@ class _DocumentPdfBuilder {
           }
         }
 
-        final firstBlock = layout.blocks.first;
-        final cols = firstBlock.cols > 0 ? firstBlock.cols : 4;
-        final rows = firstBlock.fixedRows;
-        final cellW = usableW / cols;
-        final cellH = usableH / rows;
-
-        final frontAutoFill = allFrontCells.any((cell) => cell.autoHeight);
-        final frontBatches = frontAutoFill
-            ? _buildAutoFillBatches(
-                cells: allFrontCells,
-                cols: cols,
-                usableH: usableH,
-              )
-            : _buildFixedGridBatches(
-                cells: allFrontCells,
-                perSheet: cols * rows,
-              );
-
-        List<_DocumentSheetBatch>? backBatches;
-        if (duplex) {
-          backBatches = allBackCells.any((cell) => cell.autoHeight)
-              ? _buildAutoFillBatches(
-                  cells: allBackCells,
-                  cols: cols,
-                  usableH: usableH,
-                )
-              : _buildFixedGridBatches(
-                  cells: allBackCells,
-                  perSheet: cols * rows,
-                );
-        }
-
-        for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
-          final isLastBatch = batchIdx == frontBatches.length - 1;
-          final breakAfterFront = duplex || !isLastBatch;
-          final breakAfterBack = !isLastBatch;
-
-          final frontBatch = frontBatches[batchIdx];
-          if (frontAutoFill) {
-            _renderer.writeAutoFillDocumentSheet(
-              typst: typst,
-              cells: frontBatch.cells,
-              cols: cols,
-              cellW: cellW,
-              wPt: wPt,
-              hPt: hPt,
-              pageBreakAfter: breakAfterFront,
-            );
-          } else {
-            _renderer.writeTiledDocumentSheet(
-              typst: typst,
-              cells: frontBatch.cells,
-              cols: cols,
-              rows: rows,
-              cellW: cellW,
-              cellH: cellH,
-              wPt: wPt,
-              hPt: hPt,
-              pageBreakAfter: breakAfterFront,
-            );
-          }
-
-          if (duplex) {
-            final backBatch = backBatches![batchIdx];
-            if (backBatch.cells.any((cell) => cell.autoHeight)) {
-              _renderer.writeAutoFillDocumentSheet(
-                typst: typst,
-                cells: backBatch.cells,
-                cols: cols,
-                cellW: cellW,
-                wPt: wPt,
-                hPt: hPt,
-                pageBreakAfter: breakAfterBack,
-              );
-            } else {
-              _renderer.writeTiledDocumentSheet(
-                typst: typst,
-                cells: backBatch.cells,
-                cols: cols,
-                rows: rows,
-                cellW: cellW,
-                cellH: cellH,
-                wPt: wPt,
-                hPt: hPt,
-                pageBreakAfter: breakAfterBack,
-              );
-            }
-          }
-        }
+        final sheets = <_DocumentSheetRenderSpec>[];
+        _appendAlternatingRenderSpecs(
+          frontCells: allFrontCells,
+          backCells: allBackCells,
+          usableW: usableW,
+          usableH: usableH,
+          wPt: wPt,
+          hPt: hPt,
+          duplex: duplex,
+          sheets: sheets,
+        );
+        _writeSheetSequence(typst: typst, sheets: sheets);
       } else {
+        final sheets = <_DocumentSheetRenderSpec>[];
         for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
           final block = layout.blocks[bIdx];
           final tmpl = templates[block.templateName]!;
@@ -449,66 +428,37 @@ class _DocumentPdfBuilder {
 
           for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
             final isLastBatch = batchIdx == frontBatches.length - 1;
-            final isLastBlock = bIdx == layout.blocks.length - 1;
-            final breakAfterFront = duplex ||
-                !isLastBatch ||
-                (isLastBatch && !isLastBlock && block.pageBreakAfter);
-            final breakAfterBack = !isLastBatch ||
-                (isLastBatch && !isLastBlock && block.pageBreakAfter);
-
+            final blockBoundaryBreak = !isLastBatch || block.pageBreakAfter;
             final frontBatch = frontBatches[batchIdx];
-            if (blockAutoFill) {
-              _renderer.writeAutoFillDocumentSheet(
-                typst: typst,
-                cells: frontBatch.cells,
-                cols: cols,
-                cellW: cellW,
-                wPt: wPt,
-                hPt: hPt,
-                pageBreakAfter: breakAfterFront,
-              );
-            } else {
-              _renderer.writeTiledDocumentSheet(
-                typst: typst,
-                cells: frontBatch.cells,
+            sheets.add(_DocumentSheetRenderSpec(
+              cells: frontBatch.cells,
+              cols: cols,
+              rows: rows,
+              cellW: cellW,
+              cellH: cellH,
+              wPt: wPt,
+              hPt: hPt,
+              autoFill: blockAutoFill,
+              forcePageBreakAfter: duplex || blockBoundaryBreak,
+            ));
+
+            if (duplex) {
+              final backBatch = backBatches![batchIdx];
+              sheets.add(_DocumentSheetRenderSpec(
+                cells: backBatch.cells,
                 cols: cols,
                 rows: rows,
                 cellW: cellW,
                 cellH: cellH,
                 wPt: wPt,
                 hPt: hPt,
-                pageBreakAfter: breakAfterFront,
-              );
-            }
-
-            if (duplex) {
-              final backBatch = backBatches![batchIdx];
-              if (blockAutoFill) {
-                _renderer.writeAutoFillDocumentSheet(
-                  typst: typst,
-                  cells: backBatch.cells,
-                  cols: cols,
-                  cellW: cellW,
-                  wPt: wPt,
-                  hPt: hPt,
-                  pageBreakAfter: breakAfterBack,
-                );
-              } else {
-                _renderer.writeTiledDocumentSheet(
-                  typst: typst,
-                  cells: backBatch.cells,
-                  cols: cols,
-                  rows: rows,
-                  cellW: cellW,
-                  cellH: cellH,
-                  wPt: wPt,
-                  hPt: hPt,
-                  pageBreakAfter: breakAfterBack,
-                );
-              }
+                autoFill: blockAutoFill,
+                forcePageBreakAfter: blockBoundaryBreak,
+              ));
             }
           }
         }
+        _writeSheetSequence(typst: typst, sheets: sheets);
       }
     }
 
@@ -854,96 +804,20 @@ class _DocumentPdfBuilder {
           }
         }
 
-        final firstBlock = layout.blocks.first;
-        final cols = firstBlock.cols > 0 ? firstBlock.cols : 4;
-        final rows = firstBlock.fixedRows;
-        final cellW = usableW / cols;
-        final cellH = usableH / rows;
-
-        final frontAutoFill = allFrontCells.any((cell) => cell.autoHeight);
-        final frontBatches = frontAutoFill
-            ? _buildAutoFillBatches(
-                cells: allFrontCells,
-                cols: cols,
-                usableH: usableH,
-              )
-            : _buildFixedGridBatches(
-                cells: allFrontCells,
-                perSheet: cols * rows,
-              );
-
-        List<_DocumentSheetBatch>? backBatches;
-        if (duplex) {
-          backBatches = allBackCells.any((cell) => cell.autoHeight)
-              ? _buildAutoFillBatches(
-                  cells: allBackCells,
-                  cols: cols,
-                  usableH: usableH,
-                )
-              : _buildFixedGridBatches(
-                  cells: allBackCells,
-                  perSheet: cols * rows,
-                );
-        }
-
-        for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
-          final isLastBatch = batchIdx == frontBatches.length - 1;
-          final breakAfterFront = duplex || !isLastBatch;
-          final breakAfterBack = !isLastBatch;
-
-          final frontBatch = frontBatches[batchIdx];
-          if (frontAutoFill) {
-            _renderer.writeAutoFillDocumentSheet(
-              typst: typst,
-              cells: frontBatch.cells,
-              cols: cols,
-              cellW: cellW,
-              wPt: wPt,
-              hPt: hPt,
-              pageBreakAfter: breakAfterFront,
-            );
-          } else {
-            _renderer.writeTiledDocumentSheet(
-              typst: typst,
-              cells: frontBatch.cells,
-              cols: cols,
-              rows: rows,
-              cellW: cellW,
-              cellH: cellH,
-              wPt: wPt,
-              hPt: hPt,
-              pageBreakAfter: breakAfterFront,
-            );
-          }
-
-          if (duplex) {
-            final backBatch = backBatches![batchIdx];
-            if (backBatch.cells.any((cell) => cell.autoHeight)) {
-              _renderer.writeAutoFillDocumentSheet(
-                typst: typst,
-                cells: backBatch.cells,
-                cols: cols,
-                cellW: cellW,
-                wPt: wPt,
-                hPt: hPt,
-                pageBreakAfter: breakAfterBack,
-              );
-            } else {
-              _renderer.writeTiledDocumentSheet(
-                typst: typst,
-                cells: backBatch.cells,
-                cols: cols,
-                rows: rows,
-                cellW: cellW,
-                cellH: cellH,
-                wPt: wPt,
-                hPt: hPt,
-                pageBreakAfter: breakAfterBack,
-              );
-            }
-          }
-        }
+        final sheets = <_DocumentSheetRenderSpec>[];
+        _appendAlternatingRenderSpecs(
+          frontCells: allFrontCells,
+          backCells: allBackCells,
+          usableW: usableW,
+          usableH: usableH,
+          wPt: wPt,
+          hPt: hPt,
+          duplex: duplex,
+          sheets: sheets,
+        );
+        _writeSheetSequence(typst: typst, sheets: sheets);
       } else {
+        final sheets = <_DocumentSheetRenderSpec>[];
         for (var bIdx = 0; bIdx < layout.blocks.length; bIdx++) {
           final block = layout.blocks[bIdx];
           final tmpl = templates[block.templateName]!;
@@ -1050,66 +924,37 @@ class _DocumentPdfBuilder {
 
           for (var batchIdx = 0; batchIdx < frontBatches.length; batchIdx++) {
             final isLastBatch = batchIdx == frontBatches.length - 1;
-            final isLastBlock = bIdx == layout.blocks.length - 1;
-            final breakAfterFront = duplex ||
-                !isLastBatch ||
-                (isLastBatch && !isLastBlock && block.pageBreakAfter);
-            final breakAfterBack = !isLastBatch ||
-                (isLastBatch && !isLastBlock && block.pageBreakAfter);
-
+            final blockBoundaryBreak = !isLastBatch || block.pageBreakAfter;
             final frontBatch = frontBatches[batchIdx];
-            if (blockAutoFill) {
-              _renderer.writeAutoFillDocumentSheet(
-                typst: typst,
-                cells: frontBatch.cells,
-                cols: cols,
-                cellW: cellW,
-                wPt: wPt,
-                hPt: hPt,
-                pageBreakAfter: breakAfterFront,
-              );
-            } else {
-              _renderer.writeTiledDocumentSheet(
-                typst: typst,
-                cells: frontBatch.cells,
+            sheets.add(_DocumentSheetRenderSpec(
+              cells: frontBatch.cells,
+              cols: cols,
+              rows: rows,
+              cellW: cellW,
+              cellH: cellH,
+              wPt: wPt,
+              hPt: hPt,
+              autoFill: blockAutoFill,
+              forcePageBreakAfter: duplex || blockBoundaryBreak,
+            ));
+
+            if (duplex) {
+              final backBatch = backBatches![batchIdx];
+              sheets.add(_DocumentSheetRenderSpec(
+                cells: backBatch.cells,
                 cols: cols,
                 rows: rows,
                 cellW: cellW,
                 cellH: cellH,
                 wPt: wPt,
                 hPt: hPt,
-                pageBreakAfter: breakAfterFront,
-              );
-            }
-
-            if (duplex) {
-              final backBatch = backBatches![batchIdx];
-              if (blockAutoFill) {
-                _renderer.writeAutoFillDocumentSheet(
-                  typst: typst,
-                  cells: backBatch.cells,
-                  cols: cols,
-                  cellW: cellW,
-                  wPt: wPt,
-                  hPt: hPt,
-                  pageBreakAfter: breakAfterBack,
-                );
-              } else {
-                _renderer.writeTiledDocumentSheet(
-                  typst: typst,
-                  cells: backBatch.cells,
-                  cols: cols,
-                  rows: rows,
-                  cellW: cellW,
-                  cellH: cellH,
-                  wPt: wPt,
-                  hPt: hPt,
-                  pageBreakAfter: breakAfterBack,
-                );
-              }
+                autoFill: blockAutoFill,
+                forcePageBreakAfter: blockBoundaryBreak,
+              ));
             }
           }
         }
+        _writeSheetSequence(typst: typst, sheets: sheets);
       }
     }
 
@@ -1134,6 +979,105 @@ class _DocumentPdfBuilder {
       ));
     }
     return batches;
+  }
+
+  /// Appends renderable sheets for Alternate mode while respecting each
+  /// block's grid geometry.
+  ///
+  /// Alternate mode interleaves cells from different blocks.  A single grid
+  /// cannot safely use the first block's column/row settings for every cell,
+  /// so contiguous cells with the same geometry are planned as independent
+  /// sections.
+  void _appendAlternatingRenderSpecs({
+    required List<_DocumentSheetCell> frontCells,
+    required List<_DocumentSheetCell> backCells,
+    required double usableW,
+    required double usableH,
+    required double wPt,
+    required double hPt,
+    required bool duplex,
+    required List<_DocumentSheetRenderSpec> sheets,
+  }) {
+    var start = 0;
+    while (start < frontCells.length) {
+      final first = frontCells[start];
+      final cols = first.block.cols > 0 ? first.block.cols : 4;
+      final rows = first.block.fixedRows;
+      final autoFill = first.autoHeight;
+
+      var end = start + 1;
+      while (end < frontCells.length) {
+        final cell = frontCells[end];
+        final cellCols = cell.block.cols > 0 ? cell.block.cols : 4;
+        if (cellCols != cols ||
+            cell.block.fixedRows != rows ||
+            cell.autoHeight != autoFill) {
+          break;
+        }
+        end++;
+      }
+
+      final segmentFront = frontCells.sublist(start, end);
+      final cellW = usableW / cols;
+      final cellH = usableH / rows;
+      final frontBatches = autoFill
+          ? _buildAutoFillBatches(
+              cells: segmentFront,
+              cols: cols,
+              usableH: usableH,
+            )
+          : _buildFixedGridBatches(
+              cells: segmentFront,
+              perSheet: cols * rows,
+            );
+
+      List<_DocumentSheetBatch>? backBatches;
+      if (duplex) {
+        final segmentBack = backCells.sublist(start, end);
+        backBatches = autoFill
+            ? _buildAutoFillBatches(
+                cells: segmentBack,
+                cols: cols,
+                usableH: usableH,
+              )
+            : _buildFixedGridBatches(
+                cells: segmentBack,
+                perSheet: cols * rows,
+              );
+      }
+
+      for (var batchIndex = 0; batchIndex < frontBatches.length; batchIndex++) {
+        final frontBatch = frontBatches[batchIndex];
+        sheets.add(_DocumentSheetRenderSpec(
+          cells: frontBatch.cells,
+          cols: cols,
+          rows: rows,
+          cellW: cellW,
+          cellH: cellH,
+          wPt: wPt,
+          hPt: hPt,
+          autoFill: autoFill,
+          forcePageBreakAfter: true,
+        ));
+
+        if (duplex) {
+          final backBatch = backBatches![batchIndex];
+          sheets.add(_DocumentSheetRenderSpec(
+            cells: backBatch.cells,
+            cols: cols,
+            rows: rows,
+            cellW: cellW,
+            cellH: cellH,
+            wPt: wPt,
+            hPt: hPt,
+            autoFill: autoFill,
+            forcePageBreakAfter: true,
+          ));
+        }
+      }
+
+      start = end;
+    }
   }
 
   List<_DocumentSheetBatch> _buildAutoFillBatches({
@@ -1544,6 +1488,30 @@ class _DocumentSheetBatch {
   });
 
   final List<_DocumentSheetCell> cells;
+}
+
+class _DocumentSheetRenderSpec {
+  const _DocumentSheetRenderSpec({
+    required this.cells,
+    required this.cols,
+    required this.rows,
+    required this.cellW,
+    required this.cellH,
+    required this.wPt,
+    required this.hPt,
+    required this.autoFill,
+    required this.forcePageBreakAfter,
+  });
+
+  final List<_DocumentSheetCell> cells;
+  final int cols;
+  final int rows;
+  final double cellW;
+  final double cellH;
+  final double wPt;
+  final double hPt;
+  final bool autoFill;
+  final bool forcePageBreakAfter;
 }
 
 class _DocumentSheetRow {

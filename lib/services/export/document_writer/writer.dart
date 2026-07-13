@@ -206,6 +206,17 @@ class DocumentWriter {
         duplex: duplex);
   }
 
+  /// Returns the page-break flags for a sequence of rendered sheets.
+  ///
+  /// The final sheet never receives a page break, which prevents a trailing
+  /// empty page when multiple layout blocks are rendered together.
+  @visibleForTesting
+  static List<bool> sheetPageBreakPlanForTesting({required int sheetCount}) {
+    return _DocumentPdfBuilder.sheetPageBreakPlanForTesting(
+      sheetCount: sheetCount,
+    );
+  }
+
   /// Returns all page elements sorted by their z-index.
   ///
   /// This mirrors the render order used when writing a template page to Typst.
@@ -219,12 +230,13 @@ class DocumentWriter {
     required TemplatePage page,
     required double wPt,
     required double hPt,
+    Map<String, String> data = const {},
   }) {
     final typst = StringBuffer();
     const _DocumentTypstRenderer().writeSingleDocumentCell(
       typst: typst,
       page: page,
-      data: const {},
+      data: data,
       wPt: wPt,
       hPt: hPt,
       templatePadTopMm: 0,
