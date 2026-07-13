@@ -418,9 +418,18 @@ String formatSexText(String text, String formatOption) {
   final presentation = parts.isNotEmpty ? parts[0] : 'text';
   final missingOpt = parts.length > 1 ? parts[1] : 'unknown';
 
-  final isMale = cleanText == '0' || cleanText == 'male' || cleanText == 'm';
-  final isFemale =
-      cleanText == '1' || cleanText == 'female' || cleanText == 'f';
+  // Formatting can run more than once while a template moves through the
+  // editor, placeholder substitution, and PDF measurement/rendering paths.
+  // Treat already-rendered sex symbols as their source value so formatting is
+  // idempotent instead of turning them into the unknown-value fallback.
+  final isMale = cleanText == '0' ||
+      cleanText == 'male' ||
+      cleanText == 'm' ||
+      cleanText == '\u2642';
+  final isFemale = cleanText == '1' ||
+      cleanText == 'female' ||
+      cleanText == 'f' ||
+      cleanText == '\u2640';
 
   if (isMale) {
     if (presentation == 'symbol') return '\u2642'; // ♂

@@ -10,9 +10,6 @@ class _DocumentTypstRenderer {
     required int rows,
     required double cellW,
     required double cellH,
-    required double wPt,
-    required double hPt,
-    required bool pageBreakAfter,
   }) {
     typst.writeln('#grid(');
     typst.writeln('  columns: (${cellW}pt, ) * $cols,');
@@ -26,8 +23,8 @@ class _DocumentTypstRenderer {
         typst: typst,
         page: cell.page,
         data: cell.data,
-        wPt: wPt,
-        hPt: hPt,
+        wPt: cell.widthPt,
+        hPt: cell.canvasHeightPt,
         templatePadTopMm: cell.block.templatePadTopMm,
         templatePadLeftMm: cell.block.templatePadLeftMm,
         templatePadRightMm: cell.block.templatePadRightMm,
@@ -39,9 +36,6 @@ class _DocumentTypstRenderer {
 
     _fillRemainingGridSpaces(typst, cells.length, cols);
     typst.writeln(')');
-    if (pageBreakAfter) {
-      typst.writeln('#pagebreak(weak: true)');
-    }
   }
 
   void writeAutoFillDocumentSheet({
@@ -49,9 +43,6 @@ class _DocumentTypstRenderer {
     required List<_DocumentSheetCell> cells,
     required int cols,
     required double cellW,
-    required double wPt,
-    required double hPt,
-    required bool pageBreakAfter,
   }) {
     // Do not reserve the whole usable page for every batch. The grid's natural
     // height is the sum of its rows, so the next template or block starts
@@ -69,8 +60,8 @@ class _DocumentTypstRenderer {
         typst: typst,
         page: cell.page,
         data: cell.data,
-        wPt: wPt,
-        hPt: hPt,
+        wPt: cell.widthPt,
+        hPt: cell.canvasHeightPt,
         templatePadTopMm: cell.block.templatePadTopMm,
         templatePadLeftMm: cell.block.templatePadLeftMm,
         templatePadRightMm: cell.block.templatePadRightMm,
@@ -83,9 +74,6 @@ class _DocumentTypstRenderer {
 
     _fillRemainingGridSpaces(typst, cells.length, cols);
     typst.writeln(')');
-    if (pageBreakAfter) {
-      typst.writeln('#pagebreak(weak: true)');
-    }
   }
 
   void writeSingleDocumentCell({
@@ -359,7 +347,15 @@ class _DocumentTypstRenderer {
     String textProps = 'size: ${t.fontSizePt}pt, fill: $colorStr';
     if (t.bold) textProps += ', weight: "bold"';
     if (t.italic) textProps += ', style: "italic"';
-    textProps += ', font: "${_typstTemplateFont(t.fontFamily)}"';
+    // Merriweather and several Google fonts used by templates do not contain
+    // the male/female symbols. Typst renders a missing glyph as `?`, even
+    // though Flutter's editor can obtain the symbol from its fallback fonts.
+    // Use the bundled DejaVu Sans face whenever the final text contains one of
+    // these symbols so the exported PDF always embeds a glyph-capable font.
+    final typstFont = _containsSexSymbol(formatted)
+        ? 'DejaVu Sans'
+        : _typstTemplateFont(t.fontFamily);
+    textProps += ', font: "$typstFont"';
 
     String textElem = isMarkdown
         ? '#block(above: 0pt, below: 0pt)[#set text($textProps)\n$content]'
@@ -402,12 +398,7 @@ class _DocumentTypstRenderer {
   void _writeSpecimenSexIcon(StringBuffer typst, CustomTextElement t,
       Map<String, String> data, String gKey, String dyShift) {
     final display = _fieldValueCi(data, gKey);
-    final s = display.trim().toLowerCase();
-    final ch = s == 'male'
-        ? '\u2642'
-        : s == 'female'
-            ? '\u2640'
-            : '?';
+    final ch = _genderSymbolForDisplayValue(display);
 
     final iconWPt = documentPdfMmToPt(
         t.iconWidthMm ?? kTemplateSpecimenSexIconDefaultWidthMm);
@@ -418,6 +409,20 @@ class _DocumentTypstRenderer {
     typst.writeln(
         '  #place(top + left, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]');
   }
+
+  String _genderSymbolForDisplayValue(String display) {
+    final s = display.trim().toLowerCase();
+    if (s == '0' || s == 'male' || s == 'm' || s == '\u2642') {
+      return '\u2642';
+    }
+    if (s == '1' || s == 'female' || s == 'f' || s == '\u2640') {
+      return '\u2640';
+    }
+    return '?';
+  }
+
+  bool _containsSexSymbol(String text) =>
+      text.runes.any((rune) => rune == 0x2640 || rune == 0x2642);
 
   String _fieldValueCi(Map<String, String> m, String key) {
     if (m.containsKey(key)) return m[key] ?? '';

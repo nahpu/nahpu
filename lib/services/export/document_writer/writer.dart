@@ -191,19 +191,14 @@ class DocumentWriter {
         previewRecords: previewRecords);
   }
 
-  /// Returns the page-break plan used by tiled document rendering.
-  ///
-  /// This exposes pagination behavior for regression tests without generating a
-  /// full Typst document.
+  /// Returns the production page-break flags for rendered sheets.
   @visibleForTesting
-  static List<bool> pageBreakPlanForTesting(
-      {required int specimenCount,
-      required int documentsPerSheet,
-      required bool duplex}) {
-    return _DocumentPdfBuilder.pageBreakPlanForTesting(
-        specimenCount: specimenCount,
-        documentsPerSheet: documentsPerSheet,
-        duplex: duplex);
+  static List<bool> sheetPageBreakPlanForTesting({
+    required List<bool> forcePageBreakAfter,
+  }) {
+    return _DocumentPdfSheetPagination.pageBreakPlan(
+      forcePageBreakAfter,
+    );
   }
 
   /// Returns all page elements sorted by their z-index.
@@ -219,12 +214,13 @@ class DocumentWriter {
     required TemplatePage page,
     required double wPt,
     required double hPt,
+    Map<String, String> data = const {},
   }) {
     final typst = StringBuffer();
     const _DocumentTypstRenderer().writeSingleDocumentCell(
       typst: typst,
       page: page,
-      data: const {},
+      data: data,
       wPt: wPt,
       hPt: hPt,
       templatePadTopMm: 0,
@@ -242,7 +238,7 @@ class DocumentWriter {
     required double wPt,
     required double hPt,
   }) {
-    return _DocumentPdfBuilder.estimateTemplatePageContentHeightPt(
+    return _DocumentPdfLayoutMetrics.estimateTemplatePageContentHeightPt(
       page: page,
       wPt: wPt,
       hPt: hPt,
@@ -259,7 +255,7 @@ class DocumentWriter {
     required double templatePadRightMm,
     required double templatePadBottomMm,
   }) {
-    return _DocumentPdfBuilder.estimateAutoFillCellHeightPt(
+    return _DocumentPdfLayoutMetrics.estimateAutoFillCellHeightPt(
       page: page,
       wPt: wPt,
       hPt: hPt,
@@ -276,7 +272,7 @@ class DocumentWriter {
     required double usedHeight,
     required double usableHeight,
   }) {
-    return _DocumentPdfBuilder.maxAutoFillRepeatCount(
+    return _DocumentPdfLayoutMetrics.maxAutoFillRepeatCount(
       rowHeight: rowHeight,
       usedHeight: usedHeight,
       usableHeight: usableHeight,
@@ -289,10 +285,147 @@ class DocumentWriter {
     required double topPaddingMm,
     required double bottomPaddingMm,
   }) {
-    return _DocumentPdfBuilder.usablePageHeightPt(
+    return _DocumentPdfLayoutMetrics.usablePageHeightPt(
       sheetHeightPt: sheetHeightPt,
       topPaddingMm: topPaddingMm,
       bottomPaddingMm: bottomPaddingMm,
     );
+  }
+
+  /// Plans sheets with an identity page substitutor for regression tests.
+  ///
+  /// The optional side arguments emulate saved template print options for
+  /// existing callers. Production planning always reads those options from the
+  /// template attached to each block.
+  @visibleForTesting
+  static Future<
+      List<
+          ({
+            List<Map<String, String>> cellData,
+            List<bool> mirrors,
+            List<double> canvasWidths,
+            List<double> canvasHeights,
+            bool autoFill,
+            bool forcePageBreakAfter,
+          })>> planDocumentSheetsForTesting({
+    required rust_config.DocumentLayoutPreset layout,
+    required List<Template> templates,
+    required List<List<Map<String, String>>> dataByBlock,
+    bool? duplex,
+    bool? mirrorFront,
+    bool? mirrorBack,
+    double documentWidthPt = 100,
+    double documentHeightPt = 100,
+    bool useTemplateDimensions = false,
+    double usableWidthPt = 200,
+    double usableHeightPt = 200,
+  }) async {
+    if (templates.length != layout.blocks.length ||
+        dataByBlock.length != layout.blocks.length) {
+      throw ArgumentError(
+        'Templates and dataByBlock must each match the layout block count.',
+      );
+    }
+    final testTemplates = [
+      for (final template in templates)
+        template.copyWith(
+          printOptions: duplex == null &&
+                  mirrorFront == null &&
+                  mirrorBack == null
+              ? template.printOptions
+              : TemplatePrintOptions(
+                  isDuplex: duplex ?? template.printOptions?.isDuplex ?? false,
+                  mirrorFront: mirrorFront ??
+                      template.printOptions?.mirrorFront ??
+                      false,
+                  mirrorBack:
+                      mirrorBack ?? template.printOptions?.mirrorBack ?? false,
+                ),
+          widthMm: useTemplateDimensions
+              ? template.widthMm
+              : documentWidthPt * 25.4 / 72,
+          heightMm: useTemplateDimensions
+              ? template.heightMm
+              : documentHeightPt * 25.4 / 72,
+        ),
+    ];
+    final blocks = [
+      for (var index = 0; index < layout.blocks.length; index++)
+        _DocumentPdfBlockInput(
+          block: layout.blocks[index],
+          template: testTemplates[index],
+          data: dataByBlock[index],
+        ),
+    ];
+    final sheets = await _DocumentPdfSheetPlanner(
+      substitutePage: (page, _) async => page,
+    ).plan(
+      layout: layout,
+      blocks: blocks,
+      usableW: usableWidthPt,
+      usableH: usableHeightPt,
+    );
+    return [
+      for (final sheet in sheets)
+        (
+          cellData: [for (final cell in sheet.cells) cell.data],
+          mirrors: [for (final cell in sheet.cells) cell.mirror],
+          canvasWidths: [for (final cell in sheet.cells) cell.widthPt],
+          canvasHeights: [for (final cell in sheet.cells) cell.canvasHeightPt],
+          autoFill: sheet.autoFill,
+          forcePageBreakAfter: sheet.forcePageBreakAfter,
+        ),
+    ];
+  }
+
+  /// Plans continuous items without page substitution for regression tests.
+  @visibleForTesting
+  static List<({Map<String, String> data, bool mirror})>
+      planContinuousItemsForTesting({
+    required rust_config.DocumentLayoutPreset layout,
+    required List<Template> templates,
+    required List<List<Map<String, String>>> dataByBlock,
+    bool? duplex,
+    bool? mirrorFront,
+    bool? mirrorBack,
+  }) {
+    if (templates.length != layout.blocks.length ||
+        dataByBlock.length != layout.blocks.length) {
+      throw ArgumentError(
+        'Templates and dataByBlock must each match the layout block count.',
+      );
+    }
+    final testTemplates = [
+      for (final template in templates)
+        template.copyWith(
+          printOptions: duplex == null &&
+                  mirrorFront == null &&
+                  mirrorBack == null
+              ? template.printOptions
+              : TemplatePrintOptions(
+                  isDuplex: duplex ?? template.printOptions?.isDuplex ?? false,
+                  mirrorFront: mirrorFront ??
+                      template.printOptions?.mirrorFront ??
+                      false,
+                  mirrorBack:
+                      mirrorBack ?? template.printOptions?.mirrorBack ?? false,
+                ),
+        ),
+    ];
+    final blocks = [
+      for (var index = 0; index < layout.blocks.length; index++)
+        _DocumentPdfBlockInput(
+          block: layout.blocks[index],
+          template: testTemplates[index],
+          data: dataByBlock[index],
+        ),
+    ];
+    return const _DocumentPdfContinuousPlanner()
+        .plan(
+          blocks: blocks,
+          multiBlockMode: layout.multiBlockMode,
+        )
+        .map((item) => (data: item.data, mirror: item.mirror))
+        .toList(growable: false);
   }
 }
