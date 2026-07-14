@@ -130,6 +130,21 @@
         ]
       },
       "page2": {}
+    },
+    {
+      "name": "Modern Tissue Part Label",
+      "description": "Compact tissue and cryovial label linked to its parent specimen.",
+      "recordType": "specimenParts",
+      "widthMm": 33.0,
+      "heightMm": 13.0,
+      "page1": {
+        "customTexts": [
+          {"id": "tissue", "text": "[specimenPart::tissueID]", "xMm": 1.5, "yMm": 1.2, "fontSizePt": 8, "fontFamily": "PlusJakartaSans", "bold": true, "maxWidthMm": 30},
+          {"id": "part", "text": "[specimenPart::type] · [specimenPart::treatment]", "xMm": 1.5, "yMm": 5.3, "fontSizePt": 5.2, "fontFamily": "SourceSans3", "maxWidthMm": 30},
+          {"id": "specimen", "text": "FN [specimen::fieldNumber]  [taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 1.5, "yMm": 8.6, "fontSizePt": 4.6, "fontFamily": "SourceSans3", "maxWidthMm": 30}
+        ]
+      },
+      "page2": {}
     }
   ],
   "layouts": [
@@ -139,6 +154,7 @@
     {"name": "Modern Specimen - General Mammals", "layoutType": "WholePage", "pageSizeKey": "Letter", "pageOrientation": "portrait", "customPageWidthMm": null, "customPageHeightMm": null, "pagePadTopMm": 9, "pagePadLeftMm": 8, "pagePadRightMm": 8, "pagePadBottomMm": 9, "blocks": [{"templateName": "Modern Specimen - General Mammals", "templateCount": 1, "rows": 5, "cols": 2, "templatePadTopMm": 1.2, "templatePadLeftMm": 1.2, "templatePadRightMm": 1.2, "templatePadBottomMm": 1.2, "pageBreakAfter": false}], "fillPage": true, "multiBlockMode": "Continuous"},
     {"name": "Modern Specimen - Bats", "layoutType": "WholePage", "pageSizeKey": "Letter", "pageOrientation": "portrait", "customPageWidthMm": null, "customPageHeightMm": null, "pagePadTopMm": 9, "pagePadLeftMm": 8, "pagePadRightMm": 8, "pagePadBottomMm": 9, "blocks": [{"templateName": "Modern Specimen - Bats", "templateCount": 1, "rows": 5, "cols": 2, "templatePadTopMm": 1.2, "templatePadLeftMm": 1.2, "templatePadRightMm": 1.2, "templatePadBottomMm": 1.2, "pageBreakAfter": false}], "fillPage": true, "multiBlockMode": "Continuous"},
     {"name": "Modern Specimen - Birds", "layoutType": "WholePage", "pageSizeKey": "Letter", "pageOrientation": "portrait", "customPageWidthMm": null, "customPageHeightMm": null, "pagePadTopMm": 9, "pagePadLeftMm": 8, "pagePadRightMm": 8, "pagePadBottomMm": 9, "blocks": [{"templateName": "Modern Specimen - Birds", "templateCount": 1, "rows": 5, "cols": 2, "templatePadTopMm": 1.2, "templatePadLeftMm": 1.2, "templatePadRightMm": 1.2, "templatePadBottomMm": 1.2, "pageBreakAfter": false}], "fillPage": true, "multiBlockMode": "Continuous"},
-    {"name": "Modern Specimen - Herpetofauna", "layoutType": "WholePage", "pageSizeKey": "Letter", "pageOrientation": "portrait", "customPageWidthMm": null, "customPageHeightMm": null, "pagePadTopMm": 9, "pagePadLeftMm": 8, "pagePadRightMm": 8, "pagePadBottomMm": 9, "blocks": [{"templateName": "Modern Specimen - Herpetofauna", "templateCount": 1, "rows": 5, "cols": 2, "templatePadTopMm": 1.2, "templatePadLeftMm": 1.2, "templatePadRightMm": 1.2, "templatePadBottomMm": 1.2, "pageBreakAfter": false}], "fillPage": true, "multiBlockMode": "Continuous"}
+    {"name": "Modern Specimen - Herpetofauna", "layoutType": "WholePage", "pageSizeKey": "Letter", "pageOrientation": "portrait", "customPageWidthMm": null, "customPageHeightMm": null, "pagePadTopMm": 9, "pagePadLeftMm": 8, "pagePadRightMm": 8, "pagePadBottomMm": 9, "blocks": [{"templateName": "Modern Specimen - Herpetofauna", "templateCount": 1, "rows": 5, "cols": 2, "templatePadTopMm": 1.2, "templatePadLeftMm": 1.2, "templatePadRightMm": 1.2, "templatePadBottomMm": 1.2, "pageBreakAfter": false}], "fillPage": true, "multiBlockMode": "Continuous"},
+    {"name": "Modern Tissue Part Labels", "layoutType": "WholePage", "pageSizeKey": "Letter", "pageOrientation": "portrait", "customPageWidthMm": null, "customPageHeightMm": null, "pagePadTopMm": 8, "pagePadLeftMm": 8, "pagePadRightMm": 8, "pagePadBottomMm": 8, "blocks": [{"templateName": "Modern Tissue Part Label", "templateCount": 1, "rows": 20, "cols": 6, "templatePadTopMm": 0, "templatePadLeftMm": 0, "templatePadRightMm": 0, "templatePadBottomMm": 0, "pageBreakAfter": false}], "fillPage": true, "multiBlockMode": "Continuous"}
   ]
 }

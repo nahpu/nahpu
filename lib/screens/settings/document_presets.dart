@@ -16,6 +16,7 @@ import 'package:path/path.dart' as path;
 // Preview and specimen selection imports
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -95,7 +96,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                             ? 'Preview Narratives (${_previewSelectedUuids.length} selected)'
                             : _recordType == RecordType.none
                                 ? 'Current Project (None)'
-                                : 'Preview Specimens (${_previewSelectedUuids.length} selected)',
+                                : _recordType == RecordType.specimenParts
+                                    ? 'Preview Specimen Parts (${_previewSelectedUuids.length} selected)'
+                                    : 'Preview Specimens (${_previewSelectedUuids.length} selected)',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               if (_recordType != RecordType.none)
@@ -302,6 +305,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
               narratives.take(20).map((e) => e.id.toString()).toList();
         } else if (recordType == RecordType.none) {
           _previewSelectedUuids = [];
+        } else if (recordType == RecordType.specimenParts) {
+          final parts = ref.read(specimenPartEntryProvider).value ?? [];
+          _previewSelectedUuids = parts
+              .take(20)
+              .map((part) => part.recordId)
+              .whereType<String>()
+              .toList();
         } else {
           final specimens = ref.read(specimenEntryProvider).value ?? [];
           _previewSelectedUuids =
@@ -1136,6 +1146,17 @@ class _PreviewRecordSelectionScreenState
       return const Scaffold(
         body: Center(
           child: Text('No preview records for this type'),
+        ),
+      );
+    }
+    if (widget.recordType == RecordType.specimenParts) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Select specimen parts for preview')),
+        body: SafeArea(
+          child: SpecimenPartSelectionView(
+            selectedIds: widget.selectedUuids,
+            onSelectionChanged: widget.onSelectionChanged,
+          ),
         ),
       );
     }

@@ -20,6 +20,7 @@ import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_scaffold.dart';
 import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/screens/templates/template_preview_specimen_selection.dart';
 import 'package:nahpu/services/site_services.dart';
@@ -418,6 +419,18 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           if (mounted) {
             setState(() {
               _selectedSpecimenUuid = firstSpecimen.uuid;
+              _editorTemplateFieldPreview = m;
+            });
+          }
+        }
+      } else if (recordType == RecordType.specimenParts) {
+        final list = await ref.read(specimenPartEntryProvider.future);
+        if (list.isNotEmpty) {
+          final firstPart = list.first;
+          m = await documentFieldValuesForSpecimenPart(db, firstPart, ref);
+          if (mounted) {
+            setState(() {
+              _selectedSpecimenUuid = firstPart.recordId;
               _editorTemplateFieldPreview = m;
             });
           }
@@ -1243,6 +1256,14 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
           });
+        } else if (recordType == RecordType.specimenParts) {
+          final parts = await ref.read(specimenPartEntryProvider.future);
+          final part = parts.firstWhere((entry) => entry.recordId == result);
+          final m = await documentFieldValuesForSpecimenPart(db, part, ref);
+          setState(() {
+            _selectedSpecimenUuid = result;
+            _editorTemplateFieldPreview = m;
+          });
         } else if (recordType == RecordType.site) {
           final list = await SiteServices(ref: ref).getAllSites();
           final s =
@@ -1669,6 +1690,10 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                 DropdownMenuItem(
                   value: RecordType.specimenRecord,
                   child: Text('Specimen'),
+                ),
+                DropdownMenuItem(
+                  value: RecordType.specimenParts,
+                  child: Text('Specimen Part'),
                 ),
                 DropdownMenuItem(
                   value: RecordType.site,

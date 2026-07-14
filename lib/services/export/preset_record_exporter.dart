@@ -6,7 +6,6 @@ import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
-import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/site_services.dart';
@@ -109,14 +108,11 @@ class PresetRecordExporter {
           (narrative) => documentFieldValuesForNarrative(db, narrative, ref),
         ));
       case RecordType.specimenParts:
-        final records = <Map<String, String>>[];
-        for (final specimen in await _specimens()) {
-          records.addAll(await DynamicRecordExporter(
-            ref: ref,
-            concatenateMultiEntry: false,
-          ).getRecord(specimen));
-        }
-        return records;
+        final parts =
+            await SpecimenPartServices(ref: ref).getProjectSpecimenParts();
+        return Future.wait(parts.map(
+          (part) => documentFieldValuesForSpecimenPart(db, part, ref),
+        ));
       case RecordType.none:
         return const [];
     }

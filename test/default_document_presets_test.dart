@@ -28,8 +28,8 @@ void main() {
                 ))
             .toList();
 
-        expect(templates, hasLength(7));
-        expect(layouts, hasLength(7));
+        expect(templates, hasLength(8));
+        expect(layouts, hasLength(8));
         expect(
           templateNames.where((name) => name.contains('Specimen -')),
           hasLength(4),
@@ -44,6 +44,7 @@ void main() {
             '${preset['name']} Specimen - Bats',
             '${preset['name']} Specimen - Birds',
             '${preset['name']} Specimen - Herpetofauna',
+            '${preset['name']} Tissue Part Label',
           ]),
         );
 

@@ -18,6 +18,7 @@ import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 
 class DocumentSettingsPane extends StatelessWidget {
@@ -859,6 +860,14 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               ?.length ??
                                           0;
                                       label = 'Specimens';
+                                    } else if (recordType ==
+                                        RecordType.specimenParts) {
+                                      totalCount = ref
+                                              .watch(specimenPartEntryProvider)
+                                              .value
+                                              ?.length ??
+                                          0;
+                                      label = 'Specimen Parts';
                                     } else if (recordType == RecordType.site) {
                                       totalCount = ref
                                               .watch(siteEntryProvider)
@@ -1338,6 +1347,16 @@ class RecordNavigationButton extends ConsumerWidget {
           ),
         ),
       );
+    } else if (recordType == RecordType.specimenParts) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _BlockSpecimenPartSelectionScreen(
+            initialSelectedIds: selectedIds,
+            param: param,
+          ),
+        ),
+      );
     } else if (recordType == RecordType.site) {
       await Navigator.push(
         context,
@@ -1373,6 +1392,49 @@ class RecordNavigationButton extends ConsumerWidget {
 
   Set<int> _parseRecordIds(Set<String> ids) {
     return ids.map(int.tryParse).whereType<int>().toSet();
+  }
+}
+
+class _BlockSpecimenPartSelectionScreen extends ConsumerStatefulWidget {
+  const _BlockSpecimenPartSelectionScreen({
+    required this.initialSelectedIds,
+    required this.param,
+  });
+
+  final Set<String> initialSelectedIds;
+  final BlockRecordSelectionParam param;
+
+  @override
+  ConsumerState<_BlockSpecimenPartSelectionScreen> createState() =>
+      _BlockSpecimenPartSelectionScreenState();
+}
+
+class _BlockSpecimenPartSelectionScreenState
+    extends ConsumerState<_BlockSpecimenPartSelectionScreen> {
+  late Set<String> _selectedIds;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = Set<String>.from(widget.initialSelectedIds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Select specimen parts')),
+      body: SafeArea(
+        child: SpecimenPartSelectionView(
+          selectedIds: _selectedIds,
+          onSelectionChanged: (next) {
+            setState(() => _selectedIds = next);
+            ref
+                .read(blockRecordSelectionProvider(widget.param).notifier)
+                .updateSelection(next);
+          },
+        ),
+      ),
+    );
   }
 }
 

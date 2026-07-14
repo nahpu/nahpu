@@ -35,6 +35,18 @@ class _DocumentLayoutRecordCollector {
       for (final s in filtered) {
         out.add(await documentFieldValuesForSpecimen(db, s, ref));
       }
+    } else if (recordType == RecordType.specimenParts) {
+      final parts =
+          await SpecimenPartServices(ref: ref).getProjectSpecimenParts();
+      final selected = selectedIds;
+      final filtered = selected == null
+          ? parts
+          : parts.where((part) =>
+              part.recordId != null && selected.contains(part.recordId));
+      for (final part in filtered) {
+        final fields = await documentFieldValuesForSpecimenPart(db, part, ref);
+        if (fields.isNotEmpty) out.add(fields);
+      }
     } else if (recordType == RecordType.site) {
       final sites = await SiteServices(ref: ref).getAllSites();
       final selected = selectedIds;

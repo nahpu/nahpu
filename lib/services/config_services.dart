@@ -92,9 +92,9 @@ class ConfigDbService {
     SharedPreferences prefs, {
     AssetBundle? bundle,
   }) async {
-    if (prefs.getBool(defaultDocumentPresetsLoadedPrefKey) ?? false) {
-      return;
-    }
+    // Templates and layouts are redb-backed user configs. Always inspect the
+    // bundled presets and insert only names that do not already exist so an
+    // app update can add a new default without overwriting user changes.
     final assetBundle = bundle ?? rootBundle;
 
     final existingTemplateNames =
@@ -135,6 +135,8 @@ class ConfigDbService {
       }
     }
 
+    // Retained solely as legacy app-migration metadata. It is deliberately not
+    // used to skip redb preset discovery on later app versions.
     await prefs.setBool(defaultDocumentPresetsLoadedPrefKey, true);
   }
 }
