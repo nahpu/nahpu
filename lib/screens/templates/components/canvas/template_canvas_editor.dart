@@ -652,38 +652,42 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                         'p${page1 ? '1' : '2'}_ct_${element.id}_${element.rotationDegrees}_${element.fontFamily}'),
                                     label: element.text.isEmpty
                                         ? '(empty)'
-                                        : formatTemplateText(
-                                            isPreviewMode
-                                                ? substituteDocumentPlaceholders(
-                                                    expandNestedListTextIfEnabled(
-                                                      text: element.text,
-                                                      textType:
-                                                          element.textType,
-                                                      fieldValues:
-                                                          editorTemplateFieldPreview,
-                                                      formatOption:
-                                                          element.formatOption,
-                                                      caseFormat:
-                                                          element.caseFormat,
-                                                    ),
-                                                    editorTemplateFieldPreview,
-                                                    nullFallbackOption: element
-                                                        .nullFallbackOption,
-                                                    customNullFallbackText: element
-                                                        .customNullFallbackText,
+                                        : isPreviewMode
+                                            ? formatExportTemplateText(
+                                                substituteDocumentPlaceholders(
+                                                  expandNestedListTextIfEnabled(
+                                                    text: element.text,
                                                     textType: element.textType,
+                                                    fieldValues:
+                                                        editorTemplateFieldPreview,
                                                     formatOption:
                                                         element.formatOption,
-                                                  )
-                                                : formatFieldPlaceholderText(
-                                                    element.text,
-                                                    widget.fieldDisplayOption ==
-                                                        'short',
+                                                    caseFormat:
+                                                        element.caseFormat,
                                                   ),
-                                            element.textType,
-                                            element.formatOption,
-                                            element.caseFormat,
-                                          ),
+                                                  editorTemplateFieldPreview,
+                                                  nullFallbackOption: element
+                                                      .nullFallbackOption,
+                                                  customNullFallbackText: element
+                                                      .customNullFallbackText,
+                                                  textType: element.textType,
+                                                  formatOption:
+                                                      element.formatOption,
+                                                ),
+                                                element.textType,
+                                                element.formatOption,
+                                                element.caseFormat,
+                                              )
+                                            : formatTemplateText(
+                                                formatFieldPlaceholderText(
+                                                  element.text,
+                                                  widget.fieldDisplayOption ==
+                                                      'short',
+                                                ),
+                                                element.textType,
+                                                element.formatOption,
+                                                element.caseFormat,
+                                              ),
                                     actualText: element.text,
                                     position: renderedPosition(element),
                                     fontSize: element.fontSizePt,

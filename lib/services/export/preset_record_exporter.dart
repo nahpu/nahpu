@@ -14,7 +14,7 @@ import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/templates/template_model.dart'
-    show formatTemplateText;
+    show formatTemplateText, truncateTrailingDecimalZeroText;
 import 'package:nahpu/src/rust/api/export.dart';
 
 class PresetExportPreviewData {
@@ -240,7 +240,12 @@ class PresetRecordExporter {
     for (final header in headers) {
       row.putIfAbsent(header, () => '');
     }
-    return row;
+    return row.map(
+      (header, value) => MapEntry(
+        header,
+        truncateTrailingDecimalZeroText(value),
+      ),
+    );
   }
 
   String _formatScalar(Map<String, String> source, ExportFieldMapping mapping) {

@@ -334,7 +334,7 @@ class _DocumentTypstRenderer {
   }
 
   String _typstTextElement(CustomTextElement t, {required bool applyBox}) {
-    final formatted = formatTemplateText(
+    final formatted = formatExportTemplateText(
       t.text,
       t.textType,
       t.formatOption,

@@ -1556,6 +1556,47 @@ void main() {
           formatTemplateText(textWithUnits, 'number', '1'), 'Weight: 12.3 g');
     });
 
+    test('export text normalization removes only trailing decimal zeroes', () {
+      expect(truncateTrailingDecimalZeroText('12.0'), '12');
+      expect(truncateTrailingDecimalZeroText('-12.0, 0.5, 12.00'),
+          '-12, 0.5, 12.00');
+      expect(
+        formatExportTemplateText(
+          'Weight: 12.0 g',
+          'normal',
+          'normal',
+        ),
+        'Weight: 12 g',
+      );
+      expect(
+        formatTemplateText('Weight: 12.0 g', 'normal', 'normal'),
+        'Weight: 12.0 g',
+      );
+    });
+
+    test('PDF text rendering normalizes trailing decimal zeroes', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'weight',
+            text: 'Weight: 12.0 g',
+            xMm: 0,
+            yMm: 0,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+        data: const {},
+      );
+
+      expect(typst, contains('Weight: 12 g'));
+      expect(typst, isNot(contains('Weight: 12.0 g')));
+    });
+
     test('Encoded text formatting applies casing styles to mapped values', () {
       expect(
         formatTemplateText('scrotal', 'encoded', 'enum', 'uppercase'),

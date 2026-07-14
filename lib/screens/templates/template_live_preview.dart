@@ -213,9 +213,12 @@ class _PreviewPage extends StatelessWidget {
                     angle: degreesToRadians(ct.rotationDegrees),
                     child: Builder(
                       builder: (context) {
+                        final textFormatter = ct.isQrCode
+                            ? formatTemplateText
+                            : formatExportTemplateText;
                         final formattedText = ct.text.isEmpty
                             ? ' '
-                            : formatTemplateText(
+                            : textFormatter(
                                 placeholderValues.isEmpty
                                     ? ct.text
                                     : substituteDocumentPlaceholders(
