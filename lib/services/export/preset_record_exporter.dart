@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
@@ -243,20 +244,60 @@ class PresetRecordExporter {
   }
 
   String _formatScalar(Map<String, String> source, ExportFieldMapping mapping) {
+    final effectiveTextType =
+        mapping.textType == kConditionalBracketExportTextType
+            ? 'normal'
+            : mapping.textType;
     final substituted = substituteDocumentPlaceholders(
       mapping.expression,
       source,
       nullFallbackOption: mapping.nullFallbackOption,
       customNullFallbackText: mapping.customNullFallbackText,
-      textType: mapping.textType,
+      textType: effectiveTextType,
       formatOption: mapping.formatOption,
     );
-    return formatTemplateText(
+    final formatted = formatTemplateText(
       substituted,
-      mapping.textType,
+      effectiveTextType,
       mapping.formatOption,
       mapping.caseFormat,
     );
+    if (mapping.textType != kConditionalBracketExportTextType) {
+      return formatted;
+    }
+    final target = _directSourceField(mapping.expression);
+    if (target == null ||
+        (_sourceValue(source, target)?.trim().isEmpty ?? true)) {
+      return formatted;
+    }
+    final matches = conditionalBracketConditionsMatch(
+      mapping.bracketConditions,
+      mapping.bracketConditionMode,
+      (field) => _sourceValue(source, field),
+    );
+    return matches ? addConditionalBrackets(formatted) : formatted;
+  }
+
+  String? _directSourceField(String expression) {
+    return RegExp(r'^\s*\[([^\]]+)\]\s*$')
+        .firstMatch(expression)
+        ?.group(1)
+        ?.trim();
+  }
+
+  String? _sourceValue(Map<String, String> source, String field) {
+    if (source.containsKey(field)) return source[field];
+    final lower = field.toLowerCase();
+    for (final entry in source.entries) {
+      if (entry.key.toLowerCase() == lower) return entry.value;
+    }
+    final short = field.contains('::') ? field.split('::').last : field;
+    for (final entry in source.entries) {
+      if (entry.key.split('::').last.toLowerCase() == short.toLowerCase()) {
+        return entry.value;
+      }
+    }
+    return null;
   }
 
   List<String> _listValues(
@@ -355,6 +396,33 @@ List<String> validateExportPreset(ExportPresetModel preset) {
       }
     } else if (mapping.expression.trim().isEmpty) {
       errors.add('Scalar mappings require a source expression.');
+    } else if (mapping.textType == kConditionalBracketExportTextType) {
+      final directSource =
+          RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(mapping.expression);
+      if (!directSource) {
+        errors.add(
+            'Can be inaccurate measurements require exactly one source field.');
+      }
+      if (mapping.bracketConditions.isEmpty) {
+        errors.add('Add at least one bracket condition.');
+      }
+      for (final condition in mapping.bracketConditions) {
+        if (condition.sourceField.trim().isEmpty) {
+          errors.add('Choose a controlling field for every bracket condition.');
+        }
+        if (condition.comparisonValue.trim().isEmpty) {
+          errors.add('Enter a comparison value for every bracket condition.');
+        }
+        final target = RegExp(r'^\s*\[([^\]]+)\]\s*$')
+            .firstMatch(mapping.expression)
+            ?.group(1)
+            ?.trim();
+        if (target != null &&
+            condition.sourceField.trim().toLowerCase() ==
+                target.toLowerCase()) {
+          errors.add('A measurement cannot depend on itself.');
+        }
+      }
     } else if (mapping.textType == 'list' &&
         mapping.listMode == ListExportMode.spreadColumns &&
         !RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(mapping.expression)) {

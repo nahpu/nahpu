@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -250,8 +251,21 @@ class _ExportPresetFieldsScreenState
           m1.listMode != m2.listMode ||
           m1.indexedHeaderStyle != m2.indexedHeaderStyle ||
           m1.fieldSeparator != m2.fieldSeparator ||
-          m1.recordSeparator != m2.recordSeparator) {
+          m1.recordSeparator != m2.recordSeparator ||
+          m1.bracketConditionMode != m2.bracketConditionMode ||
+          m1.bracketConditions.length != m2.bracketConditions.length) {
         return false;
+      }
+      for (var conditionIndex = 0;
+          conditionIndex < m1.bracketConditions.length;
+          conditionIndex++) {
+        final first = m1.bracketConditions[conditionIndex];
+        final second = m2.bracketConditions[conditionIndex];
+        if (first.sourceField != second.sourceField ||
+            first.operator != second.operator ||
+            first.comparisonValue != second.comparisonValue) {
+          return false;
+        }
       }
     }
     return true;
@@ -1038,15 +1052,48 @@ class _MappingCustomizerFormState
                   value: 'coordinates',
                   child: Text('Coordinates'),
                 ),
+                DropdownMenuItem(
+                  value: kConditionalBracketExportTextType,
+                  child: Text('Can be inaccurate measurement'),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    _localMapping = _localMapping.copyWith(textType: value);
+                    _localMapping = _localMapping.copyWith(
+                      textType: value,
+                      bracketConditions: value ==
+                                  kConditionalBracketExportTextType &&
+                              _localMapping.bracketConditions.isEmpty
+                          ? const [
+                              ConditionalBracketCondition(
+                                sourceField: '',
+                                operator: ConditionalComparisonOperator.equals,
+                                comparisonValue: '',
+                              ),
+                            ]
+                          : _localMapping.bracketConditions,
+                    );
                   });
                 }
               },
             ),
+            if (_localMapping.textType ==
+                kConditionalBracketExportTextType) ...[
+              const SizedBox(height: 12),
+              _ConditionalBracketControls(
+                allFields: allFields,
+                targetField: selectedSource,
+                conditions: _localMapping.bracketConditions,
+                mode: _localMapping.bracketConditionMode,
+                onChanged: (conditions, mode) => setState(() {
+                  _localMapping = _localMapping.copyWith(
+                    bracketConditions: conditions,
+                    bracketConditionMode: mode,
+                  );
+                }),
+              ),
+            ],
           ],
         ] else ...[
           DropdownButtonFormField<String>(
@@ -1220,7 +1267,9 @@ class _MappingCustomizerFormState
                   helperText: 'Example: [specimen::catalogNum]',
                 ),
               ),
-              if (_mappingKind == 'scalar') ...[
+              if (_mappingKind == 'scalar' &&
+                  _localMapping.textType !=
+                      kConditionalBracketExportTextType) ...[
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _formatOptionController,
@@ -1406,11 +1455,38 @@ class _MappingCustomizerFormState
         _exactSourceField(_expressionController.text) == null) {
       return 'Indexed lists require exactly one source field.';
     }
+    if (_localMapping.textType == kConditionalBracketExportTextType) {
+      final target = _exactSourceField(_expressionController.text);
+      if (target == null) {
+        return 'Can be inaccurate measurements require exactly one source field.';
+      }
+      if (_localMapping.bracketConditions.isEmpty) {
+        return 'Add at least one bracket condition.';
+      }
+      for (final condition in _localMapping.bracketConditions) {
+        if (condition.sourceField.trim().isEmpty) {
+          return 'Choose a controlling field for every bracket condition.';
+        }
+        if (condition.comparisonValue.trim().isEmpty) {
+          return 'Enter a comparison value for every bracket condition.';
+        }
+        if (condition.sourceField.trim().toLowerCase() ==
+            target.toLowerCase()) {
+          return 'A measurement cannot depend on itself.';
+        }
+      }
+    }
     return '';
   }
 
-  String _standardTextType(String value) =>
-      {'normal', 'encoded', 'coordinates'}.contains(value) ? value : 'normal';
+  String _standardTextType(String value) => {
+        'normal',
+        'encoded',
+        'coordinates',
+        kConditionalBracketExportTextType,
+      }.contains(value)
+          ? value
+          : 'normal';
 
   String _listSeparatorOption(String value) {
     if (value.startsWith('custom:')) return 'custom';
@@ -1425,6 +1501,182 @@ class _MappingCustomizerFormState
   String? _exactSourceField(String expression) {
     final match = RegExp(r'^\s*\[([^\]]+)\]\s*$').firstMatch(expression);
     return match?.group(1)?.trim();
+  }
+}
+
+/// Edits the field comparisons that control an inaccurate measurement value.
+class _ConditionalBracketControls extends StatelessWidget {
+  const _ConditionalBracketControls({
+    required this.allFields,
+    required this.targetField,
+    required this.conditions,
+    required this.mode,
+    required this.onChanged,
+  });
+
+  final List<String> allFields;
+  final String? targetField;
+  final List<ConditionalBracketCondition> conditions;
+  final ConditionalMatchMode mode;
+  final void Function(
+    List<ConditionalBracketCondition> conditions,
+    ConditionalMatchMode mode,
+  ) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final sourceFields = allFields
+        .where((field) => field.toLowerCase() != targetField?.toLowerCase())
+        .toList(growable: false);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Bracket conditions',
+            style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 4),
+        const Text(
+          'Compare raw stored values. Blank controlling values never match.',
+        ),
+        DropdownButtonFormField<ConditionalMatchMode>(
+          key: ValueKey('bracket-mode-$mode'),
+          initialValue: mode,
+          decoration: const InputDecoration(labelText: 'Match logic'),
+          items: const [
+            DropdownMenuItem(
+              value: ConditionalMatchMode.any,
+              child: Text('Any condition (OR)'),
+            ),
+            DropdownMenuItem(
+              value: ConditionalMatchMode.all,
+              child: Text('All conditions (AND)'),
+            ),
+          ],
+          onChanged: (value) {
+            if (value != null) onChanged(conditions, value);
+          },
+        ),
+        const SizedBox(height: 8),
+        for (var index = 0; index < conditions.length; index++)
+          _ConditionRow(
+            key: ValueKey('bracket-condition-$index'),
+            condition: conditions[index],
+            fields: sourceFields,
+            onChanged: (next) {
+              final updated =
+                  List<ConditionalBracketCondition>.from(conditions);
+              updated[index] = next;
+              onChanged(updated, mode);
+            },
+            onRemove: conditions.length <= 1
+                ? null
+                : () {
+                    final updated =
+                        List<ConditionalBracketCondition>.from(conditions)
+                          ..removeAt(index);
+                    onChanged(updated, mode);
+                  },
+          ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => onChanged(
+              [
+                ...conditions,
+                const ConditionalBracketCondition(
+                  sourceField: '',
+                  operator: ConditionalComparisonOperator.equals,
+                  comparisonValue: '',
+                ),
+              ],
+              mode,
+            ),
+            icon: const Icon(Icons.add),
+            label: const Text('Add condition'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ConditionRow extends StatelessWidget {
+  const _ConditionRow({
+    super.key,
+    required this.condition,
+    required this.fields,
+    required this.onChanged,
+    required this.onRemove,
+  });
+
+  final ConditionalBracketCondition condition;
+  final List<String> fields;
+  final ValueChanged<ConditionalBracketCondition> onChanged;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected =
+        fields.contains(condition.sourceField) ? condition.sourceField : null;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          SizedBox(
+            width: 240,
+            child: DropdownButtonFormField<String>(
+              key: ValueKey('condition-field-${condition.sourceField}'),
+              initialValue: selected,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Controlling field'),
+              items: fields
+                  .map((field) => DropdownMenuItem(
+                        value: field,
+                        child: Text(field, overflow: TextOverflow.ellipsis),
+                      ))
+                  .toList(growable: false),
+              onChanged: (value) {
+                if (value != null) {
+                  onChanged(condition.copyWith(sourceField: value));
+                }
+              },
+            ),
+          ),
+          DropdownButton<ConditionalComparisonOperator>(
+            value: condition.operator,
+            items: const [
+              DropdownMenuItem(
+                value: ConditionalComparisonOperator.equals,
+                child: Text('Equals'),
+              ),
+              DropdownMenuItem(
+                value: ConditionalComparisonOperator.notEquals,
+                child: Text('Does not equal'),
+              ),
+            ],
+            onChanged: (value) {
+              if (value != null) onChanged(condition.copyWith(operator: value));
+            },
+          ),
+          SizedBox(
+            width: 180,
+            child: TextFormField(
+              initialValue: condition.comparisonValue,
+              decoration: const InputDecoration(labelText: 'Value'),
+              onChanged: (value) =>
+                  onChanged(condition.copyWith(comparisonValue: value)),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Remove condition',
+            onPressed: onRemove,
+            icon: const Icon(Icons.remove_circle_outline),
+          ),
+        ],
+      ),
+    );
   }
 }
 

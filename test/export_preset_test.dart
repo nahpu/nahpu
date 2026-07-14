@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -16,6 +17,13 @@ void main() {
             textType: 'list',
             listMode: ListExportMode.spreadColumns,
             indexedHeaderStyle: IndexedHeaderStyle.brackets,
+            bracketConditions: [
+              ConditionalBracketCondition(
+                sourceField: 'specimen::catalogNum',
+                operator: ConditionalComparisonOperator.notEquals,
+                comparisonValue: '',
+              ),
+            ],
           ),
           ExportFieldMapping(
             expression: '',
@@ -34,6 +42,7 @@ void main() {
       expect(restored.mappings.first.listMode, ListExportMode.spreadColumns);
       expect(restored.mappings.first.indexedHeaderStyle,
           IndexedHeaderStyle.brackets);
+      expect(restored.mappings.first.bracketConditions, hasLength(1));
       expect(restored.mappings.last.nestedMode, NestedExportMode.spreadColumns);
     });
 

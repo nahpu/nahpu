@@ -1,3 +1,5 @@
+import 'package:nahpu/services/conditional_brackets.dart';
+
 enum ExportFmt { csv, tsv, excel, json }
 
 const List<String> supportedTaxonClass = [
@@ -336,8 +338,11 @@ enum ListExportMode { concatenate, spreadColumns }
 /// How a one-based index is added to an exported column name.
 enum IndexedHeaderStyle { underscore, compact, brackets }
 
-const int recordExportPresetSchemaVersion = 3;
-const int _previousRecordExportPresetSchemaVersion = 2;
+const int recordExportPresetSchemaVersion = 4;
+const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4};
+
+/// Scalar export format that conditionally wraps a populated value in brackets.
+const String kConditionalBracketExportTextType = 'conditionalBrackets';
 
 /// A single ordered output mapping in a record export preset.
 ///
@@ -361,6 +366,8 @@ class ExportFieldMapping {
     this.indexedHeaderStyle = IndexedHeaderStyle.underscore,
     this.fieldSeparator = '|',
     this.recordSeparator = ';',
+    this.bracketConditions = const [],
+    this.bracketConditionMode = ConditionalMatchMode.any,
   });
 
   final String expression;
@@ -377,6 +384,12 @@ class ExportFieldMapping {
   final IndexedHeaderStyle indexedHeaderStyle;
   final String fieldSeparator;
   final String recordSeparator;
+
+  /// Conditions used when [textType] is [kConditionalBracketExportTextType].
+  final List<ConditionalBracketCondition> bracketConditions;
+
+  /// Whether [bracketConditions] are combined with OR or AND semantics.
+  final ConditionalMatchMode bracketConditionMode;
 
   bool get isNested => nestedNamespace != null;
 
@@ -397,6 +410,8 @@ class ExportFieldMapping {
     IndexedHeaderStyle? indexedHeaderStyle,
     String? fieldSeparator,
     String? recordSeparator,
+    List<ConditionalBracketCondition>? bracketConditions,
+    ConditionalMatchMode? bracketConditionMode,
   }) {
     return ExportFieldMapping(
       expression: expression ?? this.expression,
@@ -417,6 +432,8 @@ class ExportFieldMapping {
       indexedHeaderStyle: indexedHeaderStyle ?? this.indexedHeaderStyle,
       fieldSeparator: fieldSeparator ?? this.fieldSeparator,
       recordSeparator: recordSeparator ?? this.recordSeparator,
+      bracketConditions: bracketConditions ?? this.bracketConditions,
+      bracketConditionMode: bracketConditionMode ?? this.bracketConditionMode,
     );
   }
 
@@ -443,6 +460,15 @@ class ExportFieldMapping {
       ),
       fieldSeparator: json['fieldSeparator'] as String? ?? '|',
       recordSeparator: json['recordSeparator'] as String? ?? ';',
+      bracketConditions: (json['bracketConditions'] as List? ?? [])
+          .whereType<Map>()
+          .map((value) => ConditionalBracketCondition.fromJson(
+              Map<String, dynamic>.from(value)))
+          .toList(growable: false),
+      bracketConditionMode: ConditionalMatchMode.values.byName(
+        json['bracketConditionMode'] as String? ??
+            ConditionalMatchMode.any.name,
+      ),
     );
   }
 
@@ -461,6 +487,9 @@ class ExportFieldMapping {
         'indexedHeaderStyle': indexedHeaderStyle.name,
         'fieldSeparator': fieldSeparator,
         'recordSeparator': recordSeparator,
+        'bracketConditions':
+            bracketConditions.map((condition) => condition.toJson()).toList(),
+        'bracketConditionMode': bracketConditionMode.name,
       };
 }
 
@@ -489,8 +518,7 @@ class ExportPresetModel {
 
   factory ExportPresetModel.fromJson(Map<String, dynamic> json) {
     final schemaVersion = json['schemaVersion'] as int?;
-    if (schemaVersion != recordExportPresetSchemaVersion &&
-        schemaVersion != _previousRecordExportPresetSchemaVersion) {
+    if (!_supportedRecordExportPresetSchemaVersions.contains(schemaVersion)) {
       throw const FormatException('Unsupported record export preset schema.');
     }
     return ExportPresetModel(
