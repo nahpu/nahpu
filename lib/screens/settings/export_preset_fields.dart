@@ -31,6 +31,136 @@ class _ExportPresetFieldsScreenState
     _preset = widget.preset;
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final scheme = Theme.of(context).colorScheme;
+    final canAddNested = _nestedFieldGroups(_availableFieldGroups(
+      ref.read(databaseProvider),
+      _preset.recordType,
+      _preset.specimenRecordType,
+    )).isNotEmpty;
+
+    final availableFieldsWidget = _AvailableFieldsSection(
+      recordType: _preset.recordType,
+      specimenRecordType: _preset.specimenRecordType,
+      mappings: _preset.mappings,
+      onFieldToggled: _toggleStandardField,
+    );
+
+    final selectedFieldsWidget = Material(
+      color: scheme.surfaceContainerLow,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        side: BorderSide(
+          color: scheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: SizedBox(
+              height: 48,
+              child: _SelectedMappingsHeader(
+                key: const ValueKey('selected-mappings-header'),
+                canAddNested: canAddNested,
+                onAddCombined: _addCombined,
+                onAddNested: _addNested,
+              ),
+            ),
+          ),
+          const Divider(height: 1.0),
+          Expanded(
+            child: ReorderableListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: _preset.mappings.length,
+              onReorderItem: _reorder,
+              itemBuilder: (context, index) => _ExportMappingCard(
+                key: ValueKey('mapping-$index'),
+                mapping: _preset.mappings[index],
+                onRemove: () => _remove(index),
+                onCustomize: () => _customizeMapping(index),
+              ),
+            ),
+          ),
+          const Divider(height: 1.0),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.visibility_outlined),
+                label: const Text('Preview'),
+                onPressed: _showPreview,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Preset Mappings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context, _preset),
+        ),
+      ),
+      body: PopScope(
+        canPop: true,
+        child: isLargeScreen
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: availableFieldsWidget,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: selectedFieldsWidget,
+                    ),
+                  ),
+                ],
+              )
+            : DefaultTabController(
+                length: 2,
+                child: Column(
+                  children: [
+                    const TabBar(
+                      tabs: [
+                        Tab(text: 'Available Fields'),
+                        Tab(text: 'Selected Mappings'),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: availableFieldsWidget,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: selectedFieldsWidget,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
   void _toggleStandardField(String field, bool selected) {
     final mappings = List<ExportFieldMapping>.from(_preset.mappings);
     final index = mappings.indexWhere(
@@ -238,136 +368,6 @@ class _ExportPresetFieldsScreenState
         );
       }
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
-    final scheme = Theme.of(context).colorScheme;
-    final canAddNested = _nestedFieldGroups(_availableFieldGroups(
-      ref.read(databaseProvider),
-      _preset.recordType,
-      _preset.specimenRecordType,
-    )).isNotEmpty;
-
-    final availableFieldsWidget = _AvailableFieldsSection(
-      recordType: _preset.recordType,
-      specimenRecordType: _preset.specimenRecordType,
-      mappings: _preset.mappings,
-      onFieldToggled: _toggleStandardField,
-    );
-
-    final selectedFieldsWidget = Material(
-      color: scheme.surfaceContainerLow,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(
-          color: scheme.outlineVariant,
-        ),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: SizedBox(
-              height: 48,
-              child: _SelectedMappingsHeader(
-                key: const ValueKey('selected-mappings-header'),
-                canAddNested: canAddNested,
-                onAddCombined: _addCombined,
-                onAddNested: _addNested,
-              ),
-            ),
-          ),
-          const Divider(height: 1.0),
-          Expanded(
-            child: ReorderableListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _preset.mappings.length,
-              onReorderItem: _reorder,
-              itemBuilder: (context, index) => _ExportMappingCard(
-                key: ValueKey('mapping-$index'),
-                mapping: _preset.mappings[index],
-                onRemove: () => _remove(index),
-                onCustomize: () => _customizeMapping(index),
-              ),
-            ),
-          ),
-          const Divider(height: 1.0),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.visibility_outlined),
-                label: const Text('Preview'),
-                onPressed: _showPreview,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Preset Mappings'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context, _preset),
-        ),
-      ),
-      body: PopScope(
-        canPop: true,
-        child: isLargeScreen
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: availableFieldsWidget,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: selectedFieldsWidget,
-                    ),
-                  ),
-                ],
-              )
-            : DefaultTabController(
-                length: 2,
-                child: Column(
-                  children: [
-                    const TabBar(
-                      tabs: [
-                        Tab(text: 'Available Fields'),
-                        Tab(text: 'Selected Mappings'),
-                      ],
-                    ),
-                    Expanded(
-                      child: TabBarView(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: availableFieldsWidget,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: selectedFieldsWidget,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-      ),
-    );
   }
 }
 
@@ -1008,6 +1008,7 @@ class _ExportMappingCard extends StatelessWidget {
           title: Text(
             title,
             style: const TextStyle(fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
           ),
           subtitle: Text(
             subtitle,
@@ -1809,6 +1810,109 @@ class _ConcatenatedExpressionComposerState
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Combined value', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 4),
+        const Text(
+          'Fields and text are emitted left to right. Add as many segments as needed.',
+        ),
+        const SizedBox(height: 8),
+        if (_segments.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text('Add a source field to begin.'),
+          ),
+        ..._segments.asMap().entries.map((entry) {
+          final index = entry.key;
+          final segment = entry.value;
+          final segmentId = _segmentIds[index];
+          return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Material(
+                key: ValueKey('combined-segment-$segmentId'),
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    children: [
+                      Icon(segment.isField
+                          ? Icons.data_object
+                          : Icons.text_fields),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: segment.isField
+                            ? Text(segment.value)
+                            : TextFormField(
+                                key: ValueKey('combined-text-$segmentId'),
+                                initialValue: segment.value,
+                                decoration: const InputDecoration(
+                                  labelText: 'Text or separator',
+                                  isDense: true,
+                                ),
+                                onChanged: (value) => _setText(index, value),
+                              ),
+                      ),
+                      IconButton(
+                        tooltip: 'Move segment up',
+                        onPressed: index == 0 ? null : () => _move(index, -1),
+                        icon: const Icon(Icons.arrow_upward),
+                      ),
+                      IconButton(
+                        tooltip: 'Move segment down',
+                        onPressed: index == _segments.length - 1
+                            ? null
+                            : () => _move(index, 1),
+                        icon: const Icon(Icons.arrow_downward),
+                      ),
+                      IconButton(
+                        tooltip: 'Remove segment',
+                        onPressed: () => _remove(index),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                ),
+              ));
+        }),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            OutlinedButton.icon(
+              onPressed: _addField,
+              icon: const Icon(Icons.add),
+              label: const Text('Add field'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _addText,
+              icon: const Icon(Icons.add),
+              label: const Text('Add text'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Expression: ${serializeExportExpression(_segments)}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
   void _notify() => widget.onChanged(serializeExportExpression(_segments));
 
   Future<void> _addField() async {
@@ -1853,103 +1957,6 @@ class _ConcatenatedExpressionComposerState
   void _setText(int index, String value) {
     _segments[index] = ExportExpressionSegment.text(value);
     _notify();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Combined value', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 4),
-        const Text(
-          'Fields and text are emitted left to right. Add as many segments as needed.',
-        ),
-        const SizedBox(height: 8),
-        if (_segments.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text('Add a source field to begin.'),
-          ),
-        ..._segments.asMap().entries.map((entry) {
-          final index = entry.key;
-          final segment = entry.value;
-          final segmentId = _segmentIds[index];
-          return Material(
-            key: ValueKey('combined-segment-$segmentId'),
-            color: Theme.of(context).colorScheme.surfaceContainerLow,
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Row(
-                children: [
-                  Icon(segment.isField ? Icons.data_object : Icons.text_fields),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: segment.isField
-                        ? Text(segment.value)
-                        : TextFormField(
-                            key: ValueKey('combined-text-$segmentId'),
-                            initialValue: segment.value,
-                            decoration: const InputDecoration(
-                              labelText: 'Text or separator',
-                              isDense: true,
-                            ),
-                            onChanged: (value) => _setText(index, value),
-                          ),
-                  ),
-                  IconButton(
-                    tooltip: 'Move segment up',
-                    onPressed: index == 0 ? null : () => _move(index, -1),
-                    icon: const Icon(Icons.arrow_upward),
-                  ),
-                  IconButton(
-                    tooltip: 'Move segment down',
-                    onPressed: index == _segments.length - 1
-                        ? null
-                        : () => _move(index, 1),
-                    icon: const Icon(Icons.arrow_downward),
-                  ),
-                  IconButton(
-                    tooltip: 'Remove segment',
-                    onPressed: () => _remove(index),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-        Wrap(
-          spacing: 8,
-          children: [
-            OutlinedButton.icon(
-              onPressed: _addField,
-              icon: const Icon(Icons.add),
-              label: const Text('Add field'),
-            ),
-            OutlinedButton.icon(
-              onPressed: _addText,
-              icon: const Icon(Icons.add),
-              label: const Text('Add text'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Expression: ${serializeExportExpression(_segments)}',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
-    );
   }
 }
 
