@@ -448,19 +448,19 @@ class _AvailableFieldsSectionState
                       isDense: true,
                       isExpanded: true,
                       underline: const SizedBox.shrink(),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'full',
                           child: Text(
                             'Table::Field',
-                            style: TextStyle(fontSize: 12.0),
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
                         DropdownMenuItem(
                           value: 'short',
                           child: Text(
                             'Field Only',
-                            style: TextStyle(fontSize: 12.0),
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
                       ],
