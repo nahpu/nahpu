@@ -70,7 +70,8 @@ class ExportFormState extends ConsumerState<ExportForm>
       body: presetsAsync.when(
         data: (presets) {
           // Synchronize selection with updated map of presets
-          if (_selectedPresetName != null && !presets.containsKey(_selectedPresetName)) {
+          if (_selectedPresetName != null &&
+              !presets.containsKey(_selectedPresetName)) {
             _selectedPresetName = null;
             _selectedPreset = null;
           } else if (_selectedPresetName != null) {
@@ -193,7 +194,8 @@ class ExportFormState extends ConsumerState<ExportForm>
           }
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Unable to load export presets: $error')),
+        error: (error, _) =>
+            Center(child: Text('Unable to load export presets: $error')),
       ),
     );
   }
@@ -392,20 +394,26 @@ class PresetPreviewPane extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       Chip(
-                        label: Text('Record: ${recordTypeToString(preset.recordType)}'),
-                        avatar: const Icon(Icons.description_outlined, size: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        label: Text(
+                            'Record: ${recordTypeToString(preset.recordType)}'),
+                        avatar:
+                            const Icon(Icons.description_outlined, size: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       if (preset.recordType == RecordType.specimenRecord)
                         Chip(
-                          label: Text('Taxon: ${preset.specimenRecordType.name}'),
+                          label:
+                              Text('Taxon: ${preset.specimenRecordType.name}'),
                           avatar: const Icon(Icons.pets_outlined, size: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       Chip(
                         label: Text('Header: ${preset.headerFormat.name}'),
                         avatar: const Icon(Icons.title_outlined, size: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ],
                   ),
@@ -465,7 +473,8 @@ class PresetColumnChips extends StatelessWidget {
     );
   }
 
-  String _getMappingLabel(ExportFieldMapping mapping, ExportHeaderFormat format) {
+  String _getMappingLabel(
+      ExportFieldMapping mapping, ExportHeaderFormat format) {
     final override = mapping.headerOverride?.trim();
     if (override != null && override.isNotEmpty) return override;
     if (mapping.isNested) {
@@ -572,11 +581,13 @@ class _ExportPresetTablePreviewScreenState
                                         minWidth: constraints.maxWidth,
                                       ),
                                       child: ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
                                           top: Radius.circular(16.0),
                                         ),
                                         child: DataTable(
-                                          headingRowColor: WidgetStateProperty.all(
+                                          headingRowColor:
+                                              WidgetStateProperty.all(
                                             Theme.of(context)
                                                 .colorScheme
                                                 .primaryContainer,
@@ -588,7 +599,8 @@ class _ExportPresetTablePreviewScreenState
                                             for (final col in _headers)
                                               DataColumn(
                                                 label: ConstrainedBox(
-                                                  constraints: const BoxConstraints(
+                                                  constraints:
+                                                      const BoxConstraints(
                                                     minWidth: 72,
                                                     maxWidth: 160,
                                                   ),
@@ -606,13 +618,15 @@ class _ExportPresetTablePreviewScreenState
                                                   for (final col in _headers)
                                                     DataCell(
                                                       ConstrainedBox(
-                                                        constraints: const BoxConstraints(
+                                                        constraints:
+                                                            const BoxConstraints(
                                                           maxWidth: 200,
                                                         ),
                                                         child: Text(
                                                           row[col] ?? '',
                                                           maxLines: 2,
-                                                          overflow: TextOverflow.ellipsis,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                         ),
                                                       ),
                                                     ),
@@ -654,11 +668,12 @@ class _ExportPresetTablePreviewScreenState
                             ),
                             IconButton(
                               icon: const Icon(Icons.chevron_right),
-                              onPressed: (_currentPage + 1) * _pageSize < _rows.length
-                                  ? () {
-                                      setState(() => _currentPage++);
-                                    }
-                                  : null,
+                              onPressed:
+                                  (_currentPage + 1) * _pageSize < _rows.length
+                                      ? () {
+                                          setState(() => _currentPage++);
+                                        }
+                                      : null,
                             ),
                           ],
                         ),

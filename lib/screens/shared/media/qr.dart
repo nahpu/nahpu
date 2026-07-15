@@ -81,26 +81,64 @@ class QrImageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final qrImage = _createQrImage(data);
+    if (qrImage == null) {
+      return SizedBox.square(
+        dimension: size ?? 200,
+        child: ColoredBox(
+          color: backgroundColor,
+          child: const Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Text(
+                  'Data is too large for QR code.\n Try using file export feature instead.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return CustomPaint(
       size: size != null ? Size(size!, size!) : const Size.square(200),
       painter: _QrPainter(
         data: data,
+        qrImage: qrImage,
         color: color ?? Theme.of(context).colorScheme.onSurface,
         backgroundColor: backgroundColor,
         shape: shape,
       ),
     );
   }
+
+  QrImage? _createQrImage(String data) {
+    try {
+      return QrImage(
+        QrCode(
+          payload: QrPayload.fromString(data),
+          errorCorrectLevel: QrErrorCorrectLevel.low,
+        ),
+      );
+    } on InputTooLongException {
+      return null;
+    }
+  }
 }
 
 class _QrPainter extends CustomPainter {
   final String data;
+  final QrImage qrImage;
   final Color color;
   final Color backgroundColor;
   final String shape;
 
   _QrPainter({
     required this.data,
+    required this.qrImage,
     required this.color,
     required this.backgroundColor,
     required this.shape,
@@ -108,11 +146,6 @@ class _QrPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final qrCode = QrCode(
-      payload: QrPayload.fromString(data),
-      errorCorrectLevel: QrErrorCorrectLevel.low,
-    );
-    final qrImage = QrImage(qrCode);
     final moduleCount = qrImage.moduleCount;
     final moduleSize = size.width / moduleCount;
 
