@@ -401,8 +401,7 @@ List<String> validateExportPreset(ExportPresetModel preset) {
       final directSource =
           RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(mapping.expression);
       if (!directSource) {
-        errors.add(
-            'Can be inaccurate measurements require exactly one source field.');
+        errors.add('Conditional brackets require exactly one source field.');
       }
       if (mapping.bracketConditions.isEmpty) {
         errors.add('Add at least one bracket condition.');

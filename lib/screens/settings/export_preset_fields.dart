@@ -10,9 +10,11 @@ class ExportPresetFieldsScreen extends ConsumerStatefulWidget {
   const ExportPresetFieldsScreen({
     super.key,
     required this.preset,
+    this.onPresetChanged,
   });
 
   final ExportPresetModel preset;
+  final ValueChanged<ExportPresetModel>? onPresetChanged;
 
   @override
   ConsumerState<ExportPresetFieldsScreen> createState() =>
@@ -29,23 +31,16 @@ class _ExportPresetFieldsScreenState
     _preset = widget.preset;
   }
 
-  void _applyStandardFields(Set<String> selectedFields) {
-    final mappings = List<ExportFieldMapping>.from(_preset.mappings)
-      ..removeWhere((mapping) {
-        if (mapping.isNested) return false;
-        final field = _directSourceField(mapping.expression);
-        return field != null && !selectedFields.contains(field);
-      });
-
-    final mappedFields = mappings
-        .where((mapping) => !mapping.isNested)
-        .map((mapping) => _directSourceField(mapping.expression))
-        .whereType<String>()
-        .toSet();
-    for (final field in selectedFields) {
-      if (!mappedFields.contains(field)) {
-        mappings.add(ExportFieldMapping(expression: '[$field]'));
-      }
+  void _toggleStandardField(String field, bool selected) {
+    final mappings = List<ExportFieldMapping>.from(_preset.mappings);
+    final index = mappings.indexWhere(
+      (mapping) =>
+          !mapping.isNested && _directSourceField(mapping.expression) == field,
+    );
+    if (selected && index == -1) {
+      mappings.add(ExportFieldMapping(expression: '[$field]'));
+    } else if (!selected && index != -1) {
+      mappings.removeAt(index);
     }
     _update(mappings: mappings);
   }
@@ -93,6 +88,15 @@ class _ExportPresetFieldsScreenState
     );
   }
 
+  void _addCombined() {
+    _openMappingCustomizer(
+      const ExportFieldMapping(expression: ''),
+      allowExpandRows: true,
+      onSave: (mapping) => _update(mappings: [..._preset.mappings, mapping]),
+      initialMappingKind: 'combined',
+    );
+  }
+
   void _replace(int index, ExportFieldMapping mapping) {
     final mappings = List<ExportFieldMapping>.from(_preset.mappings);
     mappings[index] = mapping;
@@ -117,6 +121,7 @@ class _ExportPresetFieldsScreenState
         mappings: mappings ?? _preset.mappings,
       );
     });
+    widget.onPresetChanged?.call(_preset);
   }
 
   void _customizeMapping(int index) {
@@ -137,6 +142,7 @@ class _ExportPresetFieldsScreenState
     ExportFieldMapping mapping, {
     required bool allowExpandRows,
     required ValueChanged<ExportFieldMapping> onSave,
+    String? initialMappingKind,
   }) {
     final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
@@ -150,6 +156,7 @@ class _ExportPresetFieldsScreenState
           headerFormat: _preset.headerFormat,
           allowExpandRows: allowExpandRows,
           onSave: onSave,
+          initialMappingKind: initialMappingKind,
         ),
       );
     } else {
@@ -163,6 +170,7 @@ class _ExportPresetFieldsScreenState
           headerFormat: _preset.headerFormat,
           allowExpandRows: allowExpandRows,
           onSave: onSave,
+          initialMappingKind: initialMappingKind,
         ),
       );
     }
@@ -232,55 +240,21 @@ class _ExportPresetFieldsScreenState
     }
   }
 
-  bool _areMappingsEqual(
-      List<ExportFieldMapping> list1, List<ExportFieldMapping> list2) {
-    if (list1.length != list2.length) return false;
-    for (var i = 0; i < list1.length; i++) {
-      final m1 = list1[i];
-      final m2 = list2[i];
-      if (m1.expression != m2.expression ||
-          m1.headerOverride != m2.headerOverride ||
-          m1.textType != m2.textType ||
-          m1.formatOption != m2.formatOption ||
-          m1.caseFormat != m2.caseFormat ||
-          m1.nullFallbackOption != m2.nullFallbackOption ||
-          m1.customNullFallbackText != m2.customNullFallbackText ||
-          m1.nestedNamespace != m2.nestedNamespace ||
-          m1.nestedFields.join(',') != m2.nestedFields.join(',') ||
-          m1.nestedMode != m2.nestedMode ||
-          m1.listMode != m2.listMode ||
-          m1.indexedHeaderStyle != m2.indexedHeaderStyle ||
-          m1.fieldSeparator != m2.fieldSeparator ||
-          m1.recordSeparator != m2.recordSeparator ||
-          m1.bracketConditionMode != m2.bracketConditionMode ||
-          m1.bracketConditions.length != m2.bracketConditions.length) {
-        return false;
-      }
-      for (var conditionIndex = 0;
-          conditionIndex < m1.bracketConditions.length;
-          conditionIndex++) {
-        final first = m1.bracketConditions[conditionIndex];
-        final second = m2.bracketConditions[conditionIndex];
-        if (first.sourceField != second.sourceField ||
-            first.operator != second.operator ||
-            first.comparisonValue != second.comparisonValue) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
     final scheme = Theme.of(context).colorScheme;
+    final canAddNested = _nestedFieldGroups(_availableFieldGroups(
+      ref.read(databaseProvider),
+      _preset.recordType,
+      _preset.specimenRecordType,
+    )).isNotEmpty;
 
     final availableFieldsWidget = _AvailableFieldsSection(
       recordType: _preset.recordType,
       specimenRecordType: _preset.specimenRecordType,
       mappings: _preset.mappings,
-      onApplyFields: _applyStandardFields,
+      onFieldToggled: _toggleStandardField,
     );
 
     final selectedFieldsWidget = Material(
@@ -295,29 +269,15 @@ class _ExportPresetFieldsScreenState
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Selected Mappings',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: _nestedFieldGroups(_availableFieldGroups(
-                    ref.read(databaseProvider),
-                    _preset.recordType,
-                    _preset.specimenRecordType,
-                  )).isEmpty
-                      ? null
-                      : _addNested,
-                  icon: const Icon(Icons.account_tree_outlined),
-                  label: const Text('Add nested'),
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: SizedBox(
+              height: 48,
+              child: _SelectedMappingsHeader(
+                key: const ValueKey('selected-mappings-header'),
+                canAddNested: canAddNested,
+                onAddCombined: _addCombined,
+                onAddNested: _addNested,
+              ),
             ),
           ),
           const Divider(height: 1.0),
@@ -355,52 +315,11 @@ class _ExportPresetFieldsScreenState
         title: const Text('Edit Preset Mappings'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.maybePop(context),
+          onPressed: () => Navigator.pop(context, _preset),
         ),
       ),
       body: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) return;
-          final hasChanges =
-              _preset.mappings.length != widget.preset.mappings.length ||
-                  !_areMappingsEqual(_preset.mappings, widget.preset.mappings);
-          if (!hasChanges) {
-            Navigator.pop(context, widget.preset);
-            return;
-          }
-
-          final action = await showDialog<String>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Unsaved Changes'),
-              content: const Text(
-                'You have modified mappings. Do you want to apply these changes? '
-                'Remember to click Save on the preset screen to persist them.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'discard'),
-                  child: const Text('Discard'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'cancel'),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context, 'apply'),
-                  child: const Text('Apply'),
-                ),
-              ],
-            ),
-          );
-
-          if (action == 'discard' && context.mounted) {
-            Navigator.pop(context, widget.preset);
-          } else if (action == 'apply' && context.mounted) {
-            Navigator.pop(context, _preset);
-          }
-        },
+        canPop: true,
         child: isLargeScreen
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -457,13 +376,13 @@ class _AvailableFieldsSection extends ConsumerStatefulWidget {
     required this.recordType,
     required this.specimenRecordType,
     required this.mappings,
-    required this.onApplyFields,
+    required this.onFieldToggled,
   });
 
   final RecordType recordType;
   final SpecimenRecordType specimenRecordType;
   final List<ExportFieldMapping> mappings;
-  final ValueChanged<Set<String>> onApplyFields;
+  final void Function(String field, bool selected) onFieldToggled;
 
   @override
   ConsumerState<_AvailableFieldsSection> createState() =>
@@ -473,24 +392,8 @@ class _AvailableFieldsSection extends ConsumerStatefulWidget {
 class _AvailableFieldsSectionState
     extends ConsumerState<_AvailableFieldsSection> {
   String _fieldDisplayOption = 'short';
-  late Set<String> _selectedFields;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedFields = _selectedSourceFields(widget.mappings);
-  }
-
-  @override
-  void didUpdateWidget(covariant _AvailableFieldsSection oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.mappings != widget.mappings) {
-      _selectedFields = _selectedSourceFields(widget.mappings);
-    }
-  }
-
   bool _isFieldSelected(String field) {
-    return _selectedFields.contains(field);
+    return _selectedSourceFields(widget.mappings).contains(field);
   }
 
   Set<String> _selectedSourceFields(List<ExportFieldMapping> mappings) {
@@ -524,48 +427,54 @@ class _AvailableFieldsSectionState
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Insert Source Field',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: SizedBox(
+              key: const ValueKey('available-fields-header'),
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Insert Source Field',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
                   ),
-                ),
-                Flexible(
-                  child: DropdownButton<String>(
-                    value: _fieldDisplayOption,
-                    isDense: true,
-                    isExpanded: true,
-                    underline: const SizedBox.shrink(),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'full',
-                        child: Text(
-                          'Table::Field',
-                          style: TextStyle(fontSize: 12.0),
+                  Flexible(
+                    child: DropdownButton<String>(
+                      value: _fieldDisplayOption,
+                      isDense: true,
+                      isExpanded: true,
+                      underline: const SizedBox.shrink(),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'full',
+                          child: Text(
+                            'Table::Field',
+                            style: TextStyle(fontSize: 12.0),
+                          ),
                         ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'short',
-                        child: Text(
-                          'Field Only',
-                          style: TextStyle(fontSize: 12.0),
+                        DropdownMenuItem(
+                          value: 'short',
+                          child: Text(
+                            'Field Only',
+                            style: TextStyle(fontSize: 12.0),
+                          ),
                         ),
-                      ),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() {
-                          _fieldDisplayOption = v;
-                        });
-                      }
-                    },
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() {
+                            _fieldDisplayOption = v;
+                          });
+                        }
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const Divider(height: 1.0),
@@ -605,31 +514,13 @@ class _AvailableFieldsSectionState
                       ),
                       onChanged: (bool? val) {
                         if (val != null) {
-                          setState(() {
-                            if (val) {
-                              _selectedFields.add(field);
-                            } else {
-                              _selectedFields.remove(field);
-                            }
-                          });
+                          widget.onFieldToggled(field, val);
                         }
                       },
                     );
                   }).toList(),
                 );
               },
-            ),
-          ),
-          const Divider(height: 1.0),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton.icon(
-                onPressed: () => widget.onApplyFields(_selectedFields),
-                icon: const Icon(Icons.check),
-                label: const Text('Apply source fields'),
-              ),
             ),
           ),
         ],
@@ -723,6 +614,344 @@ Map<String, List<String>> _nestedFieldGroups(
   return Map<String, List<String>>.from(groups);
 }
 
+Map<String, List<String>> _fieldGroupsWithValue(
+  Map<String, List<String>> groups,
+  String? value,
+) {
+  final result = {
+    for (final entry in groups.entries)
+      entry.key: List<String>.from(entry.value),
+  };
+  if (value == null || value.trim().isEmpty) return result;
+
+  final normalized = value.trim();
+  if (result.values.any((fields) => fields.contains(normalized))) {
+    return result;
+  }
+  final table = _fieldTableName(normalized);
+  result.putIfAbsent(table, () => <String>[]).add(normalized);
+  return result;
+}
+
+Map<String, List<String>> _withoutField(
+  Map<String, List<String>> groups,
+  String? excludedField,
+) {
+  if (excludedField == null || excludedField.trim().isEmpty) return groups;
+  final normalized = excludedField.trim().toLowerCase();
+  return {
+    for (final entry in groups.entries)
+      if (entry.value.any((field) => field.toLowerCase() != normalized))
+        entry.key: entry.value
+            .where((field) => field.toLowerCase() != normalized)
+            .toList(growable: false),
+  };
+}
+
+String _fieldTableName(String value) {
+  final separator = value.indexOf('::');
+  return separator == -1 ? 'Other fields' : value.substring(0, separator);
+}
+
+String _fieldDisplayName(String value) {
+  final separator = value.lastIndexOf('::');
+  return separator == -1 ? value : value.substring(separator + 2);
+}
+
+Future<String?> _showGroupedFieldPicker(
+  BuildContext context, {
+  required String title,
+  required Map<String, List<String>> groups,
+  String? selectedValue,
+}) {
+  final content = _GroupedFieldPickerContent(
+    title: title,
+    groups: groups,
+    selectedValue: selectedValue,
+  );
+  if (MediaQuery.sizeOf(context).width > 600) {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => Dialog(
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        child: SizedBox(width: 520, height: 560, child: content),
+      ),
+    );
+  }
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => SafeArea(
+      child: Material(
+        color: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * .8,
+          child: content,
+        ),
+      ),
+    ),
+  );
+}
+
+class _GroupedFieldPicker extends StatelessWidget {
+  const _GroupedFieldPicker({
+    super.key,
+    required this.value,
+    required this.groups,
+    required this.decoration,
+    required this.onChanged,
+  });
+
+  final String? value;
+  final Map<String, List<String>> groups;
+  final InputDecoration decoration;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayValue = value == null ? null : _fieldDisplayName(value!);
+    final tableName = value == null ? null : _fieldTableName(value!);
+    return Semantics(
+      button: true,
+      label: decoration.labelText,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: () async {
+          final selected = await _showGroupedFieldPicker(
+            context,
+            title: decoration.labelText ?? 'Select field',
+            groups: groups,
+            selectedValue: value,
+          );
+          if (selected != null) onChanged(selected);
+        },
+        child: InputDecorator(
+          decoration: decoration.copyWith(
+              suffixIcon: const Icon(Icons.arrow_drop_down)),
+          isEmpty: displayValue == null,
+          child: displayValue == null
+              ? Text(
+                  'Choose a field',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(displayValue, overflow: TextOverflow.ellipsis),
+                    Text(
+                      tableName!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupedFieldPickerContent extends StatefulWidget {
+  const _GroupedFieldPickerContent({
+    required this.title,
+    required this.groups,
+    required this.selectedValue,
+  });
+
+  final String title;
+  final Map<String, List<String>> groups;
+  final String? selectedValue;
+
+  @override
+  State<_GroupedFieldPickerContent> createState() =>
+      _GroupedFieldPickerContentState();
+}
+
+class _GroupedFieldPickerContentState
+    extends State<_GroupedFieldPickerContent> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _searchController.addListener(_onQueryChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController
+      ..removeListener(_onQueryChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onQueryChanged() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredGroups = _filteredGroups();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Close field picker',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+          child: TextField(
+            controller: _searchController,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Search fields or tables',
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: filteredGroups.isEmpty
+              ? const Center(child: Text('No matching fields.'))
+              : ListView(
+                  children: [
+                    for (final entry in filteredGroups.entries) ...[
+                      Container(
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerLow,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          entry.key,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                      ),
+                      for (final field in entry.value)
+                        ListTile(
+                          title: Text(_fieldDisplayName(field)),
+                          subtitle: Text(entry.key),
+                          selected: field == widget.selectedValue,
+                          onTap: () => Navigator.pop(context, field),
+                        ),
+                    ],
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+
+  Map<String, List<String>> _filteredGroups() {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return widget.groups;
+    final matches = <String, List<String>>{};
+    for (final entry in widget.groups.entries) {
+      final tableMatches = entry.key.toLowerCase().contains(query);
+      final fields = tableMatches
+          ? entry.value
+          : entry.value
+              .where((field) =>
+                  _fieldDisplayName(field).toLowerCase().contains(query))
+              .toList(growable: false);
+      if (fields.isNotEmpty) matches[entry.key] = fields;
+    }
+    return matches;
+  }
+}
+
+class _SelectedMappingsHeader extends StatelessWidget {
+  const _SelectedMappingsHeader({
+    super.key,
+    required this.canAddNested,
+    required this.onAddCombined,
+    required this.onAddNested,
+  });
+
+  final bool canAddNested;
+  final VoidCallback onAddCombined;
+  final VoidCallback onAddNested;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compactActions = constraints.maxWidth < 440;
+        final title = Text(
+          'Selected Mappings',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        );
+        if (compactActions) {
+          return Row(
+            children: [
+              Expanded(child: title),
+              IconButton(
+                tooltip: 'Add combined',
+                onPressed: onAddCombined,
+                icon: const Icon(Icons.merge_type_outlined),
+              ),
+              IconButton(
+                tooltip: 'Add nested',
+                onPressed: canAddNested ? onAddNested : null,
+                icon: const Icon(Icons.account_tree_outlined),
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: title),
+            TextButton.icon(
+              onPressed: onAddCombined,
+              icon: const Icon(Icons.merge_type_outlined),
+              label: const Text('Add combined'),
+            ),
+            TextButton.icon(
+              onPressed: canAddNested ? onAddNested : null,
+              icon: const Icon(Icons.account_tree_outlined),
+              label: const Text('Add nested'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _ExportMappingCard extends StatelessWidget {
   const _ExportMappingCard({
     super.key,
@@ -755,40 +984,52 @@ class _ExportMappingCard extends StatelessWidget {
           : 'One column · ${mapping.formatOption} separator';
       icon = Icons.view_column_outlined;
     } else {
-      title = 'Field: ${mapping.expression}';
+      title = isDirectExportSourceExpression(mapping.expression)
+          ? 'Field: ${mapping.expression}'
+          : 'Combined: ${mapping.expression}';
       subtitle =
           'Format: ${mapping.textType} · Options: ${mapping.formatOption}';
       icon = Icons.grid_on_outlined;
     }
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        leading: Icon(icon, color: colorScheme.primary),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Material(
+        color: colorScheme.surfaceContainerLow,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: colorScheme.outlineVariant),
         ),
-        subtitle: Text(
-          subtitle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              tooltip: 'Customize',
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: onCustomize,
-            ),
-            IconButton(
-              tooltip: 'Remove',
-              icon: const Icon(Icons.delete_outline),
-              onPressed: onRemove,
-            ),
-            const Icon(Icons.drag_handle),
-          ],
+        child: ListTile(
+          leading: Icon(icon, color: colorScheme.primary),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: 'Customize',
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: onCustomize,
+              ),
+              IconButton(
+                tooltip: 'Remove',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: onRemove,
+              ),
+              const Icon(Icons.drag_handle),
+            ],
+          ),
         ),
       ),
     );
@@ -816,6 +1057,7 @@ class _MappingCustomizerForm extends ConsumerStatefulWidget {
     required this.allowExpandRows,
     required this.onSave,
     required this.onCancel,
+    this.initialMappingKind,
   });
 
   final ExportFieldMapping mapping;
@@ -825,6 +1067,7 @@ class _MappingCustomizerForm extends ConsumerStatefulWidget {
   final bool allowExpandRows;
   final ValueChanged<ExportFieldMapping> onSave;
   final VoidCallback onCancel;
+  final String? initialMappingKind;
 
   @override
   ConsumerState<_MappingCustomizerForm> createState() =>
@@ -848,11 +1091,14 @@ class _MappingCustomizerFormState
   void initState() {
     super.initState();
     _localMapping = widget.mapping;
-    _mappingKind = _localMapping.isNested
-        ? 'nested'
-        : _localMapping.textType == 'list'
-            ? 'list'
-            : 'scalar';
+    _mappingKind = widget.initialMappingKind ??
+        (_localMapping.isNested
+            ? 'nested'
+            : _localMapping.textType == 'list'
+                ? 'list'
+                : isDirectExportSourceExpression(_localMapping.expression)
+                    ? 'scalar'
+                    : 'combined');
 
     _expressionController =
         TextEditingController(text: _localMapping.expression);
@@ -891,11 +1137,8 @@ class _MappingCustomizerFormState
       widget.recordType,
       widget.specimenRecordType,
     );
-    final allFields = groups.values.expand((fields) => fields).toList();
     final selectedSource = _exactSourceField(_expressionController.text);
-    if (selectedSource != null && !allFields.contains(selectedSource)) {
-      allFields.add(selectedSource);
-    }
+    final sourceGroups = _fieldGroupsWithValue(groups, selectedSource);
     final namespace = _nestedNamespaceController.text.trim();
     final nestedGroups = _nestedFieldGroups(groups);
     if (namespace.isNotEmpty &&
@@ -927,34 +1170,27 @@ class _MappingCustomizerFormState
           decoration: const InputDecoration(labelText: 'Mapping type'),
           items: const [
             DropdownMenuItem(value: 'scalar', child: Text('Single field')),
+            DropdownMenuItem(
+              value: 'combined',
+              child: Text('Combined fields'),
+            ),
             DropdownMenuItem(value: 'list', child: Text('List field')),
             DropdownMenuItem(value: 'nested', child: Text('Nested records')),
           ],
           onChanged: (value) => value == null ? null : _setMappingKind(value),
         ),
         const SizedBox(height: 16),
-        if (_mappingKind != 'nested') ...[
-          DropdownButtonFormField<String>(
+        if (_mappingKind == 'scalar' || _mappingKind == 'list') ...[
+          _GroupedFieldPicker(
             key: ValueKey('source-$selectedSource'),
-            initialValue:
-                selectedSource != null && allFields.contains(selectedSource)
-                    ? selectedSource
-                    : null,
-            isExpanded: true,
+            value: selectedSource,
+            groups: sourceGroups,
             decoration: const InputDecoration(
               labelText: 'Source field',
               helperText: 'Choose the NAHPU field that supplies this column.',
             ),
-            items: allFields
-                .map((field) => DropdownMenuItem(
-                      value: field,
-                      child: Text(field, overflow: TextOverflow.ellipsis),
-                    ))
-                .toList(),
             onChanged: (value) {
-              if (value != null) {
-                setState(() => _expressionController.text = '[$value]');
-              }
+              setState(() => _expressionController.text = '[$value]');
             },
           ),
           const SizedBox(height: 12),
@@ -1054,7 +1290,7 @@ class _MappingCustomizerFormState
                 ),
                 DropdownMenuItem(
                   value: kConditionalBracketExportTextType,
-                  child: Text('Can be inaccurate measurement'),
+                  child: Text('Conditional brackets'),
                 ),
               ],
               onChanged: (value) {
@@ -1082,7 +1318,7 @@ class _MappingCustomizerFormState
                 kConditionalBracketExportTextType) ...[
               const SizedBox(height: 12),
               _ConditionalBracketControls(
-                allFields: allFields,
+                fieldGroups: groups,
                 targetField: selectedSource,
                 conditions: _localMapping.bracketConditions,
                 mode: _localMapping.bracketConditionMode,
@@ -1095,6 +1331,25 @@ class _MappingCustomizerFormState
               ),
             ],
           ],
+        ] else if (_mappingKind == 'combined') ...[
+          _ConcatenatedExpressionComposer(
+            expression: _expressionController.text,
+            fieldGroups: groups,
+            onChanged: (expression) => setState(() {
+              _expressionController.text = expression;
+              _localMapping = _localMapping.copyWith(textType: 'normal');
+            }),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _headerController,
+            onChanged: (_) => setState(() {}),
+            decoration: const InputDecoration(
+              labelText: 'Column name',
+              helperText:
+                  'Name the output column containing the combined value.',
+            ),
+          ),
         ] else ...[
           DropdownButtonFormField<String>(
             key: ValueKey('namespace-$namespace'),
@@ -1334,9 +1589,9 @@ class _MappingCustomizerFormState
               child: const Text('Cancel'),
             ),
             const SizedBox(width: 8),
-            ElevatedButton(
+            FilledButton(
               onPressed: canSave ? _submit : null,
-              child: const Text('Save'),
+              child: const Text('Done'),
             ),
           ],
         ),
@@ -1358,7 +1613,11 @@ class _MappingCustomizerFormState
     } else {
       finalMapping = _localMapping.copyWith(
         expression: _expressionController.text.trim(),
-        textType: _mappingKind == 'list' ? 'list' : _localMapping.textType,
+        textType: switch (_mappingKind) {
+          'list' => 'list',
+          'combined' => 'normal',
+          _ => _localMapping.textType,
+        },
         clearNestedNamespace: true,
         headerOverride: _headerController.text.trim(),
         clearHeaderOverride: _headerController.text.trim().isEmpty,
@@ -1448,7 +1707,14 @@ class _MappingCustomizerFormState
       return '';
     }
     if (_expressionController.text.trim().isEmpty) {
-      return 'Choose a source field.';
+      return _mappingKind == 'combined'
+          ? 'Add at least one source field.'
+          : 'Choose a source field.';
+    }
+    if (_mappingKind == 'combined' &&
+        !parseExportExpression(_expressionController.text)
+            .any((segment) => segment.isField)) {
+      return 'Combined values must include at least one source field.';
     }
     if (_mappingKind == 'list' &&
         _localMapping.listMode == ListExportMode.spreadColumns &&
@@ -1458,7 +1724,7 @@ class _MappingCustomizerFormState
     if (_localMapping.textType == kConditionalBracketExportTextType) {
       final target = _exactSourceField(_expressionController.text);
       if (target == null) {
-        return 'Can be inaccurate measurements require exactly one source field.';
+        return 'Conditional brackets require exactly one source field.';
       }
       if (_localMapping.bracketConditions.isEmpty) {
         return 'Add at least one bracket condition.';
@@ -1504,17 +1770,200 @@ class _MappingCustomizerFormState
   }
 }
 
-/// Edits the field comparisons that control an inaccurate measurement value.
+class _ConcatenatedExpressionComposer extends StatefulWidget {
+  const _ConcatenatedExpressionComposer({
+    required this.expression,
+    required this.fieldGroups,
+    required this.onChanged,
+  });
+
+  final String expression;
+  final Map<String, List<String>> fieldGroups;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_ConcatenatedExpressionComposer> createState() =>
+      _ConcatenatedExpressionComposerState();
+}
+
+class _ConcatenatedExpressionComposerState
+    extends State<_ConcatenatedExpressionComposer> {
+  late List<ExportExpressionSegment> _segments;
+  late List<int> _segmentIds;
+  int _nextSegmentId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _segments = parseExportExpression(widget.expression);
+    _segmentIds = List.generate(_segments.length, (_) => _nextSegmentId++);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ConcatenatedExpressionComposer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.expression != oldWidget.expression &&
+        widget.expression != serializeExportExpression(_segments)) {
+      _segments = parseExportExpression(widget.expression);
+      _segmentIds = List.generate(_segments.length, (_) => _nextSegmentId++);
+    }
+  }
+
+  void _notify() => widget.onChanged(serializeExportExpression(_segments));
+
+  Future<void> _addField() async {
+    final field = await _showGroupedFieldPicker(
+      context,
+      title: 'Add source field',
+      groups: widget.fieldGroups,
+    );
+    if (field == null || !mounted) return;
+    setState(() {
+      _segments.add(ExportExpressionSegment.field(field));
+      _segmentIds.add(_nextSegmentId++);
+    });
+    _notify();
+  }
+
+  void _addText() {
+    setState(() {
+      _segments.add(const ExportExpressionSegment.text(''));
+      _segmentIds.add(_nextSegmentId++);
+    });
+  }
+
+  void _remove(int index) {
+    setState(() {
+      _segments.removeAt(index);
+      _segmentIds.removeAt(index);
+    });
+    _notify();
+  }
+
+  void _move(int index, int offset) {
+    setState(() {
+      final segment = _segments.removeAt(index);
+      final segmentId = _segmentIds.removeAt(index);
+      _segments.insert(index + offset, segment);
+      _segmentIds.insert(index + offset, segmentId);
+    });
+    _notify();
+  }
+
+  void _setText(int index, String value) {
+    _segments[index] = ExportExpressionSegment.text(value);
+    _notify();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Combined value', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 4),
+        const Text(
+          'Fields and text are emitted left to right. Add as many segments as needed.',
+        ),
+        const SizedBox(height: 8),
+        if (_segments.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text('Add a source field to begin.'),
+          ),
+        ..._segments.asMap().entries.map((entry) {
+          final index = entry.key;
+          final segment = entry.value;
+          final segmentId = _segmentIds[index];
+          return Material(
+            key: ValueKey('combined-segment-$segmentId'),
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                children: [
+                  Icon(segment.isField ? Icons.data_object : Icons.text_fields),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: segment.isField
+                        ? Text(segment.value)
+                        : TextFormField(
+                            key: ValueKey('combined-text-$segmentId'),
+                            initialValue: segment.value,
+                            decoration: const InputDecoration(
+                              labelText: 'Text or separator',
+                              isDense: true,
+                            ),
+                            onChanged: (value) => _setText(index, value),
+                          ),
+                  ),
+                  IconButton(
+                    tooltip: 'Move segment up',
+                    onPressed: index == 0 ? null : () => _move(index, -1),
+                    icon: const Icon(Icons.arrow_upward),
+                  ),
+                  IconButton(
+                    tooltip: 'Move segment down',
+                    onPressed: index == _segments.length - 1
+                        ? null
+                        : () => _move(index, 1),
+                    icon: const Icon(Icons.arrow_downward),
+                  ),
+                  IconButton(
+                    tooltip: 'Remove segment',
+                    onPressed: () => _remove(index),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+        Wrap(
+          spacing: 8,
+          children: [
+            OutlinedButton.icon(
+              onPressed: _addField,
+              icon: const Icon(Icons.add),
+              label: const Text('Add field'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _addText,
+              icon: const Icon(Icons.add),
+              label: const Text('Add text'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Expression: ${serializeExportExpression(_segments)}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
+/// Edits the comparisons that control conditional brackets around a value.
 class _ConditionalBracketControls extends StatelessWidget {
   const _ConditionalBracketControls({
-    required this.allFields,
+    required this.fieldGroups,
     required this.targetField,
     required this.conditions,
     required this.mode,
     required this.onChanged,
   });
 
-  final List<String> allFields;
+  final Map<String, List<String>> fieldGroups;
   final String? targetField;
   final List<ConditionalBracketCondition> conditions;
   final ConditionalMatchMode mode;
@@ -1525,9 +1974,7 @@ class _ConditionalBracketControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sourceFields = allFields
-        .where((field) => field.toLowerCase() != targetField?.toLowerCase())
-        .toList(growable: false);
+    final sourceGroups = _withoutField(fieldGroups, targetField);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1560,7 +2007,7 @@ class _ConditionalBracketControls extends StatelessWidget {
           _ConditionRow(
             key: ValueKey('bracket-condition-$index'),
             condition: conditions[index],
-            fields: sourceFields,
+            fieldGroups: sourceGroups,
             onChanged: (next) {
               final updated =
                   List<ConditionalBracketCondition>.from(conditions);
@@ -1603,20 +2050,20 @@ class _ConditionRow extends StatelessWidget {
   const _ConditionRow({
     super.key,
     required this.condition,
-    required this.fields,
+    required this.fieldGroups,
     required this.onChanged,
     required this.onRemove,
   });
 
   final ConditionalBracketCondition condition;
-  final List<String> fields;
+  final Map<String, List<String>> fieldGroups;
   final ValueChanged<ConditionalBracketCondition> onChanged;
   final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
     final selected =
-        fields.contains(condition.sourceField) ? condition.sourceField : null;
+        condition.sourceField.trim().isEmpty ? null : condition.sourceField;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Wrap(
@@ -1626,21 +2073,13 @@ class _ConditionRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 240,
-            child: DropdownButtonFormField<String>(
+            child: _GroupedFieldPicker(
               key: ValueKey('condition-field-${condition.sourceField}'),
-              initialValue: selected,
-              isExpanded: true,
+              value: selected,
+              groups: _fieldGroupsWithValue(fieldGroups, selected),
               decoration: const InputDecoration(labelText: 'Controlling field'),
-              items: fields
-                  .map((field) => DropdownMenuItem(
-                        value: field,
-                        child: Text(field, overflow: TextOverflow.ellipsis),
-                      ))
-                  .toList(growable: false),
               onChanged: (value) {
-                if (value != null) {
-                  onChanged(condition.copyWith(sourceField: value));
-                }
+                onChanged(condition.copyWith(sourceField: value));
               },
             ),
           ),
@@ -1781,7 +2220,7 @@ class _MappingOutputExample extends StatelessWidget {
             ? namespace.trim()
             : source ?? '';
     if (base.isEmpty) return const [];
-    if (mappingKind == 'scalar') return [base];
+    if (mappingKind == 'scalar' || mappingKind == 'combined') return [base];
     if (mappingKind == 'list') {
       if (listMode == ListExportMode.concatenate) return [base];
       return List.generate(3, (index) => _indexed(base, index + 1));
@@ -1820,6 +2259,7 @@ class _MappingCustomizerDialog extends StatelessWidget {
     required this.headerFormat,
     required this.allowExpandRows,
     required this.onSave,
+    this.initialMappingKind,
   });
 
   final ExportFieldMapping mapping;
@@ -1828,6 +2268,7 @@ class _MappingCustomizerDialog extends StatelessWidget {
   final ExportHeaderFormat headerFormat;
   final bool allowExpandRows;
   final ValueChanged<ExportFieldMapping> onSave;
+  final String? initialMappingKind;
 
   @override
   Widget build(BuildContext context) {
@@ -1849,6 +2290,7 @@ class _MappingCustomizerDialog extends StatelessWidget {
               Navigator.pop(context);
             },
             onCancel: () => Navigator.pop(context),
+            initialMappingKind: initialMappingKind,
           ),
         ),
       ),
@@ -1864,6 +2306,7 @@ class _MappingCustomizerBottomSheet extends StatelessWidget {
     required this.headerFormat,
     required this.allowExpandRows,
     required this.onSave,
+    this.initialMappingKind,
   });
 
   final ExportFieldMapping mapping;
@@ -1872,6 +2315,7 @@ class _MappingCustomizerBottomSheet extends StatelessWidget {
   final ExportHeaderFormat headerFormat;
   final bool allowExpandRows;
   final ValueChanged<ExportFieldMapping> onSave;
+  final String? initialMappingKind;
 
   @override
   Widget build(BuildContext context) {
@@ -1915,6 +2359,7 @@ class _MappingCustomizerBottomSheet extends StatelessWidget {
                 Navigator.pop(context);
               },
               onCancel: () => Navigator.pop(context),
+              initialMappingKind: initialMappingKind,
             ),
           ],
         ),

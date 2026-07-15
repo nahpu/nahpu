@@ -344,6 +344,68 @@ const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4};
 /// Scalar export format that conditionally wraps a populated value in brackets.
 const String kConditionalBracketExportTextType = 'conditionalBrackets';
 
+/// One visual segment of a scalar export expression.
+///
+/// The persisted representation remains the established template expression,
+/// such as `[personnel::initial]-[specimen::fieldNumber]`. Segments exist only
+/// to make that expression editable without requiring users to type brackets.
+class ExportExpressionSegment {
+  const ExportExpressionSegment.field(this.value) : isField = true;
+  const ExportExpressionSegment.text(this.value) : isField = false;
+
+  final String value;
+  final bool isField;
+}
+
+/// Splits an export expression into ordered field and literal-text segments.
+///
+/// An unmatched `[` is treated as literal text so existing advanced
+/// expressions are not discarded by the visual composer.
+List<ExportExpressionSegment> parseExportExpression(String expression) {
+  final segments = <ExportExpressionSegment>[];
+  var cursor = 0;
+  while (cursor < expression.length) {
+    final start = expression.indexOf('[', cursor);
+    if (start == -1) {
+      if (cursor < expression.length) {
+        segments
+            .add(ExportExpressionSegment.text(expression.substring(cursor)));
+      }
+      break;
+    }
+    if (start > cursor) {
+      segments.add(
+          ExportExpressionSegment.text(expression.substring(cursor, start)));
+    }
+    final end = expression.indexOf(']', start + 1);
+    if (end == -1) {
+      segments.add(ExportExpressionSegment.text(expression.substring(start)));
+      break;
+    }
+    final field = expression.substring(start + 1, end).trim();
+    if (field.isEmpty) {
+      segments.add(
+          ExportExpressionSegment.text(expression.substring(start, end + 1)));
+    } else {
+      segments.add(ExportExpressionSegment.field(field));
+    }
+    cursor = end + 1;
+  }
+  return segments;
+}
+
+/// Serializes visual expression segments into the backwards-compatible
+/// template expression used by the exporter.
+String serializeExportExpression(Iterable<ExportExpressionSegment> segments) =>
+    segments
+        .map(
+            (segment) => segment.isField ? '[${segment.value}]' : segment.value)
+        .join();
+
+bool isDirectExportSourceExpression(String expression) {
+  return RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(expression);
+}
+
 /// A single ordered output mapping in a record export preset.
 ///
 /// Scalar mappings use [expression] exactly like a document text element: it

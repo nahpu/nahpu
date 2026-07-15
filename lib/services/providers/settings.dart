@@ -358,14 +358,17 @@ class ExportPresetNotifier
   }
 
   Future<void> savePreset(String name, ExportPresetModel preset) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await rust_config.setRecordExportPreset(
         name: name,
         preset: _mapModelToConfig(preset),
       );
-      return await _fetchSettings();
-    });
+      final current = state.asData?.value ?? await _fetchSettings();
+      state = AsyncValue.data({...current, name: preset});
+    } on Object catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
   }
 
   Future<void> deletePreset(String name) async {
@@ -374,6 +377,40 @@ class ExportPresetNotifier
       await rust_config.deleteRecordExportPreset(name: name);
       return await _fetchSettings();
     });
+  }
+
+  /// Renames a preset without risking deletion before its replacement exists.
+  ///
+  /// redb does not currently expose a transactional rename operation, so write
+  /// the replacement first and delete the old key only after that succeeds.
+  Future<void> renamePreset(
+    String previousName,
+    String nextName,
+    ExportPresetModel preset,
+  ) async {
+    if (previousName == nextName) {
+      await savePreset(nextName, preset);
+      return;
+    }
+
+    final current = state.asData?.value ?? await _fetchSettings();
+    if (current.containsKey(nextName)) {
+      throw StateError('A preset named "$nextName" already exists.');
+    }
+
+    try {
+      await rust_config.setRecordExportPreset(
+        name: nextName,
+        preset: _mapModelToConfig(preset),
+      );
+      await rust_config.deleteRecordExportPreset(name: previousName);
+      state = AsyncValue.data({...current}
+        ..remove(previousName)
+        ..[nextName] = preset);
+    } on Object catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
   }
 
   ExportPresetModel? _mapConfigToModel(rust_config.ConfigExportPreset config) {

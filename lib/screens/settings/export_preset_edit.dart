@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/export_preset_fields.dart';
@@ -27,53 +29,64 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
 class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   late TextEditingController _nameController;
   late ExportPresetModel _preset;
+  final Map<int, String> _expectedPersistedNames = {};
+  int _editSession = 0;
+  Timer? _saveTimer;
+  _PendingPresetSave? _pendingSave;
+  Future<void> _saveChain = Future.value();
+  String? _ownRenameTarget;
+  late ExportPresetNotifier _presetNotifier;
+  AsyncValue<Map<String, ExportPresetModel>> _presetProviderState =
+      const AsyncValue.loading();
+  bool _isSaving = false;
+  String? _saveError;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.presetName);
     _preset = widget.initialPreset;
+    _expectedPersistedNames[_editSession] = widget.presetName;
+    _presetNotifier = ref.read(exportPresetNotifierProvider.notifier);
+    ref.listenManual(
+      exportPresetNotifierProvider,
+      (_, next) => _presetProviderState = next,
+      fireImmediately: true,
+    );
   }
 
   @override
   void didUpdateWidget(covariant ExportPresetEditForm oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.presetName != widget.presetName) {
+      final isOwnRename = _ownRenameTarget == widget.presetName;
+      _ownRenameTarget = null;
+      if (!isOwnRename) {
+        _flushPendingSave();
+        _editSession++;
+      }
       _nameController.text = widget.presetName;
-      _preset = widget.initialPreset;
+      _expectedPersistedNames[_editSession] = widget.presetName;
+      if (!isOwnRename) _preset = widget.initialPreset;
     }
   }
 
   @override
   void dispose() {
+    _saveTimer?.cancel();
+    final pending = _pendingSave;
+    final presets = _presetProviderState.asData?.value;
+    if (pending != null &&
+        presets?.containsKey(
+              _expectedPersistedNames[pending.editSession],
+            ) ==
+            true) {
+      _flushPendingSave(updateUi: false);
+    } else {
+      _pendingSave = null;
+    }
     _nameController.dispose();
     super.dispose();
-  }
-
-  bool _areMappingsEqual(
-      List<ExportFieldMapping> list1, List<ExportFieldMapping> list2) {
-    if (list1.length != list2.length) return false;
-    for (var i = 0; i < list1.length; i++) {
-      final m1 = list1[i];
-      final m2 = list2[i];
-      if (m1.expression != m2.expression ||
-          m1.headerOverride != m2.headerOverride ||
-          m1.textType != m2.textType ||
-          m1.formatOption != m2.formatOption ||
-          m1.caseFormat != m2.caseFormat ||
-          m1.nullFallbackOption != m2.nullFallbackOption ||
-          m1.customNullFallbackText != m2.customNullFallbackText ||
-          m1.nestedNamespace != m2.nestedNamespace ||
-          m1.nestedFields.join(',') != m2.nestedFields.join(',') ||
-          m1.nestedMode != m2.nestedMode ||
-          m1.listMode != m2.listMode ||
-          m1.indexedHeaderStyle != m2.indexedHeaderStyle ||
-          m1.fieldSeparator != m2.fieldSeparator ||
-          m1.recordSeparator != m2.recordSeparator) {
-        return false;
-      }
-    }
-    return true;
   }
 
   void _showPreview() async {
@@ -145,154 +158,174 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     SpecimenRecordType? specimenRecordType,
     ExportHeaderFormat? headerFormat,
     List<ExportFieldMapping>? mappings,
-  }) =>
-      setState(() {
-        _preset = ExportPresetModel(
-          recordType: recordType ?? _preset.recordType,
-          specimenRecordType: specimenRecordType ?? _preset.specimenRecordType,
-          headerFormat: headerFormat ?? _preset.headerFormat,
-          mappings: mappings ?? _preset.mappings,
-        );
-      });
+  }) {
+    setState(() {
+      _preset = ExportPresetModel(
+        recordType: recordType ?? _preset.recordType,
+        specimenRecordType: specimenRecordType ?? _preset.specimenRecordType,
+        headerFormat: headerFormat ?? _preset.headerFormat,
+        mappings: mappings ?? _preset.mappings,
+      );
+    });
+    _schedulePersist();
+  }
+
+  void _schedulePersist() {
+    _saveTimer?.cancel();
+    _pendingSave = _PendingPresetSave(
+      editSession: _editSession,
+      targetName: _nameController.text.trim(),
+      preset: _preset,
+    );
+    _saveTimer = Timer(const Duration(milliseconds: 400), _flushPendingSave);
+  }
+
+  Future<void> _flushPendingSave({bool updateUi = true}) {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    final pending = _pendingSave;
+    if (pending == null) return _saveChain;
+    _pendingSave = null;
+
+    if (pending.targetName.isEmpty) {
+      if (mounted && updateUi && pending.editSession == _editSession) {
+        setState(() => _saveError = 'Preset name cannot be empty.');
+      }
+      return _saveChain;
+    }
+
+    final sourceName =
+        _expectedPersistedNames[pending.editSession] ?? pending.targetName;
+    _expectedPersistedNames[pending.editSession] = pending.targetName;
+    _saveChain = _saveChain.then((_) async {
+      final isCurrentSession = pending.editSession == _editSession;
+      if (mounted && updateUi && isCurrentSession) {
+        setState(() {
+          _isSaving = true;
+          _saveError = null;
+        });
+      }
+      try {
+        if (pending.targetName == sourceName) {
+          await _presetNotifier.savePreset(pending.targetName, pending.preset);
+        } else {
+          await _presetNotifier.renamePreset(
+            sourceName,
+            pending.targetName,
+            pending.preset,
+          );
+          if (mounted &&
+              updateUi &&
+              isCurrentSession &&
+              widget.presetName == sourceName) {
+            _ownRenameTarget = pending.targetName;
+            widget.onPresetRenamed(sourceName, pending.targetName);
+          }
+        }
+        if (mounted && updateUi && isCurrentSession) {
+          setState(() => _isSaving = false);
+        }
+      } on Object catch (error) {
+        if (_expectedPersistedNames[pending.editSession] ==
+            pending.targetName) {
+          _expectedPersistedNames[pending.editSession] = sourceName;
+        }
+        if (mounted && updateUi && isCurrentSession) {
+          setState(() {
+            _isSaving = false;
+            _saveError = 'Couldn\'t save: $error';
+          });
+        }
+      }
+    });
+    return _saveChain;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        final hasChanges = _preset.mappings.length !=
-                widget.initialPreset.mappings.length ||
-            _nameController.text.trim() != widget.presetName ||
-            _preset.recordType != widget.initialPreset.recordType ||
-            _preset.specimenRecordType !=
-                widget.initialPreset.specimenRecordType ||
-            _preset.headerFormat != widget.initialPreset.headerFormat ||
-            !_areMappingsEqual(_preset.mappings, widget.initialPreset.mappings);
-
-        if (!hasChanges) {
-          Navigator.pop(context);
-          return;
-        }
-
-        final exit = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Unsaved Changes'),
-            content: const Text(
-              'You have unsaved changes to your preset settings. Are you sure you want to leave?',
+    return FormCard(
+      title: 'Edit ${widget.presetName}',
+      isExpanded: true,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Preset name'),
+              onChanged: (_) => _schedulePersist(),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                  foregroundColor:
-                      Theme.of(context).colorScheme.onErrorContainer,
-                ),
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Leave without saving'),
-              ),
-            ],
           ),
-        );
-
-        if (exit == true && context.mounted) {
-          Navigator.pop(context);
-        }
-      },
-      child: FormCard(
-        title: 'Edit ${widget.presetName}',
-        isExpanded: true,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Preset name'),
-              ),
-            ),
-            _PresetSettingsCard(
-              preset: _preset,
-              onRecordTypeChanged: (value) => _update(recordType: value),
-              onSpecimenRecordTypeChanged: (value) =>
-                  _update(specimenRecordType: value),
-              onHeaderFormatChanged: (value) => _update(headerFormat: value),
-            ),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: PrimaryButton(
-                      label: 'Edit Mappings',
-                      icon: Icons.list_alt_outlined,
-                      onPressed: () async {
-                        final updated = await Navigator.push<ExportPresetModel>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ExportPresetFieldsScreen(
-                              preset: _preset,
-                            ),
+          _PresetSettingsCard(
+            preset: _preset,
+            onRecordTypeChanged: (value) => _update(recordType: value),
+            onSpecimenRecordTypeChanged: (value) =>
+                _update(specimenRecordType: value),
+            onHeaderFormatChanged: (value) => _update(headerFormat: value),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: PrimaryButton(
+                    label: 'Edit Fields',
+                    icon: Icons.list_alt_outlined,
+                    onPressed: () async {
+                      final updated = await Navigator.push<ExportPresetModel>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ExportPresetFieldsScreen(
+                            preset: _preset,
+                            onPresetChanged: (updated) =>
+                                _update(mappings: updated.mappings),
                           ),
-                        );
-                        if (updated != null) {
-                          setState(() {
-                            _preset = updated;
-                          });
-                        }
-                      },
-                    ),
+                        ),
+                      );
+                      if (updated != null) _update(mappings: updated.mappings);
+                    },
                   ),
-                  const SizedBox(width: 12),
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.visibility_outlined),
-                    tooltip: 'Preview Export Table',
-                    onPressed: _showPreview,
-                  ),
-                ],
+                ),
+                const SizedBox(width: 12),
+                IconButton.filledTonal(
+                  icon: const Icon(Icons.visibility_outlined),
+                  tooltip: 'Preview Export Table',
+                  onPressed: _showPreview,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _saveError ?? (_isSaving ? 'Saving…' : 'Saved automatically'),
+                style: TextStyle(
+                  color: _saveError == null
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : Theme.of(context).colorScheme.error,
+                ),
               ),
             ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: PrimaryButton(
-                  label: 'Save', icon: Icons.save, onPressed: _save),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Future<void> _save() async {
-    final name = _nameController.text.trim();
-    final errors = validateExportPreset(_preset);
-    if (name.isEmpty) errors.insert(0, 'Preset name cannot be empty.');
-    if (errors.isNotEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(errors.join('\n'))));
-      return;
-    }
-    if (name != widget.presetName) {
-      await ref
-          .read(exportPresetNotifierProvider.notifier)
-          .deletePreset(widget.presetName);
-      widget.onPresetRenamed(widget.presetName, name);
-    }
-    await ref
-        .read(exportPresetNotifierProvider.notifier)
-        .savePreset(name, _preset);
-    if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Preset saved')));
-    }
-  }
+class _PendingPresetSave {
+  const _PendingPresetSave({
+    required this.editSession,
+    required this.targetName,
+    required this.preset,
+  });
+
+  final int editSession;
+  final String targetName;
+  final ExportPresetModel preset;
 }
 
 class _PresetSettingsCard extends StatelessWidget {
@@ -312,7 +345,17 @@ class _PresetSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
+      child: Material(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(

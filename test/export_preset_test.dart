@@ -5,6 +5,24 @@ import 'package:nahpu/services/types/export.dart';
 
 void main() {
   group('ExportPresetModel', () {
+    test('parses and serializes unlimited combined-field expression segments',
+        () {
+      final expression = serializeExportExpression([
+        const ExportExpressionSegment.field('personnel::initial'),
+        const ExportExpressionSegment.text('-'),
+        const ExportExpressionSegment.field('specimen::fieldNumber'),
+        for (var index = 0; index < 40; index++)
+          ExportExpressionSegment.field('specimen::note$index'),
+      ]);
+
+      final restored = parseExportExpression(expression);
+      expect(expression,
+          startsWith('[personnel::initial]-[specimen::fieldNumber]'));
+      expect(restored.where((segment) => segment.isField), hasLength(42));
+      expect(serializeExportExpression(restored), expression);
+      expect(isDirectExportSourceExpression(expression), isFalse);
+    });
+
     test('round trips the versioned preset mapping schema', () {
       const preset = ExportPresetModel(
         recordType: RecordType.specimenRecord,

@@ -26,5 +26,25 @@ void main() {
       expect(theme.colorScheme.secondary, mistySage);
       expect(theme.colorScheme.tertiary, mossShadow);
     });
+
+    testWidgets('standard cards are flat in light and dark NAHPU themes',
+        (tester) async {
+      for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: const Scaffold(body: Card(child: SizedBox(height: 20))),
+          ),
+        );
+
+        final material = tester.widget<Material>(
+          find.descendant(
+              of: find.byType(Card), matching: find.byType(Material)),
+        );
+        expect(material.elevation, 0);
+        expect(material.shadowColor, Colors.transparent);
+        expect(material.surfaceTintColor, Colors.transparent);
+      }
+    });
   });
 }

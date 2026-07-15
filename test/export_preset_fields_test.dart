@@ -42,7 +42,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Apply source fields'), findsOneWidget);
+    expect(find.text('Apply source fields'), findsNothing);
     expect(find.text('Preview'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Customize'));
@@ -60,5 +60,179 @@ void main() {
     expect(find.text('habitatType_1'), findsOneWidget);
     expect(find.text('habitatType_2'), findsOneWidget);
     expect(find.text('habitatType_3'), findsOneWidget);
+  });
+
+  testWidgets('customizing a scalar preserves its value format',
+      (tester) async {
+    const preset = ExportPresetModel(
+      recordType: RecordType.site,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [
+        ExportFieldMapping(
+          expression: '[site::siteID]',
+          textType: 'encoded',
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Done'));
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Format: encoded'), findsOneWidget);
+  });
+
+  testWidgets('combined text editors retain their values when reordered',
+      (tester) async {
+    const preset = ExportPresetModel(
+      recordType: RecordType.site,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [
+        ExportFieldMapping(
+          expression: '[site::siteID]-[site::siteName]/[site::country]',
+          headerOverride: 'combined',
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+
+    final secondTextCard = find.byKey(const ValueKey('combined-segment-3'));
+    final secondEditor = find.descendant(
+      of: secondTextCard,
+      matching: find.byType(EditableText),
+    );
+    expect(tester.widget<EditableText>(secondEditor).controller.text, '/');
+
+    await tester.tap(find.descendant(
+      of: secondTextCard,
+      matching: find.byTooltip('Move segment up'),
+    ));
+    await tester.pump();
+
+    final movedEditor = find.descendant(
+      of: find.byKey(const ValueKey('combined-segment-3')),
+      matching: find.byType(EditableText),
+    );
+    expect(tester.widget<EditableText>(movedEditor).controller.text, '/');
+    expect(
+        find.text(
+            'Expression: [site::siteID]-/[site::siteName][site::country]'),
+        findsOneWidget);
+  });
+
+  testWidgets('field picker groups results by table and stores full field keys',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const preset = ExportPresetModel(
+      recordType: RecordType.site,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [ExportFieldMapping(expression: '[site::siteID]')],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add combined'), findsOneWidget);
+    expect(find.text('Add nested'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('selected-mappings-header')),
+        matching: find.byType(Row),
+      ),
+      findsAtLeastNWidgets(1),
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('available-fields-header'))),
+      tester.getSize(find.byKey(const ValueKey('selected-mappings-header'))),
+    );
+
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('source-site::siteID')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Search fields or tables'), findsOneWidget);
+    expect(find.text('site'), findsWidgets);
+    expect(find.text('siteID'), findsWidgets);
+
+    final searchField = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField &&
+          widget.decoration?.labelText == 'Search fields or tables',
+    );
+    expect(searchField, findsOneWidget);
+    await tester.enterText(searchField, 'habitatType');
+    await tester.pumpAndSettle();
+    expect(find.text('habitatType'), findsAtLeastNWidgets(1));
+
+    await tester.tap(find.text('habitatType').last);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Done'));
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Field: [site::habitatType]'), findsOneWidget);
+  });
+
+  testWidgets('conditional brackets is the value-format label', (tester) async {
+    const preset = ExportPresetModel(
+      recordType: RecordType.site,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [ExportFieldMapping(expression: '[site::siteID]')],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Normal text'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Conditional brackets'), findsOneWidget);
+    expect(find.text('Can be inaccurate measurement'), findsNothing);
   });
 }
