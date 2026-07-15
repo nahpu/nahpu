@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -312610458;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 646962323;
 
 // Section: executor
 
@@ -351,6 +351,43 @@ fn wire__crate__api__config__delete_template_preset_impl(
             move |context| {
                 transform_result_sse::<_, String>((move || {
                     let output_ok = crate::api::config::delete_template_preset(api_name)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__delete_template_preset_with_replacement_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "delete_template_preset_with_replacement",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_name = <String>::sse_decode(&mut deserializer);
+            let api_replacement_name = <Option<String>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::delete_template_preset_with_replacement(
+                        api_name,
+                        api_replacement_name,
+                    )?;
                     Ok(output_ok)
                 })())
             }
@@ -808,6 +845,39 @@ fn wire__crate__api__config__get_template_preset_impl(
             move |context| {
                 transform_result_sse::<_, String>((move || {
                     let output_ok = crate::api::config::get_template_preset(api_name)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__get_template_preset_usages_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_template_preset_usages",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_name = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::get_template_preset_usages(api_name)?;
                     Ok(output_ok)
                 })())
             }
@@ -1994,6 +2064,18 @@ impl SseDecode for Vec<Vec<u8>> {
     }
 }
 
+impl SseDecode for Vec<i32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<i32>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2013,6 +2095,20 @@ impl SseDecode for Vec<(String, String)> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<(String, String)>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::config::TemplatePresetUsage> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::config::TemplatePresetUsage>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -2123,6 +2219,30 @@ impl SseDecode for crate::api::export::RecordWriter {
     }
 }
 
+impl SseDecode for crate::api::config::TemplatePresetDeletionResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_updatedLayoutCount = <i32>::sse_decode(deserializer);
+        let mut var_updatedBlockCount = <i32>::sse_decode(deserializer);
+        return crate::api::config::TemplatePresetDeletionResult {
+            updated_layout_count: var_updatedLayoutCount,
+            updated_block_count: var_updatedBlockCount,
+        };
+    }
+}
+
+impl SseDecode for crate::api::config::TemplatePresetUsage {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_layoutName = <String>::sse_decode(deserializer);
+        let mut var_blockIndices = <Vec<i32>>::sse_decode(deserializer);
+        return crate::api::config::TemplatePresetUsage {
+            layout_name: var_layoutName,
+            block_indices: var_blockIndices,
+        };
+    }
+}
+
 impl SseDecode for u32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2213,120 +2333,132 @@ fn pde_ffi_dispatcher_primary_impl(
         9 => {
             wire__crate__api__config__delete_template_preset_impl(port, ptr, rust_vec_len, data_len)
         }
-        10 => wire__crate__api__config__delete_user_config_impl(port, ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__gis__dms_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        12 => {
+        10 => wire__crate__api__config__delete_template_preset_with_replacement_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        11 => wire__crate__api__config__delete_user_config_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__gis__dms_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        13 => {
             wire__crate__api__config__export_config_to_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        13 => wire__crate__api__export__export_coordinates_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__config__export_document_layout_to_file_impl(
+        14 => wire__crate__api__export__export_coordinates_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__config__export_document_layout_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        15 => wire__crate__api__config__export_template_preset_to_file_impl(
+        16 => wire__crate__api__config__export_template_preset_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__config__get_all_document_layouts_impl(
+        17 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__config__get_all_document_layouts_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__config__get_all_record_export_presets_impl(
+        19 => wire__crate__api__config__get_all_record_export_presets_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__config__get_document_layout_statuses_impl(
+        20 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__config__get_document_layout_statuses_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => wire__crate__api__config__get_record_export_preset_impl(
+        22 => wire__crate__api__config__get_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        23 => {
+        23 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__config__get_template_preset_usages_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        25 => {
             wire__crate__api__config__get_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        24 => {
+        26 => {
             wire__crate__api__config__get_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        25 => wire__crate__api__config__import_config_from_file_impl(
+        27 => wire__crate__api__config__import_config_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => wire__crate__api__config__import_document_layout_from_file_impl(
+        28 => wire__crate__api__config__import_document_layout_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        27 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        29 => {
+        29 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        31 => {
             wire__crate__api__config__list_template_presets_impl(port, ptr, rust_vec_len, data_len)
         }
-        30 => wire__crate__api__export__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
-        31 => {
+        32 => wire__crate__api__export__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
+        33 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        34 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        33 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        35 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        34 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        36 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        35 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__config__set_record_export_preset_impl(
+        37 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__config__set_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        40 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        41 => {
+        42 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        43 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        42 => {
+        44 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        43 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        44 => {
+        45 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        46 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        45 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        47 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2596,6 +2728,48 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::export::RecordWriter>
     for crate::api::export::RecordWriter
 {
     fn into_into_dart(self) -> crate::api::export::RecordWriter {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::TemplatePresetDeletionResult {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.updated_layout_count.into_into_dart().into_dart(),
+            self.updated_block_count.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::TemplatePresetDeletionResult
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::TemplatePresetDeletionResult>
+    for crate::api::config::TemplatePresetDeletionResult
+{
+    fn into_into_dart(self) -> crate::api::config::TemplatePresetDeletionResult {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::TemplatePresetUsage {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.layout_name.into_into_dart().into_dart(),
+            self.block_indices.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::TemplatePresetUsage
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::TemplatePresetUsage>
+    for crate::api::config::TemplatePresetUsage
+{
+    fn into_into_dart(self) -> crate::api::config::TemplatePresetUsage {
         self
     }
 }
@@ -2889,6 +3063,16 @@ impl SseEncode for Vec<Vec<u8>> {
     }
 }
 
+impl SseEncode for Vec<i32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <i32>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2905,6 +3089,16 @@ impl SseEncode for Vec<(String, String)> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <(String, String)>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::config::TemplatePresetUsage> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::config::TemplatePresetUsage>::sse_encode(item, serializer);
         }
     }
 }
@@ -2990,6 +3184,22 @@ impl SseEncode for crate::api::export::RecordWriter {
         <Vec<String>>::sse_encode(self.column_names, serializer);
         <String>::sse_encode(self.export_format, serializer);
         <bool>::sse_encode(self.concatenate_multi_entries, serializer);
+    }
+}
+
+impl SseEncode for crate::api::config::TemplatePresetDeletionResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.updated_layout_count, serializer);
+        <i32>::sse_encode(self.updated_block_count, serializer);
+    }
+}
+
+impl SseEncode for crate::api::config::TemplatePresetUsage {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.layout_name, serializer);
+        <Vec<i32>>::sse_encode(self.block_indices, serializer);
     }
 }
 

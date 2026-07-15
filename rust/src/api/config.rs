@@ -66,6 +66,22 @@ pub struct DocumentLayoutStatus {
     pub error: Option<String>,
 }
 
+/// Identifies layout blocks that reference a template preset.
+pub struct TemplatePresetUsage {
+    /// Name of the print layout containing the references.
+    pub layout_name: String,
+    /// Zero-based indexes of blocks that reference the template.
+    pub block_indices: Vec<i32>,
+}
+
+/// Summarizes a template replacement and deletion operation.
+pub struct TemplatePresetDeletionResult {
+    /// Number of print layouts updated before deletion.
+    pub updated_layout_count: i32,
+    /// Number of template block references replaced.
+    pub updated_block_count: i32,
+}
+
 impl From<nahpu_configs::DocumentLayoutBlock> for DocumentLayoutBlock {
     fn from(b: nahpu_configs::DocumentLayoutBlock) -> Self {
         Self {
@@ -193,70 +209,77 @@ impl From<nahpu_configs::DocumentLayoutStatus> for DocumentLayoutStatus {
     }
 }
 
+impl From<nahpu_configs::TemplatePresetUsage> for TemplatePresetUsage {
+    fn from(usage: nahpu_configs::TemplatePresetUsage) -> Self {
+        Self {
+            layout_name: usage.layout_name,
+            block_indices: usage.block_indices,
+        }
+    }
+}
+
+impl From<nahpu_configs::TemplatePresetDeletionResult> for TemplatePresetDeletionResult {
+    fn from(result: nahpu_configs::TemplatePresetDeletionResult) -> Self {
+        Self {
+            updated_layout_count: result.updated_layout_count,
+            updated_block_count: result.updated_block_count,
+        }
+    }
+}
+
 /// Initializes the configuration database at the specified path.
 pub fn init_config_db(path: String) -> Result<(), String> {
     ConfigDb::init(&path)
 }
 
-/// Sets a user config list.
 pub fn set_user_config_list(key: String, value: Vec<String>) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.set_user_config_list(&key, &value)
 }
 
-/// Retrieves a user config list.
 pub fn get_user_config_list(key: String) -> Result<Option<Vec<String>>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_user_config_list(&key)?;
     Ok(res)
 }
 
-/// Sets a user config string.
 pub fn set_user_config_string(key: String, value: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.set_user_config_string(&key, &value)
 }
 
-/// Retrieves a user config string.
 pub fn get_user_config_string(key: String) -> Result<Option<String>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_user_config_string(&key)?;
     Ok(res)
 }
 
-/// Deletes a user config key.
 pub fn delete_user_config(key: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.delete_user_config(&key)
 }
 
-/// Saves a record export preset.
 pub fn set_record_export_preset(name: String, preset: ConfigExportPreset) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.set_record_export_preset(&name, &preset.into())
 }
 
-/// Retrieves a record export preset.
 pub fn get_record_export_preset(name: String) -> Result<Option<ConfigExportPreset>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_record_export_preset(&name)?;
     Ok(res.map(Into::into))
 }
 
-/// Deletes a record export preset.
 pub fn delete_record_export_preset(name: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.delete_record_export_preset(&name)
 }
-
-/// Retrieves all record export presets.
 pub fn get_all_record_export_presets() -> Result<Vec<ConfigPresetEntry>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_all_record_export_presets()?;
     Ok(res.into_iter().map(Into::into).collect())
 }
 
-/// Exports all user configs and document presets to a file in either JSON or JSON Lines format.
 pub fn export_config_to_file(file_path: String, is_json: bool) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     let export = db.export_configs()?;
@@ -271,7 +294,6 @@ pub fn export_config_to_file(file_path: String, is_json: bool) -> Result<(), Str
     Ok(())
 }
 
-/// Imports and replaces all user configs and document presets from a file.
 pub fn import_config_from_file(file_path: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     let content = std::fs::read_to_string(&file_path).map_err(|e| e.to_string())?;
@@ -288,14 +310,12 @@ pub fn import_config_from_file(file_path: String) -> Result<(), String> {
     Ok(())
 }
 
-/// Saves a template preset JSON string to the config database.
 pub fn set_template_preset(name: String, value: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     let val: serde_json::Value = serde_json::from_str(&value).map_err(|e| e.to_string())?;
     db.set_template_preset(&name, &val)
 }
 
-/// Retrieves a saved template preset as a JSON string.
 pub fn get_template_preset(name: String) -> Result<Option<String>, String> {
     let db = ConfigDb::get_instance()?;
     match db.get_template_preset(&name)? {
@@ -307,13 +327,28 @@ pub fn get_template_preset(name: String) -> Result<Option<String>, String> {
     }
 }
 
-/// Deletes a template preset.
 pub fn delete_template_preset(name: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.delete_template_preset(&name)
 }
 
-/// Lists all template preset names stored in the database.
+/// Lists every print layout block that references a template preset.
+pub fn get_template_preset_usages(name: String) -> Result<Vec<TemplatePresetUsage>, String> {
+    let db = ConfigDb::get_instance()?;
+    let usages = db.get_template_preset_usages(&name)?;
+    Ok(usages.into_iter().map(Into::into).collect())
+}
+
+/// Replaces references to a template preset and deletes it atomically.
+pub fn delete_template_preset_with_replacement(
+    name: String,
+    replacement_name: Option<String>,
+) -> Result<TemplatePresetDeletionResult, String> {
+    let db = ConfigDb::get_instance()?;
+    let result = db.delete_template_preset_with_replacement(&name, replacement_name.as_deref())?;
+    Ok(result.into())
+}
+
 pub fn list_template_presets() -> Result<Vec<String>, String> {
     let db = ConfigDb::get_instance()?;
     let presets = db.get_all_template_presets()?;
@@ -376,9 +411,7 @@ pub fn export_document_layout_to_file(
 }
 
 /// Imports a single document layout preset from a JSON file.
-pub fn import_document_layout_from_file(
-    file_path: String,
-) -> Result<DocumentLayoutPreset, String> {
+pub fn import_document_layout_from_file(file_path: String) -> Result<DocumentLayoutPreset, String> {
     let content = std::fs::read_to_string(&file_path).map_err(|e| e.to_string())?;
     let layout: nahpu_configs::models::DocumentLayoutPreset =
         serde_json::from_str(&content).map_err(|e| e.to_string())?;

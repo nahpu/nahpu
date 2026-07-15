@@ -518,12 +518,13 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                 final idx = entry.key;
                 final block = entry.value;
                 final isExpanded = _expandedBlocks[idx] ?? false;
-                final selectedTemplateName =
-                    widget.templateNames.contains(block.templateName)
-                        ? block.templateName
-                        : (widget.templateNames.isNotEmpty
-                            ? widget.templateNames.first
-                            : null);
+                final templateExists =
+                    widget.templateNames.contains(block.templateName);
+                final selectedTemplateName = block.templateName;
+                final templateNames = [
+                  if (!templateExists) block.templateName,
+                  ...widget.templateNames,
+                ];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Card(
@@ -591,24 +592,34 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       'block-template-$idx-${block.templateName}'),
                                   initialValue: selectedTemplateName,
                                   isExpanded: true,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     labelText: 'Template',
                                     border: OutlineInputBorder(),
                                     isDense: true,
+                                    errorText: templateExists
+                                        ? null
+                                        : 'This template no longer exists',
                                   ),
                                   selectedItemBuilder: (context) =>
-                                      widget.templateNames
+                                      templateNames
                                           .map((name) => Text(
-                                                name,
+                                                templateExists ||
+                                                        name !=
+                                                            block.templateName
+                                                    ? name
+                                                    : 'Missing: $name',
                                                 overflow: TextOverflow.ellipsis,
                                               ))
                                           .toList(),
-                                  items: widget.templateNames
+                                  items: templateNames
                                       .map(
                                         (name) => DropdownMenuItem<String>(
                                           value: name,
                                           child: Text(
-                                            name,
+                                            templateExists ||
+                                                    name != block.templateName
+                                                ? name
+                                                : 'Missing: $name',
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -624,7 +635,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                               ),
                               if (widget.onEditTemplate != null)
                                 IconButton.outlined(
-                                  onPressed: selectedTemplateName == null
+                                  onPressed: !templateExists
                                       ? null
                                       : () => widget.onEditTemplate!(
                                           selectedTemplateName),

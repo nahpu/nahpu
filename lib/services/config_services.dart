@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:nahpu/services/document_layout_service.dart';
+import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as path;
@@ -99,6 +100,8 @@ class ConfigDbService {
 
     final existingTemplateNames =
         (await rust_config.listTemplatePresets()).toSet();
+    final suppressedTemplateNames =
+        await const BundledTemplatePresetService().getSuppressedNames();
     final existingLayoutNames =
         (await const DocumentLayoutService().listLayoutStatuses())
             .map((status) => status.name)
@@ -117,6 +120,7 @@ class ConfigDbService {
         final template = Template.fromJson(
           Map<String, dynamic>.from(templateJson as Map),
         );
+        if (suppressedTemplateNames.contains(template.name)) continue;
         if (existingTemplateNames.contains(template.name)) continue;
         await rust_config.setTemplatePreset(
           name: template.name,

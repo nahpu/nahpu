@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Initializes the configuration database at the specified path.
 Future<void> initConfigDb({required String path}) =>
@@ -76,6 +76,17 @@ Future<String?> getTemplatePreset({required String name}) =>
 /// Deletes a template preset.
 Future<void> deleteTemplatePreset({required String name}) =>
     RustLib.instance.api.crateApiConfigDeleteTemplatePreset(name: name);
+
+/// Lists every print layout block that references a template preset.
+Future<List<TemplatePresetUsage>> getTemplatePresetUsages(
+        {required String name}) =>
+    RustLib.instance.api.crateApiConfigGetTemplatePresetUsages(name: name);
+
+/// Replaces references to a template preset and deletes it atomically.
+Future<TemplatePresetDeletionResult> deleteTemplatePresetWithReplacement(
+        {required String name, String? replacementName}) =>
+    RustLib.instance.api.crateApiConfigDeleteTemplatePresetWithReplacement(
+        name: name, replacementName: replacementName);
 
 /// Lists all template preset names stored in the database.
 Future<List<String>> listTemplatePresets() =>
@@ -339,4 +350,54 @@ class DocumentLayoutStatus {
           name == other.name &&
           isCompatible == other.isCompatible &&
           error == other.error;
+}
+
+/// Summarizes a template replacement and deletion operation.
+class TemplatePresetDeletionResult {
+  /// Number of print layouts updated before deletion.
+  final int updatedLayoutCount;
+
+  /// Number of template block references replaced.
+  final int updatedBlockCount;
+
+  const TemplatePresetDeletionResult({
+    required this.updatedLayoutCount,
+    required this.updatedBlockCount,
+  });
+
+  @override
+  int get hashCode => updatedLayoutCount.hashCode ^ updatedBlockCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TemplatePresetDeletionResult &&
+          runtimeType == other.runtimeType &&
+          updatedLayoutCount == other.updatedLayoutCount &&
+          updatedBlockCount == other.updatedBlockCount;
+}
+
+/// Identifies layout blocks that reference a template preset.
+class TemplatePresetUsage {
+  /// Name of the print layout containing the references.
+  final String layoutName;
+
+  /// Zero-based indexes of blocks that reference the template.
+  final Int32List blockIndices;
+
+  const TemplatePresetUsage({
+    required this.layoutName,
+    required this.blockIndices,
+  });
+
+  @override
+  int get hashCode => layoutName.hashCode ^ blockIndices.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TemplatePresetUsage &&
+          runtimeType == other.runtimeType &&
+          layoutName == other.layoutName &&
+          blockIndices == other.blockIndices;
 }

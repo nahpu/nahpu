@@ -14,6 +14,8 @@ import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_service.dart';
+import 'package:nahpu/services/templates/template_preset_management_service.dart';
+import 'package:nahpu/screens/settings/document_presets/template_preset_deletion.dart';
 import 'package:nahpu/services/templates/editor_service.dart';
 import 'package:nahpu/services/templates/canvas_placement_service.dart';
 import 'package:nahpu/services/templates/editor_history_service.dart';
@@ -1207,10 +1209,26 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   Future<void> _confirmDeleteTemplate() async {
     final name = _template.name.trim();
     if (!_canDeleteSavedTemplate) return;
-    final ok = await _editorService.confirmDeleteTemplate(context, name);
-    if (!ok || !mounted) return;
-    await _templateService.deleteTemplate(name);
+    final managementService = const TemplatePresetManagementService();
+    final summaries = await managementService.loadSummaries();
+    final usages = await managementService.getUsages(name);
+    if (!mounted) return;
+    final request = await showTemplatePresetDeletionDialog(
+      context: context,
+      target: _template,
+      usages: usages,
+      candidates: summaries,
+    );
+    if (request == null || !mounted) return;
+    await managementService.deleteTemplate(
+      name: request.name,
+      replacementName: request.replacementName,
+    );
     _savedNames = await _templateService.listTemplateNames();
+    if (request.replacementName != null) {
+      await _loadTemplate(request.replacementName!);
+      return;
+    }
     final fresh = DefaultTemplate.defaultTemplate();
     if (!mounted) return;
     await _documentSettings.setMirrorFront(false);
