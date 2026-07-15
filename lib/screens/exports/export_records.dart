@@ -439,7 +439,7 @@ class PresetPreviewPane extends StatelessWidget {
                     const SizedBox(height: 24),
                     Center(
                       child: PrimaryButton(
-                        label: 'See Table',
+                        label: 'Preview Table',
                         icon: Icons.table_chart_outlined,
                         onPressed: onSeeTable,
                       ),
