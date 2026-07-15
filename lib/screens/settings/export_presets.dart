@@ -43,7 +43,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Record Export Presets'),
+        title: const Text('Tabular Export Presets'),
       ),
       body: isLargeScreen
           ? Padding(
@@ -185,20 +185,10 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                               title: Text(name),
                               subtitle: Text(
                                   '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}'),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.qr_code),
-                                    tooltip: 'Show QR Code',
-                                    onPressed: () => _showQRCode(name, preset),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline),
-                                    tooltip: 'Delete',
-                                    onPressed: () => _deletePreset(name),
-                                  ),
-                                ],
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Delete',
+                                onPressed: () => _deletePreset(name),
                               ),
                               onTap: () {
                                 widget.onPresetSelected(name, preset);
@@ -277,31 +267,6 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
         widget.onPresetSelected(null, null);
       }
     }
-  }
-
-  void _showQRCode(String name, ExportPresetModel preset) {
-    final payload =
-        jsonEncode({'nahpu_export_preset': name, 'data': preset.toJson()});
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(name),
-        content: SizedBox(
-          width: 300,
-          height: 300,
-          child: QrImageView(
-            data: payload,
-            backgroundColor: Colors.white,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _importPresetFromQR(String rawValue) async {
