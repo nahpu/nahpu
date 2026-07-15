@@ -95,7 +95,7 @@ class ExportFormState extends ConsumerState<ExportForm>
                   },
                   onManagePresets: _managePresets,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 FileSettingsCard(
                   exportCtr: exportCtr,
                   selectedDir: _selectedDir,
@@ -316,31 +316,42 @@ class _PresetPicker extends StatelessWidget {
         ),
       );
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: selectedPresetName,
-          decoration: const InputDecoration(
-            labelText: 'Export preset',
-            helperText:
-                'Record type, headers, and field mappings are set by the preset.',
-          ),
-          items: presets.keys
-              .map((name) => DropdownMenuItem(value: name, child: Text(name)))
-              .toList(growable: false),
-          onChanged: onPresetChanged,
+    return Card(
+      elevation: 0,
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: selectedPresetName,
+              decoration: const InputDecoration(
+                labelText: 'Export preset',
+                helperText:
+                    'Record type, headers, and field mappings are set by the preset.',
+              ),
+              items: presets.keys
+                  .map((name) =>
+                      DropdownMenuItem(value: name, child: Text(name)))
+                  .toList(growable: false),
+              onChanged: onPresetChanged,
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onManagePresets,
+                icon: const Icon(Icons.settings_outlined, size: 16),
+                label: const Text('Manage presets'),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: onManagePresets,
-            icon: const Icon(Icons.settings_outlined, size: 16),
-            label: const Text('Manage presets'),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

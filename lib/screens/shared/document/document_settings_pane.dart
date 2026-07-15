@@ -100,7 +100,7 @@ class DocumentSettingsPane extends StatelessWidget {
                 onManagePresets: onManagePresets,
                 onEditTemplate: onEditTemplate,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               _FileSettingsSection(
                 exportCtr: exportCtr,
                 selectedDir: selectedDir,
@@ -312,6 +312,9 @@ class _SettingsPaneCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: child,
@@ -401,9 +404,12 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
     const isContinuous = false;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -414,7 +420,6 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
               selectedSetupName: widget.selectedSetupName,
               setupNames: widget.setupNames,
               incompatibleSetupNames: widget.incompatibleSetupNames,
-              fieldWidth: _wideFieldWidth,
               onSetupSelected: widget.onSetupSelected,
               onManagePresets: widget.onManagePresets,
             ),
@@ -463,20 +468,10 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                     'Layout Blocks',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      TextButton.icon(
-                        onPressed: widget.onCreateTemplate,
-                        icon: const Icon(Icons.edit_note_outlined),
-                        label: const Text('Create Preset'),
-                      ),
-                      TextButton.icon(
-                        onPressed: _addBlock,
-                        icon: const Icon(Icons.add_circle_outline),
-                        label: const Text('Add Block'),
-                      ),
-                    ],
+                  TextButton.icon(
+                    onPressed: _addBlock,
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text('Add Block'),
                   ),
                 ],
               ),
@@ -1016,7 +1011,6 @@ class _LayoutProfileControls extends StatelessWidget {
     required this.selectedSetupName,
     required this.setupNames,
     required this.incompatibleSetupNames,
-    required this.fieldWidth,
     required this.onSetupSelected,
     required this.onManagePresets,
   });
@@ -1024,7 +1018,6 @@ class _LayoutProfileControls extends StatelessWidget {
   final String selectedSetupName;
   final List<String> setupNames;
   final Set<String> incompatibleSetupNames;
-  final double fieldWidth;
   final ValueChanged<String> onSetupSelected;
   final VoidCallback? onManagePresets;
 
@@ -1038,44 +1031,41 @@ class _LayoutProfileControls extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            _ResponsiveFieldBox(
-              width: fieldWidth,
-              child: DropdownButtonFormField<String>(
-                key: ValueKey('setup-$selectedSetupName'),
-                initialValue: selectedSetupName,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Layout profile',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                selectedItemBuilder: (context) => setupNames
-                    .map((n) => _setupDropdownText(context, n))
-                    .toList(),
-                items: setupNames
-                    .map(
-                      (n) => DropdownMenuItem<String>(
-                        value: n,
-                        child: _setupDropdownText(context, n),
-                      ),
-                    )
-                    .toList(),
-                onChanged: _selectSetup,
-              ),
+        SizedBox(
+          width: double.infinity,
+          child: DropdownButtonFormField<String>(
+            key: ValueKey('setup-$selectedSetupName'),
+            initialValue: selectedSetupName,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Layout profile',
+              helperText:
+                  'Page settings and template blocks are set by the profile.',
             ),
-            if (onManagePresets != null)
-              OutlinedButton.icon(
-                onPressed: onManagePresets,
-                icon: const Icon(Icons.description_outlined),
-                label: const Text('Manage presets'),
-              ),
-          ],
+            selectedItemBuilder: (context) =>
+                setupNames.map((n) => _setupDropdownText(context, n)).toList(),
+            items: setupNames
+                .map(
+                  (n) => DropdownMenuItem<String>(
+                    value: n,
+                    child: _setupDropdownText(context, n),
+                  ),
+                )
+                .toList(),
+            onChanged: _selectSetup,
+          ),
         ),
+        if (onManagePresets != null) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onManagePresets,
+              icon: const Icon(Icons.settings_outlined, size: 16),
+              label: const Text('Manage presets'),
+            ),
+          ),
+        ],
       ],
     );
   }
