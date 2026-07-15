@@ -7,11 +7,12 @@ void main() {
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: QrImageView(data: List.filled(30000, 'x').join()),
+        home: QrImageView(data: List.filled(60000, 'x').join()),
       ),
     );
 
-    expect(find.text('QR data is too large'), findsOneWidget);
+    expect(
+        find.textContaining('Data is too large for QR code.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

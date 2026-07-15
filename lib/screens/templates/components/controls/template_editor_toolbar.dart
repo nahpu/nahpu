@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/templates/components/controls/front_back_page_pickers.dart';
 import 'package:nahpu/screens/templates/components/controls/mirror_toggle_button.dart';
 import 'package:nahpu/screens/templates/template_size_selector.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
@@ -15,7 +14,6 @@ class TemplateEditorToolbar extends StatelessWidget {
     super.key,
     required this.savedNames,
     required this.template,
-    required this.onDescriptionChanged,
     required this.isDuplex,
     required this.isPage1,
     required this.mirrorFront,
@@ -28,8 +26,7 @@ class TemplateEditorToolbar extends StatelessWidget {
     required this.canvasMovementLocked,
     required this.onSaveTemplate,
     required this.onTemplateSelected,
-    required this.onDuplexChanged,
-    required this.onPageChanged,
+    required this.onTemplateSettingsPressed,
     required this.onTemplateSizeChanged,
     required this.onAddText,
     required this.onAddImage,
@@ -49,7 +46,6 @@ class TemplateEditorToolbar extends StatelessWidget {
 
   final List<String> savedNames;
   final Template template;
-  final ValueChanged<String> onDescriptionChanged;
   final bool isDuplex;
   final bool isPage1;
   final bool mirrorFront;
@@ -62,8 +58,7 @@ class TemplateEditorToolbar extends StatelessWidget {
   final bool canvasMovementLocked;
   final VoidCallback onSaveTemplate;
   final ValueChanged<String> onTemplateSelected;
-  final ValueChanged<bool> onDuplexChanged;
-  final ValueChanged<int> onPageChanged;
+  final VoidCallback onTemplateSettingsPressed;
   final void Function(double widthMm, double heightMm) onTemplateSizeChanged;
   final VoidCallback onAddText;
   final VoidCallback onAddImage;
@@ -98,12 +93,6 @@ class TemplateEditorToolbar extends StatelessWidget {
             Row(
               children: [
                 Expanded(child: _TemplatePicker(this)),
-                const SizedBox(width: 8),
-                IconButton(
-                  tooltip: 'Show template info',
-                  icon: const Icon(Icons.info_outline_rounded),
-                  onPressed: () => _showTemplateInfoDialog(context),
-                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -112,24 +101,6 @@ class TemplateEditorToolbar extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  FrontBackPagePickers(
-                    isDuplex: isDuplex,
-                    isPage1: isPage1,
-                    mirrorFront: mirrorFront,
-                    mirrorBack: mirrorBack,
-                    onPageChanged: onPageChanged,
-                  ),
-                  if (isDuplex) const SizedBox(width: 8),
-                  if (isDuplex) ...[
-                    VerticalDivider(
-                      width: 1,
-                      thickness: 1,
-                      indent: 4,
-                      endIndent: 4,
-                      color: scheme.outlineVariant,
-                    ),
-                    const SizedBox(width: 12),
-                  ],
                   const SizedBox(width: 12),
                   Text(
                     'Template size:',
@@ -194,87 +165,46 @@ class TemplateEditorToolbar extends StatelessWidget {
                     onPressed: canRedo ? onRedo : null,
                   ),
                   const SizedBox(width: 12),
-                  IconButton(
+                  _TemplateEditorIconButton(
+                    isActive: isBorderPanelOpen,
                     tooltip: 'Template border',
-                    style: IconButton.styleFrom(
-                      foregroundColor: isBorderPanelOpen
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant,
-                      backgroundColor: isBorderPanelOpen
-                          ? scheme.primaryContainer.withValues(alpha: 0.45)
-                          : null,
-                    ),
                     onPressed: onBorderPanelToggled,
-                    icon: const Icon(Icons.border_outer, size: 22),
+                    icon: Icons.border_outer,
                   ),
-                  IconButton(
+                  _TemplateEditorIconButton(
                     tooltip: showGrid ? 'Hide grid' : 'Show grid',
-                    style: IconButton.styleFrom(
-                      foregroundColor: scheme.onSurfaceVariant,
-                    ),
                     onPressed: onGridToggled,
-                    icon: Icon(
-                      showGrid ? Icons.grid_on : Icons.grid_off,
-                      size: 22,
-                    ),
+                    icon: showGrid ? Icons.grid_on : Icons.grid_off,
                   ),
-                  IconButton(
+                  _TemplateEditorIconButton(
+                    isActive: snapEnabled,
                     tooltip: snapEnabled ? 'Disable snap' : 'Enable snap',
-                    style: IconButton.styleFrom(
-                      foregroundColor: snapEnabled
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant,
-                      backgroundColor: snapEnabled
-                          ? scheme.primaryContainer.withValues(alpha: 0.45)
-                          : null,
-                    ),
                     onPressed: onSnapToggled,
-                    icon: Icon(
-                      snapEnabled
-                          ? Icons.center_focus_strong
-                          : Icons.center_focus_weak,
-                      size: 22,
-                    ),
+                    icon: snapEnabled
+                        ? Icons.center_focus_strong
+                        : Icons.center_focus_weak,
                   ),
-                  IconButton(
+                  _TemplateEditorIconButton(
+                    isActive: canvasMovementLocked,
                     tooltip: canvasMovementLocked
                         ? 'Unlock canvas movement'
                         : 'Lock canvas movement',
-                    style: IconButton.styleFrom(
-                      foregroundColor: canvasMovementLocked
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant,
-                      backgroundColor: canvasMovementLocked
-                          ? scheme.primaryContainer.withValues(alpha: 0.45)
-                          : null,
-                    ),
                     onPressed: onCanvasMovementLockToggled,
-                    icon: Icon(
-                      canvasMovementLocked
-                          ? Icons.lock_outline
-                          : Icons.lock_open_outlined,
-                      size: 22,
-                    ),
+                    icon: canvasMovementLocked
+                        ? Icons.lock_outline
+                        : Icons.lock_open_outlined,
                   ),
                   if (template.recordType != RecordType.none)
-                    IconButton(
+                    _TemplateEditorIconButton(
                       tooltip: 'Select specimen for text preview',
-                      style: IconButton.styleFrom(
-                        foregroundColor: scheme.onSurfaceVariant,
-                      ),
                       onPressed: onSelectPreviewSpecimen,
-                      icon: const Icon(Icons.manage_search, size: 22),
+                      icon: Icons.manage_search,
                     ),
-                  const SizedBox(width: 24),
-                  SegmentedButton<bool>(
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: false, label: Text('1 sided')),
-                      ButtonSegment(value: true, label: Text('2 sided')),
-                    ],
-                    selected: {isDuplex},
-                    onSelectionChanged: (values) =>
-                        onDuplexChanged(values.first),
+                  const SizedBox(width: 8),
+                  _TemplateEditorIconButton(
+                    tooltip: 'Template settings',
+                    onPressed: onTemplateSettingsPressed,
+                    icon: Icons.settings_outlined,
                   ),
                 ],
               ),
@@ -283,68 +213,6 @@ class TemplateEditorToolbar extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _showTemplateInfoDialog(BuildContext context) {
-    final controller = TextEditingController(text: template.description);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(template.name),
-        content: SizedBox(
-          width: 320,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Record type: ${_getRecordTypeLabel(template.recordType)}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              onDescriptionChanged(controller.text);
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getRecordTypeLabel(RecordType recordType) {
-    switch (recordType) {
-      case RecordType.specimenRecord:
-        return 'Specimen';
-      case RecordType.site:
-        return 'Site';
-      case RecordType.collEvent:
-        return 'Collecting Event';
-      case RecordType.narrative:
-        return 'Narrative';
-      case RecordType.specimenParts:
-        return 'Specimen Parts';
-      case RecordType.none:
-        return 'None';
-    }
   }
 }
 
@@ -392,6 +260,36 @@ class _ToolbarIconButton extends StatelessWidget {
       onPressed: onPressed,
       icon: Icon(icon),
       tooltip: tooltip,
+    );
+  }
+}
+
+/// Shared icon-button styling for template-editor tools and toggles.
+class _TemplateEditorIconButton extends StatelessWidget {
+  const _TemplateEditorIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.isActive = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return IconButton(
+      tooltip: tooltip,
+      style: IconButton.styleFrom(
+        foregroundColor: isActive ? scheme.primary : scheme.onSurfaceVariant,
+        backgroundColor:
+            isActive ? scheme.primaryContainer.withValues(alpha: 0.45) : null,
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon, size: 22),
     );
   }
 }
