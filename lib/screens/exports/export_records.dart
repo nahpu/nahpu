@@ -197,7 +197,11 @@ class ExportFormState extends ConsumerState<ExportForm>
     );
   }
 
-  bool _isValid() => exportCtr.isValid && _selectedPreset != null;
+  bool _isValid() =>
+      exportCtr.isValid &&
+      _selectedPreset != null &&
+      !(_selectedPreset!.headerFormat == ExportHeaderFormat.darwinCore &&
+          exportCtr.exportFmtCtr == ExportFmt.json);
 
   String _matchFileIconPath() => switch (exportCtr.exportFmtCtr) {
         ExportFmt.csv => 'assets/icons/csv.svg',
@@ -513,7 +517,7 @@ class _ExportPresetTablePreviewScreenState
   final ScrollController _hScrollController = ScrollController();
   final ScrollController _vScrollController = ScrollController();
   List<String> _headers = [];
-  List<Map<String, String>> _rows = [];
+  List<List<String>> _rows = [];
   bool _isLoading = true;
   int _currentPage = 0;
   final int _pageSize = 50;
@@ -557,7 +561,7 @@ class _ExportPresetTablePreviewScreenState
         ? (startIndex + _pageSize)
         : _rows.length;
     final currentPageData = _isLoading || _rows.isEmpty
-        ? <Map<String, String>>[]
+        ? <List<String>>[]
         : _rows.sublist(startIndex, endIndex);
 
     return Scaffold(
@@ -623,7 +627,9 @@ class _ExportPresetTablePreviewScreenState
                                             for (final row in currentPageData)
                                               DataRow(
                                                 cells: [
-                                                  for (final col in _headers)
+                                                  for (var index = 0;
+                                                      index < _headers.length;
+                                                      index++)
                                                     DataCell(
                                                       ConstrainedBox(
                                                         constraints:
@@ -631,7 +637,9 @@ class _ExportPresetTablePreviewScreenState
                                                           maxWidth: 200,
                                                         ),
                                                         child: Text(
-                                                          row[col] ?? '',
+                                                          index < row.length
+                                                              ? row[index]
+                                                              : '',
                                                           maxLines: 2,
                                                           overflow: TextOverflow
                                                               .ellipsis,

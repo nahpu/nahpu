@@ -15,6 +15,30 @@ pub struct RecordWriter {
     pub concatenate_multi_entries: bool,
 }
 
+/// Writes positional tabular rows. This is used for Darwin Core generated
+/// headers, which may intentionally contain duplicate MeasurementOrFact terms.
+pub fn write_tabular_records(
+    headers: Vec<String>,
+    rows: Vec<Vec<String>>,
+    output_path: String,
+    export_format: String,
+) -> Result<(), String> {
+    if export_format == "json" {
+        return Err("Darwin Core generated headers support CSV, TSV, and Excel only".to_string());
+    }
+    let exporter = nahpu_db::io::export::TabularRecordExporter::new(headers, rows)?;
+    let path = Path::new(&output_path);
+    match export_format.as_str() {
+        "csv" => exporter.export_csv(path),
+        "tsv" => exporter.export_tsv(path),
+        "excel" => exporter.export_excel(path),
+        _ => Err(format!(
+            "Unsupported tabular export format: {}",
+            export_format
+        )),
+    }
+}
+
 impl RecordWriter {
     pub fn new(
         json_content: String,

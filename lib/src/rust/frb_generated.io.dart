@@ -6,6 +6,7 @@
 import 'api/archive.dart';
 import 'api/common.dart';
 import 'api/config.dart';
+import 'api/dwc.dart';
 import 'api/export.dart';
 import 'api/gis.dart';
 import 'api/import.dart';
@@ -82,6 +83,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DocumentLayoutStatus dco_decode_document_layout_status(dynamic raw);
 
   @protected
+  DwcHeader dco_decode_dwc_header(dynamic raw);
+
+  @protected
   double dco_decode_f_64(dynamic raw);
 
   @protected
@@ -106,6 +110,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   List<DocumentLayoutStatus> dco_decode_list_document_layout_status(
       dynamic raw);
+
+  @protected
+  List<DwcHeader> dco_decode_list_dwc_header(dynamic raw);
 
   @protected
   List<List<String>> dco_decode_list_list_String(dynamic raw);
@@ -249,6 +256,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  DwcHeader sse_decode_dwc_header(SseDeserializer deserializer);
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
@@ -276,6 +286,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   List<DocumentLayoutStatus> sse_decode_list_document_layout_status(
       SseDeserializer deserializer);
+
+  @protected
+  List<DwcHeader> sse_decode_list_dwc_header(SseDeserializer deserializer);
 
   @protected
   List<List<String>> sse_decode_list_list_String(SseDeserializer deserializer);
@@ -428,6 +441,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       DocumentLayoutStatus self, SseSerializer serializer);
 
   @protected
+  void sse_encode_dwc_header(DwcHeader self, SseSerializer serializer);
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
@@ -455,6 +471,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_document_layout_status(
       List<DocumentLayoutStatus> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_dwc_header(
+      List<DwcHeader> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_list_String(

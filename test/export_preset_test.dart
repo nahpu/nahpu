@@ -85,6 +85,22 @@ void main() {
           IndexedHeaderStyle.underscore);
     });
 
+    test('serializes the Darwin Core header format as schema version 6', () {
+      const preset = ExportPresetModel(
+        recordType: RecordType.site,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.darwinCore,
+        mappings: [ExportFieldMapping(expression: '[site::siteID]')],
+      );
+
+      final serialized = preset.toJson();
+      final restored = ExportPresetModel.fromJson(serialized);
+
+      expect(serialized['schemaVersion'], 6);
+      expect(serialized['headerFormat'], 'darwinCore');
+      expect(restored.headerFormat, ExportHeaderFormat.darwinCore);
+    });
+
     test('rejects the removed legacy schema', () {
       expect(
         () => ExportPresetModel.fromJson({'fields': {}}),

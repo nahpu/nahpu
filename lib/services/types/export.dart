@@ -327,7 +327,12 @@ const allMediaExportList = [
 ];
 
 /// How automatically generated export headers identify a source field.
-enum ExportHeaderFormat { tableFieldName, fieldName }
+enum ExportHeaderFormat {
+  tableFieldName,
+  fieldName,
+  darwinCore,
+  nahpuNamespace,
+}
 
 /// The way a related, repeated record is represented in a flat export.
 enum NestedExportMode { concatenate, spreadColumns, expandRows }
@@ -338,8 +343,8 @@ enum ListExportMode { concatenate, spreadColumns }
 /// How a one-based index is added to an exported column name.
 enum IndexedHeaderStyle { underscore, compact, brackets }
 
-const int recordExportPresetSchemaVersion = 4;
-const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4};
+const int recordExportPresetSchemaVersion = 6;
+const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4, 5, 6};
 
 /// Scalar export format that conditionally wraps a populated value in brackets.
 const String kConditionalBracketExportTextType = 'conditionalBrackets';
