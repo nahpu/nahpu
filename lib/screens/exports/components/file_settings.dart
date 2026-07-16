@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/services/export/dwc_bundle.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -54,6 +55,79 @@ class FileSettingsCard extends StatelessWidget {
                       ))
                   .toList(),
               onChanged: onExportFmtChanged,
+            ),
+            FileNameField(
+              controller: exportCtr,
+              onChanged: onFileNameChanged,
+            ),
+            Visibility(
+              visible: !Platform.isIOS,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: FileSettingsDirectoryPicker(
+                  selectedDir: selectedDir,
+                  onSelectDir: onSelectDir,
+                  onClearDir: onClearDir,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class BundleFileSettingsCard extends StatelessWidget {
+  const BundleFileSettingsCard({
+    super.key,
+    required this.exportCtr,
+    required this.selectedDir,
+    required this.format,
+    required this.onFormatChanged,
+    required this.onFileNameChanged,
+    required this.onSelectDir,
+    required this.onClearDir,
+  });
+
+  final FileOpCtrModel exportCtr;
+  final Directory? selectedDir;
+  final DwcBundleFormat format;
+  final ValueChanged<DwcBundleFormat> onFormatChanged;
+  final ValueChanged<String?> onFileNameChanged;
+  final VoidCallback onSelectDir;
+  final VoidCallback onClearDir;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'File Settings',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<DwcBundleFormat>(
+              initialValue: format,
+              decoration: const InputDecoration(labelText: 'Bundle format'),
+              items: DwcBundleFormat.values
+                  .map((value) => DropdownMenuItem(
+                        value: value,
+                        child: Text(value.label),
+                      ))
+                  .toList(growable: false),
+              onChanged: (value) {
+                if (value != null) onFormatChanged(value);
+              },
             ),
             FileNameField(
               controller: exportCtr,

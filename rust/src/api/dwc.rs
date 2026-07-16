@@ -1,6 +1,7 @@
 //! Darwin Core header mapping APIs for tabular export presets.
 
 use nahpu_dwc::dwc::DwcMapper;
+use nahpu_dwc::package;
 use std::collections::BTreeSet;
 
 /// A resolved Darwin Core header for one NAHPU `table::field` source key.
@@ -33,6 +34,21 @@ pub fn get_dwc_headers(source_keys: Vec<String>) -> Vec<DwcHeader> {
             })
         })
         .collect()
+}
+
+/// Plans the exact package contents for the Bundle Project contents panel.
+pub fn plan_dwc_bundle(request_json: String) -> Result<String, String> {
+    package::plan_bundle_json(&request_json)
+}
+
+/// Validates the selected records before a Darwin Core bundle is written.
+pub fn validate_dwc_bundle(request_json: String) -> Result<String, String> {
+    package::validate_bundle_json(&request_json)
+}
+
+/// Writes a Darwin Core Archive file or a Darwin Core Data Package directory.
+pub fn write_dwc_bundle(request_json: String, output_path: String) -> Result<String, String> {
+    package::write_bundle_json(&request_json, &output_path)
 }
 
 #[cfg(test)]

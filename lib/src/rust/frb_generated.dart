@@ -76,7 +76,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 109863792;
+  int get rustContentHash => -1118926883;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -183,6 +183,8 @@ abstract class RustLibApi extends BaseApi {
 
   Future<double> crateApiGisParseCoordinateString({required String s});
 
+  Future<String> crateApiDwcPlanDwcBundle({required String requestJson});
+
   Future<List<String>> crateApiImportRecordReaderGetExcelSheetNames(
       {required RecordReader that});
 
@@ -224,6 +226,11 @@ abstract class RustLibApi extends BaseApi {
       required CardinalDirection hemisphere,
       required double easting,
       required double northing});
+
+  Future<String> crateApiDwcValidateDwcBundle({required String requestJson});
+
+  Future<String> crateApiDwcWriteDwcBundle(
+      {required String requestJson, required String outputPath});
 
   Future<void> crateApiExportWriteTabularRecords(
       {required List<String> headers,
@@ -1133,6 +1140,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<String> crateApiDwcPlanDwcBundle({required String requestJson}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(requestJson, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 35, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiDwcPlanDwcBundleConstMeta,
+      argValues: [requestJson],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiDwcPlanDwcBundleConstMeta => const TaskConstMeta(
+        debugName: "plan_dwc_bundle",
+        argNames: ["requestJson"],
+      );
+
+  @override
   Future<List<String>> crateApiImportRecordReaderGetExcelSheetNames(
       {required RecordReader that}) {
     return handler.executeNormal(NormalTask(
@@ -1140,7 +1171,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_record_reader(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 35, port: port_);
+            funcId: 36, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -1167,7 +1198,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_box_autoadd_record_reader(that, serializer);
         sse_encode_String(delimiter, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 36, port: port_);
+            funcId: 37, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_list_String,
@@ -1194,7 +1225,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_box_autoadd_record_reader(that, serializer);
         sse_encode_String(sheetName, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 37, port: port_);
+            funcId: 38, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_list_String,
@@ -1220,7 +1251,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(filePath, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 38, port: port_);
+            funcId: 39, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_record_reader,
@@ -1254,7 +1285,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(exportFormat, serializer);
         sse_encode_bool(concatenateMultiEntries, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 39, port: port_);
+            funcId: 40, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_record_writer,
@@ -1291,7 +1322,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_record_writer(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 40, port: port_);
+            funcId: 41, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1318,7 +1349,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(name, serializer);
         sse_encode_box_autoadd_document_layout_preset(layout, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 41, port: port_);
+            funcId: 42, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1345,7 +1376,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(name, serializer);
         sse_encode_box_autoadd_config_export_preset(preset, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 42, port: port_);
+            funcId: 43, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1372,7 +1403,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(name, serializer);
         sse_encode_String(value, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 43, port: port_);
+            funcId: 44, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1399,7 +1430,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(key, serializer);
         sse_encode_list_String(value, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 44, port: port_);
+            funcId: 45, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1426,7 +1457,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(key, serializer);
         sse_encode_String(value, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 45, port: port_);
+            funcId: 46, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1458,7 +1489,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_f_64(easting, serializer);
         sse_encode_f_64(northing, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 46, port: port_);
+            funcId: 47, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_record_f_64_f_64,
@@ -1476,6 +1507,57 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<String> crateApiDwcValidateDwcBundle({required String requestJson}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(requestJson, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 48, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiDwcValidateDwcBundleConstMeta,
+      argValues: [requestJson],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiDwcValidateDwcBundleConstMeta =>
+      const TaskConstMeta(
+        debugName: "validate_dwc_bundle",
+        argNames: ["requestJson"],
+      );
+
+  @override
+  Future<String> crateApiDwcWriteDwcBundle(
+      {required String requestJson, required String outputPath}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(requestJson, serializer);
+        sse_encode_String(outputPath, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 49, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiDwcWriteDwcBundleConstMeta,
+      argValues: [requestJson, outputPath],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiDwcWriteDwcBundleConstMeta => const TaskConstMeta(
+        debugName: "write_dwc_bundle",
+        argNames: ["requestJson", "outputPath"],
+      );
+
+  @override
   Future<void> crateApiExportWriteTabularRecords(
       {required List<String> headers,
       required List<List<String>> rows,
@@ -1489,7 +1571,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(outputPath, serializer);
         sse_encode_String(exportFormat, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 47, port: port_);
+            funcId: 50, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1515,7 +1597,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_zip_extractor(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 48, port: port_);
+            funcId: 51, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1542,7 +1624,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(archivePath, serializer);
         sse_encode_String(outputDir, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 49, port: port_);
+            funcId: 52, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_zip_extractor,
@@ -1572,7 +1654,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_list_String(files, serializer);
         sse_encode_String(outputPath, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 50, port: port_);
+            funcId: 53, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_zip_writer,
@@ -1597,7 +1679,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_zip_writer(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 51, port: port_);
+            funcId: 54, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,

@@ -13,6 +13,20 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Future<List<DwcHeader>> getDwcHeaders({required List<String> sourceKeys}) =>
     RustLib.instance.api.crateApiDwcGetDwcHeaders(sourceKeys: sourceKeys);
 
+/// Plans the exact package contents for the Bundle Project contents panel.
+Future<String> planDwcBundle({required String requestJson}) =>
+    RustLib.instance.api.crateApiDwcPlanDwcBundle(requestJson: requestJson);
+
+/// Validates the selected records before a Darwin Core bundle is written.
+Future<String> validateDwcBundle({required String requestJson}) =>
+    RustLib.instance.api.crateApiDwcValidateDwcBundle(requestJson: requestJson);
+
+/// Writes a Darwin Core Archive file or a Darwin Core Data Package directory.
+Future<String> writeDwcBundle(
+        {required String requestJson, required String outputPath}) =>
+    RustLib.instance.api.crateApiDwcWriteDwcBundle(
+        requestJson: requestJson, outputPath: outputPath);
+
 /// A resolved Darwin Core header for one NAHPU `table::field` source key.
 class DwcHeader {
   final String sourceKey;
