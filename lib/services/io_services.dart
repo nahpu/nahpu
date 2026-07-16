@@ -1,3 +1,33 @@
+/// NAHPU Storage Structure
+///
+/// This file manages input/output operations and defines the project storage
+/// structure. All NAHPU data is stored in the user's application documents
+/// directory under the `nahpu` root directory, with temporary files placed in
+/// the system temporary directory.
+///
+/// Storage layout:
+/// ```text
+/// Documents/
+/// └── nahpu/                             # Root application directory (`nahpuAppDir`)
+///     ├── nahpu.db                       # Main SQLite database file
+///     ├── backup/                        # SQLite database backups (`nahpuBackupDir`)
+///     │   └── nahpu_backup_YYYY-MM-DD-HH-MM-SS.sqlite3
+///     ├── appMedia/                      # Global app media directory
+///     │   └── personnel/                 # Personnel photos/images
+///     ├── UserConfigs/                   # User configuration directory (`userConfigDirName`)
+///     │   └── fonts/                     # Custom user fonts (`userFontDirName`)
+///     └── <project_uuid>/                # Individual project directories
+///         └── media/                     # Project-specific media files (`mediaDir`)
+///             ├── site/                  # Site photos/media
+///             ├── specimen/              # Specimen photos/media
+///             └── narrative/             # Narrative photos/media
+///
+/// Temporary Directory:
+/// <system_temp_dir>/
+/// └── NahpuTemp/                         # Temporary/caching directory (`nahpuTempDir`)
+/// ```
+library;
+
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
@@ -15,6 +45,13 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
+const String nahpuBackupDir = 'backup';
+const String nahpuAppDir = 'nahpu';
+const String mediaDir = 'media';
+const String nahpuTempDir = 'NahpuTemp';
+const String userConfigDirName = 'UserConfigs';
+const String userFontDirName = 'fonts';
 
 String get dateTimeStamp {
   DateTime now = DateTime.now();
@@ -175,11 +212,6 @@ class FileServices extends AppServices {
   }
 }
 
-const String nahpuBackupDir = 'nahpu/backup';
-const String nahpuAppDir = 'nahpu';
-const String mediaDir = 'media';
-const String nahpuTempDir = 'NahpuTemp';
-
 class AppServices {
   const AppServices({required this.ref});
 
@@ -220,6 +252,22 @@ class AppServices {
       default:
         throw Exception('Unsupported media category');
     }
+  }
+
+  Future<Directory> get userConfigDir async {
+    final documentDir = await nahpuDocumentDir;
+    final userConfigDir =
+        Directory(path.join(documentDir.path, userConfigDirName));
+    await userConfigDir.create(recursive: true);
+    return userConfigDir;
+  }
+
+  Future<Directory> get userFontDir async {
+    final userConfigDir = await this.userConfigDir;
+    final userFontDir =
+        Directory(path.join(userConfigDir.path, userFontDirName));
+    await userFontDir.create(recursive: true);
+    return userFontDir;
   }
 }
 

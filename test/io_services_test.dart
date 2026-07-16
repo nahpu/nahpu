@@ -10,6 +10,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/types/import.dart';
 import 'package:path/path.dart' as path;
 
 void main() {
@@ -126,6 +127,53 @@ void main() {
 
     expect(byName['main.db']?.isDeletable, isFalse);
     expect(byName['backup.sqlite3']?.isDeletable, isFalse);
+  });
+
+  group('Directory Paths Verification', () {
+    testWidgets('nahpuDocumentDir path is correct', (tester) async {
+      final dir = await nahpuDocumentDir;
+      expect(dir.path, path.join(tempAppDir.path, 'nahpu'));
+    });
+
+    testWidgets('backupDir path is correct', (tester) async {
+      final ref = await _buildRef(tester, db);
+      final file = await AppServices(ref: ref).backupDir;
+      expect(file.parent.path, path.join(tempAppDir.path, 'nahpu', 'backup'));
+      expect(path.basename(file.path), startsWith('nahpu_backup'));
+      expect(path.extension(file.path), '.sqlite3');
+    });
+
+    testWidgets('tempDirectory path is correct', (tester) async {
+      final ref = await _buildRef(tester, db);
+      final dir = await AppServices(ref: ref).tempDirectory;
+      expect(dir.path, path.join(Directory.systemTemp.path, 'NahpuTemp'));
+    });
+
+    testWidgets('getMediaDir paths are correct', (tester) async {
+      final ref = await _buildRef(tester, db);
+      final services = AppServices(ref: ref);
+      expect(services.getMediaDir(MediaCategory.site).path, 'media/site');
+      expect(
+          services.getMediaDir(MediaCategory.specimen).path, 'media/specimen');
+      expect(services.getMediaDir(MediaCategory.narrative).path,
+          'media/narrative');
+      expect(services.getMediaDir(MediaCategory.personnel).path,
+          'appMedia/personnel');
+    });
+
+    testWidgets('userConfigDir and userFontDir paths are correct',
+        (tester) async {
+      final ref = await _buildRef(tester, db);
+      final services = AppServices(ref: ref);
+      expect(
+        (await services.userConfigDir).path,
+        path.join(tempAppDir.path, 'nahpu', 'UserConfigs'),
+      );
+      expect(
+        (await services.userFontDir).path,
+        path.join(tempAppDir.path, 'nahpu', 'UserConfigs', 'fonts'),
+      );
+    });
   });
 }
 

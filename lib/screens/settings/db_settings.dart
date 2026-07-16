@@ -336,7 +336,7 @@ class DBReplacedPage extends StatelessWidget {
   }
 
   String get _iOSPath {
-    return 'Files app/On my Devices/$nahpuBackupDir/'
+    return 'Files app/On my Devices/$nahpuAppDir/$nahpuBackupDir/'
         '${p.basename(dbBackupPath != null ? dbBackupPath!.path : '')}';
   }
 }
