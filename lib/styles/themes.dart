@@ -21,6 +21,9 @@ class NahpuTheme {
     tertiary: _mossShadow,
   );
 
+  /// Light surface used around printable template canvases in every app theme.
+  static Color get templateEditorWorkspaceSurface => _lightColorScheme.surface;
+
   static ThemeData lightTheme() {
     return ThemeData(
       colorScheme: _lightColorScheme,

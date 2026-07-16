@@ -16,6 +16,7 @@ MarkdownStyleSheet templateMarkdownStyleSheet({
   required TextAlign textAlign,
 }) {
   final align = templateMarkdownAlign(textAlign);
+  const tableBorderColor = Color(0xFFBDBDBD);
   return MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
     p: textStyle,
     h1: textStyle.copyWith(
@@ -45,6 +46,11 @@ MarkdownStyleSheet templateMarkdownStyleSheet({
     h3Align: align,
     unorderedListAlign: align,
     orderedListAlign: align,
+    tableHead: textStyle.copyWith(color: Colors.black),
+    tableBody: textStyle.copyWith(color: Colors.black),
+    tableBorder: TableBorder.all(color: tableBorderColor, width: 0.5),
+    tableCellsDecoration: const BoxDecoration(),
+    tableHeadCellsDecoration: const BoxDecoration(),
   );
 }
 

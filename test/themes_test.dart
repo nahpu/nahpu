@@ -27,6 +27,13 @@ void main() {
       expect(theme.colorScheme.tertiary, mossShadow);
     });
 
+    test('exposes the light surface for the template editor workspace', () {
+      expect(
+        NahpuTheme.templateEditorWorkspaceSurface,
+        NahpuTheme.lightTheme().colorScheme.surface,
+      );
+    });
+
     testWidgets('standard cards are flat in light and dark NAHPU themes',
         (tester) async {
       for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
