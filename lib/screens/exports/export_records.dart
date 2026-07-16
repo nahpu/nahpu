@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/settings/export_presets.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
@@ -115,7 +116,12 @@ class ExportFormState extends ConsumerState<ExportForm>
                   },
                   onSelectDir: () async {
                     final path = await FilePickerServices().selectDir();
-                    if (path != null) setState(() => _selectedDir = path);
+                    if (path != null) {
+                      setState(() {
+                        _selectedDir = path;
+                        _hasSaved = false;
+                      });
+                    }
                   },
                   onClearDir: () => setState(() {
                     _selectedDir = null;
@@ -123,20 +129,11 @@ class ExportFormState extends ConsumerState<ExportForm>
                   }),
                 ),
                 const SizedBox(height: 24),
-                Wrap(
-                  spacing: 20,
-                  children: [
-                    SaveSecondaryButton(hasSaved: _hasSaved),
-                    if (!_hasSaved)
-                      ProgressButton(
-                        label: 'Save',
-                        icon: Icons.save_alt_outlined,
-                        isRunning: _isRunning,
-                        onPressed: _isValid() ? _exportFile : null,
-                      )
-                    else
-                      ShareButton(onPressed: () => _shareFile(context)),
-                  ],
+                ExportShareButton(
+                  hasExported: _hasSaved,
+                  isRunning: _isRunning,
+                  onExport: _isValid() ? _exportFile : null,
+                  onShare: () => _shareFile(context),
                 ),
               ],
             ),
@@ -246,8 +243,8 @@ class ExportFormState extends ConsumerState<ExportForm>
       SnackBar(
         content: Text(
           systemPlatform == PlatformType.desktop
-              ? 'File saved as $_savePath'
-              : 'File saved!',
+              ? 'Exported to $_savePath'
+              : 'Export complete!',
         ),
       ),
     );

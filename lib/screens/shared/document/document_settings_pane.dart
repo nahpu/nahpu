@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
-import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -31,12 +32,14 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.exportCtr,
     required this.selectedDir,
     required this.isRunning,
+    required this.hasExported,
     required this.onLayoutChanged,
     required this.onSetupSelected,
     required this.onFileNameChanged,
     required this.onSelectDir,
     required this.onClearDir,
     required this.onExportPressed,
+    required this.onSharePressed,
     this.selectedCount = 0,
     this.totalCount = 0,
     this.onSelectSpecimens,
@@ -54,6 +57,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final FileOpCtrModel exportCtr;
   final Directory? selectedDir;
   final bool isRunning;
+  final bool hasExported;
 
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final ValueChanged<String> onSetupSelected;
@@ -62,6 +66,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final Future<void> Function() onSelectDir;
   final VoidCallback onClearDir;
   final VoidCallback? onExportPressed;
+  final VoidCallback onSharePressed;
   final int selectedCount;
   final int totalCount;
   final VoidCallback? onSelectSpecimens;
@@ -111,7 +116,9 @@ class DocumentSettingsPane extends StatelessWidget {
               const SizedBox(height: 16),
               _ExportActions(
                 isRunning: isRunning,
+                hasExported: hasExported,
                 onExportPressed: onExportPressed,
+                onSharePressed: onSharePressed,
               ),
             ],
           ),
@@ -213,7 +220,7 @@ class _FileSettingsSection extends StatelessWidget {
           ),
           if (!Platform.isIOS && !Platform.isAndroid) ...[
             const SizedBox(height: 16),
-            _DirectoryPickerRow(
+            FileSettingsDirectoryPicker(
               selectedDir: selectedDir,
               onSelectDir: onSelectDir,
               onClearDir: onClearDir,
@@ -225,62 +232,18 @@ class _FileSettingsSection extends StatelessWidget {
   }
 }
 
-class _DirectoryPickerRow extends StatelessWidget {
-  const _DirectoryPickerRow({
-    required this.selectedDir,
-    required this.onSelectDir,
-    required this.onClearDir,
-  });
-
-  final Directory? selectedDir;
-  final Future<void> Function() onSelectDir;
-  final VoidCallback onClearDir;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Save to',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                selectedDir != null ? selectedDir!.path : 'Select directory',
-                style: Theme.of(context).textTheme.bodyMedium,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        selectedDir == null
-            ? OutlinedButton.icon(
-                onPressed: onSelectDir,
-                icon: const Icon(Icons.folder_outlined),
-                label: const Text('Browse'),
-              )
-            : IconButton(
-                onPressed: onClearDir,
-                icon: const Icon(Icons.clear_rounded),
-              ),
-      ],
-    );
-  }
-}
-
 class _ExportActions extends StatelessWidget {
   const _ExportActions({
     required this.isRunning,
+    required this.hasExported,
     required this.onExportPressed,
+    required this.onSharePressed,
   });
 
   final bool isRunning;
+  final bool hasExported;
   final VoidCallback? onExportPressed;
+  final VoidCallback onSharePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -288,11 +251,11 @@ class _ExportActions extends StatelessWidget {
       spacing: 12,
       runSpacing: 12,
       children: [
-        ProgressButton(
-          label: 'Export Documents',
-          icon: Icons.upload_outlined,
+        ExportShareButton(
+          hasExported: hasExported,
           isRunning: isRunning,
-          onPressed: isRunning ? null : onExportPressed,
+          onExport: onExportPressed,
+          onShare: onSharePressed,
         ),
       ],
     );
@@ -340,6 +303,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
     this.onEditTemplate,
     this.showFileActions = true,
     this.showBlocks = true,
+    this.showBlockOverrideToggle = true,
     this.onManagePresets,
     this.incompatibleSetupNames = const {},
     this.showProfileDropdown = true,
@@ -361,6 +325,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
   final ValueChanged<String>? onEditTemplate;
   final bool showFileActions;
   final bool showBlocks;
+  final bool showBlockOverrideToggle;
   final VoidCallback? onManagePresets;
   final Set<String> incompatibleSetupNames;
   final bool showProfileDropdown;
@@ -373,7 +338,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
 
 class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   bool _showMorePageSetup = false;
-  bool _showAdvanced = false;
+  bool _overrideTemplateBlocks = false;
   final Map<int, bool> _expandedBlocks = {};
 
   static const double _wideFieldWidth = 240;
@@ -438,25 +403,27 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
               onLayoutChanged: widget.onLayoutChanged,
               parseMmOrCurrent: _parseMmOrCurrent,
             ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(
-                'Advanced options',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const Spacer(),
-              Switch(
-                value: _showAdvanced,
-                onChanged: (v) {
-                  setState(() {
-                    _showAdvanced = v;
-                  });
-                },
-              ),
-            ],
-          ),
-          if (_showAdvanced) ...[
+          if (widget.showBlocks && widget.showBlockOverrideToggle) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(
+                  'Override template blocks',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const Spacer(),
+                Switch(
+                  value: _overrideTemplateBlocks,
+                  onChanged: (value) {
+                    setState(() {
+                      _overrideTemplateBlocks = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ],
+          if (_overrideTemplateBlocks || !widget.showBlockOverrideToggle) ...[
             if (widget.showBlocks) ...[
               const SizedBox(height: 16),
               const Divider(),
@@ -465,7 +432,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Layout Blocks',
+                    'Template blocks',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   TextButton.icon(

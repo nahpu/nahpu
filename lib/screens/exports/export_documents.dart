@@ -79,6 +79,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
             exportCtr: exportCtr,
             selectedDir: _selectedDir,
             isRunning: _isRunning,
+            hasExported: _savePath != null,
             onLayoutChanged: _layoutChanged,
             onSetupSelected: _selectSetup,
             onFileNameChanged: (v) {
@@ -100,6 +101,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
               });
             },
             onExportPressed: !exportCtr.isValid ? null : _exportDocuments,
+            onSharePressed: _shareExport,
             onManagePresets: () async {
               await Navigator.push<void>(
                 context,
@@ -221,6 +223,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           _previewStale = false;
           _previewLayout = null;
           _previewSelectedUuidList = const [];
+          _savePath = null;
           _loading = false;
         });
       }
@@ -249,6 +252,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     setState(() {
       _layout = newLayout;
       _recordType = recordType;
+      _savePath = null;
       _setPreviewStale();
     });
     await _layoutService.saveLayout(newLayout);
@@ -263,6 +267,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       _layout = setup;
       _selectedSetupName = name;
       _recordType = recordType;
+      _savePath = null;
       _setPreviewStale();
     });
   }
@@ -329,10 +334,24 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       SnackBar(
         content: Text(
           systemPlatform == PlatformType.desktop
-              ? 'Document saved to ${savePath.path}'
-              : 'Document saved!',
+              ? 'Exported to ${savePath.path}'
+              : 'Export complete!',
         ),
       ),
     );
+  }
+
+  Future<void> _shareExport() async {
+    final savePath = _savePath;
+    if (savePath == null) return;
+    try {
+      await FilePickerServices().shareFile(context, savePath);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to share export: $error')),
+        );
+      }
+    }
   }
 }
