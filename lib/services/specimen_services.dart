@@ -355,22 +355,28 @@ class SpecimenServices extends AppServices {
 
   Future<void> deleteAllSpecimenParts(String specimenUuid) async {
     await SpecimenPartQuery(dbAccess).deleteAllSpecimenParts(specimenUuid);
+    _invalidateParts();
   }
 
   Future<void> deleteSpecimenPart(int partId) async {
     await SpecimenPartQuery(dbAccess).deleteSpecimenPart(partId);
-    // ref.invalidate(partBySpecimenProvider);
+    _invalidateParts();
   }
 
   Future<void> deleteSpecimenPartsFromList(List<int> partIds) async {
     await SpecimenPartQuery(dbAccess).deleteSpecimenPartsFromList(partIds);
-    // ref.invalidate(partBySpecimenProvider);
+    _invalidateParts();
   }
 
   void invalidateSpecimenList() {
     ref.invalidate(specimenEntryProvider);
     ref.invalidate(taxonDataProvider);
     ref.invalidate(projectPersonnelProvider);
+  }
+
+  void _invalidateParts() {
+    ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(specimenPartEntryProvider);
   }
 }
 
@@ -620,17 +626,25 @@ class SpecimenPartServices extends AppServices {
 
   Future<void> createSpecimenPart(SpecimenPartCompanion form) async {
     await SpecimenPartQuery(dbAccess).createSpecimenPart(form);
-    // ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(specimenPartEntryProvider);
   }
 
   Future<List<SpecimenPartData>> getSpecimenParts(String specimenUuid) {
     return SpecimenPartQuery(dbAccess).getSpecimenParts(specimenUuid);
   }
 
+  Future<List<SpecimenPartProjectRecord>> getProjectSpecimenParts() {
+    return SpecimenPartQuery(dbAccess).getSpecimenPartsForProject(
+      currentProjectUuid,
+    );
+  }
+
   Future<void> updateSpecimenPart(
       int partId, SpecimenPartCompanion form) async {
     await SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
-    // ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(specimenPartEntryProvider);
   }
 }
 

@@ -2,14 +2,14 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/templates/template_gender_icon.dart';
+import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_outline.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_markdown.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/template_nested_list_service.dart';
+import 'package:nahpu/services/templates/nested_list_service.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;
@@ -167,19 +167,20 @@ class _PreviewPage extends StatelessWidget {
                 ),
               ),
             for (final ct in page.customTexts)
-              if (templateGenderIconFieldKeyFromBracketText(ct.text)
+              if (templateSpecimenSexIconFieldKeyFromBracketText(ct.text)
                   case final gKey?)
                 Positioned(
                   left: ct.xMm * scale,
                   top: ct.yMm * scale,
                   width: math.max(
                     1.0,
-                    (ct.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm) *
+                    (ct.iconWidthMm ?? kTemplateSpecimenSexIconDefaultWidthMm) *
                         scale,
                   ),
                   height: math.max(
                     1.0,
-                    (ct.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm) *
+                    (ct.iconHeightMm ??
+                            kTemplateSpecimenSexIconDefaultHeightMm) *
                         scale,
                   ),
                   child: Transform.rotate(
@@ -188,17 +189,18 @@ class _PreviewPage extends StatelessWidget {
                       data: IconThemeData(
                         size: math.min(
                               (ct.iconWidthMm ??
-                                      kTemplateGenderIconDefaultWidthMm) *
+                                      kTemplateSpecimenSexIconDefaultWidthMm) *
                                   scale,
                               (ct.iconHeightMm ??
-                                      kTemplateGenderIconDefaultHeightMm) *
+                                      kTemplateSpecimenSexIconDefaultHeightMm) *
                                   scale,
                             ) *
                             0.88,
                         color: Colors.black,
                       ),
                       child: Icon(
-                        templateGenderIconForFieldKey(placeholderValues, gKey),
+                        templateSpecimenSexIconForFieldKey(
+                            placeholderValues, gKey),
                       ),
                     ),
                   ),
@@ -211,9 +213,12 @@ class _PreviewPage extends StatelessWidget {
                     angle: degreesToRadians(ct.rotationDegrees),
                     child: Builder(
                       builder: (context) {
+                        final textFormatter = ct.isQrCode
+                            ? formatTemplateText
+                            : formatExportTemplateText;
                         final formattedText = ct.text.isEmpty
                             ? ' '
-                            : formatTemplateText(
+                            : textFormatter(
                                 placeholderValues.isEmpty
                                     ? ct.text
                                     : substituteDocumentPlaceholders(

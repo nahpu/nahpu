@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class FrontBackPagePickers extends StatelessWidget {
-  const FrontBackPagePickers({
+class TemplateSideSwitcher extends StatelessWidget {
+  const TemplateSideSwitcher({
     super.key,
     required this.isDuplex,
     required this.isPage1,
@@ -18,70 +18,101 @@ class FrontBackPagePickers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!isDuplex) return const SizedBox.shrink();
     final scheme = Theme.of(context).colorScheme;
-    final fg = scheme.onSurface;
-    final frontActive = isPage1;
+    if (!isDuplex) {
+      return DecoratedBox(
+        decoration: _decoration(scheme),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Text('1 sided'),
+        ),
+      );
+    }
 
-    TextStyle labelStyle(bool active) => TextStyle(
-          fontSize: 15,
-          fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-          color: active ? scheme.primary : fg.withValues(alpha: 0.38),
-        );
+    return DecoratedBox(
+      decoration: _decoration(scheme),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _SideButton(
+            label: 'Front',
+            active: isPage1,
+            mirrored: mirrorFront,
+            onPressed: () => onPageChanged(0),
+          ),
+          _SideButton(
+            label: 'Back',
+            active: !isPage1,
+            mirrored: mirrorBack,
+            onPressed: () => onPageChanged(1),
+          ),
+        ],
+      ),
+    );
+  }
 
-    Color mirrorColor(bool active) =>
-        active ? scheme.primary : fg.withValues(alpha: 0.38);
+  BoxDecoration _decoration(ColorScheme scheme) => BoxDecoration(
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.outlineVariant),
+      );
+}
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextButton(
-          onPressed: () => onPageChanged(0),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            foregroundColor: fg,
+class _SideButton extends StatelessWidget {
+  const _SideButton({
+    required this.label,
+    required this.active,
+    required this.mirrored,
+    required this.onPressed,
+  });
+
+  final String label;
+  final bool active;
+  final bool mirrored;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      button: true,
+      selected: active,
+      label: 'Edit $label side',
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(18),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            color: active ? scheme.primaryContainer : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Front', style: labelStyle(frontActive)),
-              if (mirrorFront) ...[
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: active
+                          ? scheme.onPrimaryContainer
+                          : scheme.onSurfaceVariant,
+                      fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                    ),
+              ),
+              if (mirrored) ...[
                 const SizedBox(width: 4),
                 Icon(
                   Icons.rotate_right,
                   size: 16,
-                  color: mirrorColor(frontActive),
+                  color: active
+                      ? scheme.onPrimaryContainer
+                      : scheme.onSurfaceVariant,
                 ),
               ],
             ],
           ),
         ),
-        TextButton(
-          onPressed: () => onPageChanged(1),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            foregroundColor: fg,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Back', style: labelStyle(!frontActive)),
-              if (mirrorBack) ...[
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.rotate_right,
-                  size: 16,
-                  color: mirrorColor(!frontActive),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

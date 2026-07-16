@@ -13,7 +13,6 @@ import 'package:nahpu/services/export/avian_records.dart';
 import 'package:nahpu/services/export/mammalian_records.dart';
 import 'package:nahpu/services/export/herpetofauna_records.dart';
 import 'package:nahpu/src/rust/api/export.dart';
-import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 
 class SpecimenRecordWriter {
   SpecimenRecordWriter({
@@ -24,7 +23,6 @@ class SpecimenRecordWriter {
     this.concatenateMultiEntry = true,
     this.useFieldNamesOnly = false,
     this.selectedColumns,
-    this.exportPreset,
   });
 
   final WidgetRef ref;
@@ -34,15 +32,9 @@ class SpecimenRecordWriter {
   final bool concatenateMultiEntry;
   final bool useFieldNamesOnly;
   final List<String>? selectedColumns;
-  final ExportPresetModel? exportPreset;
 
   Future<void> writeRecordDelimited(File filePath, ExportFmt format) async {
     List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
-
-    // If we have a custom preset, use the dynamic exporter
-    if (exportPreset != null) {
-      return await _writeDynamicRecordDelimited(filePath, format, specimenList);
-    }
 
     List<String> header = [
       ...collectingRecordExportList,
@@ -81,57 +73,6 @@ class SpecimenRecordWriter {
       columnNames: useFieldNamesOnly
           ? filteredHeader.map((e) => e.split('::').last).toList()
           : filteredHeader,
-      exportFormat: format.name,
-      concatenateMultiEntries: concatenateMultiEntry,
-    );
-    await writer.write();
-  }
-
-  Future<void> _writeDynamicRecordDelimited(
-      File filePath, ExportFmt format, List<SpecimenData> specimenList) async {
-    final exporter = DynamicRecordExporter(
-      ref: ref,
-      concatenateMultiEntry: concatenateMultiEntry,
-    );
-    List<Map<String, dynamic>> jsonList = [];
-
-    for (var specimen in specimenList) {
-      final dynamicRecords = await exporter.getRecord(specimen);
-      for (var dynamicRecord in dynamicRecords) {
-        Map<String, dynamic> row = {};
-
-        // Add simple fields
-        for (var col in exportPreset!.fields.keys) {
-          final customName = exportPreset!.fields[col] ?? col;
-          row[customName] = dynamicRecord[col] ?? '';
-        }
-
-        // Add combined fields
-        for (var combined in exportPreset!.combinedFields) {
-          String value = '';
-          for (var comp in combined.fields) {
-            if (comp.startsWith('SEP:')) {
-              value += comp.substring(4);
-            } else {
-              value += dynamicRecord[comp] ?? '';
-            }
-          }
-          row[combined.fieldId] = value;
-        }
-        jsonList.add(row);
-      }
-    }
-
-    String jsonContent = jsonEncode(jsonList);
-    List<String> columnNames = [
-      ...exportPreset!.fields.values,
-      ...exportPreset!.combinedFields.map((e) => e.fieldId),
-    ];
-
-    final writer = RecordWriter(
-      jsonContent: jsonContent,
-      outputPath: filePath.path,
-      columnNames: columnNames,
       exportFormat: format.name,
       concatenateMultiEntries: concatenateMultiEntry,
     );

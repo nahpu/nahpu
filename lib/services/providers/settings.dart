@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -327,11 +329,25 @@ final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
 
 class ExportPresetNotifier
     extends AsyncNotifier<Map<String, ExportPresetModel>> {
+  static const _presetPayloadKey = '__nahpu_record_export_preset_v2__';
+
   Future<Map<String, ExportPresetModel>> _fetchSettings() async {
     final presets = await rust_config.getAllRecordExportPresets();
     final Map<String, ExportPresetModel> mapped = {};
+    final legacyPresetNames = <String>[];
     for (var entry in presets) {
-      mapped[entry.name] = _mapConfigToModel(entry.preset);
+      final preset = _mapConfigToModel(entry.preset);
+      if (preset == null) {
+        legacyPresetNames.add(entry.name);
+      } else {
+        mapped[entry.name] = preset;
+      }
+    }
+    // v1 presets do not have the required record type and mapping metadata.
+    // Remove them deliberately rather than silently treating them as specimen
+    // presets with guessed behavior.
+    for (final name in legacyPresetNames) {
+      await rust_config.deleteRecordExportPreset(name: name);
     }
     return mapped;
   }
@@ -342,14 +358,17 @@ class ExportPresetNotifier
   }
 
   Future<void> savePreset(String name, ExportPresetModel preset) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await rust_config.setRecordExportPreset(
         name: name,
         preset: _mapModelToConfig(preset),
       );
-      return await _fetchSettings();
-    });
+      final current = state.asData?.value ?? await _fetchSettings();
+      state = AsyncValue.data({...current, name: preset});
+    } on Object catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
   }
 
   Future<void> deletePreset(String name) async {
@@ -360,27 +379,58 @@ class ExportPresetNotifier
     });
   }
 
-  ExportPresetModel _mapConfigToModel(rust_config.ConfigExportPreset config) {
-    return ExportPresetModel(
-      fields: config.fields,
-      combinedFields: config.combinedFields
-          .map((e) => CombinedField(
-                fieldId: e.fieldId,
-                fields: e.fields,
-              ))
-          .toList(),
-    );
+  /// Renames a preset without risking deletion before its replacement exists.
+  ///
+  /// redb does not currently expose a transactional rename operation, so write
+  /// the replacement first and delete the old key only after that succeeds.
+  Future<void> renamePreset(
+    String previousName,
+    String nextName,
+    ExportPresetModel preset,
+  ) async {
+    if (previousName == nextName) {
+      await savePreset(nextName, preset);
+      return;
+    }
+
+    final current = state.asData?.value ?? await _fetchSettings();
+    if (current.containsKey(nextName)) {
+      throw StateError('A preset named "$nextName" already exists.');
+    }
+
+    try {
+      await rust_config.setRecordExportPreset(
+        name: nextName,
+        preset: _mapModelToConfig(preset),
+      );
+      await rust_config.deleteRecordExportPreset(name: previousName);
+      state = AsyncValue.data({...current}
+        ..remove(previousName)
+        ..[nextName] = preset);
+    } on Object catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
+  }
+
+  ExportPresetModel? _mapConfigToModel(rust_config.ConfigExportPreset config) {
+    final payload = config.fields[_presetPayloadKey];
+    if (payload == null) return null;
+    try {
+      return ExportPresetModel.fromJson(
+        Map<String, dynamic>.from(jsonDecode(payload) as Map),
+      );
+    } on FormatException {
+      return null;
+    } on Object {
+      return null;
+    }
   }
 
   rust_config.ConfigExportPreset _mapModelToConfig(ExportPresetModel model) {
     return rust_config.ConfigExportPreset(
-      fields: model.fields,
-      combinedFields: model.combinedFields
-          .map((e) => rust_config.ConfigCombinedField(
-                fieldId: e.fieldId,
-                fields: e.fields,
-              ))
-          .toList(),
+      fields: {_presetPayloadKey: jsonEncode(model.toJson())},
+      combinedFields: const [],
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/template_editor_history_service.dart';
+import 'package:nahpu/services/templates/editor_history_service.dart';
 
 void main() {
   TemplateEditorSnapshot snapshot(String name) {

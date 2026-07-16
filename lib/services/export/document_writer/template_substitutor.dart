@@ -62,7 +62,7 @@ class _DocumentTemplateSubstitutor {
           textType: textType,
         ));
       } else {
-        final formattedText = formatTemplateText(
+        final formattedText = formatExportTemplateText(
           subbedText,
           textType,
           ct.formatOption,

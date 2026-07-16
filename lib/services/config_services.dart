@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:nahpu/services/document_layout_service.dart';
+import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as path;
@@ -69,43 +70,11 @@ class ConfigDbService {
       }
     }
 
-    // Migrate export presets
+    // Record export presets from SharedPreferences used the unsupported v1
+    // schema. They are intentionally not migrated because they lack record
+    // type and mapping metadata required for reproducible exports.
     if (prefs.containsKey('exportPresets')) {
-      final presetString = prefs.getString('exportPresets');
-      if (presetString != null) {
-        try {
-          final decoded = jsonDecode(presetString) as Map<String, dynamic>;
-          for (final entry in decoded.entries) {
-            final name = entry.key;
-            final dynamic val = entry.value;
-
-            Map<String, String> fields = {};
-            List<rust_config.ConfigCombinedField> combinedFields = [];
-
-            if (val is Map<String, dynamic> && val.containsKey('fields')) {
-              // Version 2 format
-              fields = Map<String, String>.from(val['fields'] as Map);
-              combinedFields = (val['combined'] as List? ?? [])
-                  .map((e) => rust_config.ConfigCombinedField(
-                        fieldId: e['fieldId'] as String,
-                        fields: List<String>.from(e['fields'] as List),
-                      ))
-                  .toList();
-            } else if (val is Map) {
-              // Version 1 format (legacy)
-              fields = Map<String, String>.from(val);
-            }
-
-            final preset = rust_config.ConfigExportPreset(
-              fields: fields,
-              combinedFields: combinedFields,
-            );
-            await rust_config.setRecordExportPreset(name: name, preset: preset);
-          }
-        } catch (_) {
-          // Ignore json decoding/migration errors for invalid legacy formats
-        }
-      }
+      // Cleared below with the remaining deprecated SharedPreferences keys.
     }
 
     // After migration, clear only the deprecated keys from SharedPreferences
@@ -124,13 +93,15 @@ class ConfigDbService {
     SharedPreferences prefs, {
     AssetBundle? bundle,
   }) async {
-    if (prefs.getBool(defaultDocumentPresetsLoadedPrefKey) ?? false) {
-      return;
-    }
+    // Templates and layouts are redb-backed user configs. Always inspect the
+    // bundled presets and insert only names that do not already exist so an
+    // app update can add a new default without overwriting user changes.
     final assetBundle = bundle ?? rootBundle;
 
     final existingTemplateNames =
         (await rust_config.listTemplatePresets()).toSet();
+    final suppressedTemplateNames =
+        await const BundledTemplatePresetService().getSuppressedNames();
     final existingLayoutNames =
         (await const DocumentLayoutService().listLayoutStatuses())
             .map((status) => status.name)
@@ -149,6 +120,7 @@ class ConfigDbService {
         final template = Template.fromJson(
           Map<String, dynamic>.from(templateJson as Map),
         );
+        if (suppressedTemplateNames.contains(template.name)) continue;
         if (existingTemplateNames.contains(template.name)) continue;
         await rust_config.setTemplatePreset(
           name: template.name,
@@ -167,6 +139,8 @@ class ConfigDbService {
       }
     }
 
+    // Retained solely as legacy app-migration metadata. It is deliberately not
+    // used to skip redb preset discovery on later app versions.
     await prefs.setBool(defaultDocumentPresetsLoadedPrefKey, true);
   }
 }

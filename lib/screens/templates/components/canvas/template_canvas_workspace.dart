@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nahpu/screens/templates/components/canvas/template_canvas_editor.dart';
+import 'package:nahpu/screens/templates/components/controls/front_back_page_pickers.dart';
 import 'package:nahpu/screens/templates/components/controls/zoom_controls.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -14,6 +15,7 @@ class TemplateCanvasWorkspace extends StatefulWidget {
   const TemplateCanvasWorkspace({
     super.key,
     required this.isDuplex,
+    required this.isPage1,
     required this.tabController,
     required this.template,
     required this.templateWidthMm,
@@ -32,6 +34,7 @@ class TemplateCanvasWorkspace extends StatefulWidget {
     required this.templatePanGlobalDeltaToMm,
     required this.fieldDisplayOption,
     required this.onClearSelection,
+    required this.onPageChanged,
     required this.onSelectElement,
     required this.onStartInlineEditing,
     required this.onScheduleTemplateImageUpdate,
@@ -57,6 +60,7 @@ class TemplateCanvasWorkspace extends StatefulWidget {
   });
 
   final bool isDuplex;
+  final bool isPage1;
   final ValueChanged<bool>? onDragStateChanged;
   final TabController tabController;
   final Template template;
@@ -81,6 +85,7 @@ class TemplateCanvasWorkspace extends StatefulWidget {
   ) templatePanGlobalDeltaToMm;
   final String fieldDisplayOption;
   final VoidCallback onClearSelection;
+  final ValueChanged<int> onPageChanged;
   final ValueChanged<String> onSelectElement;
   final ValueChanged<String> onStartInlineEditing;
   final void Function(bool page1, CustomImageElement element)
@@ -137,12 +142,24 @@ class _TemplateCanvasWorkspaceState extends State<TemplateCanvasWorkspace> {
                 child: widget.isDuplex
                     ? TabBarView(
                         controller: widget.tabController,
+                        physics: const NeverScrollableScrollPhysics(),
                         children: [
                           _buildCanvas(page1: true),
                           _buildCanvas(page1: false),
                         ],
                       )
                     : _buildCanvas(page1: true),
+              ),
+              Positioned(
+                left: 16,
+                bottom: 16,
+                child: TemplateSideSwitcher(
+                  isDuplex: widget.isDuplex,
+                  isPage1: widget.isPage1,
+                  mirrorFront: widget.mirrorFront,
+                  mirrorBack: widget.mirrorBack,
+                  onPageChanged: widget.onPageChanged,
+                ),
               ),
               Positioned(
                 right: 16,

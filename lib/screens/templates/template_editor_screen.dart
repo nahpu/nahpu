@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_exists_dialog.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_image_picker_dialog.dart';
+import 'package:nahpu/screens/templates/components/dialogs/template_settings_dialog.dart';
 import 'package:nahpu/screens/templates/components/layout/template_border_panel.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_loading.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
@@ -13,13 +14,16 @@ import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_service.dart';
-import 'package:nahpu/services/templates/template_editor_service.dart';
-import 'package:nahpu/services/templates/template_canvas_placement_service.dart';
-import 'package:nahpu/services/templates/template_editor_history_service.dart';
+import 'package:nahpu/services/templates/template_preset_management_service.dart';
+import 'package:nahpu/screens/settings/document_presets/template_preset_deletion.dart';
+import 'package:nahpu/services/templates/editor_service.dart';
+import 'package:nahpu/services/templates/canvas_placement_service.dart';
+import 'package:nahpu/services/templates/editor_history_service.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_scaffold.dart';
 import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/screens/templates/template_preview_specimen_selection.dart';
 import 'package:nahpu/services/site_services.dart';
@@ -164,8 +168,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         onExportTemplate: _exportTemplate,
         onDeleteTemplate: _confirmDeleteTemplate,
         onTemplateSelected: _loadTemplate,
-        onDescriptionChanged: _updateTemplateDescription,
-        onDuplexChanged: _setDuplex,
+        onTemplateSettingsPressed: _openTemplateSettings,
         onPageChanged: _selectPage,
         onTemplateSizeChanged: _setTemplateSize,
         onAddText: () => _addCustomText(_isPage1),
@@ -422,6 +425,18 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             });
           }
         }
+      } else if (recordType == RecordType.specimenParts) {
+        final list = await ref.read(specimenPartEntryProvider.future);
+        if (list.isNotEmpty) {
+          final firstPart = list.first;
+          m = await documentFieldValuesForSpecimenPart(db, firstPart, ref);
+          if (mounted) {
+            setState(() {
+              _selectedSpecimenUuid = firstPart.recordId;
+              _editorTemplateFieldPreview = m;
+            });
+          }
+        }
       } else if (recordType == RecordType.site) {
         final list = await SiteServices(ref: ref).getAllSites();
         if (list.isNotEmpty) {
@@ -575,18 +590,6 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _imageIdCounter = imgMax;
   }
 
-  Future<void> _setDuplex(bool duplex) async {
-    _pushToUndo();
-    _deferSetState(() {
-      _isDuplex = duplex;
-      if (!duplex && _tabController.index != 0) {
-        _tabController.index = 0;
-      }
-      _selectedElement = null;
-    });
-    await _documentSettings.setDuplex(duplex);
-  }
-
   void _selectPage(int index) {
     _tabController.animateTo(index);
     _clearSelection();
@@ -604,11 +607,46 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _deferSetState(() => _zoom = zoom.clamp(0.5, 4.0).toDouble());
   }
 
-  void _updateTemplateDescription(String description) {
+  Future<void> _openTemplateSettings() async {
+    final isLargeScreen = MediaQuery.sizeOf(context).width >= 600;
+    final result = isLargeScreen
+        ? await showDialog<TemplateSettingsResult>(
+            context: context,
+            builder: (context) => TemplateSettingsDialog(
+              template: _template,
+              isDuplex: _isDuplex,
+            ),
+          )
+        : await showModalBottomSheet<TemplateSettingsResult>(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => TemplateSettingsBottomSheet(
+              template: _template,
+              isDuplex: _isDuplex,
+            ),
+          );
+    if (result == null || !mounted) return;
+    await _applyTemplateSettings(result);
+  }
+
+  Future<void> _applyTemplateSettings(TemplateSettingsResult result) async {
+    final descriptionChanged = result.description != _template.description;
+    final duplexChanged = result.isDuplex != _isDuplex;
+    if (!descriptionChanged && !duplexChanged) return;
+
     _pushToUndo();
     setState(() {
-      _template = _template.copyWith(description: description);
+      _template = _template.copyWith(description: result.description);
+      _isDuplex = result.isDuplex;
+      if (duplexChanged && !_isDuplex) {
+        _tabController.index = 0;
+        _selectedElement = null;
+        _templateBorderPanelOpen = false;
+      }
     });
+    if (duplexChanged) {
+      await _documentSettings.setDuplex(result.isDuplex);
+    }
   }
 
   Future<void> _toggleCurrentMirror() async {
@@ -982,7 +1020,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final taken = _savedNames.toSet();
     return showDialog<_CreateTemplateResult>(
       context: context,
-      builder: (context) => _CreateTemplateDialog(takenNames: taken),
+      builder: (context) => _CreateTemplateDialog(
+        takenNames: taken,
+        initialIsDuplex: _isDuplex,
+      ),
     );
   }
 
@@ -995,22 +1036,26 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       result.recordType,
       result.description,
     ).copyWith(
-      printOptions: _currentPrintOptions,
+      printOptions: TemplatePrintOptions(
+        isDuplex: result.isDuplex,
+        mirrorFront: false,
+        mirrorBack: false,
+      ),
       widthMm: _templateWidthMm,
       heightMm: _templateHeightMm,
     );
     await _templateService.saveTemplate(fresh);
     _savedNames = await _templateService.listTemplateNames();
 
+    await _documentSettings.setDuplex(result.isDuplex);
     await _documentSettings.setMirrorFront(false);
     await _documentSettings.setMirrorBack(false);
-    final duplex = await _documentSettings.getDuplex();
     if (!mounted) return;
     setState(() {
       _template = fresh;
       _mirrorFront = false;
       _mirrorBack = false;
-      _isDuplex = duplex;
+      _isDuplex = result.isDuplex;
       _selectedElement = null;
       _syncIdCountersFromTemplate();
       _syncDuplexTabIndex();
@@ -1164,10 +1209,26 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   Future<void> _confirmDeleteTemplate() async {
     final name = _template.name.trim();
     if (!_canDeleteSavedTemplate) return;
-    final ok = await _editorService.confirmDeleteTemplate(context, name);
-    if (!ok || !mounted) return;
-    await _templateService.deleteTemplate(name);
+    final managementService = const TemplatePresetManagementService();
+    final summaries = await managementService.loadSummaries();
+    final usages = await managementService.getUsages(name);
+    if (!mounted) return;
+    final request = await showTemplatePresetDeletionDialog(
+      context: context,
+      target: _template,
+      usages: usages,
+      candidates: summaries,
+    );
+    if (request == null || !mounted) return;
+    await managementService.deleteTemplate(
+      name: request.name,
+      replacementName: request.replacementName,
+    );
     _savedNames = await _templateService.listTemplateNames();
+    if (request.replacementName != null) {
+      await _loadTemplate(request.replacementName!);
+      return;
+    }
     final fresh = DefaultTemplate.defaultTemplate();
     if (!mounted) return;
     await _documentSettings.setMirrorFront(false);
@@ -1239,6 +1300,14 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         if (recordType == RecordType.specimenRecord) {
           final s = await SpecimenServices(ref: ref).getSpecimen(result);
           final m = await documentFieldValuesForSpecimen(db, s, ref);
+          setState(() {
+            _selectedSpecimenUuid = result;
+            _editorTemplateFieldPreview = m;
+          });
+        } else if (recordType == RecordType.specimenParts) {
+          final parts = await ref.read(specimenPartEntryProvider.future);
+          final part = parts.firstWhere((entry) => entry.recordId == result);
+          final m = await documentFieldValuesForSpecimenPart(db, part, ref);
           setState(() {
             _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
@@ -1572,16 +1641,22 @@ class _CreateTemplateResult {
     required this.name,
     required this.recordType,
     required this.description,
+    required this.isDuplex,
   });
   final String name;
   final RecordType recordType;
   final String description;
+  final bool isDuplex;
 }
 
 class _CreateTemplateDialog extends StatefulWidget {
-  const _CreateTemplateDialog({required this.takenNames});
+  const _CreateTemplateDialog({
+    required this.takenNames,
+    required this.initialIsDuplex,
+  });
 
   final Set<String> takenNames;
+  final bool initialIsDuplex;
 
   @override
   State<_CreateTemplateDialog> createState() => _CreateTemplateDialogState();
@@ -1592,12 +1667,14 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
   late final TextEditingController _descCtrl;
   final _formKey = GlobalKey<FormState>();
   RecordType _recordType = RecordType.specimenRecord;
+  late bool _isDuplex;
 
   @override
   void initState() {
     super.initState();
     _ctrl = TextEditingController();
     _descCtrl = TextEditingController();
+    _isDuplex = widget.initialIsDuplex;
   }
 
   @override
@@ -1641,21 +1718,11 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                       name: _ctrl.text.trim(),
                       recordType: _recordType,
                       description: _descCtrl.text.trim(),
+                      isDuplex: _isDuplex,
                     ),
                   );
                 }
               },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              maxLines: 3,
-              textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<RecordType>(
@@ -1669,6 +1736,10 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                 DropdownMenuItem(
                   value: RecordType.specimenRecord,
                   child: Text('Specimen'),
+                ),
+                DropdownMenuItem(
+                  value: RecordType.specimenParts,
+                  child: Text('Specimen Part'),
                 ),
                 DropdownMenuItem(
                   value: RecordType.site,
@@ -1695,6 +1766,22 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                 }
               },
             ),
+            const SizedBox(height: 16),
+            _CreateSidesSelector(
+              isDuplex: _isDuplex,
+              onChanged: (value) => setState(() => _isDuplex = value),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _descCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+            ),
           ],
         ),
       ),
@@ -1712,6 +1799,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                   name: _ctrl.text.trim(),
                   recordType: _recordType,
                   description: _descCtrl.text.trim(),
+                  isDuplex: _isDuplex,
                 ),
               );
             }
@@ -1719,6 +1807,45 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
           child: const Text('Create'),
         ),
       ],
+    );
+  }
+}
+
+class _CreateSidesSelector extends StatelessWidget {
+  const _CreateSidesSelector({
+    required this.isDuplex,
+    required this.onChanged,
+  });
+
+  final bool isDuplex;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return InputDecorator(
+      decoration: const InputDecoration(
+        labelText: 'Sides',
+        border: OutlineInputBorder(),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: ChoiceChip(
+              label: const Text('1 sided'),
+              selected: !isDuplex,
+              onSelected: (_) => onChanged(false),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ChoiceChip(
+              label: const Text('2 sided'),
+              selected: isDuplex,
+              onSelected: (_) => onChanged(true),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

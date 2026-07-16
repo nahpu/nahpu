@@ -14,10 +14,14 @@ class _DocumentPdfInputResolver {
     final templates = <String, Template>{};
     for (final block in layout.blocks) {
       if (templates.containsKey(block.templateName)) continue;
-      templates[block.templateName] = await service.getTemplate(
-            block.templateName,
-          ) ??
-          DefaultTemplate.defaultTemplate(block.templateName);
+      final template = await service.getTemplate(block.templateName);
+      if (template == null) {
+        throw StateError(
+          'Print layout "${layout.name}" references missing template '
+          '"${block.templateName}". Select a replacement before exporting.',
+        );
+      }
+      templates[block.templateName] = template;
     }
     return templates;
   }

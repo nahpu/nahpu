@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/template_dynamic_layout_service.dart';
+import 'package:nahpu/services/templates/dynamic_layout_service.dart';
 
 const double _kPdfPointsPerMm = 72.0 / 25.4;
 
@@ -134,8 +134,8 @@ TemplateCanvasOverflowPadding calculateTemplateCanvasOverflowPadding({
   }
   if (text.iconWidthMm != null || text.iconHeightMm != null) {
     return (
-      widthMm: text.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm,
-      heightMm: text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm,
+      widthMm: text.iconWidthMm ?? kTemplateSpecimenSexIconDefaultWidthMm,
+      heightMm: text.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm,
     );
   }
   final lineHeightMm = math.max(2.0, text.fontSizePt / _kPdfPointsPerMm);

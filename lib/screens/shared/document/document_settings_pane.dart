@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
-import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -18,6 +19,7 @@ import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 
 class DocumentSettingsPane extends StatelessWidget {
@@ -30,12 +32,14 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.exportCtr,
     required this.selectedDir,
     required this.isRunning,
+    required this.hasExported,
     required this.onLayoutChanged,
     required this.onSetupSelected,
     required this.onFileNameChanged,
     required this.onSelectDir,
     required this.onClearDir,
     required this.onExportPressed,
+    required this.onSharePressed,
     this.selectedCount = 0,
     this.totalCount = 0,
     this.onSelectSpecimens,
@@ -53,6 +57,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final FileOpCtrModel exportCtr;
   final Directory? selectedDir;
   final bool isRunning;
+  final bool hasExported;
 
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final ValueChanged<String> onSetupSelected;
@@ -61,6 +66,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final Future<void> Function() onSelectDir;
   final VoidCallback onClearDir;
   final VoidCallback? onExportPressed;
+  final VoidCallback onSharePressed;
   final int selectedCount;
   final int totalCount;
   final VoidCallback? onSelectSpecimens;
@@ -99,7 +105,7 @@ class DocumentSettingsPane extends StatelessWidget {
                 onManagePresets: onManagePresets,
                 onEditTemplate: onEditTemplate,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               _FileSettingsSection(
                 exportCtr: exportCtr,
                 selectedDir: selectedDir,
@@ -110,7 +116,9 @@ class DocumentSettingsPane extends StatelessWidget {
               const SizedBox(height: 16),
               _ExportActions(
                 isRunning: isRunning,
+                hasExported: hasExported,
                 onExportPressed: onExportPressed,
+                onSharePressed: onSharePressed,
               ),
             ],
           ),
@@ -212,7 +220,7 @@ class _FileSettingsSection extends StatelessWidget {
           ),
           if (!Platform.isIOS && !Platform.isAndroid) ...[
             const SizedBox(height: 16),
-            _DirectoryPickerRow(
+            FileSettingsDirectoryPicker(
               selectedDir: selectedDir,
               onSelectDir: onSelectDir,
               onClearDir: onClearDir,
@@ -224,62 +232,18 @@ class _FileSettingsSection extends StatelessWidget {
   }
 }
 
-class _DirectoryPickerRow extends StatelessWidget {
-  const _DirectoryPickerRow({
-    required this.selectedDir,
-    required this.onSelectDir,
-    required this.onClearDir,
-  });
-
-  final Directory? selectedDir;
-  final Future<void> Function() onSelectDir;
-  final VoidCallback onClearDir;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Save to',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                selectedDir != null ? selectedDir!.path : 'Select directory',
-                style: Theme.of(context).textTheme.bodyMedium,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        selectedDir == null
-            ? OutlinedButton.icon(
-                onPressed: onSelectDir,
-                icon: const Icon(Icons.folder_outlined),
-                label: const Text('Browse'),
-              )
-            : IconButton(
-                onPressed: onClearDir,
-                icon: const Icon(Icons.clear_rounded),
-              ),
-      ],
-    );
-  }
-}
-
 class _ExportActions extends StatelessWidget {
   const _ExportActions({
     required this.isRunning,
+    required this.hasExported,
     required this.onExportPressed,
+    required this.onSharePressed,
   });
 
   final bool isRunning;
+  final bool hasExported;
   final VoidCallback? onExportPressed;
+  final VoidCallback onSharePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -287,11 +251,11 @@ class _ExportActions extends StatelessWidget {
       spacing: 12,
       runSpacing: 12,
       children: [
-        ProgressButton(
-          label: 'Export Documents',
-          icon: Icons.upload_outlined,
+        ExportShareButton(
+          hasExported: hasExported,
           isRunning: isRunning,
-          onPressed: isRunning ? null : onExportPressed,
+          onExport: onExportPressed,
+          onShare: onSharePressed,
         ),
       ],
     );
@@ -311,6 +275,9 @@ class _SettingsPaneCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: child,
@@ -336,6 +303,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
     this.onEditTemplate,
     this.showFileActions = true,
     this.showBlocks = true,
+    this.showBlockOverrideToggle = true,
     this.onManagePresets,
     this.incompatibleSetupNames = const {},
     this.showProfileDropdown = true,
@@ -357,6 +325,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
   final ValueChanged<String>? onEditTemplate;
   final bool showFileActions;
   final bool showBlocks;
+  final bool showBlockOverrideToggle;
   final VoidCallback? onManagePresets;
   final Set<String> incompatibleSetupNames;
   final bool showProfileDropdown;
@@ -369,7 +338,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
 
 class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   bool _showMorePageSetup = false;
-  bool _showAdvanced = false;
+  bool _overrideTemplateBlocks = false;
   final Map<int, bool> _expandedBlocks = {};
 
   static const double _wideFieldWidth = 240;
@@ -400,9 +369,12 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
     const isContinuous = false;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -413,7 +385,6 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
               selectedSetupName: widget.selectedSetupName,
               setupNames: widget.setupNames,
               incompatibleSetupNames: widget.incompatibleSetupNames,
-              fieldWidth: _wideFieldWidth,
               onSetupSelected: widget.onSetupSelected,
               onManagePresets: widget.onManagePresets,
             ),
@@ -432,25 +403,27 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
               onLayoutChanged: widget.onLayoutChanged,
               parseMmOrCurrent: _parseMmOrCurrent,
             ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(
-                'Advanced options',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const Spacer(),
-              Switch(
-                value: _showAdvanced,
-                onChanged: (v) {
-                  setState(() {
-                    _showAdvanced = v;
-                  });
-                },
-              ),
-            ],
-          ),
-          if (_showAdvanced) ...[
+          if (widget.showBlocks && widget.showBlockOverrideToggle) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(
+                  'Override template blocks',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const Spacer(),
+                Switch(
+                  value: _overrideTemplateBlocks,
+                  onChanged: (value) {
+                    setState(() {
+                      _overrideTemplateBlocks = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ],
+          if (_overrideTemplateBlocks || !widget.showBlockOverrideToggle) ...[
             if (widget.showBlocks) ...[
               const SizedBox(height: 16),
               const Divider(),
@@ -459,23 +432,13 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Layout Blocks',
+                    'Template blocks',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      TextButton.icon(
-                        onPressed: widget.onCreateTemplate,
-                        icon: const Icon(Icons.edit_note_outlined),
-                        label: const Text('Create Preset'),
-                      ),
-                      TextButton.icon(
-                        onPressed: _addBlock,
-                        icon: const Icon(Icons.add_circle_outline),
-                        label: const Text('Add Block'),
-                      ),
-                    ],
+                  TextButton.icon(
+                    onPressed: _addBlock,
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text('Add Block'),
                   ),
                 ],
               ),
@@ -522,12 +485,13 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                 final idx = entry.key;
                 final block = entry.value;
                 final isExpanded = _expandedBlocks[idx] ?? false;
-                final selectedTemplateName =
-                    widget.templateNames.contains(block.templateName)
-                        ? block.templateName
-                        : (widget.templateNames.isNotEmpty
-                            ? widget.templateNames.first
-                            : null);
+                final templateExists =
+                    widget.templateNames.contains(block.templateName);
+                final selectedTemplateName = block.templateName;
+                final templateNames = [
+                  if (!templateExists) block.templateName,
+                  ...widget.templateNames,
+                ];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Card(
@@ -595,24 +559,34 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       'block-template-$idx-${block.templateName}'),
                                   initialValue: selectedTemplateName,
                                   isExpanded: true,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     labelText: 'Template',
                                     border: OutlineInputBorder(),
                                     isDense: true,
+                                    errorText: templateExists
+                                        ? null
+                                        : 'This template no longer exists',
                                   ),
                                   selectedItemBuilder: (context) =>
-                                      widget.templateNames
+                                      templateNames
                                           .map((name) => Text(
-                                                name,
+                                                templateExists ||
+                                                        name !=
+                                                            block.templateName
+                                                    ? name
+                                                    : 'Missing: $name',
                                                 overflow: TextOverflow.ellipsis,
                                               ))
                                           .toList(),
-                                  items: widget.templateNames
+                                  items: templateNames
                                       .map(
                                         (name) => DropdownMenuItem<String>(
                                           value: name,
                                           child: Text(
-                                            name,
+                                            templateExists ||
+                                                    name != block.templateName
+                                                ? name
+                                                : 'Missing: $name',
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -628,7 +602,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                               ),
                               if (widget.onEditTemplate != null)
                                 IconButton.outlined(
-                                  onPressed: selectedTemplateName == null
+                                  onPressed: !templateExists
                                       ? null
                                       : () => widget.onEditTemplate!(
                                           selectedTemplateName),
@@ -859,6 +833,14 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               ?.length ??
                                           0;
                                       label = 'Specimens';
+                                    } else if (recordType ==
+                                        RecordType.specimenParts) {
+                                      totalCount = ref
+                                              .watch(specimenPartEntryProvider)
+                                              .value
+                                              ?.length ??
+                                          0;
+                                      label = 'Specimen Parts';
                                     } else if (recordType == RecordType.site) {
                                       totalCount = ref
                                               .watch(siteEntryProvider)
@@ -1007,7 +989,6 @@ class _LayoutProfileControls extends StatelessWidget {
     required this.selectedSetupName,
     required this.setupNames,
     required this.incompatibleSetupNames,
-    required this.fieldWidth,
     required this.onSetupSelected,
     required this.onManagePresets,
   });
@@ -1015,7 +996,6 @@ class _LayoutProfileControls extends StatelessWidget {
   final String selectedSetupName;
   final List<String> setupNames;
   final Set<String> incompatibleSetupNames;
-  final double fieldWidth;
   final ValueChanged<String> onSetupSelected;
   final VoidCallback? onManagePresets;
 
@@ -1029,44 +1009,41 @@ class _LayoutProfileControls extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            _ResponsiveFieldBox(
-              width: fieldWidth,
-              child: DropdownButtonFormField<String>(
-                key: ValueKey('setup-$selectedSetupName'),
-                initialValue: selectedSetupName,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Layout profile',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                selectedItemBuilder: (context) => setupNames
-                    .map((n) => _setupDropdownText(context, n))
-                    .toList(),
-                items: setupNames
-                    .map(
-                      (n) => DropdownMenuItem<String>(
-                        value: n,
-                        child: _setupDropdownText(context, n),
-                      ),
-                    )
-                    .toList(),
-                onChanged: _selectSetup,
-              ),
+        SizedBox(
+          width: double.infinity,
+          child: DropdownButtonFormField<String>(
+            key: ValueKey('setup-$selectedSetupName'),
+            initialValue: selectedSetupName,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Layout profile',
+              helperText:
+                  'Page settings and template blocks are set by the profile.',
             ),
-            if (onManagePresets != null)
-              OutlinedButton.icon(
-                onPressed: onManagePresets,
-                icon: const Icon(Icons.description_outlined),
-                label: const Text('Manage presets'),
-              ),
-          ],
+            selectedItemBuilder: (context) =>
+                setupNames.map((n) => _setupDropdownText(context, n)).toList(),
+            items: setupNames
+                .map(
+                  (n) => DropdownMenuItem<String>(
+                    value: n,
+                    child: _setupDropdownText(context, n),
+                  ),
+                )
+                .toList(),
+            onChanged: _selectSetup,
+          ),
         ),
+        if (onManagePresets != null) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onManagePresets,
+              icon: const Icon(Icons.settings_outlined, size: 16),
+              label: const Text('Manage presets'),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1338,6 +1315,16 @@ class RecordNavigationButton extends ConsumerWidget {
           ),
         ),
       );
+    } else if (recordType == RecordType.specimenParts) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _BlockSpecimenPartSelectionScreen(
+            initialSelectedIds: selectedIds,
+            param: param,
+          ),
+        ),
+      );
     } else if (recordType == RecordType.site) {
       await Navigator.push(
         context,
@@ -1373,6 +1360,49 @@ class RecordNavigationButton extends ConsumerWidget {
 
   Set<int> _parseRecordIds(Set<String> ids) {
     return ids.map(int.tryParse).whereType<int>().toSet();
+  }
+}
+
+class _BlockSpecimenPartSelectionScreen extends ConsumerStatefulWidget {
+  const _BlockSpecimenPartSelectionScreen({
+    required this.initialSelectedIds,
+    required this.param,
+  });
+
+  final Set<String> initialSelectedIds;
+  final BlockRecordSelectionParam param;
+
+  @override
+  ConsumerState<_BlockSpecimenPartSelectionScreen> createState() =>
+      _BlockSpecimenPartSelectionScreenState();
+}
+
+class _BlockSpecimenPartSelectionScreenState
+    extends ConsumerState<_BlockSpecimenPartSelectionScreen> {
+  late Set<String> _selectedIds;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = Set<String>.from(widget.initialSelectedIds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Select specimen parts')),
+      body: SafeArea(
+        child: SpecimenPartSelectionView(
+          selectedIds: _selectedIds,
+          onSelectionChanged: (next) {
+            setState(() => _selectedIds = next);
+            ref
+                .read(blockRecordSelectionProvider(widget.param).notifier)
+                .updateSelection(next);
+          },
+        ),
+      ),
+    );
   }
 }
 

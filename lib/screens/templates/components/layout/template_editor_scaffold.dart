@@ -38,8 +38,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.onExportTemplate,
     required this.onDeleteTemplate,
     required this.onTemplateSelected,
-    required this.onDescriptionChanged,
-    required this.onDuplexChanged,
+    required this.onTemplateSettingsPressed,
     required this.onPageChanged,
     required this.onTemplateSizeChanged,
     required this.onAddText,
@@ -115,8 +114,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   final VoidCallback onExportTemplate;
   final VoidCallback onDeleteTemplate;
   final ValueChanged<String> onTemplateSelected;
-  final ValueChanged<String> onDescriptionChanged;
-  final ValueChanged<bool> onDuplexChanged;
+  final VoidCallback onTemplateSettingsPressed;
   final ValueChanged<int> onPageChanged;
   final void Function(double widthMm, double heightMm) onTemplateSizeChanged;
   final VoidCallback onAddText;
@@ -201,6 +199,7 @@ class TemplateEditorScaffold extends StatelessWidget {
         onImportTemplate: onImportTemplate,
         onExportTemplate: onExportTemplate,
         onDeleteTemplate: onDeleteTemplate,
+        onTemplateSettingsPressed: onTemplateSettingsPressed,
       ),
       body: Padding(
         padding: isMobile
@@ -216,7 +215,6 @@ class TemplateEditorScaffold extends StatelessWidget {
             TemplateEditorToolbar(
               savedNames: savedNames,
               template: template,
-              onDescriptionChanged: onDescriptionChanged,
               isDuplex: isDuplex,
               isPage1: isPage1,
               mirrorFront: mirrorFront,
@@ -229,8 +227,7 @@ class TemplateEditorScaffold extends StatelessWidget {
               canvasMovementLocked: canvasMovementLocked,
               onSaveTemplate: onSaveTemplate,
               onTemplateSelected: onTemplateSelected,
-              onDuplexChanged: onDuplexChanged,
-              onPageChanged: onPageChanged,
+              onTemplateSettingsPressed: onTemplateSettingsPressed,
               onTemplateSizeChanged: onTemplateSizeChanged,
               onAddText: onAddText,
               onAddImage: onAddImage,
@@ -251,6 +248,7 @@ class TemplateEditorScaffold extends StatelessWidget {
             Expanded(
               child: TemplateCanvasWorkspace(
                 isDuplex: isDuplex,
+                isPage1: isPage1,
                 tabController: tabController,
                 template: template,
                 templateWidthMm: templateWidthMm,
@@ -269,6 +267,7 @@ class TemplateEditorScaffold extends StatelessWidget {
                 templatePanGlobalDeltaToMm: templatePanGlobalDeltaToMm,
                 fieldDisplayOption: fieldDisplayOption,
                 onClearSelection: onClearSelection,
+                onPageChanged: onPageChanged,
                 onSelectElement: onSelectElement,
                 onStartInlineEditing: onStartInlineEditing,
                 onScheduleTemplateImageUpdate: onScheduleTemplateImageUpdate,
@@ -335,6 +334,7 @@ class _TemplateEditorAppBar extends StatelessWidget
     required this.onImportTemplate,
     required this.onExportTemplate,
     required this.onDeleteTemplate,
+    required this.onTemplateSettingsPressed,
   });
 
   final bool canDeleteSavedTemplate;
@@ -344,6 +344,7 @@ class _TemplateEditorAppBar extends StatelessWidget
   final VoidCallback onImportTemplate;
   final VoidCallback onExportTemplate;
   final VoidCallback onDeleteTemplate;
+  final VoidCallback onTemplateSettingsPressed;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -372,6 +373,8 @@ class _TemplateEditorAppBar extends StatelessWidget
               onImportTemplate();
             } else if (action == 'export') {
               onExportTemplate();
+            } else if (action == 'settings') {
+              onTemplateSettingsPressed();
             } else if (action == 'delete') {
               onDeleteTemplate();
             }
@@ -426,6 +429,17 @@ class _TemplateEditorAppBar extends StatelessWidget
                   Icon(Icons.file_upload_outlined),
                   SizedBox(width: 8),
                   Text('Export'),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(height: 8),
+            const PopupMenuItem(
+              value: 'settings',
+              child: Row(
+                children: [
+                  Icon(Icons.settings_outlined),
+                  SizedBox(width: 8),
+                  Text('Template settings'),
                 ],
               ),
             ),

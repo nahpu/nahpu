@@ -32,6 +32,15 @@ final partBySpecimenProvider = FutureProvider.family
         SpecimenPartQuery(ref.read(databaseProvider))
             .getSpecimenParts(specimenUuid));
 
+/// All printable parts in the active project, paired with their parent
+/// specimen. A part, not a specimen, is the document-record unit.
+final specimenPartEntryProvider =
+    FutureProvider.autoDispose<List<SpecimenPartProjectRecord>>((ref) async {
+  final projectUuid = ref.watch(projectUuidProvider);
+  return SpecimenPartQuery(ref.read(databaseProvider))
+      .getSpecimenPartsForProject(projectUuid);
+});
+
 final associatedDataProvider = FutureProvider.family
     .autoDispose<List<AssociatedDataData>, String>((ref, specimenUuid) async {
   final associatedDataEntries =

@@ -70,7 +70,7 @@ class _DocumentPdfLayoutMetrics {
         text.isVisible &&
         text.isDynamic &&
         !text.isQrCode &&
-        templateGenderIconFieldKeyFromBracketText(text.text) == null);
+        templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null);
     if (hasDynamicText) {
       return _estimateFlowTemplateContentHeightPt(page: page, wPt: wPt);
     }
@@ -81,7 +81,7 @@ class _DocumentPdfLayoutMetrics {
       if (!text.isVisible) continue;
       hasVisibleContent = true;
       final genderIconKey =
-          templateGenderIconFieldKeyFromBracketText(text.text);
+          templateSpecimenSexIconFieldKeyFromBracketText(text.text);
       if (text.isQrCode) {
         height = math.max(
           height,
@@ -92,7 +92,7 @@ class _DocumentPdfLayoutMetrics {
           height,
           documentPdfMmToPt(
             text.yMm +
-                (text.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+                (text.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm),
           ),
         );
       } else {
@@ -134,7 +134,7 @@ class _DocumentPdfLayoutMetrics {
             text.isVisible &&
             text.isDynamic &&
             !text.isQrCode &&
-            templateGenderIconFieldKeyFromBracketText(text.text) == null)
+            templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null)
         .toList()
       ..sort((a, b) => a.yMm.compareTo(b.yMm));
     final dynamicHeightByText = <CustomTextElement, double>{
@@ -230,14 +230,14 @@ class _DocumentPdfLayoutMetrics {
     if (element is CustomShapeElement) return _customShapeBottomPt(element);
     if (element is! CustomTextElement) return 0;
     final genderIconKey =
-        templateGenderIconFieldKeyFromBracketText(element.text);
+        templateSpecimenSexIconFieldKeyFromBracketText(element.text);
     if (element.isQrCode) {
       return documentPdfMmToPt(element.yMm + element.qrSizeMm);
     }
     if (genderIconKey != null) {
       return documentPdfMmToPt(
         element.yMm +
-            (element.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm),
+            (element.iconHeightMm ?? kTemplateSpecimenSexIconDefaultHeightMm),
       );
     }
     final heightPt = element.heightMm != null

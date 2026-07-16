@@ -21,12 +21,16 @@ class NahpuTheme {
     tertiary: _mossShadow,
   );
 
+  /// Light surface used around printable template canvases in every app theme.
+  static Color get templateEditorWorkspaceSurface => _lightColorScheme.surface;
+
   static ThemeData lightTheme() {
     return ThemeData(
       colorScheme: _lightColorScheme,
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: appBarLightTheme,
+      cardTheme: _cardTheme(_lightColorScheme),
       inputDecorationTheme: inputDecorationTheme,
     );
   }
@@ -37,15 +41,19 @@ class NahpuTheme {
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: appBarDarkTheme,
+      cardTheme: _cardTheme(_darkColorScheme),
       inputDecorationTheme: inputDecorationTheme,
     );
   }
 
-  static CardTheme get cardTheme {
-    return const CardTheme(
-      elevation: 0.5,
+  static CardThemeData _cardTheme(ColorScheme colorScheme) {
+    return CardThemeData(
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),
+        side: BorderSide(color: colorScheme.outlineVariant),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_font_size_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
@@ -145,7 +146,7 @@ class TextPropertiesPanel extends StatelessWidget {
       onPressed: () => onDeleteCustomText(page1, id),
     );
 
-    if (isTemplateBracketGenderIconText(ct.text)) {
+    if (isTemplateBracketSpecimenSexIconText(ct.text)) {
       final content = Padding(
         padding: inToolbar
             ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
@@ -698,6 +699,28 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               ),
                             );
                           },
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.data_object_outlined),
+                          tooltip: 'Conditional brackets',
+                          onPressed: _hasTextPlaceholder(ct.text)
+                              ? () async {
+                                  final updated = await showDialog<String>(
+                                    context: context,
+                                    builder: (context) =>
+                                        _ConditionalBracketTextDialog(
+                                      text: ct.text,
+                                    ),
+                                  );
+                                  if (updated != null) {
+                                    onUpdateCustomText(
+                                      page1,
+                                      ct.copyWith(text: updated),
+                                    );
+                                  }
+                                }
+                              : null,
                         ),
                         if (ct.textType != 'sex') ...[
                           const SizedBox(width: 16),
@@ -1512,6 +1535,281 @@ class _StylePreviewPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _StylePreviewPainter oldDelegate) {
     return oldDelegate.style != style || oldDelegate.color != color;
+  }
+}
+
+class _ConditionalBracketTextDialog extends StatefulWidget {
+  const _ConditionalBracketTextDialog({required this.text});
+
+  final String text;
+
+  @override
+  State<_ConditionalBracketTextDialog> createState() =>
+      _ConditionalBracketTextDialogState();
+}
+
+class _ConditionalBracketTextDialogState
+    extends State<_ConditionalBracketTextDialog> {
+  late final TextEditingController _targetController;
+  late final List<_TemplateConditionDraft> _conditions;
+  ConditionalMatchMode _mode = ConditionalMatchMode.any;
+
+  @override
+  void initState() {
+    super.initState();
+    final expressions = conditionalBracketExpressionsInText(widget.text);
+    final existing = expressions.isEmpty ? null : expressions.first;
+    final fallbackTarget = RegExp(r'\[([^\[\]]+)\]')
+        .firstMatch(widget.text)
+        ?.group(1)
+        ?.trim()
+        .split('??')
+        .first
+        .trim();
+    _targetController = TextEditingController(
+      text: existing?.targetField ?? fallbackTarget ?? '',
+    );
+    _conditions = (existing?.conditions ??
+            const [
+              ConditionalBracketCondition(
+                sourceField: '',
+                operator: ConditionalComparisonOperator.equals,
+                comparisonValue: '',
+              ),
+            ])
+        .map(_TemplateConditionDraft.fromCondition)
+        .toList();
+    if (existing != null) {
+      _mode = existing.matchMode;
+    }
+  }
+
+  @override
+  void dispose() {
+    _targetController.dispose();
+    for (final condition in _conditions) {
+      condition.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final valid = _targetController.text.trim().isNotEmpty &&
+        _conditions.isNotEmpty &&
+        _conditions.every((condition) => condition.isValid);
+    return AlertDialog(
+      title: const Text('Conditional brackets'),
+      content: SizedBox(
+        width: 460,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Wrap a target field only when a raw controlling value matches. '
+              'Use full keys when fields could be ambiguous.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _targetController,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(labelText: 'Target field'),
+            ),
+            const SizedBox(height: 8),
+            for (var index = 0; index < _conditions.length; index++)
+              _TemplateConditionRow(
+                draft: _conditions[index],
+                onChanged: () => setState(() {}),
+                onRemove: _conditions.length == 1
+                    ? null
+                    : () => setState(() {
+                          final removed = _conditions.removeAt(index);
+                          removed.dispose();
+                        }),
+              ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => setState(() {
+                  _conditions.add(_TemplateConditionDraft.empty());
+                }),
+                icon: const Icon(Icons.add),
+                label: const Text('Add condition'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<ConditionalMatchMode>(
+              initialValue: _mode,
+              decoration: const InputDecoration(labelText: 'Match logic'),
+              items: const [
+                DropdownMenuItem(
+                  value: ConditionalMatchMode.any,
+                  child: Text('Any condition (OR)'),
+                ),
+                DropdownMenuItem(
+                  value: ConditionalMatchMode.all,
+                  child: Text('All conditions (AND)'),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _mode = value);
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: valid ? _save : null,
+          child: const Text('Apply'),
+        ),
+      ],
+    );
+  }
+
+  void _save() {
+    final target = _targetController.text.trim();
+    final syntax = ConditionalBracketExpression(
+      targetField: target,
+      conditions:
+          _conditions.map((condition) => condition.toCondition()).toList(),
+      matchMode: _mode,
+      start: 0,
+      end: 0,
+    ).toTemplateSyntax();
+    ConditionalBracketExpression? existing;
+    for (final expression in conditionalBracketExpressionsInText(widget.text)) {
+      if (expression.targetField == target) {
+        existing = expression;
+        break;
+      }
+    }
+    if (existing != null) {
+      Navigator.pop(
+        context,
+        widget.text.replaceRange(existing.start, existing.end, syntax),
+      );
+      return;
+    }
+    final placeholder = '[$target]';
+    Navigator.pop(
+      context,
+      widget.text.contains(placeholder)
+          ? widget.text.replaceFirst(placeholder, syntax)
+          : '${widget.text}$syntax',
+    );
+  }
+}
+
+class _TemplateConditionDraft {
+  _TemplateConditionDraft({
+    required String sourceField,
+    required this.operator,
+    required String comparisonValue,
+  })  : fieldController = TextEditingController(text: sourceField),
+        valueController = TextEditingController(text: comparisonValue);
+
+  factory _TemplateConditionDraft.empty() => _TemplateConditionDraft(
+        sourceField: '',
+        operator: ConditionalComparisonOperator.equals,
+        comparisonValue: '',
+      );
+
+  factory _TemplateConditionDraft.fromCondition(
+    ConditionalBracketCondition condition,
+  ) =>
+      _TemplateConditionDraft(
+        sourceField: condition.sourceField,
+        operator: condition.operator,
+        comparisonValue: condition.comparisonValue,
+      );
+
+  final TextEditingController fieldController;
+  final TextEditingController valueController;
+  ConditionalComparisonOperator operator;
+
+  bool get isValid =>
+      fieldController.text.trim().isNotEmpty &&
+      valueController.text.trim().isNotEmpty;
+
+  ConditionalBracketCondition toCondition() => ConditionalBracketCondition(
+        sourceField: fieldController.text.trim(),
+        operator: operator,
+        comparisonValue: valueController.text.trim(),
+      );
+
+  void dispose() {
+    fieldController.dispose();
+    valueController.dispose();
+  }
+}
+
+class _TemplateConditionRow extends StatelessWidget {
+  const _TemplateConditionRow({
+    required this.draft,
+    required this.onChanged,
+    required this.onRemove,
+  });
+
+  final _TemplateConditionDraft draft;
+  final VoidCallback onChanged;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        children: [
+          TextField(
+            controller: draft.fieldController,
+            onChanged: (_) => onChanged(),
+            decoration: const InputDecoration(labelText: 'Controlling field'),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              DropdownButton<ConditionalComparisonOperator>(
+                value: draft.operator,
+                items: const [
+                  DropdownMenuItem(
+                    value: ConditionalComparisonOperator.equals,
+                    child: Text('Equals'),
+                  ),
+                  DropdownMenuItem(
+                    value: ConditionalComparisonOperator.notEquals,
+                    child: Text('Does not equal'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    draft.operator = value;
+                    onChanged();
+                  }
+                },
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: draft.valueController,
+                  onChanged: (_) => onChanged(),
+                  decoration: const InputDecoration(labelText: 'Value'),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Remove condition',
+                onPressed: onRemove,
+                icon: const Icon(Icons.remove_circle_outline),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

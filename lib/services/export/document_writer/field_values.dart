@@ -24,6 +24,24 @@ Future<Map<String, String>> documentFieldValuesForSpecimen(
   return m;
 }
 
+/// Extracts values for exactly one specimen part while retaining the complete
+/// parent-specimen context. Sibling part values are never concatenated.
+Future<Map<String, String>> documentFieldValuesForSpecimenPart(
+  Database db,
+  SpecimenPartProjectRecord record,
+  WidgetRef ref,
+) async {
+  final records = await DynamicRecordExporter(
+    ref: ref,
+    concatenateMultiEntry: false,
+  ).getRecord(record.specimen);
+  final partId = record.part.id?.toString();
+  for (final fields in records) {
+    if (fields['specimenPart::id'] == partId) return fields;
+  }
+  return const <String, String>{};
+}
+
 /// Builds template field values for a site document record.
 ///
 /// The returned map includes `site::` values, derived locality/coordinate

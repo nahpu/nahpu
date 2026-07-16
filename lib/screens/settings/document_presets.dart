@@ -6,8 +6,7 @@ import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
-import 'package:nahpu/screens/shared/actions/buttons.dart';
-import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/io_services.dart';
@@ -16,6 +15,7 @@ import 'package:path/path.dart' as path;
 // Preview and specimen selection imports
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -29,6 +29,10 @@ import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/export/export_document.dart';
+import 'package:nahpu/screens/settings/document_presets/template_preset_manager.dart';
+import 'package:nahpu/services/config_services.dart';
+import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DocumentPresetsScreen extends ConsumerStatefulWidget {
   const DocumentPresetsScreen({super.key});
@@ -50,6 +54,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   List<rust_config.DocumentLayoutStatus> _layoutStatuses = const [];
   List<String> _templateNames = const [];
   String _selectedLayoutName = 'Default';
+  bool _showTemplateManager = false;
 
   // Preview States
   bool _showPreview = false;
@@ -95,7 +100,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                             ? 'Preview Narratives (${_previewSelectedUuids.length} selected)'
                             : _recordType == RecordType.none
                                 ? 'Current Project (None)'
-                                : 'Preview Specimens (${_previewSelectedUuids.length} selected)',
+                                : _recordType == RecordType.specimenParts
+                                    ? 'Preview Specimen Parts (${_previewSelectedUuids.length} selected)'
+                                    : 'Preview Specimens (${_previewSelectedUuids.length} selected)',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               if (_recordType != RecordType.none)
@@ -124,126 +131,191 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Document Presets'),
+        actions: [
+          if (!_showTemplateManager)
+            PresetAppBarActions(
+              onCreate: _addPreset,
+              onScanQr: _scanPresetQr,
+              onImport: _importPreset,
+              onExport: _exportPresetsToFile,
+            ),
+        ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text(_error!))
-              : SafeArea(
-                  child: isLargeScreen
-                      ? Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: DocumentPresetListColumn(
-                                  selectedPresetName: _selectedLayoutName,
-                                  statuses: _layoutStatuses,
-                                  onPresetSelected: (name) async {
-                                    await _selectLayout(name);
-                                    _tabController.animateTo(1);
-                                  },
-                                  onDeletePreset: _deletePreset,
-                                  onCreatePreset: _addPreset,
-                                  onScanQR: _importPresetFromQR,
-                                  onImport: _importPreset,
-                                  onExport: _exportPresetsToFile,
-                                  tabController: _tabController,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Material(
-                                  clipBehavior: Clip.hardEdge,
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHighest
-                                      .withValues(alpha: 0.4),
-                                  child: Column(
-                                    children: [
-                                      TabBar(
-                                        controller: _largeScreenTabController,
-                                        tabs: const [
-                                          Tab(text: 'Edit Preset'),
-                                          Tab(text: 'Preview'),
-                                        ],
-                                      ),
-                                      Expanded(
-                                        child: TabBarView(
-                                          controller: _largeScreenTabController,
-                                          children: [
-                                            DocumentPresetEditColumn(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Center(
+                child: SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(
+                      value: true,
+                      icon: Icon(Icons.view_quilt_outlined),
+                      label: Text('Print layouts'),
+                    ),
+                    ButtonSegment(
+                      value: false,
+                      icon: Icon(Icons.dashboard_customize_outlined),
+                      label: Text('Templates'),
+                    ),
+                  ],
+                  selected: {!_showTemplateManager},
+                  onSelectionChanged: (selection) {
+                    setState(() {
+                      _showTemplateManager = !selection.single;
+                    });
+                  },
+                ),
+              ),
+            ),
+            Expanded(
+              child: _showTemplateManager
+                  ? TemplatePresetManager(
+                      onOpenTemplateEditor: _openTemplateEditor,
+                      onRestoreBundledTemplates: _restoreBundledTemplates,
+                    )
+                  : _loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                          ? Center(child: Text(_error!))
+                          : SafeArea(
+                              child: isLargeScreen
+                                  ? Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          8, 8, 8, 16),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Expanded(
+                                            child: DocumentPresetListColumn(
                                               selectedPresetName:
                                                   _selectedLayoutName,
-                                              layout: _layout,
-                                              templateNames: _templateNames,
-                                              layoutStatuses: _layoutStatuses,
-                                              onLayoutChanged: _layoutChanged,
-                                              onSaveSetupAs: _savePresetAs,
-                                              onCreateTemplate: () =>
-                                                  _openTemplateEditor(),
-                                              onEditTemplate:
-                                                  _openTemplateEditor,
+                                              statuses: _layoutStatuses,
+                                              onPresetSelected: (name) async {
+                                                await _selectLayout(name);
+                                                _tabController.animateTo(1);
+                                              },
+                                              onDeletePreset: _deletePreset,
+                                              tabController: _tabController,
                                             ),
-                                            previewWidget,
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(4),
+                                              child: Material(
+                                                clipBehavior: Clip.hardEdge,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                  side: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .dividerColor
+                                                        .withAlpha(50),
+                                                    width: 1.5,
+                                                  ),
+                                                ),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceContainerHighest
+                                                    .withValues(alpha: 0.4),
+                                                child: Column(
+                                                  children: [
+                                                    TabBar(
+                                                      controller:
+                                                          _largeScreenTabController,
+                                                      tabs: const [
+                                                        Tab(
+                                                            text:
+                                                                'Edit Preset'),
+                                                        Tab(text: 'Preview'),
+                                                      ],
+                                                    ),
+                                                    Expanded(
+                                                      child: TabBarView(
+                                                        controller:
+                                                            _largeScreenTabController,
+                                                        children: [
+                                                          DocumentPresetEditColumn(
+                                                            selectedPresetName:
+                                                                _selectedLayoutName,
+                                                            layout: _layout,
+                                                            templateNames:
+                                                                _templateNames,
+                                                            layoutStatuses:
+                                                                _layoutStatuses,
+                                                            onLayoutChanged:
+                                                                _layoutChanged,
+                                                            onSaveSetupAs:
+                                                                _savePresetAs,
+                                                            onCreateTemplate: () =>
+                                                                _openTemplateEditor(),
+                                                            onEditTemplate:
+                                                                _openTemplateEditor,
+                                                          ),
+                                                          previewWidget,
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : Column(
+                                      children: [
+                                        TabBar(
+                                          controller: _tabController,
+                                          tabs: const [
+                                            Tab(text: 'Presets'),
+                                            Tab(text: 'Edit Preset'),
+                                            Tab(text: 'Preview'),
                                           ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            TabBar(
-                              controller: _tabController,
-                              tabs: const [
-                                Tab(text: 'Presets'),
-                                Tab(text: 'Edit Preset'),
-                                Tab(text: 'Preview'),
-                              ],
+                                        Expanded(
+                                          child: TabBarView(
+                                            controller: _tabController,
+                                            children: [
+                                              DocumentPresetListColumn(
+                                                selectedPresetName:
+                                                    _selectedLayoutName,
+                                                statuses: _layoutStatuses,
+                                                onPresetSelected: (name) async {
+                                                  await _selectLayout(name);
+                                                  _tabController.animateTo(1);
+                                                },
+                                                onDeletePreset: _deletePreset,
+                                                tabController: _tabController,
+                                              ),
+                                              DocumentPresetEditColumn(
+                                                selectedPresetName:
+                                                    _selectedLayoutName,
+                                                layout: _layout,
+                                                templateNames: _templateNames,
+                                                layoutStatuses: _layoutStatuses,
+                                                onLayoutChanged: _layoutChanged,
+                                                onSaveSetupAs: _savePresetAs,
+                                                onCreateTemplate: () =>
+                                                    _openTemplateEditor(),
+                                                onEditTemplate:
+                                                    _openTemplateEditor,
+                                              ),
+                                              previewWidget,
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                             ),
-                            Expanded(
-                              child: TabBarView(
-                                controller: _tabController,
-                                children: [
-                                  DocumentPresetListColumn(
-                                    selectedPresetName: _selectedLayoutName,
-                                    statuses: _layoutStatuses,
-                                    onPresetSelected: (name) async {
-                                      await _selectLayout(name);
-                                      _tabController.animateTo(1);
-                                    },
-                                    onDeletePreset: _deletePreset,
-                                    onCreatePreset: _addPreset,
-                                    onScanQR: _importPresetFromQR,
-                                    onImport: _importPreset,
-                                    onExport: _exportPresetsToFile,
-                                    tabController: _tabController,
-                                  ),
-                                  DocumentPresetEditColumn(
-                                    selectedPresetName: _selectedLayoutName,
-                                    layout: _layout,
-                                    templateNames: _templateNames,
-                                    layoutStatuses: _layoutStatuses,
-                                    onLayoutChanged: _layoutChanged,
-                                    onSaveSetupAs: _savePresetAs,
-                                    onCreateTemplate: () =>
-                                        _openTemplateEditor(),
-                                    onEditTemplate: _openTemplateEditor,
-                                  ),
-                                  previewWidget,
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -302,6 +374,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
               narratives.take(20).map((e) => e.id.toString()).toList();
         } else if (recordType == RecordType.none) {
           _previewSelectedUuids = [];
+        } else if (recordType == RecordType.specimenParts) {
+          final parts = ref.read(specimenPartEntryProvider).value ?? [];
+          _previewSelectedUuids = parts
+              .take(20)
+              .map((part) => part.recordId)
+              .whereType<String>()
+              .toList();
         } else {
           final specimens = ref.read(specimenEntryProvider).value ?? [];
           _previewSelectedUuids =
@@ -494,6 +573,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     await _load();
   }
 
+  Future<void> _restoreBundledTemplates() async {
+    await const BundledTemplatePresetService().restoreAll();
+    final prefs = await SharedPreferences.getInstance();
+    await ConfigDbService().loadDefaultDocumentPresetsOnce(prefs);
+    await _load(showLoading: false);
+  }
+
   Future<void> _exportPresetsToFile() async {
     try {
       final layouts = await rust_config.getAllDocumentLayouts();
@@ -606,6 +692,22 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     await _load();
   }
 
+  void _scanPresetQr() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScannerScreen(
+          onDetect: (barcode) {
+            final rawValue = barcode.barcodes.first.rawValue;
+            if (rawValue != null) {
+              _importPresetFromQR(rawValue);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   void _importPresetFromQR(String rawValue) async {
     try {
       final decoded = jsonDecode(rawValue) as Map<String, dynamic>;
@@ -682,10 +784,6 @@ class DocumentPresetListColumn extends StatelessWidget {
     required this.statuses,
     required this.onPresetSelected,
     required this.onDeletePreset,
-    required this.onCreatePreset,
-    required this.onScanQR,
-    required this.onImport,
-    required this.onExport,
     required this.tabController,
   });
 
@@ -693,10 +791,6 @@ class DocumentPresetListColumn extends StatelessWidget {
   final List<rust_config.DocumentLayoutStatus> statuses;
   final ValueChanged<String> onPresetSelected;
   final ValueChanged<String> onDeletePreset;
-  final VoidCallback onCreatePreset;
-  final ValueChanged<String> onScanQR;
-  final VoidCallback onImport;
-  final VoidCallback onExport;
   final TabController tabController;
 
   @override
@@ -773,13 +867,6 @@ class DocumentPresetListColumn extends StatelessWidget {
                     },
                   ),
           ),
-          const CommonLineDivider(),
-          PresetActionButtons(
-            onAddNewPreset: onCreatePreset,
-            onScanQR: onScanQR,
-            onImport: onImport,
-            onExport: onExport,
-          ),
         ],
       ),
     );
@@ -810,71 +897,6 @@ class DocumentPresetListColumn extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class PresetActionButtons extends StatelessWidget {
-  const PresetActionButtons({
-    super.key,
-    required this.onExport,
-    required this.onImport,
-    required this.onScanQR,
-    required this.onAddNewPreset,
-  });
-
-  final void Function() onExport;
-  final void Function() onImport;
-  final void Function(String) onScanQR;
-  final void Function() onAddNewPreset;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SecondaryButton(
-                text: 'Scan QR',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ScannerScreen(
-                        onDetect: (barcode) {
-                          final String? rawValue =
-                              barcode.barcodes.first.rawValue;
-                          if (rawValue != null) {
-                            onScanQR(rawValue);
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-              PrimaryButton(
-                label: 'Create',
-                icon: Icons.add,
-                onPressed: onAddNewPreset,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          TextButton(
-            onPressed: onImport,
-            child: const Text('Import presets from file'),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: onExport,
-            child: const Text('Export presets'),
           ),
         ],
       ),
@@ -992,6 +1014,7 @@ class DocumentPresetEditColumn extends StatelessWidget {
                 onSetupSelected: (_) {},
                 showFileActions: false,
                 showProfileDropdown: false,
+                showBlockOverrideToggle: false,
                 onCreateTemplate: onCreateTemplate,
                 onEditTemplate: onEditTemplate,
               ),
@@ -1136,6 +1159,17 @@ class _PreviewRecordSelectionScreenState
       return const Scaffold(
         body: Center(
           child: Text('No preview records for this type'),
+        ),
+      );
+    }
+    if (widget.recordType == RecordType.specimenParts) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Select specimen parts for preview')),
+        body: SafeArea(
+          child: SpecimenPartSelectionView(
+            selectedIds: widget.selectedUuids,
+            onSelectionChanged: widget.onSelectionChanged,
+          ),
         ),
       );
     }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -60,10 +61,13 @@ class FileSettingsCard extends StatelessWidget {
             ),
             Visibility(
               visible: !Platform.isIOS,
-              child: SelectDirField(
-                dirPath: selectedDir,
-                onPressed: onSelectDir,
-                onCanceled: onClearDir,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: FileSettingsDirectoryPicker(
+                  selectedDir: selectedDir,
+                  onSelectDir: onSelectDir,
+                  onClearDir: onClearDir,
+                ),
               ),
             ),
           ],

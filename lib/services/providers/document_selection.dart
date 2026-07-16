@@ -167,6 +167,9 @@ class BlockRecordSelection extends Notifier<Set<String>> {
     if (arg.recordType == RecordType.specimenRecord) {
       final specimens = ref.watch(specimenEntryProvider).value ?? [];
       return specimens.map((e) => e.uuid).toSet();
+    } else if (arg.recordType == RecordType.specimenParts) {
+      final parts = ref.watch(specimenPartEntryProvider).value ?? [];
+      return parts.map((e) => e.recordId).whereType<String>().toSet();
     } else if (arg.recordType == RecordType.site) {
       final sites = ref.watch(siteEntryProvider).value ?? [];
       return sites.map((e) => e.id.toString()).toSet();

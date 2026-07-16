@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
+import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
@@ -42,6 +43,23 @@ class _TemplatePreviewSpecimenSelectionScreenState
       return const Scaffold(
         body: Center(
           child: Text('No preview records for this type'),
+        ),
+      );
+    }
+    if (widget.recordType == RecordType.specimenParts) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Specimen Part Selection for Preview'),
+        ),
+        body: SafeArea(
+          child: SpecimenPartSelectionView(
+            selectedIds:
+                widget.selectedUuid != null ? {widget.selectedUuid!} : const {},
+            isSingleSelection: true,
+            onSelectionChanged: (selected) {
+              if (selected.isNotEmpty) Navigator.pop(context, selected.first);
+            },
+          ),
         ),
       );
     }

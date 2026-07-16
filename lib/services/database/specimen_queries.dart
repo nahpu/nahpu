@@ -265,6 +265,30 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
         .get();
   }
 
+  /// Returns printable parts in a project together with their parent specimen.
+  /// The inner join intentionally excludes orphaned part rows.
+  Future<List<SpecimenPartProjectRecord>> getSpecimenPartsForProject(
+      String projectUuid) async {
+    final query = select(specimenPart).join([
+      innerJoin(specimen, specimen.uuid.equalsExp(specimenPart.specimenUuid)),
+    ])
+      ..where(specimen.projectUuid.equals(projectUuid))
+      ..orderBy([
+        OrderingTerm.asc(specimen.fieldNumber),
+        OrderingTerm.asc(specimenPart.tissueID),
+        OrderingTerm.asc(specimenPart.barcodeID),
+        OrderingTerm.asc(specimenPart.id),
+      ]);
+
+    final rows = await query.get();
+    return rows
+        .map((row) => SpecimenPartProjectRecord(
+              part: row.readTable(specimenPart),
+              specimen: row.readTable(specimen),
+            ))
+        .toList(growable: false);
+  }
+
   Future<String?> getLastEnteredTissueID(String uuid) async {
     SpecimenPartData data = await (select(specimenPart)
           ..where((t) => t.specimenUuid.equals(uuid))
@@ -350,6 +374,19 @@ class SpecimenPartDistinctTypes {
 
   final List<String> type;
   final List<String> treatment;
+}
+
+/// A specimen part paired with the specimen that owns it.
+class SpecimenPartProjectRecord {
+  const SpecimenPartProjectRecord({
+    required this.part,
+    required this.specimen,
+  });
+
+  final SpecimenPartData part;
+  final SpecimenData specimen;
+
+  String? get recordId => part.id?.toString();
 }
 
 class AssociatedDataQuery extends DatabaseAccessor<Database>

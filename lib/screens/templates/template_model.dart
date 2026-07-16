@@ -17,26 +17,26 @@ bool isTemplateImagePathUsable(String path) {
   }
 }
 
-/// Whole-line text `[mammal.sex]-img` → show sex as a resizable icon (see [isTemplateBracketGenderIconText]).
-final RegExp kTemplateGenderIconBracketText = RegExp(
+/// Whole-line text `[mammal.sex]-img` → show sex as a resizable icon (see [isTemplateBracketSpecimenSexIconText]).
+final RegExp kTemplateSpecimenSexIconBracketText = RegExp(
   r'^\s*\[([^\]]+)\]-img\s*$',
   caseSensitive: false,
 );
 
 /// Field id inside brackets, e.g. `mammal.sex`, when [text] is `[mammal.sex]-img`.
-String? templateGenderIconFieldKeyFromBracketText(String text) {
-  final m = kTemplateGenderIconBracketText.firstMatch(text.trim());
+String? templateSpecimenSexIconFieldKeyFromBracketText(String text) {
+  final m = kTemplateSpecimenSexIconBracketText.firstMatch(text.trim());
   if (m == null) return null;
   final key = m.group(1)!.trim();
   if (!key.toLowerCase().endsWith('.sex')) return null;
   return key;
 }
 
-bool isTemplateBracketGenderIconText(String text) =>
-    templateGenderIconFieldKeyFromBracketText(text) != null;
+bool isTemplateBracketSpecimenSexIconText(String text) =>
+    templateSpecimenSexIconFieldKeyFromBracketText(text) != null;
 
-const double kTemplateGenderIconDefaultWidthMm = 6.0;
-const double kTemplateGenderIconDefaultHeightMm = 6.0;
+const double kTemplateSpecimenSexIconDefaultWidthMm = 6.0;
+const double kTemplateSpecimenSexIconDefaultHeightMm = 6.0;
 
 String formatTextWithCase(String rawText, String caseFormat) {
   switch (caseFormat) {
@@ -471,6 +471,19 @@ String formatNumberText(String text, String formatOption) {
   });
 }
 
+/// Removes the trailing `.0` from each whole-number decimal token in [text].
+///
+/// This is intended for export presentation only. It leaves fractional values
+/// such as `12.50` and `0.5` unchanged, and does not parse or mutate stored
+/// record data.
+String truncateTrailingDecimalZeroText(String text) {
+  final wholeNumberDecimal = RegExp(r'(?<![\d.])-?\d+\.0(?![\d.])');
+  return text.replaceAllMapped(wholeNumberDecimal, (match) {
+    final value = match.group(0)!;
+    return value.substring(0, value.length - 2);
+  });
+}
+
 String formatFieldPlaceholderText(String text, bool showFieldOnly) {
   if (!showFieldOnly) return text;
   final regex = RegExp(r'\[([^\]\s?]+)::([^\]\s?]+)(\?\?[^\]]+)?\]');
@@ -480,6 +493,7 @@ String formatFieldPlaceholderText(String text, bool showFieldOnly) {
   );
 }
 
+/// Formats template text according to its selected type and option.
 String formatTemplateText(
   String rawText,
   String textType,
@@ -531,6 +545,21 @@ String formatTemplateText(
   }
   return result;
 }
+
+/// Formats [rawText] for an export-facing template surface.
+///
+/// The result uses the normal template format selection and then removes a
+/// trailing `.0` from whole-number decimal tokens. QR-code payloads must use
+/// [formatTemplateText] directly so their encoded content remains unchanged.
+String formatExportTemplateText(
+  String rawText,
+  String textType,
+  String formatOption, [
+  String? oldCaseFormat,
+]) =>
+    truncateTrailingDecimalZeroText(
+      formatTemplateText(rawText, textType, formatOption, oldCaseFormat),
+    );
 
 const kTemplateNullFallbackBlank = 'blank';
 const kTemplateNullFallbackField = 'field';
@@ -645,7 +674,7 @@ class CustomTextElement {
   final String nullFallbackOption;
   final String customNullFallbackText;
 
-  /// For [isTemplateBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
+  /// For [isTemplateBracketSpecimenSexIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
   final double? iconHeightMm;
 

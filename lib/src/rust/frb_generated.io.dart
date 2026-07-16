@@ -114,10 +114,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<Uint8List> dco_decode_list_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  Int32List dco_decode_list_prim_i_32_strict(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
   List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
+  List<TemplatePresetUsage> dco_decode_list_template_preset_usage(dynamic raw);
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
@@ -147,6 +153,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RecordWriter dco_decode_record_writer(dynamic raw);
+
+  @protected
+  TemplatePresetDeletionResult dco_decode_template_preset_deletion_result(
+      dynamic raw);
+
+  @protected
+  TemplatePresetUsage dco_decode_template_preset_usage(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -272,10 +285,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
   List<(String, String)> sse_decode_list_record_string_string(
+      SseDeserializer deserializer);
+
+  @protected
+  List<TemplatePresetUsage> sse_decode_list_template_preset_usage(
       SseDeserializer deserializer);
 
   @protected
@@ -307,6 +327,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RecordWriter sse_decode_record_writer(SseDeserializer deserializer);
+
+  @protected
+  TemplatePresetDeletionResult sse_decode_template_preset_deletion_result(
+      SseDeserializer deserializer);
+
+  @protected
+  TemplatePresetUsage sse_decode_template_preset_usage(
+      SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -437,12 +465,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       List<Uint8List> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_prim_i_32_strict(
+      Int32List self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
       Uint8List self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_record_string_string(
       List<(String, String)> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_template_preset_usage(
+      List<TemplatePresetUsage> self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
@@ -474,6 +510,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_record_writer(RecordWriter self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_template_preset_deletion_result(
+      TemplatePresetDeletionResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_template_preset_usage(
+      TemplatePresetUsage self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

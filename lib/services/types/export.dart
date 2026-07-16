@@ -1,3 +1,5 @@
+import 'package:nahpu/services/conditional_brackets.dart';
+
 enum ExportFmt { csv, tsv, excel, json }
 
 const List<String> supportedTaxonClass = [
@@ -324,58 +326,288 @@ const allMediaExportList = [
   'media::fileName',
 ];
 
-class CombinedField {
-  CombinedField({
-    required this.fieldId,
-    required this.fields,
-  });
+/// How automatically generated export headers identify a source field.
+enum ExportHeaderFormat { tableFieldName, fieldName }
 
-  final String fieldId;
-  final List<String> fields;
+/// The way a related, repeated record is represented in a flat export.
+enum NestedExportMode { concatenate, spreadColumns, expandRows }
 
-  factory CombinedField.fromJson(Map<String, dynamic> json) {
-    return CombinedField(
-      fieldId: json['fieldId'] as String,
-      fields: List<String>.from(json['fields'] as List),
-    );
-  }
+/// How a scalar field containing repeated values is flattened for export.
+enum ListExportMode { concatenate, spreadColumns }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'fieldId': fieldId,
-      'fields': fields,
-    };
-  }
+/// How a one-based index is added to an exported column name.
+enum IndexedHeaderStyle { underscore, compact, brackets }
+
+const int recordExportPresetSchemaVersion = 4;
+const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4};
+
+/// Scalar export format that conditionally wraps a populated value in brackets.
+const String kConditionalBracketExportTextType = 'conditionalBrackets';
+
+/// One visual segment of a scalar export expression.
+///
+/// The persisted representation remains the established template expression,
+/// such as `[personnel::initial]-[specimen::fieldNumber]`. Segments exist only
+/// to make that expression editable without requiring users to type brackets.
+class ExportExpressionSegment {
+  const ExportExpressionSegment.field(this.value) : isField = true;
+  const ExportExpressionSegment.text(this.value) : isField = false;
+
+  final String value;
+  final bool isField;
 }
 
-class ExportPresetModel {
-  ExportPresetModel({
-    required this.fields,
-    required this.combinedFields,
+/// Splits an export expression into ordered field and literal-text segments.
+///
+/// An unmatched `[` is treated as literal text so existing advanced
+/// expressions are not discarded by the visual composer.
+List<ExportExpressionSegment> parseExportExpression(String expression) {
+  final segments = <ExportExpressionSegment>[];
+  var cursor = 0;
+  while (cursor < expression.length) {
+    final start = expression.indexOf('[', cursor);
+    if (start == -1) {
+      if (cursor < expression.length) {
+        segments
+            .add(ExportExpressionSegment.text(expression.substring(cursor)));
+      }
+      break;
+    }
+    if (start > cursor) {
+      segments.add(
+          ExportExpressionSegment.text(expression.substring(cursor, start)));
+    }
+    final end = expression.indexOf(']', start + 1);
+    if (end == -1) {
+      segments.add(ExportExpressionSegment.text(expression.substring(start)));
+      break;
+    }
+    final field = expression.substring(start + 1, end).trim();
+    if (field.isEmpty) {
+      segments.add(
+          ExportExpressionSegment.text(expression.substring(start, end + 1)));
+    } else {
+      segments.add(ExportExpressionSegment.field(field));
+    }
+    cursor = end + 1;
+  }
+  return segments;
+}
+
+/// Serializes visual expression segments into the backwards-compatible
+/// template expression used by the exporter.
+String serializeExportExpression(Iterable<ExportExpressionSegment> segments) =>
+    segments
+        .map(
+            (segment) => segment.isField ? '[${segment.value}]' : segment.value)
+        .join();
+
+bool isDirectExportSourceExpression(String expression) {
+  return RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(expression);
+}
+
+/// A single ordered output mapping in a record export preset.
+///
+/// Scalar mappings use [expression] exactly like a document text element: it
+/// can contain full or short bracket placeholders and literal text. Nested
+/// mappings use [nestedNamespace] and [nestedFields] to map repeated child
+/// records.
+class ExportFieldMapping {
+  const ExportFieldMapping({
+    required this.expression,
+    this.headerOverride,
+    this.textType = 'normal',
+    this.formatOption = 'normal',
+    this.caseFormat = 'normal',
+    this.nullFallbackOption = 'blank',
+    this.customNullFallbackText = '',
+    this.nestedNamespace,
+    this.nestedFields = const [],
+    this.nestedMode = NestedExportMode.concatenate,
+    this.listMode = ListExportMode.concatenate,
+    this.indexedHeaderStyle = IndexedHeaderStyle.underscore,
+    this.fieldSeparator = '|',
+    this.recordSeparator = ';',
+    this.bracketConditions = const [],
+    this.bracketConditionMode = ConditionalMatchMode.any,
   });
 
-  final Map<String, String> fields;
-  final List<CombinedField> combinedFields;
+  final String expression;
+  final String? headerOverride;
+  final String textType;
+  final String formatOption;
+  final String caseFormat;
+  final String nullFallbackOption;
+  final String customNullFallbackText;
+  final String? nestedNamespace;
+  final List<String> nestedFields;
+  final NestedExportMode nestedMode;
+  final ListExportMode listMode;
+  final IndexedHeaderStyle indexedHeaderStyle;
+  final String fieldSeparator;
+  final String recordSeparator;
 
-  factory ExportPresetModel.empty() {
-    return ExportPresetModel(fields: {}, combinedFields: []);
-  }
+  /// Conditions used when [textType] is [kConditionalBracketExportTextType].
+  final List<ConditionalBracketCondition> bracketConditions;
 
-  factory ExportPresetModel.fromJson(Map<String, dynamic> json) {
-    return ExportPresetModel(
-      fields: Map<String, String>.from(json['fields'] as Map),
-      combinedFields: (json['combined'] as List? ?? [])
-          .map((e) => CombinedField.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  /// Whether [bracketConditions] are combined with OR or AND semantics.
+  final ConditionalMatchMode bracketConditionMode;
+
+  bool get isNested => nestedNamespace != null;
+
+  ExportFieldMapping copyWith({
+    String? expression,
+    String? headerOverride,
+    bool clearHeaderOverride = false,
+    String? textType,
+    String? formatOption,
+    String? caseFormat,
+    String? nullFallbackOption,
+    String? customNullFallbackText,
+    String? nestedNamespace,
+    bool clearNestedNamespace = false,
+    List<String>? nestedFields,
+    NestedExportMode? nestedMode,
+    ListExportMode? listMode,
+    IndexedHeaderStyle? indexedHeaderStyle,
+    String? fieldSeparator,
+    String? recordSeparator,
+    List<ConditionalBracketCondition>? bracketConditions,
+    ConditionalMatchMode? bracketConditionMode,
+  }) {
+    return ExportFieldMapping(
+      expression: expression ?? this.expression,
+      headerOverride:
+          clearHeaderOverride ? null : (headerOverride ?? this.headerOverride),
+      textType: textType ?? this.textType,
+      formatOption: formatOption ?? this.formatOption,
+      caseFormat: caseFormat ?? this.caseFormat,
+      nullFallbackOption: nullFallbackOption ?? this.nullFallbackOption,
+      customNullFallbackText:
+          customNullFallbackText ?? this.customNullFallbackText,
+      nestedNamespace: clearNestedNamespace
+          ? null
+          : (nestedNamespace ?? this.nestedNamespace),
+      nestedFields: nestedFields ?? this.nestedFields,
+      nestedMode: nestedMode ?? this.nestedMode,
+      listMode: listMode ?? this.listMode,
+      indexedHeaderStyle: indexedHeaderStyle ?? this.indexedHeaderStyle,
+      fieldSeparator: fieldSeparator ?? this.fieldSeparator,
+      recordSeparator: recordSeparator ?? this.recordSeparator,
+      bracketConditions: bracketConditions ?? this.bracketConditions,
+      bracketConditionMode: bracketConditionMode ?? this.bracketConditionMode,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'fields': fields,
-      'combined': combinedFields.map((e) => e.toJson()).toList(),
-    };
+  factory ExportFieldMapping.fromJson(Map<String, dynamic> json) {
+    return ExportFieldMapping(
+      expression: json['expression'] as String? ?? '',
+      headerOverride: json['headerOverride'] as String?,
+      textType: json['textType'] as String? ?? 'normal',
+      formatOption: json['formatOption'] as String? ?? 'normal',
+      caseFormat: json['caseFormat'] as String? ?? 'normal',
+      nullFallbackOption: json['nullFallbackOption'] as String? ?? 'blank',
+      customNullFallbackText: json['customNullFallbackText'] as String? ?? '',
+      nestedNamespace: json['nestedNamespace'] as String?,
+      nestedFields: List<String>.from(json['nestedFields'] as List? ?? []),
+      nestedMode: NestedExportMode.values.byName(
+        json['nestedMode'] as String? ?? NestedExportMode.concatenate.name,
+      ),
+      listMode: ListExportMode.values.byName(
+        json['listMode'] as String? ?? ListExportMode.concatenate.name,
+      ),
+      indexedHeaderStyle: IndexedHeaderStyle.values.byName(
+        json['indexedHeaderStyle'] as String? ??
+            IndexedHeaderStyle.underscore.name,
+      ),
+      fieldSeparator: json['fieldSeparator'] as String? ?? '|',
+      recordSeparator: json['recordSeparator'] as String? ?? ';',
+      bracketConditions: (json['bracketConditions'] as List? ?? [])
+          .whereType<Map>()
+          .map((value) => ConditionalBracketCondition.fromJson(
+              Map<String, dynamic>.from(value)))
+          .toList(growable: false),
+      bracketConditionMode: ConditionalMatchMode.values.byName(
+        json['bracketConditionMode'] as String? ??
+            ConditionalMatchMode.any.name,
+      ),
+    );
   }
+
+  Map<String, dynamic> toJson() => {
+        'expression': expression,
+        if (headerOverride != null) 'headerOverride': headerOverride,
+        'textType': textType,
+        'formatOption': formatOption,
+        'caseFormat': caseFormat,
+        'nullFallbackOption': nullFallbackOption,
+        'customNullFallbackText': customNullFallbackText,
+        if (nestedNamespace != null) 'nestedNamespace': nestedNamespace,
+        'nestedFields': nestedFields,
+        'nestedMode': nestedMode.name,
+        'listMode': listMode.name,
+        'indexedHeaderStyle': indexedHeaderStyle.name,
+        'fieldSeparator': fieldSeparator,
+        'recordSeparator': recordSeparator,
+        'bracketConditions':
+            bracketConditions.map((condition) => condition.toJson()).toList(),
+        'bracketConditionMode': bracketConditionMode.name,
+      };
+}
+
+/// A complete, versioned configuration for one record export.
+class ExportPresetModel {
+  const ExportPresetModel({
+    required this.recordType,
+    required this.specimenRecordType,
+    required this.headerFormat,
+    required this.mappings,
+    this.schemaVersion = recordExportPresetSchemaVersion,
+  });
+
+  final int schemaVersion;
+  final RecordType recordType;
+  final SpecimenRecordType specimenRecordType;
+  final ExportHeaderFormat headerFormat;
+  final List<ExportFieldMapping> mappings;
+
+  factory ExportPresetModel.empty() => const ExportPresetModel(
+        recordType: RecordType.specimenRecord,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.tableFieldName,
+        mappings: [],
+      );
+
+  factory ExportPresetModel.fromJson(Map<String, dynamic> json) {
+    final schemaVersion = json['schemaVersion'] as int?;
+    if (!_supportedRecordExportPresetSchemaVersions.contains(schemaVersion)) {
+      throw const FormatException('Unsupported record export preset schema.');
+    }
+    return ExportPresetModel(
+      schemaVersion: recordExportPresetSchemaVersion,
+      recordType: parseRecordType(json['recordType'] as String?),
+      specimenRecordType: SpecimenRecordType.values.byName(
+        json['specimenRecordType'] as String? ??
+            SpecimenRecordType.allTaxa.name,
+      ),
+      headerFormat: ExportHeaderFormat.values.byName(
+        json['headerFormat'] as String? ??
+            ExportHeaderFormat.tableFieldName.name,
+      ),
+      mappings: (json['mappings'] as List? ?? [])
+          .map((value) => ExportFieldMapping.fromJson(
+              Map<String, dynamic>.from(value as Map)))
+          .toList(growable: false),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'schemaVersion': schemaVersion,
+        'recordType': recordTypeToString(recordType),
+        'specimenRecordType': specimenRecordType.name,
+        'headerFormat': headerFormat.name,
+        'mappings': mappings.map((mapping) => mapping.toJson()).toList(),
+      };
 }
 
 RecordType parseRecordType(String? value) {
