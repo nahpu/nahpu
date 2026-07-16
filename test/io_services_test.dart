@@ -24,8 +24,15 @@ void main() {
   setUp(() {
     tempAppDir = Directory.systemTemp.createTempSync('nahpu-io-services-test');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(pathProviderChannel, (_) async {
-      return tempAppDir.path;
+        .setMockMethodCallHandler(pathProviderChannel, (call) async {
+      switch (call.method) {
+        case 'getApplicationDocumentsDirectory':
+          return tempAppDir.path;
+        case 'getTemporaryDirectory':
+          return Directory.systemTemp.path;
+        default:
+          return null;
+      }
     });
     db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
   });
@@ -131,22 +138,25 @@ void main() {
 
   group('Directory Paths Verification', () {
     testWidgets('nahpuDocumentDir path is correct', (tester) async {
-      final dir = await nahpuDocumentDir;
-      expect(dir.path, path.join(tempAppDir.path, 'nahpu'));
+      final dir = await tester.runAsync(() => nahpuDocumentDir);
+      expect(dir!.path, path.join(tempAppDir.path, 'nahpu'));
     });
 
     testWidgets('backupDir path is correct', (tester) async {
       final ref = await _buildRef(tester, db);
-      final file = await AppServices(ref: ref).backupDir;
-      expect(file.parent.path, path.join(tempAppDir.path, 'nahpu', 'backup'));
-      expect(path.basename(file.path), startsWith('nahpu_backup'));
-      expect(path.extension(file.path), '.sqlite3');
+      final file = await tester.runAsync(() => AppServices(ref: ref).backupDir);
+      final backupFile = file!;
+      expect(backupFile.parent.path,
+          path.join(tempAppDir.path, 'nahpu', 'backup'));
+      expect(path.basename(backupFile.path), startsWith('nahpu_backup'));
+      expect(path.extension(backupFile.path), '.sqlite3');
     });
 
     testWidgets('tempDirectory path is correct', (tester) async {
       final ref = await _buildRef(tester, db);
-      final dir = await AppServices(ref: ref).tempDirectory;
-      expect(dir.path, path.join(Directory.systemTemp.path, 'NahpuTemp'));
+      final dir =
+          await tester.runAsync(() => AppServices(ref: ref).tempDirectory);
+      expect(dir!.path, path.join(Directory.systemTemp.path, 'NahpuTemp'));
     });
 
     testWidgets('getMediaDir paths are correct', (tester) async {
@@ -165,12 +175,18 @@ void main() {
         (tester) async {
       final ref = await _buildRef(tester, db);
       final services = AppServices(ref: ref);
+      final directories = await tester.runAsync(() async {
+        return (
+          userConfig: await services.userConfigDir,
+          userFont: await services.userFontDir,
+        );
+      });
       expect(
-        (await services.userConfigDir).path,
+        directories!.userConfig.path,
         path.join(tempAppDir.path, 'nahpu', 'UserConfigs'),
       );
       expect(
-        (await services.userFontDir).path,
+        directories.userFont.path,
         path.join(tempAppDir.path, 'nahpu', 'UserConfigs', 'fonts'),
       );
     });
