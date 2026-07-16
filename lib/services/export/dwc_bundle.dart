@@ -1,33 +1,85 @@
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as path;
+import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/media_services.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/types/birds.dart' as birds;
+import 'package:nahpu/services/types/herps.dart' as herps;
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/mammals.dart' as mammals;
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/src/rust/api/dwc.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/src/rust/api/nahpu_dp.dart';
 
-enum DwcBundleFormat { darwinCoreArchive, darwinCoreDataPackage }
+enum DwcBundleFormat {
+  darwinCoreArchive,
+  darwinCoreDataPackage,
+  nahpuDataPackage,
+}
+
+enum BundleArchiveFormat { tarGzip, zip }
+
+extension BundleArchiveFormatLabel on BundleArchiveFormat {
+  String get label => switch (this) {
+        BundleArchiveFormat.tarGzip => 'TAR.GZ',
+        BundleArchiveFormat.zip => 'ZIP',
+      };
+
+  String get wireValue => switch (this) {
+        BundleArchiveFormat.tarGzip => 'tar_gzip',
+        BundleArchiveFormat.zip => 'zip',
+      };
+}
 
 extension DwcBundleFormatLabel on DwcBundleFormat {
   String get label => switch (this) {
         DwcBundleFormat.darwinCoreArchive => 'Darwin Core Archive',
         DwcBundleFormat.darwinCoreDataPackage => 'Darwin Core Data Package',
+        DwcBundleFormat.nahpuDataPackage => 'NAHPU Data Package',
       };
 
-  String get outputExtension => switch (this) {
-        DwcBundleFormat.darwinCoreArchive => 'zip',
-        DwcBundleFormat.darwinCoreDataPackage => 'dwc-dp',
+  bool get usesTaxonSelection => this != DwcBundleFormat.nahpuDataPackage;
+
+  BundleArchiveFormat get defaultArchive => switch (this) {
+        DwcBundleFormat.darwinCoreArchive => BundleArchiveFormat.zip,
+        DwcBundleFormat.darwinCoreDataPackage ||
+        DwcBundleFormat.nahpuDataPackage =>
+          BundleArchiveFormat.tarGzip,
+      };
+
+  Set<BundleArchiveFormat> get allowedArchives => switch (this) {
+        DwcBundleFormat.darwinCoreArchive => {BundleArchiveFormat.zip},
+        DwcBundleFormat.darwinCoreDataPackage ||
+        DwcBundleFormat.nahpuDataPackage =>
+          BundleArchiveFormat.values.toSet(),
       };
 
   String get wireValue => switch (this) {
         DwcBundleFormat.darwinCoreArchive => 'darwin_core_archive',
         DwcBundleFormat.darwinCoreDataPackage => 'darwin_core_data_package',
+        DwcBundleFormat.nahpuDataPackage => 'nahpu_data_package',
       };
+
+  String outputExtension(BundleArchiveFormat archive) {
+    if (this == DwcBundleFormat.darwinCoreArchive) return 'dwca.zip';
+    final package =
+        this == DwcBundleFormat.darwinCoreDataPackage ? 'dwc-dp' : 'nahpu-dp';
+    return archive == BundleArchiveFormat.tarGzip
+        ? '$package.tar.gz'
+        : '$package.zip';
+  }
 }
 
 /// A complete, display-ready description of a bundle before it is written.
@@ -90,9 +142,19 @@ class DwcBundleWriter extends AppServices {
 
   Future<DwcBundleManifest> plan({
     required DwcBundleFormat format,
+    required BundleArchiveFormat archiveFormat,
     required Set<String> selectedTaxonGroups,
   }) async {
-    final request = await _buildRequest(format, selectedTaxonGroups);
+    if (format == DwcBundleFormat.nahpuDataPackage) {
+      return _withNahpuRequest(
+        archiveFormat,
+        (request) async => DwcBundleManifest.fromJson(
+          await planNahpuPackage(requestJson: jsonEncode(request)),
+        ),
+      );
+    }
+    final request =
+        await _buildRequest(format, archiveFormat, selectedTaxonGroups);
     return DwcBundleManifest.fromJson(
       await planDwcBundle(requestJson: jsonEncode(request)),
     );
@@ -100,10 +162,28 @@ class DwcBundleWriter extends AppServices {
 
   Future<DwcBundleManifest> write({
     required DwcBundleFormat format,
+    required BundleArchiveFormat archiveFormat,
     required Set<String> selectedTaxonGroups,
     required String outputPath,
   }) async {
-    final request = await _buildRequest(format, selectedTaxonGroups);
+    if (format == DwcBundleFormat.nahpuDataPackage) {
+      return _withNahpuRequest(archiveFormat, (request) async {
+        final requestJson = jsonEncode(request);
+        final validation = await validateNahpuPackage(requestJson: requestJson);
+        final errors = jsonDecode(validation) as List<dynamic>;
+        if (errors.isNotEmpty) {
+          throw StateError(errors.join('\n'));
+        }
+        return DwcBundleManifest.fromJson(
+          await writeNahpuPackage(
+            requestJson: requestJson,
+            outputPath: outputPath,
+          ),
+        );
+      });
+    }
+    final request =
+        await _buildRequest(format, archiveFormat, selectedTaxonGroups);
     final validation =
         await validateDwcBundle(requestJson: jsonEncode(request));
     final errors = jsonDecode(validation) as List<dynamic>;
@@ -120,6 +200,7 @@ class DwcBundleWriter extends AppServices {
 
   Future<Map<String, dynamic>> _buildRequest(
     DwcBundleFormat format,
+    BundleArchiveFormat archiveFormat,
     Set<String> requestedGroups,
   ) async {
     final selectedGroups = _expandTaxonSelection(requestedGroups);
@@ -211,6 +292,7 @@ class DwcBundleWriter extends AppServices {
 
     return <String, dynamic>{
       'format': format.wireValue,
+      'archive_format': archiveFormat.wireValue,
       'name': project.name,
       'project': _removeEmpty(project.toJson()),
       'occurrences': occurrenceRows.map(_removeEmpty).toList(growable: false),
@@ -231,6 +313,126 @@ class DwcBundleWriter extends AppServices {
       'media_agent_roles':
           mediaAgentRoles.map(_removeEmpty).toList(growable: false),
     };
+  }
+
+  Future<T> _withNahpuRequest<T>(
+    BundleArchiveFormat archiveFormat,
+    Future<T> Function(Map<String, dynamic> request) action,
+  ) async {
+    final root = await tempDirectory;
+    final snapshotDir = await Directory(path.join(
+      root.path,
+      'nahpu-package-${DateTime.now().microsecondsSinceEpoch}',
+    )).create(recursive: true);
+    try {
+      final databaseFile = File(path.join(snapshotDir.path, 'nahpu.sqlite3'));
+      await dbAccess.exportInto(databaseFile);
+      final configsFile =
+          File(path.join(snapshotDir.path, 'user_configs.json'));
+      await rust_config.exportConfigToFile(
+        filePath: configsFile.path,
+        isJson: true,
+      );
+      final project =
+          await ProjectServices(ref: ref).getProjectByUuid(currentProjectUuid);
+      final packageInfo = await PackageInfo.fromPlatform();
+      final controlledVocabularies = await _readNahpuControlledVocabularies();
+      final request = <String, dynamic>{
+        'archive_format': archiveFormat.wireValue,
+        'name': '${project.name} NAHPU data',
+        'app_name': 'NAHPU',
+        'app_version': packageInfo.version,
+        'app_build': packageInfo.buildNumber,
+        'database_schema_version': kSchemaVersion,
+        'user_config_schema_version': 1,
+        'database_path': databaseFile.path,
+        'user_configs': jsonDecode(await configsFile.readAsString()),
+        'tables': _readNahpuTables(databaseFile),
+        'enum_mappings': buildNahpuSqliteEnumMappings(),
+        'controlled_vocabularies': controlledVocabularies,
+        'files': await _collectNahpuPackageFiles(),
+      };
+      return await action(request);
+    } finally {
+      if (snapshotDir.existsSync()) {
+        snapshotDir.deleteSync(recursive: true);
+      }
+    }
+  }
+
+  List<Map<String, dynamic>> _readNahpuTables(File databaseFile) {
+    final database = sqlite.sqlite3.open(
+      databaseFile.path,
+      mode: sqlite.OpenMode.readOnly,
+    );
+    try {
+      return _nahpuTableNames.map((tableName) {
+        final columns = database.select('PRAGMA table_info("$tableName")');
+        final foreignKeys =
+            database.select('PRAGMA foreign_key_list("$tableName")');
+        final rows = database.select('SELECT * FROM "$tableName"');
+        return <String, dynamic>{
+          'name': tableName,
+          'columns': columns
+              .map((column) => <String, dynamic>{
+                    'name': column['name'].toString(),
+                    'data_type': column['type'].toString(),
+                    'required': column['notnull'] == 1,
+                    'primary_key': column['pk'] != 0,
+                  })
+              .toList(growable: false),
+          'foreign_keys': foreignKeys
+              .map((foreignKey) => <String, dynamic>{
+                    'fields': foreignKey['from'].toString(),
+                    'resource': foreignKey['table'].toString(),
+                    'reference_fields': foreignKey['to'].toString(),
+                  })
+              .toList(growable: false),
+          'rows': rows
+              .map((row) => Map<String, dynamic>.from(row))
+              .toList(growable: false),
+        };
+      }).toList(growable: false);
+    } finally {
+      database.close();
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _readNahpuControlledVocabularies() async {
+    final output = <Map<String, dynamic>>[];
+    for (final definition in _nahpuControlledVocabularyDefinitions) {
+      final configured =
+          await rust_config.getUserConfigList(key: definition.configKey);
+      output.add({
+        'section': definition.section,
+        'config_key': definition.configKey,
+        'vocabulary_name': definition.name,
+        'values': configured ?? getDefaultOptionsList(definition.configKey),
+      });
+    }
+    return output;
+  }
+
+  Future<List<Map<String, String>>> _collectNahpuPackageFiles() async {
+    final root = await nahpuDocumentDir;
+    final output = <Map<String, String>>[];
+    await for (final entity in root.list(recursive: true, followLinks: false)) {
+      if (entity is! File) continue;
+      final relative = path.relative(entity.path, from: root.path);
+      final normalized = relative.replaceAll('\\', '/');
+      final include = normalized.startsWith('appMedia/') ||
+          normalized.startsWith('UserConfigs/fonts/') ||
+          normalized.split('/').contains('media');
+      if (!include) continue;
+      output.add({
+        'source_path': entity.path,
+        'package_path': 'files/$normalized',
+      });
+    }
+    output.sort(
+      (left, right) => left['package_path']!.compareTo(right['package_path']!),
+    );
+    return output;
   }
 
   Future<CoordinateData?> _coordinateForSpecimen(
@@ -601,6 +803,213 @@ class DwcBundleWriter extends AppServices {
   }
 }
 
+List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
+  return [
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'sex',
+      enumType: 'SpecimenSex',
+      values: SpecimenSex.values,
+      displayNames: specimenSexList,
+    ),
+    ..._enumMappingRows(
+      table: 'avianMeasurement',
+      column: 'sex',
+      enumType: 'SpecimenSex',
+      values: SpecimenSex.values,
+      displayNames: specimenSexList,
+    ),
+    ..._enumMappingRows(
+      table: 'herpMeasurement',
+      column: 'sex',
+      enumType: 'SpecimenSex',
+      values: SpecimenSex.values,
+      displayNames: specimenSexList,
+    ),
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'age',
+      enumType: 'mammals.SpecimenAge',
+      values: mammals.SpecimenAge.values,
+      displayNames: mammals.specimenAgeList,
+    ),
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'testisPosition',
+      enumType: 'mammals.TestisPosition',
+      values: mammals.TestisPosition.values,
+      displayNames: mammals.testisPositionList,
+    ),
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'epididymisAppearance',
+      enumType: 'mammals.EpididymisAppearance',
+      values: mammals.EpididymisAppearance.values,
+      displayNames: mammals.epididymisAppearanceList,
+    ),
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'vaginaOpening',
+      enumType: 'mammals.VaginaOpening',
+      values: mammals.VaginaOpening.values,
+      displayNames: mammals.vaginaOpeningList,
+    ),
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'pubicSymphysis',
+      enumType: 'mammals.PubicSymphysis',
+      values: mammals.PubicSymphysis.values,
+      displayNames: mammals.pubicSymphysisList,
+    ),
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'reproductiveStage',
+      enumType: 'mammals.ReproductiveStage',
+      values: mammals.ReproductiveStage.values,
+      displayNames: mammals.reproductiveStageList,
+    ),
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'mammaeCondition',
+      enumType: 'mammals.MammaeCondition',
+      values: mammals.MammaeCondition.values,
+      displayNames: mammals.mammaeConditionList,
+    ),
+    ..._enumMappingRows(
+      table: 'mammalMeasurement',
+      column: 'echolocation',
+      enumType: 'mammals.Echolocation',
+      values: mammals.Echolocation.values,
+      displayNames: mammals.echolocationList,
+    ),
+    ..._enumMappingRows(
+      table: 'avianMeasurement',
+      column: 'ovaryAppearance',
+      enumType: 'birds.OvaryAppearance',
+      values: birds.OvaryAppearance.values,
+      displayNames: birds.ovaryAppearanceList,
+    ),
+    ..._enumMappingRows(
+      table: 'avianMeasurement',
+      column: 'fat',
+      enumType: 'birds.FatCategory',
+      values: birds.FatCategory.values,
+      displayNames: birds.fatCategoryList,
+    ),
+    ..._enumMappingRows(
+      table: 'avianMeasurement',
+      column: 'oviductAppearance',
+      enumType: 'birds.OviductAppearance',
+      values: birds.OviductAppearance.values,
+      displayNames: birds.oviductAppearanceList,
+    ),
+    ..._enumMappingRows(
+      table: 'avianMeasurement',
+      column: 'bodyMolt',
+      enumType: 'birds.BodyMolt',
+      values: birds.BodyMolt.values,
+      displayNames: birds.bodyMoltList,
+    ),
+    ..._enumMappingRows(
+      table: 'herpMeasurement',
+      column: 'age',
+      enumType: 'herps.SpecimenAge',
+      values: herps.SpecimenAge.values,
+      displayNames: herps.specimenAgeList,
+    ),
+    ..._indexedMappingRows(
+      table: 'specimen',
+      column: 'iDConfidence',
+      enumType: 'IdentificationConfidence',
+      enumNames: const ['low', 'medium', 'high'],
+      displayNames: idConfidenceList,
+    ),
+  ];
+}
+
+List<Map<String, dynamic>> _enumMappingRows({
+  required String table,
+  required String column,
+  required String enumType,
+  required List<Enum> values,
+  required List<String> displayNames,
+}) {
+  return _indexedMappingRows(
+    table: table,
+    column: column,
+    enumType: enumType,
+    enumNames: values.map((value) => value.name).toList(growable: false),
+    displayNames: displayNames,
+  );
+}
+
+List<Map<String, dynamic>> _indexedMappingRows({
+  required String table,
+  required String column,
+  required String enumType,
+  required List<String> enumNames,
+  required List<String> displayNames,
+}) {
+  assert(enumNames.length == displayNames.length);
+  return List.generate(
+    enumNames.length,
+    (index) => <String, dynamic>{
+      'table': table,
+      'column': column,
+      'enum_type': enumType,
+      'sqlite_index': index,
+      'enum_name': enumNames[index],
+      'display_name': displayNames[index],
+    },
+    growable: false,
+  );
+}
+
+class _NahpuControlledVocabularyDefinition {
+  const _NahpuControlledVocabularyDefinition({
+    required this.section,
+    required this.configKey,
+    required this.name,
+  });
+
+  final String section;
+  final String configKey;
+  final String name;
+}
+
+const _nahpuControlledVocabularyDefinitions = [
+  _NahpuControlledVocabularyDefinition(
+    section: 'site',
+    configKey: siteTypePrefKey,
+    name: 'Site type',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'site',
+    configKey: habitatTypePrefKey,
+    name: 'Habitat type',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'events',
+    configKey: collMethodPrefKey,
+    name: 'Collecting method',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'events',
+    configKey: collRolePrefKey,
+    name: 'Collecting personnel role',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: specimenTypePrefKey,
+    name: 'Specimen type',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: treatmentPrefKey,
+    name: 'Specimen treatment',
+  ),
+];
+
 class _MeasurementDefinition {
   const _MeasurementDefinition(this.type, [this.unit]);
 
@@ -660,6 +1069,30 @@ String normalizeBundleTaxonGroup(String? value) {
   }
   return value?.trim().isNotEmpty == true ? value!.trim() : 'Other';
 }
+
+const List<String> _nahpuTableNames = [
+  'project',
+  'site',
+  'coordinate',
+  'collEvent',
+  'weather',
+  'collPersonnel',
+  'collEffort',
+  'narrative',
+  'media',
+  'narrativeMedia',
+  'siteMedia',
+  'specimenMedia',
+  'associatedData',
+  'personnelList',
+  'personnel',
+  'taxonomy',
+  'specimen',
+  'mammalMeasurement',
+  'avianMeasurement',
+  'herpMeasurement',
+  'specimenPart',
+];
 
 Map<String, dynamic> _removeEmpty(Map<String, dynamic> source) {
   return Map<String, dynamic>.fromEntries(source.entries.where((entry) {

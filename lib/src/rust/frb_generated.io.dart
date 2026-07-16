@@ -10,6 +10,7 @@ import 'api/dwc.dart';
 import 'api/export.dart';
 import 'api/gis.dart';
 import 'api/import.dart';
+import 'api/nahpu_dp.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;

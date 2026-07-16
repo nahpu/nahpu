@@ -918,6 +918,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "filetime"
+version = "0.2.29"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c287a33c7f0a620c38e641e7f60827713987b3c0f26e8ddc9462cc69cf75759"
+dependencies = [
+ "cfg-if",
+ "libc",
+]
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2176,14 +2186,6 @@ checksum = "13d2233c9842d08cfe13f9eac96e207ca6a2ea10b80259ebe8ad0268be27d2af"
 [[package]]
 name = "nahpu_archive"
 version = "0.1.0"
-dependencies = [
- "flate2",
- "zip 8.6.0",
-]
-
-[[package]]
-name = "nahpu_archive"
-version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37bee3ca56f6f2dff792a4c2f14292fe9837d17067f8c52f7cb1924b92753631"
 dependencies = [
@@ -2192,10 +2194,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "nahpu_archive"
+version = "0.2.0"
+dependencies = [
+ "flate2",
+ "tar",
+ "zip 8.6.0",
+]
+
+[[package]]
 name = "nahpu_configs"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01076746eb9acb633ca53c0239399061fec18af170c640104effec841cc73b5a"
+version = "0.6.0"
 dependencies = [
  "redb",
  "serde",
@@ -2233,11 +2242,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "nahpu_dp"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "csv",
+ "nahpu_archive 0.2.0",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "nahpu_dwc"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "csv",
- "nahpu_archive 0.1.0",
+ "nahpu_archive 0.2.0",
  "nahpu_db 0.5.0",
  "quick-xml 0.36.2",
  "serde",
@@ -2270,7 +2290,7 @@ dependencies = [
  "geo",
  "geojson",
  "kml",
- "nahpu_archive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nahpu_archive 0.1.0",
  "serde",
  "serde_json",
  "shapefile",
@@ -3046,9 +3066,10 @@ name = "rust_lib_nahpu"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
- "nahpu_archive 0.1.0",
+ "nahpu_archive 0.2.0",
  "nahpu_configs",
  "nahpu_db 0.5.0",
+ "nahpu_dp",
  "nahpu_dwc",
  "nahpu_export",
  "nahpu_gis",
@@ -3551,6 +3572,17 @@ dependencies = [
  "thiserror 2.0.18",
  "walkdir",
  "yaml-rust",
+]
+
+[[package]]
+name = "tar"
+version = "0.4.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f6221d9a6003c78398e3b239969f352578258df48c8eb051caadae0015bc840"
+dependencies = [
+ "filetime",
+ "libc",
+ "xattr",
 ]
 
 [[package]]
@@ -4487,6 +4519,16 @@ name = "writeable"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ffae5123b2d3fc086436f8834ae3ab053a283cfac8fe0a0b8eaae044768a4c4"
+
+[[package]]
+name = "xattr"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32e45ad4206f6d2479085147f02bc2ef834ac85886624a23575ae137c8aa8156"
+dependencies = [
+ "libc",
+ "rustix",
+]
 
 [[package]]
 name = "xmlwriter"

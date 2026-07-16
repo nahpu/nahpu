@@ -84,7 +84,9 @@ class BundleFileSettingsCard extends StatelessWidget {
     required this.exportCtr,
     required this.selectedDir,
     required this.format,
+    required this.archiveFormat,
     required this.onFormatChanged,
+    required this.onArchiveFormatChanged,
     required this.onFileNameChanged,
     required this.onSelectDir,
     required this.onClearDir,
@@ -93,7 +95,9 @@ class BundleFileSettingsCard extends StatelessWidget {
   final FileOpCtrModel exportCtr;
   final Directory? selectedDir;
   final DwcBundleFormat format;
+  final BundleArchiveFormat archiveFormat;
   final ValueChanged<DwcBundleFormat> onFormatChanged;
+  final ValueChanged<BundleArchiveFormat> onArchiveFormatChanged;
   final ValueChanged<String?> onFileNameChanged;
   final VoidCallback onSelectDir;
   final VoidCallback onClearDir;
@@ -129,6 +133,31 @@ class BundleFileSettingsCard extends StatelessWidget {
                 if (value != null) onFormatChanged(value);
               },
             ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<BundleArchiveFormat>(
+              key: ValueKey('${format.name}-${archiveFormat.name}'),
+              initialValue: archiveFormat,
+              decoration: const InputDecoration(labelText: 'Archive format'),
+              items: format.allowedArchives
+                  .map((value) => DropdownMenuItem(
+                        value: value,
+                        child: Text(value.label),
+                      ))
+                  .toList(growable: false),
+              onChanged: format.allowedArchives.length == 1
+                  ? null
+                  : (value) {
+                      if (value != null) onArchiveFormatChanged(value);
+                    },
+            ),
+            if (format == DwcBundleFormat.darwinCoreDataPackage &&
+                archiveFormat == BundleArchiveFormat.zip) ...[
+              const SizedBox(height: 8),
+              Text(
+                'ZIP is provided for compatibility. TAR.GZ is the standards-oriented DwC-DP option.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             FileNameField(
               controller: exportCtr,
               onChanged: onFileNameChanged,

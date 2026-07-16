@@ -13,8 +13,9 @@ nahpu_db = { path = "../../../Rust/nahpu_api/crates/nahpu_db" }
 nahpu_export = "0.3.3"
 nahpu_gis = "0.2.0"
 serde_json = "1.0.150"
-nahpu_configs = "0.5.0"
+nahpu_configs = { version = "0.6.0", path = "../../../Rust/nahpu_api/crates/nahpu_configs" }
 nahpu_dwc = { path = "../../../Rust/nahpu_api/crates/nahpu_dwc" }
+nahpu_dp = { version = "0.1.0", path = "../../../Rust/nahpu_api/crates/nahpu_dp" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

@@ -12,6 +12,65 @@ void main() {
     expect(normalizeBundleTaxonGroup('Herpetofauna'), 'Herpetofauna');
   });
 
+  test('bundle types expose valid archive choices and extensions', () {
+    expect(
+      DwcBundleFormat.darwinCoreArchive.allowedArchives,
+      {BundleArchiveFormat.zip},
+    );
+    expect(
+      DwcBundleFormat.darwinCoreDataPackage.defaultArchive,
+      BundleArchiveFormat.tarGzip,
+    );
+    expect(
+      DwcBundleFormat.nahpuDataPackage.usesTaxonSelection,
+      isFalse,
+    );
+    expect(
+      DwcBundleFormat.darwinCoreDataPackage.outputExtension(
+        BundleArchiveFormat.tarGzip,
+      ),
+      'dwc-dp.tar.gz',
+    );
+    expect(
+      DwcBundleFormat.nahpuDataPackage.outputExtension(
+        BundleArchiveFormat.zip,
+      ),
+      'nahpu-dp.zip',
+    );
+  });
+
+  test('NAHPU package maps every SQLite enum index with table context', () {
+    final mappings = buildNahpuSqliteEnumMappings();
+    final keys = mappings
+        .map(
+          (mapping) =>
+              '${mapping['table']}.${mapping['column']}:${mapping['sqlite_index']}',
+        )
+        .toSet();
+
+    expect(mappings, hasLength(57));
+    expect(keys, hasLength(mappings.length));
+    final qcf = mappings.singleWhere(
+      (mapping) =>
+          mapping['table'] == 'mammalMeasurement' &&
+          mapping['column'] == 'echolocation' &&
+          mapping['sqlite_index'] == 2,
+    );
+    expect(qcf['enum_type'], 'mammals.Echolocation');
+    expect(qcf['enum_name'], 'qcf');
+    expect(qcf['display_name'], 'QCF');
+
+    final highConfidence = mappings.singleWhere(
+      (mapping) =>
+          mapping['table'] == 'specimen' &&
+          mapping['column'] == 'iDConfidence' &&
+          mapping['sqlite_index'] == 2,
+    );
+    expect(highConfidence['enum_type'], 'IdentificationConfidence');
+    expect(highConfidence['enum_name'], 'high');
+    expect(highConfidence['display_name'], 'High');
+  });
+
   testWidgets('users can switch to selected taxa and change the selection',
       (tester) async {
     var mode = BundleTaxonSelectionMode.all;

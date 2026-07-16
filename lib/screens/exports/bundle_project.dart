@@ -28,6 +28,7 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
   late final TabController _mobileTabs;
   Directory? _selectedDirectory;
   DwcBundleFormat _format = DwcBundleFormat.darwinCoreArchive;
+  BundleArchiveFormat _archiveFormat = BundleArchiveFormat.zip;
   String _fileStem = 'darwin_core_specimens';
   Set<String> _availableTaxonGroups = <String>{};
   Set<String> _selectedTaxonGroups = <String>{};
@@ -62,25 +63,24 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
         fileController: _fileController,
         selectedDirectory: _selectedDirectory,
         format: _format,
+        archiveFormat: _archiveFormat,
         availableTaxonGroups: _availableTaxonGroups,
         selectedTaxonGroups: _selectedTaxonGroups,
         taxonSelectionMode: _taxonSelectionMode,
         isLoadingTaxa: _isLoadingTaxa,
         isWriting: _isWriting,
         canWrite: _fileController.isValid &&
-            _selectedTaxonGroups.isNotEmpty &&
+            (!_format.usesTaxonSelection || _selectedTaxonGroups.isNotEmpty) &&
             !_isPlanning,
         onFormatChanged: _changeFormat,
+        onArchiveFormatChanged: _changeArchiveFormat,
         onTaxonGroupsChanged: _changeTaxonGroups,
         onTaxonSelectionModeChanged: _changeTaxonSelectionMode,
         onFileNameChanged: _changeFileName,
         onSelectDirectory: _selectDirectory,
         onClearDirectory: _clearDirectory,
         onBundle: _writeBundle,
-        onShare:
-            _format == DwcBundleFormat.darwinCoreArchive && _outputPath != null
-                ? _shareBundle
-                : null,
+        onShare: _outputPath != null ? _shareBundle : null,
       ),
     );
     final contents = Padding(
@@ -142,8 +142,22 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
   }
 
   void _changeFormat(DwcBundleFormat format) {
+    final fileStem = format == DwcBundleFormat.nahpuDataPackage
+        ? 'nahpu_data'
+        : 'darwin_core_specimens';
     setState(() {
       _format = format;
+      _archiveFormat = format.defaultArchive;
+      _fileStem = fileStem;
+      _fileController.fileNameCtr.text = fileStem;
+      _outputPath = null;
+    });
+    _planBundle();
+  }
+
+  void _changeArchiveFormat(BundleArchiveFormat archiveFormat) {
+    setState(() {
+      _archiveFormat = archiveFormat;
       _outputPath = null;
     });
     _planBundle();
@@ -194,7 +208,7 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
 
   Future<void> _planBundle() async {
     final generation = ++_planGeneration;
-    if (_selectedTaxonGroups.isEmpty) {
+    if (_format.usesTaxonSelection && _selectedTaxonGroups.isEmpty) {
       setState(() {
         _manifest = null;
         _planningError = null;
@@ -209,6 +223,7 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
     try {
       final manifest = await DwcBundleWriter(ref: ref).plan(
         format: _format,
+        archiveFormat: _archiveFormat,
         selectedTaxonGroups: _selectedTaxonGroups,
       );
       if (mounted && generation == _planGeneration) {
@@ -231,6 +246,7 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
       final output = await _getOutputPath();
       final manifest = await DwcBundleWriter(ref: ref).write(
         format: _format,
+        archiveFormat: _archiveFormat,
         selectedTaxonGroups: _selectedTaxonGroups,
         outputPath: output.path,
       );
@@ -251,20 +267,9 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
     final output = await AppIOServices(
       dir: _selectedDirectory,
       fileStem: _fileStem,
-      ext: _format.outputExtension,
+      ext: _format.outputExtension(_archiveFormat),
     ).getSavePath();
-    if (_format != DwcBundleFormat.darwinCoreDataPackage) return output;
-
-    var candidate = output;
-    var suffix = 1;
-    while (Directory(candidate.path).existsSync()) {
-      candidate = File(path.join(
-        path.dirname(output.path),
-        '$_fileStem($suffix).${_format.outputExtension}',
-      ));
-      suffix++;
-    }
-    return candidate;
+    return output;
   }
 
   Future<void> _shareBundle() async {
@@ -297,6 +302,7 @@ class _BundleSettingsPane extends StatelessWidget {
     required this.fileController,
     required this.selectedDirectory,
     required this.format,
+    required this.archiveFormat,
     required this.availableTaxonGroups,
     required this.selectedTaxonGroups,
     required this.taxonSelectionMode,
@@ -304,6 +310,7 @@ class _BundleSettingsPane extends StatelessWidget {
     required this.isWriting,
     required this.canWrite,
     required this.onFormatChanged,
+    required this.onArchiveFormatChanged,
     required this.onTaxonGroupsChanged,
     required this.onTaxonSelectionModeChanged,
     required this.onFileNameChanged,
@@ -316,6 +323,7 @@ class _BundleSettingsPane extends StatelessWidget {
   final FileOpCtrModel fileController;
   final Directory? selectedDirectory;
   final DwcBundleFormat format;
+  final BundleArchiveFormat archiveFormat;
   final Set<String> availableTaxonGroups;
   final Set<String> selectedTaxonGroups;
   final BundleTaxonSelectionMode taxonSelectionMode;
@@ -323,6 +331,7 @@ class _BundleSettingsPane extends StatelessWidget {
   final bool isWriting;
   final bool canWrite;
   final ValueChanged<DwcBundleFormat> onFormatChanged;
+  final ValueChanged<BundleArchiveFormat> onArchiveFormatChanged;
   final ValueChanged<Set<String>> onTaxonGroupsChanged;
   final ValueChanged<BundleTaxonSelectionMode> onTaxonSelectionModeChanged;
   final ValueChanged<String?> onFileNameChanged;
@@ -341,20 +350,25 @@ class _BundleSettingsPane extends StatelessWidget {
               : 'assets/icons/json.svg',
         ),
         const SizedBox(height: 8),
-        BundleTaxonSelectionCard(
-          availableTaxonGroups: availableTaxonGroups,
-          selectedTaxonGroups: selectedTaxonGroups,
-          selectionMode: taxonSelectionMode,
-          isLoading: isLoadingTaxa,
-          onChanged: onTaxonGroupsChanged,
-          onModeChanged: onTaxonSelectionModeChanged,
-        ),
+        if (format.usesTaxonSelection)
+          BundleTaxonSelectionCard(
+            availableTaxonGroups: availableTaxonGroups,
+            selectedTaxonGroups: selectedTaxonGroups,
+            selectionMode: taxonSelectionMode,
+            isLoading: isLoadingTaxa,
+            onChanged: onTaxonGroupsChanged,
+            onModeChanged: onTaxonSelectionModeChanged,
+          )
+        else
+          const _NahpuPackageScopeCard(),
         const SizedBox(height: 8),
         BundleFileSettingsCard(
           exportCtr: fileController,
           selectedDir: selectedDirectory,
           format: format,
+          archiveFormat: archiveFormat,
           onFormatChanged: onFormatChanged,
+          onArchiveFormatChanged: onArchiveFormatChanged,
           onFileNameChanged: onFileNameChanged,
           onSelectDir: onSelectDirectory,
           onClearDir: onClearDirectory,
@@ -372,6 +386,41 @@ class _BundleSettingsPane extends StatelessWidget {
 }
 
 enum BundleTaxonSelectionMode { all, selected }
+
+class _NahpuPackageScopeCard extends StatelessWidget {
+  const _NahpuPackageScopeCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        elevation: 0,
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.4),
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Complete NAHPU data'),
+              SizedBox(height: 8),
+              Text(
+                'Includes all NAHPU database tables, a restorable SQLite snapshot, user configurations, available media, and custom fonts.',
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Review the package before sharing because it can contain personal and project-sensitive information.',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class BundleTaxonSelectionCard extends StatelessWidget {
   const BundleTaxonSelectionCard({
@@ -588,8 +637,12 @@ IconData _bundleFileIcon(String filePath) {
   final normalized = filePath.toLowerCase();
   if (normalized.endsWith('.csv')) return Icons.table_chart_outlined;
   if (normalized.endsWith('.json')) return Icons.data_object_outlined;
+  if (normalized.endsWith('.toml')) return Icons.settings_outlined;
+  if (normalized.endsWith('.sqlite3')) return Icons.storage_outlined;
   if (normalized.endsWith('.xml')) return Icons.code_outlined;
-  if (normalized.endsWith('.zip')) return Icons.folder_zip_outlined;
+  if (normalized.endsWith('.zip') || normalized.endsWith('.tar.gz')) {
+    return Icons.folder_zip_outlined;
+  }
   if (normalized.endsWith('.pdf')) return Icons.picture_as_pdf_outlined;
 
   return switch (matchMediaKindFromPath(filePath)) {
