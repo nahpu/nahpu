@@ -25,79 +25,6 @@ mixin _$TaxonomyQueryMixin on DatabaseAccessor<Database> {
   AvianMeasurement get avianMeasurement => attachedDatabase.avianMeasurement;
   HerpMeasurement get herpMeasurement => attachedDatabase.herpMeasurement;
   SpecimenPart get specimenPart => attachedDatabase.specimenPart;
-  Selectable<ListProjectResult> listProject() {
-    return customSelect('SELECT uuid, name, created, lastAccessed FROM project',
-        variables: [],
-        readsFrom: {
-          project,
-        }).map((QueryRow row) => ListProjectResult(
-          uuid: row.read<String>('uuid'),
-          name: row.read<String>('name'),
-          created: row.readNullable<String>('created'),
-          lastAccessed: row.readNullable<String>('lastAccessed'),
-        ));
-  }
-
-  Selectable<SpecimenData> searchSpecimens(
-      String? projectUuid,
-      String searchQuery,
-      bool hasCollectionDate,
-      String? collectionStartDate,
-      String? collectionEndDate,
-      bool hasPrepDate,
-      String? prepStartDate,
-      String? prepEndDate,
-      int limit,
-      int offset) {
-    return customSelect(
-        'SELECT s.* FROM specimen AS s LEFT JOIN personnel AS c ON s.catalogerID = c.uuid LEFT JOIN personnel AS p ON s.preparatorID = p.uuid LEFT JOIN taxonomy AS t ON s.speciesID = t.id WHERE s.projectUuid = ?1 AND(?2 IS NULL OR ?2 = \'\' OR s.fieldNumber LIKE ?2 OR c.name LIKE ?2 OR p.name LIKE ?2 OR t.genus || \' \' || t.specificEpithet LIKE ?2)AND(?3 = FALSE OR(s.collectionDate >= ?4 AND s.collectionDate <= ?5))AND(?6 = FALSE OR(s.prepDate >= ?7 AND s.prepDate <= ?8))ORDER BY s.fieldNumber ASC LIMIT ?9 OFFSET ?10',
-        variables: [
-          Variable<String>(projectUuid),
-          Variable<String>(searchQuery),
-          Variable<bool>(hasCollectionDate),
-          Variable<String>(collectionStartDate),
-          Variable<String>(collectionEndDate),
-          Variable<bool>(hasPrepDate),
-          Variable<String>(prepStartDate),
-          Variable<String>(prepEndDate),
-          Variable<int>(limit),
-          Variable<int>(offset)
-        ],
-        readsFrom: {
-          specimen,
-          personnel,
-          taxonomy,
-        }).asyncMap(specimen.mapFromRow);
-  }
-
-  Selectable<int> countSpecimens(
-      String? projectUuid,
-      String searchQuery,
-      bool hasCollectionDate,
-      String? collectionStartDate,
-      String? collectionEndDate,
-      bool hasPrepDate,
-      String? prepStartDate,
-      String? prepEndDate) {
-    return customSelect(
-        'SELECT COUNT(s.uuid) AS _c0 FROM specimen AS s LEFT JOIN personnel AS c ON s.catalogerID = c.uuid LEFT JOIN personnel AS p ON s.preparatorID = p.uuid LEFT JOIN taxonomy AS t ON s.speciesID = t.id WHERE s.projectUuid = ?1 AND(?2 IS NULL OR ?2 = \'\' OR s.fieldNumber LIKE ?2 OR c.name LIKE ?2 OR p.name LIKE ?2 OR t.genus || \' \' || t.specificEpithet LIKE ?2)AND(?3 = FALSE OR(s.collectionDate >= ?4 AND s.collectionDate <= ?5))AND(?6 = FALSE OR(s.prepDate >= ?7 AND s.prepDate <= ?8))',
-        variables: [
-          Variable<String>(projectUuid),
-          Variable<String>(searchQuery),
-          Variable<bool>(hasCollectionDate),
-          Variable<String>(collectionStartDate),
-          Variable<String>(collectionEndDate),
-          Variable<bool>(hasPrepDate),
-          Variable<String>(prepStartDate),
-          Variable<String>(prepEndDate)
-        ],
-        readsFrom: {
-          specimen,
-          personnel,
-          taxonomy,
-        }).map((QueryRow row) => row.read<int>('_c0'));
-  }
-
   TaxonomyQueryManager get managers => TaxonomyQueryManager(this);
 }
 
@@ -147,17 +74,4 @@ class TaxonomyQueryManager {
       $HerpMeasurementTableManager(_db.attachedDatabase, _db.herpMeasurement);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db.attachedDatabase, _db.specimenPart);
-}
-
-class ListProjectResult {
-  final String uuid;
-  final String name;
-  final String? created;
-  final String? lastAccessed;
-  ListProjectResult({
-    required this.uuid,
-    required this.name,
-    this.created,
-    this.lastAccessed,
-  });
 }
