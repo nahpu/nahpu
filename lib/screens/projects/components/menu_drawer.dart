@@ -99,7 +99,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
         ),
         ListTile(
           leading: const Icon(Icons.share_rounded),
-          title: const Text('Export settings'),
+          title: const Text('Export user configs'),
           onTap: () {
             Navigator.push(
               context,
@@ -110,7 +110,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
         ),
         ListTile(
           leading: const Icon(Icons.input_rounded),
-          title: const Text('Import settings'),
+          title: const Text('Import user configs'),
           onTap: () {
             Navigator.push(
               context,
@@ -138,10 +138,10 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             );
           },
         ),
+        const SizedBox(height: 24),
         const Divider(
           color: Colors.grey,
         ),
-        const SizedBox(height: 24),
         ListTile(
           leading: Icon(Icons.delete_rounded,
               color: Theme.of(context).colorScheme.error),

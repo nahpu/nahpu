@@ -17,7 +17,7 @@ class CommonSettingList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
+          constraints: const BoxConstraints(maxWidth: 1200),
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: ListView(
@@ -63,10 +63,7 @@ class CommonSettingSection extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
-              color: Theme.of(context)
-                  .colorScheme
-                  .surfaceContainerHighest
-                  .withAlpha(240),
+              color: Theme.of(context).colorScheme.outlineVariant,
               width: 1.2,
             ),
           ),

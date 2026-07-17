@@ -146,6 +146,7 @@ class CatalogFmtSection extends StatelessWidget {
         isNavigation: true,
         icon: Icons.archive_outlined,
         title: 'Format',
+        label: 'Set catalog format',
         value: matchCatFmtToTaxonGroup(selectedFmt),
         onTap: () {
           Navigator.push(
