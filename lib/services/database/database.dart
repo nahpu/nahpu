@@ -23,7 +23,7 @@ part 'database.g.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 7;
+const int kSchemaVersion = 8;
 
 @DriftDatabase(
   include: {'tables.drift'},
@@ -71,11 +71,20 @@ class Database extends _$Database {
       if (from < 7) {
         await _migrateFromVersion6(m);
       }
+      if (from < 8) {
+        await _migrateFromVersion7(m);
+      }
     }, beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     });
   }
 
+  Future<void> _migrateFromVersion7(Migrator m) async {
+    await m.createIndex(specimenProjectSpeciesIdx);
+    await m.createIndex(specimenProjectEventIdx);
+    await m.createIndex(collEventProjectSiteIdx);
+    await m.createIndex(specimenPartSpecimenIdx);
+  }
   Future<void> _migrateFromVersion6(Migrator m) async {
     // v6: add writerId to narrative table. Best-effort: ignore if already present.
     try {

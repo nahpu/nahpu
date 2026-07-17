@@ -13324,6 +13324,16 @@ abstract class _$Database extends GeneratedDatabase {
   late final AvianMeasurement avianMeasurement = AvianMeasurement(this);
   late final HerpMeasurement herpMeasurement = HerpMeasurement(this);
   late final SpecimenPart specimenPart = SpecimenPart(this);
+  late final Index specimenProjectSpeciesIdx = Index(
+      'specimen_project_species_idx',
+      'CREATE INDEX specimen_project_species_idx ON specimen (projectUuid, speciesID)');
+  late final Index specimenProjectEventIdx = Index('specimen_project_event_idx',
+      'CREATE INDEX specimen_project_event_idx ON specimen (projectUuid, collEventID)');
+  late final Index collEventProjectSiteIdx = Index(
+      'coll_event_project_site_idx',
+      'CREATE INDEX coll_event_project_site_idx ON collEvent (projectUuid, siteID)');
+  late final Index specimenPartSpecimenIdx = Index('specimen_part_specimen_idx',
+      'CREATE INDEX specimen_part_specimen_idx ON specimenPart (specimenUuid)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -13349,7 +13359,11 @@ abstract class _$Database extends GeneratedDatabase {
         mammalMeasurement,
         avianMeasurement,
         herpMeasurement,
-        specimenPart
+        specimenPart,
+        specimenProjectSpeciesIdx,
+        specimenProjectEventIdx,
+        collEventProjectSiteIdx,
+        specimenPartSpecimenIdx
       ];
 }
 

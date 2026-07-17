@@ -12,15 +12,13 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  test('upgrade from v6 to v7', () async {
-    // Use startAt(6) to obtain a database connection with all tables
-    // from the v6 schema.
-    final connection = await verifier.startAt(6);
-    final db = Database.forMigrationTesting(connection);
+  for (final version in [6, 7]) {
+    test('upgrade from v$version to v8', () async {
+      final connection = await verifier.startAt(version);
+      final db = Database.forMigrationTesting(connection);
 
-    // Use this to run a migartion from v6 to v7, then validate that the
-    // database has the expected schema.
-    await verifier.migrateAndValidate(db, 7);
-    await db.close();
-  });
+      await verifier.migrateAndValidate(db, 8);
+      await db.close();
+    });
+  }
 }

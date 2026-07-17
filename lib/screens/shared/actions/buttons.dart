@@ -174,14 +174,11 @@ class PrimaryIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          elevation: 0,
-        ),
-        onPressed: onPressed,
-        child: Icon(icon));
+    return IconButton.filled(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      iconSize: 24,
+    );
   }
 }
 
@@ -229,12 +226,7 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        elevation: 0,
-      ),
+    return FilledButton.icon(
       onPressed: onPressed,
       icon: Icon(icon),
       label: Text(label),

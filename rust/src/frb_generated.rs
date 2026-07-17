@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -869106116;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1577795715;
 
 // Section: executor
 
@@ -497,45 +497,6 @@ fn wire__crate__api__config__export_config_to_file_impl(
                 transform_result_sse::<_, String>((move || {
                     let output_ok =
                         crate::api::config::export_config_to_file(api_file_path, api_is_json)?;
-                    Ok(output_ok)
-                })())
-            }
-        },
-    )
-}
-fn wire__crate__api__export__export_coordinates_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "export_coordinates",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_json_content = <String>::sse_decode(&mut deserializer);
-            let api_output_path = <String>::sse_decode(&mut deserializer);
-            let api_export_format = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::api::export::export_coordinates(
-                        api_json_content,
-                        api_output_path,
-                        api_export_format,
-                    )?;
                     Ok(output_ok)
                 })())
             }
@@ -2653,140 +2614,139 @@ fn pde_ffi_dispatcher_primary_impl(
         13 => {
             wire__crate__api__config__export_config_to_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        14 => wire__crate__api__export__export_coordinates_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__config__export_document_layout_to_file_impl(
+        14 => wire__crate__api__config__export_document_layout_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => wire__crate__api__config__export_template_preset_to_file_impl(
+        15 => wire__crate__api__config__export_template_preset_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        17 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__config__get_all_document_layouts_impl(
+        16 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__config__get_all_document_layouts_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => wire__crate__api__config__get_all_record_export_presets_impl(
+        18 => wire__crate__api__config__get_all_record_export_presets_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        20 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__config__get_document_layout_statuses_impl(
+        19 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__config__get_document_layout_statuses_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__dwc__get_dwc_headers_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__config__get_record_export_preset_impl(
+        21 => wire__crate__api__dwc__get_dwc_headers_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__config__get_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        24 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__config__get_template_preset_usages_impl(
+        23 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__config__get_template_preset_usages_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => {
+        25 => {
             wire__crate__api__config__get_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        27 => {
+        26 => {
             wire__crate__api__config__get_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        28 => wire__crate__api__config__import_config_from_file_impl(
+        27 => wire__crate__api__config__import_config_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__api__config__import_document_layout_from_file_impl(
+        28 => wire__crate__api__config__import_document_layout_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        32 => {
+        29 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        31 => {
             wire__crate__api__config__list_template_presets_impl(port, ptr, rust_vec_len, data_len)
         }
-        33 => wire__crate__api__export__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
-        34 => {
+        32 => wire__crate__api__export__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
+        33 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        35 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        36 => {
+        34 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        35 => {
             wire__crate__api__nahpu_dp__plan_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        37 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        36 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        37 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        39 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        38 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        40 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__config__set_record_export_preset_impl(
+        39 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__config__set_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        46 => {
+        44 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        45 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        47 => {
+        46 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        48 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
+        47 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        52 => {
+        50 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        51 => {
             wire__crate__api__nahpu_dp__write_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        53 => {
+        52 => {
             wire__crate__api__export__write_tabular_records_impl(port, ptr, rust_vec_len, data_len)
         }
-        54 => {
+        53 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        55 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

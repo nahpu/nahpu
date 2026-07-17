@@ -34,6 +34,11 @@ class Project extends Table with TableInfo {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  late final GeneratedColumn<String> timeZone = GeneratedColumn<String>(
+      'timeZone', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   late final GeneratedColumn<String> startDate = GeneratedColumn<String>(
       'startDate', aliasedName, true,
       type: DriftSqlType.string,
@@ -61,6 +66,7 @@ class Project extends Table with TableInfo {
         description,
         principalInvestigator,
         location,
+        timeZone,
         startDate,
         endDate,
         created,
@@ -142,6 +148,12 @@ class Personnel extends Table with TableInfo {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  late final GeneratedColumn<int> isRegisterField = GeneratedColumn<int>(
+      'isRegisterField', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 1',
+      defaultValue: const CustomExpression('1'));
   @override
   List<GeneratedColumn> get $columns => [
         uuid,
@@ -153,7 +165,8 @@ class Personnel extends Table with TableInfo {
         role,
         currentFieldNumber,
         notes,
-        photoPath
+        photoPath,
+        isRegisterField
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -414,7 +427,7 @@ class Coordinate extends Table with TableInfo {
   final String? _alias;
   Coordinate(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, true,
+      'id', aliasedName, false,
       hasAutoIncrement: true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
@@ -840,9 +853,19 @@ class Narrative extends Table with TableInfo {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  late final GeneratedColumn<String> time = GeneratedColumn<String>(
+      'time', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   late final GeneratedColumn<int> siteID = GeneratedColumn<int>(
       'siteID', aliasedName, true,
       type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<String> writerId = GeneratedColumn<String>(
+      'writerId', aliasedName, true,
+      type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
   late final GeneratedColumn<String> narrative = GeneratedColumn<String>(
@@ -857,7 +880,7 @@ class Narrative extends Table with TableInfo {
       $customConstraints: 'REFERENCES media(primaryId)');
   @override
   List<GeneratedColumn> get $columns =>
-      [id, projectUuid, date, siteID, narrative, mediaID];
+      [id, projectUuid, date, time, siteID, writerId, narrative, mediaID];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1192,6 +1215,11 @@ class Specimen extends Table with TableInfo {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       $customConstraints: '');
+  late final GeneratedColumn<int> projectFieldNumber = GeneratedColumn<int>(
+      'projectFieldNumber', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   late final GeneratedColumn<int> collEventID = GeneratedColumn<int>(
       'collEventID', aliasedName, true,
       type: DriftSqlType.int,
@@ -1244,6 +1272,7 @@ class Specimen extends Table with TableInfo {
         coordinateID,
         catalogerID,
         fieldNumber,
+        projectFieldNumber,
         collEventID,
         isMultipleCollector,
         collPersonnelID,
@@ -1330,7 +1359,7 @@ class AssociatedData extends Table with TableInfo {
   final String? _alias;
   AssociatedData(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> primaryId = GeneratedColumn<int>(
-      'primaryId', aliasedName, true,
+      'primaryId', aliasedName, false,
       hasAutoIncrement: true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
@@ -1445,6 +1474,11 @@ class MammalMeasurement extends Table with TableInfo {
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<int> showBatFields = GeneratedColumn<int>(
+      'showBatFields', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   late final GeneratedColumn<double> totalLength = GeneratedColumn<double>(
       'totalLength', aliasedName, true,
       type: DriftSqlType.double,
@@ -1467,6 +1501,41 @@ class MammalMeasurement extends Table with TableInfo {
       $customConstraints: '');
   late final GeneratedColumn<double> forearm = GeneratedColumn<double>(
       'forearm', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<double> tibia = GeneratedColumn<double>(
+      'tibia', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<int> showEchoFields = GeneratedColumn<int>(
+      'showEchoFields', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<int> echolocation = GeneratedColumn<int>(
+      'echolocation', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<double> frequencyMax = GeneratedColumn<double>(
+      'frequencyMax', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<double> frequencyMin = GeneratedColumn<double>(
+      'frequencyMin', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<double> frequencyAtMaxEnergy =
+      GeneratedColumn<double>('frequencyAtMaxEnergy', aliasedName, true,
+          type: DriftSqlType.double,
+          requiredDuringInsert: false,
+          $customConstraints: '');
+  late final GeneratedColumn<double> duration = GeneratedColumn<double>(
+      'duration', aliasedName, true,
       type: DriftSqlType.double,
       requiredDuringInsert: false,
       $customConstraints: '');
@@ -1583,11 +1652,19 @@ class MammalMeasurement extends Table with TableInfo {
   @override
   List<GeneratedColumn> get $columns => [
         specimenUuid,
+        showBatFields,
         totalLength,
         tailLength,
         hindFootLength,
         earLength,
         forearm,
+        tibia,
+        showEchoFields,
+        echolocation,
+        frequencyMax,
+        frequencyMin,
+        frequencyAtMaxEnergy,
+        duration,
         weight,
         accuracy,
         accuracySpecify,
@@ -1901,13 +1978,75 @@ class AvianMeasurement extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
+class HerpMeasurement extends Table with TableInfo {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  HerpMeasurement(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> specimenUuid = GeneratedColumn<String>(
+      'specimenUuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<int> sex = GeneratedColumn<int>(
+      'sex', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<int> age = GeneratedColumn<int>(
+      'age', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<double> weight = GeneratedColumn<double>(
+      'weight', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<double> svl = GeneratedColumn<double>(
+      'svl', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+      'remark', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  @override
+  List<GeneratedColumn> get $columns =>
+      [specimenUuid, sex, age, weight, svl, remark];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'herpMeasurement';
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
+    throw UnsupportedError('TableInfo.map in schema verification code');
+  }
+
+  @override
+  HerpMeasurement createAlias(String alias) {
+    return HerpMeasurement(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints =>
+      const ['FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
 class SpecimenPart extends Table with TableInfo {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   SpecimenPart(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, true,
+      'id', aliasedName, false,
       hasAutoIncrement: true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
@@ -2026,8 +2165,8 @@ class SpecimenPart extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class DatabaseAtV6 extends GeneratedDatabase {
-  DatabaseAtV6(QueryExecutor e) : super(e);
+class DatabaseAtV8 extends GeneratedDatabase {
+  DatabaseAtV8(QueryExecutor e) : super(e);
   late final Project project = Project(this);
   late final Personnel personnel = Personnel(this);
   late final Media media = Media(this);
@@ -2047,7 +2186,18 @@ class DatabaseAtV6 extends GeneratedDatabase {
   late final PersonnelList personnelList = PersonnelList(this);
   late final MammalMeasurement mammalMeasurement = MammalMeasurement(this);
   late final AvianMeasurement avianMeasurement = AvianMeasurement(this);
+  late final HerpMeasurement herpMeasurement = HerpMeasurement(this);
   late final SpecimenPart specimenPart = SpecimenPart(this);
+  late final Index specimenProjectSpeciesIdx = Index(
+      'specimen_project_species_idx',
+      'CREATE INDEX specimen_project_species_idx ON specimen (projectUuid, speciesID)');
+  late final Index specimenProjectEventIdx = Index('specimen_project_event_idx',
+      'CREATE INDEX specimen_project_event_idx ON specimen (projectUuid, collEventID)');
+  late final Index collEventProjectSiteIdx = Index(
+      'coll_event_project_site_idx',
+      'CREATE INDEX coll_event_project_site_idx ON collEvent (projectUuid, siteID)');
+  late final Index specimenPartSpecimenIdx = Index('specimen_part_specimen_idx',
+      'CREATE INDEX specimen_part_specimen_idx ON specimenPart (specimenUuid)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2072,8 +2222,13 @@ class DatabaseAtV6 extends GeneratedDatabase {
         personnelList,
         mammalMeasurement,
         avianMeasurement,
-        specimenPart
+        herpMeasurement,
+        specimenPart,
+        specimenProjectSpeciesIdx,
+        specimenProjectEventIdx,
+        collEventProjectSiteIdx,
+        specimenPartSpecimenIdx
       ];
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 8;
 }

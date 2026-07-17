@@ -19,15 +19,6 @@ Future<void> writeTabularRecords(
         outputPath: outputPath,
         exportFormat: exportFormat);
 
-Future<void> exportCoordinates(
-        {required String jsonContent,
-        required String outputPath,
-        required String exportFormat}) =>
-    RustLib.instance.api.crateApiExportExportCoordinates(
-        jsonContent: jsonContent,
-        outputPath: outputPath,
-        exportFormat: exportFormat);
-
 Future<Uint8List> generateDocument(
         {required String jsonContent,
         required String exportFormat,

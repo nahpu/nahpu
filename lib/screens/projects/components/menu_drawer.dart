@@ -6,7 +6,6 @@ import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/exports/export_documents.dart';
 import 'package:nahpu/screens/exports/export_records.dart';
-import 'package:nahpu/screens/exports/export_report.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';
@@ -54,16 +53,6 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
               context,
               MaterialPageRoute(
                   builder: (context) => const BundleProjectForm()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.table_view_rounded),
-          title: const Text('Create report'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ReportForm()),
             );
           },
         ),
