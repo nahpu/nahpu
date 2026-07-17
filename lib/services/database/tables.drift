@@ -362,36 +362,3 @@ CREATE TABLE specimenPart (
     FOREIGN KEY(specimenUuid) REFERENCES specimen(uuid),
     FOREIGN KEY(personnelId) REFERENCES personnel(uuid)
 );
-
-listProject: SELECT uuid,name,created,lastAccessed FROM project;
-searchSpecimens:
-SELECT s.* 
-FROM specimen s
-LEFT JOIN personnel c ON s.catalogerID = c.uuid
-LEFT JOIN personnel p ON s.preparatorID = p.uuid
-LEFT JOIN taxonomy t ON s.speciesID = t.id
-WHERE s.projectUuid = :projectUuid
-  AND (:searchQuery IS NULL OR :searchQuery = '' OR
-       s.fieldNumber LIKE :searchQuery OR
-       c.name LIKE :searchQuery OR
-       p.name LIKE :searchQuery OR
-       t.genus || ' ' || t.specificEpithet LIKE :searchQuery)
-  AND (:hasCollectionDate = FALSE OR (s.collectionDate >= :collectionStartDate AND s.collectionDate <= :collectionEndDate))
-  AND (:hasPrepDate = FALSE OR (s.prepDate >= :prepStartDate AND s.prepDate <= :prepEndDate))
-ORDER BY s.fieldNumber ASC
-LIMIT :limit OFFSET :offset;
-
-countSpecimens:
-SELECT COUNT(s.uuid)
-FROM specimen s
-LEFT JOIN personnel c ON s.catalogerID = c.uuid
-LEFT JOIN personnel p ON s.preparatorID = p.uuid
-LEFT JOIN taxonomy t ON s.speciesID = t.id
-WHERE s.projectUuid = :projectUuid
-  AND (:searchQuery IS NULL OR :searchQuery = '' OR
-       s.fieldNumber LIKE :searchQuery OR
-       c.name LIKE :searchQuery OR
-       p.name LIKE :searchQuery OR
-       t.genus || ' ' || t.specificEpithet LIKE :searchQuery)
-  AND (:hasCollectionDate = FALSE OR (s.collectionDate >= :collectionStartDate AND s.collectionDate <= :collectionEndDate))
-  AND (:hasPrepDate = FALSE OR (s.prepDate >= :prepStartDate AND s.prepDate <= :prepEndDate));

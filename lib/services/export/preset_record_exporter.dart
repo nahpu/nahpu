@@ -6,6 +6,7 @@ import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
+import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/site_services.dart';
@@ -16,23 +17,12 @@ import 'package:nahpu/screens/templates/template_model.dart'
     show formatTemplateText, truncateTrailingDecimalZeroText;
 import 'package:nahpu/src/rust/api/export.dart';
 
+export 'export_header_resolver.dart' show formatIndexedExportHeader;
+
 class PresetExportPreviewData {
   const PresetExportPreviewData({required this.headers, required this.rows});
   final List<String> headers;
-  final List<Map<String, String>> rows;
-}
-
-/// Formats a one-based index using the style selected for an export mapping.
-String formatIndexedExportHeader(
-  String base,
-  int index,
-  IndexedHeaderStyle style,
-) {
-  return switch (style) {
-    IndexedHeaderStyle.underscore => '${base}_$index',
-    IndexedHeaderStyle.compact => '$base$index',
-    IndexedHeaderStyle.brackets => '$base[$index]',
-  };
+  final List<List<String>> rows;
 }
 
 /// Splits NAHPU's pipe-delimited repeated values without losing empty slots.
@@ -54,13 +44,23 @@ class PresetRecordExporter {
       return const PresetExportPreviewData(headers: [], rows: []);
     }
     final sourceRecords = await _sourceRecords();
-    final headers = _headers(sourceRecords);
+    final headerResolver = await ExportHeaderResolver.create(preset);
+    if (preset.headerFormat == ExportHeaderFormat.darwinCore) {
+      return _darwinCorePreviewData(sourceRecords, headerResolver);
+    }
+    final headers = _headers(sourceRecords, headerResolver);
     _ensureUniqueHeaders(headers);
     final rows = <Map<String, String>>[];
     for (final source in sourceRecords) {
-      rows.addAll(_mapRecord(source, headers));
+      rows.addAll(_mapRecord(source, headers, headerResolver));
     }
-    return PresetExportPreviewData(headers: headers, rows: rows);
+    return PresetExportPreviewData(
+      headers: headers,
+      rows: [
+        for (final row in rows)
+          [for (final header in headers) row[header] ?? '']
+      ],
+    );
   }
 
   Future<void> write(File file, ExportFmt format) async {
@@ -68,11 +68,27 @@ class PresetRecordExporter {
     if (errors.isNotEmpty) throw ArgumentError(errors.join('\n'));
 
     final sourceRecords = await _sourceRecords();
-    final headers = _headers(sourceRecords);
+    final headerResolver = await ExportHeaderResolver.create(preset);
+    if (preset.headerFormat == ExportHeaderFormat.darwinCore) {
+      if (format == ExportFmt.json) {
+        throw ArgumentError(
+          'Darwin Core generated headers support CSV, TSV, and Excel only.',
+        );
+      }
+      final data = _darwinCorePreviewData(sourceRecords, headerResolver);
+      await writeTabularRecords(
+        headers: data.headers,
+        rows: data.rows,
+        outputPath: file.path,
+        exportFormat: format.name,
+      );
+      return;
+    }
+    final headers = _headers(sourceRecords, headerResolver);
     _ensureUniqueHeaders(headers);
     final rows = <Map<String, String>>[];
     for (final source in sourceRecords) {
-      rows.addAll(_mapRecord(source, headers));
+      rows.addAll(_mapRecord(source, headers, headerResolver));
     }
 
     await RecordWriter(
@@ -132,7 +148,262 @@ class PresetRecordExporter {
     }
   }
 
-  List<String> _headers(List<Map<String, String>> sourceRecords) {
+  PresetExportPreviewData _darwinCorePreviewData(
+    List<Map<String, String>> sourceRecords,
+    ExportHeaderResolver headerResolver,
+  ) {
+    final headers = _darwinCoreHeaders(sourceRecords, headerResolver);
+    final rows = <List<String>>[];
+    for (final source in sourceRecords) {
+      rows.addAll(_mapDarwinCoreRecord(source, sourceRecords, headerResolver));
+    }
+    return PresetExportPreviewData(headers: headers, rows: rows);
+  }
+
+  List<String> _darwinCoreHeaders(
+    List<Map<String, String>> sourceRecords,
+    ExportHeaderResolver headerResolver,
+  ) {
+    final headers = <String>[];
+    for (final mapping in preset.mappings) {
+      if (_suppressDarwinCoreMapping(mapping)) continue;
+      if (!mapping.isNested) {
+        final source = _directSourceField(mapping.expression);
+        if (mapping.textType == 'list' &&
+            mapping.listMode == ListExportMode.spreadColumns) {
+          final count = sourceRecords.fold<int>(0, (maxCount, record) {
+            return _listValues(record, mapping).length > maxCount
+                ? _listValues(record, mapping).length
+                : maxCount;
+          });
+          final base = headerResolver.headerFor(mapping);
+          for (var index = 1; index <= count; index++) {
+            headers.add(formatIndexedExportHeader(
+              base,
+              index,
+              mapping.indexedHeaderStyle,
+            ));
+          }
+        } else if (source != null) {
+          headers.addAll(headerResolver.headersForSource(source));
+        } else {
+          headers.add(headerResolver.headerFor(mapping));
+        }
+        continue;
+      }
+
+      if (mapping.nestedMode == NestedExportMode.concatenate) {
+        headers.add(headerResolver.headerFor(mapping));
+      } else if (mapping.nestedMode == NestedExportMode.expandRows) {
+        headers.addAll(mapping.nestedFields.map(
+          (field) => headerResolver.nestedHeader(mapping, field),
+        ));
+      } else {
+        final count = sourceRecords.fold<int>(0, (maxCount, record) {
+          final current = _nestedRows(record, mapping).length;
+          return current > maxCount ? current : maxCount;
+        });
+        for (var index = 1; index <= count; index++) {
+          headers.addAll(mapping.nestedFields.map(
+            (field) =>
+                headerResolver.nestedHeader(mapping, field, index: index),
+          ));
+        }
+      }
+    }
+    return headers;
+  }
+
+  List<List<String>> _mapDarwinCoreRecord(
+    Map<String, String> source,
+    List<Map<String, String>> sourceRecords,
+    ExportHeaderResolver headerResolver,
+  ) {
+    final expanding = preset.mappings.where(
+      (mapping) =>
+          mapping.isNested && mapping.nestedMode == NestedExportMode.expandRows,
+    );
+    final base = _darwinCoreBaseValues(source, sourceRecords, headerResolver);
+    if (expanding.isEmpty) return [base];
+
+    final mapping = expanding.single;
+    final nestedRows = _nestedRows(source, mapping);
+    if (nestedRows.isEmpty) {
+      return [
+        [...base, for (final _ in mapping.nestedFields) ''],
+      ];
+    }
+    return nestedRows.map((nested) {
+      return [
+        ...base,
+        for (final field in mapping.nestedFields) nested[field] ?? '',
+      ];
+    }).toList(growable: false);
+  }
+
+  List<String> _darwinCoreBaseValues(
+    Map<String, String> source,
+    List<Map<String, String>> sourceRecords,
+    ExportHeaderResolver headerResolver,
+  ) {
+    final values = <String>[];
+    for (final mapping in preset.mappings) {
+      if (mapping.isNested &&
+          mapping.nestedMode == NestedExportMode.expandRows) {
+        continue;
+      }
+      if (_suppressDarwinCoreMapping(mapping)) continue;
+      if (!mapping.isNested) {
+        final directSource = _directSourceField(mapping.expression);
+        if (mapping.textType == 'list' &&
+            mapping.listMode == ListExportMode.spreadColumns) {
+          final maxCount = sourceRecords.fold<int>(0, (max, record) {
+            final count = _listValues(record, mapping).length;
+            return count > max ? count : max;
+          });
+          final items = _listValues(source, mapping);
+          for (var index = 0; index < maxCount; index++) {
+            values.add(index < items.length ? items[index] : '');
+          }
+        } else if (directSource != null) {
+          final value = _formatDarwinCoreScalar(source, mapping);
+          final dwc = headerResolver.dwcMappingForSource(directSource);
+          if (dwc?.isMeasurement == true) {
+            values.addAll(value.trim().isEmpty
+                ? const ['', '', '']
+                : [dwc!.measurementType!, value, dwc.measurementUnit ?? '']);
+          } else {
+            final count = headerResolver.headersForSource(directSource).length;
+            values.addAll(List<String>.filled(count, value));
+          }
+        } else {
+          values.add(_formatScalar(source, mapping));
+        }
+        continue;
+      }
+
+      final nestedRows = _nestedRows(source, mapping);
+      switch (mapping.nestedMode) {
+        case NestedExportMode.concatenate:
+          if (mapping.nestedFields.length == 1) {
+            values.add(formatDarwinCoreList(
+              nestedRows.map((row) => row[mapping.nestedFields.single] ?? ''),
+            ));
+          } else {
+            values.add(nestedRows
+                .map((row) => mapping.nestedFields
+                    .map((field) => row[field] ?? '')
+                    .join(mapping.fieldSeparator))
+                .join(mapping.recordSeparator));
+          }
+        case NestedExportMode.spreadColumns:
+          final maxCount = sourceRecords.fold<int>(0, (max, record) {
+            final count = _nestedRows(record, mapping).length;
+            return count > max ? count : max;
+          });
+          for (var index = 0; index < maxCount; index++) {
+            for (final field in mapping.nestedFields) {
+              values.add(index < nestedRows.length
+                  ? nestedRows[index][field] ?? ''
+                  : '');
+            }
+          }
+        case NestedExportMode.expandRows:
+          break;
+      }
+    }
+    return values.map(truncateTrailingDecimalZeroText).toList(growable: false);
+  }
+
+  bool _suppressDarwinCoreMapping(ExportFieldMapping mapping) {
+    if (mapping.isNested) return false;
+    final source = _directSourceField(mapping.expression);
+    if (source == null) return false;
+    final intervalStarts = {
+      'collEvent::endDate': 'collEvent::startDate',
+      'event::endDate': 'event::startDate',
+      'collEvent::endTime': 'collEvent::startTime',
+      'event::endTime': 'event::startTime',
+    };
+    final start = intervalStarts[source];
+    if (start != null && _selectedDirectSources().contains(start)) return true;
+
+    if (!_darwinCoreAgentSources.contains(source)) return false;
+    final selectedSources = _selectedDirectSources();
+    final selectedAgents = _darwinCoreAgentSources
+        .where(selectedSources.contains)
+        .toList(growable: false);
+    return selectedAgents.isNotEmpty && selectedAgents.first != source;
+  }
+
+  List<String> _selectedDirectSources() {
+    final sources = <String>[];
+    for (final mapping in preset.mappings) {
+      if (mapping.isNested) continue;
+      final source = _directSourceField(mapping.expression);
+      if (source != null && !sources.contains(source)) sources.add(source);
+    }
+    return sources;
+  }
+
+  static const List<String> _darwinCoreAgentSources = [
+    'collPersonnel::name',
+    'collEvent::personnel',
+    'event::personnel',
+    'specimen::catalogerID',
+    'specimen::preparatorID',
+    'specimen::collPersonnelID',
+    'specimen::collPersonnelId',
+  ];
+
+  String _formatDarwinCoreScalar(
+    Map<String, String> source,
+    ExportFieldMapping mapping,
+  ) {
+    final directSource = _directSourceField(mapping.expression);
+    if (directSource == null) return _formatScalar(source, mapping);
+
+    final intervalEnds = {
+      'collEvent::startDate': 'collEvent::endDate',
+      'event::startDate': 'event::endDate',
+      'collEvent::startTime': 'collEvent::endTime',
+      'event::startTime': 'event::endTime',
+    };
+    final endSource = intervalEnds[directSource];
+    if (endSource != null) {
+      final start = _sourceValue(source, directSource)?.trim() ?? '';
+      final end = _sourceValue(source, endSource)?.trim() ?? '';
+      if (start.isNotEmpty && end.isNotEmpty && start != end) {
+        return '$start/$end';
+      }
+      return start.isNotEmpty ? start : end;
+    }
+
+    if (_darwinCoreAgentSources.contains(directSource)) {
+      final selectedSources = _selectedDirectSources();
+      final selectedAgents = _darwinCoreAgentSources
+          .where(selectedSources.contains)
+          .toList(growable: false);
+      final names = <String>[];
+      for (final agentSource in selectedAgents) {
+        for (final rawValue
+            in splitExportListValue(_sourceValue(source, agentSource) ?? '')) {
+          final name = (agentSource == 'collEvent::personnel' ||
+                  agentSource == 'event::personnel')
+              ? rawValue.split(';').first.trim()
+              : rawValue.trim();
+          if (name.isNotEmpty && !names.contains(name)) names.add(name);
+        }
+      }
+      return formatDarwinCoreList(names);
+    }
+    return _formatScalar(source, mapping);
+  }
+
+  List<String> _headers(
+    List<Map<String, String>> sourceRecords,
+    ExportHeaderResolver headerResolver,
+  ) {
     final headers = <String>[];
     for (final mapping in preset.mappings) {
       if (!mapping.isNested) {
@@ -144,22 +415,24 @@ class PresetRecordExporter {
           });
           for (var index = 1; index <= count; index++) {
             headers.add(formatIndexedExportHeader(
-              _headerFor(mapping),
+              headerResolver.headerFor(mapping),
               index,
               mapping.indexedHeaderStyle,
             ));
           }
         } else {
-          headers.add(_headerFor(mapping));
+          headers.add(headerResolver.headerFor(mapping));
         }
         continue;
       }
 
       final fields = mapping.nestedFields;
       if (mapping.nestedMode == NestedExportMode.concatenate) {
-        headers.add(_headerFor(mapping));
+        headers.add(headerResolver.headerFor(mapping));
       } else if (mapping.nestedMode == NestedExportMode.expandRows) {
-        headers.addAll(fields.map((field) => _nestedHeader(mapping, field)));
+        headers.addAll(
+          fields.map((field) => headerResolver.nestedHeader(mapping, field)),
+        );
       } else {
         final count = sourceRecords.fold<int>(0, (maxCount, record) {
           final current = _nestedRows(record, mapping).length;
@@ -167,7 +440,8 @@ class PresetRecordExporter {
         });
         for (var index = 1; index <= count; index++) {
           headers.addAll(fields.map(
-            (field) => _nestedHeader(mapping, field, index: index),
+            (field) =>
+                headerResolver.nestedHeader(mapping, field, index: index),
           ));
         }
       }
@@ -178,6 +452,7 @@ class PresetRecordExporter {
   List<Map<String, String>> _mapRecord(
     Map<String, String> source,
     List<String> headers,
+    ExportHeaderResolver headerResolver,
   ) {
     final base = <String, String>{};
     for (final mapping in preset.mappings.where((item) => !item.isNested)) {
@@ -186,13 +461,14 @@ class PresetRecordExporter {
         final values = _listValues(source, mapping);
         for (var index = 0; index < values.length; index++) {
           base[formatIndexedExportHeader(
-            _headerFor(mapping),
+            headerResolver.headerFor(mapping),
             index + 1,
             mapping.indexedHeaderStyle,
           )] = values[index];
         }
       } else {
-        base[_headerFor(mapping)] = _formatScalar(source, mapping);
+        base[headerResolver.headerFor(mapping)] =
+            _formatScalar(source, mapping);
       }
     }
 
@@ -201,16 +477,25 @@ class PresetRecordExporter {
       final nestedRows = _nestedRows(source, mapping);
       switch (mapping.nestedMode) {
         case NestedExportMode.concatenate:
-          base[_headerFor(mapping)] = nestedRows
-              .map((row) => mapping.nestedFields
-                  .map((field) => row[field] ?? '')
-                  .join(mapping.fieldSeparator))
-              .join(mapping.recordSeparator);
+          final header = headerResolver.headerFor(mapping);
+          if (preset.headerFormat == ExportHeaderFormat.darwinCore &&
+              mapping.nestedFields.length == 1) {
+            final field = mapping.nestedFields.single;
+            base[header] = formatDarwinCoreList(
+              nestedRows.map((row) => row[field] ?? ''),
+            );
+          } else {
+            base[header] = nestedRows
+                .map((row) => mapping.nestedFields
+                    .map((field) => row[field] ?? '')
+                    .join(mapping.fieldSeparator))
+                .join(mapping.recordSeparator);
+          }
         case NestedExportMode.spreadColumns:
           for (var index = 0; index < nestedRows.length; index++) {
             for (final field in mapping.nestedFields) {
-              base[_nestedHeader(mapping, field, index: index + 1)] =
-                  nestedRows[index][field] ?? '';
+              base[headerResolver.nestedHeader(mapping, field,
+                  index: index + 1)] = nestedRows[index][field] ?? '';
             }
           }
         case NestedExportMode.expandRows:
@@ -225,7 +510,8 @@ class PresetRecordExporter {
     return nestedRows.map((nested) {
       final row = Map<String, String>.from(base);
       for (final field in expansionMapping.nestedFields) {
-        row[_nestedHeader(expansionMapping, field)] = nested[field] ?? '';
+        row[headerResolver.nestedHeader(expansionMapping, field)] =
+            nested[field] ?? '';
       }
       return _fillHeaders(row, headers);
     }).toList(growable: false);
@@ -245,6 +531,11 @@ class PresetRecordExporter {
   }
 
   String _formatScalar(Map<String, String> source, ExportFieldMapping mapping) {
+    if (preset.headerFormat == ExportHeaderFormat.darwinCore &&
+        mapping.textType == 'list' &&
+        mapping.listMode == ListExportMode.concatenate) {
+      return formatDarwinCoreList(_listValues(source, mapping));
+    }
     final effectiveTextType =
         mapping.textType == kConditionalBracketExportTextType
             ? 'normal'
@@ -343,35 +634,6 @@ class PresetRecordExporter {
     );
   }
 
-  String _headerFor(ExportFieldMapping mapping) {
-    final override = mapping.headerOverride?.trim();
-    if (override != null && override.isNotEmpty) return override;
-    if (mapping.isNested) return mapping.nestedNamespace!;
-    final match = RegExp(r'\[([^\]?\s]+)').firstMatch(mapping.expression);
-    final key = match?.group(1) ?? mapping.expression.trim();
-    if (preset.headerFormat == ExportHeaderFormat.fieldName) {
-      return key.split('::').last;
-    }
-    return key;
-  }
-
-  String _nestedHeader(
-    ExportFieldMapping mapping,
-    String field, {
-    int? index,
-  }) {
-    final prefix = mapping.headerOverride?.trim().isNotEmpty == true
-        ? mapping.headerOverride!.trim()
-        : mapping.nestedNamespace!;
-    final fieldName = preset.headerFormat == ExportHeaderFormat.fieldName
-        ? field
-        : '${mapping.nestedNamespace}::$field';
-    return index == null
-        ? '${prefix}_$fieldName'
-        : '${formatIndexedExportHeader(prefix, index, mapping.indexedHeaderStyle)}_'
-            '$fieldName';
-  }
-
   void _ensureUniqueHeaders(List<String> headers) {
     final seen = <String>{};
     for (final header in headers) {
@@ -392,7 +654,9 @@ List<String> validateExportPreset(ExportPresetModel preset) {
         errors.add('Nested mappings must include at least one child field.');
       }
       if (mapping.nestedMode == NestedExportMode.concatenate &&
-          (mapping.fieldSeparator.isEmpty || mapping.recordSeparator.isEmpty)) {
+          (mapping.fieldSeparator.isEmpty || mapping.recordSeparator.isEmpty) &&
+          !(preset.headerFormat == ExportHeaderFormat.darwinCore &&
+              mapping.nestedFields.length == 1)) {
         errors.add('Nested separators cannot be empty.');
       }
     } else if (mapping.expression.trim().isEmpty) {
@@ -427,6 +691,11 @@ List<String> validateExportPreset(ExportPresetModel preset) {
         mapping.listMode == ListExportMode.spreadColumns &&
         !RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(mapping.expression)) {
       errors.add('Indexed list mappings require exactly one source field.');
+    }
+    if (mappingRequiresHeaderOverride(preset.headerFormat, mapping)) {
+      errors.add(
+        'Standardized header modes require a custom header for composite mappings.',
+      );
     }
     final header = mapping.headerOverride?.trim();
     if (header != null &&

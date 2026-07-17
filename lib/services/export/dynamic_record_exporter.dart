@@ -97,7 +97,8 @@ class DynamicRecordExporter {
       final tax = await TaxonomyServices(
         ref: ref,
       ).getTaxonById(data.speciesID!);
-      record['specimen::speciesID'] =
+      record['specimen::speciesID'] = tax.id.toString();
+      record['specimen::scientificName'] =
           '${tax.genus ?? ''} ${tax.specificEpithet ?? ''}'.trim();
       _addData(record, 'taxonomy', tax.toJson());
     }

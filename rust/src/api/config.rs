@@ -306,6 +306,13 @@ pub fn import_config_from_file(file_path: String) -> Result<(), String> {
         nahpu_configs::json_lines::parse_json_lines_to_export(&content)?
     };
 
+    if export.schema_version > nahpu_configs::USER_CONFIG_SCHEMA_VERSION {
+        return Err(format!(
+            "User configuration schema version {} is newer than the supported version {}.",
+            export.schema_version,
+            nahpu_configs::USER_CONFIG_SCHEMA_VERSION
+        ));
+    }
     db.import_configs(export)?;
     Ok(())
 }

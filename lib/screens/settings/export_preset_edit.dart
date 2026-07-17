@@ -409,6 +409,14 @@ class _PresetSettingsCard extends StatelessWidget {
                     value: ExportHeaderFormat.fieldName,
                     child: Text('fieldName'),
                   ),
+                  DropdownMenuItem(
+                    value: ExportHeaderFormat.darwinCore,
+                    child: Text('Darwin Core (dwc:/dcterms:)'),
+                  ),
+                  DropdownMenuItem(
+                    value: ExportHeaderFormat.nahpuNamespace,
+                    child: Text('NAHPU namespace (nahpu:table.field)'),
+                  ),
                 ],
                 onChanged: (value) {
                   if (value != null) onHeaderFormatChanged(value);

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -65,6 +66,10 @@ void main() {
     // Verify it is JSON
     final content = File(exportPath).readAsStringSync();
     expect(content.startsWith('{'), true);
+    expect(
+      (jsonDecode(content) as Map<String, dynamic>)['schema_version'],
+      1,
+    );
 
     // 3. Clear/change the values
     await rust_config.setUserConfigList(key: testKey, value: ['Ocean']);

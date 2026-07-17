@@ -12,68 +12,54 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Future<void> initConfigDb({required String path}) =>
     RustLib.instance.api.crateApiConfigInitConfigDb(path: path);
 
-/// Sets a user config list.
 Future<void> setUserConfigList(
         {required String key, required List<String> value}) =>
     RustLib.instance.api
         .crateApiConfigSetUserConfigList(key: key, value: value);
 
-/// Retrieves a user config list.
 Future<List<String>?> getUserConfigList({required String key}) =>
     RustLib.instance.api.crateApiConfigGetUserConfigList(key: key);
 
-/// Sets a user config string.
 Future<void> setUserConfigString(
         {required String key, required String value}) =>
     RustLib.instance.api
         .crateApiConfigSetUserConfigString(key: key, value: value);
 
-/// Retrieves a user config string.
 Future<String?> getUserConfigString({required String key}) =>
     RustLib.instance.api.crateApiConfigGetUserConfigString(key: key);
 
-/// Deletes a user config key.
 Future<void> deleteUserConfig({required String key}) =>
     RustLib.instance.api.crateApiConfigDeleteUserConfig(key: key);
 
-/// Saves a record export preset.
 Future<void> setRecordExportPreset(
         {required String name, required ConfigExportPreset preset}) =>
     RustLib.instance.api
         .crateApiConfigSetRecordExportPreset(name: name, preset: preset);
 
-/// Retrieves a record export preset.
 Future<ConfigExportPreset?> getRecordExportPreset({required String name}) =>
     RustLib.instance.api.crateApiConfigGetRecordExportPreset(name: name);
 
-/// Deletes a record export preset.
 Future<void> deleteRecordExportPreset({required String name}) =>
     RustLib.instance.api.crateApiConfigDeleteRecordExportPreset(name: name);
 
-/// Retrieves all record export presets.
 Future<List<ConfigPresetEntry>> getAllRecordExportPresets() =>
     RustLib.instance.api.crateApiConfigGetAllRecordExportPresets();
 
-/// Exports all user configs and document presets to a file in either JSON or JSON Lines format.
 Future<void> exportConfigToFile(
         {required String filePath, required bool isJson}) =>
     RustLib.instance.api
         .crateApiConfigExportConfigToFile(filePath: filePath, isJson: isJson);
 
-/// Imports and replaces all user configs and document presets from a file.
 Future<void> importConfigFromFile({required String filePath}) =>
     RustLib.instance.api.crateApiConfigImportConfigFromFile(filePath: filePath);
 
-/// Saves a template preset JSON string to the config database.
 Future<void> setTemplatePreset({required String name, required String value}) =>
     RustLib.instance.api
         .crateApiConfigSetTemplatePreset(name: name, value: value);
 
-/// Retrieves a saved template preset as a JSON string.
 Future<String?> getTemplatePreset({required String name}) =>
     RustLib.instance.api.crateApiConfigGetTemplatePreset(name: name);
 
-/// Deletes a template preset.
 Future<void> deleteTemplatePreset({required String name}) =>
     RustLib.instance.api.crateApiConfigDeleteTemplatePreset(name: name);
 
@@ -88,7 +74,6 @@ Future<TemplatePresetDeletionResult> deleteTemplatePresetWithReplacement(
     RustLib.instance.api.crateApiConfigDeleteTemplatePresetWithReplacement(
         name: name, replacementName: replacementName);
 
-/// Lists all template preset names stored in the database.
 Future<List<String>> listTemplatePresets() =>
     RustLib.instance.api.crateApiConfigListTemplatePresets();
 

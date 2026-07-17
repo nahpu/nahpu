@@ -9,7 +9,7 @@ NAHPU is a Flutter app with Rust via Flutter Rust Bridge. Dart lives in `lib/`: 
 - `flutter analyze`: analyze.
 - `flutter test`: test.
 - `flutter pub run build_runner build --delete-conflicting-outputs`: codegen.
-- `flutter_rust_bridge generate`: bridge codegen.
+- `flutter_rust_bridge_codegen generate`: bridge codegen.
 - `cargo check`: check rust code in `rust/`.
 - `cargo clippy`: Rust linting.
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
+import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -572,6 +573,8 @@ Map<String, List<String>> _availableFieldGroups(
         'personnel',
         'project',
         'collEvent',
+        'collEffort',
+        'collPersonnel',
         'site',
         'coordinate',
         'weather',
@@ -1469,27 +1472,36 @@ class _MappingCustomizerFormState
             ),
           ),
           if (_localMapping.nestedMode == NestedExportMode.concatenate) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _fieldSepController,
-                    onChanged: (_) => setState(() {}),
-                    decoration:
-                        const InputDecoration(labelText: 'Field separator'),
-                  ),
+            if (widget.headerFormat == ExportHeaderFormat.darwinCore &&
+                _nestedFields.length == 1)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Darwin Core list values are separated with " | ".',
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextFormField(
-                    controller: _recordSepController,
-                    onChanged: (_) => setState(() {}),
-                    decoration:
-                        const InputDecoration(labelText: 'Record separator'),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _fieldSepController,
+                      onChanged: (_) => setState(() {}),
+                      decoration:
+                          const InputDecoration(labelText: 'Field separator'),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _recordSepController,
+                      onChanged: (_) => setState(() {}),
+                      decoration:
+                          const InputDecoration(labelText: 'Record separator'),
+                    ),
+                  ),
+                ],
+              ),
           ] else if (_localMapping.nestedMode ==
               NestedExportMode.spreadColumns) ...[
             _IndexedStyleField(
@@ -1702,8 +1714,21 @@ class _MappingCustomizerFormState
       if (_nestedFields.isEmpty) return 'Choose at least one child field.';
       if (_localMapping.nestedMode == NestedExportMode.concatenate &&
           (_fieldSepController.text.isEmpty ||
-              _recordSepController.text.isEmpty)) {
+              _recordSepController.text.isEmpty) &&
+          !(widget.headerFormat == ExportHeaderFormat.darwinCore &&
+              _nestedFields.length == 1)) {
         return 'Field and record separators cannot be empty.';
+      }
+      if (mappingRequiresHeaderOverride(
+        widget.headerFormat,
+        _localMapping.copyWith(
+          nestedNamespace: _nestedNamespaceController.text.trim(),
+          nestedFields: _nestedFields,
+          headerOverride: _headerController.text.trim(),
+          clearHeaderOverride: _headerController.text.trim().isEmpty,
+        ),
+      )) {
+        return 'Set a custom header for a multi-field concatenated mapping.';
       }
       return '';
     }
@@ -1716,6 +1741,11 @@ class _MappingCustomizerFormState
         !parseExportExpression(_expressionController.text)
             .any((segment) => segment.isField)) {
       return 'Combined values must include at least one source field.';
+    }
+    if (usesStandardizedExportHeaders(widget.headerFormat) &&
+        _headerController.text.trim().isEmpty &&
+        _exactSourceField(_expressionController.text) == null) {
+      return 'Set a custom header for a composite mapping.';
     }
     if (_mappingKind == 'list' &&
         _localMapping.listMode == ListExportMode.spreadColumns &&
@@ -2383,7 +2413,7 @@ class PreviewTableDialog extends StatefulWidget {
   });
 
   final List<String> headers;
-  final List<Map<String, String>> rows;
+  final List<List<String>> rows;
 
   @override
   State<PreviewTableDialog> createState() => _PreviewTableDialogState();
@@ -2459,10 +2489,12 @@ class _PreviewTableDialogState extends State<PreviewTableDialog> {
                       .toList(),
                   rows: previewRows
                       .map((row) => DataRow(
-                            cells: widget.headers
-                                .map((header) =>
-                                    DataCell(Text(row[header] ?? '')))
-                                .toList(),
+                            cells: List.generate(
+                              widget.headers.length,
+                              (index) => DataCell(
+                                Text(index < row.length ? row[index] : ''),
+                              ),
+                            ),
                           ))
                       .toList(),
                 ),
