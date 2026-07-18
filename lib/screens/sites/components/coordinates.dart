@@ -18,7 +18,7 @@ import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/src/rust/api/gis.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-enum CoordinatePopUpMenuItems { edit, copy, open }
+enum CoordinatePopUpMenuItems { details, edit, copy, open }
 
 class CoordinateFields extends StatelessWidget {
   const CoordinateFields({super.key, required this.siteId});
@@ -378,12 +378,22 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
             title: Text('Open'),
           ),
         ),
+        const PopupMenuItem<CoordinatePopUpMenuItems>(
+          value: CoordinatePopUpMenuItems.details,
+          child: ListTile(
+            leading: Icon(Icons.info_outline),
+            title: Text('Details'),
+          ),
+        ),
       ],
     );
   }
 
   Future<void> _onSelected(CoordinatePopUpMenuItems item) async {
     switch (item) {
+      case CoordinatePopUpMenuItems.details:
+        _showDetails();
+        break;
       case CoordinatePopUpMenuItems.edit:
         Navigator.push(
           context,
@@ -405,6 +415,64 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
       case CoordinatePopUpMenuItems.open:
         await _launchGoogleMap();
         break;
+    }
+  }
+
+  void _showDetails() {
+    final useHorizontalLayout = MediaQuery.sizeOf(context).width > 600.0;
+    if (useHorizontalLayout) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title:
+                const Text('Coordinate Details', textAlign: TextAlign.center),
+            content: SizedBox(
+              width: 480,
+              child: CoordinateDetails(coordinate: widget.coordinate),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (context) {
+          return Container(
+            width: double.infinity,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Coordinate Details',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: CoordinateDetails(coordinate: widget.coordinate),
+                ),
+              ],
+            ),
+          );
+        },
+      );
     }
   }
 
@@ -433,6 +501,201 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
   String get _latLong {
     return '${widget.coordinate.decimalLatitude},'
         '${widget.coordinate.decimalLongitude}';
+  }
+}
+
+class CoordinateDetails extends ConsumerStatefulWidget {
+  const CoordinateDetails({
+    super.key,
+    required this.coordinate,
+  });
+
+  final CoordinateData coordinate;
+
+  @override
+  CoordinateDetailsState createState() => CoordinateDetailsState();
+}
+
+class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
+  String _dmsLatitude = 'Loading...';
+  String _dmsLongitude = 'Loading...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDms();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildDetailRow(
+            context,
+            Icons.tag_outlined,
+            'Name',
+            widget.coordinate.nameId ?? 'No Name',
+          ),
+          const Divider(height: 16),
+          _buildDetailRow(
+            context,
+            Icons.pin_drop_outlined,
+            'Latitude',
+            widget.coordinate.decimalLatitude != null
+                ? '${widget.coordinate.decimalLatitude} ($_dmsLatitude)'
+                : 'N/A',
+          ),
+          const Divider(height: 16),
+          _buildDetailRow(
+            context,
+            Icons.pin_drop_outlined,
+            'Longitude',
+            widget.coordinate.decimalLongitude != null
+                ? '${widget.coordinate.decimalLongitude} ($_dmsLongitude)'
+                : 'N/A',
+          ),
+          const Divider(height: 16),
+          _buildDetailRow(
+            context,
+            Icons.landscape_outlined,
+            'Elevation',
+            widget.coordinate.elevationInMeter != null
+                ? '${widget.coordinate.elevationInMeter?.truncateZero()} m'
+                : 'N/A',
+          ),
+          const Divider(height: 16),
+          _buildDetailRow(
+            context,
+            Icons.map_outlined,
+            'Datum',
+            widget.coordinate.datum ?? 'N/A',
+          ),
+          const Divider(height: 16),
+          _buildDetailRow(
+            context,
+            Icons.circle_outlined,
+            'Uncertainty',
+            widget.coordinate.uncertaintyInMeters != null &&
+                    widget.coordinate.uncertaintyInMeters != 0
+                ? '±${widget.coordinate.uncertaintyInMeters} m'
+                : 'N/A',
+          ),
+          const Divider(height: 16),
+          _buildDetailRow(
+            context,
+            Icons.settings_input_antenna_outlined,
+            'GPS Unit',
+            widget.coordinate.gpsUnit != null &&
+                    widget.coordinate.gpsUnit!.isNotEmpty
+                ? widget.coordinate.gpsUnit!
+                : 'N/A',
+          ),
+          const Divider(height: 16),
+          _buildDetailRow(
+            context,
+            Icons.notes_outlined,
+            'Notes',
+            widget.coordinate.notes != null &&
+                    widget.coordinate.notes!.isNotEmpty
+                ? widget.coordinate.notes!
+                : '',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+      BuildContext context, IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 22,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _loadDms() async {
+    final lat = widget.coordinate.decimalLatitude;
+    final lon = widget.coordinate.decimalLongitude;
+    if (lat != null && lon != null) {
+      try {
+        final dmsLat = await ddToDms(dd: lat, isLatitude: true);
+        final dmsLon = await ddToDms(dd: lon, isLatitude: false);
+        if (mounted) {
+          setState(() {
+            _dmsLatitude = _formatDms(dmsLat);
+            _dmsLongitude = _formatDms(dmsLon);
+          });
+        }
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _dmsLatitude = 'N/A';
+            _dmsLongitude = 'N/A';
+          });
+        }
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _dmsLatitude = 'N/A';
+          _dmsLongitude = 'N/A';
+        });
+      }
+    }
+  }
+
+  String _formatDms(DmsCoordinateFfi dms) {
+    String dir = _formatDirection(dms.direction);
+    return '${dms.degrees}°${dms.minutes}\'${dms.seconds.toStringAsFixed(1)}" $dir';
+  }
+
+  String _formatDirection(CardinalDirection direction) {
+    switch (direction) {
+      case CardinalDirection.north:
+        return 'N';
+      case CardinalDirection.south:
+        return 'S';
+      case CardinalDirection.east:
+        return 'E';
+      case CardinalDirection.west:
+        return 'W';
+    }
   }
 }
 
