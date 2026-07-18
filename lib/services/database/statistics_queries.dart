@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
 class StatisticsQuery extends DatabaseAccessor<Database> {
@@ -137,6 +138,34 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         );
   }
 
+  Stream<List<SpatialStatisticDatum>> watchSpatialStatistics(
+    SpatialStatisticRequest request,
+  ) {
+    final query = _spatialStatisticsSql(request);
+    return customSelect(
+      query.sql,
+      variables: query.variables,
+      readsFrom: query.tables,
+    ).watch().map(
+          (rows) => rows
+              .map(
+                (row) => SpatialStatisticDatum(
+                  coordinateId: row.read<int>('coordinate_id'),
+                  name: row.readNullable<String>('name'),
+                  decimalLatitude: row.readNullable<double>('latitude'),
+                  decimalLongitude: row.readNullable<double>('longitude'),
+                  elevationInMeter: row.readNullable<double>('elevation'),
+                  datum: row.readNullable<String>('datum'),
+                  uncertaintyInMeters: row.readNullable<int>('uncertainty'),
+                  gpsUnit: row.readNullable<String>('gps_unit'),
+                  notes: row.readNullable<String>('notes'),
+                  count: row.readNullable<int>('count'),
+                ),
+              )
+              .toList(growable: false),
+        );
+  }
+
   List<StatisticFilterOption> _mapFilterOptions(List<QueryRow> rows) => rows
       .map(
         (row) => StatisticFilterOption(
@@ -194,6 +223,79 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     }
     return _StatisticsSql(sql: sql, variables: variables, tables: tables);
   }
+
+  _StatisticsSql _spatialStatisticsSql(SpatialStatisticRequest request) {
+    const coordinateColumns = '''
+      coordinate.id AS coordinate_id,
+      coordinate.nameId AS name,
+      coordinate.decimalLatitude AS latitude,
+      coordinate.decimalLongitude AS longitude,
+      coordinate.elevationInMeter AS elevation,
+      coordinate.datum AS datum,
+      coordinate.uncertaintyInMeters AS uncertainty,
+      coordinate.gpsUnit AS gps_unit,
+      coordinate.notes AS notes
+    ''';
+    final variables = <Variable>[Variable(request.projectUuid)];
+    late String sql;
+    late final Set<ResultSetImplementation> tables;
+
+    switch (request.kind) {
+      case SpatialStatisticKind.coordinate:
+        sql = '''
+          SELECT $coordinateColumns, NULL AS count
+          FROM coordinate
+          INNER JOIN site ON site.id = coordinate.siteID
+          WHERE site.projectUuid = ?
+          ORDER BY
+            CASE WHEN trim(coalesce(name, '')) = '' THEN 1 ELSE 0 END,
+            name COLLATE NOCASE ASC,
+            coordinate.id ASC
+        ''';
+        tables = {db.coordinate, db.site};
+      case SpatialStatisticKind.specimens:
+        sql = _spatialCountSql('COUNT(specimen.uuid)', coordinateColumns);
+        tables = {db.coordinate, db.site, db.specimen};
+      case SpatialStatisticKind.species:
+        sql = _spatialCountSql(
+          'COUNT(DISTINCT $_speciesLabel)',
+          coordinateColumns,
+          taxonomy: true,
+        );
+        tables = {db.coordinate, db.site, db.specimen, db.taxonomy};
+      case SpatialStatisticKind.family:
+        sql = _spatialCountSql(
+          'COUNT(DISTINCT $_familyLabel)',
+          coordinateColumns,
+          taxonomy: true,
+        );
+        tables = {db.coordinate, db.site, db.specimen, db.taxonomy};
+    }
+
+    if (request.kind != SpatialStatisticKind.coordinate) {
+      variables.add(Variable(request.projectUuid));
+    }
+    return _StatisticsSql(sql: sql, variables: variables, tables: tables);
+  }
+
+  String _spatialCountSql(
+    String countExpression,
+    String coordinateColumns, {
+    bool taxonomy = false,
+  }) =>
+      '''
+        SELECT $coordinateColumns, $countExpression AS count
+        FROM coordinate
+        INNER JOIN site ON site.id = coordinate.siteID
+        INNER JOIN specimen
+          ON specimen.coordinateID = coordinate.id
+          AND specimen.projectUuid = ?
+        ${taxonomy ? 'LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID' : ''}
+        WHERE site.projectUuid = ?
+        GROUP BY coordinate.id
+        HAVING count > 0
+        ORDER BY count DESC, name COLLATE NOCASE ASC, coordinate.id ASC
+      ''';
 
   String _groupedSpecimenSql(String label) => '''
     SELECT $label AS label, COUNT(*) AS count

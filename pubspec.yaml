@@ -66,6 +66,7 @@ dependencies:
   google_fonts: ^8.1.0
   pdfrx: ^2.4.4
   flutter_map: ^8.3.1
+  latlong2: ^0.10.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -116,6 +117,7 @@ flutter:
     - assets/avatars/
     - assets/icons/
     - assets/configs/
+    - assets/maps/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

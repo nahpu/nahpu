@@ -12,12 +12,12 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7]) {
-    test('upgrade from v$version to v8', () async {
+  for (final version in [6, 7, 8]) {
+    test('upgrade from v$version to v9', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 8);
+      await verifier.migrateAndValidate(db, 9);
       await db.close();
     });
   }

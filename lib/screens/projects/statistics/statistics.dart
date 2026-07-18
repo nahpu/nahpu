@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -238,6 +239,8 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 32),
+                  SpatialStatisticsPanel(projectUuid: projectUuid),
                 ],
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/statistics_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
 final statisticDataProvider = StreamProvider.autoDispose
@@ -21,4 +22,11 @@ final recordStatisticTotalsProvider =
   final projectUuid = ref.watch(projectUuidProvider);
   return StatisticsQuery(ref.watch(databaseProvider))
       .watchRecordTotals(projectUuid);
+});
+
+final spatialStatisticDataProvider = StreamProvider.autoDispose
+    .family<List<SpatialStatisticDatum>, SpatialStatisticRequest>(
+        (ref, request) {
+  return StatisticsQuery(ref.watch(databaseProvider))
+      .watchSpatialStatistics(request);
 });
