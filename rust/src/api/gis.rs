@@ -8,6 +8,29 @@ use nahpu_gis::conversion::{
     UtmCoordinate as Utm,
 };
 
+/// Metadata for a user vector layer normalized by `nahpu_gis`.
+pub struct ImportedVectorLayer {
+    /// Number of GeoJSON features written.
+    pub feature_count: u64,
+    /// WGS84 bounds in west, south, east, north order.
+    pub bounds: Option<Vec<f64>>,
+    /// Coordinate reference system of the output.
+    pub source_crs: String,
+}
+
+/// Converts GeoJSON or a zipped WGS84 Shapefile to normalized GeoJSON.
+pub fn convert_vector_layer_to_geojson(
+    input_path: String,
+    output_path: String,
+) -> Result<ImportedVectorLayer, String> {
+    let result = nahpu_gis::io::layers::convert_vector_to_geojson(input_path, output_path)?;
+    Ok(ImportedVectorLayer {
+        feature_count: result.feature_count,
+        bounds: result.bounds,
+        source_crs: result.source_crs,
+    })
+}
+
 /// Represents a geographic cardinal direction.
 pub enum CardinalDirection {
     /// Northern hemisphere (positive latitude)

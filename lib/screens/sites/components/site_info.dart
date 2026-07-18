@@ -119,7 +119,7 @@ class SiteInfo extends ConsumerWidget {
                       });
                 },
                 loading: () => const CommonProgressIndicator(),
-                error: (e, __) => Text(e.toString()),
+                error: (e, _) => Text(e.toString()),
               )
         ],
       ),

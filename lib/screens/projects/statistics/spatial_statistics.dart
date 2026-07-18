@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_map.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_table.dart';
+import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
 import 'package:nahpu/services/providers/statistics.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
+import 'package:nahpu/services/types/statistics.dart';
 
 class SpatialStatisticsPanel extends ConsumerStatefulWidget {
   const SpatialStatisticsPanel({super.key, required this.projectUuid});
@@ -19,12 +21,22 @@ class _SpatialStatisticsPanelState
     extends ConsumerState<SpatialStatisticsPanel> {
   SpatialStatisticKind _selectedKind = SpatialStatisticKind.coordinate;
   _SpatialStatisticMode _mode = _SpatialStatisticMode.map;
+  StatisticFilterOption? _selectedSpecies;
+
+  @override
+  void didUpdateWidget(covariant SpatialStatisticsPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.projectUuid != widget.projectUuid) {
+      _selectedSpecies = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final request = SpatialStatisticRequest(
       projectUuid: widget.projectUuid,
       kind: _selectedKind,
+      speciesId: _selectedSpecies?.id,
     );
     final data = ref.watch(spatialStatisticDataProvider(request));
     return Card(
@@ -43,11 +55,30 @@ class _SpatialStatisticsPanelState
               selected: _selectedKind,
               onSelected: (kind) => setState(() => _selectedKind = kind),
             ),
+            if (_selectedKind.needsSpecies) ...[
+              const SizedBox(height: 12),
+              SearchableStatisticFilterPicker(
+                options: ref.watch(
+                  spatialSpeciesFilterOptionsProvider(widget.projectUuid),
+                ),
+                selected: _selectedSpecies,
+                title: 'Select a species',
+                placeholder: 'Select a species',
+                onChanged: (value) {
+                  setState(() => _selectedSpecies = value);
+                },
+                onRetry: () => ref.invalidate(
+                  spatialSpeciesFilterOptionsProvider(widget.projectUuid),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {
                 final title = Text(
-                  _selectedKind.title,
+                  _selectedKind.needsSpecies && _selectedSpecies != null
+                      ? '${_selectedSpecies!.label} by coordinate'
+                      : _selectedKind.title,
                   style: Theme.of(context).textTheme.titleLarge,
                 );
                 final selector = SegmentedButton<_SpatialStatisticMode>(
@@ -70,7 +101,12 @@ class _SpatialStatisticsPanelState
                   },
                 );
                 if (constraints.maxWidth >= 620) {
-                  return Row(children: [Expanded(child: title), selector]);
+                  return Row(
+                    children: [
+                      Expanded(child: title),
+                      selector,
+                    ],
+                  );
                 }
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,31 +115,35 @@ class _SpatialStatisticsPanelState
               },
             ),
             const SizedBox(height: 12),
-            data.when(
-              data: (rows) => _buildContent(rows),
-              loading: () => const SizedBox(
-                height: 320,
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, stackTrace) => SizedBox(
-                height: 320,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Unable to load spatial statistics: $error'),
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: () => ref
-                            .invalidate(spatialStatisticDataProvider(request)),
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('Retry'),
-                      ),
-                    ],
+            if (!request.isReady)
+              const _SpatialSpeciesPrompt()
+            else
+              data.when(
+                data: (rows) => _buildContent(rows),
+                loading: () => const SizedBox(
+                  height: 320,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, stackTrace) => SizedBox(
+                  height: 320,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Unable to load spatial statistics: $error'),
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: () => ref.invalidate(
+                            spatialStatisticDataProvider(request),
+                          ),
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -130,15 +170,34 @@ class _SpatialStatisticsPanelState
   }
 
   String get _emptyMessage => switch (_selectedKind) {
-        SpatialStatisticKind.coordinate =>
-          'No coordinates have been added to this project.',
-        SpatialStatisticKind.specimens =>
-          'No specimens are assigned to project coordinates.',
-        SpatialStatisticKind.species =>
-          'No species are associated with project coordinates.',
-        SpatialStatisticKind.family =>
-          'No families are associated with project coordinates.',
-      };
+    SpatialStatisticKind.coordinate =>
+      'No coordinates have been added to this project.',
+    SpatialStatisticKind.specimens =>
+      'No specimens are assigned to project coordinates.',
+    SpatialStatisticKind.species =>
+      'No species are associated with project coordinates.',
+    SpatialStatisticKind.family =>
+      'No families are associated with project coordinates.',
+    SpatialStatisticKind.coordinatesBySpecies =>
+      'No specimens of ${_selectedSpecies?.label ?? 'the selected species'} '
+          'are assigned to project coordinates.',
+  };
+}
+
+class _SpatialSpeciesPrompt extends StatelessWidget {
+  const _SpatialSpeciesPrompt();
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: 280,
+    child: Center(
+      child: Text(
+        'Select a species to view coordinate abundance.',
+        style: Theme.of(context).textTheme.bodyLarge,
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
 }
 
 class _SpatialKindPicker extends StatelessWidget {

@@ -324,7 +324,7 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
             return null;
           },
           loading: () => null,
-          error: (_, __) => null,
+          error: (_, _) => null,
         );
   }
 }

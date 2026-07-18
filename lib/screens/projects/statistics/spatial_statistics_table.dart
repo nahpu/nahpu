@@ -53,6 +53,7 @@ class _SpatialStatisticsTableState extends State<SpatialStatisticsTable> {
 
 const _coordinateColumns = [
   DataColumn(label: Text('Name')),
+  DataColumn(label: Text('Locality')),
   DataColumn(label: Text('Decimal Latitude'), numeric: true),
   DataColumn(label: Text('Decimal Longitude'), numeric: true),
   DataColumn(label: Text('Elevation (m)'), numeric: true),
@@ -64,6 +65,7 @@ const _coordinateColumns = [
 
 const _metricColumns = [
   DataColumn(label: Text('Name')),
+  DataColumn(label: Text('Locality')),
   DataColumn(label: Text('Latitude'), numeric: true),
   DataColumn(label: Text('Longitude'), numeric: true),
   DataColumn(label: Text('Elevation (m)'), numeric: true),
@@ -93,26 +95,28 @@ class _SpatialStatisticsDataSource extends DataTableSource {
   }
 
   List<DataCell> _coordinateCells(SpatialStatisticDatum row) => [
-        DataCell(_constrainedText(row.displayName)),
-        DataCell(Text(formatCoordinate(row.decimalLatitude, decimals: 6))),
-        DataCell(Text(formatCoordinate(row.decimalLongitude, decimals: 6))),
-        DataCell(Text(formatCoordinate(row.elevationInMeter, decimals: 2))),
-        DataCell(_constrainedText(formatCoordinateText(row.datum))),
-        DataCell(Text(formatCoordinateInteger(row.uncertaintyInMeters))),
-        DataCell(_constrainedText(formatCoordinateText(row.gpsUnit))),
-        DataCell(_notesCell(row.notes)),
-      ];
+    DataCell(_constrainedText(row.displayName)),
+    DataCell(_constrainedText(formatCoordinateText(row.locality))),
+    DataCell(Text(formatCoordinate(row.decimalLatitude, decimals: 6))),
+    DataCell(Text(formatCoordinate(row.decimalLongitude, decimals: 6))),
+    DataCell(Text(formatCoordinate(row.elevationInMeter, decimals: 2))),
+    DataCell(_constrainedText(formatCoordinateText(row.datum))),
+    DataCell(Text(formatCoordinateInteger(row.uncertaintyInMeters))),
+    DataCell(_constrainedText(formatCoordinateText(row.gpsUnit))),
+    DataCell(_notesCell(row.notes)),
+  ];
 
   List<DataCell> _metricCells(SpatialStatisticDatum row) => [
-        DataCell(_constrainedText(row.displayName)),
-        DataCell(Text(formatCoordinate(row.decimalLatitude, decimals: 6))),
-        DataCell(Text(formatCoordinate(row.decimalLongitude, decimals: 6))),
-        DataCell(Text(formatCoordinate(row.elevationInMeter, decimals: 2))),
-        DataCell(Text((row.count ?? 0).toString())),
-        DataCell(
-          Text('${spatialStatisticPercent(row, total).toStringAsFixed(1)}%'),
-        ),
-      ];
+    DataCell(_constrainedText(row.displayName)),
+    DataCell(_constrainedText(formatCoordinateText(row.locality))),
+    DataCell(Text(formatCoordinate(row.decimalLatitude, decimals: 6))),
+    DataCell(Text(formatCoordinate(row.decimalLongitude, decimals: 6))),
+    DataCell(Text(formatCoordinate(row.elevationInMeter, decimals: 2))),
+    DataCell(Text((row.count ?? 0).toString())),
+    DataCell(
+      Text('${spatialStatisticPercent(row, total).toStringAsFixed(1)}%'),
+    ),
+  ];
 
   Widget _notesCell(String? notes) {
     final text = formatCoordinateText(notes);

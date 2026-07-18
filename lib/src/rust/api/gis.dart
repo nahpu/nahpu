@@ -8,6 +8,15 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`
 
+/// Converts GeoJSON or a zipped WGS84 Shapefile to normalized GeoJSON.
+Future<ImportedVectorLayer> convertVectorLayerToGeojson({
+  required String inputPath,
+  required String outputPath,
+}) => RustLib.instance.api.crateApiGisConvertVectorLayerToGeojson(
+  inputPath: inputPath,
+  outputPath: outputPath,
+);
+
 /// Converts DMS to decimal degrees.
 ///
 /// # Examples
@@ -18,16 +27,17 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 /// let dd = dms_to_dd(41, 24, 12.2, CardinalDirection::North);
 /// assert!((dd - 41.40338888888889).abs() < 1e-9);
 /// ```
-Future<double> dmsToDd(
-        {required int degrees,
-        required int minutes,
-        required double seconds,
-        required CardinalDirection direction}) =>
-    RustLib.instance.api.crateApiGisDmsToDd(
-        degrees: degrees,
-        minutes: minutes,
-        seconds: seconds,
-        direction: direction);
+Future<double> dmsToDd({
+  required int degrees,
+  required int minutes,
+  required double seconds,
+  required CardinalDirection direction,
+}) => RustLib.instance.api.crateApiGisDmsToDd(
+  degrees: degrees,
+  minutes: minutes,
+  seconds: seconds,
+  direction: direction,
+);
 
 /// Converts DDM to decimal degrees.
 ///
@@ -39,40 +49,49 @@ Future<double> dmsToDd(
 /// let dd = ddm_to_dd(41, 24.2028, CardinalDirection::North);
 /// assert!((dd - 41.40338).abs() < 1e-9);
 /// ```
-Future<double> ddmToDd(
-        {required int degrees,
-        required double minutes,
-        required CardinalDirection direction}) =>
-    RustLib.instance.api.crateApiGisDdmToDd(
-        degrees: degrees, minutes: minutes, direction: direction);
+Future<double> ddmToDd({
+  required int degrees,
+  required double minutes,
+  required CardinalDirection direction,
+}) => RustLib.instance.api.crateApiGisDdmToDd(
+  degrees: degrees,
+  minutes: minutes,
+  direction: direction,
+);
 
 /// Converts UTM to decimal degrees latitude and longitude.
-Future<(double, double)> utmToDd(
-        {required int zone,
-        required CardinalDirection hemisphere,
-        required double easting,
-        required double northing}) =>
-    RustLib.instance.api.crateApiGisUtmToDd(
-        zone: zone,
-        hemisphere: hemisphere,
-        easting: easting,
-        northing: northing);
+Future<(double, double)> utmToDd({
+  required int zone,
+  required CardinalDirection hemisphere,
+  required double easting,
+  required double northing,
+}) => RustLib.instance.api.crateApiGisUtmToDd(
+  zone: zone,
+  hemisphere: hemisphere,
+  easting: easting,
+  northing: northing,
+);
 
 /// Converts decimal degrees to DMS.
-Future<DmsCoordinateFfi> ddToDms(
-        {required double dd, required bool isLatitude}) =>
-    RustLib.instance.api.crateApiGisDdToDms(dd: dd, isLatitude: isLatitude);
+Future<DmsCoordinateFfi> ddToDms({
+  required double dd,
+  required bool isLatitude,
+}) => RustLib.instance.api.crateApiGisDdToDms(dd: dd, isLatitude: isLatitude);
 
 /// Converts decimal degrees to DDM.
-Future<DdmCoordinateFfi> ddToDdm(
-        {required double dd, required bool isLatitude}) =>
-    RustLib.instance.api.crateApiGisDdToDdm(dd: dd, isLatitude: isLatitude);
+Future<DdmCoordinateFfi> ddToDdm({
+  required double dd,
+  required bool isLatitude,
+}) => RustLib.instance.api.crateApiGisDdToDdm(dd: dd, isLatitude: isLatitude);
 
 /// Converts decimal degrees latitude and longitude to UTM.
-Future<UtmCoordinateFfi> ddToUtm(
-        {required double latitude, required double longitude}) =>
-    RustLib.instance.api
-        .crateApiGisDdToUtm(latitude: latitude, longitude: longitude);
+Future<UtmCoordinateFfi> ddToUtm({
+  required double latitude,
+  required double longitude,
+}) => RustLib.instance.api.crateApiGisDdToUtm(
+  latitude: latitude,
+  longitude: longitude,
+);
 
 /// Automatically detects the coordinate format of a string and parses it to decimal degrees.
 Future<double> parseCoordinateString({required String s}) =>
@@ -91,7 +110,6 @@ enum CardinalDirection {
 
   /// Western hemisphere (negative longitude)
   west,
-  ;
 }
 
 /// Represents a coordinate in Degrees and Decimal Minutes (DDM) format.
@@ -161,6 +179,37 @@ class DmsCoordinateFfi {
           minutes == other.minutes &&
           seconds == other.seconds &&
           direction == other.direction;
+}
+
+/// Metadata for a user vector layer normalized by `nahpu_gis`.
+class ImportedVectorLayer {
+  /// Number of GeoJSON features written.
+  final BigInt featureCount;
+
+  /// WGS84 bounds in west, south, east, north order.
+  final Float64List? bounds;
+
+  /// Coordinate reference system of the output.
+  final String sourceCrs;
+
+  const ImportedVectorLayer({
+    required this.featureCount,
+    this.bounds,
+    required this.sourceCrs,
+  });
+
+  @override
+  int get hashCode =>
+      featureCount.hashCode ^ bounds.hashCode ^ sourceCrs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImportedVectorLayer &&
+          runtimeType == other.runtimeType &&
+          featureCount == other.featureCount &&
+          bounds == other.bounds &&
+          sourceCrs == other.sourceCrs;
 }
 
 /// Represents a coordinate in Universal Transverse Mercator (UTM) format.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
+import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
@@ -32,10 +33,7 @@ class StatisticViewer extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Top species',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Top species', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Expanded(
               child: _StatisticAsyncContent(
@@ -157,9 +155,19 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                           if (_selectedStatistic.needsSite ||
                               _selectedStatistic.needsTaxon) ...[
                             const SizedBox(height: 12),
-                            _StatisticFilterPicker(
-                              kind: _selectedStatistic,
+                            SearchableStatisticFilterPicker(
+                              options: ref.watch(
+                                statisticFilterOptionsProvider(
+                                  _selectedStatistic,
+                                ),
+                              ),
                               selected: selectedFilter,
+                              title: _selectedStatistic.needsSite
+                                  ? 'Select a site'
+                                  : 'Select a species',
+                              placeholder: _selectedStatistic.needsSite
+                                  ? 'Select a site'
+                                  : 'Select a species',
                               onChanged: (value) {
                                 setState(() {
                                   if (value == null) {
@@ -169,6 +177,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                   }
                                 });
                               },
+                              onRetry: () => ref.invalidate(
+                                statisticFilterOptionsProvider(
+                                  _selectedStatistic,
+                                ),
+                              ),
                             ),
                           ],
                           const SizedBox(height: 16),
@@ -197,7 +210,8 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                 selected: {_detailMode},
                                 onSelectionChanged: (selection) {
                                   setState(
-                                      () => _detailMode = selection.single);
+                                    () => _detailMode = selection.single,
+                                  );
                                 },
                               ),
                             ],
@@ -225,13 +239,13 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                   onExport: tableRows.isEmpty
                                       ? null
                                       : () => showStatisticExportDialog(
-                                            context: context,
-                                            defaultFileName: _defaultFileName(
-                                              projectName,
-                                              selectedFilter,
-                                            ),
-                                            rows: tableRows,
+                                          context: context,
+                                          defaultFileName: _defaultFileName(
+                                            projectName,
+                                            selectedFilter,
                                           ),
+                                          rows: tableRows,
+                                        ),
                                 );
                               },
                             ),
@@ -264,12 +278,10 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     });
   }
 
-  String _defaultFileName(
-    String projectName,
-    StatisticFilterOption? filter,
-  ) {
+  String _defaultFileName(String projectName, StatisticFilterOption? filter) {
     final now = DateTime.now();
-    final date = '${now.year.toString().padLeft(4, '0')}'
+    final date =
+        '${now.year.toString().padLeft(4, '0')}'
         '${now.month.toString().padLeft(2, '0')}'
         '${now.day.toString().padLeft(2, '0')}';
     final components = [
@@ -287,10 +299,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
 }
 
 class _StatisticSummary extends StatelessWidget {
-  const _StatisticSummary({
-    required this.projectUuid,
-    required this.onExplore,
-  });
+  const _StatisticSummary({required this.projectUuid, required this.onExplore});
 
   final String projectUuid;
   final ValueChanged<StatisticKind> onExplore;
@@ -299,7 +308,8 @@ class _StatisticSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final twoColumnBreakpoint = StatisticBarChart.minimumWidth(
+        final twoColumnBreakpoint =
+            StatisticBarChart.minimumWidth(
                   categoryCount: topStatisticCount,
                   compact: true,
                 ) *
@@ -412,167 +422,6 @@ class _StatisticKindPicker extends StatelessWidget {
           child: Row(spacing: 8, children: chips),
         );
       },
-    );
-  }
-}
-
-class _StatisticFilterPicker extends ConsumerWidget {
-  const _StatisticFilterPicker({
-    required this.kind,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  final StatisticKind kind;
-  final StatisticFilterOption? selected;
-  final ValueChanged<StatisticFilterOption?> onChanged;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final options = ref.watch(statisticFilterOptionsProvider(kind));
-    return options.when(
-      data: (items) => Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: items.isEmpty
-                  ? null
-                  : () async {
-                      final result =
-                          await showModalBottomSheet<StatisticFilterOption>(
-                        context: context,
-                        isScrollControlled: true,
-                        showDragHandle: true,
-                        builder: (context) => _StatisticFilterSheet(
-                          title: kind.needsSite
-                              ? 'Select a site'
-                              : 'Select a species',
-                          options: items,
-                        ),
-                      );
-                      if (result != null) onChanged(result);
-                    },
-              icon: const Icon(Icons.search_rounded),
-              label: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  selected?.label ??
-                      (kind.needsSite ? 'Select a site' : 'Select a species'),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-          ),
-          if (selected != null)
-            IconButton(
-              tooltip: 'Clear selection',
-              onPressed: () => onChanged(null),
-              icon: const Icon(Icons.clear_rounded),
-            ),
-        ],
-      ),
-      loading: () => const LinearProgressIndicator(),
-      error: (error, stackTrace) => Row(
-        children: [
-          Expanded(child: Text('Unable to load choices: $error')),
-          IconButton(
-            tooltip: 'Retry',
-            onPressed: () =>
-                ref.invalidate(statisticFilterOptionsProvider(kind)),
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatisticFilterSheet extends StatefulWidget {
-  const _StatisticFilterSheet({
-    required this.title,
-    required this.options,
-  });
-
-  final String title;
-  final List<StatisticFilterOption> options;
-
-  @override
-  State<_StatisticFilterSheet> createState() => _StatisticFilterSheetState();
-}
-
-class _StatisticFilterSheetState extends State<_StatisticFilterSheet> {
-  final _searchController = TextEditingController();
-  String _query = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final filtered = widget.options
-        .where(
-          (option) => option.label.toLowerCase().contains(_query.toLowerCase()),
-        )
-        .toList(growable: false);
-    return SafeArea(
-      child: FractionallySizedBox(
-        heightFactor: 0.75,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 12),
-              SearchBar(
-                controller: _searchController,
-                hintText: 'Search',
-                leading: const Icon(Icons.search_rounded),
-                padding: const WidgetStatePropertyAll<EdgeInsets>(
-                  EdgeInsets.symmetric(horizontal: 8),
-                ),
-                elevation: const WidgetStatePropertyAll(0),
-                backgroundColor: WidgetStatePropertyAll(
-                  Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.45),
-                ),
-                trailing: [
-                  if (_query.isNotEmpty)
-                    IconButton(
-                      tooltip: 'Clear search',
-                      icon: const Icon(Icons.clear_rounded),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _query = '');
-                      },
-                    ),
-                ],
-                onChanged: (value) => setState(() => _query = value.trim()),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: filtered.isEmpty
-                    ? const Center(child: Text('No matching choices'))
-                    : ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final option = filtered[index];
-                          return ListTile(
-                            title: Text(option.label),
-                            onTap: () => Navigator.pop(context, option),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

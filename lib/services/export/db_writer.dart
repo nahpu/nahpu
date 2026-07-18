@@ -24,8 +24,11 @@ class DbExport extends AppServices {
 
   Future<File> write(bool isWithProjectData, bool isWithAppSettings) async {
     final nahpuDir = await nahpuDocumentDir;
-    final dbPath =
-        await _writeSqlite(nahpuDir, isWithProjectData, isWithAppSettings);
+    final dbPath = await _writeSqlite(
+      nahpuDir,
+      isWithProjectData,
+      isWithAppSettings,
+    );
     File? settingsFile;
 
     if (isWithProjectData || isWithAppSettings) {
@@ -44,6 +47,7 @@ class DbExport extends AppServices {
         );
         settingsFile = File(settingsPath);
         allAppFiles.add(settingsFile.path);
+        allAppFiles.addAll(await _collectUserMapFiles());
       }
 
       allAppFiles.add(dbPath.path);
@@ -62,7 +66,10 @@ class DbExport extends AppServices {
   }
 
   Future<File> _writeSqlite(
-      Directory nahpuDir, bool withProjectData, bool isWithAppSettings) async {
+    Directory nahpuDir,
+    bool withProjectData,
+    bool isWithAppSettings,
+  ) async {
     if (withProjectData || isWithAppSettings) {
       final fileName = p.basename(filePath.path);
       final outputPath = File(p.join(nahpuDir.path, fileName));
@@ -77,6 +84,15 @@ class DbExport extends AppServices {
   Future<List<String>> _collectAppFiles(Directory nahpuDir) async {
     final mediaFiles = await MediaFinder(ref: ref).getAllMedia();
     return mediaFiles.map((e) => e.path).toList();
+  }
+
+  Future<List<String>> _collectUserMapFiles() async {
+    final mapDirectory = await getUserMapDirectory();
+    return mapDirectory
+        .list(recursive: true, followLinks: false)
+        .where((entity) => entity is File)
+        .map((entity) => entity.path)
+        .toList();
   }
 
   Future<void> _archiveFiles(
@@ -147,19 +163,26 @@ class DbWriter extends AppServices {
     }
 
     // Process app settings file
-    if (files.any((file) =>
-        file.path.endsWith('user_configs.json') ||
-        file.path.endsWith('settings.json'))) {
-      FileSystemEntity settingsFileEntity = files.firstWhere((file) =>
+    if (files.any(
+      (file) =>
           file.path.endsWith('user_configs.json') ||
-          file.path.endsWith('settings.json'));
+          file.path.endsWith('settings.json'),
+    )) {
+      FileSystemEntity settingsFileEntity = files.firstWhere(
+        (file) =>
+            file.path.endsWith('user_configs.json') ||
+            file.path.endsWith('settings.json'),
+      );
       File settingsFile = File(settingsFileEntity.path);
       await rust_config.importConfigFromFile(filePath: settingsFile.path);
       files.remove(settingsFileEntity);
-    } else if (files.any((file) =>
-        file.path.endsWith('.json.nl') || file.path.endsWith('.jsonl'))) {
-      FileSystemEntity settingsFileEntity = files.firstWhere((file) =>
-          file.path.endsWith('.json.nl') || file.path.endsWith('.jsonl'));
+    } else if (files.any(
+      (file) => file.path.endsWith('.json.nl') || file.path.endsWith('.jsonl'),
+    )) {
+      FileSystemEntity settingsFileEntity = files.firstWhere(
+        (file) =>
+            file.path.endsWith('.json.nl') || file.path.endsWith('.jsonl'),
+      );
       File settingsFile = File(settingsFileEntity.path);
       await rust_config.importConfigFromFile(filePath: settingsFile.path);
       files.remove(settingsFileEntity);

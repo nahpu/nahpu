@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nahpu/services/statistics/spatial.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics_maplibre.dart';
+import 'package:nahpu/screens/projects/statistics/linux_user_map_layers.dart';
+import 'package:nahpu/screens/settings/map_settings.dart';
+import 'package:nahpu/services/utility_services.dart';
 
 class SpatialStatisticsMap extends StatefulWidget {
   const SpatialStatisticsMap({
@@ -42,27 +47,63 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
         ],
         SizedBox(
           height: 480,
-          child: FutureBuilder<List<NaturalEarthPolygon>>(
-            future: _naturalEarthPolygons,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return _MapMessage(
-                  icon: Icons.public_off_outlined,
-                  message: 'Unable to load the offline Natural Earth map.',
-                );
-              }
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              return _NaturalEarthMap(
-                key: ValueKey(
-                  '${widget.kind.name}-${mappable.map((row) => row.coordinateId).join(',')}',
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Platform.isLinux
+                    ? FutureBuilder<List<NaturalEarthPolygon>>(
+                        future: _naturalEarthPolygons,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return _MapMessage(
+                              icon: Icons.public_off_outlined,
+                              message:
+                                  'Unable to load the offline Natural Earth map.',
+                            );
+                          }
+                          if (!snapshot.hasData) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          return _NaturalEarthMap(
+                            key: ValueKey(
+                              '${widget.kind.name}-${mappable.map((row) => row.coordinateId).join(',')}',
+                            ),
+                            kind: widget.kind,
+                            rows: mappable,
+                            total: spatialStatisticTotal(widget.rows),
+                            polygons: snapshot.data!,
+                          );
+                        },
+                      )
+                    : MapLibreSpatialStatisticsMap(
+                        kind: widget.kind,
+                        rows: mappable,
+                        total: spatialStatisticTotal(widget.rows),
+                      ),
+              ),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Material(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surface.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(8),
+                  child: IconButton(
+                    tooltip: 'Custom map layers',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const UserMapLayerSettings(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.layers_outlined),
+                  ),
                 ),
-                kind: widget.kind,
-                rows: mappable,
-                polygons: snapshot.data!,
-              );
-            },
+              ),
+            ],
           ),
         ),
       ],
@@ -75,11 +116,13 @@ class _NaturalEarthMap extends StatelessWidget {
     super.key,
     required this.kind,
     required this.rows,
+    required this.total,
     required this.polygons,
   });
 
   final SpatialStatisticKind kind;
   final List<SpatialStatisticDatum> rows;
+  final int total;
   final List<NaturalEarthPolygon> polygons;
 
   @override
@@ -102,8 +145,9 @@ class _NaturalEarthMap extends StatelessWidget {
         children: [
           FlutterMap(
             options: MapOptions(
-              initialCenter:
-                  points.length == 1 ? points.single : const LatLng(18, 0),
+              initialCenter: points.length == 1
+                  ? points.single
+                  : const LatLng(18, 0),
               initialZoom: points.length == 1 ? 12 : 1.5,
               initialCameraFit: points.length > 1
                   ? CameraFit.coordinates(
@@ -129,6 +173,7 @@ class _NaturalEarthMap extends StatelessWidget {
                     ),
                 ],
               ),
+              const LinuxUserMapLayers(),
               if (rows.isNotEmpty)
                 MarkerLayer(
                   markers: [
@@ -137,6 +182,7 @@ class _NaturalEarthMap extends StatelessWidget {
                         context,
                         row,
                         maximumCount: maximumCount,
+                        total: total,
                         colorScheme: colorScheme,
                       ),
                   ],
@@ -159,7 +205,12 @@ class _NaturalEarthMap extends StatelessWidget {
             Positioned(
               top: 8,
               right: 8,
-              child: _MapLegend(kind: kind, maximumCount: maximumCount),
+              child: _MapLegend(
+                kind: kind,
+                rows: rows,
+                total: total,
+                maximumCount: maximumCount,
+              ),
             ),
         ],
       ),
@@ -170,6 +221,7 @@ class _NaturalEarthMap extends StatelessWidget {
     BuildContext context,
     SpatialStatisticDatum row, {
     required int maximumCount,
+    required int total,
     required ColorScheme colorScheme,
   }) {
     final radius = spatialMarkerRadius(
@@ -177,9 +229,11 @@ class _NaturalEarthMap extends StatelessWidget {
       count: row.count ?? 0,
       maximumCount: maximumCount,
     );
-    final diameter = radius * 2 + 4;
-    final countText =
-        kind.hasCounts ? ', ${row.count} ${kind.label.toLowerCase()}' : '';
+    final diameter = radius * 2 + 3;
+    final countText = kind.hasCounts
+        ? ', ${row.count} ${kind.countLabel} '
+              '(${spatialStatisticPercent(row, total).toStringAsFixed(1)}%)'
+        : '';
     return Marker(
       point: LatLng(row.decimalLatitude!, row.decimalLongitude!),
       width: diameter,
@@ -188,9 +242,9 @@ class _NaturalEarthMap extends StatelessWidget {
         button: true,
         label: '${row.displayName}$countText',
         child: Tooltip(
-          message: row.displayName,
+          message: '${row.displayName}$countText',
           child: GestureDetector(
-            onTap: () => _showDetails(context, row),
+            onTap: () => _showDetails(context, row, total),
             child: DecoratedBox(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -207,8 +261,11 @@ class _NaturalEarthMap extends StatelessWidget {
     );
   }
 
-  void _showDetails(BuildContext context, SpatialStatisticDatum row) {
-    final total = spatialStatisticTotal(rows);
+  void _showDetails(
+    BuildContext context,
+    SpatialStatisticDatum row,
+    int total,
+  ) {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -219,8 +276,10 @@ class _NaturalEarthMap extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(row.displayName,
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                row.displayName,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               Text(
                 '${formatCoordinate(row.decimalLatitude, decimals: 6)}, '
@@ -228,12 +287,14 @@ class _NaturalEarthMap extends StatelessWidget {
               ),
               if (row.elevationInMeter != null)
                 Text(
-                    '${formatCoordinate(row.elevationInMeter, decimals: 2)} m'),
+                  '${formatCoordinate(row.elevationInMeter, decimals: 2)} m',
+                ),
               if (kind.hasCounts) ...[
                 const SizedBox(height: 8),
-                Text('${row.count} ${kind.label.toLowerCase()}'),
+                Text('${row.count} ${kind.countLabel}'),
                 Text(
-                    '${spatialStatisticPercent(row, total).toStringAsFixed(1)}%'),
+                  '${spatialStatisticPercent(row, total).toStringAsFixed(1)}%',
+                ),
               ],
             ],
           ),
@@ -244,22 +305,95 @@ class _NaturalEarthMap extends StatelessWidget {
 }
 
 class _MapLegend extends StatelessWidget {
-  const _MapLegend({required this.kind, required this.maximumCount});
+  const _MapLegend({
+    required this.kind,
+    required this.rows,
+    required this.total,
+    required this.maximumCount,
+  });
 
   final SpatialStatisticKind kind;
+  final List<SpatialStatisticDatum> rows;
+  final int total;
   final int maximumCount;
 
   @override
   Widget build(BuildContext context) {
-    final text = kind.hasCounts
-        ? 'Circle size represents ${kind.label.toLowerCase()}\nLargest: $maximumCount'
-        : 'Each circle represents\none coordinate';
     return Material(
       borderRadius: BorderRadius.circular(8),
       color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+        child: kind.hasCounts
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    kind.countLabel.toSentenceCase(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 4),
+                  for (final count in spatialLegendCounts(rows))
+                    _LegendSample(
+                      count: count,
+                      total: total,
+                      radius: spatialMarkerRadius(
+                        kind: kind,
+                        count: count,
+                        maximumCount: maximumCount,
+                      ),
+                    ),
+                ],
+              )
+            : Text(
+                'Each circle represents\none coordinate',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+      ),
+    );
+  }
+}
+
+class _LegendSample extends StatelessWidget {
+  const _LegendSample({
+    required this.count,
+    required this.total,
+    required this.radius,
+  });
+
+  final int count;
+  final int total;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: radius * 2 + 3,
+            height: radius * 2 + 3,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorScheme.primary.withValues(alpha: 0.28),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.78),
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$count (${total == 0 ? '0.0' : (count * 100 / total).toStringAsFixed(1)}%)',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
       ),
     );
   }
@@ -272,13 +406,13 @@ class _MapAttribution extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: colorScheme.surface.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(4),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-          child: Text('Natural Earth', style: TextStyle(fontSize: 10)),
-        ),
-      );
+    color: colorScheme.surface.withValues(alpha: 0.9),
+    borderRadius: BorderRadius.circular(4),
+    child: const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      child: Text('Natural Earth', style: TextStyle(fontSize: 10)),
+    ),
+  );
 }
 
 class _MapMessage extends StatelessWidget {
@@ -289,22 +423,21 @@ class _MapMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ColoredBox(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerLow
-            .withValues(alpha: 0.82),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 32),
-                const SizedBox(height: 8),
-                Text(message, textAlign: TextAlign.center),
-              ],
-            ),
-          ),
+    color: Theme.of(
+      context,
+    ).colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
+    child: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 32),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }

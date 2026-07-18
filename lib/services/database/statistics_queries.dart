@@ -57,15 +57,15 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
       variables: query.variables,
       readsFrom: query.tables,
     ).watch().map(
-          (rows) => rows
-              .map(
-                (row) => StatisticDatum(
-                  label: row.read<String>('label'),
-                  count: row.read<int>('count'),
-                ),
-              )
-              .toList(growable: false),
-        );
+      (rows) => rows
+          .map(
+            (row) => StatisticDatum(
+              label: row.read<String>('label'),
+              count: row.read<int>('count'),
+            ),
+          )
+          .toList(growable: false),
+    );
   }
 
   Stream<List<StatisticFilterOption>> watchFilterOptions(
@@ -130,40 +130,82 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
       variables: [Variable(projectUuid)],
       readsFrom: {db.specimen, db.taxonomy},
     ).watchSingle().map(
-          (row) => RecordStatisticTotals(
-            specimenCount: row.read<int>('specimen_count'),
-            speciesCount: row.read<int>('species_count'),
-            familyCount: row.read<int>('family_count'),
-          ),
-        );
+      (row) => RecordStatisticTotals(
+        specimenCount: row.read<int>('specimen_count'),
+        speciesCount: row.read<int>('species_count'),
+        familyCount: row.read<int>('family_count'),
+      ),
+    );
   }
 
   Stream<List<SpatialStatisticDatum>> watchSpatialStatistics(
     SpatialStatisticRequest request,
   ) {
+    if (!request.isReady) return Stream.value(const []);
     final query = _spatialStatisticsSql(request);
     return customSelect(
       query.sql,
       variables: query.variables,
       readsFrom: query.tables,
     ).watch().map(
-          (rows) => rows
-              .map(
-                (row) => SpatialStatisticDatum(
-                  coordinateId: row.read<int>('coordinate_id'),
-                  name: row.readNullable<String>('name'),
-                  decimalLatitude: row.readNullable<double>('latitude'),
-                  decimalLongitude: row.readNullable<double>('longitude'),
-                  elevationInMeter: row.readNullable<double>('elevation'),
-                  datum: row.readNullable<String>('datum'),
-                  uncertaintyInMeters: row.readNullable<int>('uncertainty'),
-                  gpsUnit: row.readNullable<String>('gps_unit'),
-                  notes: row.readNullable<String>('notes'),
-                  count: row.readNullable<int>('count'),
-                ),
-              )
-              .toList(growable: false),
-        );
+      (rows) => rows
+          .map(
+            (row) => SpatialStatisticDatum(
+              coordinateId: row.read<int>('coordinate_id'),
+              name: row.readNullable<String>('name'),
+              decimalLatitude: row.readNullable<double>('latitude'),
+              decimalLongitude: row.readNullable<double>('longitude'),
+              elevationInMeter: row.readNullable<double>('elevation'),
+              datum: row.readNullable<String>('datum'),
+              uncertaintyInMeters: row.readNullable<int>('uncertainty'),
+              gpsUnit: row.readNullable<String>('gps_unit'),
+              notes: row.readNullable<String>('notes'),
+              locality: _spatialLocality(row),
+              count: row.readNullable<int>('count'),
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
+
+  Stream<List<StatisticFilterOption>> watchSpatialSpeciesOptions(
+    String projectUuid,
+  ) {
+    return customSelect(
+      '''
+        SELECT DISTINCT
+          taxonomy.id AS id,
+          CASE
+            WHEN trim(coalesce(taxonomy.genus, '')) = ''
+              OR trim(coalesce(taxonomy.specificEpithet, '')) = ''
+            THEN 'Unidentified taxon (' || taxonomy.id || ')'
+            ELSE trim(taxonomy.genus) || ' ' || trim(taxonomy.specificEpithet)
+          END AS label
+        FROM taxonomy
+        INNER JOIN specimen ON specimen.speciesID = taxonomy.id
+        INNER JOIN coordinate ON coordinate.id = specimen.coordinateID
+        INNER JOIN site ON site.id = coordinate.siteID
+        WHERE specimen.projectUuid = ? AND site.projectUuid = ?
+        ORDER BY label COLLATE NOCASE ASC
+      ''',
+      variables: [Variable(projectUuid), Variable(projectUuid)],
+      readsFrom: {db.taxonomy, db.specimen, db.coordinate, db.site},
+    ).watch().map(_mapFilterOptions);
+  }
+
+  String? _spatialLocality(QueryRow row) {
+    final components =
+        [
+              row.readNullable<String>('state_province'),
+              row.readNullable<String>('county'),
+              row.readNullable<String>('municipality'),
+              row.readNullable<String>('locality'),
+            ]
+            .map((value) => value?.trim())
+            .whereType<String>()
+            .where((value) => value.isNotEmpty);
+    final locality = components.join(', ');
+    return locality.isEmpty ? null : locality;
   }
 
   List<StatisticFilterOption> _mapFilterOptions(List<QueryRow> rows) => rows
@@ -189,7 +231,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         tables = {db.specimen, db.taxonomy};
       case StatisticKind.speciesBySite:
         variables.add(Variable(request.filterId!));
-        sql = '''
+        sql =
+            '''
           SELECT $_speciesLabel AS label, COUNT(*) AS count
           FROM specimen
           INNER JOIN collEvent ON collEvent.id = specimen.collEventID
@@ -203,7 +246,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         tables = {db.specimen, db.specimenPart};
       case StatisticKind.partTypesBySpecies:
         variables.add(Variable(request.filterId!));
-        sql = '''
+        sql =
+            '''
           SELECT $_partTypeLabel AS label, SUM($_partQuantity) AS count
           FROM specimenPart
           INNER JOIN specimen ON specimen.uuid = specimenPart.specimenUuid
@@ -234,7 +278,11 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
       coordinate.datum AS datum,
       coordinate.uncertaintyInMeters AS uncertainty,
       coordinate.gpsUnit AS gps_unit,
-      coordinate.notes AS notes
+      coordinate.notes AS notes,
+      site.stateProvince AS state_province,
+      site.county AS county,
+      site.municipality AS municipality,
+      site.locality AS locality
     ''';
     final variables = <Variable>[Variable(request.projectUuid)];
     late String sql;
@@ -242,7 +290,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
 
     switch (request.kind) {
       case SpatialStatisticKind.coordinate:
-        sql = '''
+        sql =
+            '''
           SELECT $coordinateColumns, NULL AS count
           FROM coordinate
           INNER JOIN site ON site.id = coordinate.siteID
@@ -270,6 +319,14 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           taxonomy: true,
         );
         tables = {db.coordinate, db.site, db.specimen, db.taxonomy};
+      case SpatialStatisticKind.coordinatesBySpecies:
+        variables.add(Variable(request.speciesId!));
+        sql = _spatialCountSql(
+          'COUNT(specimen.uuid)',
+          coordinateColumns,
+          specimenCondition: 'AND specimen.speciesID = ?',
+        );
+        tables = {db.coordinate, db.site, db.specimen};
     }
 
     if (request.kind != SpatialStatisticKind.coordinate) {
@@ -282,6 +339,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     String countExpression,
     String coordinateColumns, {
     bool taxonomy = false,
+    String specimenCondition = '',
   }) =>
       '''
         SELECT $coordinateColumns, $countExpression AS count
@@ -290,6 +348,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         INNER JOIN specimen
           ON specimen.coordinateID = coordinate.id
           AND specimen.projectUuid = ?
+          $specimenCondition
         ${taxonomy ? 'LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID' : ''}
         WHERE site.projectUuid = ?
         GROUP BY coordinate.id
@@ -297,7 +356,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         ORDER BY count DESC, name COLLATE NOCASE ASC, coordinate.id ASC
       ''';
 
-  String _groupedSpecimenSql(String label) => '''
+  String _groupedSpecimenSql(String label) =>
+      '''
     SELECT $label AS label, COUNT(*) AS count
     FROM specimen
     LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID
@@ -305,7 +365,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     GROUP BY label
   ''';
 
-  String _groupedPartSql(String label) => '''
+  String _groupedPartSql(String label) =>
+      '''
     SELECT $label AS label, SUM($_partQuantity) AS count
     FROM specimenPart
     INNER JOIN specimen ON specimen.uuid = specimenPart.specimenUuid

@@ -1,43 +1,67 @@
 import 'dart:math' as math;
 
-enum SpatialStatisticKind { coordinate, specimens, species, family }
+enum SpatialStatisticKind {
+  coordinate,
+  specimens,
+  species,
+  family,
+  coordinatesBySpecies,
+}
 
 extension SpatialStatisticKindLabels on SpatialStatisticKind {
   String get label => switch (this) {
-        SpatialStatisticKind.coordinate => 'Coordinate',
-        SpatialStatisticKind.specimens => 'Specimens',
-        SpatialStatisticKind.species => 'Species',
-        SpatialStatisticKind.family => 'Family',
-      };
+    SpatialStatisticKind.coordinate => 'Coordinate',
+    SpatialStatisticKind.specimens => 'Specimens',
+    SpatialStatisticKind.species => 'Species',
+    SpatialStatisticKind.family => 'Family',
+    SpatialStatisticKind.coordinatesBySpecies => 'Coordinates by species',
+  };
 
   String get title => switch (this) {
-        SpatialStatisticKind.coordinate => 'Project coordinates',
-        SpatialStatisticKind.specimens => 'Specimens by coordinate',
-        SpatialStatisticKind.species => 'Species by coordinate',
-        SpatialStatisticKind.family => 'Families by coordinate',
-      };
+    SpatialStatisticKind.coordinate => 'Project coordinates',
+    SpatialStatisticKind.specimens => 'Specimens by coordinate',
+    SpatialStatisticKind.species => 'Species by coordinate',
+    SpatialStatisticKind.family => 'Families by coordinate',
+    SpatialStatisticKind.coordinatesBySpecies =>
+      'Selected species by coordinate',
+  };
 
   bool get hasCounts => this != SpatialStatisticKind.coordinate;
+
+  bool get needsSpecies => this == SpatialStatisticKind.coordinatesBySpecies;
+
+  String get countLabel => switch (this) {
+    SpatialStatisticKind.specimens ||
+    SpatialStatisticKind.coordinatesBySpecies => 'specimens',
+    SpatialStatisticKind.species => 'species',
+    SpatialStatisticKind.family => 'families',
+    SpatialStatisticKind.coordinate => 'coordinates',
+  };
 }
 
 class SpatialStatisticRequest {
   const SpatialStatisticRequest({
     required this.projectUuid,
     required this.kind,
+    this.speciesId,
   });
 
   final String projectUuid;
   final SpatialStatisticKind kind;
+  final int? speciesId;
+
+  bool get isReady => !kind.needsSpecies || speciesId != null;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is SpatialStatisticRequest &&
           other.projectUuid == projectUuid &&
-          other.kind == kind;
+          other.kind == kind &&
+          other.speciesId == speciesId;
 
   @override
-  int get hashCode => Object.hash(projectUuid, kind);
+  int get hashCode => Object.hash(projectUuid, kind, speciesId);
 }
 
 class SpatialStatisticDatum {
@@ -51,6 +75,7 @@ class SpatialStatisticDatum {
     required this.uncertaintyInMeters,
     required this.gpsUnit,
     required this.notes,
+    this.locality,
     this.count,
   });
 
@@ -63,6 +88,7 @@ class SpatialStatisticDatum {
   final int? uncertaintyInMeters;
   final String? gpsUnit;
   final String? notes;
+  final String? locality;
   final int? count;
 
   String get displayName {
@@ -95,8 +121,7 @@ double spatialStatisticPercent(SpatialStatisticDatum datum, int total) {
 
 List<SpatialStatisticDatum> mappableSpatialStatistics(
   List<SpatialStatisticDatum> data,
-) =>
-    data.where((datum) => datum.hasValidPosition).toList(growable: false);
+) => data.where((datum) => datum.hasValidPosition).toList(growable: false);
 
 double spatialMarkerRadius({
   required SpatialStatisticKind kind,
@@ -106,4 +131,16 @@ double spatialMarkerRadius({
   if (!kind.hasCounts) return 9;
   if (maximumCount <= 0 || count <= 0) return 8;
   return math.max(8, 32 * math.sqrt(count / maximumCount));
+}
+
+List<int> spatialLegendCounts(List<SpatialStatisticDatum> data) {
+  final counts =
+      data
+          .map((datum) => datum.count ?? 0)
+          .where((count) => count > 0)
+          .toSet()
+          .toList()
+        ..sort();
+  if (counts.length <= 2) return counts;
+  return [counts.first, counts[counts.length ~/ 2], counts.last];
 }

@@ -62,11 +62,12 @@ String get dateTimeStamp {
   return '$date-$time';
 }
 
-typedef OpenFilesCallback = Future<List<XFile>> Function({
-  List<XTypeGroup>? acceptedTypeGroups,
-  String? initialDirectory,
-  String? confirmButtonText,
-});
+typedef OpenFilesCallback =
+    Future<List<XFile>> Function({
+      List<XTypeGroup>? acceptedTypeGroups,
+      String? initialDirectory,
+      String? confirmButtonText,
+    });
 
 Future<List<XFile>> _defaultOpenFiles({
   List<XTypeGroup>? acceptedTypeGroups,
@@ -81,18 +82,19 @@ Future<List<XFile>> _defaultOpenFiles({
 }
 
 class FilePickerServices {
-  FilePickerServices({
-    OpenFilesCallback openFiles = _defaultOpenFiles,
-  }) : _openFiles = openFiles;
+  FilePickerServices({OpenFilesCallback openFiles = _defaultOpenFiles})
+    : _openFiles = openFiles;
 
   final OpenFilesCallback _openFiles;
 
   Future<void> shareFile(BuildContext context, File file) async {
     final box = context.findRenderObject() as RenderBox?;
-    await SharePlus.instance.share(ShareParams(
-      files: [XFile(file.path)],
-      sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
-    ));
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path)],
+        sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+      ),
+    );
   }
 
   Future<Directory?> selectDir() async {
@@ -123,11 +125,7 @@ class FilePickerServices {
 }
 
 class AppIOServices {
-  AppIOServices({
-    required this.dir,
-    required this.fileStem,
-    required this.ext,
-  });
+  AppIOServices({required this.dir, required this.fileStem, required this.ext});
 
   final Directory? dir;
   final String fileStem;
@@ -227,8 +225,9 @@ class AppServices {
     final documentDir = await nahpuDocumentDir;
     final backupDir = Directory(path.join(documentDir.path, nahpuBackupDir));
     await backupDir.create(recursive: true);
-    final backupFile =
-        File(path.join(backupDir.path, 'nahpu_backup$dateTimeStamp.sqlite3'));
+    final backupFile = File(
+      path.join(backupDir.path, 'nahpu_backup$dateTimeStamp.sqlite3'),
+    );
     return backupFile;
   }
 
@@ -258,26 +257,34 @@ class AppServices {
 
   Future<Directory> get userConfigDir async {
     final documentDir = await nahpuDocumentDir;
-    final userConfigDir =
-        Directory(path.join(documentDir.path, userConfigDirName));
+    final userConfigDir = Directory(
+      path.join(documentDir.path, userConfigDirName),
+    );
     await userConfigDir.create(recursive: true);
     return userConfigDir;
   }
 
   Future<Directory> get userFontDir async {
     final userConfigDir = await this.userConfigDir;
-    final userFontDir =
-        Directory(path.join(userConfigDir.path, userFontDirName));
+    final userFontDir = Directory(
+      path.join(userConfigDir.path, userFontDirName),
+    );
     await userFontDir.create(recursive: true);
     return userFontDir;
   }
 
   Future<Directory> get userMapDir async {
-    final userConfigDir = await this.userConfigDir;
-    final userMapDir = Directory(path.join(userConfigDir.path, userMapDirName));
-    await userMapDir.create(recursive: true);
-    return userMapDir;
+    return getUserMapDirectory();
   }
+}
+
+Future<Directory> getUserMapDirectory() async {
+  final documentDir = await nahpuDocumentDir;
+  final userMapDir = Directory(
+    path.join(documentDir.path, userConfigDirName, userMapDirName),
+  );
+  await userMapDir.create(recursive: true);
+  return userMapDir;
 }
 
 Future<Directory> get nahpuDocumentDir async {
@@ -335,11 +342,7 @@ class DataUsageServices extends AppServices {
       final format = _matchFormat(file);
       final isDeletable = await _isDeletable(file, format);
       nahpuFileList.add(
-        NahpuFile(
-          path: file,
-          isDeletable: isDeletable,
-          format: format,
-        ),
+        NahpuFile(path: file, isDeletable: isDeletable, format: format),
       );
     }
 
@@ -357,16 +360,19 @@ class DataUsageServices extends AppServices {
 
     if (isSupportedMediaFormat(format)) {
       bool isUsedByMedia = await MediaServices(ref: ref).isMediaUsed(file);
-      bool isUsedByPersonnel =
-          await PersonnelServices(ref: ref).isImageUsedInPersonnelPhoto(file);
-      bool isUsedInAssociatedData =
-          await AssociatedDataServices(ref: ref).isFileUsed(file);
+      bool isUsedByPersonnel = await PersonnelServices(
+        ref: ref,
+      ).isImageUsedInPersonnelPhoto(file);
+      bool isUsedInAssociatedData = await AssociatedDataServices(
+        ref: ref,
+      ).isFileUsed(file);
       return !(isUsedByMedia || isUsedByPersonnel || isUsedInAssociatedData);
     }
 
     if (format == NahpuFileFormat.other) {
-      bool isUsedInAssociatedData =
-          await AssociatedDataServices(ref: ref).isFileUsed(file);
+      bool isUsedInAssociatedData = await AssociatedDataServices(
+        ref: ref,
+      ).isFileUsed(file);
       return !isUsedInAssociatedData;
     }
 

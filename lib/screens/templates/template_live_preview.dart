@@ -160,7 +160,7 @@ class _PreviewPage extends StatelessWidget {
                       ? Image.file(
                           File(im.imagePath),
                           fit: BoxFit.fill,
-                          errorBuilder: (_, __, ___) =>
+                          errorBuilder: (_, _, _) =>
                               const ColoredBox(color: Color(0xFFEEEEEE)),
                         )
                       : const ColoredBox(color: Color(0xFFEEEEEE)),

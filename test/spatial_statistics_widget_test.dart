@@ -4,8 +4,9 @@ import 'package:nahpu/screens/projects/statistics/spatial_statistics_table.dart'
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
 void main() {
-  testWidgets('coordinate table includes all coordinate form fields',
-      (tester) async {
+  testWidgets('coordinate table includes all coordinate form fields', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1600, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -36,6 +37,7 @@ void main() {
 
     for (final label in [
       'Name',
+      'Locality',
       'Decimal Latitude',
       'Decimal Longitude',
       'Elevation (m)',
@@ -47,6 +49,7 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
     expect(find.text('Alpha coordinate'), findsOneWidget);
+    expect(find.text('—'), findsWidgets);
   });
 
   testWidgets('metric table includes count and percent', (tester) async {

@@ -17,29 +17,37 @@ void main() {
 
   tearDown(() => db.close());
 
-  test('coordinates are project scoped and preserve coordinate form fields',
-      () async {
-    final rows = await query
-        .watchSpatialStatistics(
-          const SpatialStatisticRequest(
-            projectUuid: 'project-a',
-            kind: SpatialStatisticKind.coordinate,
-          ),
-        )
-        .first;
+  test(
+    'coordinates are project scoped and preserve coordinate form fields',
+    () async {
+      final rows = await query
+          .watchSpatialStatistics(
+            const SpatialStatisticRequest(
+              projectUuid: 'project-a',
+              kind: SpatialStatisticKind.coordinate,
+            ),
+          )
+          .first;
 
-    expect(rows, hasLength(2));
-    expect(rows.first.displayName, 'Alpha coordinate');
-    expect(rows.first.decimalLatitude, 45.123456);
-    expect(rows.first.decimalLongitude, -93.123456);
-    expect(rows.first.elevationInMeter, 320);
-    expect(rows.first.datum, 'WGS84');
-    expect(rows.first.uncertaintyInMeters, 8);
-    expect(rows.first.gpsUnit, 'GPS A');
-    expect(rows.first.notes, 'Forest edge');
-    expect(rows.last.displayName,
-        'Unnamed coordinate (${rows.last.coordinateId})');
-  });
+      expect(rows, hasLength(2));
+      expect(rows.first.displayName, 'Alpha coordinate');
+      expect(rows.first.decimalLatitude, 45.123456);
+      expect(rows.first.decimalLongitude, -93.123456);
+      expect(rows.first.elevationInMeter, 320);
+      expect(rows.first.datum, 'WGS84');
+      expect(rows.first.uncertaintyInMeters, 8);
+      expect(rows.first.gpsUnit, 'GPS A');
+      expect(rows.first.notes, 'Forest edge');
+      expect(
+        rows.first.locality,
+        'Minnesota, Hennepin, Minneapolis, Riverbank',
+      );
+      expect(
+        rows.last.displayName,
+        'Unnamed coordinate (${rows.last.coordinateId})',
+      );
+    },
+  );
 
   test('spatial counts use only the specimen coordinate assignment', () async {
     final rows = await query
@@ -78,6 +86,36 @@ void main() {
 
     expect(species.map((row) => row.count), [2, 1]);
     expect(families.map((row) => row.count), [1, 1]);
+  });
+
+  test('coordinates by species counts matching specimens only', () async {
+    final options = await query.watchSpatialSpeciesOptions('project-a').first;
+    final myotis = options.singleWhere(
+      (option) => option.label == 'Myotis lucifugus',
+    );
+    final rows = await query
+        .watchSpatialStatistics(
+          SpatialStatisticRequest(
+            projectUuid: 'project-a',
+            kind: SpatialStatisticKind.coordinatesBySpecies,
+            speciesId: myotis.id,
+          ),
+        )
+        .first;
+
+    expect(rows, hasLength(1));
+    expect(rows.single.displayName, 'Alpha coordinate');
+    expect(rows.single.count, 2);
+  });
+
+  test('coordinates by species requires a selected species', () async {
+    const request = SpatialStatisticRequest(
+      projectUuid: 'project-a',
+      kind: SpatialStatisticKind.coordinatesBySpecies,
+    );
+
+    expect(request.isReady, isFalse);
+    expect(await query.watchSpatialStatistics(request).first, isEmpty);
   });
 
   test('spatial helper functions keep invalid positions out of maps', () {
@@ -135,27 +173,41 @@ Future<void> _seedSpatialStatistics(Database db) async {
       ProjectCompanion(uuid: Value('project-b'), name: Value('Project B')),
     ]);
   });
-  final myotis = await db.into(db.taxonomy).insert(
+  final myotis = await db
+      .into(db.taxonomy)
+      .insert(
         const TaxonomyCompanion(
           taxonFamily: Value('Vespertilionidae'),
           genus: Value('Myotis'),
           specificEpithet: Value('lucifugus'),
         ),
       );
-  final eptesicus = await db.into(db.taxonomy).insert(
+  final eptesicus = await db
+      .into(db.taxonomy)
+      .insert(
         const TaxonomyCompanion(
           taxonFamily: Value('Vespertilionidae'),
           genus: Value('Eptesicus'),
           specificEpithet: Value('fuscus'),
         ),
       );
-  final siteA = await db.into(db.site).insert(
-        const SiteCompanion(projectUuid: Value('project-a')),
+  final siteA = await db
+      .into(db.site)
+      .insert(
+        const SiteCompanion(
+          projectUuid: Value('project-a'),
+          stateProvince: Value(' Minnesota '),
+          county: Value('Hennepin'),
+          municipality: Value('Minneapolis'),
+          locality: Value('Riverbank'),
+        ),
       );
-  final siteB = await db.into(db.site).insert(
-        const SiteCompanion(projectUuid: Value('project-b')),
-      );
-  final firstCoordinate = await db.into(db.coordinate).insert(
+  final siteB = await db
+      .into(db.site)
+      .insert(const SiteCompanion(projectUuid: Value('project-b')));
+  final firstCoordinate = await db
+      .into(db.coordinate)
+      .insert(
         CoordinateCompanion(
           nameId: const Value('Alpha coordinate'),
           decimalLatitude: const Value(45.123456),
@@ -168,13 +220,17 @@ Future<void> _seedSpatialStatistics(Database db) async {
           siteID: Value(siteA),
         ),
       );
-  final secondCoordinate = await db.into(db.coordinate).insert(
+  final secondCoordinate = await db
+      .into(db.coordinate)
+      .insert(
         CoordinateCompanion(
           decimalLatitude: const Value(46),
           siteID: Value(siteA),
         ),
       );
-  await db.into(db.coordinate).insert(
+  await db
+      .into(db.coordinate)
+      .insert(
         CoordinateCompanion(
           nameId: const Value('Other project coordinate'),
           decimalLatitude: const Value(10),
@@ -182,7 +238,9 @@ Future<void> _seedSpatialStatistics(Database db) async {
           siteID: Value(siteB),
         ),
       );
-  final event = await db.into(db.collEvent).insert(
+  final event = await db
+      .into(db.collEvent)
+      .insert(
         CollEventCompanion(
           projectUuid: const Value('project-a'),
           siteID: Value(siteA),

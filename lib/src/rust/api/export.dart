@@ -8,30 +8,35 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Writes positional tabular rows. This is used for Darwin Core generated
 /// headers, which may intentionally contain duplicate MeasurementOrFact terms.
-Future<void> writeTabularRecords(
-        {required List<String> headers,
-        required List<List<String>> rows,
-        required String outputPath,
-        required String exportFormat}) =>
-    RustLib.instance.api.crateApiExportWriteTabularRecords(
-        headers: headers,
-        rows: rows,
-        outputPath: outputPath,
-        exportFormat: exportFormat);
+Future<void> writeTabularRecords({
+  required List<String> headers,
+  required List<List<String>> rows,
+  required String outputPath,
+  required String exportFormat,
+}) => RustLib.instance.api.crateApiExportWriteTabularRecords(
+  headers: headers,
+  rows: rows,
+  outputPath: outputPath,
+  exportFormat: exportFormat,
+);
 
-Future<Uint8List> generateDocument(
-        {required String jsonContent,
-        required String exportFormat,
-        required List<Uint8List> fontBytes}) =>
-    RustLib.instance.api.crateApiExportGenerateDocument(
-        jsonContent: jsonContent,
-        exportFormat: exportFormat,
-        fontBytes: fontBytes);
+Future<Uint8List> generateDocument({
+  required String jsonContent,
+  required String exportFormat,
+  required List<Uint8List> fontBytes,
+}) => RustLib.instance.api.crateApiExportGenerateDocument(
+  jsonContent: jsonContent,
+  exportFormat: exportFormat,
+  fontBytes: fontBytes,
+);
 
-Future<Uint8List> compileTypstToPdf(
-        {required String typstContent, required List<Uint8List> fontBytes}) =>
-    RustLib.instance.api.crateApiExportCompileTypstToPdf(
-        typstContent: typstContent, fontBytes: fontBytes);
+Future<Uint8List> compileTypstToPdf({
+  required String typstContent,
+  required List<Uint8List> fontBytes,
+}) => RustLib.instance.api.crateApiExportCompileTypstToPdf(
+  typstContent: typstContent,
+  fontBytes: fontBytes,
+);
 
 Future<String> markdownToTypst({required String mdContent}) =>
     RustLib.instance.api.crateApiExportMarkdownToTypst(mdContent: mdContent);
@@ -61,22 +66,22 @@ class RecordWriter {
   });
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
-  static Future<RecordWriter> newInstance(
-          {required String jsonContent,
-          required String outputPath,
-          required List<String> columnNames,
-          required String exportFormat,
-          required bool concatenateMultiEntries}) =>
-      RustLib.instance.api.crateApiExportRecordWriterNew(
-          jsonContent: jsonContent,
-          outputPath: outputPath,
-          columnNames: columnNames,
-          exportFormat: exportFormat,
-          concatenateMultiEntries: concatenateMultiEntries);
+  static Future<RecordWriter> newInstance({
+    required String jsonContent,
+    required String outputPath,
+    required List<String> columnNames,
+    required String exportFormat,
+    required bool concatenateMultiEntries,
+  }) => RustLib.instance.api.crateApiExportRecordWriterNew(
+    jsonContent: jsonContent,
+    outputPath: outputPath,
+    columnNames: columnNames,
+    exportFormat: exportFormat,
+    concatenateMultiEntries: concatenateMultiEntries,
+  );
 
-  Future<void> write() => RustLib.instance.api.crateApiExportRecordWriterWrite(
-        that: this,
-      );
+  Future<void> write() =>
+      RustLib.instance.api.crateApiExportRecordWriterWrite(that: this);
 
   @override
   int get hashCode =>

@@ -47,7 +47,9 @@ NaturalEarthPolygon? _parsePolygon(Object? coordinates) {
       .toList(growable: false);
   if (rings.isEmpty) return null;
   return NaturalEarthPolygon(
-      points: rings.first, holes: rings.skip(1).toList());
+    points: rings.first,
+    holes: rings.skip(1).toList(),
+  );
 }
 
 List<LatLng> _parseRing(Object? coordinates) {
@@ -55,14 +57,16 @@ List<LatLng> _parseRing(Object? coordinates) {
   return coordinates
       .whereType<List<dynamic>>()
       .where((pair) => pair.length >= 2 && pair[0] is num && pair[1] is num)
-      .map((pair) =>
-          LatLng((pair[1] as num).toDouble(), (pair[0] as num).toDouble()))
+      .map(
+        (pair) =>
+            LatLng((pair[1] as num).toDouble(), (pair[0] as num).toDouble()),
+      )
       .toList(growable: false);
 }
 
 String formatCoordinate(double? value, {required int decimals}) {
   if (value == null) return '—';
-  return value.toStringAsFixed(decimals).replaceFirst(RegExp(r'\\.?0+$'), '');
+  return value.toStringAsFixed(decimals).replaceFirst(RegExp(r'\.?0+$'), '');
 }
 
 String formatCoordinateText(String? value) {

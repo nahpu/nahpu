@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1577795715;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1909564382;
 
 // Section: executor
 
@@ -108,6 +108,43 @@ fn wire__crate__api__export__compile_typst_to_pdf_impl(
                     let output_ok = crate::api::export::compile_typst_to_pdf(
                         api_typst_content,
                         api_font_bytes,
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__gis__convert_vector_layer_to_geojson_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "convert_vector_layer_to_geojson",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_input_path = <String>::sse_decode(&mut deserializer);
+            let api_output_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::gis::convert_vector_layer_to_geojson(
+                        api_input_path,
+                        api_output_path,
                     )?;
                     Ok(output_ok)
                 })())
@@ -2216,6 +2253,20 @@ impl SseDecode for i32 {
     }
 }
 
+impl SseDecode for crate::api::gis::ImportedVectorLayer {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_featureCount = <u64>::sse_decode(deserializer);
+        let mut var_bounds = <Option<Vec<f64>>>::sse_decode(deserializer);
+        let mut var_sourceCrs = <String>::sse_decode(deserializer);
+        return crate::api::gis::ImportedVectorLayer {
+            feature_count: var_featureCount,
+            bounds: var_bounds,
+            source_crs: var_sourceCrs,
+        };
+    }
+}
+
 impl SseDecode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2334,6 +2385,18 @@ impl SseDecode for Vec<Vec<u8>> {
     }
 }
 
+impl SseDecode for Vec<f64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<f64>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<i32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2443,6 +2506,17 @@ impl SseDecode for Option<Vec<String>> {
     }
 }
 
+impl SseDecode for Option<Vec<f64>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<f64>>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for (f64, f64) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2520,6 +2594,13 @@ impl SseDecode for u32 {
     }
 }
 
+impl SseDecode for u64 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u64::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for u8 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2587,166 +2668,172 @@ fn pde_ffi_dispatcher_primary_impl(
     match func_id {
         1 => wire__crate__api__common__check_rust_impl(port, ptr, rust_vec_len, data_len),
         2 => wire__crate__api__export__compile_typst_to_pdf_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__gis__dd_to_ddm_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__gis__dd_to_dms_impl(port, ptr, rust_vec_len, data_len),
-        5 => wire__crate__api__gis__dd_to_utm_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__gis__ddm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        7 => {
+        3 => wire__crate__api__gis__convert_vector_layer_to_geojson_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        4 => wire__crate__api__gis__dd_to_ddm_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__gis__dd_to_dms_impl(port, ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__gis__dd_to_utm_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__gis__ddm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        8 => {
             wire__crate__api__config__delete_document_layout_impl(port, ptr, rust_vec_len, data_len)
         }
-        8 => wire__crate__api__config__delete_record_export_preset_impl(
+        9 => wire__crate__api__config__delete_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        9 => {
+        10 => {
             wire__crate__api__config__delete_template_preset_impl(port, ptr, rust_vec_len, data_len)
         }
-        10 => wire__crate__api__config__delete_template_preset_with_replacement_impl(
+        11 => wire__crate__api__config__delete_template_preset_with_replacement_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        11 => wire__crate__api__config__delete_user_config_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__gis__dms_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        13 => {
+        12 => wire__crate__api__config__delete_user_config_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__gis__dms_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        14 => {
             wire__crate__api__config__export_config_to_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        14 => wire__crate__api__config__export_document_layout_to_file_impl(
+        15 => wire__crate__api__config__export_document_layout_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        15 => wire__crate__api__config__export_template_preset_to_file_impl(
+        16 => wire__crate__api__config__export_template_preset_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__config__get_all_document_layouts_impl(
+        17 => wire__crate__api__export__generate_document_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__config__get_all_document_layouts_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__config__get_all_record_export_presets_impl(
+        19 => wire__crate__api__config__get_all_record_export_presets_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__config__get_document_layout_statuses_impl(
+        20 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__config__get_document_layout_statuses_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => wire__crate__api__dwc__get_dwc_headers_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__config__get_record_export_preset_impl(
+        22 => wire__crate__api__dwc__get_dwc_headers_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__config__get_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__config__get_template_preset_usages_impl(
+        24 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__config__get_template_preset_usages_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => {
+        26 => {
             wire__crate__api__config__get_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        26 => {
+        27 => {
             wire__crate__api__config__get_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        27 => wire__crate__api__config__import_config_from_file_impl(
+        28 => wire__crate__api__config__import_config_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__api__config__import_document_layout_from_file_impl(
+        29 => wire__crate__api__config__import_document_layout_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        31 => {
+        30 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        32 => {
             wire__crate__api__config__list_template_presets_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__api__export__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
-        33 => {
+        33 => wire__crate__api__export__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
+        34 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        34 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        35 => {
+        35 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        36 => {
             wire__crate__api__nahpu_dp__plan_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        36 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        37 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        37 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        38 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        39 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        39 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__config__set_record_export_preset_impl(
+        40 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__config__set_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        44 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        45 => {
+        45 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        46 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        46 => {
+        47 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        47 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        48 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
+        48 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        50 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        50 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        51 => {
+        51 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        52 => {
             wire__crate__api__nahpu_dp__write_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        52 => {
+        53 => {
             wire__crate__api__export__write_tabular_records_impl(port, ptr, rust_vec_len, data_len)
         }
-        53 => {
+        54 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        54 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2994,6 +3081,28 @@ impl flutter_rust_bridge::IntoDart for crate::api::dwc::DwcHeader {
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::dwc::DwcHeader {}
 impl flutter_rust_bridge::IntoIntoDart<crate::api::dwc::DwcHeader> for crate::api::dwc::DwcHeader {
     fn into_into_dart(self) -> crate::api::dwc::DwcHeader {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::gis::ImportedVectorLayer {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.feature_count.into_into_dart().into_dart(),
+            self.bounds.into_into_dart().into_dart(),
+            self.source_crs.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::gis::ImportedVectorLayer
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::gis::ImportedVectorLayer>
+    for crate::api::gis::ImportedVectorLayer
+{
+    fn into_into_dart(self) -> crate::api::gis::ImportedVectorLayer {
         self
     }
 }
@@ -3301,6 +3410,15 @@ impl SseEncode for i32 {
     }
 }
 
+impl SseEncode for crate::api::gis::ImportedVectorLayer {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u64>::sse_encode(self.feature_count, serializer);
+        <Option<Vec<f64>>>::sse_encode(self.bounds, serializer);
+        <String>::sse_encode(self.source_crs, serializer);
+    }
+}
+
 impl SseEncode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -3387,6 +3505,16 @@ impl SseEncode for Vec<Vec<u8>> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <Vec<u8>>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<f64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <f64>::sse_encode(item, serializer);
         }
     }
 }
@@ -3481,6 +3609,16 @@ impl SseEncode for Option<Vec<String>> {
     }
 }
 
+impl SseEncode for Option<Vec<f64>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<f64>>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for (f64, f64) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -3535,6 +3673,13 @@ impl SseEncode for u32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_u32::<NativeEndian>(self).unwrap();
+    }
+}
+
+impl SseEncode for u64 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_u64::<NativeEndian>(self).unwrap();
     }
 }
 

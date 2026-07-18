@@ -897,7 +897,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                     );
                                   },
                                   loading: () => const SizedBox.shrink(),
-                                  error: (_, __) => const SizedBox.shrink(),
+                                  error: (_, _) => const SizedBox.shrink(),
                                 );
                               },
                             ),
