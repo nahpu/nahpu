@@ -65,6 +65,7 @@ dependencies:
   flex_color_picker: ^3.8.0
   google_fonts: ^8.1.0
   pdfrx: ^2.4.4
+  flutter_map: ^8.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
