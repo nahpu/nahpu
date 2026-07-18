@@ -289,19 +289,6 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     late final Set<ResultSetImplementation> tables;
 
     switch (request.kind) {
-      case SpatialStatisticKind.coordinate:
-        sql =
-            '''
-          SELECT $coordinateColumns, NULL AS count
-          FROM coordinate
-          INNER JOIN site ON site.id = coordinate.siteID
-          WHERE site.projectUuid = ?
-          ORDER BY
-            CASE WHEN trim(coalesce(name, '')) = '' THEN 1 ELSE 0 END,
-            name COLLATE NOCASE ASC,
-            coordinate.id ASC
-        ''';
-        tables = {db.coordinate, db.site};
       case SpatialStatisticKind.specimens:
         sql = _spatialCountSql('COUNT(specimen.uuid)', coordinateColumns);
         tables = {db.coordinate, db.site, db.specimen};
@@ -329,9 +316,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         tables = {db.coordinate, db.site, db.specimen};
     }
 
-    if (request.kind != SpatialStatisticKind.coordinate) {
-      variables.add(Variable(request.projectUuid));
-    }
+    variables.add(Variable(request.projectUuid));
     return _StatisticsSql(sql: sql, variables: variables, tables: tables);
   }
 

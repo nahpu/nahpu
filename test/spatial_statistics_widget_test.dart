@@ -5,7 +5,7 @@ import 'package:nahpu/screens/projects/statistics/spatial_statistics_table.dart'
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
 void main() {
-  testWidgets('coordinate table includes all coordinate form fields', (
+  testWidgets('spatial table includes coordinate metrics', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1600, 1000);
@@ -16,7 +16,7 @@ void main() {
       const MaterialApp(
         home: Scaffold(
           body: SpatialStatisticsTable(
-            kind: SpatialStatisticKind.coordinate,
+            kind: SpatialStatisticKind.specimens,
             rows: [
               SpatialStatisticDatum(
                 coordinateId: 1,
@@ -39,13 +39,11 @@ void main() {
     for (final label in [
       'Name',
       'Locality',
-      'Decimal Latitude',
-      'Decimal Longitude',
+      'Latitude',
+      'Longitude',
       'Elevation (m)',
-      'Datum',
-      'Uncertainty (m)',
-      'GPS Unit',
-      'Notes',
+      'Count',
+      'Percent',
     ]) {
       expect(find.text(label), findsOneWidget);
     }

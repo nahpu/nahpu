@@ -149,9 +149,7 @@ class AppIOServices {
   Future<File> _createSavePath(String fileName) async {
     Directory finalDir = await _getSaveDir();
 
-    if (finalDir.existsSync()) {
-      finalDir.createSync(recursive: true);
-    }
+    if (!finalDir.existsSync()) finalDir.createSync(recursive: true);
 
     String finalPath = path.join(finalDir.path, fileName);
     return File(finalPath);

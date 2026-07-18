@@ -6,6 +6,82 @@ import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/platform_services.dart';
+
+class GenericFileSettingsCard<T> extends StatelessWidget {
+  const GenericFileSettingsCard({
+    super.key,
+    required this.exportCtr,
+    required this.selectedDir,
+    required this.format,
+    required this.formats,
+    required this.formatLabel,
+    required this.onFormatChanged,
+    required this.onFileNameChanged,
+    required this.onSelectDir,
+    required this.onClearDir,
+    this.formatFieldLabel = 'File format',
+  });
+
+  final FileOpCtrModel exportCtr;
+  final Directory? selectedDir;
+  final T format;
+  final List<T> formats;
+  final String Function(T) formatLabel;
+  final ValueChanged<T> onFormatChanged;
+  final ValueChanged<String?> onFileNameChanged;
+  final VoidCallback onSelectDir;
+  final VoidCallback onClearDir;
+  final String formatFieldLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'File Settings',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<T>(
+              key: ValueKey(format),
+              initialValue: format,
+              decoration: InputDecoration(labelText: formatFieldLabel),
+              items: [
+                for (final value in formats)
+                  DropdownMenuItem(
+                    value: value,
+                    child: CommonDropdownText(text: formatLabel(value)),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value != null) onFormatChanged(value);
+              },
+            ),
+            FileNameField(controller: exportCtr, onChanged: onFileNameChanged),
+            if (systemPlatform == PlatformType.desktop)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: FileSettingsDirectoryPicker(
+                  selectedDir: selectedDir,
+                  onSelectDir: onSelectDir,
+                  onClearDir: onClearDir,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class FileSettingsCard extends StatelessWidget {
   const FileSettingsCard({
@@ -27,53 +103,16 @@ class FileSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'File Settings',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<ExportFmt>(
-              initialValue: exportCtr.exportFmtCtr,
-              decoration: const InputDecoration(
-                labelText: 'File format',
-              ),
-              items: exportFormats
-                  .map((e) => DropdownMenuItem(
-                        value: ExportFmt.values[exportFormats.indexOf(e)],
-                        child: CommonDropdownText(text: e),
-                      ))
-                  .toList(),
-              onChanged: onExportFmtChanged,
-            ),
-            FileNameField(
-              controller: exportCtr,
-              onChanged: onFileNameChanged,
-            ),
-            Visibility(
-              visible: !Platform.isIOS,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: FileSettingsDirectoryPicker(
-                  selectedDir: selectedDir,
-                  onSelectDir: onSelectDir,
-                  onClearDir: onClearDir,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return GenericFileSettingsCard<ExportFmt>(
+      exportCtr: exportCtr,
+      selectedDir: selectedDir,
+      format: exportCtr.exportFmtCtr,
+      formats: ExportFmt.values,
+      formatLabel: (value) => exportFormats[value.index],
+      onFormatChanged: (value) => onExportFmtChanged(value),
+      onFileNameChanged: onFileNameChanged,
+      onSelectDir: onSelectDir,
+      onClearDir: onClearDir,
     );
   }
 }
@@ -106,10 +145,9 @@ class BundleFileSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -124,10 +162,12 @@ class BundleFileSettingsCard extends StatelessWidget {
               initialValue: format,
               decoration: const InputDecoration(labelText: 'Bundle format'),
               items: DwcBundleFormat.values
-                  .map((value) => DropdownMenuItem(
-                        value: value,
-                        child: Text(value.label),
-                      ))
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(value.label),
+                    ),
+                  )
                   .toList(growable: false),
               onChanged: (value) {
                 if (value != null) onFormatChanged(value);
@@ -139,10 +179,12 @@ class BundleFileSettingsCard extends StatelessWidget {
               initialValue: archiveFormat,
               decoration: const InputDecoration(labelText: 'Archive format'),
               items: format.allowedArchives
-                  .map((value) => DropdownMenuItem(
-                        value: value,
-                        child: Text(value.label),
-                      ))
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(value.label),
+                    ),
+                  )
                   .toList(growable: false),
               onChanged: format.allowedArchives.length == 1
                   ? null
@@ -158,10 +200,7 @@ class BundleFileSettingsCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            FileNameField(
-              controller: exportCtr,
-              onChanged: onFileNameChanged,
-            ),
+            FileNameField(controller: exportCtr, onChanged: onFileNameChanged),
             Visibility(
               visible: !Platform.isIOS,
               child: Padding(

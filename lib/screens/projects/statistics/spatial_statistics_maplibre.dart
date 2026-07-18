@@ -9,7 +9,7 @@ import 'package:maplibre/maplibre.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/statistics/spatial.dart';
+import 'package:nahpu/services/maps/coordinate_format.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';

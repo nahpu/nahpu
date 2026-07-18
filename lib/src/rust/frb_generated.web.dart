@@ -72,6 +72,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ConfigPresetEntry dco_decode_config_preset_entry(dynamic raw);
 
   @protected
+  CoordinateExportFormat dco_decode_coordinate_export_format(dynamic raw);
+
+  @protected
+  CoordinateFileImportResult dco_decode_coordinate_file_import_result(
+    dynamic raw,
+  );
+
+  @protected
+  CoordinateTransferRecord dco_decode_coordinate_transfer_record(dynamic raw);
+
+  @protected
   DdmCoordinateFfi dco_decode_ddm_coordinate_ffi(dynamic raw);
 
   @protected
@@ -106,6 +117,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ConfigPresetEntry> dco_decode_list_config_preset_entry(dynamic raw);
+
+  @protected
+  List<CoordinateTransferRecord> dco_decode_list_coordinate_transfer_record(
+    dynamic raw,
+  );
 
   @protected
   List<DocumentLayoutBlock> dco_decode_list_document_layout_block(dynamic raw);
@@ -268,6 +284,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoordinateExportFormat sse_decode_coordinate_export_format(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoordinateFileImportResult sse_decode_coordinate_file_import_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoordinateTransferRecord sse_decode_coordinate_transfer_record(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   DdmCoordinateFfi sse_decode_ddm_coordinate_ffi(SseDeserializer deserializer);
 
   @protected
@@ -312,6 +343,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ConfigPresetEntry> sse_decode_list_config_preset_entry(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CoordinateTransferRecord> sse_decode_list_coordinate_transfer_record(
     SseDeserializer deserializer,
   );
 
@@ -505,6 +541,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_coordinate_export_format(
+    CoordinateExportFormat self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_coordinate_file_import_result(
+    CoordinateFileImportResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_coordinate_transfer_record(
+    CoordinateTransferRecord self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_ddm_coordinate_ffi(
     DdmCoordinateFfi self,
     SseSerializer serializer,
@@ -561,6 +615,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_config_preset_entry(
     List<ConfigPresetEntry> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_coordinate_transfer_record(
+    List<CoordinateTransferRecord> self,
     SseSerializer serializer,
   );
 

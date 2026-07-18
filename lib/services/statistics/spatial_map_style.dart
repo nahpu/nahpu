@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:nahpu/services/maps/coordinate_map_point.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
@@ -15,6 +16,8 @@ class SpatialMapStyleService {
       'assets/maps/ne_110m_admin_0_countries.geojson';
   static const statisticsSourceId = 'nahpu-spatial-statistics';
   static const statisticsLayerId = 'nahpu-spatial-statistics-circles';
+  static const coordinateSourceId = 'nahpu-coordinate-locations';
+  static const coordinateLayerId = 'nahpu-coordinate-location-markers';
   static const naturalEarthSourceId = 'nahpu-natural-earth';
   static final _cache = <String, Future<String>>{};
 
@@ -52,6 +55,134 @@ class SpatialMapStyleService {
         userMapDirectory: userMapDirectory,
       ),
     );
+  }
+
+  /// Builds the read-only point style used outside spatial statistics.
+  ///
+  /// The remote OpenFreeMap style is used when it can be loaded. When it
+  /// cannot, the same bundled Natural Earth source used by statistics becomes
+  /// the basemap.
+  static Future<String> buildCoordinatePoints({
+    required SpatialBasemapStyle style,
+    required bool isDark,
+    required ColorScheme colorScheme,
+    required List<CoordinateMapPoint> points,
+    required int? selectedPointId,
+  }) {
+    final resolved = style.resolve(isDark: isDark);
+    final signature = [
+      'coordinates',
+      resolved.name,
+      colorScheme.primary.toARGB32(),
+      colorScheme.surfaceContainerHighest.toARGB32(),
+      selectedPointId,
+      for (final point in points)
+        '${point.id}:${point.latitude}:${point.longitude}',
+    ].join('|');
+    return _cache.putIfAbsent(
+      signature,
+      () => _buildCoordinatePoints(
+        style: resolved,
+        colorScheme: colorScheme,
+        points: points,
+        selectedPointId: selectedPointId,
+      ),
+    );
+  }
+
+  static Future<String> _buildCoordinatePoints({
+    required SpatialBasemapStyle style,
+    required ColorScheme colorScheme,
+    required List<CoordinateMapPoint> points,
+    required int? selectedPointId,
+  }) async {
+    final base = await _loadBaseStyle(style);
+    final sources = Map<String, dynamic>.from(base['sources'] as Map? ?? {});
+    sources[coordinateSourceId] = {
+      'type': 'geojson',
+      'data': {
+        'type': 'FeatureCollection',
+        'features': [
+          for (final point in points.where((point) => point.isMappable))
+            {
+              'type': 'Feature',
+              'id': point.id,
+              'geometry': {
+                'type': 'Point',
+                'coordinates': [point.longitude, point.latitude],
+              },
+              'properties': {
+                'coordinateId': point.id,
+                'name': point.name,
+                'selected': point.id == selectedPointId,
+              },
+            },
+        ],
+      },
+    };
+    base['sources'] = sources;
+    final layers = (base['layers'] as List? ?? const [])
+        .map((layer) => Map<String, dynamic>.from(layer as Map))
+        .toList();
+    final firstBasemapLayer = layers.indexWhere(
+      (layer) => layer['type'] != 'background',
+    );
+    if (firstBasemapLayer < 0) {
+      sources[naturalEarthSourceId] = {
+        'type': 'geojson',
+        'data': jsonDecode(await rootBundle.loadString(naturalEarthAsset)),
+        'attribution': 'Natural Earth',
+      };
+      layers.addAll([
+        {
+          'id': 'nahpu-natural-earth-fill',
+          'type': 'fill',
+          'source': naturalEarthSourceId,
+          'paint': {
+            'fill-color': _hex(colorScheme.surfaceContainerHighest),
+            'fill-opacity': 1,
+          },
+        },
+        {
+          'id': 'nahpu-natural-earth-outline',
+          'type': 'line',
+          'source': naturalEarthSourceId,
+          'paint': {
+            'line-color': _hex(colorScheme.outlineVariant),
+            'line-width': 0.6,
+          },
+        },
+      ]);
+    }
+    layers.add({
+      'id': coordinateLayerId,
+      'type': 'circle',
+      'source': coordinateSourceId,
+      'paint': {
+        'circle-radius': [
+          'case',
+          ['get', 'selected'],
+          11,
+          8,
+        ],
+        'circle-color': [
+          'case',
+          ['get', 'selected'],
+          _hex(colorScheme.error),
+          _hex(colorScheme.primary),
+        ],
+        'circle-opacity': [
+          'case',
+          ['get', 'selected'],
+          1,
+          0.78,
+        ],
+        'circle-stroke-color': _hex(colorScheme.surface),
+        'circle-stroke-width': 2,
+      },
+    });
+    base['layers'] = layers;
+    return jsonEncode(base);
   }
 
   static Future<String> _build({

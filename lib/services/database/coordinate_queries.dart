@@ -3,9 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 
 part 'coordinate_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class CoordinateQuery extends DatabaseAccessor<Database>
     with _$CoordinateQueryMixin {
   CoordinateQuery(super.db);
@@ -15,6 +13,13 @@ class CoordinateQuery extends DatabaseAccessor<Database>
 
   Future<List<CoordinateData>> getAllCoordinates() {
     return select(coordinate).get();
+  }
+
+  Future<List<CoordinateData>> getCoordinatesByProject(String projectUuid) {
+    final query = select(coordinate).join([
+      innerJoin(site, site.id.equalsExp(coordinate.siteID)),
+    ])..where(site.projectUuid.equals(projectUuid));
+    return query.map((row) => row.readTable(coordinate)).get();
   }
 
   Future<CoordinateData> getCoordinateById(int id) {

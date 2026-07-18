@@ -10,16 +10,15 @@ import 'package:nahpu/services/site_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final siteEntryProvider =
-    AsyncNotifierProvider.autoDispose<SiteEntry, List<SiteData>>(
-  SiteEntry.new,
-);
+    AsyncNotifierProvider.autoDispose<SiteEntry, List<SiteData>>(SiteEntry.new);
 
 class SiteEntry extends AsyncNotifier<List<SiteData>> {
   Future<List<SiteData>> _fetchSiteEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 
-    final siteEntries =
-        SiteQuery(ref.read(databaseProvider)).getAllSites(projectUuid);
+    final siteEntries = SiteQuery(
+      ref.read(databaseProvider),
+    ).getAllSites(projectUuid);
 
     return siteEntries;
   }
@@ -35,51 +34,69 @@ class SiteEntry extends AsyncNotifier<List<SiteData>> {
     state = await AsyncValue.guard(() async {
       if (state.value == null) return [];
       final sites = await _fetchSiteEntry();
-      final filteredSites =
-          SiteSearchServices(siteEntries: sites).search(query.toLowerCase());
+      final filteredSites = SiteSearchServices(
+        siteEntries: sites,
+      ).search(query.toLowerCase());
       return filteredSites;
     });
   }
 }
 
 final coordinateBySiteProvider = FutureProvider.family
-    .autoDispose<List<CoordinateData>, int>((ref, siteId) =>
-        CoordinateQuery(ref.read(databaseProvider))
-            .getCoordinatesBySiteID(siteId));
+    .autoDispose<List<CoordinateData>, int>(
+      (ref, siteId) => CoordinateQuery(
+        ref.read(databaseProvider),
+      ).getCoordinatesBySiteID(siteId),
+    );
+
+final coordinateByProjectProvider =
+    FutureProvider.autoDispose<List<CoordinateData>>((ref) {
+      final projectUuid = ref.watch(projectUuidProvider);
+      return CoordinateQuery(
+        ref.read(databaseProvider),
+      ).getCoordinatesByProject(projectUuid);
+    });
 
 final coordinateByEventProvider = FutureProvider.family
     .autoDispose<List<CoordinateData>, int>((ref, collEventId) async {
-  final collEvent = await CollEventQuery(ref.read(databaseProvider))
-      .getCollEventById(collEventId);
-  if (collEvent.siteID != null) {
-    final siteId = collEvent.siteID!;
-    final coordinates = CoordinateQuery(ref.read(databaseProvider))
-        .getCoordinatesBySiteID(siteId);
-    return coordinates;
-  } else {
-    return [];
-  }
-});
+      final collEvent = await CollEventQuery(
+        ref.read(databaseProvider),
+      ).getCollEventById(collEventId);
+      if (collEvent.siteID != null) {
+        final siteId = collEvent.siteID!;
+        final coordinates = CoordinateQuery(
+          ref.read(databaseProvider),
+        ).getCoordinatesBySiteID(siteId);
+        return coordinates;
+      } else {
+        return [];
+      }
+    });
 
 final siteMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, siteId) async {
-  List<SiteMediaData> mediaList =
-      await SiteQuery(ref.read(databaseProvider)).getSiteMedia(siteId);
-  List<MediaData> mediaDataList = [];
-  for (SiteMediaData media in mediaList) {
-    if (media.mediaId != null) {
-      mediaDataList.add(
-        await MediaDbQuery(ref.read(databaseProvider)).getMedia(media.mediaId!),
-      );
-    }
-  }
-  return mediaDataList;
-});
+      List<SiteMediaData> mediaList = await SiteQuery(
+        ref.read(databaseProvider),
+      ).getSiteMedia(siteId);
+      List<MediaData> mediaDataList = [];
+      for (SiteMediaData media in mediaList) {
+        if (media.mediaId != null) {
+          mediaDataList.add(
+            await MediaDbQuery(
+              ref.read(databaseProvider),
+            ).getMedia(media.mediaId!),
+          );
+        }
+      }
+      return mediaDataList;
+    });
 
-final siteInEventProvider =
-    FutureProvider.autoDispose<List<SiteData>>((ref) async {
-  List<int?> siteList = await CollEventQuery(ref.read(databaseProvider))
-      .getAllDistinctSites(ref.read(projectUuidProvider));
+final siteInEventProvider = FutureProvider.autoDispose<List<SiteData>>((
+  ref,
+) async {
+  List<int?> siteList = await CollEventQuery(
+    ref.read(databaseProvider),
+  ).getAllDistinctSites(ref.read(projectUuidProvider));
   List<SiteData> siteDataList = [];
   for (int? siteId in siteList) {
     if (siteId != null) {

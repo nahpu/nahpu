@@ -7,6 +7,98 @@ use nahpu_gis::conversion::{
     CardinalDirection as CD, CoordinateConverter, DdmCoordinate as Ddm, DmsCoordinate as Dms,
     UtmCoordinate as Utm,
 };
+use nahpu_gis::io::{
+    coordinates::CoordinateImportResult as GisCoordinateImportResult, geojson::GeoJsonExporter,
+    kml::KmlExporter, shp::ShapefileExporter,
+};
+use nahpu_gis::types::CoordinateData;
+use std::path::Path;
+
+/// Portable point fields supported by NAHPU GIS imports and exports.
+#[derive(Clone)]
+pub struct CoordinateTransferRecord {
+    pub name_id: String,
+    pub notes: Option<String>,
+    pub decimal_longitude: Option<f64>,
+    pub decimal_latitude: Option<f64>,
+    pub elevation_in_meter: Option<f64>,
+}
+
+/// File formats supported by the coordinate exporter.
+pub enum CoordinateExportFormat {
+    GeoJson,
+    Kml,
+    Shapefile,
+}
+
+/// Coordinates and diagnostics returned by a file import.
+pub struct CoordinateFileImportResult {
+    pub coordinates: Vec<CoordinateTransferRecord>,
+    pub skipped_count: u64,
+    pub warnings: Vec<String>,
+}
+
+/// Exports one or more coordinates using NAHPU GIS.
+pub fn export_coordinates(
+    coordinates: Vec<CoordinateTransferRecord>,
+    format: CoordinateExportFormat,
+    output_path: String,
+) -> Result<(), String> {
+    let data = coordinates
+        .into_iter()
+        .map(CoordinateData::from)
+        .collect::<Vec<_>>();
+    let path = Path::new(&output_path);
+    match format {
+        CoordinateExportFormat::GeoJson => GeoJsonExporter::new(&data).export_geojson(path),
+        CoordinateExportFormat::Kml => KmlExporter::new(&data).export_kml(path),
+        CoordinateExportFormat::Shapefile => ShapefileExporter::new(&data).export_shp(path),
+    }
+}
+
+/// Imports point coordinates from GeoJSON, KML, zipped Shapefile, or GPX.
+pub fn import_coordinates(input_path: String) -> Result<CoordinateFileImportResult, String> {
+    CoordinateFileImportResult::try_from(GisCoordinateImportResult::import(input_path)?)
+}
+
+impl From<CoordinateTransferRecord> for CoordinateData {
+    fn from(value: CoordinateTransferRecord) -> Self {
+        Self {
+            name_id: value.name_id,
+            notes: value.notes,
+            decimal_longitude: value.decimal_longitude,
+            decimal_latitude: value.decimal_latitude,
+            elevation_in_meter: value.elevation_in_meter,
+        }
+    }
+}
+
+impl From<CoordinateData> for CoordinateTransferRecord {
+    fn from(value: CoordinateData) -> Self {
+        Self {
+            name_id: value.name_id,
+            notes: value.notes,
+            decimal_longitude: value.decimal_longitude,
+            decimal_latitude: value.decimal_latitude,
+            elevation_in_meter: value.elevation_in_meter,
+        }
+    }
+}
+
+impl TryFrom<GisCoordinateImportResult> for CoordinateFileImportResult {
+    type Error = String;
+
+    fn try_from(value: GisCoordinateImportResult) -> Result<Self, Self::Error> {
+        if value.coordinates.is_empty() {
+            return Err("No valid point coordinates were found in the selected file".to_owned());
+        }
+        Ok(Self {
+            coordinates: value.coordinates.into_iter().map(Into::into).collect(),
+            skipped_count: value.skipped_count,
+            warnings: value.warnings,
+        })
+    }
+}
 
 /// Metadata for a user vector layer normalized by `nahpu_gis`.
 pub struct ImportedVectorLayer {

@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 enum SpatialStatisticKind {
-  coordinate,
   specimens,
   species,
   family,
@@ -10,7 +9,6 @@ enum SpatialStatisticKind {
 
 extension SpatialStatisticKindLabels on SpatialStatisticKind {
   String get label => switch (this) {
-    SpatialStatisticKind.coordinate => 'Sites',
     SpatialStatisticKind.specimens => 'Specimens',
     SpatialStatisticKind.species => 'Species',
     SpatialStatisticKind.family => 'Family',
@@ -18,7 +16,6 @@ extension SpatialStatisticKindLabels on SpatialStatisticKind {
   };
 
   String get title => switch (this) {
-    SpatialStatisticKind.coordinate => 'Site coordinates',
     SpatialStatisticKind.specimens => 'Specimens counts by site coordinates',
     SpatialStatisticKind.species => 'Species counts by site coordinates',
     SpatialStatisticKind.family => 'Families counts by site coordinates',
@@ -26,7 +23,7 @@ extension SpatialStatisticKindLabels on SpatialStatisticKind {
       'Selected species counts by coordinates',
   };
 
-  bool get hasCounts => this != SpatialStatisticKind.coordinate;
+  bool get hasCounts => true;
 
   bool get needsSpecies => this == SpatialStatisticKind.coordinatesBySpecies;
 
@@ -35,7 +32,6 @@ extension SpatialStatisticKindLabels on SpatialStatisticKind {
     SpatialStatisticKind.coordinatesBySpecies => 'specimens',
     SpatialStatisticKind.species => 'species',
     SpatialStatisticKind.family => 'families',
-    SpatialStatisticKind.coordinate => 'coordinates',
   };
 }
 
@@ -128,7 +124,6 @@ double spatialMarkerRadius({
   required int count,
   required int maximumCount,
 }) {
-  if (!kind.hasCounts) return 9;
   if (maximumCount <= 0 || count <= 0) return 8;
   return math.max(8, 32 * math.sqrt(count / maximumCount));
 }

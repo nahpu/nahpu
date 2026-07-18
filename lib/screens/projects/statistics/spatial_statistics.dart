@@ -19,7 +19,7 @@ class SpatialStatisticsPanel extends ConsumerStatefulWidget {
 
 class _SpatialStatisticsPanelState
     extends ConsumerState<SpatialStatisticsPanel> {
-  SpatialStatisticKind _selectedKind = SpatialStatisticKind.coordinate;
+  SpatialStatisticKind _selectedKind = SpatialStatisticKind.specimens;
   _SpatialStatisticMode _mode = _SpatialStatisticMode.map;
   StatisticFilterOption? _selectedSpecies;
 
@@ -170,8 +170,6 @@ class _SpatialStatisticsPanelState
   }
 
   String get _emptyMessage => switch (_selectedKind) {
-    SpatialStatisticKind.coordinate =>
-      'No coordinates have been added to this project.',
     SpatialStatisticKind.specimens =>
       'No specimens are assigned to project coordinates.',
     SpatialStatisticKind.species =>

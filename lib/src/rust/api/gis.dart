@@ -6,7 +6,23 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `from`, `from`, `from`, `from`, `try_from`
+
+/// Exports one or more coordinates using NAHPU GIS.
+Future<void> exportCoordinates({
+  required List<CoordinateTransferRecord> coordinates,
+  required CoordinateExportFormat format,
+  required String outputPath,
+}) => RustLib.instance.api.crateApiGisExportCoordinates(
+  coordinates: coordinates,
+  format: format,
+  outputPath: outputPath,
+);
+
+/// Imports point coordinates from GeoJSON, KML, zipped Shapefile, or GPX.
+Future<CoordinateFileImportResult> importCoordinates({
+  required String inputPath,
+}) => RustLib.instance.api.crateApiGisImportCoordinates(inputPath: inputPath);
 
 /// Converts GeoJSON or a zipped WGS84 Shapefile to normalized GeoJSON.
 Future<ImportedVectorLayer> convertVectorLayerToGeojson({
@@ -110,6 +126,71 @@ enum CardinalDirection {
 
   /// Western hemisphere (negative longitude)
   west,
+}
+
+/// File formats supported by the coordinate exporter.
+enum CoordinateExportFormat { geoJson, kml, shapefile }
+
+/// Coordinates and diagnostics returned by a file import.
+class CoordinateFileImportResult {
+  final List<CoordinateTransferRecord> coordinates;
+  final BigInt skippedCount;
+  final List<String> warnings;
+
+  const CoordinateFileImportResult({
+    required this.coordinates,
+    required this.skippedCount,
+    required this.warnings,
+  });
+
+  @override
+  int get hashCode =>
+      coordinates.hashCode ^ skippedCount.hashCode ^ warnings.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoordinateFileImportResult &&
+          runtimeType == other.runtimeType &&
+          coordinates == other.coordinates &&
+          skippedCount == other.skippedCount &&
+          warnings == other.warnings;
+}
+
+/// Portable point fields supported by NAHPU GIS imports and exports.
+class CoordinateTransferRecord {
+  final String nameId;
+  final String? notes;
+  final double? decimalLongitude;
+  final double? decimalLatitude;
+  final double? elevationInMeter;
+
+  const CoordinateTransferRecord({
+    required this.nameId,
+    this.notes,
+    this.decimalLongitude,
+    this.decimalLatitude,
+    this.elevationInMeter,
+  });
+
+  @override
+  int get hashCode =>
+      nameId.hashCode ^
+      notes.hashCode ^
+      decimalLongitude.hashCode ^
+      decimalLatitude.hashCode ^
+      elevationInMeter.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoordinateTransferRecord &&
+          runtimeType == other.runtimeType &&
+          nameId == other.nameId &&
+          notes == other.notes &&
+          decimalLongitude == other.decimalLongitude &&
+          decimalLatitude == other.decimalLatitude &&
+          elevationInMeter == other.elevationInMeter;
 }
 
 /// Represents a coordinate in Degrees and Decimal Minutes (DDM) format.

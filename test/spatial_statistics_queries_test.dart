@@ -18,13 +18,13 @@ void main() {
   tearDown(() => db.close());
 
   test(
-    'coordinates are project scoped and preserve coordinate form fields',
+    'spatial statistics are project scoped and preserve coordinate form fields',
     () async {
       final rows = await query
           .watchSpatialStatistics(
             const SpatialStatisticRequest(
               projectUuid: 'project-a',
-              kind: SpatialStatisticKind.coordinate,
+              kind: SpatialStatisticKind.specimens,
             ),
           )
           .first;
@@ -157,11 +157,11 @@ void main() {
     );
     expect(
       spatialMarkerRadius(
-        kind: SpatialStatisticKind.coordinate,
+        kind: SpatialStatisticKind.specimens,
         count: 0,
         maximumCount: 0,
       ),
-      9,
+      8,
     );
   });
 }

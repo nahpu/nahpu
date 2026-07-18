@@ -2282,6 +2282,7 @@ dependencies = [
  "geojson",
  "kml",
  "nahpu_archive 0.2.0",
+ "quick-xml 0.39.4",
  "serde",
  "serde_json",
  "shapefile",
