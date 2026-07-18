@@ -16,6 +16,7 @@
 ///     │   └── personnel/                 # Personnel photos/images
 ///     ├── UserConfigs/                   # User configuration directory (`userConfigDirName`)
 ///     │   └── fonts/                     # Custom user fonts (`userFontDirName`)
+///     │   └── maps/                      # Custom user maps (`userMapDirName`)
 ///     └── <project_uuid>/                # Individual project directories
 ///         └── media/                     # Project-specific media files (`mediaDir`)
 ///             ├── site/                  # Site photos/media
@@ -52,6 +53,7 @@ const String mediaDir = 'media';
 const String nahpuTempDir = 'NahpuTemp';
 const String userConfigDirName = 'UserConfigs';
 const String userFontDirName = 'fonts';
+const String userMapDirName = 'maps';
 
 String get dateTimeStamp {
   DateTime now = DateTime.now();
@@ -268,6 +270,13 @@ class AppServices {
         Directory(path.join(userConfigDir.path, userFontDirName));
     await userFontDir.create(recursive: true);
     return userFontDir;
+  }
+
+  Future<Directory> get userMapDir async {
+    final userConfigDir = await this.userConfigDir;
+    final userMapDir = Directory(path.join(userConfigDir.path, userMapDirName));
+    await userMapDir.create(recursive: true);
+    return userMapDir;
   }
 }
 
