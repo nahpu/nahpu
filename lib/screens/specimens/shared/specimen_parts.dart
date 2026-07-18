@@ -645,15 +645,8 @@ class PartFormState extends ConsumerState<PartForm> {
             },
           ),
           const SizedBox(height: 16),
-          FormButtonWithDelete(
+          FormButton(
             isEditing: widget.isEditing,
-            onDeleted: () {
-              if (widget.specimenPartId != null) {
-                SpecimenServices(ref: ref)
-                    .deleteSpecimenPart(widget.specimenPartId!);
-                Navigator.pop(context);
-              }
-            },
             onSubmitted: () {
               widget.isEditing ? _updatePart() : _createPart();
               Navigator.of(context).pop();

@@ -85,6 +85,7 @@ class Database extends _$Database {
     await m.createIndex(collEventProjectSiteIdx);
     await m.createIndex(specimenPartSpecimenIdx);
   }
+
   Future<void> _migrateFromVersion6(Migrator m) async {
     // v6: add writerId to narrative table. Best-effort: ignore if already present.
     try {

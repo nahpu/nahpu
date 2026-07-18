@@ -29,19 +29,17 @@ class HomeBodyState extends ConsumerState<HomeBody> {
           constraints: const BoxConstraints(maxWidth: 800),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: ref
-                .watch(projectListProvider)
-                .when(
-                  data: (data) {
-                    return _buildBody(data.reversed.toList());
-                  },
-                  loading: () {
-                    return const CommonProgressIndicator();
-                  },
-                  error: (error, stackTrace) {
-                    return Text(error.toString());
-                  },
-                ),
+            child: ref.watch(projectListProvider).when(
+              data: (data) {
+                return _buildBody(data.reversed.toList());
+              },
+              loading: () {
+                return const CommonProgressIndicator();
+              },
+              error: (error, stackTrace) {
+                return Text(error.toString());
+              },
+            ),
           ),
         ),
       ),
@@ -371,26 +369,26 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
   }
 
   void _showProjectDialog(db.ProjectData? value) => {
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Project information'),
-          content: SingleChildScrollView(
-            child: ProjectInfo(projectData: value),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    ),
-  };
+        showDialog<void>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Project information'),
+              content: SingleChildScrollView(
+                child: ProjectInfo(projectData: value),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Close'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      };
 }
 
 class ProjectIcon extends StatelessWidget {

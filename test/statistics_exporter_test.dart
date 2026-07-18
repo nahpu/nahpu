@@ -14,8 +14,8 @@ void main() {
     final libraryPath = Platform.isMacOS
         ? 'rust/target/debug/librust_lib_nahpu.dylib'
         : Platform.isWindows
-        ? 'rust/target/debug/rust_lib_nahpu.dll'
-        : 'rust/target/debug/librust_lib_nahpu.so';
+            ? 'rust/target/debug/rust_lib_nahpu.dll'
+            : 'rust/target/debug/librust_lib_nahpu.so';
     await RustLib.init(externalLibrary: ExternalLibrary.open(libraryPath));
   });
 

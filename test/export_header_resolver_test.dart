@@ -51,7 +51,8 @@ void main() {
       ],
     );
     expect(
-      resolver.dwcMappingForSource('mammalMeasurement::tailLength')
+      resolver
+          .dwcMappingForSource('mammalMeasurement::tailLength')
           ?.isMeasurement,
       isTrue,
     );

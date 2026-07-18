@@ -15,6 +15,7 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/src/rust/api/gis.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 enum CoordinatePopUpMenuItems { edit, copy, open }
@@ -39,85 +40,27 @@ class CoordinateFields extends StatelessWidget {
   }
 }
 
-class AddCoordinateButton extends ConsumerStatefulWidget {
+class AddCoordinateButton extends ConsumerWidget {
   const AddCoordinateButton({super.key, required this.siteId});
 
   final int siteId;
 
   @override
-  AddCoordinateButtonState createState() => AddCoordinateButtonState();
-}
-
-class AddCoordinateButtonState extends ConsumerState<AddCoordinateButton> {
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      children: [
-        SecondaryButton(
-          text: 'Add coordinate',
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NewCoordinate(
-                  siteId: widget.siteId,
-                  coordCtr: CoordinateCtrModel.empty(),
-                ),
-              ),
-            );
-          },
-        ),
-        PrimaryIconButton(
-          onPressed: () async {
-            Position? position = await _getLocation();
-            if (position != null) {
-              _addCoordinate(position);
-            }
-          },
-          icon: Icons.my_location_outlined,
-        ),
-      ],
-    );
-  }
-
-  Future<Position?> _getLocation() async {
-    try {
-      return GeoLocationServices().getCurrentCoordinates();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          action: SnackBarAction(
-            label: 'Settings',
-            onPressed: () async {
-              await Geolocator.openLocationSettings();
-              // openAppSettings();
-            },
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PrimaryButton(
+      icon: Icons.add,
+      label: 'Add coordinate',
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NewCoordinate(
+              siteId: siteId,
+              coordCtr: CoordinateCtrModel.empty(),
+            ),
           ),
-        ),
-      );
-    }
-    return null;
-  }
-
-  Future<void> _addCoordinate(Position position) async {
-    final locator = GeoLocationServices();
-    final coordinateCtr = locator.getControllerModel(position);
-    if (context.mounted) {
-      _navigateToAddCoordinate(coordinateCtr);
-    }
-  }
-
-  void _navigateToAddCoordinate(CoordinateCtrModel coordinateCtr) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => NewCoordinate(
-          siteId: widget.siteId,
-          coordCtr: coordinateCtr,
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -577,101 +520,328 @@ class CoordinateForms extends ConsumerStatefulWidget {
 
 class CoordinateFormsState extends ConsumerState<CoordinateForms> {
   final List<String> _datum = ['WGS84', 'NAD83', 'NAD27', 'Other'];
+  bool _isFetchingLocation = false;
+  String _dmsLatitude = '';
+  String _dmsLongitude = '';
+
+  @override
+  void initState() {
+    super.initState();
+    widget.coordCtr.latitudeCtr.addListener(_updateGPSDescription);
+    widget.coordCtr.longitudeCtr.addListener(_updateGPSDescription);
+    if (!widget.isEditing) {
+      _prefillSiteId();
+    } else {
+      _updateGPSDescription();
+    }
+  }
 
   @override
   void dispose() {
+    widget.coordCtr.latitudeCtr.removeListener(_updateGPSDescription);
+    widget.coordCtr.longitudeCtr.removeListener(_updateGPSDescription);
     widget.coordCtr.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    bool useHorizontalLayout = MediaQuery.sizeOf(context).width > 600.0;
     return ScrollableConstrainedLayout(
         child: Column(
       children: [
-        CommonTextField(
-          controller: widget.coordCtr.nameIdCtr,
-          labelText: 'Name',
-          hintText: 'Add a name',
-          isLastField: false,
-        ),
-        CommonNumField(
-          controller: widget.coordCtr.latitudeCtr,
-          labelText: 'Decimal Latitude',
-          hintText: 'Add a latitude',
-          isDouble: true,
-          isSigned: true,
-          isLastField: false,
-        ),
-        CommonNumField(
-          controller: widget.coordCtr.longitudeCtr,
-          labelText: 'Decimal Longitude',
-          hintText: 'Add a longitude',
-          isDouble: true,
-          isSigned: true,
-          isLastField: false,
-        ),
-        CommonNumField(
-          controller: widget.coordCtr.elevationCtr,
-          labelText: 'Elevation (m)',
-          hintText: 'Add an elevation',
-          isDouble: false,
-          isLastField: false,
-        ),
-        DropdownButtonFormField(
-          initialValue: _getDatum(),
-          decoration: const InputDecoration(
-            labelText: 'Datum',
-            hintText: 'Specify the datum',
+        CommonPadding(
+          child: CommonTextField(
+            controller: widget.coordCtr.nameIdCtr,
+            labelText: 'Name',
+            hintText: 'Add a name',
+            isLastField: false,
           ),
-          items: _datum
-              .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: CommonDropdownText(text: e),
-                  ))
-              .toList(),
-          onChanged: (value) {
-            widget.coordCtr.datumCtr.text = value.toString();
-          },
         ),
-        CommonNumField(
-          controller: widget.coordCtr.uncertaintyCtr,
-          labelText: 'Uncertainty (m)',
-          hintText: 'Add an uncertainty',
-          isDouble: false,
-          isLastField: false,
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.my_location_outlined,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Device GPS',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Use device sensor to autofill coordinates',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton.filledTonal(
+                  onPressed: _isFetchingLocation
+                      ? null
+                      : () async {
+                          setState(() {
+                            _isFetchingLocation = true;
+                          });
+                          try {
+                            Position? position = await _getLocation();
+                            if (position != null) {
+                              _populateLocation(position);
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                _isFetchingLocation = false;
+                              });
+                            }
+                          }
+                        },
+                  icon: _isFetchingLocation
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.gps_fixed),
+                  tooltip: 'Get location',
+                ),
+              ],
+            ),
+          ),
         ),
-        CommonTextField(
-          controller: widget.coordCtr.gpsUnitCtr,
-          labelText: 'GPS Unit',
-          hintText: 'Specify the GPS unit',
-          isLastField: false,
+        const SizedBox(height: 12),
+        AdaptiveLayout(
+          useHorizontalLayout: useHorizontalLayout,
+          children: [
+            CommonNumField(
+              controller: widget.coordCtr.latitudeCtr,
+              labelText: 'Decimal Latitude',
+              hintText: 'Add a latitude',
+              isDouble: true,
+              isSigned: true,
+              isLastField: false,
+              helperText: _dmsLatitude.isEmpty ? null : _dmsLatitude,
+            ),
+            CommonNumField(
+              controller: widget.coordCtr.longitudeCtr,
+              labelText: 'Decimal Longitude',
+              hintText: 'Add a longitude',
+              isDouble: true,
+              isSigned: true,
+              isLastField: false,
+              helperText: _dmsLongitude.isEmpty ? null : _dmsLongitude,
+            ),
+          ],
         ),
-        CommonTextField(
-          maxLines: 3,
-          controller: widget.coordCtr.noteCtr,
-          labelText: 'Notes',
-          hintText: 'Add notes (optional)',
-          isLastField: true,
+        const SizedBox(height: 12),
+        CommonPadding(
+          child: CommonNumField(
+            controller: widget.coordCtr.elevationCtr,
+            labelText: 'Elevation (m)',
+            hintText: 'Add an elevation',
+            isDouble: false,
+            isLastField: false,
+          ),
+        ),
+        CommonPadding(
+          child: DropdownButtonFormField(
+            initialValue: _getDatum(),
+            decoration: const InputDecoration(
+              labelText: 'Datum',
+              hintText: 'Specify the datum',
+            ),
+            items: _datum
+                .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: CommonDropdownText(text: e),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              widget.coordCtr.datumCtr.text = value.toString();
+            },
+          ),
+        ),
+        CommonPadding(
+          child: CommonNumField(
+            controller: widget.coordCtr.uncertaintyCtr,
+            labelText: 'Uncertainty (m)',
+            hintText: 'Add an uncertainty',
+            isDouble: false,
+            isLastField: false,
+          ),
+        ),
+        CommonPadding(
+          child: CommonTextField(
+            controller: widget.coordCtr.gpsUnitCtr,
+            labelText: 'GPS Unit',
+            hintText: 'Specify the GPS unit',
+            isLastField: false,
+          ),
+        ),
+        CommonPadding(
+          child: CommonTextField(
+            maxLines: 3,
+            controller: widget.coordCtr.noteCtr,
+            labelText: 'Notes',
+            hintText: 'Add notes (optional)',
+            isLastField: true,
+          ),
         ),
         const SizedBox(
-          height: 10,
+          height: 16,
         ),
-        FormButtonWithDelete(
-            isEditing: widget.isEditing,
-            onDeleted: () {
-              CoordinateServices(ref: ref)
-                  .deleteCoordinate(widget.coordinateId!);
-              ref.invalidate(coordinateBySiteProvider);
-              Navigator.pop(context);
-            },
-            onSubmitted: () {
-              widget.isEditing ? _updateCoordinate() : _createCoordinate();
-              ref.invalidate(coordinateBySiteProvider);
-              Navigator.pop(context);
-            }),
+        CommonPadding(
+          child: FormButton(
+              isEditing: widget.isEditing,
+              onSubmitted: () {
+                widget.isEditing ? _updateCoordinate() : _createCoordinate();
+                ref.invalidate(coordinateBySiteProvider);
+                Navigator.pop(context);
+              }),
+        ),
       ],
     ));
+  }
+
+  Future<void> _updateGPSDescription() async {
+    final latText = widget.coordCtr.latitudeCtr.text;
+    final lonText = widget.coordCtr.longitudeCtr.text;
+
+    if (latText.isNotEmpty) {
+      final lat = double.tryParse(latText);
+      if (lat != null) {
+        try {
+          final dmsLat = await ddToDms(dd: lat, isLatitude: true);
+          if (mounted) {
+            setState(() {
+              _dmsLatitude = _formatDms(dmsLat);
+            });
+          }
+        } catch (_) {
+          if (mounted) {
+            setState(() {
+              _dmsLatitude = '';
+            });
+          }
+        }
+      } else {
+        setState(() {
+          _dmsLatitude = '';
+        });
+      }
+    } else {
+      setState(() {
+        _dmsLatitude = '';
+      });
+    }
+
+    if (lonText.isNotEmpty) {
+      final lon = double.tryParse(lonText);
+      if (lon != null) {
+        try {
+          final dmsLon = await ddToDms(dd: lon, isLatitude: false);
+          if (mounted) {
+            setState(() {
+              _dmsLongitude = _formatDms(dmsLon);
+            });
+          }
+        } catch (_) {
+          if (mounted) {
+            setState(() {
+              _dmsLongitude = '';
+            });
+          }
+        }
+      } else {
+        setState(() {
+          _dmsLongitude = '';
+        });
+      }
+    } else {
+      setState(() {
+        _dmsLongitude = '';
+      });
+    }
+  }
+
+  String _formatDms(DmsCoordinateFfi dms) {
+    String dir = _formatDirection(dms.direction);
+    return '${dms.degrees}°${dms.minutes}\'${dms.seconds.toStringAsFixed(1)}" $dir';
+  }
+
+  String _formatDirection(CardinalDirection direction) {
+    switch (direction) {
+      case CardinalDirection.north:
+        return 'N';
+      case CardinalDirection.south:
+        return 'S';
+      case CardinalDirection.east:
+        return 'E';
+      case CardinalDirection.west:
+        return 'W';
+    }
+  }
+
+  Future<void> _prefillSiteId() async {
+    final siteData = await SiteServices(ref: ref).getSite(widget.siteId);
+    if (siteData != null && siteData.siteID != null) {
+      if (mounted && widget.coordCtr.nameIdCtr.text.isEmpty) {
+        setState(() {
+          widget.coordCtr.nameIdCtr.text = siteData.siteID!;
+        });
+      }
+    }
+  }
+
+  Future<Position?> _getLocation() async {
+    try {
+      return GeoLocationServices().getCurrentCoordinates();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            action: SnackBarAction(
+              label: 'Settings',
+              onPressed: () async {
+                await Geolocator.openLocationSettings();
+              },
+            ),
+          ),
+        );
+      }
+    }
+    return null;
+  }
+
+  void _populateLocation(Position position) {
+    setState(() {
+      widget.coordCtr.latitudeCtr.text = position.latitude.toStringAsFixed(6);
+      widget.coordCtr.longitudeCtr.text = position.longitude.toStringAsFixed(6);
+      widget.coordCtr.elevationCtr.text = position.altitude.toInt().toString();
+      widget.coordCtr.uncertaintyCtr.text =
+          position.accuracy.toInt().toString();
+    });
   }
 
   String _getDatum() {

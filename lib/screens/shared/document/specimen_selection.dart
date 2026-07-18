@@ -166,9 +166,8 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                       : 'Collection Date',
                 ),
                 onPressed: () => _pickDateRange(true),
-                onDeleted: _hasCollectionDate
-                    ? () => _clearDateFilter(true)
-                    : null,
+                onDeleted:
+                    _hasCollectionDate ? () => _clearDateFilter(true) : null,
                 showCheckmark: false,
                 avatar: const Icon(Icons.calendar_today_outlined, size: 16),
               ),
@@ -255,8 +254,8 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                                               onChanged: (v) {
                                                 final newSelected =
                                                     Set<String>.from(
-                                                      widget.selectedUuidList,
-                                                    );
+                                                  widget.selectedUuidList,
+                                                );
                                                 if (v == true) {
                                                   if (widget
                                                       .isSingleSelection) {
@@ -278,8 +277,8 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                                               ConstrainedBox(
                                                 constraints:
                                                     const BoxConstraints(
-                                                      maxWidth: 200,
-                                                    ),
+                                                  maxWidth: 200,
+                                                ),
                                                 child: Text(
                                                   _cellText(
                                                     _rowValues[s.uuid] ?? {},

@@ -18,14 +18,16 @@ class ProjectQuery extends DatabaseAccessor<Database> with _$ProjectQueryMixin {
   Future<ProjectData> getProjectByUuid(String uuid) async {
     return await (select(
       project,
-    )..where((t) => t.uuid.equals(uuid))).getSingle();
+    )..where((t) => t.uuid.equals(uuid)))
+        .getSingle();
   }
 
   Future<ProjectData?> getProjectByName(String name) async {
     try {
       return await (select(
         project,
-      )..where((t) => t.name.equals(name))).getSingle();
+      )..where((t) => t.name.equals(name)))
+          .getSingle();
     } catch (e) {
       return null;
     }

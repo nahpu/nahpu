@@ -33,7 +33,7 @@ class ConstrainedLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
+        constraints: const BoxConstraints(maxWidth: 600),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
           child: child,

@@ -123,45 +123,6 @@ class FormElevButton extends StatelessWidget {
   }
 }
 
-class FormButtonWithDelete extends StatelessWidget {
-  const FormButtonWithDelete({
-    super.key,
-    required this.isEditing,
-    required this.onDeleted,
-    required this.onSubmitted,
-  });
-
-  final bool isEditing;
-  final VoidCallback onDeleted;
-  final VoidCallback? onSubmitted;
-
-  @override
-  Widget build(BuildContext context) {
-    return isEditing
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                onPressed: onDeleted,
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ),
-              _buildFormButton(),
-            ],
-          )
-        : _buildFormButton();
-  }
-
-  Widget _buildFormButton() {
-    return FormButton(
-      isEditing: isEditing,
-      onSubmitted: onSubmitted,
-    );
-  }
-}
-
 class PrimaryIconButton extends StatelessWidget {
   const PrimaryIconButton({
     super.key,
@@ -254,7 +215,7 @@ class FormButton extends StatelessWidget {
             Navigator.of(context).pop();
           },
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 24),
         PrimaryButton(
           label: isEditing ? 'Update' : 'Add',
           icon: isEditing ? Icons.check : Icons.add,
