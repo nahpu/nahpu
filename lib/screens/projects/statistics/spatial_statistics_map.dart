@@ -4,12 +4,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
 import 'package:nahpu/services/statistics/spatial.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_maplibre.dart';
 import 'package:nahpu/screens/projects/statistics/linux_user_map_layers.dart';
 import 'package:nahpu/screens/settings/map_settings.dart';
-import 'package:nahpu/services/utility_services.dart';
 
 class SpatialStatisticsMap extends StatefulWidget {
   const SpatialStatisticsMap({
@@ -205,7 +205,7 @@ class _NaturalEarthMap extends StatelessWidget {
             Positioned(
               top: 8,
               right: 8,
-              child: _MapLegend(
+              child: SpatialStatisticsLegend(
                 kind: kind,
                 rows: rows,
                 total: total,
@@ -248,9 +248,9 @@ class _NaturalEarthMap extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorScheme.primary.withValues(alpha: 0.28),
+                color: colorScheme.primary.withValues(alpha: 0.32),
                 border: Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.78),
+                  color: colorScheme.primary.withValues(alpha: 0.86),
                   width: 1.5,
                 ),
               ),
@@ -299,101 +299,6 @@ class _NaturalEarthMap extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MapLegend extends StatelessWidget {
-  const _MapLegend({
-    required this.kind,
-    required this.rows,
-    required this.total,
-    required this.maximumCount,
-  });
-
-  final SpatialStatisticKind kind;
-  final List<SpatialStatisticDatum> rows;
-  final int total;
-  final int maximumCount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      borderRadius: BorderRadius.circular(8),
-      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: kind.hasCounts
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    kind.countLabel.toSentenceCase(),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 4),
-                  for (final count in spatialLegendCounts(rows))
-                    _LegendSample(
-                      count: count,
-                      total: total,
-                      radius: spatialMarkerRadius(
-                        kind: kind,
-                        count: count,
-                        maximumCount: maximumCount,
-                      ),
-                    ),
-                ],
-              )
-            : Text(
-                'Each circle represents\none coordinate',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-      ),
-    );
-  }
-}
-
-class _LegendSample extends StatelessWidget {
-  const _LegendSample({
-    required this.count,
-    required this.total,
-    required this.radius,
-  });
-
-  final int count;
-  final int total;
-  final double radius;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: radius * 2 + 3,
-            height: radius * 2 + 3,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.primary.withValues(alpha: 0.28),
-                border: Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.78),
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$count (${total == 0 ? '0.0' : (count * 100 / total).toStringAsFixed(1)}%)',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
       ),
     );
   }

@@ -10,6 +10,7 @@ import 'package:nahpu/services/statistics/spatial.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
 
 class MapLibreSpatialStatisticsMap extends ConsumerWidget {
   const MapLibreSpatialStatisticsMap({
@@ -110,6 +111,12 @@ class _MapLibreMapState extends State<_MapLibreMap> {
               minZoom: 1,
               maxZoom: 16,
               maxPitch: 60,
+              gestures: const MapGestures(
+                pan: true,
+                zoom: true,
+                rotate: false,
+                pitch: false,
+              ),
             ),
             onMapCreated: (controller) => _controller = controller,
             onStyleLoaded: (_) => _fitRows(),
@@ -125,6 +132,8 @@ class _MapLibreMapState extends State<_MapLibreMap> {
                 top: 56,
                 child: _MapLibreControls(onReset: _resetCamera),
               ),
+              // Scale bar to right bottom
+              const Positioned(right: 8, bottom: 8, child: MapScalebar()),
             ],
           ),
           if (widget.rows.isEmpty)
@@ -137,7 +146,7 @@ class _MapLibreMapState extends State<_MapLibreMap> {
             Positioned(
               top: 8,
               right: 8,
-              child: _MapLibreLegend(
+              child: SpatialStatisticsLegend(
                 kind: widget.kind,
                 rows: widget.rows,
                 total: widget.total,
@@ -228,93 +237,6 @@ class _MapLibreMapState extends State<_MapLibreMap> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MapLibreLegend extends StatelessWidget {
-  const _MapLibreLegend({
-    required this.kind,
-    required this.rows,
-    required this.total,
-    required this.maximumCount,
-  });
-
-  final SpatialStatisticKind kind;
-  final List<SpatialStatisticDatum> rows;
-  final int total;
-  final int maximumCount;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
-    borderRadius: BorderRadius.circular(8),
-    child: Padding(
-      padding: const EdgeInsets.all(8),
-      child: kind.hasCounts
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Circle size: ${kind.countLabel}'),
-                for (final count in spatialLegendCounts(rows))
-                  _MapLibreLegendSample(
-                    count: count,
-                    total: total,
-                    radius: spatialMarkerRadius(
-                      kind: kind,
-                      count: count,
-                      maximumCount: maximumCount,
-                    ),
-                  ),
-              ],
-            )
-          : const Text('Each circle represents\none coordinate'),
-    ),
-  );
-}
-
-class _MapLibreLegendSample extends StatelessWidget {
-  const _MapLibreLegendSample({
-    required this.count,
-    required this.total,
-    required this.radius,
-  });
-
-  final int count;
-  final int total;
-  final double radius;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final diameter = radius * 2 + 3;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: diameter,
-            height: diameter,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.primary.withValues(alpha: 0.32),
-                border: Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.86),
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$count (${total == 0 ? '0.0' : (count * 100 / total).toStringAsFixed(1)}%)',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
       ),
     );
   }
