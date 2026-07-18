@@ -160,10 +160,9 @@ class CoordinateListState extends ConsumerState<CoordinateList> {
                                   ? CoordinateMenu(
                                       coordinateId: data[index].id!,
                                       siteId: data[index].siteID!,
-                                      coordCtr: CoordinateCtrModel.fromData(
-                                          data[index]),
+                                      coordinate: data[index],
                                     )
-                                  : SizedBox.shrink(),
+                                  : const SizedBox.shrink(),
                             );
                           },
                         )),
@@ -340,12 +339,12 @@ class CoordinateMenu extends ConsumerStatefulWidget {
     super.key,
     required this.coordinateId,
     required this.siteId,
-    required this.coordCtr,
+    required this.coordinate,
   });
 
   final int coordinateId;
   final int siteId;
-  final CoordinateCtrModel coordCtr;
+  final CoordinateData coordinate;
 
   @override
   CoordinateMenuState createState() => CoordinateMenuState();
@@ -392,7 +391,7 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
             builder: (context) => EditCoordinate(
               coordinateId: widget.coordinateId,
               siteId: widget.siteId,
-              coordCtr: widget.coordCtr,
+              coordCtr: CoordinateCtrModel.fromData(widget.coordinate),
             ),
           ),
         );
@@ -432,8 +431,8 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
   }
 
   String get _latLong {
-    return '${widget.coordCtr.latitudeCtr.text},'
-        '${widget.coordCtr.longitudeCtr.text}';
+    return '${widget.coordinate.decimalLatitude},'
+        '${widget.coordinate.decimalLongitude}';
   }
 }
 
