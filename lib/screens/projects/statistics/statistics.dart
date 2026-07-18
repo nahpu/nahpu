@@ -109,7 +109,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     final projectName = ref.watch(currProjInfoProvider).value?.name ?? 'NAHPU';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Record Statistics')),
+      appBar: AppBar(title: const Text('Project Statistics')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
