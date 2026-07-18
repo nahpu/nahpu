@@ -63,16 +63,8 @@ class SpatialMapStyleService {
     required UserMapCatalog catalog,
     required Directory userMapDirectory,
   }) async {
-    final naturalEarth = jsonDecode(
-      await rootBundle.loadString(naturalEarthAsset),
-    );
     final base = await _loadBaseStyle(style);
     final sources = Map<String, dynamic>.from(base['sources'] as Map? ?? {});
-    sources[naturalEarthSourceId] = {
-      'type': 'geojson',
-      'data': naturalEarth,
-      'attribution': 'Natural Earth',
-    };
     sources[statisticsSourceId] = {
       'type': 'geojson',
       'data': _statisticsFeatureCollection(kind, rows, total),
@@ -85,30 +77,36 @@ class SpatialMapStyleService {
     final firstBasemapLayer = layers.indexWhere(
       (layer) => layer['type'] != 'background',
     );
-    final naturalLayers = [
-      {
-        'id': 'nahpu-natural-earth-fill',
-        'type': 'fill',
-        'source': naturalEarthSourceId,
-        'paint': {
-          'fill-color': _hex(colorScheme.surfaceContainerHighest),
-          'fill-opacity': 1,
+    if (firstBasemapLayer < 0) {
+      final naturalEarth = jsonDecode(
+        await rootBundle.loadString(naturalEarthAsset),
+      );
+      sources[naturalEarthSourceId] = {
+        'type': 'geojson',
+        'data': naturalEarth,
+        'attribution': 'Natural Earth',
+      };
+      layers.addAll([
+        {
+          'id': 'nahpu-natural-earth-fill',
+          'type': 'fill',
+          'source': naturalEarthSourceId,
+          'paint': {
+            'fill-color': _hex(colorScheme.surfaceContainerHighest),
+            'fill-opacity': 1,
+          },
         },
-      },
-      {
-        'id': 'nahpu-natural-earth-outline',
-        'type': 'line',
-        'source': naturalEarthSourceId,
-        'paint': {
-          'line-color': _hex(colorScheme.outlineVariant),
-          'line-width': 0.6,
+        {
+          'id': 'nahpu-natural-earth-outline',
+          'type': 'line',
+          'source': naturalEarthSourceId,
+          'paint': {
+            'line-color': _hex(colorScheme.outlineVariant),
+            'line-width': 0.6,
+          },
         },
-      },
-    ];
-    layers.insertAll(
-      firstBasemapLayer < 0 ? layers.length : firstBasemapLayer,
-      naturalLayers,
-    );
+      ]);
+    }
     await _addUserLayers(
       base: base,
       sources: sources,

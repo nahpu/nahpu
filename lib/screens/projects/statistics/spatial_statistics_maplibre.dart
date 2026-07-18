@@ -379,7 +379,7 @@ class _MapLibreAttribution extends StatelessWidget {
     child: const Padding(
       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       child: Text(
-        '© OpenStreetMap contributors · OpenFreeMap · Natural Earth',
+        '© OpenStreetMap contributors · OpenFreeMap',
         style: TextStyle(fontSize: 10),
       ),
     ),

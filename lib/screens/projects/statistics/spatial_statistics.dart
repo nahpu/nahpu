@@ -77,7 +77,7 @@ class _SpatialStatisticsPanelState
               builder: (context, constraints) {
                 final title = Text(
                   _selectedKind.needsSpecies && _selectedSpecies != null
-                      ? '${_selectedSpecies!.label} by coordinate'
+                      ? '${_selectedSpecies!.label} counts by coordinates'
                       : _selectedKind.title,
                   style: Theme.of(context).textTheme.titleLarge,
                 );

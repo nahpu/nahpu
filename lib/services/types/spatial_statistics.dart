@@ -10,7 +10,7 @@ enum SpatialStatisticKind {
 
 extension SpatialStatisticKindLabels on SpatialStatisticKind {
   String get label => switch (this) {
-    SpatialStatisticKind.coordinate => 'Coordinate',
+    SpatialStatisticKind.coordinate => 'Sites',
     SpatialStatisticKind.specimens => 'Specimens',
     SpatialStatisticKind.species => 'Species',
     SpatialStatisticKind.family => 'Family',
@@ -18,12 +18,12 @@ extension SpatialStatisticKindLabels on SpatialStatisticKind {
   };
 
   String get title => switch (this) {
-    SpatialStatisticKind.coordinate => 'Project coordinates',
-    SpatialStatisticKind.specimens => 'Specimens by coordinate',
-    SpatialStatisticKind.species => 'Species by coordinate',
-    SpatialStatisticKind.family => 'Families by coordinate',
+    SpatialStatisticKind.coordinate => 'Site coordinates',
+    SpatialStatisticKind.specimens => 'Specimens counts by site coordinates',
+    SpatialStatisticKind.species => 'Species counts by site coordinates',
+    SpatialStatisticKind.family => 'Families counts by site coordinates',
     SpatialStatisticKind.coordinatesBySpecies =>
-      'Selected species by coordinate',
+      'Selected species counts by coordinates',
   };
 
   bool get hasCounts => this != SpatialStatisticKind.coordinate;
