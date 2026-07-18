@@ -435,11 +435,12 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
             title: Text('Edit'),
           ),
         ),
+        const PopupMenuDivider(),
         const PopupMenuItem<CoordinatePopUpMenuItems>(
           value: CoordinatePopUpMenuItems.qr,
           child: ListTile(
             leading: Icon(Icons.qr_code_outlined),
-            title: Text('Show QR Code'),
+            title: Text('Show QR'),
           ),
         ),
         const PopupMenuItem<CoordinatePopUpMenuItems>(
@@ -453,9 +454,10 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
           value: CoordinatePopUpMenuItems.open,
           child: ListTile(
             leading: Icon(Icons.open_in_browser_outlined),
-            title: Text('Open'),
+            title: Text('Open in map'),
           ),
         ),
+        const PopupMenuDivider(),
         const PopupMenuItem<CoordinatePopUpMenuItems>(
           value: CoordinatePopUpMenuItems.details,
           child: ListTile(
@@ -1370,6 +1372,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
+          const SizedBox(height: 4),
           CommonPadding(
             child: CommonTextField(
               controller: widget.coordCtr.nameIdCtr,
@@ -2225,7 +2228,7 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
                         ],
                       ),
                       trailing: IconButton(
-                        tooltip: 'Show QR Code',
+                        tooltip: 'Show QR code',
                         onPressed: () =>
                             showCoordinateQrDialog(context, coordinate),
                         icon: const Icon(Icons.qr_code_outlined),
