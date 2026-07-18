@@ -155,7 +155,7 @@ void main() {
         (circle.renderObject! as RenderBox).size.width,
     ];
 
-    expect(find.text('Circle size: specimens'), findsOneWidget);
+    expect(find.text('Specimens'), findsOneWidget);
     expect(find.text('1 (4.8%)'), findsOneWidget);
     expect(find.text('4 (19.0%)'), findsOneWidget);
     expect(find.text('16 (76.2%)'), findsOneWidget);
