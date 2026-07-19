@@ -57,10 +57,12 @@ class ProgressButton extends StatelessWidget {
         backgroundColor: isDisabled
             ? Theme.of(context).colorScheme.surfaceContainerHighest
             : Theme.of(context).colorScheme.primaryContainer,
-        disabledForegroundColor:
-            Theme.of(context).colorScheme.onSurface.withAlpha(160),
-        disabledBackgroundColor:
-            Theme.of(context).colorScheme.surfaceContainerHighest,
+        disabledForegroundColor: Theme.of(
+          context,
+        ).colorScheme.onSurface.withAlpha(160),
+        disabledBackgroundColor: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest,
         elevation: 0,
       ),
       icon: isRunning
@@ -77,10 +79,7 @@ class ProgressButton extends StatelessWidget {
 }
 
 class ShareButton extends StatelessWidget {
-  const ShareButton({
-    super.key,
-    required this.onPressed,
-  });
+  const ShareButton({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 
@@ -160,16 +159,15 @@ class CommonChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-        child: ChoiceChip(
-          shape: const StadiumBorder(
-            side: BorderSide(color: Colors.transparent),
-          ),
-          selectedColor: Theme.of(context).colorScheme.primaryContainer,
-          label: label,
-          selected: selectedValue == index,
-          onSelected: onSelected,
-        ));
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+      child: ChoiceChip(
+        shape: const StadiumBorder(side: BorderSide(color: Colors.transparent)),
+        selectedColor: Theme.of(context).colorScheme.primaryContainer,
+        label: label,
+        selected: selectedValue == index,
+        onSelected: onSelected,
+      ),
+    );
   }
 }
 
@@ -227,8 +225,11 @@ class FormButton extends StatelessWidget {
 }
 
 class SecondaryButton extends StatelessWidget {
-  const SecondaryButton(
-      {super.key, required this.text, required this.onPressed});
+  const SecondaryButton({
+    super.key,
+    required this.text,
+    required this.onPressed,
+  });
 
   final String text;
   final VoidCallback onPressed;
@@ -237,9 +238,7 @@ class SecondaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.secondary,
-        ),
+        side: BorderSide(color: Theme.of(context).colorScheme.secondary),
         foregroundColor: Theme.of(context).colorScheme.secondary,
       ),
       onPressed: onPressed,
@@ -249,8 +248,11 @@ class SecondaryButton extends StatelessWidget {
 }
 
 class TertiaryButton extends StatelessWidget {
-  const TertiaryButton(
-      {super.key, required this.text, required this.onPressed});
+  const TertiaryButton({
+    super.key,
+    required this.text,
+    required this.onPressed,
+  });
 
   final String text;
   final VoidCallback onPressed;
@@ -268,10 +270,7 @@ class TertiaryButton extends StatelessWidget {
 }
 
 class DeleteMenuButton extends StatelessWidget {
-  const DeleteMenuButton({
-    super.key,
-    required this.deleteAll,
-  });
+  const DeleteMenuButton({super.key, required this.deleteAll});
 
   final bool deleteAll;
 
@@ -284,19 +283,14 @@ class DeleteMenuButton extends StatelessWidget {
       ),
       title: Text(
         deleteAll ? 'Delete all records' : 'Delete record',
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.error,
-        ),
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
       ),
     );
   }
 }
 
 class CreateMenuButton extends StatelessWidget {
-  const CreateMenuButton({
-    super.key,
-    required this.text,
-  });
+  const CreateMenuButton({super.key, required this.text});
 
   final String text;
 
@@ -304,19 +298,13 @@ class CreateMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.create_outlined),
-      title: Text(
-        text,
-        overflow: TextOverflow.ellipsis,
-      ),
+      title: Text(text, overflow: TextOverflow.ellipsis),
     );
   }
 }
 
 class DuplicateMenuButton extends StatelessWidget {
-  const DuplicateMenuButton({
-    super.key,
-    required this.text,
-  });
+  const DuplicateMenuButton({super.key, required this.text});
 
   final String text;
 
@@ -369,21 +357,14 @@ class ListCheckBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Checkbox.adaptive(
-        activeColor: Theme.of(context).colorScheme.onSurface,
-        checkColor: Theme.of(context).colorScheme.surface,
-        side: BorderSide(
-          width: 1.5,
-          color: isDisabled
-              ? Theme.of(context).colorScheme.surfaceContainerHighest
-              : Theme.of(context).colorScheme.onSurface,
-        ),
-        value: value,
-        materialTapTargetSize: isDense
-            ? MaterialTapTargetSize.shrinkWrap
-            : MaterialTapTargetSize.padded,
-        visualDensity: isDense ? VisualDensity.compact : null,
-        onChanged: isDisabled ? null : onChanged);
+    return Checkbox(
+      value: value,
+      materialTapTargetSize: isDense
+          ? MaterialTapTargetSize.shrinkWrap
+          : MaterialTapTargetSize.padded,
+      visualDensity: isDense ? VisualDensity.compact : null,
+      onChanged: isDisabled ? null : onChanged,
+    );
   }
 }
 
@@ -412,42 +393,46 @@ class DeleteItemsButton extends StatelessWidget {
     return Column(
       children: [
         Visibility(
-            visible: selectedItems.isNotEmpty,
-            child: Text(
-                customIconButtonText ??
-                    'Delete ${selectedItems.length} $itemName',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                ))),
+          visible: selectedItems.isNotEmpty,
+          child: Text(
+            customIconButtonText ?? 'Delete ${selectedItems.length} $itemName',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ),
         IconButton(
           color: Theme.of(context).colorScheme.error,
           onPressed: selectedItems.isEmpty
               ? null
               : () {
                   showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: Text(customDialogHeader ?? 'Delete $itemName'),
-                          content: Text(customDialogText ??
-                              'Are you sure you want to delete the selected $itemName?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Cancel'),
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text(customDialogHeader ?? 'Delete $itemName'),
+                        content: Text(
+                          customDialogText ??
+                              'Are you sure you want to delete the selected $itemName?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: onPressedFunction,
+                            child: Text(
+                              customDialogButtonText ?? 'Delete',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                             ),
-                            TextButton(
-                              onPressed: onPressedFunction,
-                              child: Text(customDialogButtonText ?? 'Delete',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.error,
-                                  )),
-                            ),
-                          ],
-                        );
-                      });
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
           icon: const Icon(Icons.delete_outline),
         ),
