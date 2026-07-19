@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart' as maplibre;
+import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
 import 'package:nahpu/services/maps/coordinate_map_point.dart';
 import 'package:nahpu/services/maps/natural_earth.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -325,6 +326,7 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
           child: Stack(
             children: [
               maplibre.MapLibreMap(
+                gestureRecognizers: {...mapLibreGestureRecognizers()},
                 options: maplibre.MapOptions(
                   initStyle: snapshot.data!,
                   initCenter: maplibre.Geographic(
@@ -349,6 +351,7 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
                 onStyleLoaded: (_) => _onStyleLoaded(),
                 onEvent: _handleEvent,
                 children: [
+                  const Positioned.fill(child: MapLibreGestureSurface()),
                   const Positioned(
                     left: 8,
                     bottom: 8,

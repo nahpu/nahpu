@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/maps/coordinate_location_map.dart';
+import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/coordinate_exchange_service.dart';
 import 'package:nahpu/services/io_services.dart';
@@ -1792,7 +1793,7 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 600;
+            final isWide = constraints.maxWidth >= 600;
             final map = _CoordinateMapPane(
               coordinates: coordinates,
               siteFilterId: _siteFilterId,
@@ -1801,6 +1802,14 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
               focusRequest: _focusRequest,
               onCoordinateSelected: _selectCoordinate,
             );
+            Future<void> openFullScreenMap() => _openFullScreenMap(
+              coordinates: coordinates,
+              siteFilterId: _siteFilterId,
+              selectedCoordinateIds: selectedCoordinateIds,
+              focusedCoordinateId: _focusedCoordinateId,
+              focusRequest: _focusRequest,
+            );
+
             if (isWide) {
               return Padding(
                 padding: const EdgeInsets.all(12),
@@ -1826,7 +1835,22 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(child: _CoordinateSurfacePanel(child: map)),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: _CoordinateSurfacePanel(child: map),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: _FullScreenMapButton(
+                              onPressed: openFullScreenMap,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -1846,29 +1870,24 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                 onShareCoordinate: _shareCoordinate,
               ),
             );
-            return DefaultTabController(
-              length: 2,
-              child: Column(
-                children: [
-                  const TabBar(
-                    tabs: [
-                      Tab(icon: Icon(Icons.list_outlined), text: 'Coordinates'),
-                      Tab(icon: Icon(Icons.map_outlined), text: 'Map'),
-                    ],
+            return Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: list,
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: TabBarView(
-                        children: [
-                          list,
-                          _CoordinateSurfacePanel(child: map),
-                        ],
-                      ),
-                    ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  child: FilledButton.icon(
+                    key: const ValueKey('coordinate-manager-view-map'),
+                    onPressed: openFullScreenMap,
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('View map'),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),
@@ -1926,6 +1945,28 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
     });
   }
 
+  Future<void> _openFullScreenMap({
+    required AsyncValue<List<CoordinateData>> coordinates,
+    required int? siteFilterId,
+    required Set<int> selectedCoordinateIds,
+    required int? focusedCoordinateId,
+    required int focusRequest,
+  }) {
+    return Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _CoordinateManagerFullScreenMap(
+          coordinates: coordinates,
+          siteFilterId: siteFilterId,
+          selectedCoordinateIds: selectedCoordinateIds,
+          focusedCoordinateId: focusedCoordinateId,
+          focusRequest: focusRequest,
+          onCoordinateSelected: _selectCoordinate,
+        ),
+      ),
+    );
+  }
+
   Set<int> _visibleCoordinateIds(List<CoordinateData> coordinates) {
     return {
       for (final coordinate in coordinates)
@@ -1965,6 +2006,82 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
       ),
     );
   }
+}
+
+class _CoordinateManagerFullScreenMap extends StatefulWidget {
+  const _CoordinateManagerFullScreenMap({
+    required this.coordinates,
+    required this.siteFilterId,
+    required this.selectedCoordinateIds,
+    required this.focusedCoordinateId,
+    required this.focusRequest,
+    required this.onCoordinateSelected,
+  });
+
+  final AsyncValue<List<CoordinateData>> coordinates;
+  final int? siteFilterId;
+  final Set<int> selectedCoordinateIds;
+  final int? focusedCoordinateId;
+  final int focusRequest;
+  final ValueChanged<int> onCoordinateSelected;
+
+  @override
+  State<_CoordinateManagerFullScreenMap> createState() =>
+      _CoordinateManagerFullScreenMapState();
+}
+
+class _CoordinateManagerFullScreenMapState
+    extends State<_CoordinateManagerFullScreenMap> {
+  late Set<int> _selectedCoordinateIds;
+  late int? _focusedCoordinateId;
+  late int _focusRequest;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCoordinateIds = {...widget.selectedCoordinateIds};
+    _focusedCoordinateId = widget.focusedCoordinateId;
+    _focusRequest = widget.focusRequest;
+  }
+
+  @override
+  Widget build(BuildContext context) => FullScreenMapPage(
+    title: 'Coordinate map',
+    child: _CoordinateMapPane(
+      coordinates: widget.coordinates,
+      siteFilterId: widget.siteFilterId,
+      selectedCoordinateIds: _selectedCoordinateIds,
+      focusedCoordinateId: _focusedCoordinateId,
+      focusRequest: _focusRequest,
+      onCoordinateSelected: _selectCoordinate,
+    ),
+  );
+
+  void _selectCoordinate(int coordinateId) {
+    setState(() {
+      _selectedCoordinateIds = {..._selectedCoordinateIds, coordinateId};
+      _focusedCoordinateId = coordinateId;
+      _focusRequest++;
+    });
+    widget.onCoordinateSelected(coordinateId);
+  }
+}
+
+class _FullScreenMapButton extends StatelessWidget {
+  const _FullScreenMapButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+    borderRadius: BorderRadius.circular(8),
+    child: IconButton(
+      tooltip: 'View map full screen',
+      onPressed: onPressed,
+      icon: const Icon(Icons.fullscreen),
+    ),
+  );
 }
 
 class _CoordinateExportOverlay extends ConsumerStatefulWidget {

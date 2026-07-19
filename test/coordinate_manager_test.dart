@@ -28,6 +28,7 @@ void main() {
 
     expect(find.text('Select all'), findsOneWidget);
     expect(find.text('Clear all'), findsOneWidget);
+    expect(find.byTooltip('View map full screen'), findsOneWidget);
     expect(_checkbox(tester, 1).value, isTrue);
     expect(_checkbox(tester, 2).value, isTrue);
 
@@ -52,6 +53,35 @@ void main() {
 
     expect(_checkbox(tester, 1).value, isTrue);
     expect(_checkbox(tester, 2).value, isTrue);
+  });
+
+  testWidgets('small coordinate manager opens the map in a full-screen route', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(500, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          coordinateByProjectProvider.overrideWith((ref) async => _coordinates),
+          siteEntryProvider.overrideWithBuild((ref, notifier) async => _sites),
+        ],
+        child: const MaterialApp(home: CoordinateManager()),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('coordinate-manager-view-map')), findsOne);
+    expect(find.byType(TabBar), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('coordinate-manager-view-map')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Coordinate map'), findsOneWidget);
   });
 }
 

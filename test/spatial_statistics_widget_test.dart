@@ -1,13 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics_map.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_table.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
 void main() {
-  testWidgets('spatial table includes coordinate metrics', (
-    tester,
-  ) async {
+  testWidgets(
+    'narrow spatial statistics opens the map in a full-screen route',
+    (tester) async {
+      tester.view.physicalSize = const Size(500, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SpatialStatisticsMap(
+                kind: SpatialStatisticKind.specimens,
+                rows: [
+                  SpatialStatisticDatum(
+                    coordinateId: 1,
+                    name: 'Alpha coordinate',
+                    decimalLatitude: 45,
+                    decimalLongitude: -93,
+                    elevationInMeter: null,
+                    datum: null,
+                    uncertaintyInMeters: null,
+                    gpsUnit: null,
+                    notes: null,
+                    count: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        find.byKey(const ValueKey('spatial-statistics-view-map')),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('spatial-statistics-view-map')),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Spatial statistics map'), findsOneWidget);
+    },
+  );
+
+  testWidgets('spatial table includes coordinate metrics', (tester) async {
     tester.view.physicalSize = const Size(1600, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

@@ -5,12 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
+import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
 import 'package:nahpu/services/maps/coordinate_format.dart';
 import 'package:nahpu/services/maps/natural_earth.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_maplibre.dart';
 import 'package:nahpu/screens/projects/statistics/linux_user_map_layers.dart';
 import 'package:nahpu/screens/settings/map_settings.dart';
+
+final Future<List<NaturalEarthPolygon>> _naturalEarthPolygons =
+    loadNaturalEarthPolygons();
 
 class SpatialStatisticsMap extends StatefulWidget {
   const SpatialStatisticsMap({
@@ -27,89 +31,163 @@ class SpatialStatisticsMap extends StatefulWidget {
 }
 
 class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
-  static final Future<List<NaturalEarthPolygon>> _naturalEarthPolygons =
-      loadNaturalEarthPolygons();
-
   @override
   Widget build(BuildContext context) {
     final mappable = mappableSpatialStatistics(widget.rows);
     final omittedCount = widget.rows.length - mappable.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (omittedCount > 0) ...[
-          Text(
-            '$omittedCount ${omittedCount == 1 ? 'record is' : 'records are'} '
-            'listed in the table but cannot be mapped because latitude or '
-            'longitude is missing or invalid.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
+    final total = spatialStatisticTotal(widget.rows);
+    return LayoutBuilder(
+      builder: (context, constraints) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (omittedCount > 0) ...[
+            Text(
+              '$omittedCount ${omittedCount == 1 ? 'record is' : 'records are'} '
+              'listed in the table but cannot be mapped because latitude or '
+              'longitude is missing or invalid.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (constraints.maxWidth < 600)
+            FilledButton.icon(
+              key: const ValueKey('spatial-statistics-view-map'),
+              onPressed: () =>
+                  _showFullScreenMap(context, rows: mappable, total: total),
+              icon: const Icon(Icons.map_outlined),
+              label: const Text('View map'),
+            )
+          else
+            SizedBox(
+              height: 480,
+              child: _SpatialMapViewport(
+                kind: widget.kind,
+                rows: mappable,
+                total: total,
+                onViewFullScreen: () =>
+                    _showFullScreenMap(context, rows: mappable, total: total),
+              ),
+            ),
         ],
-        SizedBox(
-          height: 480,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Platform.isLinux
-                    ? FutureBuilder<List<NaturalEarthPolygon>>(
-                        future: _naturalEarthPolygons,
-                        builder: (context, snapshot) {
-                          if (snapshot.hasError) {
-                            return _MapMessage(
-                              icon: Icons.public_off_outlined,
-                              message:
-                                  'Unable to load the offline Natural Earth map.',
-                            );
-                          }
-                          if (!snapshot.hasData) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-                          return _NaturalEarthMap(
-                            key: ValueKey(
-                              '${widget.kind.name}-${mappable.map((row) => row.coordinateId).join(',')}',
-                            ),
-                            kind: widget.kind,
-                            rows: mappable,
-                            total: spatialStatisticTotal(widget.rows),
-                            polygons: snapshot.data!,
-                          );
-                        },
-                      )
-                    : MapLibreSpatialStatisticsMap(
-                        kind: widget.kind,
-                        rows: mappable,
-                        total: spatialStatisticTotal(widget.rows),
-                      ),
-              ),
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Material(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surface.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(8),
-                  child: IconButton(
-                    tooltip: 'Custom map layers',
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const UserMapLayerSettings(),
-                      ),
-                    ),
-                    icon: const Icon(Icons.layers_outlined),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
+
+  void _showFullScreenMap(
+    BuildContext context, {
+    required List<SpatialStatisticDatum> rows,
+    required int total,
+  }) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullScreenMapPage(
+          title: 'Spatial statistics map',
+          child: _SpatialMapViewport(
+            kind: widget.kind,
+            rows: rows,
+            total: total,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SpatialMapViewport extends StatelessWidget {
+  const _SpatialMapViewport({
+    required this.kind,
+    required this.rows,
+    required this.total,
+    this.onViewFullScreen,
+  });
+
+  final SpatialStatisticKind kind;
+  final List<SpatialStatisticDatum> rows;
+  final int total;
+  final VoidCallback? onViewFullScreen;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+    children: [
+      Positioned.fill(
+        child: Platform.isLinux
+            ? FutureBuilder<List<NaturalEarthPolygon>>(
+                future: _naturalEarthPolygons,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const _MapMessage(
+                      icon: Icons.public_off_outlined,
+                      message: 'Unable to load the offline Natural Earth map.',
+                    );
+                  }
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return _NaturalEarthMap(
+                    key: ValueKey(
+                      '${kind.name}-${rows.map((row) => row.coordinateId).join(',')}',
+                    ),
+                    kind: kind,
+                    rows: rows,
+                    total: total,
+                    polygons: snapshot.data!,
+                  );
+                },
+              )
+            : MapLibreSpatialStatisticsMap(
+                kind: kind,
+                rows: rows,
+                total: total,
+              ),
+      ),
+      Positioned(
+        top: 8,
+        left: 8,
+        child: Row(
+          children: [
+            _SpatialMapAction(
+              tooltip: 'Custom map layers',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UserMapLayerSettings(),
+                ),
+              ),
+              icon: Icons.layers_outlined,
+            ),
+            if (onViewFullScreen != null) ...[
+              const SizedBox(width: 8),
+              _SpatialMapAction(
+                tooltip: 'View map full screen',
+                onPressed: onViewFullScreen!,
+                icon: Icons.fullscreen,
+              ),
+            ],
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+class _SpatialMapAction extends StatelessWidget {
+  const _SpatialMapAction({
+    required this.tooltip,
+    required this.onPressed,
+    required this.icon,
+  });
+
+  final String tooltip;
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+    borderRadius: BorderRadius.circular(8),
+    child: IconButton(tooltip: tooltip, onPressed: onPressed, icon: Icon(icon)),
+  );
 }
 
 class _NaturalEarthMap extends StatelessWidget {
