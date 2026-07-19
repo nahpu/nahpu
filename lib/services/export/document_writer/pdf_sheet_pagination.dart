@@ -4,9 +4,7 @@ part of '../document_writer.dart';
 class _DocumentPdfSheetPagination {
   const _DocumentPdfSheetPagination._();
 
-  static List<bool> pageBreakPlan(
-    List<bool> forcePageBreakAfter,
-  ) {
+  static List<bool> pageBreakPlan(List<bool> forcePageBreakAfter) {
     if (forcePageBreakAfter.isEmpty) return const [];
     return List<bool>.generate(
       forcePageBreakAfter.length,
@@ -92,9 +90,7 @@ class _DocumentPdfSheetPagination {
     double usedHeight,
     double usableH,
   ) {
-    final shortest = rows.reduce(
-      (a, b) => a.heightPt <= b.heightPt ? a : b,
-    );
+    final shortest = rows.reduce((a, b) => a.heightPt <= b.heightPt ? a : b);
     final repeats = _DocumentPdfLayoutMetrics.maxAutoFillRepeatCount(
       rowHeight: shortest.heightPt,
       usedHeight: usedHeight,

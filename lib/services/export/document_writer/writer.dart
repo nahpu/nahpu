@@ -21,13 +21,16 @@ class DocumentWriter {
     required Future<Uint8List> Function(
       double sheetWidthPt,
       double sheetHeightPt,
-    ) generatePdf,
+    )
+    generatePdf,
   }) async {
     final page = _DocumentPageGeometry.fromLayout(layout);
     final pdfBytes = await generatePdf(page.widthPt, page.heightPt);
-    final savePath =
-        await AppIOServices(dir: selectedDir, fileStem: fileStem, ext: 'pdf')
-            .getSavePath();
+    final savePath = await AppIOServices(
+      dir: selectedDir,
+      fileStem: fileStem,
+      ext: 'pdf',
+    ).getSavePath();
     await savePath.writeAsBytes(pdfBytes);
     return savePath;
   }
@@ -36,112 +39,146 @@ class DocumentWriter {
   ///
   /// The generated file name is derived from [fileStem], with collisions handled
   /// by the app IO service.
-  Future<File> writeLayout(
-      {required Directory selectedDir,
-      required String fileStem,
-      required rust_config.DocumentLayoutPreset layout}) {
+  Future<File> writeLayout({
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
     return _writePdf(
-        selectedDir: selectedDir,
-        fileStem: fileStem,
-        layout: layout,
-        generatePdf: (w, h) => generateLayoutPdf(
-            sheetWidthPt: w, sheetHeightPt: h, layout: layout));
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (w, h) =>
+          generateLayoutPdf(sheetWidthPt: w, sheetHeightPt: h, layout: layout),
+    );
   }
 
   /// Writes specimen document records as a PDF using [layout].
   ///
   /// Each selected specimen in [picked] is converted to document field values
   /// before being placed into the configured template blocks.
-  Future<File> writeDocuments(
-      {required List<SpecimenData> picked,
-      required Directory selectedDir,
-      required String fileStem,
-      required rust_config.DocumentLayoutPreset layout}) {
+  Future<File> writeDocuments({
+    required List<SpecimenData> picked,
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
     return _writePdf(
-        selectedDir: selectedDir,
-        fileStem: fileStem,
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (w, h) => generateDocumentsPdf(
+        picked,
+        sheetWidthPt: w,
+        sheetHeightPt: h,
         layout: layout,
-        generatePdf: (w, h) => generateDocumentsPdf(picked,
-            sheetWidthPt: w, sheetHeightPt: h, layout: layout));
+      ),
+    );
   }
 
   /// Writes site document records as a PDF using [layout].
   ///
   /// Each selected site in [picked] is converted to document field values before
   /// rendering.
-  Future<File> writeSites(
-      {required List<SiteData> picked,
-      required Directory selectedDir,
-      required String fileStem,
-      required rust_config.DocumentLayoutPreset layout}) {
+  Future<File> writeSites({
+    required List<SiteData> picked,
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
     return _writePdf(
-        selectedDir: selectedDir,
-        fileStem: fileStem,
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (w, h) => generateSitesPdf(
+        picked,
+        sheetWidthPt: w,
+        sheetHeightPt: h,
         layout: layout,
-        generatePdf: (w, h) => generateSitesPdf(picked,
-            sheetWidthPt: w, sheetHeightPt: h, layout: layout));
+      ),
+    );
   }
 
   /// Writes collecting event document records as a PDF using [layout].
   ///
   /// Each selected event in [picked] is expanded with related site, effort, and
   /// personnel values before rendering.
-  Future<File> writeEvents(
-      {required List<CollEventData> picked,
-      required Directory selectedDir,
-      required String fileStem,
-      required rust_config.DocumentLayoutPreset layout}) {
+  Future<File> writeEvents({
+    required List<CollEventData> picked,
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
     return _writePdf(
-        selectedDir: selectedDir,
-        fileStem: fileStem,
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (w, h) => generateEventsPdf(
+        picked,
+        sheetWidthPt: w,
+        sheetHeightPt: h,
         layout: layout,
-        generatePdf: (w, h) => generateEventsPdf(picked,
-            sheetWidthPt: w, sheetHeightPt: h, layout: layout));
+      ),
+    );
   }
 
   /// Writes narrative document records as a PDF using [layout].
   ///
   /// Each selected narrative in [picked] is expanded with related site and
   /// personnel values before rendering.
-  Future<File> writeNarratives(
-      {required List<NarrativeData> picked,
-      required Directory selectedDir,
-      required String fileStem,
-      required rust_config.DocumentLayoutPreset layout}) {
+  Future<File> writeNarratives({
+    required List<NarrativeData> picked,
+    required Directory selectedDir,
+    required String fileStem,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
     return _writePdf(
-        selectedDir: selectedDir,
-        fileStem: fileStem,
+      selectedDir: selectedDir,
+      fileStem: fileStem,
+      layout: layout,
+      generatePdf: (w, h) => generateNarrativesPdf(
+        picked,
+        sheetWidthPt: w,
+        sheetHeightPt: h,
         layout: layout,
-        generatePdf: (w, h) => generateNarrativesPdf(picked,
-            sheetWidthPt: w, sheetHeightPt: h, layout: layout));
+      ),
+    );
   }
 
   /// Generates PDF bytes for specimen document records without writing a file.
   ///
   /// [sheetWidthPt] and [sheetHeightPt] are the physical output page dimensions
   /// in Typst points.
-  Future<Uint8List> generateDocumentsPdf(List<SpecimenData> specimens,
-      {required double sheetWidthPt,
-      required double sheetHeightPt,
-      required rust_config.DocumentLayoutPreset layout}) {
-    return _pdfBuilder.generateDocumentsPdf(specimens,
-        sheetWidthPt: sheetWidthPt,
-        sheetHeightPt: sheetHeightPt,
-        layout: layout);
+  Future<Uint8List> generateDocumentsPdf(
+    List<SpecimenData> specimens, {
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _pdfBuilder.generateDocumentsPdf(
+      specimens,
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+    );
   }
 
   /// Generates PDF bytes for site document records without writing a file.
   ///
   /// [sheetWidthPt] and [sheetHeightPt] are the physical output page dimensions
   /// in Typst points.
-  Future<Uint8List> generateSitesPdf(List<SiteData> sites,
-      {required double sheetWidthPt,
-      required double sheetHeightPt,
-      required rust_config.DocumentLayoutPreset layout}) {
-    return _pdfBuilder.generateSitesPdf(sites,
-        sheetWidthPt: sheetWidthPt,
-        sheetHeightPt: sheetHeightPt,
-        layout: layout);
+  Future<Uint8List> generateSitesPdf(
+    List<SiteData> sites, {
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _pdfBuilder.generateSitesPdf(
+      sites,
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+    );
   }
 
   /// Generates PDF bytes for collecting event document records without writing
@@ -149,46 +186,56 @@ class DocumentWriter {
   ///
   /// [sheetWidthPt] and [sheetHeightPt] are the physical output page dimensions
   /// in Typst points.
-  Future<Uint8List> generateEventsPdf(List<CollEventData> events,
-      {required double sheetWidthPt,
-      required double sheetHeightPt,
-      required rust_config.DocumentLayoutPreset layout}) {
-    return _pdfBuilder.generateEventsPdf(events,
-        sheetWidthPt: sheetWidthPt,
-        sheetHeightPt: sheetHeightPt,
-        layout: layout);
+  Future<Uint8List> generateEventsPdf(
+    List<CollEventData> events, {
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _pdfBuilder.generateEventsPdf(
+      events,
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+    );
   }
 
   /// Generates PDF bytes for narrative document records without writing a file.
   ///
   /// [sheetWidthPt] and [sheetHeightPt] are the physical output page dimensions
   /// in Typst points.
-  Future<Uint8List> generateNarrativesPdf(List<NarrativeData> narratives,
-      {required double sheetWidthPt,
-      required double sheetHeightPt,
-      required rust_config.DocumentLayoutPreset layout}) {
-    return _pdfBuilder.generateNarrativesPdf(narratives,
-        sheetWidthPt: sheetWidthPt,
-        sheetHeightPt: sheetHeightPt,
-        layout: layout);
+  Future<Uint8List> generateNarrativesPdf(
+    List<NarrativeData> narratives, {
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+  }) {
+    return _pdfBuilder.generateNarrativesPdf(
+      narratives,
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+    );
   }
 
   /// Generates PDF bytes for the full mixed-record document [layout].
   ///
   /// When [isPreview] is true, [previewRecords] supplies the record identifiers
   /// used for each template block instead of the current provider selection.
-  Future<Uint8List> generateLayoutPdf(
-      {required double sheetWidthPt,
-      required double sheetHeightPt,
-      required rust_config.DocumentLayoutPreset layout,
-      bool isPreview = false,
-      List<String>? previewRecords}) {
+  Future<Uint8List> generateLayoutPdf({
+    required double sheetWidthPt,
+    required double sheetHeightPt,
+    required rust_config.DocumentLayoutPreset layout,
+    bool isPreview = false,
+    List<String>? previewRecords,
+  }) {
     return _pdfBuilder.generateLayoutPdf(
-        sheetWidthPt: sheetWidthPt,
-        sheetHeightPt: sheetHeightPt,
-        layout: layout,
-        isPreview: isPreview,
-        previewRecords: previewRecords);
+      sheetWidthPt: sheetWidthPt,
+      sheetHeightPt: sheetHeightPt,
+      layout: layout,
+      isPreview: isPreview,
+      previewRecords: previewRecords,
+    );
   }
 
   /// Returns the production page-break flags for rendered sheets.
@@ -196,9 +243,7 @@ class DocumentWriter {
   static List<bool> sheetPageBreakPlanForTesting({
     required List<bool> forcePageBreakAfter,
   }) {
-    return _DocumentPdfSheetPagination.pageBreakPlan(
-      forcePageBreakAfter,
-    );
+    return _DocumentPdfSheetPagination.pageBreakPlan(forcePageBreakAfter);
   }
 
   /// Returns all page elements sorted by their z-index.
@@ -299,15 +344,18 @@ class DocumentWriter {
   /// template attached to each block.
   @visibleForTesting
   static Future<
-      List<
-          ({
-            List<Map<String, String>> cellData,
-            List<bool> mirrors,
-            List<double> canvasWidths,
-            List<double> canvasHeights,
-            bool autoFill,
-            bool forcePageBreakAfter,
-          })>> planDocumentSheetsForTesting({
+    List<
+      ({
+        List<Map<String, String>> cellData,
+        List<bool> mirrors,
+        List<double> canvasWidths,
+        List<double> canvasHeights,
+        bool autoFill,
+        bool forcePageBreakAfter,
+      })
+    >
+  >
+  planDocumentSheetsForTesting({
     required rust_config.DocumentLayoutPreset layout,
     required List<Template> templates,
     required List<List<Map<String, String>>> dataByBlock,
@@ -329,13 +377,13 @@ class DocumentWriter {
     final testTemplates = [
       for (final template in templates)
         template.copyWith(
-          printOptions: duplex == null &&
-                  mirrorFront == null &&
-                  mirrorBack == null
+          printOptions:
+              duplex == null && mirrorFront == null && mirrorBack == null
               ? template.printOptions
               : TemplatePrintOptions(
                   isDuplex: duplex ?? template.printOptions?.isDuplex ?? false,
-                  mirrorFront: mirrorFront ??
+                  mirrorFront:
+                      mirrorFront ??
                       template.printOptions?.mirrorFront ??
                       false,
                   mirrorBack:
@@ -357,14 +405,15 @@ class DocumentWriter {
           data: dataByBlock[index],
         ),
     ];
-    final sheets = await _DocumentPdfSheetPlanner(
-      substitutePage: (page, _) async => page,
-    ).plan(
-      layout: layout,
-      blocks: blocks,
-      usableW: usableWidthPt,
-      usableH: usableHeightPt,
-    );
+    final sheets =
+        await _DocumentPdfSheetPlanner(
+          substitutePage: (page, _) async => page,
+        ).plan(
+          layout: layout,
+          blocks: blocks,
+          usableW: usableWidthPt,
+          usableH: usableHeightPt,
+        );
     return [
       for (final sheet in sheets)
         (
@@ -381,7 +430,7 @@ class DocumentWriter {
   /// Plans continuous items without page substitution for regression tests.
   @visibleForTesting
   static List<({Map<String, String> data, bool mirror})>
-      planContinuousItemsForTesting({
+  planContinuousItemsForTesting({
     required rust_config.DocumentLayoutPreset layout,
     required List<Template> templates,
     required List<List<Map<String, String>>> dataByBlock,
@@ -398,13 +447,13 @@ class DocumentWriter {
     final testTemplates = [
       for (final template in templates)
         template.copyWith(
-          printOptions: duplex == null &&
-                  mirrorFront == null &&
-                  mirrorBack == null
+          printOptions:
+              duplex == null && mirrorFront == null && mirrorBack == null
               ? template.printOptions
               : TemplatePrintOptions(
                   isDuplex: duplex ?? template.printOptions?.isDuplex ?? false,
-                  mirrorFront: mirrorFront ??
+                  mirrorFront:
+                      mirrorFront ??
                       template.printOptions?.mirrorFront ??
                       false,
                   mirrorBack:
@@ -421,10 +470,7 @@ class DocumentWriter {
         ),
     ];
     return const _DocumentPdfContinuousPlanner()
-        .plan(
-          blocks: blocks,
-          multiBlockMode: layout.multiBlockMode,
-        )
+        .plan(blocks: blocks, multiBlockMode: layout.multiBlockMode)
         .map((item) => (data: item.data, mirror: item.mirror))
         .toList(growable: false);
   }

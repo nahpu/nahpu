@@ -20,27 +20,6 @@ Future<void> writeTabularRecords({
   exportFormat: exportFormat,
 );
 
-Future<Uint8List> generateDocument({
-  required String jsonContent,
-  required String exportFormat,
-  required List<Uint8List> fontBytes,
-}) => RustLib.instance.api.crateApiExportGenerateDocument(
-  jsonContent: jsonContent,
-  exportFormat: exportFormat,
-  fontBytes: fontBytes,
-);
-
-Future<Uint8List> compileTypstToPdf({
-  required String typstContent,
-  required List<Uint8List> fontBytes,
-}) => RustLib.instance.api.crateApiExportCompileTypstToPdf(
-  typstContent: typstContent,
-  fontBytes: fontBytes,
-);
-
-Future<String> markdownToTypst({required String mdContent}) =>
-    RustLib.instance.api.crateApiExportMarkdownToTypst(mdContent: mdContent);
-
 class RecordWriter {
   /// JSON string containing the records to be exported.
   final String jsonContent;

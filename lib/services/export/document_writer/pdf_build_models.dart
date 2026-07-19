@@ -1,9 +1,7 @@
 part of '../document_writer.dart';
 
-typedef _DocumentPageSubstitutor = Future<TemplatePage> Function(
-  TemplatePage page,
-  Map<String, String> data,
-);
+typedef _DocumentPageSubstitutor =
+    Future<TemplatePage> Function(TemplatePage page, Map<String, String> data);
 
 /// Inputs shared by the typed-record and mixed-record PDF entry points.
 class _DocumentPdfBlockInput {
@@ -83,10 +81,8 @@ class _DocumentSheetRow {
 
   final List<_DocumentSheetCell> cells;
 
-  double get heightPt => cells.fold<double>(
-        0,
-        (height, cell) => math.max(height, cell.heightPt),
-      );
+  double get heightPt =>
+      cells.fold<double>(0, (height, cell) => math.max(height, cell.heightPt));
 }
 
 class _DocumentSheetCell {

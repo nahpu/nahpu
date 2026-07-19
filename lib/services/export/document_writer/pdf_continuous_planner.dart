@@ -9,15 +9,9 @@ class _DocumentPdfContinuousPlanner {
   }) {
     final items = <_DocumentContinuousPrintItem>[];
     if (multiBlockMode == 'Alternate') {
-      _appendAlternate(
-        items: items,
-        blocks: blocks,
-      );
+      _appendAlternate(items: items, blocks: blocks);
     } else {
-      _appendGrouped(
-        items: items,
-        blocks: blocks,
-      );
+      _appendGrouped(items: items, blocks: blocks);
     }
     return items;
   }
@@ -48,11 +42,7 @@ class _DocumentPdfContinuousPlanner {
   }) {
     for (final block in blocks) {
       for (final data in block.data) {
-        _appendRecordCopies(
-          items: items,
-          block: block,
-          data: data,
-        );
+        _appendRecordCopies(items: items, block: block, data: data);
       }
     }
   }

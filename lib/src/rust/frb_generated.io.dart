@@ -6,6 +6,7 @@
 import 'api/archive.dart';
 import 'api/common.dart';
 import 'api/config.dart';
+import 'api/document.dart';
 import 'api/dwc.dart';
 import 'api/export.dart';
 import 'api/gis.dart';
@@ -46,6 +47,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double dco_decode_box_autoadd_f_64(dynamic raw);
 
   @protected
+  GeographicBoundsFfi dco_decode_box_autoadd_geographic_bounds_ffi(dynamic raw);
+
+  @protected
   RecordReader dco_decode_box_autoadd_record_reader(dynamic raw);
 
   @protected
@@ -68,6 +72,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ConfigPresetEntry dco_decode_config_preset_entry(dynamic raw);
+
+  @protected
+  CoordinateAxis dco_decode_coordinate_axis(dynamic raw);
 
   @protected
   CoordinateExportFormat dco_decode_coordinate_export_format(dynamic raw);
@@ -100,6 +107,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   double dco_decode_f_64(dynamic raw);
+
+  @protected
+  GeographicBoundsFfi dco_decode_geographic_bounds_ffi(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -144,9 +154,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<Uint8List> dco_decode_list_list_prim_u_8_strict(dynamic raw);
 
   @protected
-  Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
-
-  @protected
   Int32List dco_decode_list_prim_i_32_strict(dynamic raw);
 
   @protected
@@ -175,10 +182,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
 
   @protected
-  List<String>? dco_decode_opt_list_String(dynamic raw);
+  GeographicBoundsFfi? dco_decode_opt_box_autoadd_geographic_bounds_ffi(
+    dynamic raw,
+  );
 
   @protected
-  Float64List? dco_decode_opt_list_prim_f_64_strict(dynamic raw);
+  List<String>? dco_decode_opt_list_String(dynamic raw);
 
   @protected
   (double, double) dco_decode_record_f_64_f_64(dynamic raw);
@@ -246,6 +255,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
+  GeographicBoundsFfi sse_decode_box_autoadd_geographic_bounds_ffi(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RecordReader sse_decode_box_autoadd_record_reader(
     SseDeserializer deserializer,
   );
@@ -280,6 +294,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ConfigPresetEntry sse_decode_config_preset_entry(
     SseDeserializer deserializer,
   );
+
+  @protected
+  CoordinateAxis sse_decode_coordinate_axis(SseDeserializer deserializer);
 
   @protected
   CoordinateExportFormat sse_decode_coordinate_export_format(
@@ -322,6 +339,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
+  GeographicBoundsFfi sse_decode_geographic_bounds_ffi(
+    SseDeserializer deserializer,
+  );
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -376,9 +398,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
-
-  @protected
   Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer);
 
   @protected
@@ -411,12 +430,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
-  List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
-
-  @protected
-  Float64List? sse_decode_opt_list_prim_f_64_strict(
+  GeographicBoundsFfi? sse_decode_opt_box_autoadd_geographic_bounds_ffi(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
 
   @protected
   (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer);
@@ -491,6 +510,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_geographic_bounds_ffi(
+    GeographicBoundsFfi self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_record_reader(
     RecordReader self,
     SseSerializer serializer,
@@ -535,6 +560,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_config_preset_entry(
     ConfigPresetEntry self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_coordinate_axis(
+    CoordinateAxis self,
     SseSerializer serializer,
   );
 
@@ -591,6 +622,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_geographic_bounds_ffi(
+    GeographicBoundsFfi self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
@@ -659,12 +696,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_list_prim_f_64_strict(
-    Float64List self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_list_prim_i_32_strict(
     Int32List self,
     SseSerializer serializer,
@@ -707,13 +738,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
 
   @protected
-  void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_opt_list_prim_f_64_strict(
-    Float64List? self,
+  void sse_encode_opt_box_autoadd_geographic_bounds_ffi(
+    GeographicBoundsFfi? self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_f_64_f_64(

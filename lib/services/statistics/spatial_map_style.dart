@@ -66,59 +66,63 @@ class SpatialMapStyleService {
     required SpatialBasemapStyle style,
     required bool isDark,
     required ColorScheme colorScheme,
-    required List<CoordinateMapPoint> points,
-    required int? selectedPointId,
   }) {
     final resolved = style.resolve(isDark: isDark);
     final signature = [
       'coordinates',
       resolved.name,
       colorScheme.primary.toARGB32(),
+      colorScheme.onSurfaceVariant.toARGB32(),
       colorScheme.surfaceContainerHighest.toARGB32(),
-      selectedPointId,
-      for (final point in points)
-        '${point.id}:${point.latitude}:${point.longitude}',
     ].join('|');
     return _cache.putIfAbsent(
       signature,
-      () => _buildCoordinatePoints(
-        style: resolved,
-        colorScheme: colorScheme,
-        points: points,
-        selectedPointId: selectedPointId,
-      ),
+      () => _buildCoordinatePoints(style: resolved, colorScheme: colorScheme),
     );
+  }
+
+  static String coordinateFeatureCollection({
+    required List<CoordinateMapPoint> points,
+    required Set<int> selectedPointIds,
+    required int? focusedPointId,
+  }) {
+    return jsonEncode({
+      'type': 'FeatureCollection',
+      'features': [
+        for (final point in points.where((point) => point.isMappable))
+          {
+            'type': 'Feature',
+            'id': point.id,
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [point.longitude, point.latitude],
+            },
+            'properties': {
+              'coordinateId': point.id,
+              'name': point.name,
+              'selected': selectedPointIds.contains(point.id),
+              'focused': point.id == focusedPointId,
+            },
+          },
+      ],
+    });
   }
 
   static Future<String> _buildCoordinatePoints({
     required SpatialBasemapStyle style,
     required ColorScheme colorScheme,
-    required List<CoordinateMapPoint> points,
-    required int? selectedPointId,
   }) async {
     final base = await _loadBaseStyle(style);
     final sources = Map<String, dynamic>.from(base['sources'] as Map? ?? {});
     sources[coordinateSourceId] = {
       'type': 'geojson',
-      'data': {
-        'type': 'FeatureCollection',
-        'features': [
-          for (final point in points.where((point) => point.isMappable))
-            {
-              'type': 'Feature',
-              'id': point.id,
-              'geometry': {
-                'type': 'Point',
-                'coordinates': [point.longitude, point.latitude],
-              },
-              'properties': {
-                'coordinateId': point.id,
-                'name': point.name,
-                'selected': point.id == selectedPointId,
-              },
-            },
-        ],
-      },
+      'data': jsonDecode(
+        coordinateFeatureCollection(
+          points: const [],
+          selectedPointIds: const {},
+          focusedPointId: null,
+        ),
+      ),
     };
     base['sources'] = sources;
     final layers = (base['layers'] as List? ?? const [])
@@ -161,21 +165,27 @@ class SpatialMapStyleService {
       'paint': {
         'circle-radius': [
           'case',
-          ['get', 'selected'],
+          ['get', 'focused'],
           11,
+          ['get', 'selected'],
           8,
+          7,
         ],
         'circle-color': [
           'case',
-          ['get', 'selected'],
+          ['get', 'focused'],
           _hex(colorScheme.error),
+          ['get', 'selected'],
           _hex(colorScheme.primary),
+          _hex(colorScheme.onSurfaceVariant),
         ],
         'circle-opacity': [
           'case',
-          ['get', 'selected'],
+          ['get', 'focused'],
           1,
+          ['get', 'selected'],
           0.78,
+          0.62,
         ],
         'circle-stroke-color': _hex(colorScheme.surface),
         'circle-stroke-width': 2,

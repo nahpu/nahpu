@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -19,15 +20,21 @@ class CoordinateLocationMap extends ConsumerWidget {
     required this.points,
     required this.selectedPointId,
     required this.onPointSelected,
+    this.selectedPointIds,
+    this.focusRequest = 0,
   });
 
   final List<CoordinateMapPoint> points;
+  final Set<int>? selectedPointIds;
   final int? selectedPointId;
+  final int focusRequest;
   final ValueChanged<int> onPointSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mappable = points.where((point) => point.isMappable).toList();
+    final selectedIds =
+        selectedPointIds ?? {for (final point in mappable) point.id};
     if (Platform.isLinux) {
       return FutureBuilder<List<NaturalEarthPolygon>>(
         future: _naturalEarthPolygons,
@@ -39,7 +46,9 @@ class CoordinateLocationMap extends ConsumerWidget {
           return _NaturalEarthCoordinateMap(
             points: mappable,
             polygons: snapshot.data!,
+            selectedPointIds: selectedIds,
             selectedPointId: selectedPointId,
+            focusRequest: focusRequest,
             onPointSelected: onPointSelected,
           );
         },
@@ -50,7 +59,9 @@ class CoordinateLocationMap extends ConsumerWidget {
         SpatialBasemapStyle.automatic;
     return _MapLibreCoordinateMap(
       points: mappable,
+      selectedPointIds: selectedIds,
       selectedPointId: selectedPointId,
+      focusRequest: focusRequest,
       onPointSelected: onPointSelected,
       basemap: basemap,
     );
@@ -64,13 +75,17 @@ class _NaturalEarthCoordinateMap extends StatefulWidget {
   const _NaturalEarthCoordinateMap({
     required this.points,
     required this.polygons,
+    required this.selectedPointIds,
     required this.selectedPointId,
+    required this.focusRequest,
     required this.onPointSelected,
   });
 
   final List<CoordinateMapPoint> points;
   final List<NaturalEarthPolygon> polygons;
+  final Set<int> selectedPointIds;
   final int? selectedPointId;
+  final int focusRequest;
   final ValueChanged<int> onPointSelected;
 
   @override
@@ -87,7 +102,8 @@ class _NaturalEarthCoordinateMapState
   @override
   void didUpdateWidget(covariant _NaturalEarthCoordinateMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selectedPointId != oldWidget.selectedPointId) {
+    if (widget.selectedPointId != oldWidget.selectedPointId ||
+        widget.focusRequest != oldWidget.focusRequest) {
       final point = widget.points
           .where((candidate) => candidate.id == widget.selectedPointId)
           .firstOrNull;
@@ -150,7 +166,8 @@ class _NaturalEarthCoordinateMapState
                       width: 34,
                       height: 34,
                       child: _MapMarker(
-                        selected: point.id == widget.selectedPointId,
+                        selected: widget.selectedPointIds.contains(point.id),
+                        focused: point.id == widget.selectedPointId,
                         label: point.name,
                         onTap: () => widget.onPointSelected(point.id),
                       ),
@@ -238,13 +255,17 @@ class _NaturalEarthCoordinateMapState
 class _MapLibreCoordinateMap extends StatefulWidget {
   const _MapLibreCoordinateMap({
     required this.points,
+    required this.selectedPointIds,
     required this.selectedPointId,
+    required this.focusRequest,
     required this.onPointSelected,
     required this.basemap,
   });
 
   final List<CoordinateMapPoint> points;
+  final Set<int> selectedPointIds;
   final int? selectedPointId;
+  final int focusRequest;
   final ValueChanged<int> onPointSelected;
   final SpatialBasemapStyle basemap;
 
@@ -263,12 +284,14 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   @override
   void didUpdateWidget(covariant _MapLibreCoordinateMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.basemap != oldWidget.basemap ||
-        widget.points != oldWidget.points) {
-      _styleReady = false;
-    }
-    if (widget.selectedPointId != oldWidget.selectedPointId && _isReady) {
-      _focusSelected();
+    if (_isReady) {
+      unawaited(
+        _updateCoordinates(
+          focus:
+              widget.selectedPointId != oldWidget.selectedPointId ||
+              widget.focusRequest != oldWidget.focusRequest,
+        ),
+      );
     }
   }
 
@@ -288,8 +311,6 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
       style: widget.basemap,
       isDark: isDark,
       colorScheme: colorScheme,
-      points: widget.points,
-      selectedPointId: widget.selectedPointId,
     );
     return FutureBuilder<String>(
       future: style,
@@ -384,6 +405,20 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
     );
   }
 
+  Future<void> _updateCoordinates({required bool focus}) async {
+    final style = _controller?.style;
+    if (!_isReady || style == null) return;
+    await style.updateGeoJsonSource(
+      id: SpatialMapStyleService.coordinateSourceId,
+      data: SpatialMapStyleService.coordinateFeatureCollection(
+        points: widget.points,
+        selectedPointIds: widget.selectedPointIds,
+        focusedPointId: widget.selectedPointId,
+      ),
+    );
+    if (focus && _isReady) await _focusSelected();
+  }
+
   Future<void> _changeZoom(double amount) async {
     final controller = _controller;
     if (!_isReady || controller == null) return;
@@ -427,6 +462,7 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   Future<void> _onStyleLoaded() async {
     if (!mounted || !_mapCreated) return;
     _styleReady = true;
+    await _updateCoordinates(focus: false);
     if (_resetPending) {
       _resetPending = false;
       await _resetCamera();
@@ -488,11 +524,13 @@ class _MapControls extends StatelessWidget {
 class _MapMarker extends StatelessWidget {
   const _MapMarker({
     required this.selected,
+    required this.focused,
     required this.label,
     required this.onTap,
   });
 
   final bool selected;
+  final bool focused;
   final String label;
   final VoidCallback onTap;
 
@@ -506,10 +544,16 @@ class _MapMarker extends StatelessWidget {
         onTap: onTap,
         child: Icon(
           Icons.location_on,
-          size: selected ? 34 : 28,
-          color: selected
+          size: focused
+              ? 34
+              : selected
+              ? 28
+              : 26,
+          color: focused
               ? Theme.of(context).colorScheme.error
-              : Theme.of(context).colorScheme.primary,
+              : selected
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     ),

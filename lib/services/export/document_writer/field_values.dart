@@ -13,8 +13,10 @@ Future<Map<String, String>> documentFieldValuesForSpecimen(
   final m = <String, String>{};
 
   try {
-    final exporter =
-        DynamicRecordExporter(ref: ref, concatenateMultiEntry: true);
+    final exporter = DynamicRecordExporter(
+      ref: ref,
+      concatenateMultiEntry: true,
+    );
     final records = await exporter.getRecord(s);
     if (records.isNotEmpty) {
       m.addAll(records.first);
@@ -69,15 +71,16 @@ Future<Map<String, String>> documentFieldValuesForSite(
   m['site::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
   m['site::coordinates'] = await writer.getCoordinates(s.id);
 
-  final coordinates = await CoordinateServices(ref: ref).getCoordinatesBySiteID(
-    s.id,
-  );
+  final coordinates = await CoordinateServices(
+    ref: ref,
+  ).getCoordinatesBySiteID(s.id);
   m.addAll(buildCoordinateFieldValues(coordinates));
 
   if (s.leadStaffId != null) {
     try {
-      final p =
-          await PersonnelServices(ref: ref).getPersonnelByUuid(s.leadStaffId!);
+      final p = await PersonnelServices(
+        ref: ref,
+      ).getPersonnelByUuid(s.leadStaffId!);
       for (var entry in p.toJson().entries) {
         m['personnel::${entry.key}'] = entry.value?.toString() ?? '';
       }
@@ -146,7 +149,7 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
     'brand',
     'count',
     'size',
-    'notes'
+    'notes',
   ];
   for (var col in effortColumns) {
     m['collEffort::$col'] = '';
@@ -158,8 +161,9 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
   }
 
   // Site details
-  final siteDetails =
-      await SiteWriterServices(ref: ref).getSiteDetails(s.siteID);
+  final siteDetails = await SiteWriterServices(
+    ref: ref,
+  ).getSiteDetails(s.siteID);
   for (var i = 0; i < siteExportList.length; i++) {
     m[siteExportList[i]] = siteDetails[i];
   }
@@ -171,9 +175,11 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
       // A collecting event owns personnel through collPersonnel. Site lead
       // staff remains a site concern and must not leak into the event template
       // as a second, unrelated personnel table.
-      m.addEntries(siteVals.entries.where(
-        (entry) => !entry.key.toLowerCase().startsWith('personnel::'),
-      ));
+      m.addEntries(
+        siteVals.entries.where(
+          (entry) => !entry.key.toLowerCase().startsWith('personnel::'),
+        ),
+      );
     }
   }
 
@@ -200,10 +206,13 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
   m['event::endTime'] = s.endTime ?? '';
 
   final methods = await _getEventEffort(ref, s.id);
-  final collectingPersonnel =
-      await CollEventServices(ref: ref).getAllCollPersonnel(s.id);
-  final resolvedCollectingPersonnel =
-      await _resolveCollPersonnelNames(ref, collectingPersonnel);
+  final collectingPersonnel = await CollEventServices(
+    ref: ref,
+  ).getAllCollPersonnel(s.id);
+  final resolvedCollectingPersonnel = await _resolveCollPersonnelNames(
+    ref,
+    collectingPersonnel,
+  );
   final personnel = buildCollPersonnelSummary(resolvedCollectingPersonnel);
   m['collEvent::methods'] = methods;
   m['event::methods'] = methods;
@@ -214,14 +223,16 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
   final efforts = await CollEventServices(ref: ref).getAllCollEffort(s.id);
   if (efforts.isNotEmpty) {
     final Set<String> effortKeys = {};
-    final List<Map<String, dynamic>> effortJsons =
-        efforts.map((e) => e.toJson()).toList();
+    final List<Map<String, dynamic>> effortJsons = efforts
+        .map((e) => e.toJson())
+        .toList();
     for (var effortJson in effortJsons) {
       effortKeys.addAll(effortJson.keys);
     }
     for (var key in effortKeys) {
-      final combined =
-          effortJsons.map((e) => e[key]?.toString() ?? '').join(' | ');
+      final combined = effortJsons
+          .map((e) => e[key]?.toString() ?? '')
+          .join(' | ');
       m['collEffort::$key'] = combined;
     }
   }
@@ -244,8 +255,9 @@ Map<String, String> buildCollPersonnelFieldValues(
   final rows = personnel.map((entry) => entry.toJson()).toList();
 
   for (final column in columns) {
-    values['collPersonnel::$column'] =
-        rows.map((row) => row[column]?.toString() ?? '').join(writerSeparator);
+    values['collPersonnel::$column'] = rows
+        .map((row) => row[column]?.toString() ?? '')
+        .join(writerSeparator);
   }
   return values;
 }
@@ -270,29 +282,34 @@ Future<List<CollPersonnelData>> _resolveCollPersonnelNames(
   WidgetRef ref,
   List<CollPersonnelData> personnel,
 ) async {
-  return Future.wait(personnel.map((entry) async {
-    if ((entry.name?.trim().isNotEmpty ?? false) || entry.personnelId == null) {
-      return entry;
-    }
-    try {
-      final linked = await PersonnelServices(ref: ref)
-          .getPersonnelByUuid(entry.personnelId!);
-      return CollPersonnelData(
-        id: entry.id,
-        eventID: entry.eventID,
-        personnelId: entry.personnelId,
-        name: linked.name,
-        role: entry.role,
-      );
-    } catch (_) {
-      return entry;
-    }
-  }));
+  return Future.wait(
+    personnel.map((entry) async {
+      if ((entry.name?.trim().isNotEmpty ?? false) ||
+          entry.personnelId == null) {
+        return entry;
+      }
+      try {
+        final linked = await PersonnelServices(
+          ref: ref,
+        ).getPersonnelByUuid(entry.personnelId!);
+        return CollPersonnelData(
+          id: entry.id,
+          eventID: entry.eventID,
+          personnelId: entry.personnelId,
+          name: linked.name,
+          role: entry.role,
+        );
+      } catch (_) {
+        return entry;
+      }
+    }),
+  );
 }
 
 Future<String> _getEventEffort(WidgetRef ref, int id) async {
-  List<CollEffortData> effort =
-      await CollEventServices(ref: ref).getAllCollEffort(id);
+  List<CollEffortData> effort = await CollEventServices(
+    ref: ref,
+  ).getAllCollEffort(id);
   return effort.map((e) => '"${e.method}";${e.count}').join(writerSeparator);
 }
 
@@ -327,8 +344,9 @@ Future<Map<String, String>> documentFieldValuesForNarrative(
 
   if (s.writerId != null) {
     try {
-      final p =
-          await PersonnelServices(ref: ref).getPersonnelByUuid(s.writerId!);
+      final p = await PersonnelServices(
+        ref: ref,
+      ).getPersonnelByUuid(s.writerId!);
       for (var entry in p.toJson().entries) {
         m['personnel::${entry.key}'] = entry.value?.toString() ?? '';
       }

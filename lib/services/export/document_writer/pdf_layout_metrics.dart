@@ -66,11 +66,13 @@ class _DocumentPdfLayoutMetrics {
     required double wPt,
     required double hPt,
   }) {
-    final hasDynamicText = page.customTexts.any((text) =>
-        text.isVisible &&
-        text.isDynamic &&
-        !text.isQrCode &&
-        templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null);
+    final hasDynamicText = page.customTexts.any(
+      (text) =>
+          text.isVisible &&
+          text.isDynamic &&
+          !text.isQrCode &&
+          templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null,
+    );
     if (hasDynamicText) {
       return _estimateFlowTemplateContentHeightPt(page: page, wPt: wPt);
     }
@@ -80,13 +82,11 @@ class _DocumentPdfLayoutMetrics {
     for (final text in page.customTexts) {
       if (!text.isVisible) continue;
       hasVisibleContent = true;
-      final genderIconKey =
-          templateSpecimenSexIconFieldKeyFromBracketText(text.text);
+      final genderIconKey = templateSpecimenSexIconFieldKeyFromBracketText(
+        text.text,
+      );
       if (text.isQrCode) {
-        height = math.max(
-          height,
-          documentPdfMmToPt(text.yMm + text.qrSizeMm),
-        );
+        height = math.max(height, documentPdfMmToPt(text.yMm + text.qrSizeMm));
       } else if (genderIconKey != null) {
         height = math.max(
           height,
@@ -96,7 +96,8 @@ class _DocumentPdfLayoutMetrics {
           ),
         );
       } else {
-        final bottom = documentPdfMmToPt(text.yMm) +
+        final bottom =
+            documentPdfMmToPt(text.yMm) +
             _estimateTextHeightPt(
               text.text,
               text.fontSizePt,
@@ -129,14 +130,18 @@ class _DocumentPdfLayoutMetrics {
     required TemplatePage page,
     required double wPt,
   }) {
-    final dynamicTexts = page.customTexts
-        .where((text) =>
-            text.isVisible &&
-            text.isDynamic &&
-            !text.isQrCode &&
-            templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null)
-        .toList()
-      ..sort((a, b) => a.yMm.compareTo(b.yMm));
+    final dynamicTexts =
+        page.customTexts
+            .where(
+              (text) =>
+                  text.isVisible &&
+                  text.isDynamic &&
+                  !text.isQrCode &&
+                  templateSpecimenSexIconFieldKeyFromBracketText(text.text) ==
+                      null,
+            )
+            .toList()
+          ..sort((a, b) => a.yMm.compareTo(b.yMm));
     final dynamicHeightByText = <CustomTextElement, double>{
       for (final text in dynamicTexts) text: _dynamicTextHeightPt(text, wPt),
     };
@@ -160,16 +165,17 @@ class _DocumentPdfLayoutMetrics {
 
     var height = 0.0;
     for (final element in _sortTemplateElements(page)) {
-      final bottom = element is CustomTextElement &&
+      final bottom =
+          element is CustomTextElement &&
               dynamicHeightByText.containsKey(element)
           ? flowTopByText[element]! + dynamicHeightByText[element]!
           : _elementBottomPt(element, wPt) +
-              _dynamicFlowShiftPt(
-                dynamicTexts: dynamicTexts,
-                clearanceBottomByText: clearanceBottomByText,
-                targetYmm: _elementTopMm(element),
-                excludeElement: element,
-              );
+                _dynamicFlowShiftPt(
+                  dynamicTexts: dynamicTexts,
+                  clearanceBottomByText: clearanceBottomByText,
+                  targetYmm: _elementTopMm(element),
+                  excludeElement: element,
+                );
       if (bottom > 0) height = math.max(height, bottom);
     }
     return height;
@@ -229,8 +235,9 @@ class _DocumentPdfLayoutMetrics {
     if (element is CustomLineElement) return _customLineBottomPt(element);
     if (element is CustomShapeElement) return _customShapeBottomPt(element);
     if (element is! CustomTextElement) return 0;
-    final genderIconKey =
-        templateSpecimenSexIconFieldKeyFromBracketText(element.text);
+    final genderIconKey = templateSpecimenSexIconFieldKeyFromBracketText(
+      element.text,
+    );
     if (element.isQrCode) {
       return documentPdfMmToPt(element.yMm + element.qrSizeMm);
     }
@@ -243,16 +250,16 @@ class _DocumentPdfLayoutMetrics {
     final heightPt = element.heightMm != null
         ? documentPdfMmToPt(element.heightMm!)
         : _estimateTextHeightPt(
-              formatTemplateText(
-                element.text,
-                element.textType,
-                element.formatOption,
-                element.caseFormat,
-              ),
-              element.fontSizePt,
-              _textContentWidthPt(element, wPt),
-            ) +
-            _textBoxVerticalExtraPt(element);
+                formatTemplateText(
+                  element.text,
+                  element.textType,
+                  element.formatOption,
+                  element.caseFormat,
+                ),
+                element.fontSizePt,
+                _textContentWidthPt(element, wPt),
+              ) +
+              _textBoxVerticalExtraPt(element);
     return documentPdfMmToPt(element.yMm) + heightPt;
   }
 
@@ -292,7 +299,9 @@ class _DocumentPdfLayoutMetrics {
 
   static double _textContentWidthPt(CustomTextElement text, double wPt) {
     return math.max(
-        1.0, _textMaxWidthPt(text, wPt) - _textBoxPaddingTotalPt(text));
+      1.0,
+      _textMaxWidthPt(text, wPt) - _textBoxPaddingTotalPt(text),
+    );
   }
 
   static double _textBoxVerticalExtraPt(CustomTextElement text) {

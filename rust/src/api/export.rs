@@ -1,5 +1,4 @@
 use nahpu_db::io::export::RecordExporter;
-use nahpu_export::DocumentExport;
 use std::path::Path;
 
 pub struct RecordWriter {
@@ -80,30 +79,4 @@ impl RecordWriter {
             _ => Err(format!("Unsupported export format: {}", self.export_format)),
         }
     }
-}
-
-pub fn generate_document(
-    json_content: String,
-    export_format: String,
-    font_bytes: Vec<Vec<u8>>,
-) -> Result<Vec<u8>, String> {
-    let exporter = DocumentExport::new(&json_content)
-        .map_err(|e| format!("Failed to parse Document JSON: {}", e))?;
-
-    match export_format.as_str() {
-        "md" => Ok(exporter.to_markdown().into_bytes()),
-        "typ" => Ok(exporter.to_typst().into_bytes()),
-        "pdf" => exporter.to_pdf(font_bytes),
-        _ => Err(format!("Unsupported export format: {}", export_format)),
-    }
-}
-
-pub fn compile_typst_to_pdf(
-    typst_content: String,
-    font_bytes: Vec<Vec<u8>>,
-) -> Result<Vec<u8>, String> {
-    nahpu_export::typst_compiler::compile_to_pdf(&typst_content, font_bytes)
-}
-pub fn markdown_to_typst(md_content: String) -> String {
-    nahpu_export::markdown_to_typst(&md_content)
 }

@@ -737,8 +737,8 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
     final lon = widget.coordinate.decimalLongitude;
     if (lat != null && lon != null) {
       try {
-        final dmsLat = await ddToDms(dd: lat, isLatitude: true);
-        final dmsLon = await ddToDms(dd: lon, isLatitude: false);
+        final dmsLat = await ddToDms(dd: lat, axis: CoordinateAxis.latitude);
+        final dmsLon = await ddToDms(dd: lon, axis: CoordinateAxis.longitude);
         if (mounted) {
           setState(() {
             _dmsLatitude = _formatDms(dmsLat);
@@ -1567,7 +1567,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       final lat = double.tryParse(latText);
       if (lat != null) {
         try {
-          final dmsLat = await ddToDms(dd: lat, isLatitude: true);
+          final dmsLat = await ddToDms(dd: lat, axis: CoordinateAxis.latitude);
           if (mounted) {
             setState(() {
               _dmsLatitude = _formatDms(dmsLat);
@@ -1595,7 +1595,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       final lon = double.tryParse(lonText);
       if (lon != null) {
         try {
-          final dmsLon = await ddToDms(dd: lon, isLatitude: false);
+          final dmsLon = await ddToDms(dd: lon, axis: CoordinateAxis.longitude);
           if (mounted) {
             setState(() {
               _dmsLongitude = _formatDms(dmsLon);
@@ -1776,12 +1776,17 @@ class CoordinateManager extends ConsumerStatefulWidget {
 
 class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
   int? _siteFilterId;
-  int? _selectedCoordinateId;
+  Set<int>? _selectedCoordinateIds;
+  int? _focusedCoordinateId;
+  int _focusRequest = 0;
 
   @override
   Widget build(BuildContext context) {
     final coordinates = ref.watch(coordinateByProjectProvider);
     final sites = ref.watch(siteEntryProvider);
+    final visibleCoordinateIds = _visibleCoordinateIds(coordinates.value ?? []);
+    final selectedCoordinateIds =
+        _selectedCoordinateIds ?? visibleCoordinateIds;
     return Scaffold(
       appBar: AppBar(title: const Text('Manage coordinates')),
       body: SafeArea(
@@ -1791,7 +1796,9 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
             final map = _CoordinateMapPane(
               coordinates: coordinates,
               siteFilterId: _siteFilterId,
-              selectedCoordinateId: _selectedCoordinateId,
+              selectedCoordinateIds: selectedCoordinateIds,
+              focusedCoordinateId: _focusedCoordinateId,
+              focusRequest: _focusRequest,
               onCoordinateSelected: _selectCoordinate,
             );
             if (isWide) {
@@ -1806,9 +1813,14 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                           coordinates: coordinates,
                           sites: sites,
                           siteFilterId: _siteFilterId,
-                          selectedCoordinateId: _selectedCoordinateId,
+                          selectedCoordinateIds: selectedCoordinateIds,
+                          focusedCoordinateId: _focusedCoordinateId,
                           onSiteFilterChanged: _changeSiteFilter,
                           onCoordinateSelected: _selectCoordinate,
+                          onCoordinateSelectionChanged:
+                              _changeCoordinateSelection,
+                          onSelectAll: () => _selectAll(visibleCoordinateIds),
+                          onClearAll: _clearAll,
                           onShareCoordinate: _shareCoordinate,
                         ),
                       ),
@@ -1824,9 +1836,13 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                 coordinates: coordinates,
                 sites: sites,
                 siteFilterId: _siteFilterId,
-                selectedCoordinateId: _selectedCoordinateId,
+                selectedCoordinateIds: selectedCoordinateIds,
+                focusedCoordinateId: _focusedCoordinateId,
                 onSiteFilterChanged: _changeSiteFilter,
                 onCoordinateSelected: _selectCoordinate,
+                onCoordinateSelectionChanged: _changeCoordinateSelection,
+                onSelectAll: () => _selectAll(visibleCoordinateIds),
+                onClearAll: _clearAll,
                 onShareCoordinate: _shareCoordinate,
               ),
             );
@@ -1863,12 +1879,60 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
   void _changeSiteFilter(int? siteId) {
     setState(() {
       _siteFilterId = siteId;
-      _selectedCoordinateId = null;
+      _selectedCoordinateIds = null;
+      _focusedCoordinateId = null;
+      _focusRequest++;
     });
   }
 
   void _selectCoordinate(int coordinateId) {
-    setState(() => _selectedCoordinateId = coordinateId);
+    final visibleIds = _visibleCoordinateIds(
+      ref.read(coordinateByProjectProvider).value ?? [],
+    );
+    setState(() {
+      _selectedCoordinateIds = {
+        ...(_selectedCoordinateIds ?? visibleIds),
+        coordinateId,
+      };
+      _focusedCoordinateId = coordinateId;
+      _focusRequest++;
+    });
+  }
+
+  void _changeCoordinateSelection(int coordinateId, bool selected) {
+    final visibleIds = _visibleCoordinateIds(
+      ref.read(coordinateByProjectProvider).value ?? [],
+    );
+    setState(() {
+      final selection = {...(_selectedCoordinateIds ?? visibleIds)};
+      selected ? selection.add(coordinateId) : selection.remove(coordinateId);
+      _selectedCoordinateIds = selection;
+      if (!selected && _focusedCoordinateId == coordinateId) {
+        _focusedCoordinateId = null;
+        _focusRequest++;
+      }
+    });
+  }
+
+  void _selectAll(Set<int> visibleCoordinateIds) {
+    setState(() => _selectedCoordinateIds = {...visibleCoordinateIds});
+  }
+
+  void _clearAll() {
+    setState(() {
+      _selectedCoordinateIds = {};
+      _focusedCoordinateId = null;
+      _focusRequest++;
+    });
+  }
+
+  Set<int> _visibleCoordinateIds(List<CoordinateData> coordinates) {
+    return {
+      for (final coordinate in coordinates)
+        if (coordinate.id != null &&
+            (_siteFilterId == null || coordinate.siteID == _siteFilterId))
+          coordinate.id!,
+    };
   }
 
   Future<void> _shareCoordinate(CoordinateData coordinate) async {
@@ -2054,25 +2118,34 @@ class _CoordinateManagerListPane extends StatelessWidget {
     required this.coordinates,
     required this.sites,
     required this.siteFilterId,
-    required this.selectedCoordinateId,
+    required this.selectedCoordinateIds,
+    required this.focusedCoordinateId,
     required this.onSiteFilterChanged,
     required this.onCoordinateSelected,
+    required this.onCoordinateSelectionChanged,
+    required this.onSelectAll,
+    required this.onClearAll,
     required this.onShareCoordinate,
   });
 
   final AsyncValue<List<CoordinateData>> coordinates;
   final AsyncValue<List<SiteData>> sites;
   final int? siteFilterId;
-  final int? selectedCoordinateId;
+  final Set<int> selectedCoordinateIds;
+  final int? focusedCoordinateId;
   final ValueChanged<int?> onSiteFilterChanged;
   final ValueChanged<int> onCoordinateSelected;
+  final void Function(int coordinateId, bool selected)
+  onCoordinateSelectionChanged;
+  final VoidCallback onSelectAll;
+  final VoidCallback onClearAll;
   final ValueChanged<CoordinateData> onShareCoordinate;
 
   @override
   Widget build(BuildContext context) {
     final entries = _filteredCoordinates(coordinates.value ?? const []);
     final selected = entries
-        .where((coordinate) => coordinate.id == selectedCoordinateId)
+        .where((coordinate) => coordinate.id == focusedCoordinateId)
         .firstOrNull;
     final siteLabels = {
       for (final site in sites.value ?? const <SiteData>[])
@@ -2119,8 +2192,12 @@ class _CoordinateManagerListPane extends StatelessWidget {
               data: (_) => _CoordinateManagerCoordinateList(
                 coordinates: entries,
                 siteLabels: siteLabels,
-                selectedCoordinateId: selectedCoordinateId,
+                selectedCoordinateIds: selectedCoordinateIds,
+                focusedCoordinateId: focusedCoordinateId,
                 onCoordinateSelected: onCoordinateSelected,
+                onCoordinateSelectionChanged: onCoordinateSelectionChanged,
+                onSelectAll: onSelectAll,
+                onClearAll: onClearAll,
               ),
               loading: () => const CommonProgressIndicator(),
               error: (error, stackTrace) =>
@@ -2160,27 +2237,56 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
   const _CoordinateManagerCoordinateList({
     required this.coordinates,
     required this.siteLabels,
-    required this.selectedCoordinateId,
+    required this.selectedCoordinateIds,
+    required this.focusedCoordinateId,
     required this.onCoordinateSelected,
+    required this.onCoordinateSelectionChanged,
+    required this.onSelectAll,
+    required this.onClearAll,
   });
 
   final List<CoordinateData> coordinates;
   final Map<int, String> siteLabels;
-  final int? selectedCoordinateId;
+  final Set<int> selectedCoordinateIds;
+  final int? focusedCoordinateId;
   final ValueChanged<int> onCoordinateSelected;
+  final void Function(int coordinateId, bool selected)
+  onCoordinateSelectionChanged;
+  final VoidCallback onSelectAll;
+  final VoidCallback onClearAll;
 
   @override
   Widget build(BuildContext context) {
     if (coordinates.isEmpty) {
       return const Center(child: Text('No coordinates added'));
     }
+    final visibleIds = {
+      for (final coordinate in coordinates)
+        if (coordinate.id != null) coordinate.id!,
+    };
+    final allSelected = visibleIds.every(selectedCoordinateIds.contains);
+    final hasSelection = visibleIds.any(selectedCoordinateIds.contains);
     return ListView(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-          child: Text(
-            '${coordinates.length} ${coordinates.length == 1 ? 'coordinate' : 'coordinates'}',
-            style: Theme.of(context).textTheme.titleSmall,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${coordinates.length} ${coordinates.length == 1 ? 'coordinate' : 'coordinates'}',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              TextButton(
+                onPressed: allSelected ? null : onSelectAll,
+                child: const Text('Select all'),
+              ),
+              TextButton(
+                onPressed: hasSelection ? onClearAll : null,
+                child: const Text('Clear all'),
+              ),
+            ],
           ),
         ),
         for (final coordinate in coordinates)
@@ -2189,53 +2295,62 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
             child: Builder(
               builder: (context) {
                 final colorScheme = Theme.of(context).colorScheme;
-                final selected = coordinate.id == selectedCoordinateId;
-                final background = selected
+                final selected = selectedCoordinateIds.contains(coordinate.id);
+                final focused = coordinate.id == focusedCoordinateId;
+                final background = focused
                     ? Color.alphaBlend(
                         colorScheme.primaryContainer.withValues(alpha: 0.22),
                         colorScheme.surfaceContainerHighest,
                       )
                     : colorScheme.surfaceContainerHighest;
                 return Material(
+                  key: ValueKey('coordinate-manager-tile-${coordinate.id}'),
                   color: background,
                   borderRadius: BorderRadius.circular(16),
                   clipBehavior: Clip.antiAlias,
                   child: Ink(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: selected
+                        color: focused
                             ? colorScheme.outline.withValues(alpha: 0.5)
                             : Colors.transparent,
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: ListTile(
-                      leading: Icon(
-                        selected
-                            ? Icons.radio_button_checked
-                            : Icons.radio_button_unchecked,
+                    child: Opacity(
+                      opacity: selected ? 1 : 0.55,
+                      child: ListTile(
+                        leading: Checkbox(
+                          value: selected,
+                          onChanged: coordinate.id == null
+                              ? null
+                              : (value) => onCoordinateSelectionChanged(
+                                  coordinate.id!,
+                                  value ?? false,
+                                ),
+                        ),
+                        title: CoordinateTitle(coordinateId: coordinate.nameId),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (coordinate.siteID != null)
+                              Text(
+                                siteLabels[coordinate.siteID] ??
+                                    'Site ${coordinate.siteID}',
+                              ),
+                            CoordinateSubtitle(coordinate: coordinate),
+                          ],
+                        ),
+                        trailing: IconButton(
+                          tooltip: 'Show QR code',
+                          onPressed: () =>
+                              showCoordinateQrDialog(context, coordinate),
+                          icon: const Icon(Icons.qr_code_outlined),
+                        ),
+                        onTap: coordinate.id == null
+                            ? null
+                            : () => onCoordinateSelected(coordinate.id!),
                       ),
-                      title: CoordinateTitle(coordinateId: coordinate.nameId),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (coordinate.siteID != null)
-                            Text(
-                              siteLabels[coordinate.siteID] ??
-                                  'Site ${coordinate.siteID}',
-                            ),
-                          CoordinateSubtitle(coordinate: coordinate),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        tooltip: 'Show QR code',
-                        onPressed: () =>
-                            showCoordinateQrDialog(context, coordinate),
-                        icon: const Icon(Icons.qr_code_outlined),
-                      ),
-                      onTap: coordinate.id == null
-                          ? null
-                          : () => onCoordinateSelected(coordinate.id!),
                     ),
                   ),
                 );
@@ -2251,13 +2366,17 @@ class _CoordinateMapPane extends StatelessWidget {
   const _CoordinateMapPane({
     required this.coordinates,
     required this.siteFilterId,
-    required this.selectedCoordinateId,
+    required this.selectedCoordinateIds,
+    required this.focusedCoordinateId,
+    required this.focusRequest,
     required this.onCoordinateSelected,
   });
 
   final AsyncValue<List<CoordinateData>> coordinates;
   final int? siteFilterId;
-  final int? selectedCoordinateId;
+  final Set<int> selectedCoordinateIds;
+  final int? focusedCoordinateId;
+  final int focusRequest;
   final ValueChanged<int> onCoordinateSelected;
 
   @override
@@ -2294,7 +2413,9 @@ class _CoordinateMapPane extends StatelessWidget {
           Expanded(
             child: CoordinateLocationMap(
               points: points,
-              selectedPointId: selectedCoordinateId,
+              selectedPointIds: selectedCoordinateIds,
+              selectedPointId: focusedCoordinateId,
+              focusRequest: focusRequest,
               onPointSelected: onCoordinateSelected,
             ),
           ),

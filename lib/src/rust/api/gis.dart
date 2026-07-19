@@ -6,7 +6,8 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `from`, `from`, `from`, `from`, `try_from`
+// These functions are ignored because they are not marked as `pub`: `direction_for_decimal`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `from`, `from`, `from`, `from`, `from`, `try_from`
 
 /// Exports one or more coordinates using NAHPU GIS.
 Future<void> exportCoordinates({
@@ -40,8 +41,9 @@ Future<ImportedVectorLayer> convertVectorLayerToGeojson({
 /// ```
 /// use rust_lib_nahpu::api::gis::{dms_to_dd, CardinalDirection};
 ///
-/// let dd = dms_to_dd(41, 24, 12.2, CardinalDirection::North);
+/// let dd = dms_to_dd(41, 24, 12.2, CardinalDirection::North)?;
 /// assert!((dd - 41.40338888888889).abs() < 1e-9);
+/// # Ok::<(), String>(())
 /// ```
 Future<double> dmsToDd({
   required int degrees,
@@ -62,8 +64,9 @@ Future<double> dmsToDd({
 /// ```
 /// use rust_lib_nahpu::api::gis::{ddm_to_dd, CardinalDirection};
 ///
-/// let dd = ddm_to_dd(41, 24.2028, CardinalDirection::North);
+/// let dd = ddm_to_dd(41, 24.2028, CardinalDirection::North)?;
 /// assert!((dd - 41.40338).abs() < 1e-9);
+/// # Ok::<(), String>(())
 /// ```
 Future<double> ddmToDd({
   required int degrees,
@@ -91,14 +94,14 @@ Future<(double, double)> utmToDd({
 /// Converts decimal degrees to DMS.
 Future<DmsCoordinateFfi> ddToDms({
   required double dd,
-  required bool isLatitude,
-}) => RustLib.instance.api.crateApiGisDdToDms(dd: dd, isLatitude: isLatitude);
+  required CoordinateAxis axis,
+}) => RustLib.instance.api.crateApiGisDdToDms(dd: dd, axis: axis);
 
 /// Converts decimal degrees to DDM.
 Future<DdmCoordinateFfi> ddToDdm({
   required double dd,
-  required bool isLatitude,
-}) => RustLib.instance.api.crateApiGisDdToDdm(dd: dd, isLatitude: isLatitude);
+  required CoordinateAxis axis,
+}) => RustLib.instance.api.crateApiGisDdToDdm(dd: dd, axis: axis);
 
 /// Converts decimal degrees latitude and longitude to UTM.
 Future<UtmCoordinateFfi> ddToUtm({
@@ -126,6 +129,15 @@ enum CardinalDirection {
 
   /// Western hemisphere (negative longitude)
   west,
+}
+
+/// Axis used to choose latitude or longitude cardinal directions.
+enum CoordinateAxis {
+  /// Latitude with north or south direction.
+  latitude,
+
+  /// Longitude with east or west direction.
+  longitude,
 }
 
 /// File formats supported by the coordinate exporter.
@@ -262,13 +274,49 @@ class DmsCoordinateFfi {
           direction == other.direction;
 }
 
+/// WGS84 vector bounds.
+class GeographicBoundsFfi {
+  /// Western longitude.
+  final double west;
+
+  /// Southern latitude.
+  final double south;
+
+  /// Eastern longitude.
+  final double east;
+
+  /// Northern latitude.
+  final double north;
+
+  const GeographicBoundsFfi({
+    required this.west,
+    required this.south,
+    required this.east,
+    required this.north,
+  });
+
+  @override
+  int get hashCode =>
+      west.hashCode ^ south.hashCode ^ east.hashCode ^ north.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GeographicBoundsFfi &&
+          runtimeType == other.runtimeType &&
+          west == other.west &&
+          south == other.south &&
+          east == other.east &&
+          north == other.north;
+}
+
 /// Metadata for a user vector layer normalized by `nahpu_gis`.
 class ImportedVectorLayer {
   /// Number of GeoJSON features written.
   final BigInt featureCount;
 
   /// WGS84 bounds in west, south, east, north order.
-  final Float64List? bounds;
+  final GeographicBoundsFfi? bounds;
 
   /// Coordinate reference system of the output.
   final String sourceCrs;
