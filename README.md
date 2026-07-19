@@ -27,13 +27,14 @@ Visit our website to learn more: [nahpu.app](https://nahpu.app)
 
 ## Technologies Used
 
-Nahpu is built with a modern stack to ensure a high-quality and performant experience:
+NAHPU is built with a modern stack to ensure a high-quality and performant experience:
 
 * **[Flutter](https://flutter.dev/):** For the cross-platform user interface.
 * **[Rust](https://www.rust-lang.org/):** For performance-critical native code, integrated with [Flutter Rust Bridge](https://cjycode.com/flutter_rust_bridge/).
-* **[Drift](https://drift.simonbinder.eu/):** For the local SQLite database.
+* **[Drift](https://drift.simonbinder.eu/):** For the local SQLite project database.
+* **[redb](https://www.redb.org/):** For user configuration and export preset storage through the NAHPU API.
 * **[Riverpod](https://riverpod.dev/):** For state management.
-* **[Docusaurus](https://docusaurus.io/):** For the documentation website.
+* **[Typst](https://typst.app/):** For the template system that powers NAHPU document exports.
 
 ## Contributing
 

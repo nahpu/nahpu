@@ -5,8 +5,8 @@ import 'package:nahpu/screens/events/components/activities.dart';
 import 'package:nahpu/screens/events/components/effort.dart';
 import 'package:nahpu/screens/events/components/general_info.dart';
 import 'package:nahpu/screens/events/components/tab_bar.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
 class CollEventForm extends ConsumerStatefulWidget {

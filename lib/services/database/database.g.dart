@@ -13324,19 +13324,6 @@ abstract class _$Database extends GeneratedDatabase {
   late final AvianMeasurement avianMeasurement = AvianMeasurement(this);
   late final HerpMeasurement herpMeasurement = HerpMeasurement(this);
   late final SpecimenPart specimenPart = SpecimenPart(this);
-  Selectable<ListProjectResult> listProject() {
-    return customSelect('SELECT uuid, name, created, lastAccessed FROM project',
-        variables: [],
-        readsFrom: {
-          project,
-        }).map((QueryRow row) => ListProjectResult(
-          uuid: row.read<String>('uuid'),
-          name: row.read<String>('name'),
-          created: row.readNullable<String>('created'),
-          lastAccessed: row.readNullable<String>('lastAccessed'),
-        ));
-  }
-
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -19711,17 +19698,4 @@ class $DatabaseManager {
       $HerpMeasurementTableManager(_db, _db.herpMeasurement);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db, _db.specimenPart);
-}
-
-class ListProjectResult {
-  final String uuid;
-  final String name;
-  final String? created;
-  final String? lastAccessed;
-  ListProjectResult({
-    required this.uuid,
-    required this.name,
-    this.created,
-    this.lastAccessed,
-  });
 }

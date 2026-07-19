@@ -1,51 +1,10 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/types/specimens.dart';
-
-const String catalogFmtPrefKey = 'catalogFmt';
-
-final catalogFmtNotifierProvider =
-    AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(
-        CatalogFmtNotifier.new);
-
-class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
-  Future<CatalogFmt> _fetchSetting() async {
-    final prefs = ref.watch(settingProvider);
-    final savedFmt = prefs.getString(catalogFmtPrefKey);
-
-    // Set to default general mammals if no setting is found
-    final CatalogFmt currentFmt = matchTaxonGroupToCatFmt(savedFmt);
-    if (savedFmt == null) {
-      await prefs.setString(
-          catalogFmtPrefKey, matchCatFmtToTaxonGroup(currentFmt));
-    }
-
-    return currentFmt;
-  }
-
-  @override
-  FutureOr<CatalogFmt> build() async {
-    return await _fetchSetting();
-  }
-
-  Future<void> set(CatalogFmt fmt) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final value = prefs.getString(catalogFmtPrefKey);
-      final setFmt = matchTaxonGroupToCatFmt(value);
-      if (setFmt == fmt) return fmt;
-      await prefs.setString(catalogFmtPrefKey, matchCatFmtToTaxonGroup(fmt));
-      return fmt;
-    });
-  }
-}
 
 final specimenEntryProvider =
     AsyncNotifierProvider.autoDispose<SpecimenEntry, List<SpecimenData>>(
@@ -72,6 +31,15 @@ final partBySpecimenProvider = FutureProvider.family
     .autoDispose<List<SpecimenPartData>, String>((ref, specimenUuid) =>
         SpecimenPartQuery(ref.read(databaseProvider))
             .getSpecimenParts(specimenUuid));
+
+/// All printable parts in the active project, paired with their parent
+/// specimen. A part, not a specimen, is the document-record unit.
+final specimenPartEntryProvider =
+    FutureProvider.autoDispose<List<SpecimenPartProjectRecord>>((ref) async {
+  final projectUuid = ref.watch(projectUuidProvider);
+  return SpecimenPartQuery(ref.read(databaseProvider))
+      .getSpecimenPartsForProject(projectUuid);
+});
 
 final associatedDataProvider = FutureProvider.family
     .autoDispose<List<AssociatedDataData>, String>((ref, specimenUuid) async {

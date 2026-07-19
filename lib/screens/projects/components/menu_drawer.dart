@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/screens/export/bundle_project.dart';
-import 'package:nahpu/screens/export/export_db.dart';
-import 'package:nahpu/screens/export/export_settings.dart';
-import 'package:nahpu/screens/export/export_documents.dart';
-import 'package:nahpu/screens/export/export_records.dart';
-import 'package:nahpu/screens/export/export_report.dart';
+import 'package:nahpu/screens/exports/bundle_project.dart';
+import 'package:nahpu/screens/exports/export_db.dart';
+import 'package:nahpu/screens/exports/export_settings.dart';
+import 'package:nahpu/screens/exports/export_documents.dart';
+import 'package:nahpu/screens/exports/export_records.dart';
+import 'package:nahpu/screens/exports/export_report.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/settings.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/settings/app_settings_import.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/utility_services.dart';
@@ -82,7 +83,8 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ExportPdfForm()),
+              MaterialPageRoute(
+                  builder: (context) => const ExportDocumentsView()),
             );
           },
         ),
@@ -97,17 +99,6 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             );
           },
         ),
-        ListTile(
-          leading: const Icon(Icons.settings_backup_restore),
-          title: const Text('Backup app settings'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const ExportSettingsForm()),
-            );
-          },
-        ),
         const Divider(color: Colors.grey),
         ListTile(
           leading: const Icon(Icons.settings_rounded),
@@ -117,6 +108,29 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
                 MaterialPageRoute(builder: (context) => const AppSettings()));
           },
         ),
+        ListTile(
+          leading: const Icon(Icons.share_rounded),
+          title: const Text('Export settings'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ExportSettingsForm()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.input_rounded),
+          title: const Text('Import settings'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AppSettingsImport()),
+            );
+          },
+        ),
+        const Divider(color: Colors.grey),
         ListTile(
           leading: const Icon(Icons.exit_to_app_rounded),
           title: const Text('Close project'),
@@ -138,6 +152,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
         const Divider(
           color: Colors.grey,
         ),
+        const SizedBox(height: 24),
         ListTile(
           leading: Icon(Icons.delete_rounded,
               color: Theme.of(context).colorScheme.error),

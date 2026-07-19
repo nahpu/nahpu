@@ -6,6 +6,19 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+/// Writes positional tabular rows. This is used for Darwin Core generated
+/// headers, which may intentionally contain duplicate MeasurementOrFact terms.
+Future<void> writeTabularRecords(
+        {required List<String> headers,
+        required List<List<String>> rows,
+        required String outputPath,
+        required String exportFormat}) =>
+    RustLib.instance.api.crateApiExportWriteTabularRecords(
+        headers: headers,
+        rows: rows,
+        outputPath: outputPath,
+        exportFormat: exportFormat);
+
 Future<void> exportCoordinates(
         {required String jsonContent,
         required String outputPath,
@@ -23,6 +36,14 @@ Future<Uint8List> generateDocument(
         jsonContent: jsonContent,
         exportFormat: exportFormat,
         fontBytes: fontBytes);
+
+Future<Uint8List> compileTypstToPdf(
+        {required String typstContent, required List<Uint8List> fontBytes}) =>
+    RustLib.instance.api.crateApiExportCompileTypstToPdf(
+        typstContent: typstContent, fontBytes: fontBytes);
+
+Future<String> markdownToTypst({required String mdContent}) =>
+    RustLib.instance.api.crateApiExportMarkdownToTypst(mdContent: mdContent);
 
 class RecordWriter {
   /// JSON string containing the records to be exported.

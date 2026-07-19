@@ -1,25 +1,27 @@
 import 'package:nahpu/services/types/export.dart';
 
 List<String> getAvailableExportColumns({
-  required ExportRecordType recordType,
+  required RecordType recordType,
   SpecimenRecordType? specimenRecordType,
   SpecimenExportFmt? specimenExportFmt,
 }) {
   switch (recordType) {
-    case ExportRecordType.narrative:
+    case RecordType.none:
+      return [];
+    case RecordType.narrative:
       return narrativeExportList;
-    case ExportRecordType.site:
+    case RecordType.site:
       return siteExportList;
-    case ExportRecordType.collEvent:
+    case RecordType.collEvent:
       return collEventExportList;
-    case ExportRecordType.specimenParts:
+    case RecordType.specimenParts:
       return [
         ...collectingRecordExportList,
         ...siteExportList,
         ...collEventExportList,
         ...partExportListDelimited,
       ];
-    case ExportRecordType.specimenRecord:
+    case RecordType.specimenRecord:
       List<String> measurementList = [];
       if (specimenRecordType != null) {
         switch (specimenRecordType) {

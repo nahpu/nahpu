@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:nahpu/services/kdl_services.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class AppSettingsImport extends ConsumerStatefulWidget {
   const AppSettingsImport({super.key});
@@ -24,7 +24,7 @@ class AppSettingsImportState extends ConsumerState<AppSettingsImport> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Replace app settings'),
+          title: const Text('Import settings'),
         ),
         body: SafeArea(
           child: CommonSettingList(
@@ -88,8 +88,8 @@ class AppSettingsImportState extends ConsumerState<AppSettingsImport> {
         _isLoading = true;
       });
 
-      // KDL writer
-      await KdlServices().readAndUpdateSettings(_settingsFilePath!.path);
+      // Call Rust to import
+      await rust_config.importConfigFromFile(filePath: _settingsFilePath!.path);
 
       setState(() {
         _isLoading = false;
@@ -160,7 +160,7 @@ class SettingsFileInputField extends StatelessWidget {
             onPressed: onPressed,
             isLoading: isSelectingFile,
             onCleared: onCleared,
-            supportedFormat: '.kdl',
+            supportedFormat: '.json, .json.nl',
             maxWidth: 460,
           ),
         ),
@@ -201,7 +201,7 @@ class SettingsReplaceButtons extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Replace app settings'),
+                  title: const Text('Import settings'),
                   content: const SettingsWarningText(),
                   actions: [
                     PrimaryButton(

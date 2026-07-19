@@ -25,19 +25,6 @@ mixin _$SpecimenQueryMixin on DatabaseAccessor<Database> {
   AvianMeasurement get avianMeasurement => attachedDatabase.avianMeasurement;
   HerpMeasurement get herpMeasurement => attachedDatabase.herpMeasurement;
   SpecimenPart get specimenPart => attachedDatabase.specimenPart;
-  Selectable<ListProjectResult> listProject() {
-    return customSelect('SELECT uuid, name, created, lastAccessed FROM project',
-        variables: [],
-        readsFrom: {
-          project,
-        }).map((QueryRow row) => ListProjectResult(
-          uuid: row.read<String>('uuid'),
-          name: row.read<String>('name'),
-          created: row.readNullable<String>('created'),
-          lastAccessed: row.readNullable<String>('lastAccessed'),
-        ));
-  }
-
   SpecimenQueryManager get managers => SpecimenQueryManager(this);
 }
 
@@ -87,17 +74,4 @@ class SpecimenQueryManager {
       $HerpMeasurementTableManager(_db.attachedDatabase, _db.herpMeasurement);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db.attachedDatabase, _db.specimenPart);
-}
-
-class ListProjectResult {
-  final String uuid;
-  final String name;
-  final String? created;
-  final String? lastAccessed;
-  ListProjectResult({
-    required this.uuid,
-    required this.name,
-    this.created,
-    this.lastAccessed,
-  });
 }

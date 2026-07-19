@@ -5,8 +5,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/home/components/menu_drawer.dart';
 import 'package:nahpu/screens/home/components/body.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/db_services.dart';
 
 class Home extends ConsumerStatefulWidget {

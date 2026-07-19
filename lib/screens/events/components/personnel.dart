@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 
@@ -246,64 +246,86 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
   @override
   Widget build(BuildContext context) {
     return CommonPadding(
-        child: Row(
-      children: [
-        widget.isSelecting
-            ? ListCheckBox(
-                isDisabled: false,
-                value: widget.selectedCollPers.contains(widget.controller.id!),
-                onChanged: widget.onChanged)
-            : const SizedBox.shrink(),
-        Expanded(
-          child: DropdownButtonFormField<String>(
-            initialValue: widget.controller.nameIDCtr,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Personnel',
-              hintText: 'Enter a name',
+      child: Row(
+        children: [
+          widget.isSelecting
+              ? Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ListCheckBox(
+                    isDisabled: false,
+                    value:
+                        widget.selectedCollPers.contains(widget.controller.id!),
+                    onChanged: widget.onChanged,
+                    isDense: true,
+                  ),
+                )
+              : const SizedBox.shrink(),
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              initialValue: widget.controller.nameIDCtr,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Personnel',
+                hintText: 'Enter a name',
+              ),
+              items: ref.watch(projectPersonnelProvider).when(
+                    data: (value) {
+                      final personnel = value
+                          .fold<Map<String, PersonnelData>>(
+                            {},
+                            (map, person) => map..[person.uuid] = person,
+                          )
+                          .values
+                          .toList();
+                      return personnel
+                          .map((person) => DropdownMenuItem(
+                                value: person.uuid,
+                                child: CommonDropdownText(
+                                  text: person.name ?? '',
+                                ),
+                              ))
+                          .toList();
+                    },
+                    loading: () => const [],
+                    error: (error, stack) => const [],
+                  ),
+              onChanged: (value) {
+                widget.controller.nameIDCtr = value ?? '';
+                CollEventServices(ref: ref).updateCollPersonnel(
+                  widget.controller.id!,
+                  CollPersonnelCompanion(
+                    eventID: db.Value(widget.eventID),
+                    personnelId: db.Value(value),
+                    name: db.Value(_personnelNameFor(value)),
+                  ),
+                );
+              },
             ),
-            items: ref.watch(projectPersonnelProvider).when(
-                  data: (value) {
-                    final personnel = value
-                        .fold<Map<String, PersonnelData>>(
-                          {},
-                          (map, person) => map..[person.uuid] = person,
-                        )
-                        .values
-                        .toList();
-                    return personnel
-                        .map((person) => DropdownMenuItem(
-                              value: person.uuid,
-                              child: CommonDropdownText(
-                                text: person.name ?? '',
-                              ),
-                            ))
-                        .toList();
-                  },
-                  loading: () => const [],
-                  error: (error, stack) => const [],
-                ),
-            onChanged: (value) {
-              widget.controller.nameIDCtr = value ?? '';
-              CollEventServices(ref: ref).updateCollPersonnel(
-                widget.controller.id!,
-                CollPersonnelCompanion(
-                  eventID: db.Value(widget.eventID),
-                  personnelId: db.Value(value),
-                ),
-              );
-            },
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: PersonnelRole(
-            eventID: widget.eventID,
-            controller: widget.controller,
+          const SizedBox(width: 10),
+          Expanded(
+            child: PersonnelRole(
+              eventID: widget.eventID,
+              controller: widget.controller,
+            ),
           ),
-        ),
-      ],
-    ));
+        ],
+      ),
+    );
+  }
+
+  String? _personnelNameFor(String? personnelId) {
+    if (personnelId == null) return null;
+    return ref.read(projectPersonnelProvider).when(
+          data: (personnel) {
+            for (final person in personnel) {
+              if (person.uuid == personnelId) return person.name;
+            }
+            return null;
+          },
+          loading: () => null,
+          error: (_, __) => null,
+        );
   }
 }
 

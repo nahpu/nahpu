@@ -1,6 +1,6 @@
-# Contributing to Nahpu
+# Contributing to NAHPU
 
-First off, thank you for considering contributing to Nahpu! It's people like you that make Nahpu such a great tool.
+First off, thank you for considering contributing to NAHPU! It's people like you that make NAHPU such a great tool.
 
 ## Getting Started
 

@@ -362,5 +362,3 @@ CREATE TABLE specimenPart (
     FOREIGN KEY(specimenUuid) REFERENCES specimen(uuid),
     FOREIGN KEY(personnelId) REFERENCES personnel(uuid)
 );
-
-listProject: SELECT uuid,name,created,lastAccessed FROM project;
