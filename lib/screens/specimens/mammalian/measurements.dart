@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -7,6 +9,7 @@ import 'package:nahpu/screens/shared/fields.dart';
 import 'package:nahpu/screens/shared/layout.dart';
 import 'package:nahpu/screens/specimens/shared/measurements.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/measurement_outlier_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:drift/drift.dart' as db;
@@ -30,12 +33,46 @@ class MammalMeasurementFormsState
   MammalMeasurementCtrModel ctr = MammalMeasurementCtrModel.empty();
   TextEditingController headBodyLengthCtr = TextEditingController();
   TextEditingController tailHeadBodyPercentCtr = TextEditingController();
+  final FocusNode _totalLengthFocusNode = FocusNode();
+  final FocusNode _tailLengthFocusNode = FocusNode();
+  final FocusNode _hindFootFocusNode = FocusNode();
+  final FocusNode _earFocusNode = FocusNode();
+  final FocusNode _weightFocusNode = FocusNode();
+  final Set<String> _shownOutlierWarnings = {};
+  final Map<MammalMeasurementOutlierField, Timer> _outlierWarningTimers = {};
   // String? _hblErrorText;
+  bool _isShowingOutlierWarning = false;
+  bool _showOutlierWarnings = true;
   bool _showBatFields = false;
 
   @override
   void initState() {
     super.initState();
+    _addOutlierListener(
+      _totalLengthFocusNode,
+      MammalMeasurementOutlierField.totalLength,
+      () => double.tryParse(ctr.totalLengthCtr.text),
+    );
+    _addOutlierListener(
+      _tailLengthFocusNode,
+      MammalMeasurementOutlierField.tailLength,
+      () => double.tryParse(ctr.tailLengthCtr.text),
+    );
+    _addOutlierListener(
+      _hindFootFocusNode,
+      MammalMeasurementOutlierField.hindFootLength,
+      () => double.tryParse(ctr.hindFootCtr.text),
+    );
+    _addOutlierListener(
+      _earFocusNode,
+      MammalMeasurementOutlierField.earLength,
+      () => double.tryParse(ctr.earCtr.text),
+    );
+    _addOutlierListener(
+      _weightFocusNode,
+      MammalMeasurementOutlierField.weight,
+      () => double.tryParse(ctr.weightCtr.text),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateCtr(widget.specimenUuid);
     });
@@ -46,6 +83,14 @@ class MammalMeasurementFormsState
     ctr.dispose();
     headBodyLengthCtr.dispose();
     tailHeadBodyPercentCtr.dispose();
+    _totalLengthFocusNode.dispose();
+    _tailLengthFocusNode.dispose();
+    _hindFootFocusNode.dispose();
+    _earFocusNode.dispose();
+    _weightFocusNode.dispose();
+    for (final timer in _outlierWarningTimers.values) {
+      timer.cancel();
+    }
     super.dispose();
   }
 
@@ -56,42 +101,74 @@ class MammalMeasurementFormsState
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
+            SwitchField(
+              label: 'Show outlier warnings',
+              value: _showOutlierWarnings,
+              onPressed: (value) {
+                setState(() {
+                  _showOutlierWarnings = value;
+                });
+                if (!value) {
+                  for (final timer in _outlierWarningTimers.values) {
+                    timer.cancel();
+                  }
+                  _outlierWarningTimers.clear();
+                }
+              },
+            ),
+          ],
+        ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
             CommonNumField(
               controller: ctr.totalLengthCtr,
+              focusNode: _totalLengthFocusNode,
               labelText: 'Total length (mm)',
               hintText: 'Enter TTL',
               isLastField: false,
               isDouble: true,
               // errorText: _hblErrorText,
               onChanged: (String? value) {
+                final measurement = double.tryParse(value ?? '');
                 setState(() {
                   _getHBTailPercent();
                   SpecimenServices(ref: ref).updateMammalMeasurement(
                     widget.specimenUuid,
                     MammalMeasurementCompanion(
-                      totalLength: db.Value(double.tryParse(value ?? '') ?? 0),
+                      totalLength: db.Value(measurement ?? 0),
                     ),
                   );
                 });
+                _scheduleOutlierWarning(
+                  MammalMeasurementOutlierField.totalLength,
+                  measurement,
+                );
               },
             ),
             CommonNumField(
               controller: ctr.tailLengthCtr,
+              focusNode: _tailLengthFocusNode,
               labelText: 'Tail length (mm)',
               hintText: 'Enter TL',
               isDouble: true,
               isLastField: false,
               // errorText: _hblErrorText,
               onChanged: (String? value) {
+                final measurement = double.tryParse(value ?? '');
                 setState(() {
                   _getHBTailPercent();
                   SpecimenServices(ref: ref).updateMammalMeasurement(
                     widget.specimenUuid,
                     MammalMeasurementCompanion(
-                      tailLength: db.Value(double.tryParse(value ?? '') ?? 0),
+                      tailLength: db.Value(measurement ?? 0),
                     ),
                   );
                 });
+                _scheduleOutlierWarning(
+                  MammalMeasurementOutlierField.tailLength,
+                  measurement,
+                );
               },
             ),
           ],
@@ -130,6 +207,7 @@ class MammalMeasurementFormsState
           children: [
             CommonNumField(
               controller: ctr.hindFootCtr,
+              focusNode: _hindFootFocusNode,
               labelText: 'Hind foot length (mm)',
               hintText: 'Enter HF length',
               isDouble: true,
@@ -144,11 +222,16 @@ class MammalMeasurementFormsState
                       ),
                     );
                   });
+                  _scheduleOutlierWarning(
+                    MammalMeasurementOutlierField.hindFootLength,
+                    double.tryParse(value),
+                  );
                 }
               },
             ),
             CommonNumField(
               controller: ctr.earCtr,
+              focusNode: _earFocusNode,
               labelText: 'Ear length (mm)',
               hintText: 'Enter ER length',
               isLastField: false,
@@ -163,6 +246,10 @@ class MammalMeasurementFormsState
                       ),
                     );
                   });
+                  _scheduleOutlierWarning(
+                    MammalMeasurementOutlierField.earLength,
+                    double.tryParse(value),
+                  );
                 }
               },
             ),
@@ -173,6 +260,7 @@ class MammalMeasurementFormsState
             children: [
               CommonNumField(
                 controller: ctr.weightCtr,
+                focusNode: _weightFocusNode,
                 labelText: 'Weight (grams)',
                 hintText: 'Enter specimen weight',
                 isDouble: true,
@@ -187,6 +275,10 @@ class MammalMeasurementFormsState
                         ),
                       );
                     });
+                    _scheduleOutlierWarning(
+                      MammalMeasurementOutlierField.weight,
+                      double.tryParse(value),
+                    );
                   }
                 },
               ),
@@ -380,6 +472,68 @@ class MammalMeasurementFormsState
     headBodyLengthCtr.text = results?.headAndBodyText ?? '';
     tailHeadBodyPercentCtr.text = results?.percentTailText ?? '';
     // _hblErrorText = results?.errorText ?? '';
+  }
+
+  void _addOutlierListener(
+    FocusNode focusNode,
+    MammalMeasurementOutlierField field,
+    double? Function() getValue,
+  ) {
+    focusNode.addListener(() {
+      if (!focusNode.hasFocus) {
+        _showOutlierWarning(field, getValue());
+      }
+    });
+  }
+
+  void _scheduleOutlierWarning(
+    MammalMeasurementOutlierField field,
+    double? value,
+  ) {
+    if (!_showOutlierWarnings) return;
+
+    _outlierWarningTimers[field]?.cancel();
+    _outlierWarningTimers[field] = Timer(
+      const Duration(milliseconds: 800),
+      () => _showOutlierWarning(field, value),
+    );
+  }
+
+  Future<void> _showOutlierWarning(
+    MammalMeasurementOutlierField field,
+    double? value,
+  ) async {
+    if (!_showOutlierWarnings || value == null || _isShowingOutlierWarning) {
+      return;
+    }
+
+    final result = await MammalMeasurementOutlierServices(ref: ref).checkValue(
+      specimenUuid: widget.specimenUuid,
+      field: field,
+      value: value,
+    );
+
+    if (!mounted || !_showOutlierWarnings || result == null) return;
+
+    final warningKey =
+        '${field.name}:${result.value}:${result.lowerBound}:${result.upperBound}';
+    if (!_shownOutlierWarnings.add(warningKey)) return;
+
+    _isShowingOutlierWarning = true;
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unusual measurement'),
+        content: Text(result.message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    _isShowingOutlierWarning = false;
   }
 }
 

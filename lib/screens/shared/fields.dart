@@ -266,11 +266,13 @@ class CommonNumField extends ConsumerWidget {
     this.isDouble = false,
     this.isSigned = false,
     this.errorText,
+    this.focusNode,
   });
 
   final String labelText;
   final String hintText;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final void Function(String?)? onChanged;
   final bool isLastField;
   final bool isDouble;
@@ -282,6 +284,7 @@ class CommonNumField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       enabled: enabled,
       decoration: InputDecoration(
         labelText: labelText,
