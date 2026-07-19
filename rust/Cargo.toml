@@ -11,7 +11,7 @@ flutter_rust_bridge = "=2.12.0"
 nahpu_archive = "0.2.0"
 nahpu_db = "0.5.1"
 nahpu_export = "0.4.0"
-nahpu_gis = { version = "0.3.0", path = "../../../Rust/nahpu_api/crates/nahpu_gis" }
+nahpu_gis = "0.4.0"
 serde_json = "1.0.150"
 nahpu_configs = "0.6.0"
 nahpu_dwc = "0.2.0"
