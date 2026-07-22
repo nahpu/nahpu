@@ -50,6 +50,7 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
               focusedCoordinateId: _focusedCoordinateId,
               focusRequest: _focusRequest,
               onCoordinateSelected: _focusCoordinate,
+              controlsTopOffset: _CoordinateMapActionStack.controlsTopOffset(2),
             );
 
             if (isWide) {
@@ -85,9 +86,26 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                           ),
                           Positioned(
                             top: 8,
-                            right: 8,
-                            child: _FullScreenMapButton(
-                              onPressed: openFullScreenMap,
+                            left: 8,
+                            child: _CoordinateMapActionStack(
+                              actions: [
+                                _CoordinateMapAction(
+                                  tooltip: 'Map layers',
+                                  onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const MapLayerSettings(),
+                                    ),
+                                  ),
+                                  icon: Icons.layers_outlined,
+                                ),
+                                _CoordinateMapAction(
+                                  tooltip: 'View map full screen',
+                                  onPressed: openFullScreenMap,
+                                  icon: Icons.fullscreen,
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -271,15 +289,42 @@ class _CoordinateManagerFullScreenMapState
   @override
   Widget build(BuildContext context) => FullScreenMapPage(
     title: 'Coordinate map',
-    child: _CoordinateMapPane(
-      coordinates: widget.coordinates,
-      siteFilterId: widget.siteFilterId,
-      selectedCoordinateIds: widget.selectedCoordinateIds,
-      focusedCoordinateId: _focusedCoordinateId,
-      focusRequest: _focusRequest,
-      onCoordinateSelected: _focusCoordinate,
+    child: Stack(
+      children: [
+        Positioned.fill(
+          child: _CoordinateMapPane(
+            coordinates: widget.coordinates,
+            siteFilterId: widget.siteFilterId,
+            selectedCoordinateIds: widget.selectedCoordinateIds,
+            focusedCoordinateId: _focusedCoordinateId,
+            focusRequest: _focusRequest,
+            onCoordinateSelected: _focusCoordinate,
+            controlsTopOffset: _CoordinateMapActionStack.controlsTopOffset(1),
+          ),
+        ),
+        Positioned(
+          top: 8,
+          left: 8,
+          child: _CoordinateMapActionStack(
+            actions: [
+              _CoordinateMapAction(
+                tooltip: 'Map layers',
+                onPressed: _openMapLayerSettings,
+                icon: Icons.layers_outlined,
+              ),
+            ],
+          ),
+        ),
+      ],
     ),
   );
+
+  void _openMapLayerSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MapLayerSettings()),
+    );
+  }
 
   void _focusCoordinate(int coordinateId) {
     setState(() {
@@ -290,19 +335,51 @@ class _CoordinateManagerFullScreenMapState
   }
 }
 
-class _FullScreenMapButton extends StatelessWidget {
-  const _FullScreenMapButton({required this.onPressed});
+class _CoordinateMapActionStack extends StatelessWidget {
+  const _CoordinateMapActionStack({required this.actions});
 
-  final VoidCallback onPressed;
+  static const buttonExtent = 48.0;
+  static const spacing = 8.0;
+
+  final List<Widget> actions;
+
+  static double controlsTopOffset(int actionCount) =>
+      8 + actionCount * buttonExtent + actionCount * spacing;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
-    borderRadius: BorderRadius.circular(8),
-    child: IconButton(
-      tooltip: 'View map full screen',
-      onPressed: onPressed,
-      icon: const Icon(Icons.fullscreen),
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (var index = 0; index < actions.length; index++) ...[
+        actions[index],
+        if (index < actions.length - 1) const SizedBox(height: spacing),
+      ],
+    ],
+  );
+}
+
+class _CoordinateMapAction extends StatelessWidget {
+  const _CoordinateMapAction({
+    required this.tooltip,
+    required this.onPressed,
+    required this.icon,
+  });
+
+  final String tooltip;
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: _CoordinateMapActionStack.buttonExtent,
+    child: Material(
+      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(8),
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        icon: Icon(icon),
+      ),
     ),
   );
 }
@@ -603,7 +680,7 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
         ? 'coordinate'
         : 'coordinates';
     final countLabel = selectedCount < coordinates.length
-        ? '$selectedCount of ${coordinates.length} $coordinateWord selected'
+        ? '$selectedCount of ${coordinates.length} $coordinateWord'
         : '${coordinates.length} $coordinateWord';
     return ListView(
       children: [
@@ -709,6 +786,7 @@ class _CoordinateMapPane extends StatelessWidget {
     required this.focusedCoordinateId,
     required this.focusRequest,
     required this.onCoordinateSelected,
+    required this.controlsTopOffset,
   });
 
   final AsyncValue<List<CoordinateData>> coordinates;
@@ -717,6 +795,7 @@ class _CoordinateMapPane extends StatelessWidget {
   final int? focusedCoordinateId;
   final int focusRequest;
   final ValueChanged<int> onCoordinateSelected;
+  final double controlsTopOffset;
 
   @override
   Widget build(BuildContext context) => coordinates.when(
@@ -756,6 +835,7 @@ class _CoordinateMapPane extends StatelessWidget {
               selectedPointId: focusedCoordinateId,
               focusRequest: focusRequest,
               onPointSelected: onCoordinateSelected,
+              controlsTopOffset: controlsTopOffset,
             ),
           ),
         ],

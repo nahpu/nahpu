@@ -5,7 +5,6 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/map_settings.dart';
-import 'package:nahpu/services/types/map_layers.dart';
 
 class SiteSelection extends StatefulWidget {
   const SiteSelection({super.key});
@@ -51,34 +50,18 @@ class SiteMapSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final style = ref.watch(spatialBasemapStyleProvider);
     return CommonSettingSection(
       title: 'Maps',
       isDivided: true,
       children: [
         CommonSettingTile(
-          title: 'Basemap style',
-          label: 'Choose the map appearance used by spatial statistics',
-          icon: Icons.map_outlined,
-          value: style.value?.label,
-          isNavigation: true,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const BasemapStyleSettings(),
-            ),
-          ),
-        ),
-        CommonSettingTile(
-          title: 'Custom map layers',
-          label: 'Import and manage local vector, raster, and elevation data',
+          title: 'Map layers',
+          label: 'Choose a base layer or import and manage custom layers',
           icon: Icons.layers_outlined,
           isNavigation: true,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const UserMapLayerSettings(),
-            ),
+            MaterialPageRoute(builder: (context) => const MapLayerSettings()),
           ),
         ),
       ],

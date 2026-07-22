@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/maps/coordinate_location_map.dart';
 import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
+import 'package:nahpu/screens/settings/map_settings.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/coordinate_exchange_service.dart';
 import 'package:nahpu/services/io_services.dart';

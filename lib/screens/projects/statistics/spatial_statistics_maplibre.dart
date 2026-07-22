@@ -67,6 +67,7 @@ class MapLibreSpatialStatisticsMap extends ConsumerWidget {
           rows: rows,
           total: total,
           style: snapshot.data!,
+          baseLayer: basemap,
           controlsTopOffset: controlsTopOffset,
           legendInitiallyExpanded: legendInitiallyExpanded,
         );
@@ -82,6 +83,7 @@ class _MapLibreMap extends StatefulWidget {
     required this.rows,
     required this.total,
     required this.style,
+    required this.baseLayer,
     required this.controlsTopOffset,
     required this.legendInitiallyExpanded,
   });
@@ -90,6 +92,7 @@ class _MapLibreMap extends StatefulWidget {
   final List<SpatialStatisticDatum> rows;
   final int total;
   final String style;
+  final SpatialBasemapStyle baseLayer;
   final double controlsTopOffset;
   final bool legendInitiallyExpanded;
 
@@ -135,11 +138,18 @@ class _MapLibreMapState extends State<_MapLibreMap> {
             onEvent: _handleEvent,
             children: [
               const Positioned.fill(child: MapLibreGestureSurface()),
-              const Positioned(
-                left: 8,
-                bottom: 8,
-                child: _MapLibreAttribution(),
-              ),
+              if (widget.baseLayer != SpatialBasemapStyle.none)
+                Positioned(
+                  left: 8,
+                  bottom: 8,
+                  child: _MapLibreAttribution(
+                    label:
+                        widget.baseLayer ==
+                            SpatialBasemapStyle.naturalEarthOffline
+                        ? 'Natural Earth'
+                        : '© OpenStreetMap contributors · OpenFreeMap',
+                  ),
+                ),
               Positioned(
                 left: 8,
                 top: widget.controlsTopOffset,
@@ -318,18 +328,17 @@ class _MapLibreControlButton extends StatelessWidget {
 }
 
 class _MapLibreAttribution extends StatelessWidget {
-  const _MapLibreAttribution();
+  const _MapLibreAttribution({required this.label});
+
+  final String label;
 
   @override
   Widget build(BuildContext context) => Material(
     color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
     borderRadius: BorderRadius.circular(4),
-    child: const Padding(
+    child: Padding(
       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      child: Text(
-        '© OpenStreetMap contributors · OpenFreeMap',
-        style: TextStyle(fontSize: 10),
-      ),
+      child: Text(label, style: const TextStyle(fontSize: 10)),
     ),
   );
 }

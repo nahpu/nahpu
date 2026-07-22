@@ -7,8 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart' as maplibre;
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
+import 'package:nahpu/screens/projects/statistics/linux_user_map_layers.dart';
 import 'package:nahpu/services/maps/coordinate_map_point.dart';
 import 'package:nahpu/services/maps/natural_earth.dart';
+import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
 import 'package:nahpu/services/types/map_layers.dart';
@@ -23,6 +26,7 @@ class CoordinateLocationMap extends ConsumerWidget {
     required this.onPointSelected,
     this.selectedPointIds,
     this.focusRequest = 0,
+    this.controlsTopOffset = 8,
   });
 
   final List<CoordinateMapPoint> points;
@@ -30,15 +34,22 @@ class CoordinateLocationMap extends ConsumerWidget {
   final int? selectedPointId;
   final int focusRequest;
   final ValueChanged<int> onPointSelected;
+  final double controlsTopOffset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mappable = points.where((point) => point.isMappable).toList();
     final selectedIds =
         selectedPointIds ?? {for (final point in mappable) point.id};
+    final baseLayer =
+        ref.watch(spatialBasemapStyleProvider).value ??
+        SpatialBasemapStyle.automatic;
+    final showsBaseLayer = baseLayer != SpatialBasemapStyle.none;
     if (Platform.isLinux) {
       return FutureBuilder<List<NaturalEarthPolygon>>(
-        future: _naturalEarthPolygons,
+        future: showsBaseLayer
+            ? _naturalEarthPolygons
+            : Future.value(const <NaturalEarthPolygon>[]),
         builder: (context, snapshot) {
           if (snapshot.hasError) return const _MapMessage();
           if (!snapshot.hasData) {
@@ -51,20 +62,23 @@ class CoordinateLocationMap extends ConsumerWidget {
             selectedPointId: selectedPointId,
             focusRequest: focusRequest,
             onPointSelected: onPointSelected,
+            controlsTopOffset: controlsTopOffset,
+            showsBaseLayer: showsBaseLayer,
           );
         },
       );
     }
-    final basemap =
-        ref.watch(spatialBasemapStyleProvider).value ??
-        SpatialBasemapStyle.automatic;
+    final catalog =
+        ref.watch(userMapCatalogProvider).value ?? const UserMapCatalog();
     return _MapLibreCoordinateMap(
       points: mappable,
       selectedPointIds: selectedIds,
       selectedPointId: selectedPointId,
       focusRequest: focusRequest,
       onPointSelected: onPointSelected,
-      basemap: basemap,
+      basemap: baseLayer,
+      catalog: catalog,
+      controlsTopOffset: controlsTopOffset,
     );
   }
 }
@@ -80,6 +94,8 @@ class _NaturalEarthCoordinateMap extends StatefulWidget {
     required this.selectedPointId,
     required this.focusRequest,
     required this.onPointSelected,
+    required this.controlsTopOffset,
+    required this.showsBaseLayer,
   });
 
   final List<CoordinateMapPoint> points;
@@ -88,6 +104,8 @@ class _NaturalEarthCoordinateMap extends StatefulWidget {
   final int? selectedPointId;
   final int focusRequest;
   final ValueChanged<int> onPointSelected;
+  final double controlsTopOffset;
+  final bool showsBaseLayer;
 
   @override
   State<_NaturalEarthCoordinateMap> createState() =>
@@ -143,22 +161,24 @@ class _NaturalEarthCoordinateMapState
                   : null,
               minZoom: 1,
               maxZoom: 16,
-              backgroundColor: colorScheme.surfaceContainerLowest,
+              backgroundColor: colorScheme.surface,
               onMapReady: _onMapReady,
             ),
             children: [
-              flutter_map.PolygonLayer(
-                polygons: [
-                  for (final polygon in widget.polygons)
-                    flutter_map.Polygon(
-                      points: polygon.points,
-                      holePointsList: polygon.holes,
-                      color: colorScheme.surfaceContainerHighest,
-                      borderColor: colorScheme.outlineVariant,
-                      borderStrokeWidth: 0.6,
-                    ),
-                ],
-              ),
+              if (widget.showsBaseLayer)
+                flutter_map.PolygonLayer(
+                  polygons: [
+                    for (final polygon in widget.polygons)
+                      flutter_map.Polygon(
+                        points: polygon.points,
+                        holePointsList: polygon.holes,
+                        color: colorScheme.surfaceContainerHighest,
+                        borderColor: colorScheme.outlineVariant,
+                        borderStrokeWidth: 0.6,
+                      ),
+                  ],
+                ),
+              const LinuxUserMapLayers(),
               flutter_map.MarkerLayer(
                 markers: [
                   for (final point in widget.points)
@@ -188,18 +208,19 @@ class _NaturalEarthCoordinateMapState
           ),
           Positioned(
             left: 8,
-            top: 8,
+            top: widget.controlsTopOffset,
             child: _MapControls(
               onZoomIn: () => _changeZoom(1),
               onZoomOut: () => _changeZoom(-1),
               onReset: _resetCamera,
             ),
           ),
-          const Positioned(
-            left: 8,
-            bottom: 8,
-            child: _NaturalEarthAttribution(),
-          ),
+          if (widget.showsBaseLayer)
+            const Positioned(
+              left: 8,
+              bottom: 8,
+              child: _NaturalEarthAttribution(),
+            ),
           if (widget.points.isEmpty)
             const Positioned.fill(child: _MapMessage()),
         ],
@@ -261,6 +282,8 @@ class _MapLibreCoordinateMap extends StatefulWidget {
     required this.focusRequest,
     required this.onPointSelected,
     required this.basemap,
+    required this.catalog,
+    required this.controlsTopOffset,
   });
 
   final List<CoordinateMapPoint> points;
@@ -269,6 +292,8 @@ class _MapLibreCoordinateMap extends StatefulWidget {
   final int focusRequest;
   final ValueChanged<int> onPointSelected;
   final SpatialBasemapStyle basemap;
+  final UserMapCatalog catalog;
+  final double controlsTopOffset;
 
   @override
   State<_MapLibreCoordinateMap> createState() => _MapLibreCoordinateMapState();
@@ -308,10 +333,14 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final style = SpatialMapStyleService.buildCoordinatePoints(
-      style: widget.basemap,
-      isDark: isDark,
-      colorScheme: colorScheme,
+    final style = getUserMapDirectory().then(
+      (directory) => SpatialMapStyleService.buildCoordinatePoints(
+        style: widget.basemap,
+        isDark: isDark,
+        colorScheme: colorScheme,
+        catalog: widget.catalog,
+        userMapDirectory: directory,
+      ),
     );
     return FutureBuilder<String>(
       future: style,
@@ -322,6 +351,7 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
         }
         final first = widget.points.firstOrNull;
         return ClipRRect(
+          key: ValueKey(snapshot.data.hashCode),
           borderRadius: BorderRadius.circular(12),
           child: Stack(
             children: [
@@ -352,14 +382,21 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
                 onEvent: _handleEvent,
                 children: [
                   const Positioned.fill(child: MapLibreGestureSurface()),
-                  const Positioned(
-                    left: 8,
-                    bottom: 8,
-                    child: _OnlineAttribution(),
-                  ),
+                  if (widget.basemap != SpatialBasemapStyle.none)
+                    Positioned(
+                      left: 8,
+                      bottom: 8,
+                      child: _BaseLayerAttribution(
+                        label:
+                            widget.basemap ==
+                                SpatialBasemapStyle.naturalEarthOffline
+                            ? 'Natural Earth'
+                            : '© OpenStreetMap contributors · OpenFreeMap',
+                      ),
+                    ),
                   Positioned(
                     left: 8,
-                    top: 8,
+                    top: widget.controlsTopOffset,
                     child: _MapControls(
                       onZoomIn: () => _changeZoom(1),
                       onZoomOut: () => _changeZoom(-1),
@@ -582,19 +619,18 @@ class _NaturalEarthAttribution extends StatelessWidget {
   );
 }
 
-class _OnlineAttribution extends StatelessWidget {
-  const _OnlineAttribution();
+class _BaseLayerAttribution extends StatelessWidget {
+  const _BaseLayerAttribution({required this.label});
+
+  final String label;
 
   @override
   Widget build(BuildContext context) => Material(
     color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
     borderRadius: BorderRadius.circular(4),
-    child: const Padding(
+    child: Padding(
       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      child: Text(
-        '© OpenStreetMap contributors · OpenFreeMap',
-        style: TextStyle(fontSize: 10),
-      ),
+      child: Text(label, style: const TextStyle(fontSize: 10)),
     ),
   );
 }

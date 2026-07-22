@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
 import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
@@ -12,6 +13,8 @@ import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_maplibre.dart';
 import 'package:nahpu/screens/projects/statistics/linux_user_map_layers.dart';
 import 'package:nahpu/screens/settings/map_settings.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/map_layers.dart';
 
 final Future<List<NaturalEarthPolygon>> _naturalEarthPolygons =
     loadNaturalEarthPolygons();
@@ -97,7 +100,7 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
   }
 }
 
-class _SpatialMapViewport extends StatelessWidget {
+class _SpatialMapViewport extends ConsumerWidget {
   const _SpatialMapViewport({
     required this.kind,
     required this.rows,
@@ -111,13 +114,17 @@ class _SpatialMapViewport extends StatelessWidget {
   final VoidCallback? onViewFullScreen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final baseLayer =
+        ref.watch(spatialBasemapStyleProvider).value ??
+        SpatialBasemapStyle.automatic;
+    final showsBaseLayer = baseLayer != SpatialBasemapStyle.none;
     final actions = [
       _SpatialMapAction(
-        tooltip: 'Custom map layers',
+        tooltip: 'Map layers',
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const UserMapLayerSettings()),
+          MaterialPageRoute(builder: (context) => const MapLayerSettings()),
         ),
         icon: Icons.layers_outlined,
       ),
@@ -134,7 +141,9 @@ class _SpatialMapViewport extends StatelessWidget {
         Positioned.fill(
           child: Platform.isLinux
               ? FutureBuilder<List<NaturalEarthPolygon>>(
-                  future: _naturalEarthPolygons,
+                  future: showsBaseLayer
+                      ? _naturalEarthPolygons
+                      : Future.value(const []),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return const _MapMessage(
@@ -154,6 +163,7 @@ class _SpatialMapViewport extends StatelessWidget {
                       rows: rows,
                       total: total,
                       polygons: snapshot.data!,
+                      showsBaseLayer: showsBaseLayer,
                       legendInitiallyExpanded: !isNarrow,
                     );
                   },
@@ -234,6 +244,7 @@ class _NaturalEarthMap extends StatelessWidget {
     required this.rows,
     required this.total,
     required this.polygons,
+    required this.showsBaseLayer,
     required this.legendInitiallyExpanded,
   });
 
@@ -241,6 +252,7 @@ class _NaturalEarthMap extends StatelessWidget {
   final List<SpatialStatisticDatum> rows;
   final int total;
   final List<NaturalEarthPolygon> polygons;
+  final bool showsBaseLayer;
   final bool legendInitiallyExpanded;
 
   @override
@@ -276,21 +288,22 @@ class _NaturalEarthMap extends StatelessWidget {
                   : null,
               minZoom: 1,
               maxZoom: 16,
-              backgroundColor: colorScheme.surfaceContainerLowest,
+              backgroundColor: colorScheme.surface,
             ),
             children: [
-              PolygonLayer(
-                polygons: [
-                  for (final polygon in polygons)
-                    Polygon(
-                      points: polygon.points,
-                      holePointsList: polygon.holes,
-                      color: colorScheme.surfaceContainerHighest,
-                      borderColor: colorScheme.outlineVariant,
-                      borderStrokeWidth: 0.6,
-                    ),
-                ],
-              ),
+              if (showsBaseLayer)
+                PolygonLayer(
+                  polygons: [
+                    for (final polygon in polygons)
+                      Polygon(
+                        points: polygon.points,
+                        holePointsList: polygon.holes,
+                        color: colorScheme.surfaceContainerHighest,
+                        borderColor: colorScheme.outlineVariant,
+                        borderStrokeWidth: 0.6,
+                      ),
+                  ],
+                ),
               const LinuxUserMapLayers(),
               if (rows.isNotEmpty)
                 MarkerLayer(
@@ -307,11 +320,12 @@ class _NaturalEarthMap extends StatelessWidget {
                 ),
             ],
           ),
-          Positioned(
-            left: 8,
-            bottom: 8,
-            child: _MapAttribution(colorScheme: colorScheme),
-          ),
+          if (showsBaseLayer)
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: _MapAttribution(colorScheme: colorScheme),
+            ),
           if (rows.isEmpty)
             const Positioned.fill(
               child: _MapMessage(

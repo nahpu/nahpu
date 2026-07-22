@@ -1,8 +1,18 @@
-enum SpatialBasemapStyle { automatic, positron, bright, liberty, dark }
+enum SpatialBasemapStyle {
+  none,
+  automatic,
+  naturalEarthOffline,
+  positron,
+  bright,
+  liberty,
+  dark,
+}
 
 extension SpatialBasemapStyleDetails on SpatialBasemapStyle {
   String get label => switch (this) {
+    SpatialBasemapStyle.none => 'None',
     SpatialBasemapStyle.automatic => 'Automatic',
+    SpatialBasemapStyle.naturalEarthOffline => 'Natural Earth (Offline)',
     SpatialBasemapStyle.positron => 'Positron',
     SpatialBasemapStyle.bright => 'Bright',
     SpatialBasemapStyle.liberty => 'Liberty',
@@ -10,8 +20,11 @@ extension SpatialBasemapStyleDetails on SpatialBasemapStyle {
   };
 
   String get description => switch (this) {
+    SpatialBasemapStyle.none => 'No geographic base layer',
     SpatialBasemapStyle.automatic =>
       'Positron in light mode and Dark in dark mode',
+    SpatialBasemapStyle.naturalEarthOffline =>
+      'Bundled country boundaries that work without internet access',
     SpatialBasemapStyle.positron => 'Minimal, low-contrast light map',
     SpatialBasemapStyle.bright => 'Detailed map with bright colors',
     SpatialBasemapStyle.liberty => 'Detailed map with balanced colors',
@@ -23,12 +36,12 @@ extension SpatialBasemapStyleDetails on SpatialBasemapStyle {
     return isDark ? SpatialBasemapStyle.dark : SpatialBasemapStyle.positron;
   }
 
-  String get styleUrl {
-    final style = this == SpatialBasemapStyle.automatic
-        ? SpatialBasemapStyle.positron
-        : this;
-    return 'https://tiles.openfreemap.org/styles/${style.name}';
-  }
+  String? get styleUrl => switch (this) {
+    SpatialBasemapStyle.none || SpatialBasemapStyle.naturalEarthOffline => null,
+    SpatialBasemapStyle.automatic =>
+      'https://tiles.openfreemap.org/styles/positron',
+    _ => 'https://tiles.openfreemap.org/styles/$name',
+  };
 }
 
 enum UserMapLayerKind { geoJson, rasterPmtiles, vectorPmtiles, demPmtiles }

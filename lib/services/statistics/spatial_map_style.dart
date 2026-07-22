@@ -35,7 +35,9 @@ class SpatialMapStyleService {
     final signature = [
       resolved.name,
       colorScheme.primary.toARGB32(),
+      colorScheme.surface.toARGB32(),
       colorScheme.surfaceContainerHighest.toARGB32(),
+      colorScheme.outlineVariant.toARGB32(),
       kind.name,
       total,
       for (final row in rows) '${row.coordinateId}:${row.count}',
@@ -61,23 +63,35 @@ class SpatialMapStyleService {
   ///
   /// The remote OpenFreeMap style is used when it can be loaded. When it
   /// cannot, the same bundled Natural Earth source used by statistics becomes
-  /// the basemap.
+  /// the base layer.
   static Future<String> buildCoordinatePoints({
     required SpatialBasemapStyle style,
     required bool isDark,
     required ColorScheme colorScheme,
+    required UserMapCatalog catalog,
+    required Directory userMapDirectory,
   }) {
     final resolved = style.resolve(isDark: isDark);
     final signature = [
       'coordinates',
       resolved.name,
       colorScheme.primary.toARGB32(),
+      colorScheme.surface.toARGB32(),
       colorScheme.onSurfaceVariant.toARGB32(),
       colorScheme.surfaceContainerHighest.toARGB32(),
+      colorScheme.outlineVariant.toARGB32(),
+      catalog.activeTerrainLayerId,
+      for (final layer in catalog.layers)
+        '${layer.id}:${layer.enabled}:${layer.opacity}',
     ].join('|');
     return _cache.putIfAbsent(
       signature,
-      () => _buildCoordinatePoints(style: resolved, colorScheme: colorScheme),
+      () => _buildCoordinatePoints(
+        style: resolved,
+        colorScheme: colorScheme,
+        catalog: catalog,
+        userMapDirectory: userMapDirectory,
+      ),
     );
   }
 
@@ -111,8 +125,11 @@ class SpatialMapStyleService {
   static Future<String> _buildCoordinatePoints({
     required SpatialBasemapStyle style,
     required ColorScheme colorScheme,
+    required UserMapCatalog catalog,
+    required Directory userMapDirectory,
   }) async {
-    final base = await _loadBaseStyle(style);
+    final loadedBase = await _loadBaseStyle(style, colorScheme);
+    final base = loadedBase.style;
     final sources = Map<String, dynamic>.from(base['sources'] as Map? ?? {});
     sources[coordinateSourceId] = {
       'type': 'geojson',
@@ -128,36 +145,20 @@ class SpatialMapStyleService {
     final layers = (base['layers'] as List? ?? const [])
         .map((layer) => Map<String, dynamic>.from(layer as Map))
         .toList();
-    final firstBasemapLayer = layers.indexWhere(
-      (layer) => layer['type'] != 'background',
-    );
-    if (firstBasemapLayer < 0) {
-      sources[naturalEarthSourceId] = {
-        'type': 'geojson',
-        'data': jsonDecode(await rootBundle.loadString(naturalEarthAsset)),
-        'attribution': 'Natural Earth',
-      };
-      layers.addAll([
-        {
-          'id': 'nahpu-natural-earth-fill',
-          'type': 'fill',
-          'source': naturalEarthSourceId,
-          'paint': {
-            'fill-color': _hex(colorScheme.surfaceContainerHighest),
-            'fill-opacity': 1,
-          },
-        },
-        {
-          'id': 'nahpu-natural-earth-outline',
-          'type': 'line',
-          'source': naturalEarthSourceId,
-          'paint': {
-            'line-color': _hex(colorScheme.outlineVariant),
-            'line-width': 0.6,
-          },
-        },
-      ]);
+    if (loadedBase.showsNaturalEarth) {
+      await _addNaturalEarthBase(
+        sources: sources,
+        layers: layers,
+        colorScheme: colorScheme,
+      );
     }
+    await _addUserLayers(
+      base: base,
+      sources: sources,
+      layers: layers,
+      catalog: catalog,
+      directory: userMapDirectory,
+    );
     layers.add({
       'id': coordinateLayerId,
       'type': 'circle',
@@ -204,7 +205,8 @@ class SpatialMapStyleService {
     required UserMapCatalog catalog,
     required Directory userMapDirectory,
   }) async {
-    final base = await _loadBaseStyle(style);
+    final loadedBase = await _loadBaseStyle(style, colorScheme);
+    final base = loadedBase.style;
     final sources = Map<String, dynamic>.from(base['sources'] as Map? ?? {});
     sources[statisticsSourceId] = {
       'type': 'geojson',
@@ -215,38 +217,12 @@ class SpatialMapStyleService {
     final layers = (base['layers'] as List? ?? const [])
         .map((layer) => Map<String, dynamic>.from(layer as Map))
         .toList();
-    final firstBasemapLayer = layers.indexWhere(
-      (layer) => layer['type'] != 'background',
-    );
-    if (firstBasemapLayer < 0) {
-      final naturalEarth = jsonDecode(
-        await rootBundle.loadString(naturalEarthAsset),
+    if (loadedBase.showsNaturalEarth) {
+      await _addNaturalEarthBase(
+        sources: sources,
+        layers: layers,
+        colorScheme: colorScheme,
       );
-      sources[naturalEarthSourceId] = {
-        'type': 'geojson',
-        'data': naturalEarth,
-        'attribution': 'Natural Earth',
-      };
-      layers.addAll([
-        {
-          'id': 'nahpu-natural-earth-fill',
-          'type': 'fill',
-          'source': naturalEarthSourceId,
-          'paint': {
-            'fill-color': _hex(colorScheme.surfaceContainerHighest),
-            'fill-opacity': 1,
-          },
-        },
-        {
-          'id': 'nahpu-natural-earth-outline',
-          'type': 'line',
-          'source': naturalEarthSourceId,
-          'paint': {
-            'line-color': _hex(colorScheme.outlineVariant),
-            'line-width': 0.6,
-          },
-        },
-      ]);
     }
     await _addUserLayers(
       base: base,
@@ -343,6 +319,38 @@ class SpatialMapStyleService {
     base['sources'] = sources;
   }
 
+  static Future<void> _addNaturalEarthBase({
+    required Map<String, dynamic> sources,
+    required List<Map<String, dynamic>> layers,
+    required ColorScheme colorScheme,
+  }) async {
+    sources[naturalEarthSourceId] = {
+      'type': 'geojson',
+      'data': jsonDecode(await rootBundle.loadString(naturalEarthAsset)),
+      'attribution': 'Natural Earth',
+    };
+    layers.addAll([
+      {
+        'id': 'nahpu-natural-earth-fill',
+        'type': 'fill',
+        'source': naturalEarthSourceId,
+        'paint': {
+          'fill-color': _hex(colorScheme.surfaceContainerHighest),
+          'fill-opacity': 1,
+        },
+      },
+      {
+        'id': 'nahpu-natural-earth-outline',
+        'type': 'line',
+        'source': naturalEarthSourceId,
+        'paint': {
+          'line-color': _hex(colorScheme.outlineVariant),
+          'line-width': 0.6,
+        },
+      },
+    ]);
+  }
+
   static List<Map<String, dynamic>> _vectorLayers(
     UserMapLayer layer,
     String sourceId,
@@ -408,32 +416,54 @@ class SpatialMapStyleService {
   static String _pmTilesUri(String filePath) =>
       'pmtiles://${Uri.file(filePath)}';
 
-  static Future<Map<String, dynamic>> _loadBaseStyle(
+  static Future<_LoadedBaseStyle> _loadBaseStyle(
     SpatialBasemapStyle style,
+    ColorScheme colorScheme,
   ) async {
+    if (style == SpatialBasemapStyle.none) {
+      return _LoadedBaseStyle(_blankBaseStyle(colorScheme));
+    }
+    if (style == SpatialBasemapStyle.naturalEarthOffline) {
+      return _LoadedBaseStyle(
+        _blankBaseStyle(colorScheme, name: 'NAHPU Natural Earth'),
+        showsNaturalEarth: true,
+      );
+    }
+    final styleUrl = style.styleUrl;
+    if (styleUrl == null) return _LoadedBaseStyle(_blankBaseStyle(colorScheme));
     try {
       final response = await http
-          .get(Uri.parse(style.styleUrl))
+          .get(Uri.parse(styleUrl))
           .timeout(const Duration(seconds: 8));
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+        return _LoadedBaseStyle(
+          Map<String, dynamic>.from(jsonDecode(response.body) as Map),
+        );
       }
     } catch (_) {
       // The local Natural Earth style below is the intentional offline path.
     }
-    return {
-      'version': 8,
-      'name': 'NAHPU Offline',
-      'sources': <String, dynamic>{},
-      'layers': [
-        {
-          'id': 'nahpu-background',
-          'type': 'background',
-          'paint': {'background-color': '#101418'},
-        },
-      ],
-    };
+    return _LoadedBaseStyle(
+      _blankBaseStyle(colorScheme, name: 'NAHPU Offline'),
+      showsNaturalEarth: true,
+    );
   }
+
+  static Map<String, dynamic> _blankBaseStyle(
+    ColorScheme colorScheme, {
+    String name = 'NAHPU',
+  }) => {
+    'version': 8,
+    'name': name,
+    'sources': <String, dynamic>{},
+    'layers': [
+      {
+        'id': 'nahpu-background',
+        'type': 'background',
+        'paint': {'background-color': _hex(colorScheme.surface)},
+      },
+    ],
+  };
 
   static Map<String, dynamic> _statisticsFeatureCollection(
     SpatialStatisticKind kind,
@@ -482,4 +512,11 @@ class SpatialMapStyleService {
     final value = color.toARGB32().toRadixString(16).padLeft(8, '0');
     return '#${value.substring(2)}';
   }
+}
+
+class _LoadedBaseStyle {
+  const _LoadedBaseStyle(this.style, {this.showsNaturalEarth = false});
+
+  final Map<String, dynamic> style;
+  final bool showsNaturalEarth;
 }
