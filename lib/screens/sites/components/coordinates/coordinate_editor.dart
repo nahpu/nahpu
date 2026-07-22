@@ -62,7 +62,7 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
         bottomNavigationBar: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
             child: _buildActions(),
           ),
         ),
