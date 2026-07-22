@@ -268,38 +268,30 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              OutlinedButton.icon(
-                onPressed: _pickCoordinateFile,
-                icon: const Icon(Icons.file_open_outlined),
-                label: const Text('Choose another file'),
-              ),
-              OutlinedButton.icon(
-                onPressed: _scanQr,
-                icon: const Icon(Icons.qr_code_scanner_outlined),
-                label: const Text('Scan QR'),
-              ),
-              TextButton(
-                onPressed: () => setState(() {
-                  _selectedImports = {
-                    for (
-                      var index = 0;
-                      index < review.coordinates.length;
-                      index++
-                    )
-                      index,
-                  };
-                }),
-                child: const Text('Select all'),
-              ),
-              TextButton(
-                onPressed: () => setState(_selectedImports.clear),
-                child: const Text('Clear all'),
-              ),
-            ],
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: () => setState(() {
+                    _selectedImports = {
+                      for (
+                        var index = 0;
+                        index < review.coordinates.length;
+                        index++
+                      )
+                        index,
+                    };
+                  }),
+                  child: const Text('Select all'),
+                ),
+                TextButton(
+                  onPressed: () => setState(_selectedImports.clear),
+                  child: const Text('Clear all'),
+                ),
+              ],
+            ),
           ),
         ),
         if (review.warnings.isNotEmpty)
@@ -330,6 +322,32 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                 }),
               );
             },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: OutlinedButton.icon(
+                  onPressed: _scanQr,
+                  icon: const Icon(Icons.qr_code_scanner_outlined),
+                  label: const Text('Scan QR', overflow: TextOverflow.ellipsis),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Flexible(
+                child: OutlinedButton.icon(
+                  onPressed: _pickCoordinateFile,
+                  icon: const Icon(Icons.file_open_outlined),
+                  label: const Text(
+                    'Choose another file',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
