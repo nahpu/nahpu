@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart' as maplibre;
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
+import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
 import 'package:nahpu/screens/projects/statistics/linux_user_map_layers.dart';
 import 'package:nahpu/services/maps/coordinate_map_point.dart';
 import 'package:nahpu/services/maps/natural_earth.dart';
@@ -301,11 +302,9 @@ class _MapLibreCoordinateMap extends StatefulWidget {
 
 class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   maplibre.MapController? _controller;
-  bool _mapCreated = false;
-  bool _styleReady = false;
-  bool _resetPending = false;
+  final _readiness = MapLibreCameraReadiness();
 
-  bool get _isReady => mounted && _mapCreated && _styleReady;
+  bool get _isReady => mounted && _readiness.isReady;
 
   @override
   void didUpdateWidget(covariant _MapLibreCoordinateMap oldWidget) {
@@ -323,8 +322,6 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
 
   @override
   void dispose() {
-    _mapCreated = false;
-    _styleReady = false;
     _controller = null;
     super.dispose();
   }
@@ -376,9 +373,13 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
                 onMapCreated: (controller) {
                   if (!mounted) return;
                   _controller = controller;
-                  _mapCreated = true;
+                  _readiness.markMapCreated();
+                  _initializeMap();
                 },
-                onStyleLoaded: (_) => _onStyleLoaded(),
+                onStyleLoaded: (_) {
+                  _readiness.markStyleLoaded();
+                  _initializeMap();
+                },
                 onEvent: _handleEvent,
                 children: [
                   const Positioned.fill(child: MapLibreGestureSurface()),
@@ -470,7 +471,7 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
 
   Future<void> _resetCamera() async {
     if (!_isReady) {
-      _resetPending = true;
+      _readiness.requestReset();
       return;
     }
     if (widget.points.length > 1) return _fitPoints();
@@ -499,12 +500,10 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
     if (coordinateId is num) widget.onPointSelected(coordinateId.toInt());
   }
 
-  Future<void> _onStyleLoaded() async {
-    if (!mounted || !_mapCreated) return;
-    _styleReady = true;
+  Future<void> _initializeMap() async {
+    if (!_readiness.claimInitialCamera()) return;
     await _updateCoordinates(focus: false);
-    if (_resetPending) {
-      _resetPending = false;
+    if (_readiness.takePendingReset()) {
       await _resetCamera();
       return;
     }

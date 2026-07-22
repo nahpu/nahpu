@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
+import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -102,6 +103,15 @@ class _MapLibreMap extends StatefulWidget {
 
 class _MapLibreMapState extends State<_MapLibreMap> {
   MapController? _controller;
+  final _readiness = MapLibreCameraReadiness();
+
+  bool get _isReady => mounted && _readiness.isReady;
+
+  @override
+  void dispose() {
+    _controller = null;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,8 +143,16 @@ class _MapLibreMapState extends State<_MapLibreMap> {
                 pitch: false,
               ),
             ),
-            onMapCreated: (controller) => _controller = controller,
-            onStyleLoaded: (_) => _fitRows(),
+            onMapCreated: (controller) {
+              if (!mounted) return;
+              _controller = controller;
+              _readiness.markMapCreated();
+              _initializeCamera();
+            },
+            onStyleLoaded: (_) {
+              _readiness.markStyleLoaded();
+              _initializeCamera();
+            },
             onEvent: _handleEvent,
             children: [
               const Positioned.fill(child: MapLibreGestureSurface()),
@@ -184,7 +202,7 @@ class _MapLibreMapState extends State<_MapLibreMap> {
 
   Future<void> _fitRows() async {
     final controller = _controller;
-    if (controller == null || widget.rows.length < 2) return;
+    if (!_isReady || controller == null || widget.rows.length < 2) return;
     await controller.fitBounds(
       bounds: LngLatBounds.fromPoints([
         for (final row in widget.rows)
@@ -197,7 +215,10 @@ class _MapLibreMapState extends State<_MapLibreMap> {
 
   Future<void> _resetCamera() async {
     final controller = _controller;
-    if (controller == null) return;
+    if (!_isReady || controller == null) {
+      _readiness.requestReset();
+      return;
+    }
     if (widget.rows.length > 1) return _fitRows();
     final row = widget.rows.firstOrNull;
     await controller.animateCamera(
@@ -211,7 +232,7 @@ class _MapLibreMapState extends State<_MapLibreMap> {
   }
 
   void _handleEvent(MapEvent event) {
-    if (event is! MapEventClick) return;
+    if (!_isReady || event is! MapEventClick) return;
     final feature = _controller
         ?.featuresAtPoint(
           event.screenPoint,
@@ -224,6 +245,15 @@ class _MapLibreMapState extends State<_MapLibreMap> {
         .where((candidate) => candidate.coordinateId == coordinateId.toInt())
         .firstOrNull;
     if (row != null) _showDetails(row);
+  }
+
+  Future<void> _initializeCamera() async {
+    if (!_readiness.claimInitialCamera()) return;
+    if (_readiness.takePendingReset()) {
+      await _resetCamera();
+      return;
+    }
+    await _fitRows();
   }
 
   void _showDetails(SpatialStatisticDatum row) {
