@@ -50,12 +50,15 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
             const SizedBox(height: 8),
           ],
           if (constraints.maxWidth < 600)
-            FilledButton.icon(
-              key: const ValueKey('spatial-statistics-view-map'),
-              onPressed: () =>
-                  _showFullScreenMap(context, rows: mappable, total: total),
-              icon: const Icon(Icons.map_outlined),
-              label: const Text('View map'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: FilledButton.icon(
+                key: const ValueKey('spatial-statistics-view-map'),
+                onPressed: () =>
+                    _showFullScreenMap(context, rows: mappable, total: total),
+                icon: const Icon(Icons.map_outlined),
+                label: const Text('View map'),
+              ),
             )
           else
             SizedBox(

@@ -6,6 +6,7 @@ import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
@@ -111,21 +112,25 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       appBar: AppBar(title: const Text('Project Statistics')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          padding: const EdgeInsets.fromLTRB(8, 12, 8, 32),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1400),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Summary',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                  CommonPadding(
+                    child: Text(
+                      'Summary',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Top five categories across the current project.',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  CommonPadding(
+                    child: Text(
+                      'Top five categories across the current project.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _StatisticSummary(
@@ -358,7 +363,6 @@ class _StatisticSummaryCard extends ConsumerWidget {
     );
     final value = ref.watch(statisticDataProvider(request));
     return Card(
-      elevation: 0,
       color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
