@@ -61,14 +61,8 @@ class _SpatialStatisticsLegendState extends State<SpatialStatisticsLegend> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               children: [
-                Text(
-                  widget.kind.hasCounts
-                      ? widget.kind.countLabel.toSentenceCase()
-                      : 'Legend',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
                 IconButton(
                   key: const ValueKey('spatial-statistics-legend-toggle'),
                   tooltip: _isExpanded
@@ -83,6 +77,15 @@ class _SpatialStatisticsLegendState extends State<SpatialStatisticsLegend> {
                   onPressed: () => setState(() => _isExpanded = !_isExpanded),
                   icon: Icon(
                     _isExpanded ? Icons.expand_less : Icons.expand_more,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    widget.kind.hasCounts
+                        ? widget.kind.countLabel.toSentenceCase()
+                        : 'Legend',
+                    style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ),
               ],
@@ -159,7 +162,7 @@ class _LegendSample extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           Text(
             '$count (${total == 0 ? '0.0' : (count * 100 / total).toStringAsFixed(1)}%)',
             style: Theme.of(context).textTheme.bodySmall,

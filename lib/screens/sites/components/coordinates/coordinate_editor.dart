@@ -17,6 +17,7 @@ class NewCoordinate extends ConsumerStatefulWidget {
 }
 
 class _NewCoordinateState extends ConsumerState<NewCoordinate> {
+  final _manualFormKey = GlobalKey<CoordinateFormsState>();
   _AddCoordinateMode _mode = _AddCoordinateMode.manual;
   CoordinateImportReview? _review;
   Set<int> _selectedImports = {};
@@ -49,32 +50,37 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
         appBar: AppBar(
           title: const Text('Add coordinates'),
           automaticallyImplyLeading: false,
+          actions: [
+            if (MediaQuery.sizeOf(context).width < 600)
+              IconButton(
+                tooltip: 'View map',
+                onPressed: () => _showMapSheet(_buildMap()),
+                icon: const Icon(Icons.map_outlined),
+              ),
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: _buildActions(),
+          ),
         ),
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final isWide = constraints.maxWidth > 600;
+              final isWide = constraints.maxWidth >= 600;
               final content = _mode == _AddCoordinateMode.import
                   ? _buildImportReview()
                   : CoordinateForms(
+                      key: _manualFormKey,
                       coordinateId: null,
                       siteId: widget.siteId,
                       coordCtr: widget.coordCtr,
                       disposeController: false,
+                      showActions: false,
                     );
-              final map = _mode == _AddCoordinateMode.import
-                  ? _ImportCoordinateMap(
-                      records: _review?.coordinates ?? const [],
-                      focusedIndex: _focusedImport,
-                      onFocused: (index) =>
-                          setState(() => _focusedImport = index),
-                    )
-                  : _ManualCoordinateMap(
-                      point: _manualPreview,
-                      isStale: _manualPreviewIsStale,
-                      canRefresh: _validManualPoint != null,
-                      onRefresh: _refreshManualMap,
-                    );
+              final map = _buildMap();
               return Column(
                 children: [
                   Padding(
@@ -135,33 +141,6 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                                   ),
                                 ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Wrap(
-                                  alignment: WrapAlignment.center,
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    if (_mode == _AddCoordinateMode.manual &&
-                                        _validManualPoint != null)
-                                      FilledButton.icon(
-                                        onPressed: _refreshManualMap,
-                                        icon: const Icon(Icons.refresh),
-                                        label: const Text('Refresh map'),
-                                      ),
-                                    OutlinedButton.icon(
-                                      onPressed:
-                                          _mode == _AddCoordinateMode.manual &&
-                                              (_manualPreview == null ||
-                                                  _manualPreviewIsStale)
-                                          ? null
-                                          : () => _showMapSheet(map),
-                                      icon: const Icon(Icons.map_outlined),
-                                      label: const Text('Show on map'),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ],
                           ),
                   ),
@@ -172,6 +151,48 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
         ),
       ),
     );
+  }
+
+  Widget _buildMap() => _mode == _AddCoordinateMode.import
+      ? _ImportCoordinateMap(
+          records: _review?.coordinates ?? const [],
+          focusedIndex: _focusedImport,
+          onFocused: (index) => setState(() => _focusedImport = index),
+        )
+      : _ManualCoordinateMap(
+          point: _manualPreview,
+          isStale: _manualPreviewIsStale,
+          canRefresh: _validManualPoint != null,
+          onRefresh: _refreshManualMap,
+        );
+
+  Widget _buildActions() => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      SecondaryButton(
+        text: 'Cancel',
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      const SizedBox(width: 24),
+      PrimaryButton(
+        label: _mode == _AddCoordinateMode.import
+            ? 'Add ${_selectedImports.length} selected'
+            : 'Add',
+        icon: Icons.add,
+        onPressed:
+            _mode == _AddCoordinateMode.import && _selectedImports.isEmpty
+            ? null
+            : _submit,
+      ),
+    ],
+  );
+
+  Future<void> _submit() async {
+    if (_mode == _AddCoordinateMode.import) {
+      await _importSelected();
+      return;
+    }
+    await _manualFormKey.currentState?.submit();
   }
 
   CoordinateMapPoint? get _validManualPoint {
@@ -309,14 +330,6 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                 }),
               );
             },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: FilledButton.icon(
-            onPressed: _selectedImports.isEmpty ? null : _importSelected,
-            icon: const Icon(Icons.add_location_alt_outlined),
-            label: Text('Add ${_selectedImports.length} selected'),
           ),
         ),
       ],
@@ -545,6 +558,7 @@ class CoordinateForms extends ConsumerStatefulWidget {
     required this.coordCtr,
     this.isEditing = false,
     this.disposeController = true,
+    this.showActions = true,
   });
 
   final int? coordinateId;
@@ -552,6 +566,7 @@ class CoordinateForms extends ConsumerStatefulWidget {
   final CoordinateCtrModel coordCtr;
   final bool isEditing;
   final bool disposeController;
+  final bool showActions;
 
   @override
   CoordinateFormsState createState() => CoordinateFormsState();
@@ -748,30 +763,15 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
               isLastField: true,
             ),
           ),
-          const SizedBox(height: 16),
-          CommonPadding(
-            child: FormButton(
-              isEditing: widget.isEditing,
-              onSubmitted: () async {
-                try {
-                  if (widget.isEditing) {
-                    await _updateCoordinate();
-                  } else {
-                    await _createCoordinate();
-                  }
-                  ref.invalidate(coordinateBySiteProvider);
-                  ref.invalidate(coordinateByProjectProvider);
-                  if (context.mounted) Navigator.pop(context);
-                } catch (error) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(error.toString())));
-                  }
-                }
-              },
+          if (widget.showActions) ...[
+            const SizedBox(height: 16),
+            CommonPadding(
+              child: FormButton(
+                isEditing: widget.isEditing,
+                onSubmitted: submit,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -914,6 +914,25 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
     CoordinateCompanion form = _getform();
 
     await CoordinateServices(ref: ref).createCoordinate(form);
+  }
+
+  Future<void> submit() async {
+    try {
+      if (widget.isEditing) {
+        await _updateCoordinate();
+      } else {
+        await _createCoordinate();
+      }
+      ref.invalidate(coordinateBySiteProvider);
+      ref.invalidate(coordinateByProjectProvider);
+      if (mounted) Navigator.pop(context);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
+      }
+    }
   }
 
   Future<void> _updateCoordinate() async {

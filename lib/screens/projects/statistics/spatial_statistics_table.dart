@@ -7,10 +7,12 @@ class SpatialStatisticsTable extends StatefulWidget {
     super.key,
     required this.kind,
     required this.rows,
+    this.onExport,
   });
 
   final SpatialStatisticKind kind;
   final List<SpatialStatisticDatum> rows;
+  final VoidCallback? onExport;
 
   @override
   State<SpatialStatisticsTable> createState() => _SpatialStatisticsTableState();
@@ -33,7 +35,14 @@ class _SpatialStatisticsTableState extends State<SpatialStatisticsTable> {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: PaginatedDataTable(
-        header: Text(widget.kind.title),
+        header: const SizedBox.shrink(),
+        actions: [
+          IconButton(
+            tooltip: 'Export table',
+            onPressed: widget.onExport,
+            icon: const Icon(Icons.file_upload_outlined),
+          ),
+        ],
         showEmptyRows: false,
         rowsPerPage: _rowsPerPage,
         availableRowsPerPage: availableRows,

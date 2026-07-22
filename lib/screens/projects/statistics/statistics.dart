@@ -195,7 +195,9 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                               Expanded(
                                 child: Text(
                                   _selectedStatistic.title,
-                                  style: Theme.of(context).textTheme.titleLarge,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                               ),
                               SegmentedButton<_DetailMode>(
@@ -259,7 +261,10 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  SpatialStatisticsPanel(projectUuid: projectUuid),
+                  SpatialStatisticsPanel(
+                    projectUuid: projectUuid,
+                    projectName: projectName,
+                  ),
                 ],
               ),
             ),

@@ -3,14 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_map.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_table.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
+import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/services/providers/statistics.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
 class SpatialStatisticsPanel extends ConsumerStatefulWidget {
-  const SpatialStatisticsPanel({super.key, required this.projectUuid});
+  const SpatialStatisticsPanel({
+    super.key,
+    required this.projectUuid,
+    required this.projectName,
+  });
 
   final String projectUuid;
+  final String projectName;
 
   @override
   ConsumerState<SpatialStatisticsPanel> createState() =>
@@ -79,7 +85,7 @@ class _SpatialStatisticsPanelState
                   _selectedKind.needsSpecies && _selectedSpecies != null
                       ? '${_selectedSpecies!.label} counts by coordinates'
                       : _selectedKind.title,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleMedium,
                 );
                 final selector = SegmentedButton<_SpatialStatisticMode>(
                   showSelectedIcon: false,
@@ -155,7 +161,16 @@ class _SpatialStatisticsPanelState
       return SpatialStatisticsMap(kind: _selectedKind, rows: rows);
     }
     if (rows.isNotEmpty) {
-      return SpatialStatisticsTable(kind: _selectedKind, rows: rows);
+      return SpatialStatisticsTable(
+        kind: _selectedKind,
+        rows: rows,
+        onExport: () => showSpatialStatisticExportDialog(
+          context: context,
+          defaultFileName: _defaultFileName,
+          kind: _selectedKind,
+          rows: rows,
+        ),
+      );
     }
     return SizedBox(
       height: 220,
@@ -180,6 +195,25 @@ class _SpatialStatisticsPanelState
       'No specimens of ${_selectedSpecies?.label ?? 'the selected species'} '
           'are assigned to project coordinates.',
   };
+
+  String get _defaultFileName {
+    final now = DateTime.now();
+    final date =
+        '${now.year.toString().padLeft(4, '0')}'
+        '${now.month.toString().padLeft(2, '0')}'
+        '${now.day.toString().padLeft(2, '0')}';
+    final components = [
+      widget.projectName,
+      _selectedKind.fileSlug,
+      if (_selectedSpecies != null) _selectedSpecies!.label,
+      date,
+    ];
+    return components
+        .join('_')
+        .replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+  }
 }
 
 class _SpatialSpeciesPrompt extends StatelessWidget {

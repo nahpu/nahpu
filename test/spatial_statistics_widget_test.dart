@@ -133,6 +133,43 @@ void main() {
     expect(find.text('Count'), findsOneWidget);
     expect(find.text('Percent'), findsOneWidget);
     expect(find.text('100.0%'), findsOneWidget);
+    expect(find.text('Specimens counts by site coordinates'), findsNothing);
+  });
+
+  testWidgets('spatial table provides an export action', (tester) async {
+    tester.view.physicalSize = const Size(1600, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var exportCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SpatialStatisticsTable(
+            kind: SpatialStatisticKind.specimens,
+            onExport: () => exportCount++,
+            rows: [
+              const SpatialStatisticDatum(
+                coordinateId: 1,
+                name: 'Alpha coordinate',
+                decimalLatitude: 45,
+                decimalLongitude: -93,
+                elevationInMeter: null,
+                datum: null,
+                uncertaintyInMeters: null,
+                gpsUnit: null,
+                notes: null,
+                count: 1,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Export table'));
+    expect(exportCount, 1);
   });
 
   testWidgets('spatial legend centers true-size circles in one column', (

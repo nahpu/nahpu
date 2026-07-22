@@ -6,6 +6,7 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/services/export/statistics_exporter.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
 class StatisticDataTable extends StatefulWidget {
@@ -37,7 +38,7 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: PaginatedDataTable(
-        header: const Text('Detailed statistics'),
+        header: const SizedBox.shrink(),
         actions: [
           IconButton(
             tooltip: 'Export table',
@@ -103,29 +104,74 @@ Future<void> showStatisticExportDialog({
   required String defaultFileName,
   required List<StatisticTableRow> rows,
 }) {
+  return showTabularExportDialog(
+    context: context,
+    title: 'Export statistics table',
+    defaultFileName: defaultFileName,
+    headers: const ['Rank', 'Category', 'Count', 'Percent (%)'],
+    rows: [
+      for (final row in rows)
+        [
+          row.rank.toString(),
+          row.category,
+          row.count.toString(),
+          row.percent.toStringAsFixed(2),
+        ],
+    ],
+  );
+}
+
+Future<void> showSpatialStatisticExportDialog({
+  required BuildContext context,
+  required String defaultFileName,
+  required SpatialStatisticKind kind,
+  required List<SpatialStatisticDatum> rows,
+}) {
+  return showTabularExportDialog(
+    context: context,
+    title: 'Export spatial statistics table',
+    defaultFileName: defaultFileName,
+    headers: spatialStatisticExportHeaders(kind),
+    rows: buildSpatialStatisticExportRows(kind, rows),
+  );
+}
+
+Future<void> showTabularExportDialog({
+  required BuildContext context,
+  required String title,
+  required String defaultFileName,
+  required List<String> headers,
+  required List<List<String>> rows,
+}) {
   return showDialog<void>(
     context: context,
-    builder: (context) => _StatisticExportDialog(
+    builder: (context) => _TabularExportDialog(
+      title: title,
       defaultFileName: defaultFileName,
+      headers: headers,
       rows: rows,
     ),
   );
 }
 
-class _StatisticExportDialog extends StatefulWidget {
-  const _StatisticExportDialog({
+class _TabularExportDialog extends StatefulWidget {
+  const _TabularExportDialog({
+    required this.title,
     required this.defaultFileName,
+    required this.headers,
     required this.rows,
   });
 
+  final String title;
   final String defaultFileName;
-  final List<StatisticTableRow> rows;
+  final List<String> headers;
+  final List<List<String>> rows;
 
   @override
-  State<_StatisticExportDialog> createState() => _StatisticExportDialogState();
+  State<_TabularExportDialog> createState() => _TabularExportDialogState();
 }
 
-class _StatisticExportDialogState extends State<_StatisticExportDialog> {
+class _TabularExportDialogState extends State<_TabularExportDialog> {
   late final TextEditingController _fileNameController;
   ExportFmt _format = ExportFmt.csv;
   Directory? _directory;
@@ -147,7 +193,7 @@ class _StatisticExportDialogState extends State<_StatisticExportDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Export statistics table'),
+      title: Text(widget.title),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
         child: SingleChildScrollView(
@@ -240,7 +286,12 @@ class _StatisticExportDialogState extends State<_StatisticExportDialog> {
         fileStem: _fileNameController.text.trim(),
         ext: extension,
       ).getSavePath();
-      await const StatisticsTableExporter().write(file, _format, widget.rows);
+      await const StatisticsTableExporter().writeRows(
+        file,
+        _format,
+        headers: widget.headers,
+        rows: widget.rows,
+      );
       if (mounted) setState(() => _exportedFile = file);
     } catch (error) {
       if (mounted) {

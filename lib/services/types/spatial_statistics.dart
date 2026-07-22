@@ -1,11 +1,6 @@
 import 'dart:math' as math;
 
-enum SpatialStatisticKind {
-  specimens,
-  species,
-  family,
-  coordinatesBySpecies,
-}
+enum SpatialStatisticKind { specimens, species, family, coordinatesBySpecies }
 
 extension SpatialStatisticKindLabels on SpatialStatisticKind {
   String get label => switch (this) {
@@ -21,6 +16,14 @@ extension SpatialStatisticKindLabels on SpatialStatisticKind {
     SpatialStatisticKind.family => 'Families counts by site coordinates',
     SpatialStatisticKind.coordinatesBySpecies =>
       'Selected species counts by coordinates',
+  };
+
+  String get fileSlug => switch (this) {
+    SpatialStatisticKind.specimens => 'spatial-specimens',
+    SpatialStatisticKind.species => 'spatial-species',
+    SpatialStatisticKind.family => 'spatial-families',
+    SpatialStatisticKind.coordinatesBySpecies =>
+      'spatial-coordinates-by-species',
   };
 
   bool get hasCounts => true;
