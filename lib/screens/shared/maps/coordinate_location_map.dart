@@ -553,7 +553,7 @@ class _MapMarker extends StatelessWidget {
               ? 28
               : 26,
           color: focused
-              ? Theme.of(context).colorScheme.error
+              ? _focusedMarkerColor(Theme.of(context).colorScheme)
               : selected
               ? Theme.of(context).colorScheme.primary
               : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -562,6 +562,11 @@ class _MapMarker extends StatelessWidget {
     ),
   );
 }
+
+Color _focusedMarkerColor(ColorScheme colorScheme) =>
+    colorScheme.brightness == Brightness.dark
+    ? const Color(0xFF90CAF9)
+    : const Color(0xFF1565C0);
 
 class _NaturalEarthAttribution extends StatelessWidget {
   const _NaturalEarthAttribution();

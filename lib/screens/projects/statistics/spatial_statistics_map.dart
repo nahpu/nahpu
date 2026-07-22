@@ -111,65 +111,92 @@ class _SpatialMapViewport extends StatelessWidget {
   final VoidCallback? onViewFullScreen;
 
   @override
-  Widget build(BuildContext context) => Stack(
-    children: [
-      Positioned.fill(
-        child: Platform.isLinux
-            ? FutureBuilder<List<NaturalEarthPolygon>>(
-                future: _naturalEarthPolygons,
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return const _MapMessage(
-                      icon: Icons.public_off_outlined,
-                      message: 'Unable to load the offline Natural Earth map.',
-                    );
-                  }
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  return _NaturalEarthMap(
-                    key: ValueKey(
-                      '${kind.name}-${rows.map((row) => row.coordinateId).join(',')}',
-                    ),
-                    kind: kind,
-                    rows: rows,
-                    total: total,
-                    polygons: snapshot.data!,
-                  );
-                },
-              )
-            : MapLibreSpatialStatisticsMap(
-                kind: kind,
-                rows: rows,
-                total: total,
-              ),
-      ),
-      Positioned(
-        top: 8,
-        left: 8,
-        child: Row(
-          children: [
-            _SpatialMapAction(
-              tooltip: 'Custom map layers',
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserMapLayerSettings(),
-                ),
-              ),
-              icon: Icons.layers_outlined,
-            ),
-            if (onViewFullScreen != null) ...[
-              const SizedBox(width: 8),
-              _SpatialMapAction(
-                tooltip: 'View map full screen',
-                onPressed: onViewFullScreen!,
-                icon: Icons.fullscreen,
-              ),
-            ],
-          ],
+  Widget build(BuildContext context) {
+    final actions = [
+      _SpatialMapAction(
+        tooltip: 'Custom map layers',
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const UserMapLayerSettings()),
         ),
+        icon: Icons.layers_outlined,
       ),
+      if (onViewFullScreen != null)
+        _SpatialMapAction(
+          tooltip: 'View map full screen',
+          onPressed: onViewFullScreen!,
+          icon: Icons.fullscreen,
+        ),
+    ];
+    final isNarrow = MediaQuery.sizeOf(context).width < 600;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Platform.isLinux
+              ? FutureBuilder<List<NaturalEarthPolygon>>(
+                  future: _naturalEarthPolygons,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const _MapMessage(
+                        icon: Icons.public_off_outlined,
+                        message:
+                            'Unable to load the offline Natural Earth map.',
+                      );
+                    }
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return _NaturalEarthMap(
+                      key: ValueKey(
+                        '${kind.name}-${rows.map((row) => row.coordinateId).join(',')}',
+                      ),
+                      kind: kind,
+                      rows: rows,
+                      total: total,
+                      polygons: snapshot.data!,
+                      legendInitiallyExpanded: !isNarrow,
+                    );
+                  },
+                )
+              : MapLibreSpatialStatisticsMap(
+                  kind: kind,
+                  rows: rows,
+                  total: total,
+                  controlsTopOffset: _SpatialMapActionStack.controlsTopOffset(
+                    actions.length,
+                  ),
+                  legendInitiallyExpanded: !isNarrow,
+                ),
+        ),
+        Positioned(
+          top: 8,
+          left: 8,
+          child: _SpatialMapActionStack(actions: actions),
+        ),
+      ],
+    );
+  }
+}
+
+class _SpatialMapActionStack extends StatelessWidget {
+  const _SpatialMapActionStack({required this.actions});
+
+  static const buttonExtent = 48.0;
+  static const spacing = 8.0;
+
+  final List<Widget> actions;
+
+  static double controlsTopOffset(int actionCount) =>
+      8 + actionCount * buttonExtent + actionCount * spacing;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (var index = 0; index < actions.length; index++) ...[
+        actions[index],
+        if (index < actions.length - 1) const SizedBox(height: spacing),
+      ],
     ],
   );
 }
@@ -186,10 +213,17 @@ class _SpatialMapAction extends StatelessWidget {
   final IconData icon;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
-    borderRadius: BorderRadius.circular(8),
-    child: IconButton(tooltip: tooltip, onPressed: onPressed, icon: Icon(icon)),
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: _SpatialMapActionStack.buttonExtent,
+    child: Material(
+      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(8),
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        icon: Icon(icon),
+      ),
+    ),
   );
 }
 
@@ -200,12 +234,14 @@ class _NaturalEarthMap extends StatelessWidget {
     required this.rows,
     required this.total,
     required this.polygons,
+    required this.legendInitiallyExpanded,
   });
 
   final SpatialStatisticKind kind;
   final List<SpatialStatisticDatum> rows;
   final int total;
   final List<NaturalEarthPolygon> polygons;
+  final bool legendInitiallyExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -292,6 +328,7 @@ class _NaturalEarthMap extends StatelessWidget {
                 rows: rows,
                 total: total,
                 maximumCount: maximumCount,
+                initiallyExpanded: legendInitiallyExpanded,
               ),
             ),
         ],

@@ -19,11 +19,15 @@ class MapLibreSpatialStatisticsMap extends ConsumerWidget {
     required this.kind,
     required this.rows,
     required this.total,
+    required this.controlsTopOffset,
+    required this.legendInitiallyExpanded,
   });
 
   final SpatialStatisticKind kind;
   final List<SpatialStatisticDatum> rows;
   final int total;
+  final double controlsTopOffset;
+  final bool legendInitiallyExpanded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,6 +67,8 @@ class MapLibreSpatialStatisticsMap extends ConsumerWidget {
           rows: rows,
           total: total,
           style: snapshot.data!,
+          controlsTopOffset: controlsTopOffset,
+          legendInitiallyExpanded: legendInitiallyExpanded,
         );
       },
     );
@@ -76,12 +82,16 @@ class _MapLibreMap extends StatefulWidget {
     required this.rows,
     required this.total,
     required this.style,
+    required this.controlsTopOffset,
+    required this.legendInitiallyExpanded,
   });
 
   final SpatialStatisticKind kind;
   final List<SpatialStatisticDatum> rows;
   final int total;
   final String style;
+  final double controlsTopOffset;
+  final bool legendInitiallyExpanded;
 
   @override
   State<_MapLibreMap> createState() => _MapLibreMapState();
@@ -132,7 +142,7 @@ class _MapLibreMapState extends State<_MapLibreMap> {
               ),
               Positioned(
                 left: 8,
-                top: 56,
+                top: widget.controlsTopOffset,
                 child: _MapLibreControls(onReset: _resetCamera),
               ),
               // Scale bar to right bottom
@@ -154,6 +164,7 @@ class _MapLibreMapState extends State<_MapLibreMap> {
                 rows: widget.rows,
                 total: widget.total,
                 maximumCount: maximumCount,
+                initiallyExpanded: widget.legendInitiallyExpanded,
               ),
             ),
         ],

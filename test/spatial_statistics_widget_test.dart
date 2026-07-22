@@ -208,4 +208,80 @@ void main() {
     expect(find.text('16 (76.2%)'), findsOneWidget);
     expect(circleWidths, [19, 35, 67]);
   });
+
+  testWidgets('spatial legend expands and collapses its samples', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SpatialStatisticsLegend(
+            kind: SpatialStatisticKind.specimens,
+            total: 4,
+            maximumCount: 4,
+            rows: [
+              SpatialStatisticDatum(
+                coordinateId: 1,
+                name: 'Four',
+                decimalLatitude: 1,
+                decimalLongitude: 1,
+                elevationInMeter: null,
+                datum: null,
+                uncertaintyInMeters: null,
+                gpsUnit: null,
+                notes: null,
+                count: 4,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('4 (100.0%)'), findsOneWidget);
+    expect(find.byTooltip('Collapse map legend'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('spatial-statistics-legend-toggle')),
+    );
+    await tester.pump();
+
+    expect(find.text('4 (100.0%)'), findsNothing);
+    expect(find.byTooltip('Expand map legend'), findsOneWidget);
+  });
+
+  testWidgets('spatial legend can start collapsed for narrow maps', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SpatialStatisticsLegend(
+            kind: SpatialStatisticKind.specimens,
+            total: 4,
+            maximumCount: 4,
+            initiallyExpanded: false,
+            rows: [
+              SpatialStatisticDatum(
+                coordinateId: 1,
+                name: 'Four',
+                decimalLatitude: 1,
+                decimalLongitude: 1,
+                elevationInMeter: null,
+                datum: null,
+                uncertaintyInMeters: null,
+                gpsUnit: null,
+                notes: null,
+                count: 4,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Specimens'), findsOneWidget);
+    expect(find.text('4 (100.0%)'), findsNothing);
+    expect(find.byTooltip('Expand map legend'), findsOneWidget);
+  });
 }

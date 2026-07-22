@@ -6,7 +6,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/sites.dart';
 
 void main() {
-  testWidgets('coordinate manager supports bulk and row selection', (
+  testWidgets('coordinate manager keeps export selection separate from focus', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1400, 900);
@@ -28,6 +28,7 @@ void main() {
 
     expect(find.text('Select all'), findsOneWidget);
     expect(find.text('Clear all'), findsOneWidget);
+    expect(find.byTooltip('View map'), findsNothing);
     expect(find.byTooltip('View map full screen'), findsOneWidget);
     expect(_checkbox(tester, 1).value, isTrue);
     expect(_checkbox(tester, 2).value, isTrue);
@@ -38,21 +39,65 @@ void main() {
     expect(_checkbox(tester, 1).value, isFalse);
     expect(_checkbox(tester, 2).value, isFalse);
     expect(_opacity(tester, 1).opacity, 0.55);
+    expect(find.text('0 of 2 coordinates selected'), findsOneWidget);
+    expect(find.text('Export coordinates (0)'), findsOneWidget);
     expect(_opacity(tester, 2).opacity, 0.55);
 
     await tester.tap(find.text('Alpha'));
     await tester.pump();
 
-    expect(_checkbox(tester, 1).value, isTrue);
+    expect(_checkbox(tester, 1).value, isFalse);
     expect(_checkbox(tester, 2).value, isFalse);
-    expect(_opacity(tester, 1).opacity, 1);
-    expect(find.text('Share coordinate'), findsOneWidget);
+    expect(_opacity(tester, 1).opacity, 0.55);
+    expect(
+      tester
+          .widget<Material>(
+            find.byKey(const ValueKey('coordinate-manager-tile-1')),
+          )
+          .color,
+      isNot(
+        Theme.of(
+          tester.element(
+            find.byKey(const ValueKey('coordinate-manager-tile-1')),
+          ),
+        ).colorScheme.surfaceContainerHighest,
+      ),
+    );
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const ValueKey('coordinate-manager-export')),
+          )
+          .onPressed,
+      isNull,
+    );
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('coordinate-manager-tile-1')),
+        matching: find.byType(Checkbox),
+      ),
+    );
+    await tester.pump();
+
+    expect(_checkbox(tester, 1).value, isTrue);
+    expect(find.text('1 of 2 coordinates selected'), findsOneWidget);
+    expect(find.text('Export coordinates (1)'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const ValueKey('coordinate-manager-export')),
+          )
+          .onPressed,
+      isNotNull,
+    );
 
     await tester.tap(find.text('Select all'));
     await tester.pump();
 
     expect(_checkbox(tester, 1).value, isTrue);
     expect(_checkbox(tester, 2).value, isTrue);
+    expect(find.text('2 coordinates'), findsOneWidget);
   });
 
   testWidgets('small coordinate manager opens the map in a full-screen route', (
@@ -74,10 +119,10 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byKey(const ValueKey('coordinate-manager-view-map')), findsOne);
+    expect(find.byTooltip('View map'), findsOne);
     expect(find.byType(TabBar), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('coordinate-manager-view-map')));
+    await tester.tap(find.byTooltip('View map'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 

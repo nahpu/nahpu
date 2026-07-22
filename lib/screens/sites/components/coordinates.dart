@@ -1788,8 +1788,25 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
     final visibleCoordinateIds = _visibleCoordinateIds(coordinates.value ?? []);
     final selectedCoordinateIds =
         _selectedCoordinateIds ?? visibleCoordinateIds;
+    Future<void> openFullScreenMap() => _openFullScreenMap(
+      coordinates: coordinates,
+      siteFilterId: _siteFilterId,
+      selectedCoordinateIds: selectedCoordinateIds,
+      focusedCoordinateId: _focusedCoordinateId,
+      focusRequest: _focusRequest,
+    );
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage coordinates')),
+      appBar: AppBar(
+        title: const Text('Manage coordinates'),
+        actions: [
+          if (MediaQuery.sizeOf(context).width < 600)
+            IconButton(
+              tooltip: 'View map',
+              onPressed: openFullScreenMap,
+              icon: const Icon(Icons.map_outlined),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -1800,14 +1817,7 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
               selectedCoordinateIds: selectedCoordinateIds,
               focusedCoordinateId: _focusedCoordinateId,
               focusRequest: _focusRequest,
-              onCoordinateSelected: _selectCoordinate,
-            );
-            Future<void> openFullScreenMap() => _openFullScreenMap(
-              coordinates: coordinates,
-              siteFilterId: _siteFilterId,
-              selectedCoordinateIds: selectedCoordinateIds,
-              focusedCoordinateId: _focusedCoordinateId,
-              focusRequest: _focusRequest,
+              onCoordinateSelected: _focusCoordinate,
             );
 
             if (isWide) {
@@ -1825,12 +1835,12 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                           selectedCoordinateIds: selectedCoordinateIds,
                           focusedCoordinateId: _focusedCoordinateId,
                           onSiteFilterChanged: _changeSiteFilter,
-                          onCoordinateSelected: _selectCoordinate,
+                          onCoordinateSelected: _focusCoordinate,
                           onCoordinateSelectionChanged:
                               _changeCoordinateSelection,
                           onSelectAll: () => _selectAll(visibleCoordinateIds),
                           onClearAll: _clearAll,
-                          onShareCoordinate: _shareCoordinate,
+                          onExportCoordinates: _exportCoordinates,
                         ),
                       ),
                     ),
@@ -1863,11 +1873,11 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                 selectedCoordinateIds: selectedCoordinateIds,
                 focusedCoordinateId: _focusedCoordinateId,
                 onSiteFilterChanged: _changeSiteFilter,
-                onCoordinateSelected: _selectCoordinate,
+                onCoordinateSelected: _focusCoordinate,
                 onCoordinateSelectionChanged: _changeCoordinateSelection,
                 onSelectAll: () => _selectAll(visibleCoordinateIds),
                 onClearAll: _clearAll,
-                onShareCoordinate: _shareCoordinate,
+                onExportCoordinates: _exportCoordinates,
               ),
             );
             return Column(
@@ -1876,15 +1886,6 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: list,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                  child: FilledButton.icon(
-                    key: const ValueKey('coordinate-manager-view-map'),
-                    onPressed: openFullScreenMap,
-                    icon: const Icon(Icons.map_outlined),
-                    label: const Text('View map'),
                   ),
                 ),
               ],
@@ -1904,15 +1905,8 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
     });
   }
 
-  void _selectCoordinate(int coordinateId) {
-    final visibleIds = _visibleCoordinateIds(
-      ref.read(coordinateByProjectProvider).value ?? [],
-    );
+  void _focusCoordinate(int coordinateId) {
     setState(() {
-      _selectedCoordinateIds = {
-        ...(_selectedCoordinateIds ?? visibleIds),
-        coordinateId,
-      };
       _focusedCoordinateId = coordinateId;
       _focusRequest++;
     });
@@ -1961,7 +1955,7 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
           selectedCoordinateIds: selectedCoordinateIds,
           focusedCoordinateId: focusedCoordinateId,
           focusRequest: focusRequest,
-          onCoordinateSelected: _selectCoordinate,
+          onCoordinateFocused: _focusCoordinate,
         ),
       ),
     );
@@ -1976,8 +1970,8 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
     };
   }
 
-  Future<void> _shareCoordinate(CoordinateData coordinate) async {
-    final content = _CoordinateExportOverlay(coordinate: coordinate);
+  Future<void> _exportCoordinates(List<CoordinateData> coordinates) async {
+    final content = _CoordinateExportOverlay(coordinates: coordinates);
     if (MediaQuery.sizeOf(context).width > 600) {
       await showDialog<void>(
         context: context,
@@ -2015,7 +2009,7 @@ class _CoordinateManagerFullScreenMap extends StatefulWidget {
     required this.selectedCoordinateIds,
     required this.focusedCoordinateId,
     required this.focusRequest,
-    required this.onCoordinateSelected,
+    required this.onCoordinateFocused,
   });
 
   final AsyncValue<List<CoordinateData>> coordinates;
@@ -2023,7 +2017,7 @@ class _CoordinateManagerFullScreenMap extends StatefulWidget {
   final Set<int> selectedCoordinateIds;
   final int? focusedCoordinateId;
   final int focusRequest;
-  final ValueChanged<int> onCoordinateSelected;
+  final ValueChanged<int> onCoordinateFocused;
 
   @override
   State<_CoordinateManagerFullScreenMap> createState() =>
@@ -2032,14 +2026,12 @@ class _CoordinateManagerFullScreenMap extends StatefulWidget {
 
 class _CoordinateManagerFullScreenMapState
     extends State<_CoordinateManagerFullScreenMap> {
-  late Set<int> _selectedCoordinateIds;
   late int? _focusedCoordinateId;
   late int _focusRequest;
 
   @override
   void initState() {
     super.initState();
-    _selectedCoordinateIds = {...widget.selectedCoordinateIds};
     _focusedCoordinateId = widget.focusedCoordinateId;
     _focusRequest = widget.focusRequest;
   }
@@ -2050,20 +2042,19 @@ class _CoordinateManagerFullScreenMapState
     child: _CoordinateMapPane(
       coordinates: widget.coordinates,
       siteFilterId: widget.siteFilterId,
-      selectedCoordinateIds: _selectedCoordinateIds,
+      selectedCoordinateIds: widget.selectedCoordinateIds,
       focusedCoordinateId: _focusedCoordinateId,
       focusRequest: _focusRequest,
-      onCoordinateSelected: _selectCoordinate,
+      onCoordinateSelected: _focusCoordinate,
     ),
   );
 
-  void _selectCoordinate(int coordinateId) {
+  void _focusCoordinate(int coordinateId) {
     setState(() {
-      _selectedCoordinateIds = {..._selectedCoordinateIds, coordinateId};
       _focusedCoordinateId = coordinateId;
       _focusRequest++;
     });
-    widget.onCoordinateSelected(coordinateId);
+    widget.onCoordinateFocused(coordinateId);
   }
 }
 
@@ -2085,9 +2076,9 @@ class _FullScreenMapButton extends StatelessWidget {
 }
 
 class _CoordinateExportOverlay extends ConsumerStatefulWidget {
-  const _CoordinateExportOverlay({required this.coordinate});
+  const _CoordinateExportOverlay({required this.coordinates});
 
-  final CoordinateData coordinate;
+  final List<CoordinateData> coordinates;
 
   @override
   ConsumerState<_CoordinateExportOverlay> createState() =>
@@ -2106,20 +2097,8 @@ class _CoordinateExportOverlayState
   void initState() {
     super.initState();
     _exportCtr = FileOpCtrModel.empty();
-    _exportCtr.fileNameCtr.text = CoordinateExchangeService.defaultFileName(
-      widget.coordinate,
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant _CoordinateExportOverlay oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.coordinate.id != widget.coordinate.id) {
-      _exportCtr.fileNameCtr.text = CoordinateExchangeService.defaultFileName(
-        widget.coordinate,
-      );
-      _resetExport();
-    }
+    _exportCtr.fileNameCtr.text =
+        CoordinateExchangeService.defaultCoordinatesFileName();
   }
 
   @override
@@ -2137,7 +2116,8 @@ class _CoordinateExportOverlayState
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Export coordinate',
+            'Export ${widget.coordinates.length} '
+            '${widget.coordinates.length == 1 ? 'coordinate' : 'coordinates'}',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
@@ -2193,8 +2173,8 @@ class _CoordinateExportOverlayState
   Future<void> _export() async {
     setState(() => _isRunning = true);
     try {
-      final file = await CoordinateExchangeService(ref: ref).exportCoordinate(
-        widget.coordinate,
+      final file = await CoordinateExchangeService(ref: ref).exportCoordinates(
+        widget.coordinates,
         _format,
         fileName: _exportCtr.fileNameCtr.text,
         destinationDirectory: _selectedDir,
@@ -2242,7 +2222,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
     required this.onCoordinateSelectionChanged,
     required this.onSelectAll,
     required this.onClearAll,
-    required this.onShareCoordinate,
+    required this.onExportCoordinates,
   });
 
   final AsyncValue<List<CoordinateData>> coordinates;
@@ -2256,14 +2236,14 @@ class _CoordinateManagerListPane extends StatelessWidget {
   onCoordinateSelectionChanged;
   final VoidCallback onSelectAll;
   final VoidCallback onClearAll;
-  final ValueChanged<CoordinateData> onShareCoordinate;
+  final ValueChanged<List<CoordinateData>> onExportCoordinates;
 
   @override
   Widget build(BuildContext context) {
     final entries = _filteredCoordinates(coordinates.value ?? const []);
-    final selected = entries
-        .where((coordinate) => coordinate.id == focusedCoordinateId)
-        .firstOrNull;
+    final selectedCoordinates = entries
+        .where((coordinate) => selectedCoordinateIds.contains(coordinate.id))
+        .toList(growable: false);
     final siteLabels = {
       for (final site in sites.value ?? const <SiteData>[])
         site.id: _siteLabel(site),
@@ -2321,12 +2301,15 @@ class _CoordinateManagerListPane extends StatelessWidget {
                   Center(child: Text('Unable to load coordinates: $error')),
             ),
           ),
-          if (selected != null) ...[
+          if (entries.isNotEmpty) ...[
             const SizedBox(height: 8),
             FilledButton.icon(
-              onPressed: () => onShareCoordinate(selected),
-              icon: const Icon(Icons.share_outlined),
-              label: const Text('Share coordinate'),
+              key: const ValueKey('coordinate-manager-export'),
+              onPressed: selectedCoordinates.isEmpty
+                  ? null
+                  : () => onExportCoordinates(selectedCoordinates),
+              icon: const Icon(Icons.file_upload_outlined),
+              label: Text('Export coordinates (${selectedCoordinates.length})'),
             ),
           ],
         ],
@@ -2383,6 +2366,13 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
     };
     final allSelected = visibleIds.every(selectedCoordinateIds.contains);
     final hasSelection = visibleIds.any(selectedCoordinateIds.contains);
+    final selectedCount = selectedCoordinateIds.intersection(visibleIds).length;
+    final coordinateWord = coordinates.length == 1
+        ? 'coordinate'
+        : 'coordinates';
+    final countLabel = selectedCount < coordinates.length
+        ? '$selectedCount of ${coordinates.length} $coordinateWord'
+        : '${coordinates.length} $coordinateWord';
     return ListView(
       children: [
         Padding(
@@ -2391,7 +2381,7 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${coordinates.length} ${coordinates.length == 1 ? 'coordinate' : 'coordinates'}',
+                  countLabel,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),

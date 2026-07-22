@@ -174,7 +174,7 @@ class SpatialMapStyleService {
         'circle-color': [
           'case',
           ['get', 'focused'],
-          _hex(colorScheme.error),
+          _hex(_focusedCoordinateColor(colorScheme)),
           ['get', 'selected'],
           _hex(colorScheme.primary),
           _hex(colorScheme.onSurfaceVariant),
@@ -472,6 +472,11 @@ class SpatialMapStyleService {
   }
 
   static int mathMax(int first, int second) => first > second ? first : second;
+
+  static Color _focusedCoordinateColor(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark
+      ? const Color(0xFF90CAF9)
+      : const Color(0xFF1565C0);
 
   static String _hex(Color color) {
     final value = color.toARGB32().toRadixString(16).padLeft(8, '0');

@@ -49,6 +49,10 @@ void main() {
       ),
       'coordinate-17',
     );
+    expect(
+      CoordinateExchangeService.defaultCoordinatesFileName(),
+      'coordinates',
+    );
   });
 
   test('project coordinate query excludes other projects', () async {

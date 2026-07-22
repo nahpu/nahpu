@@ -4,33 +4,49 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/utility_services.dart';
 
-class SpatialStatisticsLegend extends StatelessWidget {
+class SpatialStatisticsLegend extends StatefulWidget {
   const SpatialStatisticsLegend({
     super.key,
     required this.kind,
     required this.rows,
     required this.total,
     required this.maximumCount,
+    this.initiallyExpanded = true,
   });
 
   final SpatialStatisticKind kind;
   final List<SpatialStatisticDatum> rows;
   final int total;
   final int maximumCount;
+  final bool initiallyExpanded;
+
+  @override
+  State<SpatialStatisticsLegend> createState() =>
+      _SpatialStatisticsLegendState();
+}
+
+class _SpatialStatisticsLegendState extends State<SpatialStatisticsLegend> {
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.initiallyExpanded;
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final counts = spatialLegendCounts(rows);
+    final counts = spatialLegendCounts(widget.rows);
     final indicatorDiameter = counts.fold<double>(
       0,
       (maximum, count) => math.max(
         maximum,
         _diameter(
           spatialMarkerRadius(
-            kind: kind,
+            kind: widget.kind,
             count: count,
-            maximumCount: maximumCount,
+            maximumCount: widget.maximumCount,
           ),
         ),
       ),
@@ -40,33 +56,59 @@ class SpatialStatisticsLegend extends StatelessWidget {
       color: colorScheme.surface.withValues(alpha: 0.92),
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: kind.hasCounts
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    kind.countLabel.toSentenceCase(),
-                    style: Theme.of(context).textTheme.bodySmall,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.kind.hasCounts
+                      ? widget.kind.countLabel.toSentenceCase()
+                      : 'Legend',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                IconButton(
+                  key: const ValueKey('spatial-statistics-legend-toggle'),
+                  tooltip: _isExpanded
+                      ? 'Collapse map legend'
+                      : 'Expand map legend',
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 32,
+                    height: 32,
                   ),
-                  const SizedBox(height: 4),
-                  for (final count in counts)
-                    _LegendSample(
+                  onPressed: () => setState(() => _isExpanded = !_isExpanded),
+                  icon: Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                  ),
+                ),
+              ],
+            ),
+            if (_isExpanded) ...[
+              const SizedBox(height: 4),
+              if (widget.kind.hasCounts)
+                for (final count in counts)
+                  _LegendSample(
+                    count: count,
+                    total: widget.total,
+                    indicatorDiameter: indicatorDiameter,
+                    radius: spatialMarkerRadius(
+                      kind: widget.kind,
                       count: count,
-                      total: total,
-                      indicatorDiameter: indicatorDiameter,
-                      radius: spatialMarkerRadius(
-                        kind: kind,
-                        count: count,
-                        maximumCount: maximumCount,
-                      ),
+                      maximumCount: widget.maximumCount,
                     ),
-                ],
-              )
-            : Text(
-                'Each circle represents\none coordinate',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+                  )
+              else
+                Text(
+                  'Each circle represents\none coordinate',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+            ],
+          ],
+        ),
       ),
     );
   }

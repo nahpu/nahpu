@@ -36,25 +36,18 @@ class CoordinateImportReview {
 class CoordinateExchangeService extends AppServices {
   const CoordinateExchangeService({required super.ref});
 
-  Future<File> exportCoordinate(
-    CoordinateData coordinate,
+  Future<File> exportCoordinates(
+    Iterable<CoordinateData> coordinates,
     CoordinateFileFormat format, {
     required String fileName,
     Directory? destinationDirectory,
   }) async {
-    final latitude = coordinate.decimalLatitude;
-    final longitude = coordinate.decimalLongitude;
-    if (latitude == null ||
-        longitude == null ||
-        !latitude.isFinite ||
-        !longitude.isFinite ||
-        latitude < -90 ||
-        latitude > 90 ||
-        longitude < -180 ||
-        longitude > 180) {
-      throw const FormatException(
-        'A valid latitude and longitude are required to export this coordinate.',
-      );
+    final entries = coordinates.toList(growable: false);
+    if (entries.isEmpty) {
+      throw const FormatException('Select at least one coordinate to export.');
+    }
+    for (final coordinate in entries) {
+      _validateExportCoordinate(coordinate);
     }
     final extension = switch (format) {
       CoordinateFileFormat.geoJson => 'geojson',
@@ -67,14 +60,14 @@ class CoordinateExchangeService extends AppServices {
       CoordinateFileFormat.shapefile =>
         rust_gis.CoordinateExportFormat.shapefile,
     };
-    final baseName = _safeFileStem(fileName, coordinate.id);
+    final baseName = _safeFileStem(fileName, null);
     final output = await AppIOServices(
       dir: destinationDirectory,
       fileStem: baseName,
       ext: extension,
     ).getSavePath();
     await rust_gis.exportCoordinates(
-      coordinates: [_toTransferRecord(coordinate)],
+      coordinates: entries.map(_toTransferRecord).toList(growable: false),
       format: rustFormat,
       outputPath: output.path,
     );
@@ -83,6 +76,8 @@ class CoordinateExchangeService extends AppServices {
 
   static String defaultFileName(CoordinateData coordinate) =>
       _safeFileStem(coordinate.nameId ?? '', coordinate.id);
+
+  static String defaultCoordinatesFileName() => 'coordinates';
 
   Future<CoordinateImportReview> importFile(String inputPath) async {
     final result = await rust_gis.importCoordinates(inputPath: inputPath);
@@ -142,6 +137,23 @@ class CoordinateExchangeService extends AppServices {
       decimalLatitude: coordinate.decimalLatitude,
       elevationInMeter: coordinate.elevationInMeter,
     );
+  }
+
+  void _validateExportCoordinate(CoordinateData coordinate) {
+    final latitude = coordinate.decimalLatitude;
+    final longitude = coordinate.decimalLongitude;
+    if (latitude == null ||
+        longitude == null ||
+        !latitude.isFinite ||
+        !longitude.isFinite ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180) {
+      throw const FormatException(
+        'Every exported coordinate needs a valid latitude and longitude.',
+      );
+    }
   }
 
   static String _safeFileStem(String value, int? id) {
