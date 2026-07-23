@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -195,6 +197,7 @@ class QrImageView extends StatelessWidget {
     this.color,
     this.backgroundColor = Colors.transparent,
     this.shape = 'square',
+    this.padding = 8,
   });
 
   final String data;
@@ -202,6 +205,7 @@ class QrImageView extends StatelessWidget {
   final Color? color;
   final Color backgroundColor;
   final String shape;
+  final double padding;
 
   @override
   Widget build(BuildContext context) {
@@ -209,8 +213,11 @@ class QrImageView extends StatelessWidget {
     if (qrImage == null) {
       return SizedBox.square(
         dimension: size ?? 200,
-        child: ColoredBox(
-          color: backgroundColor,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: const Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -235,21 +242,33 @@ class QrImageView extends StatelessWidget {
         color: color ?? Theme.of(context).colorScheme.onSurface,
         backgroundColor: backgroundColor,
         shape: shape,
+        padding: padding,
       ),
     );
   }
 
   QrImage? _createQrImage(String data) {
-    try {
-      return QrImage(
-        QrCode(
-          payload: QrPayload.fromString(data),
-          errorCorrectLevel: QrErrorCorrectLevel.low,
-        ),
-      );
-    } on InputTooLongException {
+    if (!canEncodeQrPayload(data)) {
       return null;
     }
+    return QrImage(
+      QrCode(
+        payload: QrPayload.fromString(data),
+        errorCorrectLevel: QrErrorCorrectLevel.low,
+      ),
+    );
+  }
+}
+
+bool canEncodeQrPayload(String data) {
+  try {
+    QrCode(
+      payload: QrPayload.fromString(data),
+      errorCorrectLevel: QrErrorCorrectLevel.low,
+    );
+    return true;
+  } on InputTooLongException {
+    return false;
   }
 }
 
@@ -259,6 +278,7 @@ class _QrPainter extends CustomPainter {
   final Color color;
   final Color backgroundColor;
   final String shape;
+  final double padding;
 
   _QrPainter({
     required this.data,
@@ -266,15 +286,32 @@ class _QrPainter extends CustomPainter {
     required this.color,
     required this.backgroundColor,
     required this.shape,
+    required this.padding,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final moduleCount = qrImage.moduleCount;
-    final moduleSize = size.width / moduleCount;
+    final squareSize = math.min(size.width, size.height);
+    final inset = math.max(0, padding);
+    final qrSize = math.max(0, squareSize - inset * 2);
+    final moduleSize = qrSize / moduleCount;
+    final originX = (size.width - squareSize) / 2 + inset;
+    final originY = (size.height - squareSize) / 2 + inset;
+
+    final backgroundRect = Rect.fromLTWH(
+      (size.width - squareSize) / 2,
+      (size.height - squareSize) / 2,
+      squareSize,
+      squareSize,
+    );
+    final backgroundRRect = RRect.fromRectAndRadius(
+      backgroundRect,
+      const Radius.circular(16),
+    );
 
     final paint = Paint()..color = backgroundColor;
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
+    canvas.drawRRect(backgroundRRect, paint);
 
     paint.color = color;
     for (int x = 0; x < moduleCount; x++) {
@@ -282,15 +319,18 @@ class _QrPainter extends CustomPainter {
         if (qrImage.isDark(y, x)) {
           if (shape == 'circle') {
             canvas.drawCircle(
-              Offset((x + 0.5) * moduleSize, (y + 0.5) * moduleSize),
+              Offset(
+                originX + (x + 0.5) * moduleSize,
+                originY + (y + 0.5) * moduleSize,
+              ),
               moduleSize / 2,
               paint,
             );
           } else {
             canvas.drawRect(
               Rect.fromLTWH(
-                x * moduleSize,
-                y * moduleSize,
+                originX + x * moduleSize,
+                originY + y * moduleSize,
                 moduleSize,
                 moduleSize,
               ),
@@ -307,6 +347,7 @@ class _QrPainter extends CustomPainter {
     return oldDelegate.data != data ||
         oldDelegate.color != color ||
         oldDelegate.backgroundColor != backgroundColor ||
-        oldDelegate.shape != shape;
+        oldDelegate.shape != shape ||
+        oldDelegate.padding != padding;
   }
 }

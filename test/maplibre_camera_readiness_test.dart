@@ -41,4 +41,22 @@ void main() {
 
     expect(readiness.claimInitialCamera(), isTrue);
   });
+
+  test('style replacement waits for both callbacks before initializing', () {
+    final readiness = MapLibreCameraReadiness()
+      ..markMapCreated()
+      ..markStyleLoaded();
+    expect(readiness.claimInitialCamera(), isTrue);
+
+    readiness.reset();
+    readiness.markStyleLoaded();
+
+    expect(readiness.isReady, isFalse);
+    expect(readiness.claimInitialCamera(), isFalse);
+
+    readiness.markMapCreated();
+
+    expect(readiness.isReady, isTrue);
+    expect(readiness.claimInitialCamera(), isTrue);
+  });
 }

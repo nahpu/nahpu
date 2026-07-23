@@ -56,6 +56,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RecordWriter dco_decode_box_autoadd_record_writer(dynamic raw);
 
   @protected
+  TarGzipExtractor dco_decode_box_autoadd_tar_gzip_extractor(dynamic raw);
+
+  @protected
+  TarGzipWriter dco_decode_box_autoadd_tar_gzip_writer(dynamic raw);
+
+  @protected
   ZipExtractor dco_decode_box_autoadd_zip_extractor(dynamic raw);
 
   @protected
@@ -202,6 +208,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RecordWriter dco_decode_record_writer(dynamic raw);
 
   @protected
+  TarGzipExtractor dco_decode_tar_gzip_extractor(dynamic raw);
+
+  @protected
+  TarGzipWriter dco_decode_tar_gzip_writer(dynamic raw);
+
+  @protected
   TemplatePresetDeletionResult dco_decode_template_preset_deletion_result(
     dynamic raw,
   );
@@ -266,6 +278,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RecordWriter sse_decode_box_autoadd_record_writer(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TarGzipExtractor sse_decode_box_autoadd_tar_gzip_extractor(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TarGzipWriter sse_decode_box_autoadd_tar_gzip_writer(
     SseDeserializer deserializer,
   );
 
@@ -452,6 +474,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RecordWriter sse_decode_record_writer(SseDeserializer deserializer);
 
   @protected
+  TarGzipExtractor sse_decode_tar_gzip_extractor(SseDeserializer deserializer);
+
+  @protected
+  TarGzipWriter sse_decode_tar_gzip_writer(SseDeserializer deserializer);
+
+  @protected
   TemplatePresetDeletionResult sse_decode_template_preset_deletion_result(
     SseDeserializer deserializer,
   );
@@ -524,6 +552,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_record_writer(
     RecordWriter self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_tar_gzip_extractor(
+    TarGzipExtractor self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_tar_gzip_writer(
+    TarGzipWriter self,
     SseSerializer serializer,
   );
 
@@ -763,6 +803,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_record_writer(RecordWriter self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_tar_gzip_extractor(
+    TarGzipExtractor self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_tar_gzip_writer(TarGzipWriter self, SseSerializer serializer);
 
   @protected
   void sse_encode_template_preset_deletion_result(
