@@ -22,11 +22,13 @@ class ProjectForm extends ConsumerStatefulWidget {
     required this.projectCtr,
     required this.projectUuid,
     this.isEditing = false,
+    this.returnToHome = false,
   });
 
   final ProjectFormCtrModel projectCtr;
   final String projectUuid;
   final bool isEditing;
+  final bool returnToHome;
 
   @override
   ProjectFormState createState() => ProjectFormState();
@@ -60,36 +62,35 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
             child: Column(
               children: [
                 ProjectFormField(
-                    controller: widget.projectCtr.projectNameCtr,
-                    maxLength: 25,
-                    labelText: 'Project name*',
-                    hintText: 'Enter the name of the project (required)',
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(25),
-                    ],
-                    onChanged: (_) async {
-                      _validateAll();
+                  controller: widget.projectCtr.projectNameCtr,
+                  maxLength: 25,
+                  labelText: 'Project name*',
+                  hintText: 'Enter the name of the project (required)',
+                  inputFormatters: [LengthLimitingTextInputFormatter(25)],
+                  onChanged: (_) async {
+                    _validateAll();
+                  },
+                  errorText: validator.when(
+                    data: (data) {
+                      if (data.projectName.errMsg != null) {
+                        return data.projectName.errMsg;
+                      }
+
+                      if (data.existingProject.errMsg != null) {
+                        return data.existingProject.errMsg;
+                      }
+
+                      if (data.projectName.errMsg != null &&
+                          data.existingProject.errMsg != null) {
+                        return '${data.projectName.errMsg} '
+                            '${data.existingProject.errMsg}}';
+                      }
+                      return null;
                     },
-                    errorText: validator.when(
-                      data: (data) {
-                        if (data.projectName.errMsg != null) {
-                          return data.projectName.errMsg;
-                        }
-
-                        if (data.existingProject.errMsg != null) {
-                          return data.existingProject.errMsg;
-                        }
-
-                        if (data.projectName.errMsg != null &&
-                            data.existingProject.errMsg != null) {
-                          return '${data.projectName.errMsg} '
-                              '${data.existingProject.errMsg}}';
-                        }
-                        return null;
-                      },
-                      loading: () => null,
-                      error: (err, stack) => null,
-                    )),
+                    loading: () => null,
+                    error: (err, stack) => null,
+                  ),
+                ),
                 ProjectFormField(
                   controller: widget.projectCtr.descriptionCtr,
                   labelText: 'Project description',
@@ -115,7 +116,8 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     ? const TaxonGroupFields()
                     : const SizedBox.shrink(),
                 Visibility(
-                  visible: _showMore ||
+                  visible:
+                      _showMore ||
                       widget.projectCtr.locationCtr.text.isNotEmpty,
                   child: ProjectFormField(
                     controller: widget.projectCtr.locationCtr,
@@ -127,16 +129,19 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                   ),
                 ),
                 Visibility(
-                    visible: _showMore ||
-                        widget.projectCtr.timeZoneCtr.text.isNotEmpty,
-                    child: TimeZoneField(
-                      projectCtr: widget.projectCtr,
-                      onChanged: (_) {
-                        _validateAll();
-                      },
-                    )),
+                  visible:
+                      _showMore ||
+                      widget.projectCtr.timeZoneCtr.text.isNotEmpty,
+                  child: TimeZoneField(
+                    projectCtr: widget.projectCtr,
+                    onChanged: (_) {
+                      _validateAll();
+                    },
+                  ),
+                ),
                 Visibility(
-                  visible: _showMore ||
+                  visible:
+                      _showMore ||
                       widget.projectCtr.startDateCtr.text.isNotEmpty,
                   child: TextField(
                     controller: widget.projectCtr.startDateCtr,
@@ -146,7 +151,9 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     ),
                     onTap: () async {
                       DateTime? selectedDate = await _showDate(
-                          context, widget.projectCtr.startDateCtr.dateTime);
+                        context,
+                        widget.projectCtr.startDateCtr.dateTime,
+                      );
                       if (selectedDate != null) {
                         widget.projectCtr.startDateCtr.dateTime = selectedDate;
                       }
@@ -165,7 +172,9 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     ),
                     onTap: () async {
                       DateTime? selectedDate = await _showDate(
-                          context, widget.projectCtr.endDateCtr.dateTime);
+                        context,
+                        widget.projectCtr.endDateCtr.dateTime,
+                      );
                       if (selectedDate != null) {
                         widget.projectCtr.endDateCtr.dateTime = selectedDate;
                       }
@@ -183,24 +192,27 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
                     showMore: _showMore,
                   ),
                 const SizedBox(height: 16),
-                Wrap(spacing: 10, children: [
-                  SecondaryButton(
-                    text: 'Cancel',
-                    onPressed: () {
-                      ref.invalidate(projectFormValidatorProvider);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  FormElevButton(
-                    onPressed: () {
-                      widget.isEditing ? _updateProject() : _createProject();
-                      _goToDashboard();
-                    },
-                    label: widget.isEditing ? 'Update' : 'Create',
-                    icon: widget.isEditing ? Icons.check : Icons.add,
-                    enabled: _isValid(),
-                  )
-                ])
+                Wrap(
+                  spacing: 10,
+                  children: [
+                    SecondaryButton(
+                      text: 'Cancel',
+                      onPressed: () {
+                        ref.invalidate(projectFormValidatorProvider);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    FormElevButton(
+                      onPressed: () {
+                        widget.isEditing ? _updateProject() : _createProject();
+                        _goToDashboard();
+                      },
+                      label: widget.isEditing ? 'Update' : 'Create',
+                      icon: widget.isEditing ? Icons.check : Icons.add,
+                      enabled: _isValid(),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -220,8 +232,12 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
 
   Future<void> _validateAll() async {
     if (widget.isEditing) {
-      ref.watch(projectFormValidatorProvider.notifier).validateOnEditing(
-          initialProjectName, widget.projectCtr.projectNameCtr.text);
+      ref
+          .watch(projectFormValidatorProvider.notifier)
+          .validateOnEditing(
+            initialProjectName,
+            widget.projectCtr.projectNameCtr.text,
+          );
     } else {
       ref
           .watch(projectFormValidatorProvider.notifier)
@@ -240,8 +256,9 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
   }
 
   Future<void> _getInitialProjectName() async {
-    final name =
-        await ProjectServices(ref: ref).getProjectName(widget.projectUuid);
+    final name = await ProjectServices(
+      ref: ref,
+    ).getProjectName(widget.projectUuid);
     setState(() {
       initialProjectName = name;
     });
@@ -249,10 +266,11 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
 
   Future<DateTime?> _showDate(BuildContext context, DateTime? initialDate) {
     return showDatePicker(
-        context: context,
-        initialDate: initialDate ?? DateTime.now(),
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2030)); // Prevent user from selecting future dates
+      context: context,
+      initialDate: initialDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2030),
+    ); // Prevent user from selecting future dates
   }
 
   void _createProject() {
@@ -291,8 +309,12 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
   void _goToDashboard() {
     ref.read(projectNavbarIndexProvider.notifier).updateState(0);
     if (widget.isEditing) {
-      // The shell is still below the edit form; return to it in place.
-      ProjectShell.popToShell(context);
+      if (widget.returnToHome) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      } else {
+        // The shell is still below the edit form; return to it in place.
+        ProjectShell.popToShell(context);
+      }
     } else {
       // createProject already pointed projectUuidProvider at the new project.
       // Pop everything back to Home and open one shell for it, so a second
@@ -353,7 +375,10 @@ class ProjectFormField extends StatelessWidget {
       maxLength: maxLength,
       maxLines: maxLines,
       decoration: InputDecoration(
-          labelText: labelText, hintText: hintText, errorText: errorText),
+        labelText: labelText,
+        hintText: hintText,
+        errorText: errorText,
+      ),
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       onSaved: onSaved,
@@ -376,8 +401,11 @@ class TimeZoneField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField<String>(
       initialValue: projectCtr.timeZoneCtr.text,
+      isExpanded: true,
       decoration: const InputDecoration(
-          labelText: 'Timezone', hintText: 'Choose a timezone'),
+        labelText: 'Timezone',
+        hintText: 'Choose a timezone',
+      ),
       items: _timeZoneDropdown(),
       onChanged: (String? value) {
         if (value != null) {
@@ -396,8 +424,9 @@ class TimeZoneField extends ConsumerWidget {
 
     // Sort locations by UTC offset, then name
     locations.sort((a, b) {
-      int offsetCompare =
-          a.currentTimeZone.offset.compareTo(b.currentTimeZone.offset);
+      int offsetCompare = a.currentTimeZone.offset.compareTo(
+        b.currentTimeZone.offset,
+      );
       if (offsetCompare != 0) {
         return offsetCompare;
       }
@@ -405,13 +434,18 @@ class TimeZoneField extends ConsumerWidget {
     });
 
     final locationItems = locations
-        .map((e) => DropdownMenuItem<String>(
+        .map(
+          (e) => DropdownMenuItem<String>(
             value: e.name,
-            child: CommonDropdownText(text: LocationDropdownText(e).toText())))
+            child: CommonDropdownText(text: LocationDropdownText(e).toText()),
+          ),
+        )
         .toList();
 
     final chooseOneItem = DropdownMenuItem(
-        value: '', child: HintDropdownText(text: 'Choose a timezone'));
+      value: '',
+      child: HintDropdownText(text: 'Choose a timezone'),
+    );
 
     locationItems.insert(0, chooseOneItem);
 
@@ -424,7 +458,9 @@ class TaxonGroupFields extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(catalogFmtNotifierProvider).when(
+    return ref
+        .watch(catalogFmtNotifierProvider)
+        .when(
           data: (fmt) => _buildDropdownMenu(fmt, ref),
           loading: () => const CircularProgressIndicator(),
           error: (err, stack) => Text('Error: $err'),
@@ -438,10 +474,12 @@ class TaxonGroupFields extends ConsumerWidget {
         hintText: 'Choose a taxon group',
       ),
       items: taxonGroupList
-          .map((taxonGroup) => DropdownMenuItem(
-                value: taxonGroup,
-                child: CommonDropdownText(text: taxonGroup),
-              ))
+          .map(
+            (taxonGroup) => DropdownMenuItem(
+              value: taxonGroup,
+              child: CommonDropdownText(text: taxonGroup),
+            ),
+          )
           .toList(),
       initialValue: matchCatFmtToTaxonGroup(catalogFmt),
       onChanged: (String? newValue) {

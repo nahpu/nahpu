@@ -1,22 +1,25 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 
-class ProjectInfo extends ConsumerWidget {
-  const ProjectInfo({super.key, required this.projectData});
+class ProjectInfo extends StatelessWidget {
+  const ProjectInfo({
+    super.key,
+    required this.projectData,
+    this.onEdit,
+    this.showExport = true,
+  });
 
   final ProjectData? projectData;
+  final VoidCallback? onEdit;
+  final bool showExport;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Column(
       children: [
-        ProjectQrIcon(data: _getProjectJson(projectData)),
-        const SizedBox(height: 4),
         ProjectInfoText(title: 'Project name: ', text: projectData?.name),
         ProjectInfoText(title: 'UUID: ', text: projectData?.uuid),
         ProjectInfoText(
@@ -48,6 +51,26 @@ class ProjectInfo extends ConsumerWidget {
           text: _parseDate(projectData?.lastAccessed),
           isSmall: true,
         ),
+        if (projectData != null && (onEdit != null || showExport)) ...[
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (onEdit != null) ...[
+                TextButton(onPressed: onEdit, child: const Text('Edit')),
+                const SizedBox(width: 16),
+              ],
+              if (showExport)
+                TextButton(
+                  onPressed: () => showProjectExportDialog(
+                    context: context,
+                    projectData: projectData!,
+                  ),
+                  child: const Text('Export info'),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -55,11 +78,6 @@ class ProjectInfo extends ConsumerWidget {
   String _parseDate(String? date) {
     final value = parseDate(date);
     return '${value.date} ${value.time}';
-  }
-
-  String _getProjectJson(ProjectData? projectData) {
-    final data = projectData?.toJson();
-    return data != null ? jsonEncode(data) : '';
   }
 }
 
@@ -174,10 +192,14 @@ class ProjectQrCode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QrImageView(
-      data: data,
-      backgroundColor: backgroundColor ?? Colors.transparent,
-      color: color,
+    final background = backgroundColor ?? Colors.transparent;
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: QrImageView(data: data, backgroundColor: background, color: color),
     );
   }
 }

@@ -71,15 +71,36 @@ class CoordinateLocationMap extends ConsumerWidget {
     }
     final catalog =
         ref.watch(userMapCatalogProvider).value ?? const UserMapCatalog();
-    return _MapLibreCoordinateMap(
-      points: mappable,
-      selectedPointIds: selectedIds,
-      selectedPointId: selectedPointId,
-      focusRequest: focusRequest,
-      onPointSelected: onPointSelected,
-      basemap: baseLayer,
-      catalog: catalog,
-      controlsTopOffset: controlsTopOffset,
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final style = getUserMapDirectory().then(
+      (directory) => SpatialMapStyleService.buildCoordinatePoints(
+        style: baseLayer,
+        isDark: isDark,
+        colorScheme: colorScheme,
+        catalog: catalog,
+        userMapDirectory: directory,
+      ),
+    );
+    return FutureBuilder<String>(
+      future: style,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return const _MapMessage();
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return _MapLibreCoordinateMap(
+          key: ValueKey(snapshot.data.hashCode),
+          points: mappable,
+          selectedPointIds: selectedIds,
+          selectedPointId: selectedPointId,
+          focusRequest: focusRequest,
+          onPointSelected: onPointSelected,
+          basemap: baseLayer,
+          style: snapshot.data!,
+          controlsTopOffset: controlsTopOffset,
+        );
+      },
     );
   }
 }
@@ -277,13 +298,14 @@ class _NaturalEarthCoordinateMapState
 
 class _MapLibreCoordinateMap extends StatefulWidget {
   const _MapLibreCoordinateMap({
+    super.key,
     required this.points,
     required this.selectedPointIds,
     required this.selectedPointId,
     required this.focusRequest,
     required this.onPointSelected,
     required this.basemap,
-    required this.catalog,
+    required this.style,
     required this.controlsTopOffset,
   });
 
@@ -293,7 +315,7 @@ class _MapLibreCoordinateMap extends StatefulWidget {
   final int focusRequest;
   final ValueChanged<int> onPointSelected;
   final SpatialBasemapStyle basemap;
-  final UserMapCatalog catalog;
+  final String style;
   final double controlsTopOffset;
 
   @override
@@ -328,95 +350,74 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final style = getUserMapDirectory().then(
-      (directory) => SpatialMapStyleService.buildCoordinatePoints(
-        style: widget.basemap,
-        isDark: isDark,
-        colorScheme: colorScheme,
-        catalog: widget.catalog,
-        userMapDirectory: directory,
-      ),
-    );
-    return FutureBuilder<String>(
-      future: style,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) return const _MapMessage();
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final first = widget.points.firstOrNull;
-        return ClipRRect(
-          key: ValueKey(snapshot.data.hashCode),
-          borderRadius: BorderRadius.circular(12),
-          child: Stack(
+    final first = widget.points.firstOrNull;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        children: [
+          maplibre.MapLibreMap(
+            gestureRecognizers: {...mapLibreGestureRecognizers()},
+            options: maplibre.MapOptions(
+              initStyle: widget.style,
+              initCenter: maplibre.Geographic(
+                lon: first?.longitude ?? 0,
+                lat: first?.latitude ?? 18,
+              ),
+              initZoom: widget.points.length == 1 ? 12 : 1.5,
+              minZoom: 1,
+              maxZoom: 16,
+              gestures: const maplibre.MapGestures(
+                pan: true,
+                zoom: true,
+                rotate: false,
+                pitch: false,
+              ),
+            ),
+            onMapCreated: (controller) {
+              if (!mounted) return;
+              _controller = controller;
+              _readiness.markMapCreated();
+              _initializeMap();
+            },
+            onStyleLoaded: (_) {
+              _readiness.markStyleLoaded();
+              _initializeMap();
+            },
+            onEvent: _handleEvent,
             children: [
-              maplibre.MapLibreMap(
-                gestureRecognizers: {...mapLibreGestureRecognizers()},
-                options: maplibre.MapOptions(
-                  initStyle: snapshot.data!,
-                  initCenter: maplibre.Geographic(
-                    lon: first?.longitude ?? 0,
-                    lat: first?.latitude ?? 18,
-                  ),
-                  initZoom: widget.points.length == 1 ? 12 : 1.5,
-                  minZoom: 1,
-                  maxZoom: 16,
-                  gestures: const maplibre.MapGestures(
-                    pan: true,
-                    zoom: true,
-                    rotate: false,
-                    pitch: false,
+              const Positioned.fill(child: MapLibreGestureSurface()),
+              if (widget.basemap != SpatialBasemapStyle.none)
+                Positioned(
+                  left: 8,
+                  bottom: 8,
+                  child: _BaseLayerAttribution(
+                    label:
+                        widget.basemap ==
+                            SpatialBasemapStyle.naturalEarthOffline
+                        ? 'Natural Earth'
+                        : '© OpenStreetMap contributors · OpenFreeMap',
                   ),
                 ),
-                onMapCreated: (controller) {
-                  if (!mounted) return;
-                  _controller = controller;
-                  _readiness.markMapCreated();
-                  _initializeMap();
-                },
-                onStyleLoaded: (_) {
-                  _readiness.markStyleLoaded();
-                  _initializeMap();
-                },
-                onEvent: _handleEvent,
-                children: [
-                  const Positioned.fill(child: MapLibreGestureSurface()),
-                  if (widget.basemap != SpatialBasemapStyle.none)
-                    Positioned(
-                      left: 8,
-                      bottom: 8,
-                      child: _BaseLayerAttribution(
-                        label:
-                            widget.basemap ==
-                                SpatialBasemapStyle.naturalEarthOffline
-                            ? 'Natural Earth'
-                            : '© OpenStreetMap contributors · OpenFreeMap',
-                      ),
-                    ),
-                  Positioned(
-                    left: 8,
-                    top: widget.controlsTopOffset,
-                    child: _MapControls(
-                      onZoomIn: () => _changeZoom(1),
-                      onZoomOut: () => _changeZoom(-1),
-                      onReset: _resetCamera,
-                    ),
-                  ),
-                  const Positioned(
-                    right: 8,
-                    bottom: 8,
-                    child: maplibre.MapScalebar(),
-                  ),
-                ],
+              Positioned(
+                left: 8,
+                top: widget.controlsTopOffset,
+                child: _MapControls(
+                  onZoomIn: () => _changeZoom(1),
+                  onZoomOut: () => _changeZoom(-1),
+                  onReset: _resetCamera,
+                ),
               ),
-              if (widget.points.isEmpty)
-                const Positioned.fill(child: _MapMessage()),
+              const Positioned(
+                right: 8,
+                bottom: 8,
+                child: maplibre.MapScalebar(),
+              ),
             ],
           ),
-        );
-      },
+          if (widget.points.isEmpty)
+            const Positioned.fill(child: _MapMessage()),
+        ],
+      ),
     );
   }
 

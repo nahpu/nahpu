@@ -5,12 +5,15 @@ import 'package:nahpu/services/database/database.dart' as db;
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
+import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/project_queries.dart';
+import 'package:nahpu/services/project_exchange_service.dart';
 import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/services/utility_services.dart';
 
-enum MenuSelection { details, deleteProject }
+enum MenuSelection { editInfo, details, exportInfo, showQr, deleteProject }
 
 class HomeBody extends ConsumerStatefulWidget {
   const HomeBody({super.key});
@@ -29,17 +32,19 @@ class HomeBodyState extends ConsumerState<HomeBody> {
           constraints: const BoxConstraints(maxWidth: 800),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: ref.watch(projectListProvider).when(
-              data: (data) {
-                return _buildBody(data.reversed.toList());
-              },
-              loading: () {
-                return const CommonProgressIndicator();
-              },
-              error: (error, stackTrace) {
-                return Text(error.toString());
-              },
-            ),
+            child: ref
+                .watch(projectListProvider)
+                .when(
+                  data: (data) {
+                    return _buildBody(data.reversed.toList());
+                  },
+                  loading: () {
+                    return const CommonProgressIndicator();
+                  },
+                  error: (error, stackTrace) {
+                    return Text(error.toString());
+                  },
+                ),
           ),
         ),
       ),
@@ -342,6 +347,48 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
       icon: const Icon(Icons.more_vert),
       itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuSelection>>[
         PopupMenuItem<MenuSelection>(
+          value: MenuSelection.editInfo,
+          child: const ListTile(
+            leading: Icon(Icons.edit_outlined),
+            title: Text('Edit info'),
+          ),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => EditProject(
+                  projectUuid: widget.project.uuid,
+                  returnToHome: true,
+                ),
+              ),
+            );
+          },
+        ),
+        const PopupMenuDivider(height: 10),
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.showQr,
+          child: const ListTile(
+            leading: Icon(Icons.qr_code_outlined),
+            title: Text('Show QR'),
+          ),
+          onTap: () async {
+            final data = await _getProjectInfo(widget.project.uuid);
+            _showProjectQr(data);
+          },
+        ),
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.exportInfo,
+          child: const ListTile(
+            leading: Icon(Icons.file_upload_outlined),
+            title: Text('Export info'),
+          ),
+          onTap: () async {
+            final data = await _getProjectInfo(widget.project.uuid);
+            if (!context.mounted) return;
+            await showProjectExportDialog(context: context, projectData: data);
+          },
+        ),
+        const PopupMenuDivider(height: 10),
+        PopupMenuItem<MenuSelection>(
           value: MenuSelection.details,
           child: const ListTile(
             leading: Icon(Icons.info_outlined),
@@ -369,26 +416,60 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
   }
 
   void _showProjectDialog(db.ProjectData? value) => {
-        showDialog<void>(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Project information'),
-              content: SingleChildScrollView(
-                child: ProjectInfo(projectData: value),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Project information'),
+          content: SingleChildScrollView(
+            child: ProjectInfo(projectData: value, showExport: false),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    ),
+  };
+
+  void _showProjectQr(db.ProjectData value) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Project QR code'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ProjectQrCodeViewer(
+                  data: ProjectExchangeService.encodeQr(value),
+                  isFullScreen: true,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Scan this code when creating a new project to transfer '
+                  'project information.',
+                  textAlign: TextAlign.center,
                 ),
               ],
-            );
-          },
-        ),
-      };
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class ProjectIcon extends StatelessWidget {
