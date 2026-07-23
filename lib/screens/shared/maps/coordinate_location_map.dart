@@ -509,11 +509,17 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
       return;
     }
     if (widget.points.length > 1) {
-      await _fitPoints();
+      await _fitPointsAfterLayout();
     }
     if (_isReady && widget.selectedPointId != null) {
       await _focusSelected();
     }
+  }
+
+  Future<void> _fitPointsAfterLayout() async {
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || !_isReady) return;
+    await _fitPoints();
   }
 }
 
