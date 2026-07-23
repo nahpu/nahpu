@@ -116,10 +116,10 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
               : () => RecordExchangeActions(
                   context: context,
                   ref: ref,
-                ).exportEventJson(widget.collEventId!),
+                ).exportEventRecord(widget.collEventId!),
           child: const ListTile(
             leading: Icon(Icons.file_upload_outlined),
-            title: Text('Export JSON'),
+            title: Text('Export event'),
           ),
         ),
         const PopupMenuDivider(height: 10),
@@ -137,10 +137,10 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
           onTap: () => RecordExchangeActions(
             context: context,
             ref: ref,
-          ).importEventJson(initialTargetId: widget.collEventId),
+          ).importEventRecord(initialTargetId: widget.collEventId),
           child: const ListTile(
             leading: Icon(Icons.file_download_outlined),
-            title: Text('Import JSON'),
+            title: Text('Import event'),
           ),
         ),
         const PopupMenuDivider(height: 10),

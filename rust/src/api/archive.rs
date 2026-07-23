@@ -1,5 +1,5 @@
 //! Rust FRB Boilerplate to access the archive API
-use nahpu_archive::archive;
+use nahpu_archive::{archive, tar_gzip};
 use std::path::{Path, PathBuf};
 
 pub struct ZipWriter {
@@ -47,5 +47,53 @@ impl ZipExtractor {
         let output_dir = Path::new(&self.output_dir);
         let zip = archive::ZipExtractor::new(archive_path, output_dir);
         zip.extract().expect("Failed extracting zip file");
+    }
+}
+
+pub struct TarGzipWriter {
+    pub parent_dir: String,
+    pub files: Vec<String>,
+    pub output_path: String,
+}
+
+impl TarGzipWriter {
+    pub fn new(parent_dir: String, files: Vec<String>, output_path: String) -> Self {
+        Self {
+            parent_dir,
+            files,
+            output_path,
+        }
+    }
+
+    pub fn write(&self) {
+        let files: Vec<PathBuf> = self.files.iter().map(PathBuf::from).collect();
+        let archive = tar_gzip::TarGzipArchive::new(
+            Path::new(&self.parent_dir),
+            Path::new(&self.output_path),
+            &files,
+        );
+        archive.write().expect("Failed writing tar.gz file");
+    }
+}
+
+pub struct TarGzipExtractor {
+    pub archive_path: String,
+    pub output_dir: String,
+}
+
+impl TarGzipExtractor {
+    pub fn new(archive_path: String, output_dir: String) -> Self {
+        Self {
+            archive_path,
+            output_dir,
+        }
+    }
+
+    pub fn extract(&self) {
+        let archive = tar_gzip::TarGzipExtractor::new(
+            Path::new(&self.archive_path),
+            Path::new(&self.output_dir),
+        );
+        archive.extract().expect("Failed extracting tar.gz file");
     }
 }

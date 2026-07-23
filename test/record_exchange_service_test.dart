@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/record_exchange_service.dart';
+import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 
 void main() {
   late Database database;
@@ -273,4 +273,137 @@ void main() {
       throwsFormatException,
     );
   });
+
+  testWidgets(
+    'specimen package round-trips measurements, parts, associated data, '
+    'coordinates, taxonomy, event, and personnel',
+    (tester) async {
+      await setUpService(tester);
+      addTearDown(tearDownService);
+
+      await database
+          .into(database.personnel)
+          .insert(
+            const PersonnelCompanion(
+              uuid: Value('person-a'),
+              name: Value('Person A'),
+              isRegisterField: Value(true),
+            ),
+          );
+      final taxon = await database
+          .into(database.taxonomy)
+          .insert(
+            const TaxonomyCompanion(
+              genus: Value('Rana'),
+              specificEpithet: Value('temporaria'),
+            ),
+          );
+      final site = await database
+          .into(database.site)
+          .insert(
+            const SiteCompanion(
+              projectUuid: Value('project-a'),
+              siteID: Value('Camp A'),
+            ),
+          );
+      final coordinate = await database
+          .into(database.coordinate)
+          .insert(
+            CoordinateCompanion(
+              siteID: Value(site),
+              decimalLatitude: const Value(12.3),
+              decimalLongitude: const Value(-45.6),
+            ),
+          );
+      final event = await database
+          .into(database.collEvent)
+          .insert(
+            CollEventCompanion(
+              projectUuid: const Value('project-a'),
+              siteID: Value(site),
+            ),
+          );
+      final specimenUuid = 'specimen-a';
+      await database
+          .into(database.specimen)
+          .insert(
+            SpecimenCompanion(
+              uuid: Value(specimenUuid),
+              projectUuid: const Value('project-a'),
+              speciesID: Value(taxon),
+              coordinateID: Value(coordinate),
+              collEventID: Value(event),
+              catalogerID: const Value('person-a'),
+              fieldNumber: const Value(17),
+            ),
+          );
+      await database
+          .into(database.mammalMeasurement)
+          .insert(
+            MammalMeasurementCompanion.insert(
+              specimenUuid: specimenUuid,
+              weight: Value(2.5),
+            ),
+          );
+      await database
+          .into(database.specimenPart)
+          .insert(
+            SpecimenPartCompanion.insert(
+              specimenUuid: Value(specimenUuid),
+              personnelId: Value('person-a'),
+              type: Value('Tissue'),
+            ),
+          );
+      await database
+          .into(database.associatedData)
+          .insert(
+            AssociatedDataCompanion.insert(
+              specimenUuid: Value(specimenUuid),
+              name: Value('Field note'),
+              description: Value('Collected beside stream'),
+            ),
+          );
+
+      final payload = await service.exportSpecimen(specimenUuid);
+      expect(payload.type, RecordExchangeType.specimen);
+      expect(payload.partCount, 1);
+      expect(payload.associatedDataCount, 1);
+      expect(payload.data['taxonomy'], isNotNull);
+      expect(payload.data['event'], isNotNull);
+
+      final parsed = RecordExchangePayload.parse(payload.compactEncoded);
+      final result = await service.importPayload(
+        parsed,
+        references: SpecimenImportReferences(eventId: event, taxonomyId: taxon),
+      );
+
+      expect(result.recordUuid, isNot(specimenUuid));
+      final imported = await (database.select(
+        database.specimen,
+      )..where((row) => row.uuid.equals(result.recordUuid!))).getSingle();
+      expect(imported.fieldNumber, 17);
+      expect(imported.collEventID, event);
+      expect(imported.speciesID, taxon);
+      expect(imported.coordinateID, isNot(coordinate));
+      expect(
+        await (database.select(database.mammalMeasurement)
+              ..where((row) => row.specimenUuid.equals(result.recordUuid!)))
+            .getSingle()
+            .then((value) => value.weight),
+        2.5,
+      );
+      expect(
+        await (database.select(
+          database.specimenPart,
+        )..where((row) => row.specimenUuid.equals(result.recordUuid!))).get(),
+        hasLength(1),
+      );
+      expect(
+        await (database.select(
+          database.associatedData,
+        )..where((row) => row.specimenUuid.equals(result.recordUuid!))).get(),
+        hasLength(1),
+      );
+    },
+  );
 }

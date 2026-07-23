@@ -74,7 +74,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 1243447934;
+  int get rustContentHash => 1679640611;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -267,6 +267,23 @@ abstract class RustLibApi extends BaseApi {
     required String key,
     required String value,
   });
+
+  Future<void> crateApiArchiveTarGzipExtractorExtract({
+    required TarGzipExtractor that,
+  });
+
+  Future<TarGzipExtractor> crateApiArchiveTarGzipExtractorNew({
+    required String archivePath,
+    required String outputDir,
+  });
+
+  Future<TarGzipWriter> crateApiArchiveTarGzipWriterNew({
+    required String parentDir,
+    required List<String> files,
+    required String outputPath,
+  });
+
+  Future<void> crateApiArchiveTarGzipWriterWrite({required TarGzipWriter that});
 
   Future<(double, double)> crateApiGisUtmToDd({
     required int zone,
@@ -1892,6 +1909,144 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<void> crateApiArchiveTarGzipExtractorExtract({
+    required TarGzipExtractor that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_tar_gzip_extractor(that, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 49,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiArchiveTarGzipExtractorExtractConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiArchiveTarGzipExtractorExtractConstMeta =>
+      const TaskConstMeta(
+        debugName: "tar_gzip_extractor_extract",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<TarGzipExtractor> crateApiArchiveTarGzipExtractorNew({
+    required String archivePath,
+    required String outputDir,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(archivePath, serializer);
+          sse_encode_String(outputDir, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 50,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_tar_gzip_extractor,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiArchiveTarGzipExtractorNewConstMeta,
+        argValues: [archivePath, outputDir],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiArchiveTarGzipExtractorNewConstMeta =>
+      const TaskConstMeta(
+        debugName: "tar_gzip_extractor_new",
+        argNames: ["archivePath", "outputDir"],
+      );
+
+  @override
+  Future<TarGzipWriter> crateApiArchiveTarGzipWriterNew({
+    required String parentDir,
+    required List<String> files,
+    required String outputPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(parentDir, serializer);
+          sse_encode_list_String(files, serializer);
+          sse_encode_String(outputPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 51,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_tar_gzip_writer,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiArchiveTarGzipWriterNewConstMeta,
+        argValues: [parentDir, files, outputPath],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiArchiveTarGzipWriterNewConstMeta =>
+      const TaskConstMeta(
+        debugName: "tar_gzip_writer_new",
+        argNames: ["parentDir", "files", "outputPath"],
+      );
+
+  @override
+  Future<void> crateApiArchiveTarGzipWriterWrite({
+    required TarGzipWriter that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_tar_gzip_writer(that, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 52,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiArchiveTarGzipWriterWriteConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiArchiveTarGzipWriterWriteConstMeta =>
+      const TaskConstMeta(
+        debugName: "tar_gzip_writer_write",
+        argNames: ["that"],
+      );
+
+  @override
   Future<(double, double)> crateApiGisUtmToDd({
     required int zone,
     required CardinalDirection hemisphere,
@@ -1909,7 +2064,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 49,
+            funcId: 53,
             port: port_,
           );
         },
@@ -1939,7 +2094,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 50,
+            funcId: 54,
             port: port_,
           );
         },
@@ -1972,7 +2127,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 51,
+            funcId: 55,
             port: port_,
           );
         },
@@ -2007,7 +2162,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 52,
+            funcId: 56,
             port: port_,
           );
         },
@@ -2041,7 +2196,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 53,
+            funcId: 57,
             port: port_,
           );
         },
@@ -2080,7 +2235,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 54,
+            funcId: 58,
             port: port_,
           );
         },
@@ -2113,7 +2268,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 55,
+            funcId: 59,
             port: port_,
           );
         },
@@ -2148,7 +2303,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 56,
+            funcId: 60,
             port: port_,
           );
         },
@@ -2185,7 +2340,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 57,
+            funcId: 61,
             port: port_,
           );
         },
@@ -2216,7 +2371,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 58,
+            funcId: 62,
             port: port_,
           );
         },
@@ -2294,6 +2449,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RecordWriter dco_decode_box_autoadd_record_writer(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_record_writer(raw);
+  }
+
+  @protected
+  TarGzipExtractor dco_decode_box_autoadd_tar_gzip_extractor(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_tar_gzip_extractor(raw);
+  }
+
+  @protected
+  TarGzipWriter dco_decode_box_autoadd_tar_gzip_writer(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_tar_gzip_writer(raw);
   }
 
   @protected
@@ -2723,6 +2890,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  TarGzipExtractor dco_decode_tar_gzip_extractor(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return TarGzipExtractor(
+      archivePath: dco_decode_String(arr[0]),
+      outputDir: dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
+  TarGzipWriter dco_decode_tar_gzip_writer(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return TarGzipWriter(
+      parentDir: dco_decode_String(arr[0]),
+      files: dco_decode_list_String(arr[1]),
+      outputPath: dco_decode_String(arr[2]),
+    );
+  }
+
+  @protected
   TemplatePresetDeletionResult dco_decode_template_preset_deletion_result(
     dynamic raw,
   ) {
@@ -2878,6 +3070,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_record_writer(deserializer));
+  }
+
+  @protected
+  TarGzipExtractor sse_decode_box_autoadd_tar_gzip_extractor(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_tar_gzip_extractor(deserializer));
+  }
+
+  @protected
+  TarGzipWriter sse_decode_box_autoadd_tar_gzip_writer(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_tar_gzip_writer(deserializer));
   }
 
   @protected
@@ -3449,6 +3657,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  TarGzipExtractor sse_decode_tar_gzip_extractor(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_archivePath = sse_decode_String(deserializer);
+    var var_outputDir = sse_decode_String(deserializer);
+    return TarGzipExtractor(
+      archivePath: var_archivePath,
+      outputDir: var_outputDir,
+    );
+  }
+
+  @protected
+  TarGzipWriter sse_decode_tar_gzip_writer(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_parentDir = sse_decode_String(deserializer);
+    var var_files = sse_decode_list_String(deserializer);
+    var var_outputPath = sse_decode_String(deserializer);
+    return TarGzipWriter(
+      parentDir: var_parentDir,
+      files: var_files,
+      outputPath: var_outputPath,
+    );
+  }
+
+  @protected
   TemplatePresetDeletionResult sse_decode_template_preset_deletion_result(
     SseDeserializer deserializer,
   ) {
@@ -3608,6 +3840,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_record_writer(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_tar_gzip_extractor(
+    TarGzipExtractor self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_tar_gzip_extractor(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_tar_gzip_writer(
+    TarGzipWriter self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_tar_gzip_writer(self, serializer);
   }
 
   @protected
@@ -4093,6 +4343,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_String(self.columnNames, serializer);
     sse_encode_String(self.exportFormat, serializer);
     sse_encode_bool(self.concatenateMultiEntries, serializer);
+  }
+
+  @protected
+  void sse_encode_tar_gzip_extractor(
+    TarGzipExtractor self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.archivePath, serializer);
+    sse_encode_String(self.outputDir, serializer);
+  }
+
+  @protected
+  void sse_encode_tar_gzip_writer(
+    TarGzipWriter self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.parentDir, serializer);
+    sse_encode_list_String(self.files, serializer);
+    sse_encode_String(self.outputPath, serializer);
   }
 
   @protected

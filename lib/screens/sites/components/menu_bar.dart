@@ -117,10 +117,10 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
               : () => RecordExchangeActions(
                   context: context,
                   ref: ref,
-                ).exportSiteJson(widget.siteId!),
+                ).exportSiteRecord(widget.siteId!),
           child: const ListTile(
             leading: Icon(Icons.file_upload_outlined),
-            title: Text('Export JSON'),
+            title: Text('Export site'),
           ),
         ),
         const PopupMenuDivider(height: 10),
@@ -138,10 +138,10 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
           onTap: () => RecordExchangeActions(
             context: context,
             ref: ref,
-          ).importSiteJson(initialTargetId: widget.siteId),
+          ).importSiteRecord(initialTargetId: widget.siteId),
           child: const ListTile(
             leading: Icon(Icons.file_download_outlined),
-            title: Text('Import JSON'),
+            title: Text('Import site'),
           ),
         ),
         const PopupMenuDivider(height: 10),

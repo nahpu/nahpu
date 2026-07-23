@@ -130,6 +130,17 @@ class FilePickerServices {
     return null;
   }
 
+  Future<XFile?> selectRecordFile() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json', 'zip', 'gz'],
+    );
+    if (result != null && result.files.single.path != null) {
+      return XFile(result.files.single.path!);
+    }
+    return null;
+  }
+
   Future<List<XFile>> pickMultiFiles(List<XTypeGroup> allowedExtension) async {
     return await _openFiles(acceptedTypeGroups: allowedExtension);
   }

@@ -9,7 +9,8 @@ import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/services/record_exchange_service.dart';
+import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 
 class RecordExchangeActions {
   const RecordExchangeActions({required this.context, required this.ref});
@@ -21,7 +22,7 @@ class RecordExchangeActions {
     await _showQr(
       payload: await RecordExchangeService(ref: ref).exportSite(siteId),
       title: 'Site QR code',
-      onFallback: () => exportSiteJson(siteId),
+      onFallback: () => exportSiteRecord(siteId),
     );
   }
 
@@ -29,27 +30,101 @@ class RecordExchangeActions {
     await _showQr(
       payload: await RecordExchangeService(ref: ref).exportEvent(eventId),
       title: 'Event QR code',
-      onFallback: () => exportEventJson(eventId),
+      onFallback: () => exportEventRecord(eventId),
     );
   }
 
-  Future<void> exportSiteJson(int siteId) async {
-    await _export(
-      payload: await RecordExchangeService(ref: ref).exportSite(siteId),
-    );
+  Future<void> exportSiteRecord(int siteId) async {
+    try {
+      final service = RecordExchangeService(ref: ref);
+      final payload = await service.exportSite(siteId);
+      if (!context.mounted) return;
+      await showRecordExportDialog(
+        context: context,
+        payload: payload,
+        onExport:
+            ({
+              required fileStem,
+              required destinationDirectory,
+              required archiveFormat,
+            }) => service.saveJson(
+              payload,
+              fileStem: fileStem,
+              destinationDirectory: destinationDirectory,
+            ),
+      );
+    } catch (error) {
+      _showError(error);
+    }
   }
 
-  Future<void> exportEventJson(int eventId) async {
-    await _export(
-      payload: await RecordExchangeService(ref: ref).exportEvent(eventId),
-    );
+  Future<void> exportEventRecord(int eventId) async {
+    try {
+      final service = RecordExchangeService(ref: ref);
+      final payload = await service.exportEvent(eventId);
+      if (!context.mounted) return;
+      await showRecordExportDialog(
+        context: context,
+        payload: payload,
+        onExport:
+            ({
+              required fileStem,
+              required destinationDirectory,
+              required archiveFormat,
+            }) => service.saveJson(
+              payload,
+              fileStem: fileStem,
+              destinationDirectory: destinationDirectory,
+            ),
+      );
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Future<void> exportSpecimenRecord(String specimenUuid) async {
+    try {
+      final service = RecordExchangeService(ref: ref);
+      final mediaCount = await service.getSpecimenMediaCount(specimenUuid);
+      final payload = await service.exportSpecimen(
+        specimenUuid,
+        includeMedia: mediaCount > 0,
+      );
+      if (!context.mounted) return;
+      await showRecordExportDialog(
+        context: context,
+        payload: payload,
+        onExport:
+            ({
+              required fileStem,
+              required destinationDirectory,
+              required archiveFormat,
+            }) {
+              if (archiveFormat == null) {
+                return service.saveJson(
+                  payload,
+                  fileStem: fileStem,
+                  destinationDirectory: destinationDirectory,
+                );
+              }
+              return service.saveSpecimen(
+                payload,
+                fileStem: fileStem,
+                archiveFormat: archiveFormat,
+                destinationDirectory: destinationDirectory,
+              );
+            },
+      );
+    } catch (error) {
+      _showError(error);
+    }
   }
 
   Future<void> scanSiteQr({int? initialTargetId}) async {
     await _scan(
       expectedType: 'site',
       onPayload: (payload) =>
-          importSite(payload, initialTargetId: initialTargetId),
+          _importSitePayload(payload, initialTargetId: initialTargetId),
     );
   }
 
@@ -57,11 +132,11 @@ class RecordExchangeActions {
     await _scan(
       expectedType: 'event',
       onPayload: (payload) =>
-          importEvent(payload, initialTargetId: initialTargetId),
+          _importEventPayload(payload, initialTargetId: initialTargetId),
     );
   }
 
-  Future<void> importSiteJson({int? initialTargetId}) async {
+  Future<void> importSiteRecord({int? initialTargetId}) async {
     final file = await RecordExchangeService(ref: ref).selectJsonFile();
     if (file == null) return;
     try {
@@ -70,13 +145,13 @@ class RecordExchangeActions {
         content,
         expectedType: 'site',
       );
-      await importSite(payload, initialTargetId: initialTargetId);
+      await _importSitePayload(payload, initialTargetId: initialTargetId);
     } catch (error) {
       _showError(error);
     }
   }
 
-  Future<void> importEventJson({int? initialTargetId}) async {
+  Future<void> importEventRecord({int? initialTargetId}) async {
     final file = await RecordExchangeService(ref: ref).selectJsonFile();
     if (file == null) return;
     try {
@@ -85,13 +160,66 @@ class RecordExchangeActions {
         content,
         expectedType: 'event',
       );
-      await importEvent(payload, initialTargetId: initialTargetId);
+      await _importEventPayload(payload, initialTargetId: initialTargetId);
     } catch (error) {
       _showError(error);
     }
   }
 
-  Future<void> importSite(
+  Future<void> importSpecimenRecord({String? initialTargetUuid}) async {
+    final file = await RecordExchangeService(ref: ref).selectRecordFile();
+    if (file == null) return;
+    RecordExchangeArchiveFile? imported;
+    try {
+      imported = await RecordExchangeService(ref: ref).readRecordFile(file);
+      final service = RecordExchangeService(ref: ref);
+      final specimens = await service.getCurrentProjectSpecimens();
+      if (!context.mounted) return;
+      final target = await showSpecimenImportTargetDialog(
+        context: context,
+        specimens: specimens,
+        initialTargetUuid: initialTargetUuid,
+        payload: imported.payload,
+      );
+      if (target == null) return;
+
+      final events = await service.getCurrentProjectEvents();
+      final sites = await service.getCurrentProjectSites();
+      final taxa = await service.getTaxonomyList();
+      if (!context.mounted) return;
+      final references = await chooseSpecimenReferences(
+        context: context,
+        payload: imported.payload,
+        events: events,
+        sites: sites,
+        taxa: taxa,
+      );
+      if (references == null) return;
+
+      final result = await service.importPayload(
+        imported.payload,
+        targetSpecimenUuid: target.targetUuid,
+        references: references,
+        extractedMediaDirectory: imported.extractedMediaDirectory,
+      );
+      ref.invalidate(specimenEntryProvider);
+      ref.invalidate(partBySpecimenProvider(result.recordUuid!));
+      ref.invalidate(associatedDataProvider(result.recordUuid!));
+      ref
+          .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
+          .updateState(result.recordUuid);
+      _showSuccess('Specimen imported successfully.');
+    } catch (error) {
+      _showError(error);
+    } finally {
+      final directory = imported?.extractedMediaDirectory;
+      if (directory != null && directory.existsSync()) {
+        await directory.delete(recursive: true);
+      }
+    }
+  }
+
+  Future<void> _importSitePayload(
     RecordExchangePayload payload, {
     int? initialTargetId,
   }) async {
@@ -123,7 +251,7 @@ class RecordExchangeActions {
     }
   }
 
-  Future<void> importEvent(
+  Future<void> _importEventPayload(
     RecordExchangePayload payload, {
     int? initialTargetId,
   }) async {
@@ -220,7 +348,7 @@ class RecordExchangeActions {
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Export JSON'),
+                child: Text('Export ${payload.type.label}'),
               ),
             ],
           ),
@@ -232,17 +360,6 @@ class RecordExchangeActions {
         context: context,
         builder: (context) => RecordQrDialog(title: title, data: qrData),
       );
-    } catch (error) {
-      _showError(error);
-    }
-  }
-
-  Future<void> _export({required RecordExchangePayload payload}) async {
-    try {
-      final file = await RecordExchangeService(
-        ref: ref,
-      ).saveJson(payload, fileStem: payload.displayName);
-      _showSuccess('Exported JSON to ${file.path}.');
     } catch (error) {
       _showError(error);
     }

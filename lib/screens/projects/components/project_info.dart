@@ -17,25 +17,18 @@ class ProjectInfo extends ConsumerWidget {
       children: [
         ProjectQrIcon(data: _getProjectJson(projectData)),
         const SizedBox(height: 4),
-        ProjectInfoText(
-          title: 'Project name: ',
-          text: projectData?.name,
-        ),
+        ProjectInfoText(title: 'Project name: ', text: projectData?.name),
         ProjectInfoText(title: 'UUID: ', text: projectData?.uuid),
         ProjectInfoText(
-            title: 'Project description: ', text: projectData?.description),
+          title: 'Project description: ',
+          text: projectData?.description,
+        ),
         ProjectInfoText(
           title: 'Principal investigator: ',
           text: projectData?.principalInvestigator,
         ),
-        ProjectInfoText(
-          title: 'Location: ',
-          text: projectData?.location,
-        ),
-        ProjectInfoText(
-          title: 'Time zone: ',
-          text: projectData?.timeZone,
-        ),
+        ProjectInfoText(title: 'Location: ', text: projectData?.location),
+        ProjectInfoText(title: 'Time zone: ', text: projectData?.timeZone),
         ProjectInfoText(
           title: 'Start date: ',
           text: dateStdToDateDisplay(projectData?.startDate),
@@ -98,7 +91,7 @@ class ProjectInfoText extends StatelessWidget {
             style: isSmall
                 ? Theme.of(context).textTheme.labelMedium
                 : Theme.of(context).textTheme.bodyLarge,
-          )
+          ),
         ],
       ),
     );
@@ -118,20 +111,14 @@ class ProjectQrIcon extends StatelessWidget {
         child: SizedBox(
           width: 96,
           height: 96,
-          child: ProjectQrCodeViewer(
-            data: data,
-            isFullScreen: false,
-          ),
+          child: ProjectQrCodeViewer(data: data, isFullScreen: false),
         ),
         onTap: () {
           showDialog(
             context: context,
             builder: (context) {
               return AlertDialog(
-                content: ProjectQrCodeViewer(
-                  data: data,
-                  isFullScreen: true,
-                ),
+                content: ProjectQrCodeViewer(data: data, isFullScreen: true),
                 actions: [
                   TextButton(
                     onPressed: () {
@@ -161,19 +148,13 @@ class ProjectQrCodeViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: isFullScreen ? 400 : 80,
       height: isFullScreen ? 400 : 80,
-      padding: const EdgeInsets.all(8.0),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: ProjectQrCode(
         data: data,
         color: Colors.black,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
       ),
     );
   }
