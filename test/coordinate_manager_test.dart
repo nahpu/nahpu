@@ -39,7 +39,7 @@ void main() {
     expect(_checkbox(tester, 1).value, isFalse);
     expect(_checkbox(tester, 2).value, isFalse);
     expect(_opacity(tester, 1).opacity, 0.55);
-    expect(find.text('0 of 2 coordinates selected'), findsOneWidget);
+    expect(find.text('0 of 2 coordinates'), findsOneWidget);
     expect(find.text('Export coordinates (0)'), findsOneWidget);
     expect(_opacity(tester, 2).opacity, 0.55);
 
@@ -81,7 +81,7 @@ void main() {
     await tester.pump();
 
     expect(_checkbox(tester, 1).value, isTrue);
-    expect(find.text('1 of 2 coordinates selected'), findsOneWidget);
+    expect(find.text('1 of 2 coordinates'), findsOneWidget);
     expect(find.text('Export coordinates (1)'), findsOneWidget);
     expect(
       tester

@@ -5,6 +5,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
 import 'package:nahpu/services/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
@@ -33,11 +34,9 @@ class NewSiteTextButtonState extends ConsumerState<NewSiteTextButton> {
           await createNewSite(context, ref);
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(e.toString()),
-              ),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
           }
         }
       },
@@ -63,11 +62,9 @@ class NewSiteState extends ConsumerState<NewSite> {
           await createNewSite(context, ref);
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(e.toString()),
-              ),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
           }
         }
       },
@@ -76,10 +73,7 @@ class NewSiteState extends ConsumerState<NewSite> {
 }
 
 class SiteMenu extends ConsumerStatefulWidget {
-  const SiteMenu({
-    super.key,
-    required this.siteId,
-  });
+  const SiteMenu({super.key, required this.siteId});
 
   final int? siteId;
 
@@ -91,37 +85,78 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton(
-        itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-              PopupMenuItem(
-                child: const CreateMenuButton(
-                  text: 'Create site',
-                ),
-                onTap: () => createNewSite(context, ref),
-              ),
-              PopupMenuItem(
-                onTap: widget.siteId == null
-                    ? null
-                    : () async => await _duplicateSite(),
-                child: const DuplicateMenuButton(
-                  text: 'Duplicate site',
-                ),
-              ),
-              const PopupMenuDivider(height: 10),
-              PopupMenuItem(
-                enabled: widget.siteId != null,
-                onTap: () => _deleteSite(),
-                child: const DeleteMenuButton(
-                  deleteAll: false,
-                ),
-              ),
-              PopupMenuItem(
-                enabled: widget.siteId != null,
-                onTap: () => _deleteAllSites(),
-                child: const DeleteMenuButton(
-                  deleteAll: true,
-                ),
-              ),
-            ]);
+      itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+        PopupMenuItem(
+          child: const CreateMenuButton(text: 'Create site'),
+          onTap: () => createNewSite(context, ref),
+        ),
+        PopupMenuItem(
+          onTap: widget.siteId == null
+              ? null
+              : () async => await _duplicateSite(),
+          child: const DuplicateMenuButton(text: 'Duplicate site'),
+        ),
+        const PopupMenuDivider(height: 10),
+        PopupMenuItem(
+          enabled: widget.siteId != null,
+          onTap: widget.siteId == null
+              ? null
+              : () => RecordExchangeActions(
+                  context: context,
+                  ref: ref,
+                ).showSiteQr(widget.siteId!),
+          child: const ListTile(
+            leading: Icon(Icons.qr_code_outlined),
+            title: Text('Show QR'),
+          ),
+        ),
+        PopupMenuItem(
+          enabled: widget.siteId != null,
+          onTap: widget.siteId == null
+              ? null
+              : () => RecordExchangeActions(
+                  context: context,
+                  ref: ref,
+                ).exportSiteJson(widget.siteId!),
+          child: const ListTile(
+            leading: Icon(Icons.file_upload_outlined),
+            title: Text('Export JSON'),
+          ),
+        ),
+        const PopupMenuDivider(height: 10),
+        PopupMenuItem(
+          onTap: () => RecordExchangeActions(
+            context: context,
+            ref: ref,
+          ).scanSiteQr(initialTargetId: widget.siteId),
+          child: const ListTile(
+            leading: Icon(Icons.qr_code_scanner_outlined),
+            title: Text('Scan QR'),
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () => RecordExchangeActions(
+            context: context,
+            ref: ref,
+          ).importSiteJson(initialTargetId: widget.siteId),
+          child: const ListTile(
+            leading: Icon(Icons.file_download_outlined),
+            title: Text('Import JSON'),
+          ),
+        ),
+        const PopupMenuDivider(height: 10),
+        PopupMenuItem(
+          enabled: widget.siteId != null,
+          onTap: () => _deleteSite(),
+          child: const DeleteMenuButton(deleteAll: false),
+        ),
+        PopupMenuItem(
+          enabled: widget.siteId != null,
+          onTap: () => _deleteAllSites(),
+          child: const DeleteMenuButton(deleteAll: true),
+        ),
+      ],
+    );
   }
 
   Future<void> _duplicateSite() async {
@@ -140,42 +175,44 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
 
   Future<void> _deleteSite() async {
     showDeleteAlertOnMenu(
-        context: context,
-        title: 'Delete site?',
-        deletePrompt: 'You will delete all records in this site form',
-        onDelete: () async {
-          if (widget.siteId != null) {
-            try {
-              await SiteServices(ref: ref).deleteSite(widget.siteId!);
+      context: context,
+      title: 'Delete site?',
+      deletePrompt: 'You will delete all records in this site form',
+      onDelete: () async {
+        if (widget.siteId != null) {
+          try {
+            await SiteServices(ref: ref).deleteSite(widget.siteId!);
 
-              // Close the delete dialog.
-              if (mounted) {
-                Navigator.pop(context);
-              }
-              ref.invalidate(siteEntryProvider);
-            } catch (e) {
-              _showError(e.toString());
+            // Close the delete dialog.
+            if (mounted) {
+              Navigator.pop(context);
             }
+            ref.invalidate(siteEntryProvider);
+          } catch (e) {
+            _showError(e.toString());
           }
-        });
+        }
+      },
+    );
   }
 
   void _deleteAllSites() {
     final projectUuid = ref.read(projectUuidProvider);
     showDeleteAlertOnMenu(
-        context: context,
-        title: 'Delete all sites?',
-        deletePrompt: 'You will delete all site records',
-        onDelete: () async {
-          try {
-            await SiteServices(ref: ref).deleteAllSites(projectUuid);
-            if (context.mounted) {
-              _popMenu();
-            }
-          } catch (e) {
-            _showError(e.toString());
+      context: context,
+      title: 'Delete all sites?',
+      deletePrompt: 'You will delete all site records',
+      onDelete: () async {
+        try {
+          await SiteServices(ref: ref).deleteAllSites(projectUuid);
+          if (context.mounted) {
+            _popMenu();
           }
-        });
+        } catch (e) {
+          _showError(e.toString());
+        }
+      },
+    );
   }
 
   void _popMenu() {

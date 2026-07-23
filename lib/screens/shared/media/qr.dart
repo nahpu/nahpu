@@ -240,16 +240,27 @@ class QrImageView extends StatelessWidget {
   }
 
   QrImage? _createQrImage(String data) {
-    try {
-      return QrImage(
-        QrCode(
-          payload: QrPayload.fromString(data),
-          errorCorrectLevel: QrErrorCorrectLevel.low,
-        ),
-      );
-    } on InputTooLongException {
+    if (!canEncodeQrPayload(data)) {
       return null;
     }
+    return QrImage(
+      QrCode(
+        payload: QrPayload.fromString(data),
+        errorCorrectLevel: QrErrorCorrectLevel.low,
+      ),
+    );
+  }
+}
+
+bool canEncodeQrPayload(String data) {
+  try {
+    QrCode(
+      payload: QrPayload.fromString(data),
+      errorCorrectLevel: QrErrorCorrectLevel.low,
+    );
+    return true;
+  } on InputTooLongException {
+    return false;
   }
 }
 
