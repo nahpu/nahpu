@@ -31,7 +31,7 @@ The NAHPU project's main challenges are the multi-platform nature of the applica
 
 * **[Flutter](https://flutter.dev/):** For the cross-platform user interface.
 * **[Rust](https://www.rust-lang.org/):** For performance-critical native code, integrated with [Flutter Rust Bridge](https://cjycode.com/flutter_rust_bridge/).
-* **[Drift](https://drift.simonbinder.eu/):** For the local SQLite project database.
+* **[Drift](https://drift.simonbinder.eu/):** For the local [SQLite](https://www.sqlite.org/) project database.
 * **[redb](https://www.redb.org/):** For user configuration and export preset storage through the NAHPU API.
 * **[Riverpod](https://riverpod.dev/):** For state management.
 * **[Typst](https://typst.app/):** For the template system that powers NAHPU document exports.
