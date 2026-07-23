@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:nahpu/services/statistics/spatial.dart';
@@ -36,8 +37,29 @@ class StatisticsTableExporter {
     required List<String> headers,
     required List<List<String>> rows,
   }) {
+    for (final row in rows) {
+      if (row.length != headers.length) {
+        throw ArgumentError(
+          'Statistics export row has ${row.length} cells but '
+          '${headers.length} headers were supplied.',
+        );
+      }
+    }
     if (format == ExportFmt.json) {
-      throw ArgumentError('Statistics tables do not support JSON export.');
+      final records = [
+        for (final row in rows)
+          <String, String>{
+            for (var index = 0; index < headers.length; index++)
+              headers[index]: row[index],
+          },
+      ];
+      return RecordWriter(
+        jsonContent: jsonEncode(records),
+        outputPath: file.path,
+        columnNames: headers,
+        exportFormat: format.name,
+        concatenateMultiEntries: true,
+      ).write();
     }
     return writeTabularRecords(
       headers: headers,

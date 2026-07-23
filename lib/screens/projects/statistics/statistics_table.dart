@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/shared/actions/buttons.dart';
-import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/export/statistics_exporter.dart';
 import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
@@ -143,14 +145,25 @@ Future<void> showTabularExportDialog({
   required List<String> headers,
   required List<List<String>> rows,
 }) {
+  final isSmallScreen = MediaQuery.sizeOf(context).width < 600;
+  final exportSurface = _TabularExportDialog(
+    title: title,
+    defaultFileName: defaultFileName,
+    headers: headers,
+    rows: rows,
+    isSheet: isSmallScreen,
+  );
+  if (isSmallScreen) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => exportSurface,
+    );
+  }
   return showDialog<void>(
     context: context,
-    builder: (context) => _TabularExportDialog(
-      title: title,
-      defaultFileName: defaultFileName,
-      headers: headers,
-      rows: rows,
-    ),
+    builder: (context) => exportSurface,
   );
 }
 
@@ -160,20 +173,21 @@ class _TabularExportDialog extends StatefulWidget {
     required this.defaultFileName,
     required this.headers,
     required this.rows,
+    required this.isSheet,
   });
 
   final String title;
   final String defaultFileName;
   final List<String> headers;
   final List<List<String>> rows;
+  final bool isSheet;
 
   @override
   State<_TabularExportDialog> createState() => _TabularExportDialogState();
 }
 
 class _TabularExportDialogState extends State<_TabularExportDialog> {
-  late final TextEditingController _fileNameController;
-  ExportFmt _format = ExportFmt.csv;
+  late final FileOpCtrModel _exportCtr;
   Directory? _directory;
   File? _exportedFile;
   bool _isRunning = false;
@@ -181,88 +195,85 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
   @override
   void initState() {
     super.initState();
-    _fileNameController = TextEditingController(text: widget.defaultFileName);
+    _exportCtr = FileOpCtrModel.empty()
+      ..fileNameCtr.text = widget.defaultFileName;
   }
 
   @override
   void dispose() {
-    _fileNameController.dispose();
+    _exportCtr.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.title),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
+    final settings = FileSettingsCard(
+      exportCtr: _exportCtr,
+      selectedDir: _directory,
+      onExportFmtChanged: (value) {
+        if (value == null) return;
+        setState(() {
+          _exportCtr.exportFmtCtr = value;
+          _exportedFile = null;
+        });
+      },
+      onFileNameChanged: (_) => _resetExport(),
+      onSelectDir: _selectDirectory,
+      onClearDir: () => setState(() {
+        _directory = null;
+        _exportedFile = null;
+      }),
+    );
+    final exportAction = ExportShareButton(
+      hasExported: _exportedFile != null,
+      isRunning: _isRunning,
+      onExport: _canExport ? _export : null,
+      onShare: _share,
+    );
+    if (widget.isSheet) {
+      return SafeArea(
         child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            MediaQuery.viewInsetsOf(context).bottom + 16,
+          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SegmentedButton<ExportFmt>(
-                segments: const [
-                  ButtonSegment(value: ExportFmt.csv, label: Text('CSV')),
-                  ButtonSegment(value: ExportFmt.tsv, label: Text('TSV')),
-                  ButtonSegment(value: ExportFmt.excel, label: Text('Excel')),
-                ],
-                selected: {_format},
-                onSelectionChanged: (selection) {
-                  setState(() {
-                    _format = selection.single;
-                    _exportedFile = null;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _fileNameController,
-                decoration: const InputDecoration(labelText: 'File name'),
-                onChanged: (_) => setState(() => _exportedFile = null),
-              ),
-              const SizedBox(height: 12),
-              SelectDirField(
-                dirPath: _directory,
-                onPressed: _selectDirectory,
-                onCanceled: () => setState(() {
-                  _directory = null;
-                  _exportedFile = null;
-                }),
-              ),
-              if (_exportedFile != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  'Exported to ${_exportedFile!.path}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+              Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              settings,
+              const SizedBox(height: 8),
+              exportAction,
             ],
           ),
         ),
+      );
+    }
+    return AlertDialog(
+      title: Text(widget.title),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: SingleChildScrollView(child: settings),
       ),
       actions: [
         TextButton(
           onPressed: _isRunning ? null : () => Navigator.pop(context),
           child: const Text('Close'),
         ),
-        if (_exportedFile == null)
-          ProgressButton(
-            label: 'Export',
-            icon: Icons.file_upload_outlined,
-            isRunning: _isRunning,
-            onPressed: _canExport ? _export : null,
-          )
-        else
-          ShareButton(onPressed: _share),
+        exportAction,
       ],
     );
   }
 
   bool get _canExport =>
-      !_isRunning &&
-      widget.rows.isNotEmpty &&
-      _fileNameController.text.trim().isNotEmpty;
+      !_isRunning && widget.rows.isNotEmpty && _exportCtr.isValid;
+
+  void _resetExport() {
+    if (mounted) setState(() => _exportedFile = null);
+  }
 
   Future<void> _selectDirectory() async {
     final directory = await FilePickerServices().selectDir();
@@ -277,22 +288,26 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
   Future<void> _export() async {
     setState(() => _isRunning = true);
     try {
-      final extension = switch (_format) {
+      final format = _exportCtr.exportFmtCtr;
+      final extension = switch (format) {
         ExportFmt.excel => 'xlsx',
-        _ => _format.name,
+        _ => format.name,
       };
       final file = await AppIOServices(
         dir: _directory,
-        fileStem: _fileNameController.text.trim(),
+        fileStem: _exportCtr.fileNameCtr.text.trim(),
         ext: extension,
       ).getSavePath();
       await const StatisticsTableExporter().writeRows(
         file,
-        _format,
+        format,
         headers: widget.headers,
         rows: widget.rows,
       );
-      if (mounted) setState(() => _exportedFile = file);
+      if (mounted) {
+        setState(() => _exportedFile = file);
+        _showSavedPath(file);
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -302,6 +317,19 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
     } finally {
       if (mounted) setState(() => _isRunning = false);
     }
+  }
+
+  void _showSavedPath(File file) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          systemPlatform == PlatformType.desktop
+              ? 'Exported to $file'
+              : 'Export complete!',
+        ),
+      ),
+    );
   }
 
   Future<void> _share() async {

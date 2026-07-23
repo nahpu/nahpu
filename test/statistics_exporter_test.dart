@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -59,6 +60,82 @@ void main() {
     expect(await csv.readAsString(), contains('1,Myotis lucifugus,3,75.00'));
     expect(await tsv.readAsString(), contains('Rank\tCategory\tCount'));
     expect(excel.lengthSync(), greaterThan(0));
+  });
+
+  test('writes JSON rows as objects matching record exports', () async {
+    const rows = [
+      StatisticTableRow(
+        rank: 1,
+        category: 'Myotis lucifugus',
+        count: 3,
+        percent: 75,
+      ),
+      StatisticTableRow(
+        rank: 2,
+        category: 'Eptesicus fuscus',
+        count: 1,
+        percent: 25,
+      ),
+    ];
+    final file = File('${tempDirectory.path}/statistics.json');
+
+    await const StatisticsTableExporter().write(file, ExportFmt.json, rows);
+
+    expect(jsonDecode(await file.readAsString()), [
+      {
+        'Rank': '1',
+        'Category': 'Myotis lucifugus',
+        'Count': '3',
+        'Percent (%)': '75.00',
+      },
+      {
+        'Rank': '2',
+        'Category': 'Eptesicus fuscus',
+        'Count': '1',
+        'Percent (%)': '25.00',
+      },
+    ]);
+  });
+
+  test('writes spatial statistics JSON with displayed headers', () async {
+    const spatialRows = [
+      SpatialStatisticDatum(
+        coordinateId: 1,
+        name: 'Alpha coordinate',
+        locality: 'North woods',
+        decimalLatitude: 45.1234567,
+        decimalLongitude: -93.1234567,
+        elevationInMeter: 320.456,
+        datum: 'WGS84',
+        uncertaintyInMeters: 8,
+        gpsUnit: 'GPS A',
+        notes: 'Forest edge',
+        count: 3,
+      ),
+    ];
+    final file = File('${tempDirectory.path}/spatial-statistics.json');
+
+    await const StatisticsTableExporter().writeRows(
+      file,
+      ExportFmt.json,
+      headers: spatialStatisticExportHeaders(SpatialStatisticKind.specimens),
+      rows: buildSpatialStatisticExportRows(
+        SpatialStatisticKind.specimens,
+        spatialRows,
+      ),
+    );
+
+    expect(jsonDecode(await file.readAsString()), [
+      {
+        'Name': 'Alpha coordinate',
+        'Locality': 'North woods',
+        'Latitude': '45.123457',
+        'Longitude': '-93.123457',
+        'Elevation (m)': '320.46',
+        'Count': '3',
+        'Percent (%)': '100.00',
+      },
+    ]);
   });
 
   test('builds spatial table export rows from displayed metrics', () {

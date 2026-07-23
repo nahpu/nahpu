@@ -54,6 +54,7 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
             DropdownButtonFormField<T>(
               key: ValueKey(format),
               initialValue: format,
+              isExpanded: true,
               decoration: InputDecoration(labelText: formatFieldLabel),
               items: [
                 for (final value in formats)

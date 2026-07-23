@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
 void main() {
@@ -25,8 +28,9 @@ void main() {
     expect(find.byType(SingleChildScrollView), findsOneWidget);
   });
 
-  testWidgets('species chart keeps genus and epithet on separate lines',
-      (tester) async {
+  testWidgets('species chart keeps genus and epithet on separate lines', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -81,5 +85,83 @@ void main() {
 
     await tester.tap(find.byTooltip('Export table'));
     expect(exported, isTrue);
+  });
+
+  testWidgets('statistics export uses shared file settings and supports JSON', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => showTabularExportDialog(
+                context: context,
+                title: 'Export statistics table',
+                defaultFileName: 'statistics',
+                headers: const ['Rank', 'Category'],
+                rows: const [
+                  ['1', 'Myotis lucifugus'],
+                ],
+              ),
+              child: const Text('Open export'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open export'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FileSettingsCard), findsOneWidget);
+    expect(find.byType(ExportShareButton), findsOneWidget);
+    expect(find.text('File format'), findsOneWidget);
+    expect(find.byType(SegmentedButton<ExportFmt>), findsNothing);
+
+    await tester.tap(find.byType(DropdownButtonFormField<ExportFmt>));
+    await tester.pumpAndSettle();
+    expect(find.text('JSON (.json)'), findsOneWidget);
+  });
+
+  testWidgets('small statistics export opens as a modal sheet', (tester) async {
+    tester.view.physicalSize = const Size(500, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => showTabularExportDialog(
+                context: context,
+                title: 'Export statistics table',
+                defaultFileName: 'statistics',
+                headers: const ['Rank', 'Category'],
+                rows: const [
+                  ['1', 'Myotis lucifugus'],
+                ],
+              ),
+              child: const Text('Open export'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open export'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(FileSettingsCard), findsOneWidget);
+    expect(find.text('Close'), findsNothing);
   });
 }
