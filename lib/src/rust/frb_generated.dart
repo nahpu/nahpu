@@ -6,6 +6,7 @@
 import 'api/archive.dart';
 import 'api/common.dart';
 import 'api/config.dart';
+import 'api/document.dart';
 import 'api/dwc.dart';
 import 'api/export.dart';
 import 'api/gis.dart';
@@ -42,12 +43,8 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   /// Initialize flutter_rust_bridge in mock mode.
   /// No libraries for FFI are loaded.
-  static void initMock({
-    required RustLibApi api,
-  }) {
-    instance.initMockImpl(
-      api: api,
-    );
+  static void initMock({required RustLibApi api}) {
+    instance.initMockImpl(api: api);
   }
 
   /// Dispose flutter_rust_bridge
@@ -77,36 +74,50 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -869106116;
+  int get rustContentHash => 1243447934;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
-    stem: 'rust_lib_nahpu',
-    ioDirectory: 'rust/target/release/',
-    webPrefix: 'pkg/',
-    wasmBindgenName: 'wasm_bindgen',
-  );
+        stem: 'rust_lib_nahpu',
+        ioDirectory: 'rust/target/release/',
+        webPrefix: 'pkg/',
+        wasmBindgenName: 'wasm_bindgen',
+      );
 }
 
 abstract class RustLibApi extends BaseApi {
   Future<String> crateApiCommonCheckRust();
 
-  Future<Uint8List> crateApiExportCompileTypstToPdf(
-      {required String typstContent, required List<Uint8List> fontBytes});
+  Future<Uint8List> crateApiDocumentCompileTypstToPdf({
+    required String typstContent,
+    required List<Uint8List> fontBytes,
+  });
 
-  Future<DdmCoordinateFfi> crateApiGisDdToDdm(
-      {required double dd, required bool isLatitude});
+  Future<ImportedVectorLayer> crateApiGisConvertVectorLayerToGeojson({
+    required String inputPath,
+    required String outputPath,
+  });
 
-  Future<DmsCoordinateFfi> crateApiGisDdToDms(
-      {required double dd, required bool isLatitude});
+  Future<DdmCoordinateFfi> crateApiGisDdToDdm({
+    required double dd,
+    required CoordinateAxis axis,
+  });
 
-  Future<UtmCoordinateFfi> crateApiGisDdToUtm(
-      {required double latitude, required double longitude});
+  Future<DmsCoordinateFfi> crateApiGisDdToDms({
+    required double dd,
+    required CoordinateAxis axis,
+  });
 
-  Future<double> crateApiGisDdmToDd(
-      {required int degrees,
-      required double minutes,
-      required CardinalDirection direction});
+  Future<UtmCoordinateFfi> crateApiGisDdToUtm({
+    required double latitude,
+    required double longitude,
+  });
+
+  Future<double> crateApiGisDdmToDd({
+    required int degrees,
+    required double minutes,
+    required CardinalDirection direction,
+  });
 
   Future<void> crateApiConfigDeleteDocumentLayout({required String name});
 
@@ -115,55 +126,64 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiConfigDeleteTemplatePreset({required String name});
 
   Future<TemplatePresetDeletionResult>
-      crateApiConfigDeleteTemplatePresetWithReplacement(
-          {required String name, String? replacementName});
+  crateApiConfigDeleteTemplatePresetWithReplacement({
+    required String name,
+    String? replacementName,
+  });
 
   Future<void> crateApiConfigDeleteUserConfig({required String key});
 
-  Future<double> crateApiGisDmsToDd(
-      {required int degrees,
-      required int minutes,
-      required double seconds,
-      required CardinalDirection direction});
+  Future<double> crateApiGisDmsToDd({
+    required int degrees,
+    required int minutes,
+    required double seconds,
+    required CardinalDirection direction,
+  });
 
-  Future<void> crateApiConfigExportConfigToFile(
-      {required String filePath, required bool isJson});
+  Future<void> crateApiConfigExportConfigToFile({
+    required String filePath,
+    required bool isJson,
+  });
 
-  Future<void> crateApiExportExportCoordinates(
-      {required String jsonContent,
-      required String outputPath,
-      required String exportFormat});
+  Future<void> crateApiGisExportCoordinates({
+    required List<CoordinateTransferRecord> coordinates,
+    required CoordinateExportFormat format,
+    required String outputPath,
+  });
 
-  Future<void> crateApiConfigExportDocumentLayoutToFile(
-      {required DocumentLayoutPreset layout, required String filePath});
+  Future<void> crateApiConfigExportDocumentLayoutToFile({
+    required DocumentLayoutPreset layout,
+    required String filePath,
+  });
 
-  Future<void> crateApiConfigExportTemplatePresetToFile(
-      {required String name, required String filePath});
-
-  Future<Uint8List> crateApiExportGenerateDocument(
-      {required String jsonContent,
-      required String exportFormat,
-      required List<Uint8List> fontBytes});
+  Future<void> crateApiConfigExportTemplatePresetToFile({
+    required String name,
+    required String filePath,
+  });
 
   Future<List<DocumentLayoutPreset>> crateApiConfigGetAllDocumentLayouts();
 
   Future<List<ConfigPresetEntry>> crateApiConfigGetAllRecordExportPresets();
 
-  Future<DocumentLayoutPreset?> crateApiConfigGetDocumentLayout(
-      {required String name});
+  Future<DocumentLayoutPreset?> crateApiConfigGetDocumentLayout({
+    required String name,
+  });
 
   Future<List<DocumentLayoutStatus>> crateApiConfigGetDocumentLayoutStatuses();
 
-  Future<List<DwcHeader>> crateApiDwcGetDwcHeaders(
-      {required List<String> sourceKeys});
+  Future<List<DwcHeader>> crateApiDwcGetDwcHeaders({
+    required List<String> sourceKeys,
+  });
 
-  Future<ConfigExportPreset?> crateApiConfigGetRecordExportPreset(
-      {required String name});
+  Future<ConfigExportPreset?> crateApiConfigGetRecordExportPreset({
+    required String name,
+  });
 
   Future<String?> crateApiConfigGetTemplatePreset({required String name});
 
-  Future<List<TemplatePresetUsage>> crateApiConfigGetTemplatePresetUsages(
-      {required String name});
+  Future<List<TemplatePresetUsage>> crateApiConfigGetTemplatePresetUsages({
+    required String name,
+  });
 
   Future<List<String>?> crateApiConfigGetUserConfigList({required String key});
 
@@ -171,8 +191,13 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiConfigImportConfigFromFile({required String filePath});
 
-  Future<DocumentLayoutPreset> crateApiConfigImportDocumentLayoutFromFile(
-      {required String filePath});
+  Future<CoordinateFileImportResult> crateApiGisImportCoordinates({
+    required String inputPath,
+  });
+
+  Future<DocumentLayoutPreset> crateApiConfigImportDocumentLayoutFromFile({
+    required String filePath,
+  });
 
   Future<void> crateApiCommonInitApp();
 
@@ -180,7 +205,9 @@ abstract class RustLibApi extends BaseApi {
 
   Future<List<String>> crateApiConfigListTemplatePresets();
 
-  Future<String> crateApiExportMarkdownToTypst({required String mdContent});
+  Future<String> crateApiDocumentMarkdownToTypst({
+    required String markdownContent,
+  });
 
   Future<double> crateApiGisParseCoordinateString({required String s});
 
@@ -188,74 +215,101 @@ abstract class RustLibApi extends BaseApi {
 
   Future<String> crateApiNahpuDpPlanNahpuPackage({required String requestJson});
 
-  Future<List<String>> crateApiImportRecordReaderGetExcelSheetNames(
-      {required RecordReader that});
+  Future<List<String>> crateApiImportRecordReaderGetExcelSheetNames({
+    required RecordReader that,
+  });
 
-  Future<List<List<String>>> crateApiImportRecordReaderImportDelimitedRaw(
-      {required RecordReader that, required String delimiter});
+  Future<List<List<String>>> crateApiImportRecordReaderImportDelimitedRaw({
+    required RecordReader that,
+    required String delimiter,
+  });
 
-  Future<List<List<String>>> crateApiImportRecordReaderImportExcelRaw(
-      {required RecordReader that, required String sheetName});
+  Future<List<List<String>>> crateApiImportRecordReaderImportExcelRaw({
+    required RecordReader that,
+    required String sheetName,
+  });
 
-  Future<RecordReader> crateApiImportRecordReaderNew(
-      {required String filePath});
+  Future<RecordReader> crateApiImportRecordReaderNew({
+    required String filePath,
+  });
 
-  Future<RecordWriter> crateApiExportRecordWriterNew(
-      {required String jsonContent,
-      required String outputPath,
-      required List<String> columnNames,
-      required String exportFormat,
-      required bool concatenateMultiEntries});
+  Future<RecordWriter> crateApiExportRecordWriterNew({
+    required String jsonContent,
+    required String outputPath,
+    required List<String> columnNames,
+    required String exportFormat,
+    required bool concatenateMultiEntries,
+  });
 
   Future<void> crateApiExportRecordWriterWrite({required RecordWriter that});
 
-  Future<void> crateApiConfigSetDocumentLayout(
-      {required String name, required DocumentLayoutPreset layout});
+  Future<void> crateApiConfigSetDocumentLayout({
+    required String name,
+    required DocumentLayoutPreset layout,
+  });
 
-  Future<void> crateApiConfigSetRecordExportPreset(
-      {required String name, required ConfigExportPreset preset});
+  Future<void> crateApiConfigSetRecordExportPreset({
+    required String name,
+    required ConfigExportPreset preset,
+  });
 
-  Future<void> crateApiConfigSetTemplatePreset(
-      {required String name, required String value});
+  Future<void> crateApiConfigSetTemplatePreset({
+    required String name,
+    required String value,
+  });
 
-  Future<void> crateApiConfigSetUserConfigList(
-      {required String key, required List<String> value});
+  Future<void> crateApiConfigSetUserConfigList({
+    required String key,
+    required List<String> value,
+  });
 
-  Future<void> crateApiConfigSetUserConfigString(
-      {required String key, required String value});
+  Future<void> crateApiConfigSetUserConfigString({
+    required String key,
+    required String value,
+  });
 
-  Future<(double, double)> crateApiGisUtmToDd(
-      {required int zone,
-      required CardinalDirection hemisphere,
-      required double easting,
-      required double northing});
+  Future<(double, double)> crateApiGisUtmToDd({
+    required int zone,
+    required CardinalDirection hemisphere,
+    required double easting,
+    required double northing,
+  });
 
   Future<String> crateApiDwcValidateDwcBundle({required String requestJson});
 
-  Future<String> crateApiNahpuDpValidateNahpuPackage(
-      {required String requestJson});
+  Future<String> crateApiNahpuDpValidateNahpuPackage({
+    required String requestJson,
+  });
 
-  Future<String> crateApiDwcWriteDwcBundle(
-      {required String requestJson, required String outputPath});
+  Future<String> crateApiDwcWriteDwcBundle({
+    required String requestJson,
+    required String outputPath,
+  });
 
-  Future<String> crateApiNahpuDpWriteNahpuPackage(
-      {required String requestJson, required String outputPath});
+  Future<String> crateApiNahpuDpWriteNahpuPackage({
+    required String requestJson,
+    required String outputPath,
+  });
 
-  Future<void> crateApiExportWriteTabularRecords(
-      {required List<String> headers,
-      required List<List<String>> rows,
-      required String outputPath,
-      required String exportFormat});
+  Future<void> crateApiExportWriteTabularRecords({
+    required List<String> headers,
+    required List<List<String>> rows,
+    required String outputPath,
+    required String exportFormat,
+  });
 
   Future<void> crateApiArchiveZipExtractorExtract({required ZipExtractor that});
 
-  Future<ZipExtractor> crateApiArchiveZipExtractorNew(
-      {required String archivePath, required String outputDir});
+  Future<ZipExtractor> crateApiArchiveZipExtractorNew({
+    required String archivePath,
+    required String outputDir,
+  });
 
-  Future<ZipWriter> crateApiArchiveZipWriterNew(
-      {required String parentDir,
-      required List<String> files,
-      required String outputPath});
+  Future<ZipWriter> crateApiArchiveZipWriterNew({
+    required String parentDir,
+    required List<String> files,
+    required String outputPath,
+  });
 
   Future<void> crateApiArchiveZipWriterWrite({required ZipWriter that});
 }
@@ -270,178 +324,258 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<String> crateApiCommonCheckRust() {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 1, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: null,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 1,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiCommonCheckRustConstMeta,
+        argValues: [],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiCommonCheckRustConstMeta,
-      argValues: [],
-      apiImpl: this,
-    ));
+    );
   }
 
-  TaskConstMeta get kCrateApiCommonCheckRustConstMeta => const TaskConstMeta(
-        debugName: "check_rust",
-        argNames: [],
-      );
+  TaskConstMeta get kCrateApiCommonCheckRustConstMeta =>
+      const TaskConstMeta(debugName: "check_rust", argNames: []);
 
   @override
-  Future<Uint8List> crateApiExportCompileTypstToPdf(
-      {required String typstContent, required List<Uint8List> fontBytes}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(typstContent, serializer);
-        sse_encode_list_list_prim_u_8_strict(fontBytes, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 2, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_prim_u_8_strict,
-        decodeErrorData: sse_decode_String,
+  Future<Uint8List> crateApiDocumentCompileTypstToPdf({
+    required String typstContent,
+    required List<Uint8List> fontBytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(typstContent, serializer);
+          sse_encode_list_list_prim_u_8_strict(fontBytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 2,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiDocumentCompileTypstToPdfConstMeta,
+        argValues: [typstContent, fontBytes],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiExportCompileTypstToPdfConstMeta,
-      argValues: [typstContent, fontBytes],
-      apiImpl: this,
-    ));
+    );
   }
 
-  TaskConstMeta get kCrateApiExportCompileTypstToPdfConstMeta =>
+  TaskConstMeta get kCrateApiDocumentCompileTypstToPdfConstMeta =>
       const TaskConstMeta(
         debugName: "compile_typst_to_pdf",
         argNames: ["typstContent", "fontBytes"],
       );
 
   @override
-  Future<DdmCoordinateFfi> crateApiGisDdToDdm(
-      {required double dd, required bool isLatitude}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_f_64(dd, serializer);
-        sse_encode_bool(isLatitude, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 3, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_ddm_coordinate_ffi,
-        decodeErrorData: null,
+  Future<ImportedVectorLayer> crateApiGisConvertVectorLayerToGeojson({
+    required String inputPath,
+    required String outputPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(inputPath, serializer);
+          sse_encode_String(outputPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_imported_vector_layer,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisConvertVectorLayerToGeojsonConstMeta,
+        argValues: [inputPath, outputPath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiGisDdToDdmConstMeta,
-      argValues: [dd, isLatitude],
-      apiImpl: this,
-    ));
+    );
   }
 
-  TaskConstMeta get kCrateApiGisDdToDdmConstMeta => const TaskConstMeta(
-        debugName: "dd_to_ddm",
-        argNames: ["dd", "isLatitude"],
+  TaskConstMeta get kCrateApiGisConvertVectorLayerToGeojsonConstMeta =>
+      const TaskConstMeta(
+        debugName: "convert_vector_layer_to_geojson",
+        argNames: ["inputPath", "outputPath"],
       );
 
   @override
-  Future<DmsCoordinateFfi> crateApiGisDdToDms(
-      {required double dd, required bool isLatitude}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_f_64(dd, serializer);
-        sse_encode_bool(isLatitude, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 4, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_dms_coordinate_ffi,
-        decodeErrorData: null,
+  Future<DdmCoordinateFfi> crateApiGisDdToDdm({
+    required double dd,
+    required CoordinateAxis axis,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_f_64(dd, serializer);
+          sse_encode_coordinate_axis(axis, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_ddm_coordinate_ffi,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisDdToDdmConstMeta,
+        argValues: [dd, axis],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiGisDdToDmsConstMeta,
-      argValues: [dd, isLatitude],
-      apiImpl: this,
-    ));
+    );
   }
 
-  TaskConstMeta get kCrateApiGisDdToDmsConstMeta => const TaskConstMeta(
-        debugName: "dd_to_dms",
-        argNames: ["dd", "isLatitude"],
-      );
+  TaskConstMeta get kCrateApiGisDdToDdmConstMeta =>
+      const TaskConstMeta(debugName: "dd_to_ddm", argNames: ["dd", "axis"]);
 
   @override
-  Future<UtmCoordinateFfi> crateApiGisDdToUtm(
-      {required double latitude, required double longitude}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_f_64(latitude, serializer);
-        sse_encode_f_64(longitude, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 5, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_utm_coordinate_ffi,
-        decodeErrorData: sse_decode_String,
+  Future<DmsCoordinateFfi> crateApiGisDdToDms({
+    required double dd,
+    required CoordinateAxis axis,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_f_64(dd, serializer);
+          sse_encode_coordinate_axis(axis, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_dms_coordinate_ffi,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisDdToDmsConstMeta,
+        argValues: [dd, axis],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiGisDdToUtmConstMeta,
-      argValues: [latitude, longitude],
-      apiImpl: this,
-    ));
+    );
+  }
+
+  TaskConstMeta get kCrateApiGisDdToDmsConstMeta =>
+      const TaskConstMeta(debugName: "dd_to_dms", argNames: ["dd", "axis"]);
+
+  @override
+  Future<UtmCoordinateFfi> crateApiGisDdToUtm({
+    required double latitude,
+    required double longitude,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_f_64(latitude, serializer);
+          sse_encode_f_64(longitude, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_utm_coordinate_ffi,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisDdToUtmConstMeta,
+        argValues: [latitude, longitude],
+        apiImpl: this,
+      ),
+    );
   }
 
   TaskConstMeta get kCrateApiGisDdToUtmConstMeta => const TaskConstMeta(
-        debugName: "dd_to_utm",
-        argNames: ["latitude", "longitude"],
-      );
+    debugName: "dd_to_utm",
+    argNames: ["latitude", "longitude"],
+  );
 
   @override
-  Future<double> crateApiGisDdmToDd(
-      {required int degrees,
-      required double minutes,
-      required CardinalDirection direction}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_u_32(degrees, serializer);
-        sse_encode_f_64(minutes, serializer);
-        sse_encode_cardinal_direction(direction, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 6, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_f_64,
-        decodeErrorData: null,
+  Future<double> crateApiGisDdmToDd({
+    required int degrees,
+    required double minutes,
+    required CardinalDirection direction,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_u_32(degrees, serializer);
+          sse_encode_f_64(minutes, serializer);
+          sse_encode_cardinal_direction(direction, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_f_64,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisDdmToDdConstMeta,
+        argValues: [degrees, minutes, direction],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiGisDdmToDdConstMeta,
-      argValues: [degrees, minutes, direction],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiGisDdmToDdConstMeta => const TaskConstMeta(
-        debugName: "ddm_to_dd",
-        argNames: ["degrees", "minutes", "direction"],
-      );
+    debugName: "ddm_to_dd",
+    argNames: ["degrees", "minutes", "direction"],
+  );
 
   @override
   Future<void> crateApiConfigDeleteDocumentLayout({required String name}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 7, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigDeleteDocumentLayoutConstMeta,
+        argValues: [name],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigDeleteDocumentLayoutConstMeta,
-      argValues: [name],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigDeleteDocumentLayoutConstMeta =>
@@ -452,21 +586,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiConfigDeleteRecordExportPreset({required String name}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 8, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigDeleteRecordExportPresetConstMeta,
+        argValues: [name],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigDeleteRecordExportPresetConstMeta,
-      argValues: [name],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigDeleteRecordExportPresetConstMeta =>
@@ -477,21 +617,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiConfigDeleteTemplatePreset({required String name}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 9, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigDeleteTemplatePresetConstMeta,
+        argValues: [name],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigDeleteTemplatePresetConstMeta,
-      argValues: [name],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigDeleteTemplatePresetConstMeta =>
@@ -502,108 +648,134 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<TemplatePresetDeletionResult>
-      crateApiConfigDeleteTemplatePresetWithReplacement(
-          {required String name, String? replacementName}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        sse_encode_opt_String(replacementName, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 10, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_template_preset_deletion_result,
-        decodeErrorData: sse_decode_String,
+  crateApiConfigDeleteTemplatePresetWithReplacement({
+    required String name,
+    String? replacementName,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_opt_String(replacementName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_template_preset_deletion_result,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigDeleteTemplatePresetWithReplacementConstMeta,
+        argValues: [name, replacementName],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigDeleteTemplatePresetWithReplacementConstMeta,
-      argValues: [name, replacementName],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta
-      get kCrateApiConfigDeleteTemplatePresetWithReplacementConstMeta =>
-          const TaskConstMeta(
-            debugName: "delete_template_preset_with_replacement",
-            argNames: ["name", "replacementName"],
-          );
+  get kCrateApiConfigDeleteTemplatePresetWithReplacementConstMeta =>
+      const TaskConstMeta(
+        debugName: "delete_template_preset_with_replacement",
+        argNames: ["name", "replacementName"],
+      );
 
   @override
   Future<void> crateApiConfigDeleteUserConfig({required String key}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(key, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 11, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(key, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 12,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigDeleteUserConfigConstMeta,
+        argValues: [key],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigDeleteUserConfigConstMeta,
-      argValues: [key],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigDeleteUserConfigConstMeta =>
-      const TaskConstMeta(
-        debugName: "delete_user_config",
-        argNames: ["key"],
-      );
+      const TaskConstMeta(debugName: "delete_user_config", argNames: ["key"]);
 
   @override
-  Future<double> crateApiGisDmsToDd(
-      {required int degrees,
-      required int minutes,
-      required double seconds,
-      required CardinalDirection direction}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_u_32(degrees, serializer);
-        sse_encode_u_32(minutes, serializer);
-        sse_encode_f_64(seconds, serializer);
-        sse_encode_cardinal_direction(direction, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 12, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_f_64,
-        decodeErrorData: null,
+  Future<double> crateApiGisDmsToDd({
+    required int degrees,
+    required int minutes,
+    required double seconds,
+    required CardinalDirection direction,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_u_32(degrees, serializer);
+          sse_encode_u_32(minutes, serializer);
+          sse_encode_f_64(seconds, serializer);
+          sse_encode_cardinal_direction(direction, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 13,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_f_64,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisDmsToDdConstMeta,
+        argValues: [degrees, minutes, seconds, direction],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiGisDmsToDdConstMeta,
-      argValues: [degrees, minutes, seconds, direction],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiGisDmsToDdConstMeta => const TaskConstMeta(
-        debugName: "dms_to_dd",
-        argNames: ["degrees", "minutes", "seconds", "direction"],
-      );
+    debugName: "dms_to_dd",
+    argNames: ["degrees", "minutes", "seconds", "direction"],
+  );
 
   @override
-  Future<void> crateApiConfigExportConfigToFile(
-      {required String filePath, required bool isJson}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(filePath, serializer);
-        sse_encode_bool(isJson, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 13, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiConfigExportConfigToFile({
+    required String filePath,
+    required bool isJson,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(filePath, serializer);
+          sse_encode_bool(isJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigExportConfigToFileConstMeta,
+        argValues: [filePath, isJson],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigExportConfigToFileConstMeta,
-      argValues: [filePath, isJson],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigExportConfigToFileConstMeta =>
@@ -613,54 +785,69 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiExportExportCoordinates(
-      {required String jsonContent,
-      required String outputPath,
-      required String exportFormat}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(jsonContent, serializer);
-        sse_encode_String(outputPath, serializer);
-        sse_encode_String(exportFormat, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 14, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiGisExportCoordinates({
+    required List<CoordinateTransferRecord> coordinates,
+    required CoordinateExportFormat format,
+    required String outputPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_coordinate_transfer_record(coordinates, serializer);
+          sse_encode_coordinate_export_format(format, serializer);
+          sse_encode_String(outputPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 15,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisExportCoordinatesConstMeta,
+        argValues: [coordinates, format, outputPath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiExportExportCoordinatesConstMeta,
-      argValues: [jsonContent, outputPath, exportFormat],
-      apiImpl: this,
-    ));
+    );
   }
 
-  TaskConstMeta get kCrateApiExportExportCoordinatesConstMeta =>
+  TaskConstMeta get kCrateApiGisExportCoordinatesConstMeta =>
       const TaskConstMeta(
         debugName: "export_coordinates",
-        argNames: ["jsonContent", "outputPath", "exportFormat"],
+        argNames: ["coordinates", "format", "outputPath"],
       );
 
   @override
-  Future<void> crateApiConfigExportDocumentLayoutToFile(
-      {required DocumentLayoutPreset layout, required String filePath}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_document_layout_preset(layout, serializer);
-        sse_encode_String(filePath, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 15, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiConfigExportDocumentLayoutToFile({
+    required DocumentLayoutPreset layout,
+    required String filePath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_document_layout_preset(layout, serializer);
+          sse_encode_String(filePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 16,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigExportDocumentLayoutToFileConstMeta,
+        argValues: [layout, filePath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigExportDocumentLayoutToFileConstMeta,
-      argValues: [layout, filePath],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigExportDocumentLayoutToFileConstMeta =>
@@ -670,24 +857,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiConfigExportTemplatePresetToFile(
-      {required String name, required String filePath}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        sse_encode_String(filePath, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 16, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiConfigExportTemplatePresetToFile({
+    required String name,
+    required String filePath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_String(filePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 17,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigExportTemplatePresetToFileConstMeta,
+        argValues: [name, filePath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigExportTemplatePresetToFileConstMeta,
-      argValues: [name, filePath],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigExportTemplatePresetToFileConstMeta =>
@@ -697,75 +892,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<Uint8List> crateApiExportGenerateDocument(
-      {required String jsonContent,
-      required String exportFormat,
-      required List<Uint8List> fontBytes}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(jsonContent, serializer);
-        sse_encode_String(exportFormat, serializer);
-        sse_encode_list_list_prim_u_8_strict(fontBytes, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 17, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_prim_u_8_strict,
-        decodeErrorData: sse_decode_String,
-      ),
-      constMeta: kCrateApiExportGenerateDocumentConstMeta,
-      argValues: [jsonContent, exportFormat, fontBytes],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiExportGenerateDocumentConstMeta =>
-      const TaskConstMeta(
-        debugName: "generate_document",
-        argNames: ["jsonContent", "exportFormat", "fontBytes"],
-      );
-
-  @override
   Future<List<DocumentLayoutPreset>> crateApiConfigGetAllDocumentLayouts() {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 18, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_document_layout_preset,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 18,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_document_layout_preset,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetAllDocumentLayoutsConstMeta,
+        argValues: [],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetAllDocumentLayoutsConstMeta,
-      argValues: [],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetAllDocumentLayoutsConstMeta =>
-      const TaskConstMeta(
-        debugName: "get_all_document_layouts",
-        argNames: [],
-      );
+      const TaskConstMeta(debugName: "get_all_document_layouts", argNames: []);
 
   @override
   Future<List<ConfigPresetEntry>> crateApiConfigGetAllRecordExportPresets() {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 19, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_config_preset_entry,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 19,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_config_preset_entry,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetAllRecordExportPresetsConstMeta,
+        argValues: [],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetAllRecordExportPresetsConstMeta,
-      argValues: [],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetAllRecordExportPresetsConstMeta =>
@@ -775,47 +949,57 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<DocumentLayoutPreset?> crateApiConfigGetDocumentLayout(
-      {required String name}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 20, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_opt_box_autoadd_document_layout_preset,
-        decodeErrorData: sse_decode_String,
+  Future<DocumentLayoutPreset?> crateApiConfigGetDocumentLayout({
+    required String name,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 20,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_box_autoadd_document_layout_preset,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetDocumentLayoutConstMeta,
+        argValues: [name],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetDocumentLayoutConstMeta,
-      argValues: [name],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetDocumentLayoutConstMeta =>
-      const TaskConstMeta(
-        debugName: "get_document_layout",
-        argNames: ["name"],
-      );
+      const TaskConstMeta(debugName: "get_document_layout", argNames: ["name"]);
 
   @override
   Future<List<DocumentLayoutStatus>> crateApiConfigGetDocumentLayoutStatuses() {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 21, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_document_layout_status,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 21,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_document_layout_status,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetDocumentLayoutStatusesConstMeta,
+        argValues: [],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetDocumentLayoutStatusesConstMeta,
-      argValues: [],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetDocumentLayoutStatusesConstMeta =>
@@ -825,48 +1009,62 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<List<DwcHeader>> crateApiDwcGetDwcHeaders(
-      {required List<String> sourceKeys}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_list_String(sourceKeys, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 22, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_dwc_header,
-        decodeErrorData: null,
+  Future<List<DwcHeader>> crateApiDwcGetDwcHeaders({
+    required List<String> sourceKeys,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_String(sourceKeys, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 22,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_dwc_header,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiDwcGetDwcHeadersConstMeta,
+        argValues: [sourceKeys],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiDwcGetDwcHeadersConstMeta,
-      argValues: [sourceKeys],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiDwcGetDwcHeadersConstMeta => const TaskConstMeta(
-        debugName: "get_dwc_headers",
-        argNames: ["sourceKeys"],
-      );
+    debugName: "get_dwc_headers",
+    argNames: ["sourceKeys"],
+  );
 
   @override
-  Future<ConfigExportPreset?> crateApiConfigGetRecordExportPreset(
-      {required String name}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 23, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_opt_box_autoadd_config_export_preset,
-        decodeErrorData: sse_decode_String,
+  Future<ConfigExportPreset?> crateApiConfigGetRecordExportPreset({
+    required String name,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 23,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_box_autoadd_config_export_preset,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetRecordExportPresetConstMeta,
+        argValues: [name],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetRecordExportPresetConstMeta,
-      argValues: [name],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetRecordExportPresetConstMeta =>
@@ -877,47 +1075,57 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<String?> crateApiConfigGetTemplatePreset({required String name}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 24, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_opt_String,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 24,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetTemplatePresetConstMeta,
+        argValues: [name],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetTemplatePresetConstMeta,
-      argValues: [name],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetTemplatePresetConstMeta =>
-      const TaskConstMeta(
-        debugName: "get_template_preset",
-        argNames: ["name"],
-      );
+      const TaskConstMeta(debugName: "get_template_preset", argNames: ["name"]);
 
   @override
-  Future<List<TemplatePresetUsage>> crateApiConfigGetTemplatePresetUsages(
-      {required String name}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 25, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_template_preset_usage,
-        decodeErrorData: sse_decode_String,
+  Future<List<TemplatePresetUsage>> crateApiConfigGetTemplatePresetUsages({
+    required String name,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 25,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_template_preset_usage,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetTemplatePresetUsagesConstMeta,
+        argValues: [name],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetTemplatePresetUsagesConstMeta,
-      argValues: [name],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetTemplatePresetUsagesConstMeta =>
@@ -928,46 +1136,55 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<List<String>?> crateApiConfigGetUserConfigList({required String key}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(key, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 26, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_opt_list_String,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(key, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 26,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_list_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetUserConfigListConstMeta,
+        argValues: [key],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetUserConfigListConstMeta,
-      argValues: [key],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetUserConfigListConstMeta =>
-      const TaskConstMeta(
-        debugName: "get_user_config_list",
-        argNames: ["key"],
-      );
+      const TaskConstMeta(debugName: "get_user_config_list", argNames: ["key"]);
 
   @override
   Future<String?> crateApiConfigGetUserConfigString({required String key}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(key, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 27, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_opt_String,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(key, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 27,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigGetUserConfigStringConstMeta,
+        argValues: [key],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigGetUserConfigStringConstMeta,
-      argValues: [key],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigGetUserConfigStringConstMeta =>
@@ -978,21 +1195,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiConfigImportConfigFromFile({required String filePath}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(filePath, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 28, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(filePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 28,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigImportConfigFromFileConstMeta,
+        argValues: [filePath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigImportConfigFromFileConstMeta,
-      argValues: [filePath],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigImportConfigFromFileConstMeta =>
@@ -1002,23 +1225,63 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<DocumentLayoutPreset> crateApiConfigImportDocumentLayoutFromFile(
-      {required String filePath}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(filePath, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 29, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_document_layout_preset,
-        decodeErrorData: sse_decode_String,
+  Future<CoordinateFileImportResult> crateApiGisImportCoordinates({
+    required String inputPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(inputPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 29,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_coordinate_file_import_result,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisImportCoordinatesConstMeta,
+        argValues: [inputPath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigImportDocumentLayoutFromFileConstMeta,
-      argValues: [filePath],
-      apiImpl: this,
-    ));
+    );
+  }
+
+  TaskConstMeta get kCrateApiGisImportCoordinatesConstMeta =>
+      const TaskConstMeta(
+        debugName: "import_coordinates",
+        argNames: ["inputPath"],
+      );
+
+  @override
+  Future<DocumentLayoutPreset> crateApiConfigImportDocumentLayoutFromFile({
+    required String filePath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(filePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 30,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_document_layout_preset,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigImportDocumentLayoutFromFileConstMeta,
+        argValues: [filePath],
+        apiImpl: this,
+      ),
+    );
   }
 
   TaskConstMeta get kCrateApiConfigImportDocumentLayoutFromFileConstMeta =>
@@ -1029,117 +1292,142 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiCommonInitApp() {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 30, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 31,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiCommonInitAppConstMeta,
+        argValues: [],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiCommonInitAppConstMeta,
-      argValues: [],
-      apiImpl: this,
-    ));
+    );
   }
 
-  TaskConstMeta get kCrateApiCommonInitAppConstMeta => const TaskConstMeta(
-        debugName: "init_app",
-        argNames: [],
-      );
+  TaskConstMeta get kCrateApiCommonInitAppConstMeta =>
+      const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
   Future<void> crateApiConfigInitConfigDb({required String path}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 31, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(path, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 32,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigInitConfigDbConstMeta,
+        argValues: [path],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigInitConfigDbConstMeta,
-      argValues: [path],
-      apiImpl: this,
-    ));
+    );
   }
 
-  TaskConstMeta get kCrateApiConfigInitConfigDbConstMeta => const TaskConstMeta(
-        debugName: "init_config_db",
-        argNames: ["path"],
-      );
+  TaskConstMeta get kCrateApiConfigInitConfigDbConstMeta =>
+      const TaskConstMeta(debugName: "init_config_db", argNames: ["path"]);
 
   @override
   Future<List<String>> crateApiConfigListTemplatePresets() {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 32, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_String,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 33,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigListTemplatePresetsConstMeta,
+        argValues: [],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigListTemplatePresetsConstMeta,
-      argValues: [],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigListTemplatePresetsConstMeta =>
-      const TaskConstMeta(
-        debugName: "list_template_presets",
-        argNames: [],
-      );
+      const TaskConstMeta(debugName: "list_template_presets", argNames: []);
 
   @override
-  Future<String> crateApiExportMarkdownToTypst({required String mdContent}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(mdContent, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 33, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: null,
+  Future<String> crateApiDocumentMarkdownToTypst({
+    required String markdownContent,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(markdownContent, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 34,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiDocumentMarkdownToTypstConstMeta,
+        argValues: [markdownContent],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiExportMarkdownToTypstConstMeta,
-      argValues: [mdContent],
-      apiImpl: this,
-    ));
+    );
   }
 
-  TaskConstMeta get kCrateApiExportMarkdownToTypstConstMeta =>
+  TaskConstMeta get kCrateApiDocumentMarkdownToTypstConstMeta =>
       const TaskConstMeta(
         debugName: "markdown_to_typst",
-        argNames: ["mdContent"],
+        argNames: ["markdownContent"],
       );
 
   @override
   Future<double> crateApiGisParseCoordinateString({required String s}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(s, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 34, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_f_64,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(s, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 35,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_f_64,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisParseCoordinateStringConstMeta,
+        argValues: [s],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiGisParseCoordinateStringConstMeta,
-      argValues: [s],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiGisParseCoordinateStringConstMeta =>
@@ -1150,46 +1438,59 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<String> crateApiDwcPlanDwcBundle({required String requestJson}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(requestJson, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 35, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(requestJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 36,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiDwcPlanDwcBundleConstMeta,
+        argValues: [requestJson],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiDwcPlanDwcBundleConstMeta,
-      argValues: [requestJson],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiDwcPlanDwcBundleConstMeta => const TaskConstMeta(
-        debugName: "plan_dwc_bundle",
-        argNames: ["requestJson"],
-      );
+    debugName: "plan_dwc_bundle",
+    argNames: ["requestJson"],
+  );
 
   @override
-  Future<String> crateApiNahpuDpPlanNahpuPackage(
-      {required String requestJson}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(requestJson, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 36, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+  Future<String> crateApiNahpuDpPlanNahpuPackage({
+    required String requestJson,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(requestJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 37,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiNahpuDpPlanNahpuPackageConstMeta,
+        argValues: [requestJson],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiNahpuDpPlanNahpuPackageConstMeta,
-      argValues: [requestJson],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiNahpuDpPlanNahpuPackageConstMeta =>
@@ -1199,23 +1500,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<List<String>> crateApiImportRecordReaderGetExcelSheetNames(
-      {required RecordReader that}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_record_reader(that, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 37, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_String,
-        decodeErrorData: sse_decode_String,
+  Future<List<String>> crateApiImportRecordReaderGetExcelSheetNames({
+    required RecordReader that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_record_reader(that, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 38,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiImportRecordReaderGetExcelSheetNamesConstMeta,
+        argValues: [that],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiImportRecordReaderGetExcelSheetNamesConstMeta,
-      argValues: [that],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiImportRecordReaderGetExcelSheetNamesConstMeta =>
@@ -1225,24 +1533,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<List<List<String>>> crateApiImportRecordReaderImportDelimitedRaw(
-      {required RecordReader that, required String delimiter}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_record_reader(that, serializer);
-        sse_encode_String(delimiter, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 38, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_list_String,
-        decodeErrorData: sse_decode_String,
+  Future<List<List<String>>> crateApiImportRecordReaderImportDelimitedRaw({
+    required RecordReader that,
+    required String delimiter,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_record_reader(that, serializer);
+          sse_encode_String(delimiter, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 39,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_list_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiImportRecordReaderImportDelimitedRawConstMeta,
+        argValues: [that, delimiter],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiImportRecordReaderImportDelimitedRawConstMeta,
-      argValues: [that, delimiter],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiImportRecordReaderImportDelimitedRawConstMeta =>
@@ -1252,24 +1568,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<List<List<String>>> crateApiImportRecordReaderImportExcelRaw(
-      {required RecordReader that, required String sheetName}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_record_reader(that, serializer);
-        sse_encode_String(sheetName, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 39, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_list_String,
-        decodeErrorData: sse_decode_String,
+  Future<List<List<String>>> crateApiImportRecordReaderImportExcelRaw({
+    required RecordReader that,
+    required String sheetName,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_record_reader(that, serializer);
+          sse_encode_String(sheetName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 40,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_list_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiImportRecordReaderImportExcelRawConstMeta,
+        argValues: [that, sheetName],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiImportRecordReaderImportExcelRawConstMeta,
-      argValues: [that, sheetName],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiImportRecordReaderImportExcelRawConstMeta =>
@@ -1279,23 +1603,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<RecordReader> crateApiImportRecordReaderNew(
-      {required String filePath}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(filePath, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 40, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_record_reader,
-        decodeErrorData: null,
+  Future<RecordReader> crateApiImportRecordReaderNew({
+    required String filePath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(filePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 41,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_record_reader,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiImportRecordReaderNewConstMeta,
+        argValues: [filePath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiImportRecordReaderNewConstMeta,
-      argValues: [filePath],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiImportRecordReaderNewConstMeta =>
@@ -1305,37 +1636,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<RecordWriter> crateApiExportRecordWriterNew(
-      {required String jsonContent,
-      required String outputPath,
-      required List<String> columnNames,
-      required String exportFormat,
-      required bool concatenateMultiEntries}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(jsonContent, serializer);
-        sse_encode_String(outputPath, serializer);
-        sse_encode_list_String(columnNames, serializer);
-        sse_encode_String(exportFormat, serializer);
-        sse_encode_bool(concatenateMultiEntries, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 41, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_record_writer,
-        decodeErrorData: null,
+  Future<RecordWriter> crateApiExportRecordWriterNew({
+    required String jsonContent,
+    required String outputPath,
+    required List<String> columnNames,
+    required String exportFormat,
+    required bool concatenateMultiEntries,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(jsonContent, serializer);
+          sse_encode_String(outputPath, serializer);
+          sse_encode_list_String(columnNames, serializer);
+          sse_encode_String(exportFormat, serializer);
+          sse_encode_bool(concatenateMultiEntries, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 42,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_record_writer,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiExportRecordWriterNewConstMeta,
+        argValues: [
+          jsonContent,
+          outputPath,
+          columnNames,
+          exportFormat,
+          concatenateMultiEntries,
+        ],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiExportRecordWriterNewConstMeta,
-      argValues: [
-        jsonContent,
-        outputPath,
-        columnNames,
-        exportFormat,
-        concatenateMultiEntries
-      ],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiExportRecordWriterNewConstMeta =>
@@ -1346,54 +1684,65 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "outputPath",
           "columnNames",
           "exportFormat",
-          "concatenateMultiEntries"
+          "concatenateMultiEntries",
         ],
       );
 
   @override
   Future<void> crateApiExportRecordWriterWrite({required RecordWriter that}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_record_writer(that, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 42, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_record_writer(that, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 43,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiExportRecordWriterWriteConstMeta,
+        argValues: [that],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiExportRecordWriterWriteConstMeta,
-      argValues: [that],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiExportRecordWriterWriteConstMeta =>
-      const TaskConstMeta(
-        debugName: "record_writer_write",
-        argNames: ["that"],
-      );
+      const TaskConstMeta(debugName: "record_writer_write", argNames: ["that"]);
 
   @override
-  Future<void> crateApiConfigSetDocumentLayout(
-      {required String name, required DocumentLayoutPreset layout}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        sse_encode_box_autoadd_document_layout_preset(layout, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 43, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiConfigSetDocumentLayout({
+    required String name,
+    required DocumentLayoutPreset layout,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_box_autoadd_document_layout_preset(layout, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 44,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigSetDocumentLayoutConstMeta,
+        argValues: [name, layout],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigSetDocumentLayoutConstMeta,
-      argValues: [name, layout],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigSetDocumentLayoutConstMeta =>
@@ -1403,24 +1752,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiConfigSetRecordExportPreset(
-      {required String name, required ConfigExportPreset preset}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        sse_encode_box_autoadd_config_export_preset(preset, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 44, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiConfigSetRecordExportPreset({
+    required String name,
+    required ConfigExportPreset preset,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_box_autoadd_config_export_preset(preset, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 45,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigSetRecordExportPresetConstMeta,
+        argValues: [name, preset],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigSetRecordExportPresetConstMeta,
-      argValues: [name, preset],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigSetRecordExportPresetConstMeta =>
@@ -1430,24 +1787,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiConfigSetTemplatePreset(
-      {required String name, required String value}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(name, serializer);
-        sse_encode_String(value, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 45, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiConfigSetTemplatePreset({
+    required String name,
+    required String value,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_String(value, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 46,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigSetTemplatePresetConstMeta,
+        argValues: [name, value],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigSetTemplatePresetConstMeta,
-      argValues: [name, value],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigSetTemplatePresetConstMeta =>
@@ -1457,24 +1822,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiConfigSetUserConfigList(
-      {required String key, required List<String> value}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(key, serializer);
-        sse_encode_list_String(value, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 46, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiConfigSetUserConfigList({
+    required String key,
+    required List<String> value,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(key, serializer);
+          sse_encode_list_String(value, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 47,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigSetUserConfigListConstMeta,
+        argValues: [key, value],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigSetUserConfigListConstMeta,
-      argValues: [key, value],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigSetUserConfigListConstMeta =>
@@ -1484,24 +1857,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiConfigSetUserConfigString(
-      {required String key, required String value}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(key, serializer);
-        sse_encode_String(value, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 47, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiConfigSetUserConfigString({
+    required String key,
+    required String value,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(key, serializer);
+          sse_encode_String(value, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 48,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiConfigSetUserConfigStringConstMeta,
+        argValues: [key, value],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiConfigSetUserConfigStringConstMeta,
-      argValues: [key, value],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiConfigSetUserConfigStringConstMeta =>
@@ -1511,53 +1892,66 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<(double, double)> crateApiGisUtmToDd(
-      {required int zone,
-      required CardinalDirection hemisphere,
-      required double easting,
-      required double northing}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_u_8(zone, serializer);
-        sse_encode_cardinal_direction(hemisphere, serializer);
-        sse_encode_f_64(easting, serializer);
-        sse_encode_f_64(northing, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 48, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_record_f_64_f_64,
-        decodeErrorData: sse_decode_String,
+  Future<(double, double)> crateApiGisUtmToDd({
+    required int zone,
+    required CardinalDirection hemisphere,
+    required double easting,
+    required double northing,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_u_8(zone, serializer);
+          sse_encode_cardinal_direction(hemisphere, serializer);
+          sse_encode_f_64(easting, serializer);
+          sse_encode_f_64(northing, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 49,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_record_f_64_f_64,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGisUtmToDdConstMeta,
+        argValues: [zone, hemisphere, easting, northing],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiGisUtmToDdConstMeta,
-      argValues: [zone, hemisphere, easting, northing],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiGisUtmToDdConstMeta => const TaskConstMeta(
-        debugName: "utm_to_dd",
-        argNames: ["zone", "hemisphere", "easting", "northing"],
-      );
+    debugName: "utm_to_dd",
+    argNames: ["zone", "hemisphere", "easting", "northing"],
+  );
 
   @override
   Future<String> crateApiDwcValidateDwcBundle({required String requestJson}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(requestJson, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 49, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(requestJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 50,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiDwcValidateDwcBundleConstMeta,
+        argValues: [requestJson],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiDwcValidateDwcBundleConstMeta,
-      argValues: [requestJson],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiDwcValidateDwcBundleConstMeta =>
@@ -1567,23 +1961,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<String> crateApiNahpuDpValidateNahpuPackage(
-      {required String requestJson}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(requestJson, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 50, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+  Future<String> crateApiNahpuDpValidateNahpuPackage({
+    required String requestJson,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(requestJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 51,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiNahpuDpValidateNahpuPackageConstMeta,
+        argValues: [requestJson],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiNahpuDpValidateNahpuPackageConstMeta,
-      argValues: [requestJson],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiNahpuDpValidateNahpuPackageConstMeta =>
@@ -1593,50 +1994,66 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<String> crateApiDwcWriteDwcBundle(
-      {required String requestJson, required String outputPath}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(requestJson, serializer);
-        sse_encode_String(outputPath, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 51, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+  Future<String> crateApiDwcWriteDwcBundle({
+    required String requestJson,
+    required String outputPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(requestJson, serializer);
+          sse_encode_String(outputPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 52,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiDwcWriteDwcBundleConstMeta,
+        argValues: [requestJson, outputPath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiDwcWriteDwcBundleConstMeta,
-      argValues: [requestJson, outputPath],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiDwcWriteDwcBundleConstMeta => const TaskConstMeta(
-        debugName: "write_dwc_bundle",
-        argNames: ["requestJson", "outputPath"],
-      );
+    debugName: "write_dwc_bundle",
+    argNames: ["requestJson", "outputPath"],
+  );
 
   @override
-  Future<String> crateApiNahpuDpWriteNahpuPackage(
-      {required String requestJson, required String outputPath}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(requestJson, serializer);
-        sse_encode_String(outputPath, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 52, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+  Future<String> crateApiNahpuDpWriteNahpuPackage({
+    required String requestJson,
+    required String outputPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(requestJson, serializer);
+          sse_encode_String(outputPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 53,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiNahpuDpWriteNahpuPackageConstMeta,
+        argValues: [requestJson, outputPath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiNahpuDpWriteNahpuPackageConstMeta,
-      argValues: [requestJson, outputPath],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiNahpuDpWriteNahpuPackageConstMeta =>
@@ -1646,29 +2063,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiExportWriteTabularRecords(
-      {required List<String> headers,
-      required List<List<String>> rows,
-      required String outputPath,
-      required String exportFormat}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_list_String(headers, serializer);
-        sse_encode_list_list_String(rows, serializer);
-        sse_encode_String(outputPath, serializer);
-        sse_encode_String(exportFormat, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 53, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+  Future<void> crateApiExportWriteTabularRecords({
+    required List<String> headers,
+    required List<List<String>> rows,
+    required String outputPath,
+    required String exportFormat,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_String(headers, serializer);
+          sse_encode_list_list_String(rows, serializer);
+          sse_encode_String(outputPath, serializer);
+          sse_encode_String(exportFormat, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 54,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiExportWriteTabularRecordsConstMeta,
+        argValues: [headers, rows, outputPath, exportFormat],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiExportWriteTabularRecordsConstMeta,
-      argValues: [headers, rows, outputPath, exportFormat],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiExportWriteTabularRecordsConstMeta =>
@@ -1678,23 +2102,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiArchiveZipExtractorExtract(
-      {required ZipExtractor that}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_zip_extractor(that, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 54, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
+  Future<void> crateApiArchiveZipExtractorExtract({
+    required ZipExtractor that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_zip_extractor(that, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 55,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiArchiveZipExtractorExtractConstMeta,
+        argValues: [that],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiArchiveZipExtractorExtractConstMeta,
-      argValues: [that],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiArchiveZipExtractorExtractConstMeta =>
@@ -1704,24 +2135,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ZipExtractor> crateApiArchiveZipExtractorNew(
-      {required String archivePath, required String outputDir}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(archivePath, serializer);
-        sse_encode_String(outputDir, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 55, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_zip_extractor,
-        decodeErrorData: null,
+  Future<ZipExtractor> crateApiArchiveZipExtractorNew({
+    required String archivePath,
+    required String outputDir,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(archivePath, serializer);
+          sse_encode_String(outputDir, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 56,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_zip_extractor,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiArchiveZipExtractorNewConstMeta,
+        argValues: [archivePath, outputDir],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiArchiveZipExtractorNewConstMeta,
-      argValues: [archivePath, outputDir],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiArchiveZipExtractorNewConstMeta =>
@@ -1731,27 +2170,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ZipWriter> crateApiArchiveZipWriterNew(
-      {required String parentDir,
-      required List<String> files,
-      required String outputPath}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(parentDir, serializer);
-        sse_encode_list_String(files, serializer);
-        sse_encode_String(outputPath, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 56, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_zip_writer,
-        decodeErrorData: null,
+  Future<ZipWriter> crateApiArchiveZipWriterNew({
+    required String parentDir,
+    required List<String> files,
+    required String outputPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(parentDir, serializer);
+          sse_encode_list_String(files, serializer);
+          sse_encode_String(outputPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 57,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_zip_writer,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiArchiveZipWriterNewConstMeta,
+        argValues: [parentDir, files, outputPath],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiArchiveZipWriterNewConstMeta,
-      argValues: [parentDir, files, outputPath],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiArchiveZipWriterNewConstMeta =>
@@ -1762,34 +2208,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiArchiveZipWriterWrite({required ZipWriter that}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_zip_writer(that, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 57, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_zip_writer(that, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 58,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiArchiveZipWriterWriteConstMeta,
+        argValues: [that],
+        apiImpl: this,
       ),
-      constMeta: kCrateApiArchiveZipWriterWriteConstMeta,
-      argValues: [that],
-      apiImpl: this,
-    ));
+    );
   }
 
   TaskConstMeta get kCrateApiArchiveZipWriterWriteConstMeta =>
-      const TaskConstMeta(
-        debugName: "zip_writer_write",
-        argNames: ["that"],
-      );
+      const TaskConstMeta(debugName: "zip_writer_write", argNames: ["that"]);
 
   @protected
   Map<String, String> dco_decode_Map_String_String_None(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return Map.fromEntries(dco_decode_list_record_string_string(raw)
-        .map((e) => MapEntry(e.$1, e.$2)));
+    return Map.fromEntries(
+      dco_decode_list_record_string_string(
+        raw,
+      ).map((e) => MapEntry(e.$1, e.$2)),
+    );
   }
 
   @protected
@@ -1812,7 +2264,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   DocumentLayoutPreset dco_decode_box_autoadd_document_layout_preset(
-      dynamic raw) {
+    dynamic raw,
+  ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_document_layout_preset(raw);
   }
@@ -1821,6 +2274,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   double dco_decode_box_autoadd_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
+  }
+
+  @protected
+  GeographicBoundsFfi dco_decode_box_autoadd_geographic_bounds_ffi(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_geographic_bounds_ffi(raw);
   }
 
   @protected
@@ -1886,6 +2347,48 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return ConfigPresetEntry(
       name: dco_decode_String(arr[0]),
       preset: dco_decode_config_export_preset(arr[1]),
+    );
+  }
+
+  @protected
+  CoordinateAxis dco_decode_coordinate_axis(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CoordinateAxis.values[raw as int];
+  }
+
+  @protected
+  CoordinateExportFormat dco_decode_coordinate_export_format(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CoordinateExportFormat.values[raw as int];
+  }
+
+  @protected
+  CoordinateFileImportResult dco_decode_coordinate_file_import_result(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CoordinateFileImportResult(
+      coordinates: dco_decode_list_coordinate_transfer_record(arr[0]),
+      skippedCount: dco_decode_u_64(arr[1]),
+      warnings: dco_decode_list_String(arr[2]),
+    );
+  }
+
+  @protected
+  CoordinateTransferRecord dco_decode_coordinate_transfer_record(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return CoordinateTransferRecord(
+      nameId: dco_decode_String(arr[0]),
+      notes: dco_decode_opt_String(arr[1]),
+      decimalLongitude: dco_decode_opt_box_autoadd_f_64(arr[2]),
+      decimalLatitude: dco_decode_opt_box_autoadd_f_64(arr[3]),
+      elevationInMeter: dco_decode_opt_box_autoadd_f_64(arr[4]),
     );
   }
 
@@ -1993,9 +2496,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GeographicBoundsFfi dco_decode_geographic_bounds_ffi(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return GeographicBoundsFfi(
+      west: dco_decode_f_64(arr[0]),
+      south: dco_decode_f_64(arr[1]),
+      east: dco_decode_f_64(arr[2]),
+      north: dco_decode_f_64(arr[3]),
+    );
+  }
+
+  @protected
   int dco_decode_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
+  }
+
+  @protected
+  ImportedVectorLayer dco_decode_imported_vector_layer(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ImportedVectorLayer(
+      featureCount: dco_decode_u_64(arr[0]),
+      bounds: dco_decode_opt_box_autoadd_geographic_bounds_ffi(arr[1]),
+      sourceCrs: dco_decode_String(arr[2]),
+    );
   }
 
   @protected
@@ -2019,6 +2549,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CoordinateTransferRecord> dco_decode_list_coordinate_transfer_record(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_coordinate_transfer_record)
+        .toList();
+  }
+
+  @protected
   List<DocumentLayoutBlock> dco_decode_list_document_layout_block(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>)
@@ -2028,7 +2568,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<DocumentLayoutPreset> dco_decode_list_document_layout_preset(
-      dynamic raw) {
+    dynamic raw,
+  ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>)
         .map(dco_decode_document_layout_preset)
@@ -2037,7 +2578,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<DocumentLayoutStatus> dco_decode_list_document_layout_status(
-      dynamic raw) {
+    dynamic raw,
+  ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>)
         .map(dco_decode_document_layout_status)
@@ -2096,7 +2638,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   ConfigExportPreset? dco_decode_opt_box_autoadd_config_export_preset(
-      dynamic raw) {
+    dynamic raw,
+  ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null
         ? null
@@ -2105,7 +2648,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   DocumentLayoutPreset? dco_decode_opt_box_autoadd_document_layout_preset(
-      dynamic raw) {
+    dynamic raw,
+  ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null
         ? null
@@ -2116,6 +2660,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_f_64(raw);
+  }
+
+  @protected
+  GeographicBoundsFfi? dco_decode_opt_box_autoadd_geographic_bounds_ffi(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_geographic_bounds_ffi(raw);
   }
 
   @protected
@@ -2131,10 +2685,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (arr.length != 2) {
       throw Exception('Expected 2 elements, got ${arr.length}');
     }
-    return (
-      dco_decode_f_64(arr[0]),
-      dco_decode_f_64(arr[1]),
-    );
+    return (dco_decode_f_64(arr[0]), dco_decode_f_64(arr[1]));
   }
 
   @protected
@@ -2143,9 +2694,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     final arr = raw as List<dynamic>;
     if (arr.length != 1)
       throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return RecordReader(
-      filePath: dco_decode_String(arr[0]),
-    );
+    return RecordReader(filePath: dco_decode_String(arr[0]));
   }
 
   @protected
@@ -2155,10 +2704,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (arr.length != 2) {
       throw Exception('Expected 2 elements, got ${arr.length}');
     }
-    return (
-      dco_decode_String(arr[0]),
-      dco_decode_String(arr[1]),
-    );
+    return (dco_decode_String(arr[0]), dco_decode_String(arr[1]));
   }
 
   @protected
@@ -2178,7 +2724,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   TemplatePresetDeletionResult dco_decode_template_preset_deletion_result(
-      dynamic raw) {
+    dynamic raw,
+  ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
     if (arr.length != 2)
@@ -2205,6 +2752,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int dco_decode_u_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
+  }
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
   }
 
   @protected
@@ -2261,7 +2814,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   Map<String, String> sse_decode_Map_String_String_None(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_list_record_string_string(deserializer);
     return Map.fromEntries(inner.map((e) => MapEntry(e.$1, e.$2)));
@@ -2282,14 +2836,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   ConfigExportPreset sse_decode_box_autoadd_config_export_preset(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_config_export_preset(deserializer));
   }
 
   @protected
   DocumentLayoutPreset sse_decode_box_autoadd_document_layout_preset(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_document_layout_preset(deserializer));
   }
@@ -2301,22 +2857,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GeographicBoundsFfi sse_decode_box_autoadd_geographic_bounds_ffi(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_geographic_bounds_ffi(deserializer));
+  }
+
+  @protected
   RecordReader sse_decode_box_autoadd_record_reader(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_record_reader(deserializer));
   }
 
   @protected
   RecordWriter sse_decode_box_autoadd_record_writer(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_record_writer(deserializer));
   }
 
   @protected
   ZipExtractor sse_decode_box_autoadd_zip_extractor(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_zip_extractor(deserializer));
   }
@@ -2329,7 +2896,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   CardinalDirection sse_decode_cardinal_direction(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return CardinalDirection.values[inner];
@@ -2337,7 +2905,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   ConfigCombinedField sse_decode_config_combined_field(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_fieldId = sse_decode_String(deserializer);
     var var_fields = sse_decode_list_String(deserializer);
@@ -2346,22 +2915,79 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   ConfigExportPreset sse_decode_config_export_preset(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_fields = sse_decode_Map_String_String_None(deserializer);
-    var var_combinedFields =
-        sse_decode_list_config_combined_field(deserializer);
+    var var_combinedFields = sse_decode_list_config_combined_field(
+      deserializer,
+    );
     return ConfigExportPreset(
-        fields: var_fields, combinedFields: var_combinedFields);
+      fields: var_fields,
+      combinedFields: var_combinedFields,
+    );
   }
 
   @protected
   ConfigPresetEntry sse_decode_config_preset_entry(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_name = sse_decode_String(deserializer);
     var var_preset = sse_decode_config_export_preset(deserializer);
     return ConfigPresetEntry(name: var_name, preset: var_preset);
+  }
+
+  @protected
+  CoordinateAxis sse_decode_coordinate_axis(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return CoordinateAxis.values[inner];
+  }
+
+  @protected
+  CoordinateExportFormat sse_decode_coordinate_export_format(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return CoordinateExportFormat.values[inner];
+  }
+
+  @protected
+  CoordinateFileImportResult sse_decode_coordinate_file_import_result(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_coordinates = sse_decode_list_coordinate_transfer_record(
+      deserializer,
+    );
+    var var_skippedCount = sse_decode_u_64(deserializer);
+    var var_warnings = sse_decode_list_String(deserializer);
+    return CoordinateFileImportResult(
+      coordinates: var_coordinates,
+      skippedCount: var_skippedCount,
+      warnings: var_warnings,
+    );
+  }
+
+  @protected
+  CoordinateTransferRecord sse_decode_coordinate_transfer_record(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_nameId = sse_decode_String(deserializer);
+    var var_notes = sse_decode_opt_String(deserializer);
+    var var_decimalLongitude = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_decimalLatitude = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_elevationInMeter = sse_decode_opt_box_autoadd_f_64(deserializer);
+    return CoordinateTransferRecord(
+      nameId: var_nameId,
+      notes: var_notes,
+      decimalLongitude: var_decimalLongitude,
+      decimalLatitude: var_decimalLatitude,
+      elevationInMeter: var_elevationInMeter,
+    );
   }
 
   @protected
@@ -2371,7 +2997,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_minutes = sse_decode_f_64(deserializer);
     var var_direction = sse_decode_cardinal_direction(deserializer);
     return DdmCoordinateFfi(
-        degrees: var_degrees, minutes: var_minutes, direction: var_direction);
+      degrees: var_degrees,
+      minutes: var_minutes,
+      direction: var_direction,
+    );
   }
 
   @protected
@@ -2382,15 +3011,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_seconds = sse_decode_f_64(deserializer);
     var var_direction = sse_decode_cardinal_direction(deserializer);
     return DmsCoordinateFfi(
-        degrees: var_degrees,
-        minutes: var_minutes,
-        seconds: var_seconds,
-        direction: var_direction);
+      degrees: var_degrees,
+      minutes: var_minutes,
+      seconds: var_seconds,
+      direction: var_direction,
+    );
   }
 
   @protected
   DocumentLayoutBlock sse_decode_document_layout_block(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_templateName = sse_decode_String(deserializer);
     var var_templateCount = sse_decode_i_32(deserializer);
@@ -2402,20 +3033,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_templatePadBottomMm = sse_decode_f_64(deserializer);
     var var_pageBreakAfter = sse_decode_bool(deserializer);
     return DocumentLayoutBlock(
-        templateName: var_templateName,
-        templateCount: var_templateCount,
-        rows: var_rows,
-        cols: var_cols,
-        templatePadTopMm: var_templatePadTopMm,
-        templatePadLeftMm: var_templatePadLeftMm,
-        templatePadRightMm: var_templatePadRightMm,
-        templatePadBottomMm: var_templatePadBottomMm,
-        pageBreakAfter: var_pageBreakAfter);
+      templateName: var_templateName,
+      templateCount: var_templateCount,
+      rows: var_rows,
+      cols: var_cols,
+      templatePadTopMm: var_templatePadTopMm,
+      templatePadLeftMm: var_templatePadLeftMm,
+      templatePadRightMm: var_templatePadRightMm,
+      templatePadBottomMm: var_templatePadBottomMm,
+      pageBreakAfter: var_pageBreakAfter,
+    );
   }
 
   @protected
   DocumentLayoutPreset sse_decode_document_layout_preset(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_name = sse_decode_String(deserializer);
     var var_layoutType = sse_decode_String(deserializer);
@@ -2431,30 +3064,35 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_fillPage = sse_decode_bool(deserializer);
     var var_multiBlockMode = sse_decode_String(deserializer);
     return DocumentLayoutPreset(
-        name: var_name,
-        layoutType: var_layoutType,
-        pageSizeKey: var_pageSizeKey,
-        pageOrientation: var_pageOrientation,
-        customPageWidthMm: var_customPageWidthMm,
-        customPageHeightMm: var_customPageHeightMm,
-        pagePadTopMm: var_pagePadTopMm,
-        pagePadLeftMm: var_pagePadLeftMm,
-        pagePadRightMm: var_pagePadRightMm,
-        pagePadBottomMm: var_pagePadBottomMm,
-        blocks: var_blocks,
-        fillPage: var_fillPage,
-        multiBlockMode: var_multiBlockMode);
+      name: var_name,
+      layoutType: var_layoutType,
+      pageSizeKey: var_pageSizeKey,
+      pageOrientation: var_pageOrientation,
+      customPageWidthMm: var_customPageWidthMm,
+      customPageHeightMm: var_customPageHeightMm,
+      pagePadTopMm: var_pagePadTopMm,
+      pagePadLeftMm: var_pagePadLeftMm,
+      pagePadRightMm: var_pagePadRightMm,
+      pagePadBottomMm: var_pagePadBottomMm,
+      blocks: var_blocks,
+      fillPage: var_fillPage,
+      multiBlockMode: var_multiBlockMode,
+    );
   }
 
   @protected
   DocumentLayoutStatus sse_decode_document_layout_status(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_name = sse_decode_String(deserializer);
     var var_isCompatible = sse_decode_bool(deserializer);
     var var_error = sse_decode_opt_String(deserializer);
     return DocumentLayoutStatus(
-        name: var_name, isCompatible: var_isCompatible, error: var_error);
+      name: var_name,
+      isCompatible: var_isCompatible,
+      error: var_error,
+    );
   }
 
   @protected
@@ -2466,11 +3104,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_measurementType = sse_decode_opt_String(deserializer);
     var var_measurementUnit = sse_decode_opt_String(deserializer);
     return DwcHeader(
-        sourceKey: var_sourceKey,
-        header: var_header,
-        headers: var_headers,
-        measurementType: var_measurementType,
-        measurementUnit: var_measurementUnit);
+      sourceKey: var_sourceKey,
+      header: var_header,
+      headers: var_headers,
+      measurementType: var_measurementType,
+      measurementUnit: var_measurementUnit,
+    );
   }
 
   @protected
@@ -2480,9 +3119,43 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GeographicBoundsFfi sse_decode_geographic_bounds_ffi(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_west = sse_decode_f_64(deserializer);
+    var var_south = sse_decode_f_64(deserializer);
+    var var_east = sse_decode_f_64(deserializer);
+    var var_north = sse_decode_f_64(deserializer);
+    return GeographicBoundsFfi(
+      west: var_west,
+      south: var_south,
+      east: var_east,
+      north: var_north,
+    );
+  }
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
+  }
+
+  @protected
+  ImportedVectorLayer sse_decode_imported_vector_layer(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_featureCount = sse_decode_u_64(deserializer);
+    var var_bounds = sse_decode_opt_box_autoadd_geographic_bounds_ffi(
+      deserializer,
+    );
+    var var_sourceCrs = sse_decode_String(deserializer);
+    return ImportedVectorLayer(
+      featureCount: var_featureCount,
+      bounds: var_bounds,
+      sourceCrs: var_sourceCrs,
+    );
   }
 
   @protected
@@ -2499,7 +3172,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<ConfigCombinedField> sse_decode_list_config_combined_field(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -2512,7 +3186,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<ConfigPresetEntry> sse_decode_list_config_preset_entry(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -2524,8 +3199,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CoordinateTransferRecord> sse_decode_list_coordinate_transfer_record(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CoordinateTransferRecord>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_coordinate_transfer_record(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<DocumentLayoutBlock> sse_decode_list_document_layout_block(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -2538,7 +3228,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<DocumentLayoutPreset> sse_decode_list_document_layout_preset(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -2551,7 +3242,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<DocumentLayoutStatus> sse_decode_list_document_layout_status(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -2588,7 +3280,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<Uint8List> sse_decode_list_list_prim_u_8_strict(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -2615,7 +3308,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<(String, String)> sse_decode_list_record_string_string(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -2628,7 +3322,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<TemplatePresetUsage> sse_decode_list_template_preset_usage(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -2652,7 +3347,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   ConfigExportPreset? sse_decode_opt_box_autoadd_config_export_preset(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
@@ -2664,7 +3360,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   DocumentLayoutPreset? sse_decode_opt_box_autoadd_document_layout_preset(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
@@ -2680,6 +3377,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_f_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  GeographicBoundsFfi? sse_decode_opt_box_autoadd_geographic_bounds_ffi(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_geographic_bounds_ffi(deserializer));
     } else {
       return null;
     }
@@ -2713,7 +3423,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   (String, String) sse_decode_record_string_string(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_field0 = sse_decode_String(deserializer);
     var var_field1 = sse_decode_String(deserializer);
@@ -2729,38 +3440,50 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_exportFormat = sse_decode_String(deserializer);
     var var_concatenateMultiEntries = sse_decode_bool(deserializer);
     return RecordWriter(
-        jsonContent: var_jsonContent,
-        outputPath: var_outputPath,
-        columnNames: var_columnNames,
-        exportFormat: var_exportFormat,
-        concatenateMultiEntries: var_concatenateMultiEntries);
+      jsonContent: var_jsonContent,
+      outputPath: var_outputPath,
+      columnNames: var_columnNames,
+      exportFormat: var_exportFormat,
+      concatenateMultiEntries: var_concatenateMultiEntries,
+    );
   }
 
   @protected
   TemplatePresetDeletionResult sse_decode_template_preset_deletion_result(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_updatedLayoutCount = sse_decode_i_32(deserializer);
     var var_updatedBlockCount = sse_decode_i_32(deserializer);
     return TemplatePresetDeletionResult(
-        updatedLayoutCount: var_updatedLayoutCount,
-        updatedBlockCount: var_updatedBlockCount);
+      updatedLayoutCount: var_updatedLayoutCount,
+      updatedBlockCount: var_updatedBlockCount,
+    );
   }
 
   @protected
   TemplatePresetUsage sse_decode_template_preset_usage(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_layoutName = sse_decode_String(deserializer);
     var var_blockIndices = sse_decode_list_prim_i_32_strict(deserializer);
     return TemplatePresetUsage(
-        layoutName: var_layoutName, blockIndices: var_blockIndices);
+      layoutName: var_layoutName,
+      blockIndices: var_blockIndices,
+    );
   }
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint32();
+  }
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
   }
 
   @protected
@@ -2782,10 +3505,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_easting = sse_decode_f_64(deserializer);
     var var_northing = sse_decode_f_64(deserializer);
     return UtmCoordinateFfi(
-        zone: var_zone,
-        hemisphere: var_hemisphere,
-        easting: var_easting,
-        northing: var_northing);
+      zone: var_zone,
+      hemisphere: var_hemisphere,
+      easting: var_easting,
+      northing: var_northing,
+    );
   }
 
   @protected
@@ -2804,18 +3528,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_files = sse_decode_list_String(deserializer);
     var var_outputPath = sse_decode_String(deserializer);
     return ZipWriter(
-        parentDir: var_parentDir,
-        altParentDir: var_altParentDir,
-        files: var_files,
-        outputPath: var_outputPath);
+      parentDir: var_parentDir,
+      altParentDir: var_altParentDir,
+      files: var_files,
+      outputPath: var_outputPath,
+    );
   }
 
   @protected
   void sse_encode_Map_String_String_None(
-      Map<String, String> self, SseSerializer serializer) {
+    Map<String, String> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_record_string_string(
-        self.entries.map((e) => (e.key, e.value)).toList(), serializer);
+      self.entries.map((e) => (e.key, e.value)).toList(),
+      serializer,
+    );
   }
 
   @protected
@@ -2832,14 +3561,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_box_autoadd_config_export_preset(
-      ConfigExportPreset self, SseSerializer serializer) {
+    ConfigExportPreset self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_config_export_preset(self, serializer);
   }
 
   @protected
   void sse_encode_box_autoadd_document_layout_preset(
-      DocumentLayoutPreset self, SseSerializer serializer) {
+    DocumentLayoutPreset self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_document_layout_preset(self, serializer);
   }
@@ -2851,43 +3584,64 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_geographic_bounds_ffi(
+    GeographicBoundsFfi self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_geographic_bounds_ffi(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_record_reader(
-      RecordReader self, SseSerializer serializer) {
+    RecordReader self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_record_reader(self, serializer);
   }
 
   @protected
   void sse_encode_box_autoadd_record_writer(
-      RecordWriter self, SseSerializer serializer) {
+    RecordWriter self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_record_writer(self, serializer);
   }
 
   @protected
   void sse_encode_box_autoadd_zip_extractor(
-      ZipExtractor self, SseSerializer serializer) {
+    ZipExtractor self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_zip_extractor(self, serializer);
   }
 
   @protected
   void sse_encode_box_autoadd_zip_writer(
-      ZipWriter self, SseSerializer serializer) {
+    ZipWriter self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_zip_writer(self, serializer);
   }
 
   @protected
   void sse_encode_cardinal_direction(
-      CardinalDirection self, SseSerializer serializer) {
+    CardinalDirection self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
   }
 
   @protected
   void sse_encode_config_combined_field(
-      ConfigCombinedField self, SseSerializer serializer) {
+    ConfigCombinedField self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.fieldId, serializer);
     sse_encode_list_String(self.fields, serializer);
@@ -2895,7 +3649,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_config_export_preset(
-      ConfigExportPreset self, SseSerializer serializer) {
+    ConfigExportPreset self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_Map_String_String_None(self.fields, serializer);
     sse_encode_list_config_combined_field(self.combinedFields, serializer);
@@ -2903,15 +3659,61 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_config_preset_entry(
-      ConfigPresetEntry self, SseSerializer serializer) {
+    ConfigPresetEntry self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.name, serializer);
     sse_encode_config_export_preset(self.preset, serializer);
   }
 
   @protected
+  void sse_encode_coordinate_axis(
+    CoordinateAxis self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_coordinate_export_format(
+    CoordinateExportFormat self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_coordinate_file_import_result(
+    CoordinateFileImportResult self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_coordinate_transfer_record(self.coordinates, serializer);
+    sse_encode_u_64(self.skippedCount, serializer);
+    sse_encode_list_String(self.warnings, serializer);
+  }
+
+  @protected
+  void sse_encode_coordinate_transfer_record(
+    CoordinateTransferRecord self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.nameId, serializer);
+    sse_encode_opt_String(self.notes, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.decimalLongitude, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.decimalLatitude, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.elevationInMeter, serializer);
+  }
+
+  @protected
   void sse_encode_ddm_coordinate_ffi(
-      DdmCoordinateFfi self, SseSerializer serializer) {
+    DdmCoordinateFfi self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_32(self.degrees, serializer);
     sse_encode_f_64(self.minutes, serializer);
@@ -2920,7 +3722,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_dms_coordinate_ffi(
-      DmsCoordinateFfi self, SseSerializer serializer) {
+    DmsCoordinateFfi self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_32(self.degrees, serializer);
     sse_encode_u_32(self.minutes, serializer);
@@ -2930,7 +3734,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_document_layout_block(
-      DocumentLayoutBlock self, SseSerializer serializer) {
+    DocumentLayoutBlock self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.templateName, serializer);
     sse_encode_i_32(self.templateCount, serializer);
@@ -2945,7 +3751,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_document_layout_preset(
-      DocumentLayoutPreset self, SseSerializer serializer) {
+    DocumentLayoutPreset self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.name, serializer);
     sse_encode_String(self.layoutType, serializer);
@@ -2964,7 +3772,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_document_layout_status(
-      DocumentLayoutStatus self, SseSerializer serializer) {
+    DocumentLayoutStatus self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.name, serializer);
     sse_encode_bool(self.isCompatible, serializer);
@@ -2988,9 +3798,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_geographic_bounds_ffi(
+    GeographicBoundsFfi self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.west, serializer);
+    sse_encode_f_64(self.south, serializer);
+    sse_encode_f_64(self.east, serializer);
+    sse_encode_f_64(self.north, serializer);
+  }
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
+  }
+
+  @protected
+  void sse_encode_imported_vector_layer(
+    ImportedVectorLayer self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self.featureCount, serializer);
+    sse_encode_opt_box_autoadd_geographic_bounds_ffi(self.bounds, serializer);
+    sse_encode_String(self.sourceCrs, serializer);
   }
 
   @protected
@@ -3004,7 +3837,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_config_combined_field(
-      List<ConfigCombinedField> self, SseSerializer serializer) {
+    List<ConfigCombinedField> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3014,7 +3849,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_config_preset_entry(
-      List<ConfigPresetEntry> self, SseSerializer serializer) {
+    List<ConfigPresetEntry> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3023,8 +3860,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_coordinate_transfer_record(
+    List<CoordinateTransferRecord> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_coordinate_transfer_record(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_document_layout_block(
-      List<DocumentLayoutBlock> self, SseSerializer serializer) {
+    List<DocumentLayoutBlock> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3034,7 +3885,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_document_layout_preset(
-      List<DocumentLayoutPreset> self, SseSerializer serializer) {
+    List<DocumentLayoutPreset> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3044,7 +3897,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_document_layout_status(
-      List<DocumentLayoutStatus> self, SseSerializer serializer) {
+    List<DocumentLayoutStatus> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3054,7 +3909,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_dwc_header(
-      List<DwcHeader> self, SseSerializer serializer) {
+    List<DwcHeader> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3064,7 +3921,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_list_String(
-      List<List<String>> self, SseSerializer serializer) {
+    List<List<String>> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3074,7 +3933,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_list_prim_u_8_strict(
-      List<Uint8List> self, SseSerializer serializer) {
+    List<Uint8List> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3084,7 +3945,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_prim_i_32_strict(
-      Int32List self, SseSerializer serializer) {
+    Int32List self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putInt32List(self);
@@ -3092,7 +3955,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer) {
+    Uint8List self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
@@ -3100,7 +3965,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_record_string_string(
-      List<(String, String)> self, SseSerializer serializer) {
+    List<(String, String)> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3110,7 +3977,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_template_preset_usage(
-      List<TemplatePresetUsage> self, SseSerializer serializer) {
+    List<TemplatePresetUsage> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -3130,7 +3999,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_opt_box_autoadd_config_export_preset(
-      ConfigExportPreset? self, SseSerializer serializer) {
+    ConfigExportPreset? self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     sse_encode_bool(self != null, serializer);
@@ -3141,7 +4012,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_opt_box_autoadd_document_layout_preset(
-      DocumentLayoutPreset? self, SseSerializer serializer) {
+    DocumentLayoutPreset? self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     sse_encode_bool(self != null, serializer);
@@ -3161,8 +4034,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_geographic_bounds_ffi(
+    GeographicBoundsFfi? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_geographic_bounds_ffi(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_list_String(
-      List<String>? self, SseSerializer serializer) {
+    List<String>? self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     sse_encode_bool(self != null, serializer);
@@ -3173,7 +4061,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_record_f_64_f_64(
-      (double, double) self, SseSerializer serializer) {
+    (double, double) self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_f_64(self.$1, serializer);
     sse_encode_f_64(self.$2, serializer);
@@ -3187,7 +4077,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_record_string_string(
-      (String, String) self, SseSerializer serializer) {
+    (String, String) self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.$1, serializer);
     sse_encode_String(self.$2, serializer);
@@ -3205,7 +4097,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_template_preset_deletion_result(
-      TemplatePresetDeletionResult self, SseSerializer serializer) {
+    TemplatePresetDeletionResult self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.updatedLayoutCount, serializer);
     sse_encode_i_32(self.updatedBlockCount, serializer);
@@ -3213,7 +4107,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_template_preset_usage(
-      TemplatePresetUsage self, SseSerializer serializer) {
+    TemplatePresetUsage self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.layoutName, serializer);
     sse_encode_list_prim_i_32_strict(self.blockIndices, serializer);
@@ -3223,6 +4119,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_u_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint32(self);
+  }
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
   }
 
   @protected
@@ -3238,7 +4140,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_utm_coordinate_ffi(
-      UtmCoordinateFfi self, SseSerializer serializer) {
+    UtmCoordinateFfi self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_8(self.zone, serializer);
     sse_encode_cardinal_direction(self.hemisphere, serializer);

@@ -12,18 +12,24 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Future<void> initConfigDb({required String path}) =>
     RustLib.instance.api.crateApiConfigInitConfigDb(path: path);
 
-Future<void> setUserConfigList(
-        {required String key, required List<String> value}) =>
-    RustLib.instance.api
-        .crateApiConfigSetUserConfigList(key: key, value: value);
+Future<void> setUserConfigList({
+  required String key,
+  required List<String> value,
+}) => RustLib.instance.api.crateApiConfigSetUserConfigList(
+  key: key,
+  value: value,
+);
 
 Future<List<String>?> getUserConfigList({required String key}) =>
     RustLib.instance.api.crateApiConfigGetUserConfigList(key: key);
 
-Future<void> setUserConfigString(
-        {required String key, required String value}) =>
-    RustLib.instance.api
-        .crateApiConfigSetUserConfigString(key: key, value: value);
+Future<void> setUserConfigString({
+  required String key,
+  required String value,
+}) => RustLib.instance.api.crateApiConfigSetUserConfigString(
+  key: key,
+  value: value,
+);
 
 Future<String?> getUserConfigString({required String key}) =>
     RustLib.instance.api.crateApiConfigGetUserConfigString(key: key);
@@ -31,10 +37,13 @@ Future<String?> getUserConfigString({required String key}) =>
 Future<void> deleteUserConfig({required String key}) =>
     RustLib.instance.api.crateApiConfigDeleteUserConfig(key: key);
 
-Future<void> setRecordExportPreset(
-        {required String name, required ConfigExportPreset preset}) =>
-    RustLib.instance.api
-        .crateApiConfigSetRecordExportPreset(name: name, preset: preset);
+Future<void> setRecordExportPreset({
+  required String name,
+  required ConfigExportPreset preset,
+}) => RustLib.instance.api.crateApiConfigSetRecordExportPreset(
+  name: name,
+  preset: preset,
+);
 
 Future<ConfigExportPreset?> getRecordExportPreset({required String name}) =>
     RustLib.instance.api.crateApiConfigGetRecordExportPreset(name: name);
@@ -45,17 +54,22 @@ Future<void> deleteRecordExportPreset({required String name}) =>
 Future<List<ConfigPresetEntry>> getAllRecordExportPresets() =>
     RustLib.instance.api.crateApiConfigGetAllRecordExportPresets();
 
-Future<void> exportConfigToFile(
-        {required String filePath, required bool isJson}) =>
-    RustLib.instance.api
-        .crateApiConfigExportConfigToFile(filePath: filePath, isJson: isJson);
+Future<void> exportConfigToFile({
+  required String filePath,
+  required bool isJson,
+}) => RustLib.instance.api.crateApiConfigExportConfigToFile(
+  filePath: filePath,
+  isJson: isJson,
+);
 
 Future<void> importConfigFromFile({required String filePath}) =>
     RustLib.instance.api.crateApiConfigImportConfigFromFile(filePath: filePath);
 
 Future<void> setTemplatePreset({required String name, required String value}) =>
-    RustLib.instance.api
-        .crateApiConfigSetTemplatePreset(name: name, value: value);
+    RustLib.instance.api.crateApiConfigSetTemplatePreset(
+      name: name,
+      value: value,
+    );
 
 Future<String?> getTemplatePreset({required String name}) =>
     RustLib.instance.api.crateApiConfigGetTemplatePreset(name: name);
@@ -64,30 +78,39 @@ Future<void> deleteTemplatePreset({required String name}) =>
     RustLib.instance.api.crateApiConfigDeleteTemplatePreset(name: name);
 
 /// Lists every print layout block that references a template preset.
-Future<List<TemplatePresetUsage>> getTemplatePresetUsages(
-        {required String name}) =>
-    RustLib.instance.api.crateApiConfigGetTemplatePresetUsages(name: name);
+Future<List<TemplatePresetUsage>> getTemplatePresetUsages({
+  required String name,
+}) => RustLib.instance.api.crateApiConfigGetTemplatePresetUsages(name: name);
 
 /// Replaces references to a template preset and deletes it atomically.
-Future<TemplatePresetDeletionResult> deleteTemplatePresetWithReplacement(
-        {required String name, String? replacementName}) =>
-    RustLib.instance.api.crateApiConfigDeleteTemplatePresetWithReplacement(
-        name: name, replacementName: replacementName);
+Future<TemplatePresetDeletionResult> deleteTemplatePresetWithReplacement({
+  required String name,
+  String? replacementName,
+}) => RustLib.instance.api.crateApiConfigDeleteTemplatePresetWithReplacement(
+  name: name,
+  replacementName: replacementName,
+);
 
 Future<List<String>> listTemplatePresets() =>
     RustLib.instance.api.crateApiConfigListTemplatePresets();
 
 /// Exports a single template preset to a file at the specified path.
-Future<void> exportTemplatePresetToFile(
-        {required String name, required String filePath}) =>
-    RustLib.instance.api.crateApiConfigExportTemplatePresetToFile(
-        name: name, filePath: filePath);
+Future<void> exportTemplatePresetToFile({
+  required String name,
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigExportTemplatePresetToFile(
+  name: name,
+  filePath: filePath,
+);
 
 /// Saves a document layout.
-Future<void> setDocumentLayout(
-        {required String name, required DocumentLayoutPreset layout}) =>
-    RustLib.instance.api
-        .crateApiConfigSetDocumentLayout(name: name, layout: layout);
+Future<void> setDocumentLayout({
+  required String name,
+  required DocumentLayoutPreset layout,
+}) => RustLib.instance.api.crateApiConfigSetDocumentLayout(
+  name: name,
+  layout: layout,
+);
 
 /// Retrieves a document layout.
 Future<DocumentLayoutPreset?> getDocumentLayout({required String name}) =>
@@ -106,16 +129,20 @@ Future<List<DocumentLayoutStatus>> getDocumentLayoutStatuses() =>
     RustLib.instance.api.crateApiConfigGetDocumentLayoutStatuses();
 
 /// Exports a single document layout preset to a JSON file at the specified path.
-Future<void> exportDocumentLayoutToFile(
-        {required DocumentLayoutPreset layout, required String filePath}) =>
-    RustLib.instance.api.crateApiConfigExportDocumentLayoutToFile(
-        layout: layout, filePath: filePath);
+Future<void> exportDocumentLayoutToFile({
+  required DocumentLayoutPreset layout,
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigExportDocumentLayoutToFile(
+  layout: layout,
+  filePath: filePath,
+);
 
 /// Imports a single document layout preset from a JSON file.
-Future<DocumentLayoutPreset> importDocumentLayoutFromFile(
-        {required String filePath}) =>
-    RustLib.instance.api
-        .crateApiConfigImportDocumentLayoutFromFile(filePath: filePath);
+Future<DocumentLayoutPreset> importDocumentLayoutFromFile({
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigImportDocumentLayoutFromFile(
+  filePath: filePath,
+);
 
 /// Represents a combined export field configuration.
 class ConfigCombinedField {
@@ -125,10 +152,7 @@ class ConfigCombinedField {
   /// List of field names that are combined.
   final List<String> fields;
 
-  const ConfigCombinedField({
-    required this.fieldId,
-    required this.fields,
-  });
+  const ConfigCombinedField({required this.fieldId, required this.fields});
 
   @override
   int get hashCode => fieldId.hashCode ^ fields.hashCode;
@@ -175,10 +199,7 @@ class ConfigPresetEntry {
   /// Preset details.
   final ConfigExportPreset preset;
 
-  const ConfigPresetEntry({
-    required this.name,
-    required this.preset,
-  });
+  const ConfigPresetEntry({required this.name, required this.preset});
 
   @override
   int get hashCode => name.hashCode ^ preset.hashCode;

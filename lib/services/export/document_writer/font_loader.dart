@@ -4,14 +4,17 @@ class _DocumentFontLoader {
   const _DocumentFontLoader();
 
   Future<List<Uint8List>> loadFontBytes() async {
-    final AssetManifest manifest =
-        await AssetManifest.loadFromAssetBundle(rootBundle);
+    final AssetManifest manifest = await AssetManifest.loadFromAssetBundle(
+      rootBundle,
+    );
     final List<String> fontAssets = manifest
         .listAssets()
-        .where((String key) =>
-            key.startsWith('assets/fonts/') &&
-            key.endsWith('.ttf') &&
-            !key.contains('nahpu_font.ttf'))
+        .where(
+          (String key) =>
+              key.startsWith('assets/fonts/') &&
+              key.endsWith('.ttf') &&
+              !key.contains('nahpu_font.ttf'),
+        )
         .toList();
 
     List<Uint8List> fontBytesList = [];

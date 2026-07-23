@@ -16,8 +16,10 @@ class _DocumentLayoutRecordCollector {
     if (isPreview) {
       selectedIds = (previewRecords ?? const []).toSet();
     } else {
-      final param =
-          BlockRecordSelectionParam(blockIndex: bIdx, recordType: recordType);
+      final param = BlockRecordSelectionParam(
+        blockIndex: bIdx,
+        recordType: recordType,
+      );
       final notifier = ref.read(blockRecordSelectionProvider(param).notifier);
       selectedIds = notifier.hasUserSelection
           ? ref.read(blockRecordSelectionProvider(param))
@@ -36,13 +38,16 @@ class _DocumentLayoutRecordCollector {
         out.add(await documentFieldValuesForSpecimen(db, s, ref));
       }
     } else if (recordType == RecordType.specimenParts) {
-      final parts =
-          await SpecimenPartServices(ref: ref).getProjectSpecimenParts();
+      final parts = await SpecimenPartServices(
+        ref: ref,
+      ).getProjectSpecimenParts();
       final selected = selectedIds;
       final filtered = selected == null
           ? parts
-          : parts.where((part) =>
-              part.recordId != null && selected.contains(part.recordId));
+          : parts.where(
+              (part) =>
+                  part.recordId != null && selected.contains(part.recordId),
+            );
       for (final part in filtered) {
         final fields = await documentFieldValuesForSpecimenPart(db, part, ref);
         if (fields.isNotEmpty) out.add(fields);
@@ -79,20 +84,23 @@ class _DocumentLayoutRecordCollector {
       final projectUuid = ref.read(projectUuidProvider);
       if (projectUuid.isNotEmpty) {
         try {
-          final proj =
-              await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
+          final proj = await ProjectServices(
+            ref: ref,
+          ).getProjectByUuid(projectUuid);
           for (var entry in proj.toJson().entries) {
             m['project::${entry.key}'] = entry.value?.toString() ?? '';
           }
         } catch (_) {}
 
         try {
-          final personnel = await PersonnelServices(ref: ref)
-              .getPersonnelByProjectUuid(projectUuid);
+          final personnel = await PersonnelServices(
+            ref: ref,
+          ).getPersonnelByProjectUuid(projectUuid);
           if (personnel.isNotEmpty) {
             final Set<String> keys = {};
-            final List<Map<String, dynamic>> jsonList =
-                personnel.map((p) => p.toJson()).toList();
+            final List<Map<String, dynamic>> jsonList = personnel
+                .map((p) => p.toJson())
+                .toList();
             for (final json in jsonList) {
               keys.addAll(json.keys);
             }
@@ -112,7 +120,9 @@ class _DocumentLayoutRecordCollector {
       m.putIfAbsent('project::uuid', () => 'active-project-uuid');
       m.putIfAbsent('project::description', () => 'Active Project Description');
       m.putIfAbsent(
-          'project::principalInvestigator', () => 'Active Investigator');
+        'project::principalInvestigator',
+        () => 'Active Investigator',
+      );
       m.putIfAbsent('project::location', () => 'Active Project Location');
       m.putIfAbsent('project::timeZone', () => 'UTC');
       m.putIfAbsent('project::startDate', () => '2026-01-01');

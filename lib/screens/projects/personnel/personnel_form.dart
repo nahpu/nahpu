@@ -1,7 +1,6 @@
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/projects/personnel/avatars.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -237,28 +236,8 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
           const SizedBox(
             height: 16,
           ),
-          FormButtonWithDelete(
+          FormButton(
             isEditing: widget.isEditing,
-            onDeleted: () async {
-              try {
-                await _deletePersonnel();
-                ref.invalidate(projectPersonnelProvider);
-                ref.invalidate(personnelFormValidatorProvider);
-                ref.invalidate(personnelNameProvider);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Cannot delete personnel.'
-                          ' They are assigned to a project.'),
-                    ),
-                  );
-                }
-              }
-            },
             onSubmitted: _validateForm()
                 ? () async {
                     widget.isEditing
@@ -354,10 +333,6 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
       personnelUuid: db.Value(widget.personnelUuid),
       projectUuid: db.Value(projectUuid),
     ));
-  }
-
-  Future<void> _deletePersonnel() async {
-    await PersonnelServices(ref: ref).deletePersonnel(widget.personnelUuid);
   }
 
   int _getCollectorNumber() {

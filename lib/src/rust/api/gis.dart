@@ -6,7 +6,33 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`
+// These functions are ignored because they are not marked as `pub`: `direction_for_decimal`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `from`, `from`, `from`, `from`, `from`, `try_from`
+
+/// Exports one or more coordinates using NAHPU GIS.
+Future<void> exportCoordinates({
+  required List<CoordinateTransferRecord> coordinates,
+  required CoordinateExportFormat format,
+  required String outputPath,
+}) => RustLib.instance.api.crateApiGisExportCoordinates(
+  coordinates: coordinates,
+  format: format,
+  outputPath: outputPath,
+);
+
+/// Imports point coordinates from GeoJSON, KML, zipped Shapefile, or GPX.
+Future<CoordinateFileImportResult> importCoordinates({
+  required String inputPath,
+}) => RustLib.instance.api.crateApiGisImportCoordinates(inputPath: inputPath);
+
+/// Converts GeoJSON or a zipped WGS84 Shapefile to normalized GeoJSON.
+Future<ImportedVectorLayer> convertVectorLayerToGeojson({
+  required String inputPath,
+  required String outputPath,
+}) => RustLib.instance.api.crateApiGisConvertVectorLayerToGeojson(
+  inputPath: inputPath,
+  outputPath: outputPath,
+);
 
 /// Converts DMS to decimal degrees.
 ///
@@ -15,19 +41,21 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 /// ```
 /// use rust_lib_nahpu::api::gis::{dms_to_dd, CardinalDirection};
 ///
-/// let dd = dms_to_dd(41, 24, 12.2, CardinalDirection::North);
+/// let dd = dms_to_dd(41, 24, 12.2, CardinalDirection::North)?;
 /// assert!((dd - 41.40338888888889).abs() < 1e-9);
+/// # Ok::<(), String>(())
 /// ```
-Future<double> dmsToDd(
-        {required int degrees,
-        required int minutes,
-        required double seconds,
-        required CardinalDirection direction}) =>
-    RustLib.instance.api.crateApiGisDmsToDd(
-        degrees: degrees,
-        minutes: minutes,
-        seconds: seconds,
-        direction: direction);
+Future<double> dmsToDd({
+  required int degrees,
+  required int minutes,
+  required double seconds,
+  required CardinalDirection direction,
+}) => RustLib.instance.api.crateApiGisDmsToDd(
+  degrees: degrees,
+  minutes: minutes,
+  seconds: seconds,
+  direction: direction,
+);
 
 /// Converts DDM to decimal degrees.
 ///
@@ -36,43 +64,53 @@ Future<double> dmsToDd(
 /// ```
 /// use rust_lib_nahpu::api::gis::{ddm_to_dd, CardinalDirection};
 ///
-/// let dd = ddm_to_dd(41, 24.2028, CardinalDirection::North);
+/// let dd = ddm_to_dd(41, 24.2028, CardinalDirection::North)?;
 /// assert!((dd - 41.40338).abs() < 1e-9);
+/// # Ok::<(), String>(())
 /// ```
-Future<double> ddmToDd(
-        {required int degrees,
-        required double minutes,
-        required CardinalDirection direction}) =>
-    RustLib.instance.api.crateApiGisDdmToDd(
-        degrees: degrees, minutes: minutes, direction: direction);
+Future<double> ddmToDd({
+  required int degrees,
+  required double minutes,
+  required CardinalDirection direction,
+}) => RustLib.instance.api.crateApiGisDdmToDd(
+  degrees: degrees,
+  minutes: minutes,
+  direction: direction,
+);
 
 /// Converts UTM to decimal degrees latitude and longitude.
-Future<(double, double)> utmToDd(
-        {required int zone,
-        required CardinalDirection hemisphere,
-        required double easting,
-        required double northing}) =>
-    RustLib.instance.api.crateApiGisUtmToDd(
-        zone: zone,
-        hemisphere: hemisphere,
-        easting: easting,
-        northing: northing);
+Future<(double, double)> utmToDd({
+  required int zone,
+  required CardinalDirection hemisphere,
+  required double easting,
+  required double northing,
+}) => RustLib.instance.api.crateApiGisUtmToDd(
+  zone: zone,
+  hemisphere: hemisphere,
+  easting: easting,
+  northing: northing,
+);
 
 /// Converts decimal degrees to DMS.
-Future<DmsCoordinateFfi> ddToDms(
-        {required double dd, required bool isLatitude}) =>
-    RustLib.instance.api.crateApiGisDdToDms(dd: dd, isLatitude: isLatitude);
+Future<DmsCoordinateFfi> ddToDms({
+  required double dd,
+  required CoordinateAxis axis,
+}) => RustLib.instance.api.crateApiGisDdToDms(dd: dd, axis: axis);
 
 /// Converts decimal degrees to DDM.
-Future<DdmCoordinateFfi> ddToDdm(
-        {required double dd, required bool isLatitude}) =>
-    RustLib.instance.api.crateApiGisDdToDdm(dd: dd, isLatitude: isLatitude);
+Future<DdmCoordinateFfi> ddToDdm({
+  required double dd,
+  required CoordinateAxis axis,
+}) => RustLib.instance.api.crateApiGisDdToDdm(dd: dd, axis: axis);
 
 /// Converts decimal degrees latitude and longitude to UTM.
-Future<UtmCoordinateFfi> ddToUtm(
-        {required double latitude, required double longitude}) =>
-    RustLib.instance.api
-        .crateApiGisDdToUtm(latitude: latitude, longitude: longitude);
+Future<UtmCoordinateFfi> ddToUtm({
+  required double latitude,
+  required double longitude,
+}) => RustLib.instance.api.crateApiGisDdToUtm(
+  latitude: latitude,
+  longitude: longitude,
+);
 
 /// Automatically detects the coordinate format of a string and parses it to decimal degrees.
 Future<double> parseCoordinateString({required String s}) =>
@@ -91,7 +129,80 @@ enum CardinalDirection {
 
   /// Western hemisphere (negative longitude)
   west,
-  ;
+}
+
+/// Axis used to choose latitude or longitude cardinal directions.
+enum CoordinateAxis {
+  /// Latitude with north or south direction.
+  latitude,
+
+  /// Longitude with east or west direction.
+  longitude,
+}
+
+/// File formats supported by the coordinate exporter.
+enum CoordinateExportFormat { geoJson, kml, shapefile }
+
+/// Coordinates and diagnostics returned by a file import.
+class CoordinateFileImportResult {
+  final List<CoordinateTransferRecord> coordinates;
+  final BigInt skippedCount;
+  final List<String> warnings;
+
+  const CoordinateFileImportResult({
+    required this.coordinates,
+    required this.skippedCount,
+    required this.warnings,
+  });
+
+  @override
+  int get hashCode =>
+      coordinates.hashCode ^ skippedCount.hashCode ^ warnings.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoordinateFileImportResult &&
+          runtimeType == other.runtimeType &&
+          coordinates == other.coordinates &&
+          skippedCount == other.skippedCount &&
+          warnings == other.warnings;
+}
+
+/// Portable point fields supported by NAHPU GIS imports and exports.
+class CoordinateTransferRecord {
+  final String nameId;
+  final String? notes;
+  final double? decimalLongitude;
+  final double? decimalLatitude;
+  final double? elevationInMeter;
+
+  const CoordinateTransferRecord({
+    required this.nameId,
+    this.notes,
+    this.decimalLongitude,
+    this.decimalLatitude,
+    this.elevationInMeter,
+  });
+
+  @override
+  int get hashCode =>
+      nameId.hashCode ^
+      notes.hashCode ^
+      decimalLongitude.hashCode ^
+      decimalLatitude.hashCode ^
+      elevationInMeter.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoordinateTransferRecord &&
+          runtimeType == other.runtimeType &&
+          nameId == other.nameId &&
+          notes == other.notes &&
+          decimalLongitude == other.decimalLongitude &&
+          decimalLatitude == other.decimalLatitude &&
+          elevationInMeter == other.elevationInMeter;
 }
 
 /// Represents a coordinate in Degrees and Decimal Minutes (DDM) format.
@@ -161,6 +272,73 @@ class DmsCoordinateFfi {
           minutes == other.minutes &&
           seconds == other.seconds &&
           direction == other.direction;
+}
+
+/// WGS84 vector bounds.
+class GeographicBoundsFfi {
+  /// Western longitude.
+  final double west;
+
+  /// Southern latitude.
+  final double south;
+
+  /// Eastern longitude.
+  final double east;
+
+  /// Northern latitude.
+  final double north;
+
+  const GeographicBoundsFfi({
+    required this.west,
+    required this.south,
+    required this.east,
+    required this.north,
+  });
+
+  @override
+  int get hashCode =>
+      west.hashCode ^ south.hashCode ^ east.hashCode ^ north.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GeographicBoundsFfi &&
+          runtimeType == other.runtimeType &&
+          west == other.west &&
+          south == other.south &&
+          east == other.east &&
+          north == other.north;
+}
+
+/// Metadata for a user vector layer normalized by `nahpu_gis`.
+class ImportedVectorLayer {
+  /// Number of GeoJSON features written.
+  final BigInt featureCount;
+
+  /// WGS84 bounds in west, south, east, north order.
+  final GeographicBoundsFfi? bounds;
+
+  /// Coordinate reference system of the output.
+  final String sourceCrs;
+
+  const ImportedVectorLayer({
+    required this.featureCount,
+    this.bounds,
+    required this.sourceCrs,
+  });
+
+  @override
+  int get hashCode =>
+      featureCount.hashCode ^ bounds.hashCode ^ sourceCrs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImportedVectorLayer &&
+          runtimeType == other.runtimeType &&
+          featureCount == other.featureCount &&
+          bounds == other.bounds &&
+          sourceCrs == other.sourceCrs;
 }
 
 /// Represents a coordinate in Universal Transverse Mercator (UTM) format.

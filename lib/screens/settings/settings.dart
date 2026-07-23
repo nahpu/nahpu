@@ -69,7 +69,7 @@ class CatalogSettings extends StatelessWidget {
         CommonSettingTile(
           title: 'Sites',
           icon: Icons.place_outlined,
-          label: 'Manage site and habitat types',
+          label: 'Manage controlled vocabularies for site and habitat types',
           isNavigation: true,
           onTap: () => Navigator.push(
             context,
@@ -146,6 +146,7 @@ class CatalogFmtSection extends StatelessWidget {
         isNavigation: true,
         icon: Icons.archive_outlined,
         title: 'Format',
+        label: 'Set catalog format',
         value: matchCatFmtToTaxonGroup(selectedFmt),
         onTap: () {
           Navigator.push(
@@ -169,7 +170,8 @@ class SpecimenSection extends StatelessWidget {
         isNavigation: true,
         icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
         title: 'Specimens',
-        label: 'Manage specimen form settings',
+        label:
+            'Manage field, tissue ID settings, and controlled vocabularies for specimen forms',
         onTap: () {
           Navigator.push(
             context,
@@ -190,7 +192,8 @@ class CollEventSection extends StatelessWidget {
       isNavigation: true,
       icon: Icons.calendar_month_outlined,
       title: 'Events',
-      label: 'Manage collection methods and event personnel roles',
+      label:
+          'Manage controlled vocabularies for collection methods and event personnel roles',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(

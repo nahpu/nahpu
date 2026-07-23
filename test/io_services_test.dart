@@ -179,6 +179,7 @@ void main() {
         return (
           userConfig: await services.userConfigDir,
           userFont: await services.userFontDir,
+          userMap: await services.userMapDir,
         );
       });
       expect(
@@ -188,6 +189,10 @@ void main() {
       expect(
         directories.userFont.path,
         path.join(tempAppDir.path, 'nahpu', 'UserConfigs', 'fonts'),
+      );
+      expect(
+        directories.userMap.path,
+        path.join(tempAppDir.path, 'nahpu', 'UserConfigs', 'maps'),
       );
     });
   });

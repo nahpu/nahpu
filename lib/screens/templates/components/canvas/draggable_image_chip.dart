@@ -533,7 +533,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                                 Image.file(
                                   File(widget.imagePath),
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => const Center(
+                                  errorBuilder: (_, _, _) => const Center(
                                     child: Icon(Icons.broken_image_outlined,
                                         size: 28),
                                   ),
@@ -607,7 +607,7 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                                   Image.file(
                                     File(widget.imagePath),
                                     fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => const Center(
+                                    errorBuilder: (_, _, _) => const Center(
                                       child: Icon(Icons.broken_image_outlined,
                                           size: 28),
                                     ),

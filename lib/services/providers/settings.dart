@@ -9,6 +9,7 @@ import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 // App settings keys (UI/Device states)
@@ -17,6 +18,7 @@ import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 // Internally, we call it `App Settings`
 const String themeModePrefKey = 'themeMode';
 const String catalogFmtPrefKey = 'catalogFmt';
+const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
 
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
@@ -44,8 +46,9 @@ final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
 });
 
-final themeSettingProvider =
-    AsyncNotifierProvider<ThemeSetting, ThemeMode>(ThemeSetting.new);
+final themeSettingProvider = AsyncNotifierProvider<ThemeSetting, ThemeMode>(
+  ThemeSetting.new,
+);
 
 class ThemeSetting extends AsyncNotifier<ThemeMode> {
   Future<ThemeMode> _fetchSetting() async {
@@ -56,7 +59,9 @@ class ThemeSetting extends AsyncNotifier<ThemeMode> {
     final ThemeMode currentTheme = _matchThemeMode(savedTheme);
     if (savedTheme == null) {
       await prefs.setString(
-          themeModePrefKey, _matchThemeModeToString(currentTheme));
+        themeModePrefKey,
+        _matchThemeModeToString(currentTheme),
+      );
     }
 
     return currentTheme;
@@ -104,6 +109,33 @@ class ThemeSetting extends AsyncNotifier<ThemeMode> {
   }
 }
 
+final spatialBasemapStyleProvider =
+    AsyncNotifierProvider<SpatialBasemapStyleSetting, SpatialBasemapStyle>(
+      SpatialBasemapStyleSetting.new,
+    );
+
+class SpatialBasemapStyleSetting extends AsyncNotifier<SpatialBasemapStyle> {
+  @override
+  Future<SpatialBasemapStyle> build() async {
+    final prefs = ref.watch(settingProvider);
+    final saved = prefs.getString(spatialBasemapStylePrefKey);
+    final style = SpatialBasemapStyle.values
+        .where((candidate) => candidate.name == saved)
+        .firstOrNull;
+    final resolved = style ?? SpatialBasemapStyle.automatic;
+    if (style == null) {
+      await prefs.setString(spatialBasemapStylePrefKey, resolved.name);
+    }
+    return resolved;
+  }
+
+  Future<void> setStyle(SpatialBasemapStyle style) async {
+    final prefs = ref.read(settingProvider);
+    await prefs.setString(spatialBasemapStylePrefKey, style.name);
+    state = AsyncValue.data(style);
+  }
+}
+
 List<String> getDefaultOptionsList(String prefKey) {
   switch (prefKey) {
     case habitatTypePrefKey:
@@ -125,7 +157,8 @@ List<String> getDefaultOptionsList(String prefKey) {
 
 final catalogFmtNotifierProvider =
     AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(
-        CatalogFmtNotifier.new);
+      CatalogFmtNotifier.new,
+    );
 
 class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
   Future<CatalogFmt> _fetchSetting() async {
@@ -136,7 +169,9 @@ class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
     final CatalogFmt currentFmt = matchTaxonGroupToCatFmt(savedFmt);
     if (savedFmt == null) {
       await prefs.setString(
-          catalogFmtPrefKey, matchCatFmtToTaxonGroup(currentFmt));
+        catalogFmtPrefKey,
+        matchCatFmtToTaxonGroup(currentFmt),
+      );
     }
 
     return currentFmt;
@@ -172,10 +207,7 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     List<String> currentOptions = optionList ?? getDefaultOptionsList(prefKey);
 
     if (optionList == null) {
-      await rust_config.setUserConfigList(
-        key: prefKey,
-        value: currentOptions,
-      );
+      await rust_config.setUserConfigList(key: prefKey, value: currentOptions);
     }
 
     return currentOptions;
@@ -236,7 +268,8 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
 
 final textCaseFmtNotifierProvider = AsyncNotifierProvider.family
     .autoDispose<TextCaseFmtNotifier, TextCaseFmt, String>(
-        TextCaseFmtNotifier.new);
+      TextCaseFmtNotifier.new,
+    );
 
 class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   TextCaseFmtNotifier(this.prefKey);
@@ -245,8 +278,9 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   Future<TextCaseFmt> _fetchSettings() async {
     final fmtString = await rust_config.getUserConfigString(key: prefKey);
 
-    TextCaseFmt fmt =
-        TextCaseFmt.values.byName(fmtString ?? TextCaseFmt.anyCase.name);
+    TextCaseFmt fmt = TextCaseFmt.values.byName(
+      fmtString ?? TextCaseFmt.anyCase.name,
+    );
 
     if (fmtString == null) {
       await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
@@ -264,8 +298,9 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final fmtString = await rust_config.getUserConfigString(key: prefKey);
-      final setFmt =
-          TextCaseFmt.values.byName(fmtString ?? TextCaseFmt.anyCase.name);
+      final setFmt = TextCaseFmt.values.byName(
+        fmtString ?? TextCaseFmt.anyCase.name,
+      );
 
       if (setFmt == fmt) return fmt;
 
@@ -277,7 +312,8 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
 
 final fieldIdModeNotifierProvider =
     AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(
-        FieldIdModeNotifier.new);
+      FieldIdModeNotifier.new,
+    );
 
 class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   Future<FieldIdMode> _fetchSettings() async {
@@ -285,8 +321,9 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
       key: fieldIdModePrefKey,
     );
 
-    FieldIdMode fieldIdMode = FieldIdMode.values
-        .byName(fieldIdModeString ?? FieldIdMode.personnel.name);
+    FieldIdMode fieldIdMode = FieldIdMode.values.byName(
+      fieldIdModeString ?? FieldIdMode.personnel.name,
+    );
 
     if (fieldIdModeString == null) {
       await rust_config.setUserConfigString(
@@ -309,8 +346,9 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
       final fieldIdModeString = await rust_config.getUserConfigString(
         key: fieldIdModePrefKey,
       );
-      final setFieldIdMode = FieldIdMode.values
-          .byName(fieldIdModeString ?? FieldIdMode.personnel.name);
+      final setFieldIdMode = FieldIdMode.values.byName(
+        fieldIdModeString ?? FieldIdMode.personnel.name,
+      );
 
       if (setFieldIdMode == mode) return mode;
 
@@ -323,9 +361,11 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   }
 }
 
-final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
-    ExportPresetNotifier,
-    Map<String, ExportPresetModel>>(ExportPresetNotifier.new);
+final exportPresetNotifierProvider =
+    AsyncNotifierProvider.autoDispose<
+      ExportPresetNotifier,
+      Map<String, ExportPresetModel>
+    >(ExportPresetNotifier.new);
 
 class ExportPresetNotifier
     extends AsyncNotifier<Map<String, ExportPresetModel>> {
@@ -404,9 +444,11 @@ class ExportPresetNotifier
         preset: _mapModelToConfig(preset),
       );
       await rust_config.deleteRecordExportPreset(name: previousName);
-      state = AsyncValue.data({...current}
-        ..remove(previousName)
-        ..[nextName] = preset);
+      state = AsyncValue.data(
+        {...current}
+          ..remove(previousName)
+          ..[nextName] = preset,
+      );
     } on Object catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;

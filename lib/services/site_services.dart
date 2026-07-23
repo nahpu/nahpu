@@ -17,9 +17,9 @@ class SiteServices extends AppServices {
   const SiteServices({required super.ref});
 
   Future<int> createNewSite() async {
-    int siteID = await SiteQuery(dbAccess).createSite(SiteCompanion(
-      projectUuid: db.Value(currentProjectUuid),
-    ));
+    int siteID = await SiteQuery(
+      dbAccess,
+    ).createSite(SiteCompanion(projectUuid: db.Value(currentProjectUuid)));
     invalidateSite();
     return siteID;
   }
@@ -30,20 +30,22 @@ class SiteServices extends AppServices {
     if (siteData == null) {
       return null;
     }
-    int newSiteId = await SiteQuery(dbAccess).createSite(SiteCompanion(
-      projectUuid: db.Value(currentProjectUuid),
-      leadStaffId: db.Value(siteData.leadStaffId),
-      siteType: db.Value(siteData.siteType),
-      country: db.Value(siteData.country),
-      stateProvince: db.Value(siteData.stateProvince),
-      county: db.Value(siteData.county),
-      municipality: db.Value(siteData.municipality),
-      locality: db.Value(siteData.locality),
-      remark: db.Value(siteData.remark),
-      habitatType: db.Value(siteData.habitatType),
-      habitatCondition: db.Value(siteData.habitatCondition),
-      habitatDescription: db.Value(siteData.habitatDescription),
-    ));
+    int newSiteId = await SiteQuery(dbAccess).createSite(
+      SiteCompanion(
+        projectUuid: db.Value(currentProjectUuid),
+        leadStaffId: db.Value(siteData.leadStaffId),
+        siteType: db.Value(siteData.siteType),
+        country: db.Value(siteData.country),
+        stateProvince: db.Value(siteData.stateProvince),
+        county: db.Value(siteData.county),
+        municipality: db.Value(siteData.municipality),
+        locality: db.Value(siteData.locality),
+        remark: db.Value(siteData.remark),
+        habitatType: db.Value(siteData.habitatType),
+        habitatCondition: db.Value(siteData.habitatCondition),
+        habitatDescription: db.Value(siteData.habitatDescription),
+      ),
+    );
     invalidateSite();
     return newSiteId;
   }
@@ -65,7 +67,9 @@ class SiteServices extends AppServices {
   }
 
   Future<void> createSiteMediaFromList(
-      int siteId, List<String> filePaths) async {
+    int siteId,
+    List<String> filePaths,
+  ) async {
     for (String filePath in filePaths) {
       await createSiteMedia(siteId, filePath);
     }
@@ -74,15 +78,17 @@ class SiteServices extends AppServices {
   Future<void> createSiteMedia(int siteId, String filePath) async {
     final metadata = await MediaMetadataServices().extract(File(filePath));
 
-    int mediaId = await MediaDbQuery(dbAccess).createMedia(MediaCompanion(
-      projectUuid: db.Value(currentProjectUuid),
-      fileName: db.Value(basename(filePath)),
-      category: db.Value(matchMediaCategory(MediaCategory.site)),
-      taken: db.Value(metadata.taken),
-      camera: db.Value(metadata.camera),
-      lenses: db.Value(metadata.lenses),
-      additionalExif: db.Value(metadata.additionalExif),
-    ));
+    int mediaId = await MediaDbQuery(dbAccess).createMedia(
+      MediaCompanion(
+        projectUuid: db.Value(currentProjectUuid),
+        fileName: db.Value(basename(filePath)),
+        category: db.Value(matchMediaCategory(MediaCategory.site)),
+        taken: db.Value(metadata.taken),
+        camera: db.Value(metadata.camera),
+        lenses: db.Value(metadata.lenses),
+        additionalExif: db.Value(metadata.additionalExif),
+      ),
+    );
     SiteMediaCompanion entries = SiteMediaCompanion(
       siteId: db.Value(siteId),
       mediaId: db.Value(mediaId),
@@ -137,18 +143,20 @@ class SiteSearchServices {
 
   List<SiteData> search(String query) {
     final filteredSites = siteEntries
-        .where((site) =>
-            _isMatch(site.siteID, query) ||
-            _isMatch(site.siteType, query) ||
-            _isMatch(site.country, query) ||
-            _isMatch(site.stateProvince, query) ||
-            _isMatch(site.county, query) ||
-            _isMatch(site.municipality, query) ||
-            _isMatch(site.locality, query) ||
-            _isMatch(site.remark, query) ||
-            _isMatch(site.habitatType, query) ||
-            _isMatch(site.habitatCondition, query) ||
-            _isMatch(site.habitatDescription, query))
+        .where(
+          (site) =>
+              _isMatch(site.siteID, query) ||
+              _isMatch(site.siteType, query) ||
+              _isMatch(site.country, query) ||
+              _isMatch(site.stateProvince, query) ||
+              _isMatch(site.county, query) ||
+              _isMatch(site.municipality, query) ||
+              _isMatch(site.locality, query) ||
+              _isMatch(site.remark, query) ||
+              _isMatch(site.habitatType, query) ||
+              _isMatch(site.habitatCondition, query) ||
+              _isMatch(site.habitatDescription, query),
+        )
         .toList();
     return filteredSites;
   }
@@ -173,8 +181,18 @@ class CoordinateServices extends AppServices {
     return await CoordinateQuery(dbAccess).createCoordinate(form);
   }
 
+  Future<void> createCoordinates(List<CoordinateCompanion> forms) async {
+    await dbAccess.transaction(() async {
+      for (final form in forms) {
+        await CoordinateQuery(dbAccess).createCoordinate(form);
+      }
+    });
+  }
+
   Future<void> updateCoordinate(
-      int coordinateId, CoordinateCompanion form) async {
+    int coordinateId,
+    CoordinateCompanion form,
+  ) async {
     await CoordinateQuery(dbAccess).updateCoordinate(coordinateId, form);
   }
 
@@ -196,8 +214,10 @@ class GeoLocationServices {
     LocationPermission permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.deniedForever) {
-      throw Exception('Location permissions are permanently denied,'
-          ' we cannot request permissions.');
+      throw Exception(
+        'Location permissions are permanently denied,'
+        ' we cannot request permissions.',
+      );
     }
 
     if (!await Geolocator.isLocationServiceEnabled() ||
@@ -218,7 +238,8 @@ class GeoLocationServices {
         timeLimit: const Duration(seconds: 10),
       );
       Position position = await Geolocator.getCurrentPosition(
-          locationSettings: locationSettings);
+        locationSettings: locationSettings,
+      );
       return position;
     }
     throw Exception('Location permissions are denied');

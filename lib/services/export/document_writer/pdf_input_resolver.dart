@@ -1,9 +1,7 @@
 part of '../document_writer.dart';
 
 class _DocumentPdfInputResolver {
-  const _DocumentPdfInputResolver({
-    required this.collector,
-  });
+  const _DocumentPdfInputResolver({required this.collector});
 
   final _DocumentLayoutRecordCollector collector;
 
@@ -63,11 +61,7 @@ class _DocumentPdfInputResolver {
         previewRecords,
       );
       inputs.add(
-        _DocumentPdfBlockInput(
-          block: block,
-          template: template,
-          data: data,
-        ),
+        _DocumentPdfBlockInput(block: block, template: template, data: data),
       );
     }
     return inputs;

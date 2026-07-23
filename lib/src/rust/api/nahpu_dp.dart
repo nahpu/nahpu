@@ -8,15 +8,20 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `enrich_request`
 
-Future<String> planNahpuPackage({required String requestJson}) =>
-    RustLib.instance.api
-        .crateApiNahpuDpPlanNahpuPackage(requestJson: requestJson);
+Future<String> planNahpuPackage({required String requestJson}) => RustLib
+    .instance
+    .api
+    .crateApiNahpuDpPlanNahpuPackage(requestJson: requestJson);
 
-Future<String> validateNahpuPackage({required String requestJson}) =>
-    RustLib.instance.api
-        .crateApiNahpuDpValidateNahpuPackage(requestJson: requestJson);
+Future<String> validateNahpuPackage({required String requestJson}) => RustLib
+    .instance
+    .api
+    .crateApiNahpuDpValidateNahpuPackage(requestJson: requestJson);
 
-Future<String> writeNahpuPackage(
-        {required String requestJson, required String outputPath}) =>
-    RustLib.instance.api.crateApiNahpuDpWriteNahpuPackage(
-        requestJson: requestJson, outputPath: outputPath);
+Future<String> writeNahpuPackage({
+  required String requestJson,
+  required String outputPath,
+}) => RustLib.instance.api.crateApiNahpuDpWriteNahpuPackage(
+  requestJson: requestJson,
+  outputPath: outputPath,
+);
