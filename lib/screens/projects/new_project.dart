@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -7,7 +5,9 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/project_exchange_service.dart';
 import 'package:nahpu/services/providers/validation.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/projects/components/project_form.dart' as project;
@@ -23,7 +23,7 @@ class CreateProjectForm extends ConsumerStatefulWidget {
 class CreateProjectFormState extends ConsumerState<CreateProjectForm> {
   String _uuidKey = uuid;
   final ProjectFormCtrModel projectCtr = ProjectFormCtrModel.empty();
-  bool _qrScanned = false;
+  bool _projectImported = false;
 
   @override
   void initState() {
@@ -53,11 +53,12 @@ class CreateProjectFormState extends ConsumerState<CreateProjectForm> {
               children: [
                 if (systemPlatform == PlatformType.mobile)
                   QrCaptureButton(onDetect: onDetect),
-                if (_qrScanned) UuidText(uuid: _uuidKey),
+                ImportJsonButton(onPressed: _importJson),
+                if (_projectImported) UuidText(uuid: _uuidKey),
                 project.ProjectForm(
                   projectCtr: projectCtr,
                   projectUuid: _uuidKey,
-                )
+                ),
               ],
             ),
           ),
@@ -67,6 +68,10 @@ class CreateProjectFormState extends ConsumerState<CreateProjectForm> {
   }
 
   void onDetect(BarcodeCapture capture) {
+    if (capture.barcodes.isEmpty) {
+      _showError('Invalid QR code');
+      return;
+    }
     final Barcode barcode = capture.barcodes.first;
 
     if (barcode.format != BarcodeFormat.qrCode) {
@@ -78,57 +83,66 @@ class CreateProjectFormState extends ConsumerState<CreateProjectForm> {
       _showError('Invalid QR code');
       return;
     }
-    final Map<String, dynamic> data = jsonDecode(qrData);
-    ProjectData projectData = ProjectData.fromJson(data);
-    debugPrint('QR data: ${projectData.uuid}');
+    try {
+      final projectData = ProjectExchangeService.decode(qrData);
+      Navigator.pop(context);
+      _applyImportedProject(projectData);
+    } catch (error) {
+      _showError(error.toString());
+    }
+  }
 
-    _showSuccess(
-      projectData.name,
-    );
-    Navigator.pop(context);
-    ref.read(projectFormValidatorProvider.notifier).validateOnEditing(
-          null,
-          projectData.name,
-        );
+  Future<void> _importJson() async {
+    final file = await FilePickerServices().selectJsonFile();
+    if (file == null) return;
+
+    try {
+      final projectData = await ProjectExchangeService().read(file);
+      _applyImportedProject(projectData);
+    } catch (error) {
+      _showError(error.toString());
+    }
+  }
+
+  void _applyImportedProject(ProjectData projectData) {
+    ref
+        .read(projectFormValidatorProvider.notifier)
+        .validateOnEditing(null, projectData.name);
     ref
         .read(projectFormValidatorProvider.notifier)
         .checkProjectNameExists(projectData.name);
     setState(() {
       projectCtr.updateData(projectData);
-      _uuidKey = uuid;
-      _qrScanned = true;
+      _uuidKey = projectData.uuid;
+      _projectImported = true;
     });
+    _showSuccess(projectData.name);
   }
 
   void _showSuccess(String projectName) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-          content: RichText(
-            text: TextSpan(
-              children: [
-                const TextSpan(
-                  text: 'Found ',
-                ),
-                TextSpan(
-                  text: '$projectName! ',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const TextSpan(
-                  text: '🎉🎉🎉',
-                ),
-              ],
-            ),
-          )),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        content: RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(text: 'Found '),
+              TextSpan(
+                text: '$projectName! ',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const TextSpan(text: '🎉🎉🎉'),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -140,28 +154,24 @@ class UuidText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.only(top: 16),
-        child: RichText(
-            text: TextSpan(
+      padding: const EdgeInsets.only(top: 16),
+      child: RichText(
+        text: TextSpan(
           children: [
             TextSpan(
               text: 'UUID: ',
               style: Theme.of(context).textTheme.labelLarge,
             ),
-            TextSpan(
-              text: uuid,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            TextSpan(text: uuid, style: Theme.of(context).textTheme.bodyMedium),
           ],
-        )));
+        ),
+      ),
+    );
   }
 }
 
 class QrCaptureButton extends StatelessWidget {
-  const QrCaptureButton({
-    super.key,
-    required this.onDetect,
-  });
+  const QrCaptureButton({super.key, required this.onDetect});
 
   final void Function(BarcodeCapture) onDetect;
 
@@ -190,17 +200,13 @@ class QrCaptureButton extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const WidgetSpan(
-                        child: InfoButton(
-                      content: Text(
-                        'Scan QR code from other projects to import data. '
-                        'This method is useful when multiple devices are '
-                        'used to manage the same project. '
-                        'To get the QR code, go to the project dashboard '
-                        'in the other device. '
-                        'Scan the QR code in the project overview. '
-                        'You can also tap the QR code to enlarge it.',
+                      child: InfoButton(
+                        content: Text(
+                          'Scan QR when creating a new project to transfer '
+                          'project information from another device.',
+                        ),
                       ),
-                    ))
+                    ),
                   ],
                 ),
               ),
@@ -220,6 +226,21 @@ class QrCaptureButton extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class ImportJsonButton extends StatelessWidget {
+  const ImportJsonButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: const Icon(Icons.file_download_outlined),
+      label: const Text('Import JSON'),
     );
   }
 }

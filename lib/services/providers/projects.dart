@@ -50,8 +50,8 @@ class ProjectUuid extends Notifier<String> {
 
 final projectNavbarIndexProvider =
     NotifierProvider.autoDispose<ProjectNavbarIndex, int>(
-      ProjectNavbarIndex.new,
-    );
+  ProjectNavbarIndex.new,
+);
 
 class ProjectNavbarIndex extends Notifier<int> {
   @override

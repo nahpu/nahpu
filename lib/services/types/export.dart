@@ -35,24 +35,6 @@ const Map<ConfigExportFmt, String> configExportFmt = {
   ConfigExportFmt.jsonl: 'JSON Lines (.json.nl)',
 };
 
-enum ReportFmt { csv, kml, geojson, topojson, shp }
-
-const List<String> reportFmtList = [
-  'Comma-separated (.csv)',
-  'Keyhole Markup Language (.kml)',
-  'GeoJSON (.geojson)',
-  'TopoJSON (.topojson)',
-  'Shapefile (.zip)',
-];
-
-enum ReportType { speciesCount, mediaData, coordinate }
-
-const List<String> reportTypeList = [
-  'Species count ',
-  'Media data',
-  'Coordinates',
-];
-
 enum ArchiveFmt { zip }
 
 enum PdfPageFormat { a3, a4, a5, a6, letter, legal }

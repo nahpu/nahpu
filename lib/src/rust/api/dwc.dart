@@ -22,10 +22,13 @@ Future<String> validateDwcBundle({required String requestJson}) =>
     RustLib.instance.api.crateApiDwcValidateDwcBundle(requestJson: requestJson);
 
 /// Writes a Darwin Core Archive file or a Darwin Core Data Package directory.
-Future<String> writeDwcBundle(
-        {required String requestJson, required String outputPath}) =>
-    RustLib.instance.api.crateApiDwcWriteDwcBundle(
-        requestJson: requestJson, outputPath: outputPath);
+Future<String> writeDwcBundle({
+  required String requestJson,
+  required String outputPath,
+}) => RustLib.instance.api.crateApiDwcWriteDwcBundle(
+  requestJson: requestJson,
+  outputPath: outputPath,
+);
 
 /// A resolved Darwin Core header for one NAHPU `table::field` source key.
 class DwcHeader {

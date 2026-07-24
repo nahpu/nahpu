@@ -45,7 +45,7 @@ void main() {
                 body: ExportPresetEditForm(
                   presetName: selectedName,
                   initialPreset: selectedPreset,
-                  onPresetRenamed: (_, __) {},
+                  onPresetRenamed: (_, _) {},
                 ),
               );
             },

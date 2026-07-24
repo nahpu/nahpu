@@ -32,8 +32,13 @@ const List<String> specimenSexList = [
   'Unknown',
 ];
 
+String normalizeCondition(String? value) {
+  if (value == 'Freshly Euthanized') return 'Freshly euthanized';
+  return value ?? conditionList.first;
+}
+
 const List<String> conditionList = [
-  'Freshly Euthanized',
+  'Freshly euthanized',
   'Good',
   'Fair',
   'Poor',

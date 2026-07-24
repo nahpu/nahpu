@@ -2,8 +2,8 @@ part of '../document_writer.dart';
 
 class _DocumentPdfComposer {
   _DocumentPdfComposer({required this.substitutePage})
-      : _renderer = const _DocumentTypstRenderer(),
-        _continuousPlanner = const _DocumentPdfContinuousPlanner();
+    : _renderer = const _DocumentTypstRenderer(),
+      _continuousPlanner = const _DocumentPdfContinuousPlanner();
 
   final _DocumentPageSubstitutor substitutePage;
   final _DocumentTypstRenderer _renderer;
@@ -20,11 +20,7 @@ class _DocumentPdfComposer {
     if (!hasRecords) {
       _writeEmpty(typst, sheetWidthPt, sheetHeightPt);
     } else if (layout.layoutType == 'Continuous') {
-      await _writeContinuous(
-        typst: typst,
-        layout: layout,
-        blocks: blocks,
-      );
+      await _writeContinuous(typst: typst, layout: layout, blocks: blocks);
     } else {
       await _writeTiled(
         typst: typst,
@@ -52,10 +48,7 @@ class _DocumentPdfComposer {
       multiBlockMode: layout.multiBlockMode,
     );
     for (final item in items) {
-      await _writeContinuousItem(
-        typst: typst,
-        item: item,
-      );
+      await _writeContinuousItem(typst: typst, item: item);
     }
   }
 
@@ -64,14 +57,12 @@ class _DocumentPdfComposer {
     required _DocumentContinuousPrintItem item,
   }) async {
     final block = item.block;
-    final cellW = item.profile.widthPt +
+    final cellW =
+        item.profile.widthPt +
         documentPdfMmToPt(block.templatePadLeftMm) +
         documentPdfMmToPt(block.templatePadRightMm);
     typst.writeln('#set page(width: ${cellW}pt, height: auto, margin: 0pt)');
-    final page = await substitutePage(
-      item.pageTemplate,
-      item.data,
-    );
+    final page = await substitutePage(item.pageTemplate, item.data);
     _renderer.writeSingleDocumentCell(
       typst: typst,
       page: page,
@@ -113,12 +104,7 @@ class _DocumentPdfComposer {
     );
     final sheets = await _DocumentPdfSheetPlanner(
       substitutePage: substitutePage,
-    ).plan(
-      layout: layout,
-      blocks: blocks,
-      usableW: usableW,
-      usableH: usableH,
-    );
+    ).plan(layout: layout, blocks: blocks, usableW: usableW, usableH: usableH);
     _writeSheetSequence(typst: typst, sheets: sheets);
   }
 
@@ -143,9 +129,9 @@ class _DocumentPdfComposer {
     required StringBuffer typst,
     required List<_DocumentSheetRenderSpec> sheets,
   }) {
-    final pageBreaks = _DocumentPdfSheetPagination.pageBreakPlan(
-      [for (final sheet in sheets) sheet.forcePageBreakAfter],
-    );
+    final pageBreaks = _DocumentPdfSheetPagination.pageBreakPlan([
+      for (final sheet in sheets) sheet.forcePageBreakAfter,
+    ]);
     for (var index = 0; index < sheets.length; index++) {
       final sheet = sheets[index];
       if (sheet.autoFill) {

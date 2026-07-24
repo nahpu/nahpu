@@ -10,7 +10,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/projects/taxonomy/specimen_list.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/statistics/captures.dart';
+import 'package:nahpu/services/providers/statistics.dart';
 
 class TaxonRegistryViewer extends ConsumerStatefulWidget {
   const TaxonRegistryViewer({
@@ -249,16 +249,14 @@ class RecordedCounts extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder(
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: RichText(
-                  text: TextSpan(
+    return ref.watch(recordStatisticTotalsProvider).when(
+          data: (totals) => Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: RichText(
+              text: TextSpan(
                 children: [
                   TextSpan(
-                    text: '${snapshot.data!.specimenCount}',
+                    text: '${totals.specimenCount}',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   TextSpan(
@@ -266,7 +264,7 @@ class RecordedCounts extends ConsumerWidget {
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   TextSpan(
-                    text: '${snapshot.data!.speciesCount}',
+                    text: '${totals.speciesCount}',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   TextSpan(
@@ -274,7 +272,7 @@ class RecordedCounts extends ConsumerWidget {
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   TextSpan(
-                    text: '${snapshot.data!.familyCount}',
+                    text: '${totals.familyCount}',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   TextSpan(
@@ -282,19 +280,12 @@ class RecordedCounts extends ConsumerWidget {
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
-              )),
-            );
-          } else {
-            return const CommonProgressIndicator();
-          }
-        },
-        future: _getStats(ref));
-  }
-
-  Future<({int specimenCount, int speciesCount, int familyCount})> _getStats(
-      WidgetRef ref) async {
-    final data = await CaptureRecordStats(ref: ref).countAll();
-    return data;
+              ),
+            ),
+          ),
+          loading: () => const CommonProgressIndicator(),
+          error: (error, stackTrace) => Text('Unable to load counts: $error'),
+        );
   }
 }
 

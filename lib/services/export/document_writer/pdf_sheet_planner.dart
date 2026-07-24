@@ -26,7 +26,8 @@ class _DocumentPdfSheetPlanner {
         for (final block in blocks) {
           if (index < block.data.length) {
             entries.add(
-                _DocumentPdfCellInput(block: block, data: block.data[index]));
+              _DocumentPdfCellInput(block: block, data: block.data[index]),
+            );
           }
         }
       }
@@ -76,25 +77,31 @@ class _DocumentPdfSheetPlanner {
       final autoFill = _usesAutoFill(layout, block);
       final fixedHeight = usableH / block.fixedRows;
       for (var copy = 0; copy < block.templateCount; copy++) {
-        final frontPage =
-            await substitutePage(entry.block.template.page1, entry.data);
+        final frontPage = await substitutePage(
+          entry.block.template.page1,
+          entry.data,
+        );
         var front = _cell(
           page: frontPage,
           entry: entry,
-          height:
-              autoFill ? _autoHeight(frontPage, block, profile) : fixedHeight,
+          height: autoFill
+              ? _autoHeight(frontPage, block, profile)
+              : fixedHeight,
           mirror: profile.mirrorFront,
           autoFill: autoFill,
         );
         _DocumentSheetCell? back;
         if (profile.duplex) {
-          final backPage =
-              await substitutePage(entry.block.template.page2, entry.data);
+          final backPage = await substitutePage(
+            entry.block.template.page2,
+            entry.data,
+          );
           back = _cell(
             page: backPage,
             entry: entry,
-            height:
-                autoFill ? _autoHeight(backPage, block, profile) : fixedHeight,
+            height: autoFill
+                ? _autoHeight(backPage, block, profile)
+                : fixedHeight,
             mirror: profile.mirrorBack,
             autoFill: autoFill,
           );
@@ -205,25 +212,29 @@ class _DocumentPdfSheetPlanner {
     final cellH = usableH / rows;
     for (var index = 0; index < frontBatches.length; index++) {
       final boundaryBreak = index < frontBatches.length - 1 || forceFinalBreak;
-      specs.add(_spec(
-        batch: frontBatches[index],
-        cols: cols,
-        rows: rows,
-        cellW: cellW,
-        cellH: cellH,
-        autoFill: autoFill,
-        forceBreak: duplex || boundaryBreak,
-      ));
-      if (duplex) {
-        specs.add(_spec(
-          batch: backBatches[index],
+      specs.add(
+        _spec(
+          batch: frontBatches[index],
           cols: cols,
           rows: rows,
           cellW: cellW,
           cellH: cellH,
           autoFill: autoFill,
-          forceBreak: boundaryBreak,
-        ));
+          forceBreak: duplex || boundaryBreak,
+        ),
+      );
+      if (duplex) {
+        specs.add(
+          _spec(
+            batch: backBatches[index],
+            cols: cols,
+            rows: rows,
+            cellW: cellW,
+            cellH: cellH,
+            autoFill: autoFill,
+            forceBreak: boundaryBreak,
+          ),
+        );
       }
     }
   }
@@ -231,8 +242,7 @@ class _DocumentPdfSheetPlanner {
   static bool _usesAutoFill(
     rust_config.DocumentLayoutPreset layout,
     rust_config.DocumentLayoutBlock block,
-  ) =>
-      layout.fillPage || block.autoFillPage;
+  ) => layout.fillPage || block.autoFillPage;
 
   static bool _sameRun(
     _DocumentPdfPrintUnit candidate,
@@ -256,16 +266,15 @@ class _DocumentPdfSheetPlanner {
     required double cellH,
     required bool autoFill,
     required bool forceBreak,
-  }) =>
-      _DocumentSheetRenderSpec(
-        cells: batch.cells,
-        cols: cols,
-        rows: rows,
-        cellW: cellW,
-        cellH: cellH,
-        autoFill: autoFill,
-        forcePageBreakAfter: forceBreak,
-      );
+  }) => _DocumentSheetRenderSpec(
+    cells: batch.cells,
+    cols: cols,
+    rows: rows,
+    cellW: cellW,
+    cellH: cellH,
+    autoFill: autoFill,
+    forcePageBreakAfter: forceBreak,
+  );
 }
 
 class _DocumentPdfCellInput {

@@ -3,8 +3,8 @@ part of '../document_writer.dart';
 /// Coordinates PDF input resolution, Typst composition, and Rust compilation.
 class _DocumentPdfBuilder {
   _DocumentPdfBuilder({required this.ref, required this.db})
-      : _collector = _DocumentLayoutRecordCollector(ref: ref, db: db),
-        _substitutor = _DocumentTemplateSubstitutor(ref: ref);
+    : _collector = _DocumentLayoutRecordCollector(ref: ref, db: db),
+      _substitutor = _DocumentTemplateSubstitutor(ref: ref);
 
   final WidgetRef ref;
   final Database db;
@@ -20,16 +20,17 @@ class _DocumentPdfBuilder {
     required rust_config.DocumentLayoutPreset layout,
     required List<_DocumentPdfBlockInput> blocks,
   }) async {
-    final typst = await _DocumentPdfComposer(
-      substitutePage: _substitutor.substitutePage,
-    ).compose(
-      sheetWidthPt: sheetWidthPt,
-      sheetHeightPt: sheetHeightPt,
-      layout: layout,
-      blocks: blocks,
-    );
+    final typst =
+        await _DocumentPdfComposer(
+          substitutePage: _substitutor.substitutePage,
+        ).compose(
+          sheetWidthPt: sheetWidthPt,
+          sheetHeightPt: sheetHeightPt,
+          layout: layout,
+          blocks: blocks,
+        );
     final fontBytes = await const _DocumentFontLoader().loadFontBytes();
-    return rust_export.compileTypstToPdf(
+    return rust_document.compileTypstToPdf(
       typstContent: typst,
       fontBytes: fontBytes,
     );

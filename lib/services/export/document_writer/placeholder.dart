@@ -23,16 +23,18 @@ String substituteDocumentPlaceholders(
     if (input.startsWith('[[', index)) {
       final expression = parseConditionalBracketExpression(input, index);
       if (expression != null) {
-        result.write(_resolveConditionalExpression(
-          expression,
-          data,
-          isBlank: isBlank,
-          nullFallbackOption: nullFallbackOption,
-          customNullFallbackText: customNullFallbackText,
-          textType: textType,
-          formatOption: formatOption,
-          original: input.substring(expression.start, expression.end),
-        ));
+        result.write(
+          _resolveConditionalExpression(
+            expression,
+            data,
+            isBlank: isBlank,
+            nullFallbackOption: nullFallbackOption,
+            customNullFallbackText: customNullFallbackText,
+            textType: textType,
+            formatOption: formatOption,
+            original: input.substring(expression.start, expression.end),
+          ),
+        );
         index = expression.end;
         continue;
       }
@@ -40,16 +42,18 @@ String substituteDocumentPlaceholders(
     if (input[index] == '[') {
       final end = input.indexOf(']', index + 1);
       if (end >= 0) {
-        result.write(_resolvePlaceholder(
-          input.substring(index + 1, end),
-          data,
-          isBlank: isBlank,
-          nullFallbackOption: nullFallbackOption,
-          customNullFallbackText: customNullFallbackText,
-          textType: textType,
-          formatOption: formatOption,
-          original: input.substring(index, end + 1),
-        ));
+        result.write(
+          _resolvePlaceholder(
+            input.substring(index + 1, end),
+            data,
+            isBlank: isBlank,
+            nullFallbackOption: nullFallbackOption,
+            customNullFallbackText: customNullFallbackText,
+            textType: textType,
+            formatOption: formatOption,
+            original: input.substring(index, end + 1),
+          ),
+        );
         index = end + 1;
         continue;
       }

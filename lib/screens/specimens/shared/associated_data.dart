@@ -384,15 +384,8 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                       },
                     )),
           const SizedBox(height: 16),
-          FormButtonWithDelete(
+          FormButton(
             isEditing: widget.isEditing,
-            onDeleted: () async {
-              if (widget.associatedDataId != null) {
-                await AssociatedDataServices(ref: ref)
-                    .deleteAssociatedData(widget.associatedDataId!);
-                if (context.mounted) Navigator.pop(context);
-              }
-            },
             onSubmitted: () async {
               if (widget.isEditing) {
                 try {

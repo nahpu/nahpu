@@ -83,7 +83,7 @@ class _TemplatePresetManagerState extends State<TemplatePresetManager> {
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
                           itemCount: visible.length,
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (_, _) =>
                               const SizedBox(height: 8),
                           itemBuilder: (context, index) =>
                               _buildTemplateTile(visible[index]),

@@ -27,7 +27,7 @@ import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/providers/document_selection.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/src/rust/api/export.dart' as rust_export;
+import 'package:nahpu/src/rust/api/document.dart' as rust_document;
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:path/path.dart' as path;
 import 'package:qr/qr.dart';

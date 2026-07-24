@@ -267,6 +267,7 @@ class CommonNumField extends ConsumerWidget {
     this.isSigned = false,
     this.errorText,
     this.focusNode,
+    this.helperText,
   });
 
   final String labelText;
@@ -279,6 +280,7 @@ class CommonNumField extends ConsumerWidget {
   final bool enabled;
   final bool isSigned;
   final String? errorText;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -290,6 +292,7 @@ class CommonNumField extends ConsumerWidget {
         labelText: labelText,
         hintText: hintText,
         errorText: errorText,
+        helperText: helperText,
         errorMaxLines: 3,
       ),
       inputFormatters: [

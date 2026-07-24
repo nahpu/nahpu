@@ -9,22 +9,22 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 class RecordReader {
   final String filePath;
 
-  const RecordReader({
-    required this.filePath,
-  });
+  const RecordReader({required this.filePath});
 
-  Future<List<String>> getExcelSheetNames() =>
-      RustLib.instance.api.crateApiImportRecordReaderGetExcelSheetNames(
-        that: this,
-      );
+  Future<List<String>> getExcelSheetNames() => RustLib.instance.api
+      .crateApiImportRecordReaderGetExcelSheetNames(that: this);
 
   Future<List<List<String>>> importDelimitedRaw({required String delimiter}) =>
       RustLib.instance.api.crateApiImportRecordReaderImportDelimitedRaw(
-          that: this, delimiter: delimiter);
+        that: this,
+        delimiter: delimiter,
+      );
 
   Future<List<List<String>>> importExcelRaw({required String sheetName}) =>
       RustLib.instance.api.crateApiImportRecordReaderImportExcelRaw(
-          that: this, sheetName: sheetName);
+        that: this,
+        sheetName: sheetName,
+      );
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<RecordReader> newInstance({required String filePath}) =>

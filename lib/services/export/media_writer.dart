@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/common.dart';
@@ -12,8 +9,6 @@ import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
-import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/src/rust/api/export.dart';
 
 class MediaWriterServices {
   MediaWriterServices({
@@ -21,35 +16,6 @@ class MediaWriterServices {
   });
 
   final WidgetRef ref;
-
-  Future<void> writeAllMediaDelimited(File filePath, bool isCsv) async {
-    List<MediaData> mediaList =
-        await MediaServices(ref: ref).getAllMediaByProject();
-
-    List<Map<String, dynamic>> mediaDataList = [];
-
-    for (var media in mediaList) {
-      List<String> mediaDetails = await _getMedia(media);
-      String linkedData = await MediaCategoryServices(ref: ref)
-          .getLinkedData(media.primaryId, media.category);
-      mediaDetails.insert(1, linkedData);
-
-      Map<String, dynamic> mediaMap = {};
-      for (int i = 0; i < allMediaExportList.length; i++) {
-        mediaMap[allMediaExportList[i]] = mediaDetails[i];
-      }
-      mediaDataList.add(mediaMap);
-    }
-
-    String exportFormat = isCsv ? 'csv' : 'tsv';
-    await RecordWriter(
-      jsonContent: jsonEncode(mediaDataList),
-      outputPath: filePath.path,
-      columnNames: allMediaExportList,
-      exportFormat: exportFormat,
-      concatenateMultiEntries: true,
-    ).write();
-  }
 
   Future<String> getSpecimenMedias(String specimenUuid) async {
     List<SpecimenMediaData> mediaList =
