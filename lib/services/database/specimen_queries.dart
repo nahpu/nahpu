@@ -315,6 +315,15 @@ class MammalSpecimenQuery extends DatabaseAccessor<Database>
         .getSingle();
   }
 
+  Future<List<MammalMeasurementData>> getMammalMeasurementsBySpecimenUuids(
+      List<String> specimenUuids) {
+    if (specimenUuids.isEmpty) return Future.value([]);
+
+    return (select(mammalMeasurement)
+          ..where((t) => t.specimenUuid.isIn(specimenUuids)))
+        .get();
+  }
+
   Future<void> deleteMammalMeasurements(String specimenUuid) {
     return (delete(
       mammalMeasurement,

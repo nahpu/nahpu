@@ -12,8 +12,10 @@ import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/media_services.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
@@ -118,6 +120,35 @@ void main() {
     final links = await SpecimenQuery(db).getSpecimenMedia(specimenUuid);
     expect(links, hasLength(1));
     expect(links.single.mediaId, media.primaryId);
+  });
+
+  testWidgets('media provider refreshes after deleting media', (tester) async {
+    const projectUuid = 'proj-delete-media';
+    final ref = await _buildRef(tester, db, projectUuid);
+    final narrativeId = await _seedNarrative(db, projectUuid);
+    final sourceFile = _createTempFile('narrative-clip.mp4', [1, 2, 3]);
+    addTearDown(() => _safeDelete(sourceFile));
+
+    await tester.runAsync(() => NarrativeServices(ref: ref)
+        .createNarrativeMediaFromList(narrativeId, [sourceFile.path]));
+
+    // Keep the provider alive so its cache persists between reads,
+    // mimicking the media grid watching it.
+    final subscription =
+        ref.listenManual(narrativeMediaProvider(narrativeId), (previous, next) {});
+    addTearDown(subscription.close);
+
+    final before = await tester.runAsync(
+        () => ref.read(narrativeMediaProvider(narrativeId).future));
+    expect(before, hasLength(1));
+    final mediaId = before!.single.primaryId;
+
+    await tester.runAsync(
+        () => MediaServices(ref: ref).deleteMedia(mediaId, 'narrative'));
+
+    final after = await tester.runAsync(
+        () => ref.read(narrativeMediaProvider(narrativeId).future));
+    expect(after, isEmpty);
   });
 }
 
