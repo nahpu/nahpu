@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +13,7 @@ import 'package:nahpu/screens/home/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/config_services.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:fvp/fvp.dart' as fvp;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +25,9 @@ void main() async {
   await configService.migrate(prefs);
   await configService.loadDefaultDocumentPresetsOnce(prefs);
   pdfrxFlutterInitialize();
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    fvp.registerWith();
+  }
   if (kDebugMode) {
     print(await checkRust());
   }
