@@ -14,15 +14,15 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:path/path.dart' as path;
 
-/// Creates a specimen-only Darwin Core Archive or Darwin Core Data Package.
-class BundleProjectForm extends ConsumerStatefulWidget {
-  const BundleProjectForm({super.key});
+/// Creates third-party specimen record packages.
+class BundleRecordsForm extends ConsumerStatefulWidget {
+  const BundleRecordsForm({super.key});
 
   @override
-  ConsumerState<BundleProjectForm> createState() => BundleProjectFormState();
+  ConsumerState<BundleRecordsForm> createState() => BundleRecordsFormState();
 }
 
-class BundleProjectFormState extends ConsumerState<BundleProjectForm>
+class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     with SingleTickerProviderStateMixin {
   final FileOpCtrModel _fileController = FileOpCtrModel.empty();
   late final TabController _mobileTabs;
@@ -69,7 +69,8 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
         taxonSelectionMode: _taxonSelectionMode,
         isLoadingTaxa: _isLoadingTaxa,
         isWriting: _isWriting,
-        canWrite: _fileController.isValid &&
+        canWrite:
+            _fileController.isValid &&
             (!_format.usesTaxonSelection || _selectedTaxonGroups.isNotEmpty) &&
             !_isPlanning,
         onFormatChanged: _changeFormat,
@@ -94,11 +95,14 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
     final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bundle project')),
+      appBar: AppBar(title: const Text('Bundle records')),
       body: isLargeScreen
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [Expanded(child: settings), Expanded(child: contents)],
+              children: [
+                Expanded(child: settings),
+                Expanded(child: contents),
+              ],
             )
           : Column(
               children: [
@@ -107,8 +111,9 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
                   tabs: const [
                     Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
                     Tab(
-                        icon: Icon(Icons.inventory_2_outlined),
-                        text: 'Contents'),
+                      icon: Icon(Icons.inventory_2_outlined),
+                      text: 'Contents',
+                    ),
                   ],
                 ),
                 Expanded(
@@ -285,9 +290,11 @@ class BundleProjectFormState extends ConsumerState<BundleProjectForm>
   void _showCompleted(String outputPath) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(systemPlatform == PlatformType.desktop
-            ? 'Created ${path.basename(outputPath)}'
-            : 'Bundle complete!'),
+        content: Text(
+          systemPlatform == PlatformType.desktop
+              ? 'Created ${path.basename(outputPath)}'
+              : 'Bundle complete!',
+        ),
       ),
     );
   }
@@ -396,10 +403,9 @@ class _NahpuPackageScopeCard extends StatelessWidget {
       width: double.infinity,
       child: Card(
         elevation: 0,
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.4),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         child: const Padding(
           padding: EdgeInsets.all(16),
           child: Column(
@@ -446,10 +452,9 @@ class BundleTaxonSelectionCard extends StatelessWidget {
       width: double.infinity,
       child: Card(
         elevation: 0,
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.4),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -490,7 +495,8 @@ class BundleTaxonSelectionCard extends StatelessWidget {
                 )
               else
                 ...availableTaxonGroups.map((group) {
-                  final isRequiredBat = group == 'Bats' &&
+                  final isRequiredBat =
+                      group == 'Bats' &&
                       selectedTaxonGroups.contains('Mammals');
                   return CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
@@ -501,8 +507,8 @@ class BundleTaxonSelectionCard extends StatelessWidget {
                     subtitle: group == 'Mammals'
                         ? const Text('Bats are always included with mammals.')
                         : isRequiredBat
-                            ? const Text('Included with Mammals')
-                            : null,
+                        ? const Text('Included with Mammals')
+                        : null,
                     onChanged: isRequiredBat
                         ? null
                         : (selected) {
@@ -561,7 +567,8 @@ class BundleContentsPane extends StatelessWidget {
         isExpanded: true,
         child: Center(
           child: Text(
-              'Select at least one recorded taxon to list the package contents.'),
+            'Select at least one recorded taxon to list the package contents.',
+          ),
         ),
       );
     }
@@ -578,10 +585,12 @@ class BundleContentsPane extends StatelessWidget {
           if (manifest!.warnings.isNotEmpty) ...[
             const Divider(),
             Text('Warnings', style: Theme.of(context).textTheme.titleSmall),
-            ...manifest!.warnings.map((warning) => ListTile(
-                  leading: const Icon(Icons.warning_amber_outlined),
-                  title: Text(warning),
-                )),
+            ...manifest!.warnings.map(
+              (warning) => ListTile(
+                leading: const Icon(Icons.warning_amber_outlined),
+                title: Text(warning),
+              ),
+            ),
           ],
         ],
       ),

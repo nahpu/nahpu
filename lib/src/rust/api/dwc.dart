@@ -13,7 +13,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Future<List<DwcHeader>> getDwcHeaders({required List<String> sourceKeys}) =>
     RustLib.instance.api.crateApiDwcGetDwcHeaders(sourceKeys: sourceKeys);
 
-/// Plans the exact package contents for the Bundle Project contents panel.
+/// Plans the exact package contents for the Bundle Records contents panel.
 Future<String> planDwcBundle({required String requestJson}) =>
     RustLib.instance.api.crateApiDwcPlanDwcBundle(requestJson: requestJson);
 

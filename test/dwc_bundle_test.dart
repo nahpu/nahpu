@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/exports/bundle_project.dart';
+import 'package:nahpu/screens/exports/bundle_records.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
 
 void main() {
@@ -13,18 +13,14 @@ void main() {
   });
 
   test('bundle types expose valid archive choices and extensions', () {
-    expect(
-      DwcBundleFormat.darwinCoreArchive.allowedArchives,
-      {BundleArchiveFormat.zip},
-    );
+    expect(DwcBundleFormat.darwinCoreArchive.allowedArchives, {
+      BundleArchiveFormat.zip,
+    });
     expect(
       DwcBundleFormat.darwinCoreDataPackage.defaultArchive,
       BundleArchiveFormat.tarGzip,
     );
-    expect(
-      DwcBundleFormat.nahpuDataPackage.usesTaxonSelection,
-      isFalse,
-    );
+    expect(DwcBundleFormat.nahpuDataPackage.usesTaxonSelection, isFalse);
     expect(
       DwcBundleFormat.darwinCoreDataPackage.outputExtension(
         BundleArchiveFormat.tarGzip,
@@ -32,9 +28,7 @@ void main() {
       'dwc-dp.tar.gz',
     );
     expect(
-      DwcBundleFormat.nahpuDataPackage.outputExtension(
-        BundleArchiveFormat.zip,
-      ),
+      DwcBundleFormat.nahpuDataPackage.outputExtension(BundleArchiveFormat.zip),
       'nahpu-dp.zip',
     );
   });
@@ -71,25 +65,28 @@ void main() {
     expect(highConfidence['display_name'], 'High');
   });
 
-  testWidgets('users can switch to selected taxa and change the selection',
-      (tester) async {
+  testWidgets('users can switch to selected taxa and change the selection', (
+    tester,
+  ) async {
     var mode = BundleTaxonSelectionMode.all;
     var selected = <String>{'Birds', 'Mammals', 'Bats'};
 
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: StatefulBuilder(
-          builder: (context, setState) => BundleTaxonSelectionCard(
-            availableTaxonGroups: const {'Birds', 'Mammals', 'Bats'},
-            selectedTaxonGroups: selected,
-            selectionMode: mode,
-            isLoading: false,
-            onModeChanged: (value) => setState(() => mode = value),
-            onChanged: (value) => setState(() => selected = value),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) => BundleTaxonSelectionCard(
+              availableTaxonGroups: const {'Birds', 'Mammals', 'Bats'},
+              selectedTaxonGroups: selected,
+              selectionMode: mode,
+              isLoading: false,
+              onModeChanged: (value) => setState(() => mode = value),
+              onChanged: (value) => setState(() => selected = value),
+            ),
           ),
         ),
       ),
-    ));
+    );
 
     await tester.tap(find.text('Selected taxa'));
     await tester.pump();
@@ -106,8 +103,9 @@ void main() {
     expect(batsTile.onChanged, isNull);
   });
 
-  testWidgets('only files with fields show an expansion control',
-      (tester) async {
+  testWidgets('only files with fields show an expansion control', (
+    tester,
+  ) async {
     const manifest = DwcBundleManifest(
       files: [
         DwcBundleFile(
@@ -126,40 +124,45 @@ void main() {
       warnings: [],
     );
 
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: BundleContentsPane(
-          manifest: manifest,
-          isLoading: false,
-          error: null,
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BundleContentsPane(
+            manifest: manifest,
+            isLoading: false,
+            error: null,
+          ),
         ),
       ),
-    ));
+    );
 
     expect(find.byType(ExpansionTile), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'datapackage.json'), findsOneWidget);
   });
 
-  testWidgets('all taxa selection keeps the taxa card at the panel width',
-      (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 500),
-            child: BundleTaxonSelectionCard(
-              availableTaxonGroups: {'Birds', 'Herpetofauna', 'Mammals'},
-              selectedTaxonGroups: {'Birds', 'Herpetofauna', 'Mammals'},
-              selectionMode: BundleTaxonSelectionMode.all,
-              isLoading: false,
-              onChanged: _ignoreTaxonGroups,
-              onModeChanged: _ignoreSelectionMode,
+  testWidgets('all taxa selection keeps the taxa card at the panel width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 500),
+              child: BundleTaxonSelectionCard(
+                availableTaxonGroups: {'Birds', 'Herpetofauna', 'Mammals'},
+                selectedTaxonGroups: {'Birds', 'Herpetofauna', 'Mammals'},
+                selectionMode: BundleTaxonSelectionMode.all,
+                isLoading: false,
+                onChanged: _ignoreTaxonGroups,
+                onModeChanged: _ignoreSelectionMode,
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
 
     final card = find.byType(Card);
     expect(tester.getSize(card).width, 500);
@@ -196,15 +199,17 @@ void main() {
       warnings: [],
     );
 
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: BundleContentsPane(
-          manifest: manifest,
-          isLoading: false,
-          error: null,
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BundleContentsPane(
+            manifest: manifest,
+            isLoading: false,
+            error: null,
+          ),
         ),
       ),
-    ));
+    );
 
     final icons = tester
         .widgetList<Icon>(find.byType(Icon))
