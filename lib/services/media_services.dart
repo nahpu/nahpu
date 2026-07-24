@@ -9,6 +9,9 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:path/path.dart' as path;
@@ -81,6 +84,7 @@ class MediaServices extends AppServices {
     MediaCategory mediaCategory = matchMediaCategoryString(category);
     await _deleteMatchingCategory(id, mediaCategory);
     await MediaDbQuery(dbAccess).deleteMedia(id);
+    _invalidateMedia(mediaCategory);
   }
 
   Future<void> _deleteMatchingCategory(int id, MediaCategory category) async {
@@ -100,19 +104,18 @@ class MediaServices extends AppServices {
       default:
         break;
     }
-    _invalidateMedia(category);
   }
 
   void _invalidateMedia(MediaCategory category) {
     switch (category) {
       case MediaCategory.narrative:
-        // ref.invalidate(narrativeMediaProvider);
+        ref.invalidate(narrativeMediaProvider);
         break;
       case MediaCategory.site:
-        // ref.invalidate(siteMediaProvider);
+        ref.invalidate(siteMediaProvider);
         break;
       case MediaCategory.specimen:
-        // ref.invalidate(specimenMediaProvider);
+        ref.invalidate(specimenMediaProvider);
         break;
       default:
         break;

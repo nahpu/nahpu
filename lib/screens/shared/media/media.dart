@@ -7,6 +7,7 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
@@ -196,6 +197,11 @@ class MediaViewerBuilder extends StatelessWidget {
           itemBuilder: (context, index) {
             return MediaCard(
               ctr: MediaFormCtr.fromData(images[index]),
+              onTap: () => showMediaViewerDialog(
+                context,
+                mediaList: images,
+                initialIndex: index,
+              ),
             );
           },
         ),
@@ -208,9 +214,11 @@ class MediaCard extends ConsumerStatefulWidget {
   const MediaCard({
     super.key,
     required this.ctr,
+    this.onTap,
   });
 
   final MediaFormCtr ctr;
+  final VoidCallback? onTap;
 
   @override
   MediaCardState createState() => MediaCardState();
@@ -222,52 +230,55 @@ class MediaCardState extends ConsumerState<MediaCard> {
     return Stack(
       fit: StackFit.loose,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: widget.ctr.fileNameCtr != null
-              ? FutureBuilder<_MediaAssetPreview>(
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return _MediaTypeFallback(
-                        kind: _getMediaKind(),
-                        label: 'Media unavailable',
-                      );
-                    }
-                    if (snapshot.hasData) {
-                      final mediaAsset = snapshot.data!;
-                      if (!mediaAsset.exists) {
+        GestureDetector(
+          onTap: widget.onTap,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: widget.ctr.fileNameCtr != null
+                ? FutureBuilder<_MediaAssetPreview>(
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
                         return _MediaTypeFallback(
-                          kind: mediaAsset.kind,
-                          label: 'File missing',
+                          kind: _getMediaKind(),
+                          label: 'Media unavailable',
                         );
                       }
-                      if (mediaAsset.file != null) {
-                        return Image.file(
-                          width: imageSize.toDouble(),
-                          height: imageSize.toDouble(),
-                          cacheWidth: imageSize + 100,
-                          mediaAsset.file!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _MediaTypeFallback(
-                              kind: mediaAsset.kind,
-                              label: 'Image unavailable',
-                            );
-                          },
+                      if (snapshot.hasData) {
+                        final mediaAsset = snapshot.data!;
+                        if (!mediaAsset.exists) {
+                          return _MediaTypeFallback(
+                            kind: mediaAsset.kind,
+                            label: 'File missing',
+                          );
+                        }
+                        if (mediaAsset.file != null) {
+                          return Image.file(
+                            width: imageSize.toDouble(),
+                            height: imageSize.toDouble(),
+                            cacheWidth: imageSize + 100,
+                            mediaAsset.file!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _MediaTypeFallback(
+                                kind: mediaAsset.kind,
+                                label: 'Image unavailable',
+                              );
+                            },
+                          );
+                        }
+                        return _MediaTypeFallback(kind: mediaAsset.kind);
+                      } else {
+                        return const Center(
+                          child: CircularProgressIndicator(),
                         );
                       }
-                      return _MediaTypeFallback(kind: mediaAsset.kind);
-                    } else {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                  },
-                  future: _getMediaPath(),
-                  initialData: null)
-              : const Center(
-                  child: Text('No media'),
-                ),
+                    },
+                    future: _getMediaPath(),
+                    initialData: null)
+                : const Center(
+                    child: Text('No media'),
+                  ),
+          ),
         ),
         Positioned(
           left: 0,
