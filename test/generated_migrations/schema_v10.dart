@@ -2962,8 +2962,8 @@ class SpecimenPart extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class DatabaseAtV8 extends GeneratedDatabase {
-  DatabaseAtV8(QueryExecutor e) : super(e);
+class DatabaseAtV10 extends GeneratedDatabase {
+  DatabaseAtV10(QueryExecutor e) : super(e);
   late final Project project = Project(this);
   late final Personnel personnel = Personnel(this);
   late final Media media = Media(this);
@@ -2987,19 +2987,31 @@ class DatabaseAtV8 extends GeneratedDatabase {
   late final SpecimenPart specimenPart = SpecimenPart(this);
   late final Index specimenProjectSpeciesIdx = Index(
     'specimen_project_species_idx',
-    'CREATE INDEX specimen_project_species_idx ON specimen (projectUuid, speciesID)',
+    'CREATE INDEX IF NOT EXISTS specimen_project_species_idx ON specimen (projectUuid, speciesID)',
   );
   late final Index specimenProjectEventIdx = Index(
     'specimen_project_event_idx',
-    'CREATE INDEX specimen_project_event_idx ON specimen (projectUuid, collEventID)',
+    'CREATE INDEX IF NOT EXISTS specimen_project_event_idx ON specimen (projectUuid, collEventID)',
+  );
+  late final Index siteProjectIdx = Index(
+    'site_project_idx',
+    'CREATE INDEX IF NOT EXISTS site_project_idx ON site (projectUuid)',
+  );
+  late final Index coordinateSiteIdx = Index(
+    'coordinate_site_idx',
+    'CREATE INDEX IF NOT EXISTS coordinate_site_idx ON coordinate (siteID)',
+  );
+  late final Index specimenProjectCoordinateIdx = Index(
+    'specimen_project_coordinate_idx',
+    'CREATE INDEX IF NOT EXISTS specimen_project_coordinate_idx ON specimen (projectUuid, coordinateID)',
   );
   late final Index collEventProjectSiteIdx = Index(
     'coll_event_project_site_idx',
-    'CREATE INDEX coll_event_project_site_idx ON collEvent (projectUuid, siteID)',
+    'CREATE INDEX IF NOT EXISTS coll_event_project_site_idx ON collEvent (projectUuid, siteID)',
   );
   late final Index specimenPartSpecimenIdx = Index(
     'specimen_part_specimen_idx',
-    'CREATE INDEX specimen_part_specimen_idx ON specimenPart (specimenUuid)',
+    'CREATE INDEX IF NOT EXISTS specimen_part_specimen_idx ON specimenPart (specimenUuid)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -3029,9 +3041,12 @@ class DatabaseAtV8 extends GeneratedDatabase {
     specimenPart,
     specimenProjectSpeciesIdx,
     specimenProjectEventIdx,
+    siteProjectIdx,
+    coordinateSiteIdx,
+    specimenProjectCoordinateIdx,
     collEventProjectSiteIdx,
     specimenPartSpecimenIdx,
   ];
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 10;
 }

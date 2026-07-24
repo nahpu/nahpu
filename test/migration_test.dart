@@ -12,13 +12,44 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8]) {
-    test('upgrade from v$version to v9', () async {
+  for (final version in [6, 7, 8, 9]) {
+    test('upgrade from v$version to v10', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 9);
+      await verifier.migrateAndValidate(db, 10);
       await db.close();
     });
   }
+
+  test('repairs an existing v8 index during upgrade', () async {
+    final schema = await verifier.schemaAt(8);
+    schema.rawDatabase.execute(
+      'CREATE INDEX site_project_idx ON site(projectUuid)',
+    );
+    final db = Database.forMigrationTesting(schema.newConnection());
+
+    await verifier.migrateAndValidate(db, 10);
+    await db.close();
+  });
+
+  test('repairs an outdated v9 index definition', () async {
+    final schema = await verifier.schemaAt(9);
+    schema.rawDatabase.execute('DROP INDEX site_project_idx');
+    schema.rawDatabase.execute(
+      'CREATE INDEX site_project_idx ON site(siteType)',
+    );
+    final db = Database.forMigrationTesting(schema.newConnection());
+
+    await verifier.migrateAndValidate(db, 10);
+    final columns = await db
+        .customSelect(
+          'PRAGMA index_info(site_project_idx)',
+          readsFrom: const {},
+        )
+        .get();
+
+    expect(columns.map((row) => row.data['name']), ['projectUuid']);
+    await db.close();
+  });
 }

@@ -23,11 +23,9 @@ part 'database.g.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 9;
+const int kSchemaVersion = 10;
 
-@DriftDatabase(
-  include: {'tables.drift'},
-)
+@DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {
   Database() : super(_openConnection());
 
@@ -40,46 +38,61 @@ class Database extends _$Database {
 
   @override
   MigrationStrategy get migration {
-    return MigrationStrategy(onCreate: (m) async {
-      await m.createAll();
-    }, onUpgrade: (Migrator m, int from, int to) async {
-      await customStatement('PRAGMA foreign_keys = OFF');
-      if (from < 2) {
-        await m.addColumn(specimen, specimen.taxonGroup);
-      }
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        try {
+          await customStatement('PRAGMA foreign_keys = OFF');
+          if (from < 2) {
+            await m.addColumn(specimen, specimen.taxonGroup);
+          }
 
-      if (from < 3) {
-        await _migrateFromVersion2(m);
-      }
+          if (from < 3) {
+            await _migrateFromVersion2(m);
+          }
 
-      if (from == 3) {
-        await _migrateV3only(m);
-      }
+          if (from == 3) {
+            await _migrateV3only(m);
+          }
 
-      if (from < 4) {
-        await _migrateFromVersion3(m);
-      }
+          if (from < 4) {
+            await _migrateFromVersion3(m);
+          }
 
-      if (from < 5) {
-        await _migrateFromVersion4(m);
-      }
+          if (from < 5) {
+            await _migrateFromVersion4(m);
+          }
 
-      if (from < 6) {
-        await _migrateFromVersion5(m);
-      }
+          if (from < 6) {
+            await _migrateFromVersion5(m);
+          }
 
-      if (from < 7) {
-        await _migrateFromVersion6(m);
-      }
-      if (from < 8) {
-        await _migrateFromVersion7(m);
-      }
-      if (from < 9) {
-        await _migrateFromVersion8(m);
-      }
-    }, beforeOpen: (details) async {
-      await customStatement('PRAGMA foreign_keys = ON');
-    });
+          if (from < 7) {
+            await _migrateFromVersion6(m);
+          }
+          if (from < 8) {
+            await _migrateFromVersion7(m);
+          }
+          if (from < 9) {
+            await _migrateFromVersion8(m);
+          }
+          if (from < 10) {
+            await _migrateFromVersion9(m);
+          }
+        } catch (error, stackTrace) {
+          if (kDebugMode) {
+            debugPrint('Database migration from v$from to v$to failed: $error');
+            debugPrintStack(stackTrace: stackTrace);
+          }
+          rethrow;
+        }
+      },
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
   }
 
   Future<void> _migrateFromVersion7(Migrator m) async {
@@ -91,15 +104,56 @@ class Database extends _$Database {
 
   Future<void> _migrateFromVersion8(Migrator m) async {
     await customStatement(
-      'CREATE INDEX site_project_idx ON site(projectUuid)',
+      'CREATE INDEX IF NOT EXISTS site_project_idx ON site(projectUuid)',
     );
     await customStatement(
-      'CREATE INDEX coordinate_site_idx ON coordinate(siteID)',
+      'CREATE INDEX IF NOT EXISTS coordinate_site_idx ON coordinate(siteID)',
     );
     await customStatement(
-      'CREATE INDEX specimen_project_coordinate_idx '
+      'CREATE INDEX IF NOT EXISTS specimen_project_coordinate_idx '
       'ON specimen(projectUuid, coordinateID)',
     );
+  }
+
+  Future<void> _migrateFromVersion9(Migrator m) async {
+    await _recreateIndex(
+      'specimen_project_species_idx',
+      'CREATE INDEX specimen_project_species_idx '
+          'ON specimen(projectUuid, speciesID)',
+    );
+    await _recreateIndex(
+      'specimen_project_event_idx',
+      'CREATE INDEX specimen_project_event_idx '
+          'ON specimen(projectUuid, collEventID)',
+    );
+    await _recreateIndex(
+      'site_project_idx',
+      'CREATE INDEX site_project_idx ON site(projectUuid)',
+    );
+    await _recreateIndex(
+      'coordinate_site_idx',
+      'CREATE INDEX coordinate_site_idx ON coordinate(siteID)',
+    );
+    await _recreateIndex(
+      'specimen_project_coordinate_idx',
+      'CREATE INDEX specimen_project_coordinate_idx '
+          'ON specimen(projectUuid, coordinateID)',
+    );
+    await _recreateIndex(
+      'coll_event_project_site_idx',
+      'CREATE INDEX coll_event_project_site_idx '
+          'ON collEvent(projectUuid, siteID)',
+    );
+    await _recreateIndex(
+      'specimen_part_specimen_idx',
+      'CREATE INDEX specimen_part_specimen_idx '
+          'ON specimenPart(specimenUuid)',
+    );
+  }
+
+  Future<void> _recreateIndex(String name, String createStatement) async {
+    await customStatement('DROP INDEX IF EXISTS $name');
+    await customStatement(createStatement);
   }
 
   Future<void> _migrateFromVersion6(Migrator m) async {
@@ -138,7 +192,9 @@ class Database extends _$Database {
     await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMax);
     await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMin);
     await m.addColumn(
-        mammalMeasurement, mammalMeasurement.frequencyAtMaxEnergy);
+      mammalMeasurement,
+      mammalMeasurement.frequencyAtMaxEnergy,
+    );
     await m.addColumn(mammalMeasurement, mammalMeasurement.duration);
 
     // Enhanced specimen ID options
