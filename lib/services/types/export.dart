@@ -22,11 +22,19 @@ const List<String> exportFormats = [
   'JSON (.json)',
 ];
 
-enum DbExportFmt { sqlite3 }
+enum DbArchiveFormat { zip, tarGzip }
 
-const Map<DbExportFmt, String> dbExportFmt = {
-  DbExportFmt.sqlite3: 'Database (.sqlite3)',
-};
+extension DbArchiveFormatLabel on DbArchiveFormat {
+  String get label => switch (this) {
+    DbArchiveFormat.zip => 'ZIP (.zip)',
+    DbArchiveFormat.tarGzip => 'TAR.GZ (.tar.gz)',
+  };
+
+  String get extension => switch (this) {
+    DbArchiveFormat.zip => 'zip',
+    DbArchiveFormat.tarGzip => 'tar.gz',
+  };
+}
 
 enum ConfigExportFmt { json, jsonl }
 
@@ -64,11 +72,7 @@ enum SpecimenRecordType {
   allTaxa,
 }
 
-enum SpecimenExportFmt {
-  standard,
-  allFields,
-  selectFields,
-}
+enum SpecimenExportFmt { standard, allFields, selectFields }
 
 const List<String> specimenExportFmtList = [
   'Standard',
@@ -76,23 +80,11 @@ const List<String> specimenExportFmtList = [
   'Custom fields',
 ];
 
-enum TaxonRecordType {
-  birds,
-  mammals,
-  herps,
-}
+enum TaxonRecordType { birds, mammals, herps }
 
-const List<String> taxonRecordTypeList = [
-  'Birds',
-  'Mammals',
-  'Herpetofauna',
-];
+const List<String> taxonRecordTypeList = ['Birds', 'Mammals', 'Herpetofauna'];
 
-enum MammalRecordType {
-  excludeBats,
-  onlyBats,
-  allMammals,
-}
+enum MammalRecordType { excludeBats, onlyBats, allMammals }
 
 const List<String> mammalGroupList = [
   'Exclude bats',
@@ -106,7 +98,7 @@ enum RecordType {
   collEvent,
   specimenRecord,
   specimenParts,
-  none
+  none,
 }
 
 const List<String> recordTypeList = [
@@ -355,14 +347,16 @@ List<ExportExpressionSegment> parseExportExpression(String expression) {
     final start = expression.indexOf('[', cursor);
     if (start == -1) {
       if (cursor < expression.length) {
-        segments
-            .add(ExportExpressionSegment.text(expression.substring(cursor)));
+        segments.add(
+          ExportExpressionSegment.text(expression.substring(cursor)),
+        );
       }
       break;
     }
     if (start > cursor) {
       segments.add(
-          ExportExpressionSegment.text(expression.substring(cursor, start)));
+        ExportExpressionSegment.text(expression.substring(cursor, start)),
+      );
     }
     final end = expression.indexOf(']', start + 1);
     if (end == -1) {
@@ -372,7 +366,8 @@ List<ExportExpressionSegment> parseExportExpression(String expression) {
     final field = expression.substring(start + 1, end).trim();
     if (field.isEmpty) {
       segments.add(
-          ExportExpressionSegment.text(expression.substring(start, end + 1)));
+        ExportExpressionSegment.text(expression.substring(start, end + 1)),
+      );
     } else {
       segments.add(ExportExpressionSegment.field(field));
     }
@@ -386,7 +381,8 @@ List<ExportExpressionSegment> parseExportExpression(String expression) {
 String serializeExportExpression(Iterable<ExportExpressionSegment> segments) =>
     segments
         .map(
-            (segment) => segment.isField ? '[${segment.value}]' : segment.value)
+          (segment) => segment.isField ? '[${segment.value}]' : segment.value,
+        )
         .join();
 
 bool isDirectExportSourceExpression(String expression) {
@@ -464,8 +460,9 @@ class ExportFieldMapping {
   }) {
     return ExportFieldMapping(
       expression: expression ?? this.expression,
-      headerOverride:
-          clearHeaderOverride ? null : (headerOverride ?? this.headerOverride),
+      headerOverride: clearHeaderOverride
+          ? null
+          : (headerOverride ?? this.headerOverride),
       textType: textType ?? this.textType,
       formatOption: formatOption ?? this.formatOption,
       caseFormat: caseFormat ?? this.caseFormat,
@@ -511,8 +508,11 @@ class ExportFieldMapping {
       recordSeparator: json['recordSeparator'] as String? ?? ';',
       bracketConditions: (json['bracketConditions'] as List? ?? [])
           .whereType<Map>()
-          .map((value) => ConditionalBracketCondition.fromJson(
-              Map<String, dynamic>.from(value)))
+          .map(
+            (value) => ConditionalBracketCondition.fromJson(
+              Map<String, dynamic>.from(value),
+            ),
+          )
           .toList(growable: false),
       bracketConditionMode: ConditionalMatchMode.values.byName(
         json['bracketConditionMode'] as String? ??
@@ -522,24 +522,25 @@ class ExportFieldMapping {
   }
 
   Map<String, dynamic> toJson() => {
-        'expression': expression,
-        if (headerOverride != null) 'headerOverride': headerOverride,
-        'textType': textType,
-        'formatOption': formatOption,
-        'caseFormat': caseFormat,
-        'nullFallbackOption': nullFallbackOption,
-        'customNullFallbackText': customNullFallbackText,
-        if (nestedNamespace != null) 'nestedNamespace': nestedNamespace,
-        'nestedFields': nestedFields,
-        'nestedMode': nestedMode.name,
-        'listMode': listMode.name,
-        'indexedHeaderStyle': indexedHeaderStyle.name,
-        'fieldSeparator': fieldSeparator,
-        'recordSeparator': recordSeparator,
-        'bracketConditions':
-            bracketConditions.map((condition) => condition.toJson()).toList(),
-        'bracketConditionMode': bracketConditionMode.name,
-      };
+    'expression': expression,
+    if (headerOverride != null) 'headerOverride': headerOverride,
+    'textType': textType,
+    'formatOption': formatOption,
+    'caseFormat': caseFormat,
+    'nullFallbackOption': nullFallbackOption,
+    'customNullFallbackText': customNullFallbackText,
+    if (nestedNamespace != null) 'nestedNamespace': nestedNamespace,
+    'nestedFields': nestedFields,
+    'nestedMode': nestedMode.name,
+    'listMode': listMode.name,
+    'indexedHeaderStyle': indexedHeaderStyle.name,
+    'fieldSeparator': fieldSeparator,
+    'recordSeparator': recordSeparator,
+    'bracketConditions': bracketConditions
+        .map((condition) => condition.toJson())
+        .toList(),
+    'bracketConditionMode': bracketConditionMode.name,
+  };
 }
 
 /// A complete, versioned configuration for one record export.
@@ -559,11 +560,11 @@ class ExportPresetModel {
   final List<ExportFieldMapping> mappings;
 
   factory ExportPresetModel.empty() => const ExportPresetModel(
-        recordType: RecordType.specimenRecord,
-        specimenRecordType: SpecimenRecordType.allTaxa,
-        headerFormat: ExportHeaderFormat.tableFieldName,
-        mappings: [],
-      );
+    recordType: RecordType.specimenRecord,
+    specimenRecordType: SpecimenRecordType.allTaxa,
+    headerFormat: ExportHeaderFormat.tableFieldName,
+    mappings: [],
+  );
 
   factory ExportPresetModel.fromJson(Map<String, dynamic> json) {
     final schemaVersion = json['schemaVersion'] as int?;
@@ -582,19 +583,22 @@ class ExportPresetModel {
             ExportHeaderFormat.tableFieldName.name,
       ),
       mappings: (json['mappings'] as List? ?? [])
-          .map((value) => ExportFieldMapping.fromJson(
-              Map<String, dynamic>.from(value as Map)))
+          .map(
+            (value) => ExportFieldMapping.fromJson(
+              Map<String, dynamic>.from(value as Map),
+            ),
+          )
           .toList(growable: false),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'schemaVersion': schemaVersion,
-        'recordType': recordTypeToString(recordType),
-        'specimenRecordType': specimenRecordType.name,
-        'headerFormat': headerFormat.name,
-        'mappings': mappings.map((mapping) => mapping.toJson()).toList(),
-      };
+    'schemaVersion': schemaVersion,
+    'recordType': recordTypeToString(recordType),
+    'specimenRecordType': specimenRecordType.name,
+    'headerFormat': headerFormat.name,
+    'mappings': mappings.map((mapping) => mapping.toJson()).toList(),
+  };
 }
 
 RecordType parseRecordType(String? value) {

@@ -1,15 +1,13 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/shared/forms/fields.dart';
-import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
-import 'package:nahpu/screens/shared/actions/buttons.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/export/db_writer.dart';
-
-const String _dbExtension = 'sqlite3';
+import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/types/export.dart';
 
 class ExportDbForm extends ConsumerStatefulWidget {
   const ExportDbForm({super.key});
@@ -19,205 +17,357 @@ class ExportDbForm extends ConsumerStatefulWidget {
 }
 
 class ExportDbFormState extends ConsumerState<ExportDbForm> {
-  DbExportFmt exportFmt = DbExportFmt.sqlite3;
-  FileOpCtrModel exportCtr = FileOpCtrModel.empty();
+  DbArchiveFormat _format = DbArchiveFormat.tarGzip;
+  final _fileNameController = TextEditingController(text: 'backup');
   String _fileStem = 'backup';
   Directory? _selectedDir;
+  DbBackupSummary? _summary;
+  File? _savePath;
+  String? _summaryError;
   bool _hasSaved = false;
+  bool _isLoading = true;
   bool _isRunning = false;
-  bool _isWithProjectData = false;
-  bool _isWithAppSettings = false;
-  late File _savePath;
 
   @override
   void initState() {
     super.initState();
+    _loadSummary();
   }
 
   @override
   void dispose() {
-    exportCtr.dispose();
+    _fileNameController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Backup database'),
-        automaticallyImplyLeading: false,
-      ),
-      body: FileOperationPage(
-        children: [
-          FileFormatIcon(path: _getDbIconPath()),
-          DropdownButtonFormField(
-            initialValue: exportFmt,
-            decoration: const InputDecoration(
-              labelText: 'Database format',
-            ),
-            items: dbExportFmt.entries
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e.key,
-                    child: Text(e.value),
-                  ),
-                )
-                .toList(),
-            onChanged: (DbExportFmt? value) {
-              if (value != null) {
+      appBar: AppBar(title: const Text('Backup database')),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 760;
+            final settings = _BackupSettingsCard(
+              controller: _fileNameController,
+              format: _format,
+              directory: _selectedDir,
+              enabled: !_isLoading && !_isRunning,
+              onFormatChanged: (value) {
                 setState(() {
-                  exportFmt = value;
+                  _format = value;
                   _hasSaved = false;
                 });
-              }
-            },
-          ),
-          SwitchField(
-              label: 'Include project data',
-              value: _isWithProjectData,
-              onPressed: (value) {
-                setState(() {
-                  _isWithProjectData = !_isWithProjectData;
-                });
-              }),
-          SwitchField(
-              label: 'Include app settings',
-              value: _isWithAppSettings,
-              onPressed: (value) {
-                setState(() {
-                  _isWithAppSettings = !_isWithAppSettings;
-                });
-              }),
-          FileNameField(
-            controller: exportCtr,
-            onChanged: (String? value) {
-              if (value != null) {
+              },
+              onFileNameChanged: (value) {
                 setState(() {
                   _fileStem = value;
                   _hasSaved = false;
                 });
-              }
-            },
-          ),
-          SelectDirField(
-            dirPath: _selectedDir,
-            onPressed: () async {
-              await _getDir();
-            },
-            onCanceled: () {
-              setState(() {
+              },
+              onSelectDirectory: _getDir,
+              onClearDirectory: () => setState(() {
                 _selectedDir = null;
                 _hasSaved = false;
-              });
-            },
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 20,
-            children: [
-              SaveSecondaryButton(hasSaved: _hasSaved),
-              !_hasSaved
-                  ? ProgressButton(
-                      label: 'Save',
-                      icon: Icons.save_alt_outlined,
-                      isRunning: _isRunning,
-                      onPressed: exportCtr.isValid
-                          ? () async {
-                              setState(() {
-                                _isRunning = true;
-                              });
-                              await _writeDb();
-                            }
-                          : null,
-                    )
-                  : Builder(
-                      builder: (context) {
-                        return ShareButton(
-                          onPressed: () async {
-                            await _shareFile(context);
-                          },
-                        );
-                      },
+              }),
+            );
+            final summary = _BackupSummary(
+              summary: _summary,
+              error: _summaryError,
+            );
+            return Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(4, 8, 4, 16),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1100),
+                        child: wide
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: settings),
+                                  const SizedBox(width: 20),
+                                  Expanded(child: summary),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  settings,
+                                  const SizedBox(height: 16),
+                                  summary,
+                                ],
+                              ),
+                      ),
                     ),
-            ],
-          )
-        ],
+                  ),
+                ),
+                _BackupActionBar(
+                  isRunning: _isRunning,
+                  canSave:
+                      !_isLoading &&
+                      _summary != null &&
+                      _summaryError == null &&
+                      _fileNameController.text.trim().isNotEmpty,
+                  hasSaved: _hasSaved,
+                  onSave: _writeDb,
+                  onShare: () => _shareFile(context),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  String _getDbIconPath() {
-    if (_isWithProjectData || _isWithAppSettings) {
-      return 'assets/icons/zip.svg';
-    } else {
-      return 'assets/icons/sqlite.svg';
+  Future<void> _loadSummary() async {
+    try {
+      final summary = await DbExport(ref: ref, filePath: File('')).getSummary();
+      if (!mounted) return;
+      setState(() {
+        _summary = summary;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _summaryError = error.toString();
+        _isLoading = false;
+      });
     }
   }
 
   Future<void> _writeDb() async {
+    setState(() => _isRunning = true);
     try {
-      _savePath = await AppIOServices(
+      final savePath = await AppIOServices(
         dir: _selectedDir,
-        fileStem: _fileStem,
-        ext: _dbExtension,
+        fileStem: _fileStem.trim(),
+        ext: _format.extension,
       ).getSavePath();
-      final currentSavePath = await DbExport(ref: ref, filePath: _savePath)
-          .write(_isWithProjectData, _isWithAppSettings);
+      final output = await DbExport(
+        ref: ref,
+        filePath: savePath,
+      ).write(_format);
+      if (!mounted) return;
       setState(() {
         _hasSaved = true;
-        _savePath = currentSavePath;
+        _savePath = output;
       });
-      if (context.mounted) {
-        _showSuccess();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        _showError(e.toString());
-      }
+      _showSuccess();
+    } catch (error) {
+      if (mounted) _showError(error.toString());
+    } finally {
+      if (mounted) setState(() => _isRunning = false);
     }
-
-    setState(() {
-      _isRunning = false;
-    });
   }
 
   void _showSuccess() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('File saved as $_savePath'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('File saved as ${_savePath!.path}')));
   }
 
-  void _showError(String errors) {
+  void _showError(String error) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: ErrorText(error: errors),
+        content: ErrorText(error: error),
         duration: const Duration(seconds: 10),
       ),
     );
   }
 
   Future<void> _shareFile(BuildContext context) async {
+    final savePath = _savePath;
+    if (savePath == null) return;
     try {
-      await FilePickerServices().shareFile(context, _savePath);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: ErrorText(error: e.toString()),
-          ),
-        );
-      }
+      await FilePickerServices().shareFile(context, savePath);
+    } catch (error) {
+      if (mounted) _showError(error.toString());
     }
   }
 
   Future<void> _getDir() async {
-    final path = await FilePickerServices().selectDir();
-    if (path != null) {
-      setState(() {
-        _selectedDir = path;
-      });
-    }
+    final selected = await FilePickerServices().selectDir();
+    if (selected == null || !mounted) return;
+    setState(() {
+      _selectedDir = selected;
+      _hasSaved = false;
+    });
+  }
+}
+
+class _BackupSettingsCard extends StatelessWidget {
+  const _BackupSettingsCard({
+    required this.controller,
+    required this.format,
+    required this.directory,
+    required this.enabled,
+    required this.onFormatChanged,
+    required this.onFileNameChanged,
+    required this.onSelectDirectory,
+    required this.onClearDirectory,
+  });
+
+  final TextEditingController controller;
+  final DbArchiveFormat format;
+  final Directory? directory;
+  final bool enabled;
+  final ValueChanged<DbArchiveFormat> onFormatChanged;
+  final ValueChanged<String> onFileNameChanged;
+  final VoidCallback onSelectDirectory;
+  final VoidCallback onClearDirectory;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Backup archive',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'This creates a full NAHPU backup, including all projects, '
+              'records, media, and app settings. For a project-only backup, '
+              'use Project export.',
+            ),
+            const SizedBox(height: 20),
+            SegmentedButton<DbArchiveFormat>(
+              segments: const [
+                ButtonSegment(
+                  value: DbArchiveFormat.tarGzip,
+                  label: Text('TAR.GZ'),
+                  icon: Icon(Icons.folder_zip_outlined),
+                ),
+                ButtonSegment(
+                  value: DbArchiveFormat.zip,
+                  label: Text('ZIP'),
+                  icon: Icon(Icons.folder_zip_outlined),
+                ),
+              ],
+              selected: {format},
+              onSelectionChanged: enabled
+                  ? (values) => onFormatChanged(values.single)
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: controller,
+              enabled: enabled,
+              onChanged: onFileNameChanged,
+              decoration: InputDecoration(
+                labelText: 'File name',
+                suffixText: '.${format.extension}',
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (systemPlatform == PlatformType.desktop)
+              FileSettingsDirectoryPicker(
+                selectedDir: directory,
+                onSelectDir: enabled ? onSelectDirectory : () {},
+                onClearDir: enabled ? onClearDirectory : () {},
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BackupSummary extends StatelessWidget {
+  const _BackupSummary({required this.summary, required this.error});
+
+  final DbBackupSummary? summary;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Entire database contents',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            if (error != null)
+              ErrorText(error: error!)
+            else if (summary == null)
+              const Center(child: CircularProgressIndicator())
+            else
+              for (final entry in summary!.entries.entries)
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(entry.key),
+                  trailing: Text('${entry.value}'),
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BackupActionBar extends StatelessWidget {
+  const _BackupActionBar({
+    required this.isRunning,
+    required this.canSave,
+    required this.hasSaved,
+    required this.onSave,
+    required this.onShare,
+  });
+
+  final bool isRunning;
+  final bool canSave;
+  final bool hasSaved;
+  final VoidCallback onSave;
+  final VoidCallback onShare;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 0,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (hasSaved)
+                OutlinedButton.icon(
+                  onPressed: onShare,
+                  icon: Icon(Icons.adaptive.share_rounded),
+                  label: const Text('Share'),
+                ),
+              if (hasSaved) const SizedBox(width: 12),
+              FilledButton.icon(
+                onPressed: canSave && !isRunning ? onSave : null,
+                icon: isRunning
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save_alt_outlined),
+                label: Text(hasSaved ? 'Save another' : 'Save backup'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -18,7 +18,7 @@ class ExportProjectScreen extends ConsumerStatefulWidget {
 
 class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   final _fileNameController = TextEditingController();
-  ProjectTransferArchiveFormat _format = ProjectTransferArchiveFormat.zip;
+  ProjectTransferArchiveFormat _format = ProjectTransferArchiveFormat.tarGzip;
   ProjectTransferPayload? _payload;
   Directory? _directory;
   File? _output;
@@ -223,15 +223,18 @@ class _SettingsCard extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             SegmentedButton<ProjectTransferArchiveFormat>(
-              segments: ProjectTransferArchiveFormat.values
-                  .map(
-                    (value) => ButtonSegment(
-                      value: value,
-                      label: Text(value.label),
-                      icon: const Icon(Icons.folder_zip_outlined),
-                    ),
-                  )
-                  .toList(),
+              segments: const [
+                ButtonSegment(
+                  value: ProjectTransferArchiveFormat.tarGzip,
+                  label: Text('TAR.GZ'),
+                  icon: Icon(Icons.folder_zip_outlined),
+                ),
+                ButtonSegment(
+                  value: ProjectTransferArchiveFormat.zip,
+                  label: Text('ZIP'),
+                  icon: Icon(Icons.folder_zip_outlined),
+                ),
+              ],
               selected: {format},
               onSelectionChanged: enabled
                   ? (values) => onFormatChanged(values.single)

@@ -27,7 +27,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     'Events',
     'Specimens',
     'Narratives',
-    'Review and import',
+    'Review and merge',
     'Result',
   ];
   static const _sectionByStep = {
@@ -68,7 +68,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 880;
     return Scaffold(
-      appBar: AppBar(title: const Text('Import project')),
+      appBar: AppBar(title: const Text('Merge project')),
       body: SafeArea(
         child: Column(
           children: [
@@ -269,7 +269,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Back up before importing',
+                      'Back up before merging',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ),
@@ -292,7 +292,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 contentPadding: EdgeInsets.zero,
                 value: _backupAcknowledged,
                 title: const Text(
-                  'I understand that I should keep a backup before importing.',
+                  'I understand that I should keep a backup before merging.',
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
                 onChanged: (value) =>
@@ -534,7 +534,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _StepHeading(
-          title: 'Review and import',
+          title: 'Review and merge',
           message:
               'Nothing has been written yet. The database changes will be '
               'committed together; a failure rolls them all back.',
@@ -590,8 +590,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     if (result == null) {
       return _MessageCard(
         icon: Icons.error_outline_rounded,
-        title: 'Import did not finish',
-        message: _error ?? 'Return to Review and import and try again.',
+        title: 'Merge did not finish',
+        message: _error ?? 'Return to Review and merge and try again.',
       );
     }
     return _RoundedCard(
@@ -604,7 +604,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Project data imported',
+            'Project data merged',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 20),
@@ -613,7 +613,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
             runSpacing: 16,
             alignment: WrapAlignment.center,
             children: [
-              _ResultCount(label: 'Imported', value: result.imported),
+              _ResultCount(label: 'Merged', value: result.imported),
               _ResultCount(label: 'Updated', value: result.updated),
               _ResultCount(label: 'Skipped', value: result.skipped),
               _ResultCount(label: 'Media copied', value: result.mediaCopied),
@@ -807,7 +807,7 @@ class _WizardActionBar extends StatelessWidget {
                               : Icons.arrow_forward_rounded,
                         ),
                   label: Text(
-                    step == lastStep - 1 ? 'Import project' : 'Continue',
+                    step == lastStep - 1 ? 'Merge project' : 'Continue',
                   ),
                 ),
             ],

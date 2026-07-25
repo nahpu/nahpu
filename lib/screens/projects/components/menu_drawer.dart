@@ -48,7 +48,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
         const Divider(color: Colors.grey),
         ListTile(
           leading: const Icon(Icons.move_to_inbox_rounded),
-          title: const Text('Import project'),
+          title: const Text('Merge project'),
           onTap: () {
             Navigator.push(
               context,

@@ -8,13 +8,13 @@ enum ProjectTransferArchiveFormat { zip, tarGzip }
 
 extension ProjectTransferArchiveFormatLabel on ProjectTransferArchiveFormat {
   String get label => switch (this) {
-    ProjectTransferArchiveFormat.zip => 'ZIP',
     ProjectTransferArchiveFormat.tarGzip => 'TAR.GZ',
+    ProjectTransferArchiveFormat.zip => 'ZIP',
   };
 
   String get extension => switch (this) {
-    ProjectTransferArchiveFormat.zip => 'zip',
     ProjectTransferArchiveFormat.tarGzip => 'tar.gz',
+    ProjectTransferArchiveFormat.zip => 'zip',
   };
 }
 

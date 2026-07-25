@@ -396,7 +396,7 @@ void main() {
     scaffold.openDrawer();
     await tester.pumpAndSettle();
 
-    expect(find.text('Import project'), findsOneWidget);
+    expect(find.text('Merge project'), findsOneWidget);
     expect(find.text('Export project'), findsOneWidget);
     expect(find.text('Bundle records'), findsOneWidget);
     expect(find.text('Bundle project'), findsNothing);
@@ -425,7 +425,9 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Back up before importing'), findsOneWidget);
+    expect(find.text('Merge project'), findsOneWidget);
+    expect(find.text('Back up before merging'), findsOneWidget);
+    expect(find.text('Back up before importing'), findsNothing);
     expect(find.text('Back up now'), findsOneWidget);
     final continueButton = tester.widget<FilledButton>(
       find.widgetWithText(FilledButton, 'Continue'),
