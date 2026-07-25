@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
+import 'package:nahpu/screens/shared/maps/maplibre_viewport_projection.dart';
+import 'package:nahpu/screens/shared/maps/map_point_hit_test.dart';
+import 'package:nahpu/screens/shared/maps/map_tooltip_card.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/maps/coordinate_format.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
@@ -104,8 +106,20 @@ class _MapLibreMap extends StatefulWidget {
 class _MapLibreMapState extends State<_MapLibreMap> {
   MapController? _controller;
   final _readiness = MapLibreCameraReadiness();
+  SpatialStatisticDatum? _tooltipRow;
 
   bool get _isReady => mounted && _readiness.isReady;
+
+  @override
+  void didUpdateWidget(covariant _MapLibreMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_tooltipRow != null &&
+        !widget.rows.any(
+          (row) => row.coordinateId == _tooltipRow!.coordinateId,
+        )) {
+      _tooltipRow = null;
+    }
+  }
 
   @override
   void dispose() {
@@ -155,7 +169,21 @@ class _MapLibreMapState extends State<_MapLibreMap> {
             },
             onEvent: _handleEvent,
             children: [
-              const Positioned.fill(child: MapLibreGestureSurface()),
+              Positioned.fill(
+                child: MapLibreGestureSurface(onTapUp: _handleMapTap),
+              ),
+              if (_tooltipRow != null)
+                MapTooltipLayer(
+                  point: Geographic(
+                    lon: _tooltipRow!.decimalLongitude!,
+                    lat: _tooltipRow!.decimalLatitude!,
+                  ),
+                  title: _tooltipRow!.displayName,
+                  details: [
+                    '${_tooltipRow!.count ?? 0} ${widget.kind.countLabel} '
+                        '(${spatialStatisticPercent(_tooltipRow!, widget.total).toStringAsFixed(1)}%)',
+                  ],
+                ),
               if (widget.baseLayer != SpatialBasemapStyle.none)
                 Positioned(
                   left: 8,
@@ -171,9 +199,12 @@ class _MapLibreMapState extends State<_MapLibreMap> {
               Positioned(
                 left: 8,
                 top: widget.controlsTopOffset,
-                child: _MapLibreControls(onReset: _resetCamera),
+                child: _MapLibreControls(
+                  onReset: _resetCamera,
+                  onZoomIn: () => _changeZoom(1),
+                  onZoomOut: () => _changeZoom(-1),
+                ),
               ),
-              // Scale bar to right bottom
               const Positioned(right: 8, bottom: 8, child: MapScalebar()),
             ],
           ),
@@ -214,6 +245,7 @@ class _MapLibreMapState extends State<_MapLibreMap> {
   }
 
   Future<void> _resetCamera() async {
+    _clearTooltip();
     final controller = _controller;
     if (!_isReady || controller == null) {
       _readiness.requestReset();
@@ -231,20 +263,63 @@ class _MapLibreMapState extends State<_MapLibreMap> {
     );
   }
 
+  Future<void> _changeZoom(double amount) async {
+    _clearTooltip();
+    final controller = _controller;
+    if (!_isReady || controller == null) return;
+    await controller.animateCamera(
+      zoom: (controller.getCamera().zoom + amount).clamp(1, 16).toDouble(),
+      nativeDuration: const Duration(milliseconds: 200),
+    );
+  }
+
   void _handleEvent(MapEvent event) {
-    if (!_isReady || event is! MapEventClick) return;
-    final feature = _controller
-        ?.featuresAtPoint(
-          event.screenPoint,
-          layerIds: const [SpatialMapStyleService.statisticsLayerId],
-        )
-        .firstOrNull;
-    final coordinateId = feature?.properties['coordinateId'];
-    if (coordinateId is! num) return;
-    final row = widget.rows
-        .where((candidate) => candidate.coordinateId == coordinateId.toInt())
-        .firstOrNull;
-    if (row != null) _showDetails(row);
+    if (event is! MapEventStartMoveCamera ||
+        event.reason != CameraChangeReason.apiGesture) {
+      return;
+    }
+    _clearTooltip();
+  }
+
+  void _handleMapTap(MapLibreTapDetails details) {
+    final controller = _controller;
+    if (!_isReady || controller == null) return;
+    final camera = controller.getCamera();
+    final maximumCount = widget.rows.fold<int>(
+      0,
+      (maximum, row) => math.max(maximum, row.count ?? 0),
+    );
+    final row = closestMapPoint<SpatialStatisticDatum>(
+      tapPosition: details.localPosition,
+      points: widget.rows,
+      screenPosition: (row) => mapLibreViewportScreenLocation(
+        camera: camera,
+        viewportSize: details.viewportSize,
+        point: Geographic(
+          lon: row.decimalLongitude!,
+          lat: row.decimalLatitude!,
+        ),
+      ),
+      hitRadius: (row) => mapMarkerHitRadius(
+        spatialMarkerRadius(
+          kind: widget.kind,
+          count: row.count ?? 0,
+          maximumCount: maximumCount,
+        ),
+      ),
+    );
+    if (row == null || !mounted) {
+      _clearTooltip();
+      return;
+    }
+    setState(() {
+      _tooltipRow = row;
+    });
+  }
+
+  void _clearTooltip() {
+    if (!mounted || _tooltipRow == null) return;
+    setState(() => _tooltipRow = null);
   }
 
   Future<void> _initializeCamera() async {
@@ -255,51 +330,18 @@ class _MapLibreMapState extends State<_MapLibreMap> {
     }
     await _fitRows();
   }
-
-  void _showDetails(SpatialStatisticDatum row) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                row.displayName,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${formatCoordinate(row.decimalLatitude, decimals: 6)}, '
-                '${formatCoordinate(row.decimalLongitude, decimals: 6)}',
-              ),
-              if (row.locality != null) Text(row.locality!),
-              if (row.elevationInMeter != null)
-                Text(
-                  '${formatCoordinate(row.elevationInMeter, decimals: 2)} m',
-                ),
-              if (widget.kind.hasCounts) ...[
-                const SizedBox(height: 8),
-                Text('${row.count} ${widget.kind.countLabel}'),
-                Text(
-                  '${spatialStatisticPercent(row, widget.total).toStringAsFixed(1)}%',
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _MapLibreControls extends StatelessWidget {
-  const _MapLibreControls({required this.onReset});
+  const _MapLibreControls({
+    required this.onReset,
+    required this.onZoomIn,
+    required this.onZoomOut,
+  });
 
   final VoidCallback onReset;
+  final VoidCallback onZoomIn;
+  final VoidCallback onZoomOut;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -311,12 +353,12 @@ class _MapLibreControls extends StatelessWidget {
         _MapLibreControlButton(
           tooltip: 'Zoom in',
           icon: Icons.add,
-          onPressed: () => _changeZoom(context, 1),
+          onPressed: onZoomIn,
         ),
         _MapLibreControlButton(
           tooltip: 'Zoom out',
           icon: Icons.remove,
-          onPressed: () => _changeZoom(context, -1),
+          onPressed: onZoomOut,
         ),
         _MapLibreControlButton(
           tooltip: 'Center map on statistics',
@@ -326,15 +368,6 @@ class _MapLibreControls extends StatelessWidget {
       ],
     ),
   );
-
-  Future<void> _changeZoom(BuildContext context, double amount) async {
-    final controller = MapController.maybeOf(context);
-    if (controller == null) return;
-    await controller.animateCamera(
-      zoom: controller.getCamera().zoom + amount,
-      nativeDuration: const Duration(milliseconds: 200),
-    );
-  }
 }
 
 class _MapLibreControlButton extends StatelessWidget {

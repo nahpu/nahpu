@@ -12,6 +12,7 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
   Set<int>? _selectedCoordinateIds;
   int? _focusedCoordinateId;
   int _focusRequest = 0;
+  bool _fullScreenMapOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +83,13 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
                       child: Stack(
                         children: [
                           Positioned.fill(
-                            child: _CoordinateSurfacePanel(child: map),
+                            child: _fullScreenMapOpen
+                                ? ColoredBox(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.surface,
+                                  )
+                                : _CoordinateSurfacePanel(child: map),
                           ),
                           Positioned(
                             top: 8,
@@ -196,6 +203,7 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
     required int? focusedCoordinateId,
     required int focusRequest,
   }) {
+    setState(() => _fullScreenMapOpen = true);
     return Navigator.push<void>(
       context,
       MaterialPageRoute(
@@ -208,7 +216,9 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
           onCoordinateFocused: _focusCoordinate,
         ),
       ),
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _fullScreenMapOpen = false);
+    });
   }
 
   Set<int> _visibleCoordinateIds(List<CoordinateData> coordinates) {
@@ -290,6 +300,7 @@ class _CoordinateManagerFullScreenMapState
   Widget build(BuildContext context) => FullScreenMapPage(
     title: 'Coordinate map',
     child: Stack(
+      fit: StackFit.expand,
       children: [
         Positioned.fill(
           child: _CoordinateMapPane(

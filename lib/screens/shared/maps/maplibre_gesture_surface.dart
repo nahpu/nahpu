@@ -12,7 +12,9 @@ Set<Factory<OneSequenceGestureRecognizer>> mapLibreGestureRecognizers() => {
 
 /// Handles pan, pinch, trackpad, and mouse-wheel input for embedded maps.
 class MapLibreGestureSurface extends StatefulWidget {
-  const MapLibreGestureSurface({super.key});
+  const MapLibreGestureSurface({super.key, this.onTapUp});
+
+  final ValueChanged<MapLibreTapDetails>? onTapUp;
 
   @override
   State<MapLibreGestureSurface> createState() => _MapLibreGestureSurfaceState();
@@ -22,15 +24,29 @@ class _MapLibreGestureSurfaceState extends State<MapLibreGestureSurface> {
   double _lastScale = 1;
 
   @override
-  Widget build(BuildContext context) => Listener(
-    behavior: HitTestBehavior.opaque,
-    onPointerSignal: _handlePointerSignal,
-    child: GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      trackpadScrollCausesScale: true,
-      onScaleStart: (_) => _lastScale = 1,
-      onScaleUpdate: _handleScaleUpdate,
-    ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final size = constraints.biggest;
+      return Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerSignal: _handlePointerSignal,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          trackpadScrollCausesScale: true,
+          onScaleStart: (_) => _lastScale = 1,
+          onScaleUpdate: _handleScaleUpdate,
+          onTapUp: (details) {
+            if (size.isEmpty) return;
+            widget.onTapUp?.call(
+              MapLibreTapDetails(
+                localPosition: details.localPosition,
+                viewportSize: size,
+              ),
+            );
+          },
+        ),
+      );
+    },
   );
 
   void _handlePointerSignal(PointerSignalEvent event) {
@@ -67,4 +83,15 @@ class _MapLibreGestureSurfaceState extends State<MapLibreGestureSurface> {
       ),
     );
   }
+}
+
+@immutable
+class MapLibreTapDetails {
+  const MapLibreTapDetails({
+    required this.localPosition,
+    required this.viewportSize,
+  });
+
+  final Offset localPosition;
+  final Size viewportSize;
 }

@@ -8,6 +8,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart' as maplibre;
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
+import 'package:nahpu/screens/shared/maps/maplibre_viewport_projection.dart';
+import 'package:nahpu/screens/shared/maps/map_tooltip_card.dart';
+import 'package:nahpu/screens/shared/maps/map_point_hit_test.dart';
 import 'package:nahpu/screens/projects/statistics/linux_user_map_layers.dart';
 import 'package:nahpu/services/maps/coordinate_map_point.dart';
 import 'package:nahpu/services/maps/natural_earth.dart';
@@ -325,12 +328,23 @@ class _MapLibreCoordinateMap extends StatefulWidget {
 class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   maplibre.MapController? _controller;
   final _readiness = MapLibreCameraReadiness();
+  CoordinateMapPoint? _tooltipPoint;
 
   bool get _isReady => mounted && _readiness.isReady;
 
   @override
   void didUpdateWidget(covariant _MapLibreCoordinateMap oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (_tooltipPoint != null) {
+      final updatedPoint = widget.points
+          .where((point) => point.id == _tooltipPoint!.id)
+          .firstOrNull;
+      if (updatedPoint == null) {
+        _tooltipPoint = null;
+      } else {
+        _tooltipPoint = updatedPoint;
+      }
+    }
     if (_isReady) {
       unawaited(
         _updateCoordinates(
@@ -385,7 +399,17 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
             },
             onEvent: _handleEvent,
             children: [
-              const Positioned.fill(child: MapLibreGestureSurface()),
+              Positioned.fill(
+                child: MapLibreGestureSurface(onTapUp: _handleMapTap),
+              ),
+              if (_tooltipPoint != null)
+                MapTooltipLayer(
+                  point: maplibre.Geographic(
+                    lon: _tooltipPoint!.longitude!,
+                    lat: _tooltipPoint!.latitude!,
+                  ),
+                  title: _tooltipPoint!.name,
+                ),
               if (widget.basemap != SpatialBasemapStyle.none)
                 Positioned(
                   left: 8,
@@ -462,6 +486,7 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   }
 
   Future<void> _changeZoom(double amount) async {
+    _clearTooltip();
     final controller = _controller;
     if (!_isReady || controller == null) return;
     await controller.animateCamera(
@@ -471,6 +496,7 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   }
 
   Future<void> _resetCamera() async {
+    _clearTooltip();
     if (!_isReady) {
       _readiness.requestReset();
       return;
@@ -490,15 +516,43 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   }
 
   void _handleEvent(maplibre.MapEvent event) {
-    if (!_isReady || event is! maplibre.MapEventClick) return;
-    final feature = _controller
-        ?.featuresAtPoint(
-          event.screenPoint,
-          layerIds: const [SpatialMapStyleService.coordinateLayerId],
-        )
-        .firstOrNull;
-    final coordinateId = feature?.properties['coordinateId'];
-    if (coordinateId is num) widget.onPointSelected(coordinateId.toInt());
+    if (event is! maplibre.MapEventStartMoveCamera ||
+        event.reason != maplibre.CameraChangeReason.apiGesture) {
+      return;
+    }
+    _clearTooltip();
+  }
+
+  void _handleMapTap(MapLibreTapDetails details) {
+    final controller = _controller;
+    if (!_isReady || controller == null) return;
+    final camera = controller.getCamera();
+    final point = closestMapPoint<CoordinateMapPoint>(
+      tapPosition: details.localPosition,
+      points: widget.points,
+      screenPosition: (point) => mapLibreViewportScreenLocation(
+        camera: camera,
+        viewportSize: details.viewportSize,
+        point: maplibre.Geographic(
+          lon: point.longitude!,
+          lat: point.latitude!,
+        ),
+      ),
+      hitRadius: (_) => mapMarkerHitRadius(7),
+    );
+    if (point == null || !mounted) {
+      _clearTooltip();
+      return;
+    }
+    widget.onPointSelected(point.id);
+    setState(() {
+      _tooltipPoint = point;
+    });
+  }
+
+  void _clearTooltip() {
+    if (!mounted || _tooltipPoint == null) return;
+    setState(() => _tooltipPoint = null);
   }
 
   Future<void> _initializeMap() async {
@@ -586,6 +640,9 @@ class _MapMarker extends StatelessWidget {
     label: label,
     child: Tooltip(
       message: label,
+      triggerMode: TooltipTriggerMode.tap,
+      waitDuration: Duration.zero,
+      showDuration: const Duration(seconds: 4),
       child: GestureDetector(
         onTap: onTap,
         child: Icon(

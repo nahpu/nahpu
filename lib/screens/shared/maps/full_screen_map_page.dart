@@ -13,6 +13,6 @@ class FullScreenMapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(title)),
-    body: SafeArea(child: child),
+    body: SafeArea(child: SizedBox.expand(child: child)),
   );
 }

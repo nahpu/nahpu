@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,16 +23,21 @@ void main() async {
   await configService.migrate(prefs);
   await configService.loadDefaultDocumentPresetsOnce(prefs);
   pdfrxFlutterInitialize();
-  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-    fvp.registerWith();
-  }
+  fvp.registerWith(
+    options: {
+      'platforms': ['macos', 'ios'],
+    },
+  );
   if (kDebugMode) {
     print(await checkRust());
   }
   initializeTimeZones();
-  runApp(ProviderScope(
+  runApp(
+    ProviderScope(
       overrides: [settingProvider.overrideWithValue(prefs)],
-      child: const NahpuApp()));
+      child: const NahpuApp(),
+    ),
+  );
 }
 
 class NahpuApp extends ConsumerWidget {
@@ -48,7 +51,9 @@ class NahpuApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: NahpuTheme.lightTheme(),
       darkTheme: NahpuTheme.darkTheme(),
-      themeMode: ref.watch(themeSettingProvider).when(
+      themeMode: ref
+          .watch(themeSettingProvider)
+          .when(
             data: (theme) => theme,
             loading: () => ThemeMode.system,
             error: (error, stackTrace) => ThemeMode.system,

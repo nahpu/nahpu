@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
 import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
-import 'package:nahpu/services/maps/coordinate_format.dart';
 import 'package:nahpu/services/maps/natural_earth.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_maplibre.dart';
@@ -34,6 +33,8 @@ class SpatialStatisticsMap extends StatefulWidget {
 }
 
 class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
+  bool _fullScreenMapOpen = false;
+
   @override
   Widget build(BuildContext context) {
     final mappable = mappableSpatialStatistics(widget.rows);
@@ -63,28 +64,34 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
                 label: const Text('View map'),
               ),
             )
-          else
+            else
             SizedBox(
               height: 480,
-              child: _SpatialMapViewport(
-                kind: widget.kind,
-                rows: mappable,
-                total: total,
-                onViewFullScreen: () =>
-                    _showFullScreenMap(context, rows: mappable, total: total),
-              ),
+              child: _fullScreenMapOpen
+                  ? ColoredBox(color: Theme.of(context).colorScheme.surface)
+                  : _SpatialMapViewport(
+                      kind: widget.kind,
+                      rows: mappable,
+                      total: total,
+                      onViewFullScreen: () => _showFullScreenMap(
+                        context,
+                        rows: mappable,
+                        total: total,
+                      ),
+                    ),
             ),
         ],
       ),
     );
   }
 
-  void _showFullScreenMap(
+  Future<void> _showFullScreenMap(
     BuildContext context, {
     required List<SpatialStatisticDatum> rows,
     required int total,
   }) {
-    Navigator.push<void>(
+    setState(() => _fullScreenMapOpen = true);
+    return Navigator.push<void>(
       context,
       MaterialPageRoute(
         builder: (context) => FullScreenMapPage(
@@ -96,7 +103,9 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _fullScreenMapOpen = false);
+    });
   }
 }
 
@@ -137,6 +146,7 @@ class _SpatialMapViewport extends ConsumerWidget {
     ];
     final isNarrow = MediaQuery.sizeOf(context).width < 600;
     return Stack(
+      fit: StackFit.expand,
       children: [
         Positioned.fill(
           child: Platform.isLinux
@@ -376,60 +386,18 @@ class _NaturalEarthMap extends StatelessWidget {
         label: '${row.displayName}$countText',
         child: Tooltip(
           message: '${row.displayName}$countText',
-          child: GestureDetector(
-            onTap: () => _showDetails(context, row, total),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.primary.withValues(alpha: 0.32),
-                border: Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.86),
-                  width: 1.5,
-                ),
+          triggerMode: TooltipTriggerMode.tap,
+          waitDuration: Duration.zero,
+          showDuration: const Duration(seconds: 4),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colorScheme.primary.withValues(alpha: 0.32),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.86),
+                width: 1.5,
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showDetails(
-    BuildContext context,
-    SpatialStatisticDatum row,
-    int total,
-  ) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                row.displayName,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${formatCoordinate(row.decimalLatitude, decimals: 6)}, '
-                '${formatCoordinate(row.decimalLongitude, decimals: 6)}',
-              ),
-              if (row.elevationInMeter != null)
-                Text(
-                  '${formatCoordinate(row.elevationInMeter, decimals: 2)} m',
-                ),
-              if (kind.hasCounts) ...[
-                const SizedBox(height: 8),
-                Text('${row.count} ${kind.countLabel}'),
-                Text(
-                  '${spatialStatisticPercent(row, total).toStringAsFixed(1)}%',
-                ),
-              ],
-            ],
           ),
         ),
       ),
