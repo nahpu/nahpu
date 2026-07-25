@@ -62,6 +62,19 @@ String get dateTimeStamp {
   return '$date-$time';
 }
 
+String formatFileDateSuffix(DateTime date) {
+  final year = date.year.toString().padLeft(4, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  final day = date.day.toString().padLeft(2, '0');
+  return '-$year-$month-$day';
+}
+
+String appendDateToFileStem(String fileStem, DateTime date) {
+  final stem = fileStem.trim();
+  if (RegExp(r'-\d{4}-\d{2}-\d{2}$').hasMatch(stem)) return stem;
+  return '$stem${formatFileDateSuffix(date)}';
+}
+
 typedef OpenFilesCallback =
     Future<List<XFile>> Function({
       List<XTypeGroup>? acceptedTypeGroups,

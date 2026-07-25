@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/projects/project_transfer/export_project.dart';
+import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -70,6 +71,32 @@ void main() {
     }
   });
 
+  testWidgets('append date switch forwards its changed value', (tester) async {
+    var value = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) => AppendDateSwitch(
+              value: value,
+              enabled: true,
+              onChanged: (next) => setState(() => value = next),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pump();
+
+    expect(value, isTrue);
+    expect(
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      isTrue,
+    );
+  });
+
   testWidgets('backup settings use TAR.GZ-first archive controls', (
     tester,
   ) async {
@@ -93,6 +120,11 @@ void main() {
     ]);
     expect(find.text('backup'), findsOneWidget);
     expect(find.text('.tar.gz'), findsOneWidget);
+    expect(find.text('Append current date'), findsOneWidget);
+    expect(
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      isFalse,
+    );
     expect(find.text('Select directory'), findsOneWidget);
   });
 
@@ -117,5 +149,10 @@ void main() {
       ProjectTransferArchiveFormat.zip,
     ]);
     expect(find.text('.tar.gz'), findsOneWidget);
+    expect(find.text('Append current date'), findsOneWidget);
+    expect(
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      isFalse,
+    );
   });
 }

@@ -21,6 +21,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   final _fileNameController = TextEditingController(text: 'backup');
   String _fileStem = 'backup';
   Directory? _selectedDir;
+  bool _appendDate = false;
   DbBackupSummary? _summary;
   File? _savePath;
   String? _summaryError;
@@ -52,6 +53,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
               controller: _fileNameController,
               format: _format,
               directory: _selectedDir,
+              appendDate: _appendDate,
               enabled: !_isLoading && !_isRunning,
               onFormatChanged: (value) {
                 setState(() {
@@ -62,6 +64,12 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
               onFileNameChanged: (value) {
                 setState(() {
                   _fileStem = value;
+                  _hasSaved = false;
+                });
+              },
+              onAppendDateChanged: (value) {
+                setState(() {
+                  _appendDate = value;
                   _hasSaved = false;
                 });
               },
@@ -144,7 +152,9 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     try {
       final savePath = await AppIOServices(
         dir: _selectedDir,
-        fileStem: _fileStem.trim(),
+        fileStem: _appendDate
+            ? appendDateToFileStem(_fileStem, DateTime.now())
+            : _fileStem.trim(),
         ext: _format.extension,
       ).getSavePath();
       final output = await DbExport(
@@ -204,9 +214,11 @@ class _BackupSettingsCard extends StatelessWidget {
     required this.controller,
     required this.format,
     required this.directory,
+    required this.appendDate,
     required this.enabled,
     required this.onFormatChanged,
     required this.onFileNameChanged,
+    required this.onAppendDateChanged,
     required this.onSelectDirectory,
     required this.onClearDirectory,
   });
@@ -214,9 +226,11 @@ class _BackupSettingsCard extends StatelessWidget {
   final TextEditingController controller;
   final DbArchiveFormat format;
   final Directory? directory;
+  final bool appendDate;
   final bool enabled;
   final ValueChanged<DbArchiveFormat> onFormatChanged;
   final ValueChanged<String> onFileNameChanged;
+  final ValueChanged<bool> onAppendDateChanged;
   final VoidCallback onSelectDirectory;
   final VoidCallback onClearDirectory;
 
@@ -268,6 +282,11 @@ class _BackupSettingsCard extends StatelessWidget {
                 suffixText: '.${format.extension}',
                 border: const OutlineInputBorder(),
               ),
+            ),
+            AppendDateSwitch(
+              value: appendDate,
+              enabled: enabled,
+              onChanged: onAppendDateChanged,
             ),
             const SizedBox(height: 16),
             if (systemPlatform == PlatformType.desktop)

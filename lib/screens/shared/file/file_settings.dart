@@ -2,6 +2,30 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+class AppendDateSwitch extends StatelessWidget {
+  const AppendDateSwitch({
+    super.key,
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      value: value,
+      onChanged: enabled ? onChanged : null,
+      title: const Text('Append current date'),
+      subtitle: const Text('Adds -yyyy-mm-dd to the filename'),
+    );
+  }
+}
+
 class FileSettingsDirectoryPicker extends StatelessWidget {
   const FileSettingsDirectoryPicker({
     super.key,
@@ -22,10 +46,7 @@ class FileSettingsDirectoryPicker extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Save to',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
+              Text('Save to', style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 4),
               Text(
                 selectedDir?.path ?? 'Select directory',

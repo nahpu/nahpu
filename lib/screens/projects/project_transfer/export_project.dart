@@ -22,6 +22,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   ProjectTransferPayload? _payload;
   Directory? _directory;
   File? _output;
+  bool _appendDate = false;
   String? _error;
   bool _isLoading = true;
   bool _isSaving = false;
@@ -50,10 +51,17 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
               controller: _fileNameController,
               format: _format,
               directory: _directory,
+              appendDate: _appendDate,
               enabled: !_isLoading && !_isSaving,
               onFormatChanged: (value) {
                 setState(() {
                   _format = value;
+                  _output = null;
+                });
+              },
+              onAppendDateChanged: (value) {
+                setState(() {
+                  _appendDate = value;
                   _output = null;
                 });
               },
@@ -146,7 +154,9 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
     try {
       final output = await ProjectTransferService(ref: ref).archive.save(
         payload,
-        fileStem: _fileNameController.text,
+        fileStem: _appendDate
+            ? appendDateToFileStem(_fileNameController.text, DateTime.now())
+            : _fileNameController.text,
         format: _format,
         destinationDirectory: _directory,
       );
@@ -189,8 +199,10 @@ class _SettingsCard extends StatelessWidget {
     required this.controller,
     required this.format,
     required this.directory,
+    required this.appendDate,
     required this.enabled,
     required this.onFormatChanged,
+    required this.onAppendDateChanged,
     required this.onSelectDirectory,
     required this.onClearDirectory,
   });
@@ -198,8 +210,10 @@ class _SettingsCard extends StatelessWidget {
   final TextEditingController controller;
   final ProjectTransferArchiveFormat format;
   final Directory? directory;
+  final bool appendDate;
   final bool enabled;
   final ValueChanged<ProjectTransferArchiveFormat> onFormatChanged;
+  final ValueChanged<bool> onAppendDateChanged;
   final VoidCallback onSelectDirectory;
   final VoidCallback onClearDirectory;
 
@@ -249,6 +263,11 @@ class _SettingsCard extends StatelessWidget {
                 suffixText: '.${format.extension}',
                 border: const OutlineInputBorder(),
               ),
+            ),
+            AppendDateSwitch(
+              value: appendDate,
+              enabled: enabled,
+              onChanged: onAppendDateChanged,
             ),
             const SizedBox(height: 16),
             if (systemPlatform == PlatformType.desktop)
