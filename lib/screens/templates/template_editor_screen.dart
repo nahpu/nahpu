@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_exists_dialog.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_image_picker_dialog.dart';
+import 'package:nahpu/screens/templates/components/dialogs/template_name_dialogs.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_settings_dialog.dart';
 import 'package:nahpu/screens/templates/components/layout/template_border_panel.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_loading.dart';
@@ -32,6 +33,7 @@ import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:path/path.dart' as path;
 
 class TemplateEditorScreen extends ConsumerStatefulWidget {
   const TemplateEditorScreen({super.key});
@@ -1069,8 +1071,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   Future<void> _promptSaveAsTemplate() async {
-    final name =
-        await _editorService.promptSaveTemplate(context, _template.name);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => SaveTemplateDialog(initialName: _template.name),
+    );
     if (name == null || !mounted) return;
     await _saveTemplateWithName(name);
   }
@@ -1091,7 +1095,18 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
 
   Future<void> _exportTemplate() async {
     final merged = _templateWithCurrentPrintOptions();
-    await _editorService.exportTemplate(context, merged);
+    try {
+      final outputPath = await _editorService.exportTemplate(merged);
+      if (outputPath == null || !mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved ${path.basename(outputPath)}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export failed: $e')),
+      );
+    }
   }
 
   /// Imports a template, synchronizes its size/settings, and makes it active.
@@ -1121,10 +1136,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         );
         if (replace == null || !mounted) return;
         if (!replace) {
-          final newName = await _editorService.promptImportNewName(
-            context,
-            name,
-            taken,
+          final newName = await showDialog<String>(
+            context: context,
+            builder: (_) => ImportTemplateNameDialog(
+              conflictingName: name,
+              takenNames: taken,
+            ),
           );
           if (newName == null || !mounted) return;
           name = newName;
