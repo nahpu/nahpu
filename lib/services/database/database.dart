@@ -23,7 +23,7 @@ part 'database.g.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 10;
+const int kSchemaVersion = 11;
 
 @DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {
@@ -45,6 +45,9 @@ class Database extends _$Database {
       onUpgrade: (Migrator m, int from, int to) async {
         try {
           await customStatement('PRAGMA foreign_keys = OFF');
+          if (from < 11) {
+            await _renameSpecimenAttributeTables(from);
+          }
           if (from < 2) {
             await m.addColumn(specimen, specimen.taxonGroup);
           }
@@ -81,6 +84,9 @@ class Database extends _$Database {
           if (from < 10) {
             await _migrateFromVersion9(m);
           }
+          if (from < 11) {
+            await _validateSpecimenAttributeTables();
+          }
         } catch (error, stackTrace) {
           if (kDebugMode) {
             debugPrint('Database migration from v$from to v$to failed: $error');
@@ -93,6 +99,74 @@ class Database extends _$Database {
         await customStatement('PRAGMA foreign_keys = ON');
       },
     );
+  }
+
+  Future<void> _renameSpecimenAttributeTables(int from) async {
+    await _renameTableIfPresent('mammalMeasurement', 'mammalAttribute');
+    await _renameTableIfPresent('avianMeasurement', 'birdAttribute');
+    await _renameTableIfPresent('herpMeasurement', 'herpAttribute');
+
+    if (from >= 7) {
+      await _requireTable('herpAttribute');
+    }
+  }
+
+  Future<void> _renameTableIfPresent(String legacyName, String name) async {
+    final legacyExists = await _tableExists(legacyName);
+    final canonicalExists = await _tableExists(name);
+    if (legacyExists && canonicalExists) {
+      throw StateError(
+        'Cannot migrate both $legacyName and $name because both tables exist.',
+      );
+    }
+    if (legacyExists) {
+      await customStatement('ALTER TABLE "$legacyName" RENAME TO "$name"');
+    }
+  }
+
+  Future<bool> _tableExists(String name) async {
+    final result = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+      variables: [Variable.withString(name)],
+      readsFrom: const {},
+    ).getSingleOrNull();
+    return result != null;
+  }
+
+  Future<void> _requireTable(String name) async {
+    if (!await _tableExists(name)) {
+      throw StateError('Database migration is missing the $name table.');
+    }
+  }
+
+  Future<void> _validateSpecimenAttributeTables() async {
+    for (final name in const [
+      'mammalAttribute',
+      'birdAttribute',
+      'herpAttribute',
+    ]) {
+      await _requireTable(name);
+    }
+    for (final name in const [
+      'mammalMeasurement',
+      'avianMeasurement',
+      'herpMeasurement',
+    ]) {
+      if (await _tableExists(name)) {
+        throw StateError('Database migration retained the legacy $name table.');
+      }
+    }
+
+    final violations = await customSelect(
+      'PRAGMA foreign_key_check',
+      readsFrom: const {},
+    ).get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
   }
 
   Future<void> _migrateFromVersion7(Migrator m) async {
@@ -179,23 +253,20 @@ class Database extends _$Database {
     await m.addColumn(project, project.timeZone);
 
     // Herpetofauna measurements
-    await m.createTable(herpMeasurement);
+    await m.createTable(herpAttribute);
 
     // Boolean for showing bat-specific measurements
-    await m.addColumn(mammalMeasurement, mammalMeasurement.showBatFields);
+    await m.addColumn(mammalAttribute, mammalAttribute.showBatFields);
     await setShowBatFieldsBoolean(m);
 
     // New bat measurements
-    await m.addColumn(mammalMeasurement, mammalMeasurement.tibia);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.showEchoFields);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.echolocation);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMax);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMin);
-    await m.addColumn(
-      mammalMeasurement,
-      mammalMeasurement.frequencyAtMaxEnergy,
-    );
-    await m.addColumn(mammalMeasurement, mammalMeasurement.duration);
+    await m.addColumn(mammalAttribute, mammalAttribute.tibia);
+    await m.addColumn(mammalAttribute, mammalAttribute.showEchoFields);
+    await m.addColumn(mammalAttribute, mammalAttribute.echolocation);
+    await m.addColumn(mammalAttribute, mammalAttribute.frequencyMax);
+    await m.addColumn(mammalAttribute, mammalAttribute.frequencyMin);
+    await m.addColumn(mammalAttribute, mammalAttribute.frequencyAtMaxEnergy);
+    await m.addColumn(mammalAttribute, mammalAttribute.duration);
 
     // Enhanced specimen ID options
     await m.addColumn(personnel, personnel.isRegisterField);
@@ -292,7 +363,7 @@ class Database extends _$Database {
 
     // We switch bird table to revised version
     await m.deleteTable('bird_measurement');
-    await m.createTable(avianMeasurement);
+    await m.createTable(birdAttribute);
 
     await castMammalType(m);
   }

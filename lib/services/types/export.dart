@@ -1,4 +1,5 @@
 import 'package:nahpu/services/conditional_brackets.dart';
+import 'package:nahpu/services/specimen_attribute_names.dart';
 
 enum ExportFmt { csv, tsv, excel, json }
 
@@ -155,7 +156,7 @@ const siteExportList = [
   'site::coordinates',
 ];
 
-const mammalMeasurementExportList = [
+const mammalAttributeExportList = [
   'measurement::totalLength',
   'measurement::tailLength',
   'measurement::hindFootLength',
@@ -184,7 +185,7 @@ const mammalMeasurementExportList = [
   'measurement::remark',
 ];
 
-const batMeasurementExportList = [
+const batAttributeExportList = [
   'measurement::totalLength',
   'measurement::tailLength',
   'measurement::hindFootLength',
@@ -220,7 +221,7 @@ const batMeasurementExportList = [
   'measurement::remark',
 ];
 
-const avianMeasurementExportList = [
+const birdAttributeExportList = [
   'measurement::weight',
   'measurement::wingspan',
   'measurement::irisColor',
@@ -261,7 +262,7 @@ const avianMeasurementExportList = [
   'measurement::habitatRemark',
 ];
 
-const herpMeasurementExportList = [
+const herpAttributeExportList = [
   'measurement::sex',
   'measurement::age',
   'measurement::weight',
@@ -317,8 +318,8 @@ enum ListExportMode { concatenate, spreadColumns }
 /// How a one-based index is added to an exported column name.
 enum IndexedHeaderStyle { underscore, compact, brackets }
 
-const int recordExportPresetSchemaVersion = 6;
-const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4, 5, 6};
+const int recordExportPresetSchemaVersion = 7;
+const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4, 5, 6, 7};
 
 /// Scalar export format that conditionally wraps a populated value in brackets.
 const String kConditionalBracketExportTextType = 'conditionalBrackets';
@@ -485,15 +486,22 @@ class ExportFieldMapping {
 
   factory ExportFieldMapping.fromJson(Map<String, dynamic> json) {
     return ExportFieldMapping(
-      expression: json['expression'] as String? ?? '',
+      expression: canonicalizeSpecimenAttributeExpression(
+        json['expression'] as String? ?? '',
+      ),
       headerOverride: json['headerOverride'] as String?,
       textType: json['textType'] as String? ?? 'normal',
       formatOption: json['formatOption'] as String? ?? 'normal',
       caseFormat: json['caseFormat'] as String? ?? 'normal',
       nullFallbackOption: json['nullFallbackOption'] as String? ?? 'blank',
       customNullFallbackText: json['customNullFallbackText'] as String? ?? '',
-      nestedNamespace: json['nestedNamespace'] as String?,
-      nestedFields: List<String>.from(json['nestedFields'] as List? ?? []),
+      nestedNamespace: switch (json['nestedNamespace']) {
+        final String value => canonicalizeSpecimenAttributeTableName(value),
+        _ => null,
+      },
+      nestedFields: List<String>.from(
+        json['nestedFields'] as List? ?? [],
+      ).map(canonicalizeSpecimenAttributeSourceKey).toList(growable: false),
       nestedMode: NestedExportMode.values.byName(
         json['nestedMode'] as String? ?? NestedExportMode.concatenate.name,
       ),

@@ -19,6 +19,10 @@ import 'package:uuid/uuid.dart';
 export 'project_transfer_archive.dart';
 export 'project_transfer_models.dart';
 
+/// Exports and imports complete NAHPU projects with related attribute records.
+///
+/// Version 2 archives use the canonical mammal, bird, and herpetofauna
+/// attribute collection names. Version 1 names are normalized while parsing.
 class ProjectTransferService extends AppServices {
   const ProjectTransferService({required super.ref});
 
@@ -53,18 +57,18 @@ class ProjectTransferService extends AppServices {
     );
     records['specimen'] = await _projectRows('specimen');
     final specimenUuids = _stringIds(records['specimen']!, 'uuid');
-    records['mammalMeasurement'] = await _rowsForStrings(
-      'mammalMeasurement',
+    records['mammalAttribute'] = await _rowsForStrings(
+      'mammalAttribute',
       'specimenUuid',
       specimenUuids,
     );
-    records['avianMeasurement'] = await _rowsForStrings(
-      'avianMeasurement',
+    records['birdAttribute'] = await _rowsForStrings(
+      'birdAttribute',
       'specimenUuid',
       specimenUuids,
     );
-    records['herpMeasurement'] = await _rowsForStrings(
-      'herpMeasurement',
+    records['herpAttribute'] = await _rowsForStrings(
+      'herpAttribute',
       'specimenUuid',
       specimenUuids,
     );
@@ -908,11 +912,7 @@ class ProjectTransferService extends AppServices {
     Map<String, String?> personnelMap,
     Set<String> specimensUsingImportedChildren,
   ) async {
-    for (final table in [
-      'mammalMeasurement',
-      'avianMeasurement',
-      'herpMeasurement',
-    ]) {
+    for (final table in ['mammalAttribute', 'birdAttribute', 'herpAttribute']) {
       for (final row in payload.rows(table)) {
         final sourceUuid = row['specimenUuid'] as String?;
         if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
@@ -1068,9 +1068,9 @@ class ProjectTransferService extends AppServices {
 
   Future<void> _deleteSpecimenChildren(String uuid) async {
     for (final table in [
-      'mammalMeasurement',
-      'avianMeasurement',
-      'herpMeasurement',
+      'mammalAttribute',
+      'birdAttribute',
+      'herpAttribute',
       'specimenPart',
       'associatedData',
       'specimenMedia',
@@ -1107,9 +1107,9 @@ class ProjectTransferService extends AppServices {
       }
     }
     for (final table in [
-      'mammalMeasurement',
-      'avianMeasurement',
-      'herpMeasurement',
+      'mammalAttribute',
+      'birdAttribute',
+      'herpAttribute',
       'specimenPart',
       'associatedData',
       'specimenMedia',

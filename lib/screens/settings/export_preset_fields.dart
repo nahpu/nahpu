@@ -578,22 +578,22 @@ Map<String, List<String>> _availableFieldGroups(
         'site',
         'coordinate',
         'weather',
-        'mammalMeasurement',
-        'avianMeasurement',
-        'herpMeasurement',
+        'mammalAttribute',
+        'birdAttribute',
+        'herpAttribute',
         'specimenPart',
       };
       if (specimenRecordType == SpecimenRecordType.generalMammals ||
           specimenRecordType == SpecimenRecordType.bats ||
           specimenRecordType == SpecimenRecordType.allMammals) {
-        allowedTables.remove('avianMeasurement');
-        allowedTables.remove('herpMeasurement');
+        allowedTables.remove('birdAttribute');
+        allowedTables.remove('herpAttribute');
       } else if (specimenRecordType == SpecimenRecordType.birds) {
-        allowedTables.remove('mammalMeasurement');
-        allowedTables.remove('herpMeasurement');
+        allowedTables.remove('mammalAttribute');
+        allowedTables.remove('herpAttribute');
       } else if (specimenRecordType == SpecimenRecordType.herpetofauna) {
-        allowedTables.remove('mammalMeasurement');
-        allowedTables.remove('avianMeasurement');
+        allowedTables.remove('mammalAttribute');
+        allowedTables.remove('birdAttribute');
       }
       break;
   }

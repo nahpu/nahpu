@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:nahpu/services/specimen_attribute_names.dart';
+
 /// The comparison used by a conditional bracket rule.
 enum ConditionalComparisonOperator { equals, notEquals }
 
@@ -37,7 +39,9 @@ class ConditionalBracketCondition {
   /// Restores a condition persisted in an export preset.
   factory ConditionalBracketCondition.fromJson(Map<String, dynamic> json) {
     return ConditionalBracketCondition(
-      sourceField: json['sourceField'] as String? ?? '',
+      sourceField: canonicalizeSpecimenAttributeSourceKey(
+        json['sourceField'] as String? ?? '',
+      ),
       operator: ConditionalComparisonOperator.values.byName(
         json['operator'] as String? ??
             ConditionalComparisonOperator.equals.name,

@@ -31,7 +31,7 @@ void main() {
 
   test('preserves repeated MeasurementOrFact headers in source order', () {
     final resolver = ExportHeaderResolver.forDwcMappingsTesting(basePreset, {
-      'mammalMeasurement::tailLength': const DwcSourceMapping(
+      'mammalAttribute::tailLength': const DwcSourceMapping(
         headers: [
           'dwc:measurementType',
           'dwc:measurementValue',
@@ -43,7 +43,7 @@ void main() {
     });
 
     expect(
-      resolver.headersForSource('mammalMeasurement::tailLength'),
+      resolver.headersForSource('mammalAttribute::tailLength'),
       [
         'dwc:measurementType',
         'dwc:measurementValue',
@@ -52,7 +52,7 @@ void main() {
     );
     expect(
       resolver
-          .dwcMappingForSource('mammalMeasurement::tailLength')
+          .dwcMappingForSource('mammalAttribute::tailLength')
           ?.isMeasurement,
       isTrue,
     );

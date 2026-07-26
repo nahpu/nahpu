@@ -46,7 +46,7 @@ void main() {
     expect(keys, hasLength(mappings.length));
     final qcf = mappings.singleWhere(
       (mapping) =>
-          mapping['table'] == 'mammalMeasurement' &&
+          mapping['table'] == 'mammalAttribute' &&
           mapping['column'] == 'echolocation' &&
           mapping['sqlite_index'] == 2,
     );

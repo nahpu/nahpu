@@ -5,8 +5,9 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/utility_services.dart';
 
-class MammalianMeasurements extends AppServices {
-  MammalianMeasurements({
+/// Formats mammal attribute records for specimen exports.
+class MammalAttributes extends AppServices {
+  MammalAttributes({
     required super.ref,
     required this.specimenUuid,
     required this.isBatRecord,
@@ -15,12 +16,13 @@ class MammalianMeasurements extends AppServices {
 
   final String specimenUuid;
   final bool isBatRecord;
-  late MammalMeasurementData data;
+  late MammalAttributeData data;
   final bool isInaccurateInBrackets;
 
-  Future<List<String>> getMeasurements() async {
-    data =
-        await SpecimenServices(ref: ref).getMammalMeasurementData(specimenUuid);
+  Future<List<String>> getAttributes() async {
+    data = await SpecimenServices(
+      ref: ref,
+    ).getMammalAttributeData(specimenUuid);
 
     MeasurementAccuracy accuracyEnum = matchAccuracy(data.accuracy);
 
@@ -55,11 +57,7 @@ class MammalianMeasurements extends AppServices {
       data.remark ?? '',
     ];
 
-    return [
-      ...coreMeasurements,
-      ...batMeasurements,
-      ...remainingMeasurements,
-    ];
+    return [...coreMeasurements, ...batMeasurements, ...remainingMeasurements];
   }
 
   String _getTotalLength(double? length, MeasurementAccuracy accuracy) {

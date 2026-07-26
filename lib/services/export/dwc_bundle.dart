@@ -603,15 +603,15 @@ class DwcBundleWriter extends AppServices {
       switch (normalizeBundleTaxonGroup(specimen.taxonGroup)) {
         case 'Birds':
           return (await SpecimenServices(ref: ref)
-                  .getAvianMeasurementData(specimen.uuid))
+                  .getBirdAttributeData(specimen.uuid))
               .toJson();
         case 'Herpetofauna':
           return (await SpecimenServices(ref: ref)
-                  .getHerpMeasurementData(specimen.uuid))
+                  .getHerpAttributeData(specimen.uuid))
               .toJson();
         default:
           return (await SpecimenServices(ref: ref)
-                  .getMammalMeasurementData(specimen.uuid))
+                  .getMammalAttributeData(specimen.uuid))
               .toJson();
       }
     } catch (_) {
@@ -806,112 +806,112 @@ class DwcBundleWriter extends AppServices {
 List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
   return [
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'sex',
       enumType: 'SpecimenSex',
       values: SpecimenSex.values,
       displayNames: specimenSexList,
     ),
     ..._enumMappingRows(
-      table: 'avianMeasurement',
+      table: 'birdAttribute',
       column: 'sex',
       enumType: 'SpecimenSex',
       values: SpecimenSex.values,
       displayNames: specimenSexList,
     ),
     ..._enumMappingRows(
-      table: 'herpMeasurement',
+      table: 'herpAttribute',
       column: 'sex',
       enumType: 'SpecimenSex',
       values: SpecimenSex.values,
       displayNames: specimenSexList,
     ),
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'age',
       enumType: 'mammals.SpecimenAge',
       values: mammals.SpecimenAge.values,
       displayNames: mammals.specimenAgeList,
     ),
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'testisPosition',
       enumType: 'mammals.TestisPosition',
       values: mammals.TestisPosition.values,
       displayNames: mammals.testisPositionList,
     ),
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'epididymisAppearance',
       enumType: 'mammals.EpididymisAppearance',
       values: mammals.EpididymisAppearance.values,
       displayNames: mammals.epididymisAppearanceList,
     ),
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'vaginaOpening',
       enumType: 'mammals.VaginaOpening',
       values: mammals.VaginaOpening.values,
       displayNames: mammals.vaginaOpeningList,
     ),
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'pubicSymphysis',
       enumType: 'mammals.PubicSymphysis',
       values: mammals.PubicSymphysis.values,
       displayNames: mammals.pubicSymphysisList,
     ),
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'reproductiveStage',
       enumType: 'mammals.ReproductiveStage',
       values: mammals.ReproductiveStage.values,
       displayNames: mammals.reproductiveStageList,
     ),
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'mammaeCondition',
       enumType: 'mammals.MammaeCondition',
       values: mammals.MammaeCondition.values,
       displayNames: mammals.mammaeConditionList,
     ),
     ..._enumMappingRows(
-      table: 'mammalMeasurement',
+      table: 'mammalAttribute',
       column: 'echolocation',
       enumType: 'mammals.Echolocation',
       values: mammals.Echolocation.values,
       displayNames: mammals.echolocationList,
     ),
     ..._enumMappingRows(
-      table: 'avianMeasurement',
+      table: 'birdAttribute',
       column: 'ovaryAppearance',
       enumType: 'birds.OvaryAppearance',
       values: birds.OvaryAppearance.values,
       displayNames: birds.ovaryAppearanceList,
     ),
     ..._enumMappingRows(
-      table: 'avianMeasurement',
+      table: 'birdAttribute',
       column: 'fat',
       enumType: 'birds.FatCategory',
       values: birds.FatCategory.values,
       displayNames: birds.fatCategoryList,
     ),
     ..._enumMappingRows(
-      table: 'avianMeasurement',
+      table: 'birdAttribute',
       column: 'oviductAppearance',
       enumType: 'birds.OviductAppearance',
       values: birds.OviductAppearance.values,
       displayNames: birds.oviductAppearanceList,
     ),
     ..._enumMappingRows(
-      table: 'avianMeasurement',
+      table: 'birdAttribute',
       column: 'bodyMolt',
       enumType: 'birds.BodyMolt',
       values: birds.BodyMolt.values,
       displayNames: birds.bodyMoltList,
     ),
     ..._enumMappingRows(
-      table: 'herpMeasurement',
+      table: 'herpAttribute',
       column: 'age',
       enumType: 'herps.SpecimenAge',
       values: herps.SpecimenAge.values,
@@ -1088,9 +1088,9 @@ const List<String> _nahpuTableNames = [
   'personnel',
   'taxonomy',
   'specimen',
-  'mammalMeasurement',
-  'avianMeasurement',
-  'herpMeasurement',
+  'mammalAttribute',
+  'birdAttribute',
+  'herpAttribute',
   'specimenPart',
 ];
 

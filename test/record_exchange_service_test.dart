@@ -338,9 +338,9 @@ void main() {
             ),
           );
       await database
-          .into(database.mammalMeasurement)
+          .into(database.mammalAttribute)
           .insert(
-            MammalMeasurementCompanion.insert(
+            MammalAttributeCompanion.insert(
               specimenUuid: specimenUuid,
               weight: Value(2.5),
             ),
@@ -386,7 +386,7 @@ void main() {
       expect(imported.speciesID, taxon);
       expect(imported.coordinateID, isNot(coordinate));
       expect(
-        await (database.select(database.mammalMeasurement)
+        await (database.select(database.mammalAttribute)
               ..where((row) => row.specimenUuid.equals(result.recordUuid!)))
             .getSingle()
             .then((value) => value.weight),

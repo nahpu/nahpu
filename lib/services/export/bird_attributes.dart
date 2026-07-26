@@ -4,16 +4,16 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
 
-class AvianMeasurements {
-  AvianMeasurements({required this.ref, required this.specimenUuid});
+/// Formats bird attribute records for specimen exports.
+class BirdAttributes {
+  BirdAttributes({required this.ref, required this.specimenUuid});
 
   final WidgetRef ref;
   final String specimenUuid;
-  late AvianMeasurementData data;
+  late BirdAttributeData data;
 
-  Future<List<String>> getMeasurements() async {
-    data =
-        await SpecimenServices(ref: ref).getAvianMeasurementData(specimenUuid);
+  Future<List<String>> getAttributes() async {
+    data = await SpecimenServices(ref: ref).getBirdAttributeData(specimenUuid);
 
     return [
       data.weight?.toString() ?? '',

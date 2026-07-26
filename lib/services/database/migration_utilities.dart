@@ -45,7 +45,7 @@ Future<void> alterTableHelper(Migrator m, dynamic table) async {
 }
 
 Future<void> castMammalType(Migrator m) async {
-  final mammalMeasurement = (m.database as Database).mammalMeasurement;
+  final mammalAttribute = (m.database as Database).mammalAttribute;
   final columnsToUpdate = [
     'totalLength',
     'tailLength',
@@ -56,7 +56,7 @@ Future<void> castMammalType(Migrator m) async {
     'testisWidth'
   ];
 
-  await castColumnsIntToReal(m, mammalMeasurement, columnsToUpdate);
+  await castColumnsIntToReal(m, mammalAttribute, columnsToUpdate);
 }
 
 String convertDateString(String inputDateString) {
@@ -306,7 +306,7 @@ Future<void> moveRelativeCaptureTimes(Migrator m) async {
 Future<void> setShowBatFieldsBoolean(Migrator m) async {
   final db = m.database as Database;
   return db.customStatement('''
-      UPDATE mammalMeasurement AS mm
+      UPDATE mammalAttribute AS mm
       SET showBatFields = 
         CASE
           WHEN s.taxonGroup = 'Bats' THEN 1 

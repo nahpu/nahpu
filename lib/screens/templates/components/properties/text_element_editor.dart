@@ -311,20 +311,20 @@ class _AvailableFieldsSectionState
           'site',
           'coordinate',
           'weather',
-          'mammalMeasurement',
-          'avianMeasurement',
-          'herpMeasurement',
+          'mammalAttribute',
+          'birdAttribute',
+          'herpAttribute',
           'specimenPart',
         };
         if (_selectedTaxon == 'Mammals') {
-          allowedTables.remove('avianMeasurement');
-          allowedTables.remove('herpMeasurement');
+          allowedTables.remove('birdAttribute');
+          allowedTables.remove('herpAttribute');
         } else if (_selectedTaxon == 'Birds') {
-          allowedTables.remove('mammalMeasurement');
-          allowedTables.remove('herpMeasurement');
+          allowedTables.remove('mammalAttribute');
+          allowedTables.remove('herpAttribute');
         } else if (_selectedTaxon == 'Herpetofauna') {
-          allowedTables.remove('mammalMeasurement');
-          allowedTables.remove('avianMeasurement');
+          allowedTables.remove('mammalAttribute');
+          allowedTables.remove('birdAttribute');
         }
         break;
     }

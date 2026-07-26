@@ -85,9 +85,11 @@ class _MapEncodedValuesDialogState extends State<MapEncodedValuesDialog> {
 
     if (cleanKey.endsWith('::sex')) {
       return {'0': 'Male', '1': 'Female', '2': 'Unknown'};
-    } else if (cleanKey == 'mammalmeasurement::age') {
+    } else if (cleanKey == 'mammalattribute::age' ||
+        cleanKey == 'mammalmeasurement::age') {
       return {'0': 'Adult', '1': 'Subadult', '2': 'Juvenile', '3': 'Unknown'};
-    } else if (cleanKey == 'herpmeasurement::age') {
+    } else if (cleanKey == 'herpattribute::age' ||
+        cleanKey == 'herpmeasurement::age') {
       return {
         '0': 'Adult',
         '1': 'Juvenile',

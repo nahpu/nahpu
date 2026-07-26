@@ -2186,8 +2186,6 @@ checksum = "13d2233c9842d08cfe13f9eac96e207ca6a2ea10b80259ebe8ad0268be27d2af"
 [[package]]
 name = "nahpu_archive"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a04c36913d5310390b6eda2628e583e6c47e7b46660b62d7127533085db4c84"
 dependencies = [
  "flate2",
  "tar",
@@ -2197,8 +2195,6 @@ dependencies = [
 [[package]]
 name = "nahpu_configs"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ad8499ff1191e85e767d49703500caedec8f7ba52f253b523af1ba786f93cab"
 dependencies = [
  "redb",
  "serde",
@@ -2208,8 +2204,6 @@ dependencies = [
 [[package]]
 name = "nahpu_db"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8110ec2e2f17efcd1534306eeed71ac3c785690115e8be35fde6fc28d6e50da6"
 dependencies = [
  "calamine",
  "csv",
@@ -2223,9 +2217,7 @@ dependencies = [
 
 [[package]]
 name = "nahpu_dp"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35f93e3e4253f305ff1b5c1946d4e62a9ecb2926a8185e197d6b90944f888deb"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "csv",
@@ -2236,9 +2228,7 @@ dependencies = [
 
 [[package]]
 name = "nahpu_dwc"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fef2702001f617ddeffc69d18b404717a662585d3bf5a4b1767a05cb6a904d95"
+version = "0.3.0"
 dependencies = [
  "csv",
  "nahpu_archive",
@@ -2252,8 +2242,6 @@ dependencies = [
 [[package]]
 name = "nahpu_export"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd942e12424b97dd78927553c407622a8ce208ac03681b0499d697365d1b86c9"
 dependencies = [
  "chrono",
  "nahpu_db",
@@ -2268,8 +2256,6 @@ dependencies = [
 [[package]]
 name = "nahpu_gis"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9262001a75c36c2059e317e34030d7fd992adeaaaf341135d185432dcdc8a14a"
 dependencies = [
  "dbase",
  "geo",

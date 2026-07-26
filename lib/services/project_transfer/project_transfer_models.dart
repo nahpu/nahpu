@@ -1,6 +1,9 @@
 import 'dart:convert';
 
-const int projectTransferVersion = 1;
+import 'package:nahpu/services/specimen_attribute_names.dart';
+
+const int projectTransferVersion = 2;
+const Set<int> supportedProjectTransferVersions = {1, 2};
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
 
@@ -125,7 +128,8 @@ class ProjectTransferPayload {
   String get projectName => project['name'] as String? ?? 'Unnamed project';
   bool get hasMedia => mediaFiles.isNotEmpty;
 
-  List<Map<String, dynamic>> rows(String key) => records[key] ?? const [];
+  List<Map<String, dynamic>> rows(String key) =>
+      records[canonicalizeSpecimenAttributeTableName(key)] ?? const [];
 
   Map<String, int> get summary => {
     'Personnel': rows('personnel').length,
@@ -195,7 +199,7 @@ class ProjectTransferPayload {
           'Bundle records files cannot be imported here.',
         );
       }
-      if (json['version'] != projectTransferVersion) {
+      if (!supportedProjectTransferVersions.contains(json['version'])) {
         throw FormatException(
           'Unsupported project transfer version: ${json['version']}.',
         );
@@ -215,12 +219,12 @@ class ProjectTransferPayload {
           'The project transfer has invalid project information.',
         );
       }
-      final records = <String, List<Map<String, dynamic>>>{};
+      final parsedRecords = <String, List<Map<String, dynamic>>>{};
       for (final entry in recordsValue.entries) {
         if (entry.key is! String || entry.value is! List) {
           throw const FormatException('Invalid project record collection.');
         }
-        records[entry.key as String] = (entry.value as List)
+        parsedRecords[entry.key as String] = (entry.value as List)
             .map((row) {
               if (row is! Map) {
                 throw const FormatException('Invalid project record.');
@@ -229,6 +233,7 @@ class ProjectTransferPayload {
             })
             .toList(growable: false);
       }
+      final records = _canonicalizeRecords(parsedRecords);
       final media = _mapList(
         json['media'],
       ).map(ProjectTransferMediaFile.fromJson).toList(growable: false);
@@ -267,6 +272,25 @@ class ProjectTransferPayload {
           return Map<String, dynamic>.from(entry);
         })
         .toList(growable: false);
+  }
+
+  static Map<String, List<Map<String, dynamic>>> _canonicalizeRecords(
+    Map<String, List<Map<String, dynamic>>> records,
+  ) {
+    final canonical = <String, List<Map<String, dynamic>>>{};
+    for (final entry in records.entries) {
+      final key = canonicalizeSpecimenAttributeTableName(entry.key);
+      final existing = canonical[key];
+      if (existing != null && existing.isNotEmpty && entry.value.isNotEmpty) {
+        throw FormatException(
+          'The project transfer contains conflicting $key collections.',
+        );
+      }
+      if (existing == null || existing.isEmpty) {
+        canonical[key] = entry.value;
+      }
+    }
+    return canonical;
   }
 
   static void validateArchivePath(String value) {

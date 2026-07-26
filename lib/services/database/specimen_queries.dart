@@ -293,74 +293,74 @@ class MammalSpecimenQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   MammalSpecimenQuery(super.db);
 
-  Future<int> createMammalMeasurements(MammalMeasurementCompanion form) =>
-      into(mammalMeasurement).insert(form);
+  Future<int> createMammalAttributes(MammalAttributeCompanion form) =>
+      into(mammalAttribute).insert(form);
 
-  Future updateMammalMeasurements(
+  Future updateMammalAttributes(
     String specimenUuid,
-    MammalMeasurementCompanion form,
+    MammalAttributeCompanion form,
   ) {
     return (update(
-      mammalMeasurement,
+      mammalAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .write(form);
   }
 
-  Future<MammalMeasurementData> getMammalMeasurementByUuid(
+  Future<MammalAttributeData> getMammalAttributeByUuid(
     String specimenUuid,
   ) async {
     return await (select(
-      mammalMeasurement,
+      mammalAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .getSingle();
   }
 
-  Future<List<MammalMeasurementData>> getMammalMeasurementsBySpecimenUuids(
+  Future<List<MammalAttributeData>> getMammalAttributesBySpecimenUuids(
       List<String> specimenUuids) {
     if (specimenUuids.isEmpty) return Future.value([]);
 
-    return (select(mammalMeasurement)
+    return (select(mammalAttribute)
           ..where((t) => t.specimenUuid.isIn(specimenUuids)))
         .get();
   }
 
-  Future<void> deleteMammalMeasurements(String specimenUuid) {
+  Future<void> deleteMammalAttributes(String specimenUuid) {
     return (delete(
-      mammalMeasurement,
+      mammalAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .go();
   }
 }
 
-class AvianSpecimenQuery extends DatabaseAccessor<Database>
+class BirdSpecimenQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
-  AvianSpecimenQuery(super.db);
+  BirdSpecimenQuery(super.db);
 
-  Future<int> createAvianMeasurements(AvianMeasurementCompanion form) =>
-      into(avianMeasurement).insert(form);
+  Future<int> createBirdAttributes(BirdAttributeCompanion form) =>
+      into(birdAttribute).insert(form);
 
-  Future updateAvianMeasurements(
+  Future updateBirdAttributes(
     String specimenUuid,
-    AvianMeasurementCompanion entry,
+    BirdAttributeCompanion entry,
   ) {
     return (update(
-      avianMeasurement,
+      birdAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .write(entry);
   }
 
-  Future<AvianMeasurementData> getAvianMeasurementByUuid(
+  Future<BirdAttributeData> getBirdAttributeByUuid(
     String specimenUuid,
   ) async {
     return await (select(
-      avianMeasurement,
+      birdAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .getSingle();
   }
 
-  Future<void> deleteAvianMeasurements(String specimenUuid) {
+  Future<void> deleteBirdAttributes(String specimenUuid) {
     return (delete(
-      avianMeasurement,
+      birdAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .go();
   }
@@ -370,31 +370,31 @@ class HerpSpecimenQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   HerpSpecimenQuery(super.db);
 
-  Future<int> createHerpMeasurements(HerpMeasurementCompanion form) =>
-      into(herpMeasurement).insert(form);
+  Future<int> createHerpAttributes(HerpAttributeCompanion form) =>
+      into(herpAttribute).insert(form);
 
-  Future updateHerpMeasurements(
+  Future updateHerpAttributes(
     String specimenUuid,
-    HerpMeasurementCompanion entry,
+    HerpAttributeCompanion entry,
   ) {
     return (update(
-      herpMeasurement,
+      herpAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .write(entry);
   }
 
-  Future<HerpMeasurementData> getHerpMeasurementByUuid(
+  Future<HerpAttributeData> getHerpAttributeByUuid(
     String specimenUuid,
   ) async {
     return await (select(
-      herpMeasurement,
+      herpAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .getSingle();
   }
 
-  Future<void> deleteHerpMeasurements(String specimenUuid) {
+  Future<void> deleteHerpAttributes(String specimenUuid) {
     return (delete(
-      herpMeasurement,
+      herpAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .go();
   }

@@ -10077,12 +10077,12 @@ class PersonnelListCompanion extends UpdateCompanion<PersonnelListData> {
   }
 }
 
-class MammalMeasurement extends Table
-    with TableInfo<MammalMeasurement, MammalMeasurementData> {
+class MammalAttribute extends Table
+    with TableInfo<MammalAttribute, MammalAttributeData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  MammalMeasurement(this.attachedDatabase, [this._alias]);
+  MammalAttribute(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
     'specimenUuid',
   );
@@ -10506,10 +10506,10 @@ class MammalMeasurement extends Table
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'mammalMeasurement';
+  static const String $name = 'mammalAttribute';
   @override
   VerificationContext validateIntegrity(
-    Insertable<MammalMeasurementData> instance, {
+    Insertable<MammalAttributeData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -10813,9 +10813,9 @@ class MammalMeasurement extends Table
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  MammalMeasurementData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  MammalAttributeData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MammalMeasurementData(
+    return MammalAttributeData(
       specimenUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}specimenUuid'],
@@ -10964,8 +10964,8 @@ class MammalMeasurement extends Table
   }
 
   @override
-  MammalMeasurement createAlias(String alias) {
-    return MammalMeasurement(attachedDatabase, alias);
+  MammalAttribute createAlias(String alias) {
+    return MammalAttribute(attachedDatabase, alias);
   }
 
   @override
@@ -10976,8 +10976,8 @@ class MammalMeasurement extends Table
   bool get dontWriteConstraints => true;
 }
 
-class MammalMeasurementData extends DataClass
-    implements Insertable<MammalMeasurementData> {
+class MammalAttributeData extends DataClass
+    implements Insertable<MammalAttributeData> {
   final String specimenUuid;
   final int? showBatFields;
   final double? totalLength;
@@ -11016,7 +11016,7 @@ class MammalMeasurementData extends DataClass
   final int? embryoRightCount;
   final int? embryoCR;
   final String? remark;
-  const MammalMeasurementData({
+  const MammalAttributeData({
     required this.specimenUuid,
     this.showBatFields,
     this.totalLength,
@@ -11166,8 +11166,8 @@ class MammalMeasurementData extends DataClass
     return map;
   }
 
-  MammalMeasurementCompanion toCompanion(bool nullToAbsent) {
-    return MammalMeasurementCompanion(
+  MammalAttributeCompanion toCompanion(bool nullToAbsent) {
+    return MammalAttributeCompanion(
       specimenUuid: Value(specimenUuid),
       showBatFields: showBatFields == null && nullToAbsent
           ? const Value.absent()
@@ -11273,12 +11273,12 @@ class MammalMeasurementData extends DataClass
     );
   }
 
-  factory MammalMeasurementData.fromJson(
+  factory MammalAttributeData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MammalMeasurementData(
+    return MammalAttributeData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
       showBatFields: serializer.fromJson<int?>(json['showBatFields']),
       totalLength: serializer.fromJson<double?>(json['totalLength']),
@@ -11372,7 +11372,7 @@ class MammalMeasurementData extends DataClass
     };
   }
 
-  MammalMeasurementData copyWith({
+  MammalAttributeData copyWith({
     String? specimenUuid,
     Value<int?> showBatFields = const Value.absent(),
     Value<double?> totalLength = const Value.absent(),
@@ -11409,7 +11409,7 @@ class MammalMeasurementData extends DataClass
     Value<int?> embryoRightCount = const Value.absent(),
     Value<int?> embryoCR = const Value.absent(),
     Value<String?> remark = const Value.absent(),
-  }) => MammalMeasurementData(
+  }) => MammalAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
     showBatFields: showBatFields.present
         ? showBatFields.value
@@ -11483,8 +11483,8 @@ class MammalMeasurementData extends DataClass
     embryoCR: embryoCR.present ? embryoCR.value : this.embryoCR,
     remark: remark.present ? remark.value : this.remark,
   );
-  MammalMeasurementData copyWithCompanion(MammalMeasurementCompanion data) {
-    return MammalMeasurementData(
+  MammalAttributeData copyWithCompanion(MammalAttributeCompanion data) {
+    return MammalAttributeData(
       specimenUuid: data.specimenUuid.present
           ? data.specimenUuid.value
           : this.specimenUuid,
@@ -11578,7 +11578,7 @@ class MammalMeasurementData extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('MammalMeasurementData(')
+    return (StringBuffer('MammalAttributeData(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('showBatFields: $showBatFields, ')
           ..write('totalLength: $totalLength, ')
@@ -11661,7 +11661,7 @@ class MammalMeasurementData extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is MammalMeasurementData &&
+      (other is MammalAttributeData &&
           other.specimenUuid == this.specimenUuid &&
           other.showBatFields == this.showBatFields &&
           other.totalLength == this.totalLength &&
@@ -11700,8 +11700,7 @@ class MammalMeasurementData extends DataClass
           other.remark == this.remark);
 }
 
-class MammalMeasurementCompanion
-    extends UpdateCompanion<MammalMeasurementData> {
+class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
   final Value<String> specimenUuid;
   final Value<int?> showBatFields;
   final Value<double?> totalLength;
@@ -11739,7 +11738,7 @@ class MammalMeasurementCompanion
   final Value<int?> embryoCR;
   final Value<String?> remark;
   final Value<int> rowid;
-  const MammalMeasurementCompanion({
+  const MammalAttributeCompanion({
     this.specimenUuid = const Value.absent(),
     this.showBatFields = const Value.absent(),
     this.totalLength = const Value.absent(),
@@ -11778,7 +11777,7 @@ class MammalMeasurementCompanion
     this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  MammalMeasurementCompanion.insert({
+  MammalAttributeCompanion.insert({
     required String specimenUuid,
     this.showBatFields = const Value.absent(),
     this.totalLength = const Value.absent(),
@@ -11817,7 +11816,7 @@ class MammalMeasurementCompanion
     this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
-  static Insertable<MammalMeasurementData> custom({
+  static Insertable<MammalAttributeData> custom({
     Expression<String>? specimenUuid,
     Expression<int>? showBatFields,
     Expression<double>? totalLength,
@@ -11903,7 +11902,7 @@ class MammalMeasurementCompanion
     });
   }
 
-  MammalMeasurementCompanion copyWith({
+  MammalAttributeCompanion copyWith({
     Value<String>? specimenUuid,
     Value<int?>? showBatFields,
     Value<double?>? totalLength,
@@ -11942,7 +11941,7 @@ class MammalMeasurementCompanion
     Value<String?>? remark,
     Value<int>? rowid,
   }) {
-    return MammalMeasurementCompanion(
+    return MammalAttributeCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
       showBatFields: showBatFields ?? this.showBatFields,
       totalLength: totalLength ?? this.totalLength,
@@ -12104,7 +12103,7 @@ class MammalMeasurementCompanion
 
   @override
   String toString() {
-    return (StringBuffer('MammalMeasurementCompanion(')
+    return (StringBuffer('MammalAttributeCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('showBatFields: $showBatFields, ')
           ..write('totalLength: $totalLength, ')
@@ -12147,12 +12146,12 @@ class MammalMeasurementCompanion
   }
 }
 
-class AvianMeasurement extends Table
-    with TableInfo<AvianMeasurement, AvianMeasurementData> {
+class BirdAttribute extends Table
+    with TableInfo<BirdAttribute, BirdAttributeData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  AvianMeasurement(this.attachedDatabase, [this._alias]);
+  BirdAttribute(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
     'specimenUuid',
   );
@@ -12622,10 +12621,10 @@ class AvianMeasurement extends Table
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'avianMeasurement';
+  static const String $name = 'birdAttribute';
   @override
   VerificationContext validateIntegrity(
-    Insertable<AvianMeasurementData> instance, {
+    Insertable<BirdAttributeData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -12926,9 +12925,9 @@ class AvianMeasurement extends Table
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  AvianMeasurementData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  BirdAttributeData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return AvianMeasurementData(
+    return BirdAttributeData(
       specimenUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}specimenUuid'],
@@ -13089,8 +13088,8 @@ class AvianMeasurement extends Table
   }
 
   @override
-  AvianMeasurement createAlias(String alias) {
-    return AvianMeasurement(attachedDatabase, alias);
+  BirdAttribute createAlias(String alias) {
+    return BirdAttribute(attachedDatabase, alias);
   }
 
   @override
@@ -13101,8 +13100,8 @@ class AvianMeasurement extends Table
   bool get dontWriteConstraints => true;
 }
 
-class AvianMeasurementData extends DataClass
-    implements Insertable<AvianMeasurementData> {
+class BirdAttributeData extends DataClass
+    implements Insertable<BirdAttributeData> {
   final String specimenUuid;
   final double? weight;
   final double? wingspan;
@@ -13150,7 +13149,7 @@ class AvianMeasurementData extends DataClass
   final String? moltRemark;
   final String? specimenRemark;
   final String? habitatRemark;
-  const AvianMeasurementData({
+  const BirdAttributeData({
     required this.specimenUuid,
     this.weight,
     this.wingspan,
@@ -13312,8 +13311,8 @@ class AvianMeasurementData extends DataClass
     return map;
   }
 
-  AvianMeasurementCompanion toCompanion(bool nullToAbsent) {
-    return AvianMeasurementCompanion(
+  BirdAttributeCompanion toCompanion(bool nullToAbsent) {
+    return BirdAttributeCompanion(
       specimenUuid: Value(specimenUuid),
       weight: weight == null && nullToAbsent
           ? const Value.absent()
@@ -13428,12 +13427,12 @@ class AvianMeasurementData extends DataClass
     );
   }
 
-  factory AvianMeasurementData.fromJson(
+  factory BirdAttributeData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AvianMeasurementData(
+    return BirdAttributeData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
       weight: serializer.fromJson<double?>(json['weight']),
       wingspan: serializer.fromJson<double?>(json['wingspan']),
@@ -13521,7 +13520,7 @@ class AvianMeasurementData extends DataClass
     };
   }
 
-  AvianMeasurementData copyWith({
+  BirdAttributeData copyWith({
     String? specimenUuid,
     Value<double?> weight = const Value.absent(),
     Value<double?> wingspan = const Value.absent(),
@@ -13561,7 +13560,7 @@ class AvianMeasurementData extends DataClass
     Value<String?> moltRemark = const Value.absent(),
     Value<String?> specimenRemark = const Value.absent(),
     Value<String?> habitatRemark = const Value.absent(),
-  }) => AvianMeasurementData(
+  }) => BirdAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
     weight: weight.present ? weight.value : this.weight,
     wingspan: wingspan.present ? wingspan.value : this.wingspan,
@@ -13616,8 +13615,8 @@ class AvianMeasurementData extends DataClass
         ? habitatRemark.value
         : this.habitatRemark,
   );
-  AvianMeasurementData copyWithCompanion(AvianMeasurementCompanion data) {
-    return AvianMeasurementData(
+  BirdAttributeData copyWithCompanion(BirdAttributeCompanion data) {
+    return BirdAttributeData(
       specimenUuid: data.specimenUuid.present
           ? data.specimenUuid.value
           : this.specimenUuid,
@@ -13710,7 +13709,7 @@ class AvianMeasurementData extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('AvianMeasurementData(')
+    return (StringBuffer('BirdAttributeData(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('weight: $weight, ')
           ..write('wingspan: $wingspan, ')
@@ -13799,7 +13798,7 @@ class AvianMeasurementData extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AvianMeasurementData &&
+      (other is BirdAttributeData &&
           other.specimenUuid == this.specimenUuid &&
           other.weight == this.weight &&
           other.wingspan == this.wingspan &&
@@ -13841,7 +13840,7 @@ class AvianMeasurementData extends DataClass
           other.habitatRemark == this.habitatRemark);
 }
 
-class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
+class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
   final Value<String> specimenUuid;
   final Value<double?> weight;
   final Value<double?> wingspan;
@@ -13882,7 +13881,7 @@ class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
   final Value<String?> specimenRemark;
   final Value<String?> habitatRemark;
   final Value<int> rowid;
-  const AvianMeasurementCompanion({
+  const BirdAttributeCompanion({
     this.specimenUuid = const Value.absent(),
     this.weight = const Value.absent(),
     this.wingspan = const Value.absent(),
@@ -13924,7 +13923,7 @@ class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
     this.habitatRemark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  AvianMeasurementCompanion.insert({
+  BirdAttributeCompanion.insert({
     required String specimenUuid,
     this.weight = const Value.absent(),
     this.wingspan = const Value.absent(),
@@ -13966,7 +13965,7 @@ class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
     this.habitatRemark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
-  static Insertable<AvianMeasurementData> custom({
+  static Insertable<BirdAttributeData> custom({
     Expression<String>? specimenUuid,
     Expression<double>? weight,
     Expression<double>? wingspan,
@@ -14052,7 +14051,7 @@ class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
     });
   }
 
-  AvianMeasurementCompanion copyWith({
+  BirdAttributeCompanion copyWith({
     Value<String>? specimenUuid,
     Value<double?>? weight,
     Value<double?>? wingspan,
@@ -14094,7 +14093,7 @@ class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
     Value<String?>? habitatRemark,
     Value<int>? rowid,
   }) {
-    return AvianMeasurementCompanion(
+    return BirdAttributeCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
       weight: weight ?? this.weight,
       wingspan: wingspan ?? this.wingspan,
@@ -14266,7 +14265,7 @@ class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
 
   @override
   String toString() {
-    return (StringBuffer('AvianMeasurementCompanion(')
+    return (StringBuffer('BirdAttributeCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('weight: $weight, ')
           ..write('wingspan: $wingspan, ')
@@ -14312,12 +14311,12 @@ class AvianMeasurementCompanion extends UpdateCompanion<AvianMeasurementData> {
   }
 }
 
-class HerpMeasurement extends Table
-    with TableInfo<HerpMeasurement, HerpMeasurementData> {
+class HerpAttribute extends Table
+    with TableInfo<HerpAttribute, HerpAttributeData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  HerpMeasurement(this.attachedDatabase, [this._alias]);
+  HerpAttribute(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
     'specimenUuid',
   );
@@ -14387,10 +14386,10 @@ class HerpMeasurement extends Table
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'herpMeasurement';
+  static const String $name = 'herpAttribute';
   @override
   VerificationContext validateIntegrity(
-    Insertable<HerpMeasurementData> instance, {
+    Insertable<HerpAttributeData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -14442,9 +14441,9 @@ class HerpMeasurement extends Table
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  HerpMeasurementData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  HerpAttributeData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return HerpMeasurementData(
+    return HerpAttributeData(
       specimenUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}specimenUuid'],
@@ -14473,8 +14472,8 @@ class HerpMeasurement extends Table
   }
 
   @override
-  HerpMeasurement createAlias(String alias) {
-    return HerpMeasurement(attachedDatabase, alias);
+  HerpAttribute createAlias(String alias) {
+    return HerpAttribute(attachedDatabase, alias);
   }
 
   @override
@@ -14485,15 +14484,15 @@ class HerpMeasurement extends Table
   bool get dontWriteConstraints => true;
 }
 
-class HerpMeasurementData extends DataClass
-    implements Insertable<HerpMeasurementData> {
+class HerpAttributeData extends DataClass
+    implements Insertable<HerpAttributeData> {
   final String specimenUuid;
   final int? sex;
   final int? age;
   final double? weight;
   final double? svl;
   final String? remark;
-  const HerpMeasurementData({
+  const HerpAttributeData({
     required this.specimenUuid,
     this.sex,
     this.age,
@@ -14523,8 +14522,8 @@ class HerpMeasurementData extends DataClass
     return map;
   }
 
-  HerpMeasurementCompanion toCompanion(bool nullToAbsent) {
-    return HerpMeasurementCompanion(
+  HerpAttributeCompanion toCompanion(bool nullToAbsent) {
+    return HerpAttributeCompanion(
       specimenUuid: Value(specimenUuid),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
       age: age == null && nullToAbsent ? const Value.absent() : Value(age),
@@ -14538,12 +14537,12 @@ class HerpMeasurementData extends DataClass
     );
   }
 
-  factory HerpMeasurementData.fromJson(
+  factory HerpAttributeData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return HerpMeasurementData(
+    return HerpAttributeData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
       sex: serializer.fromJson<int?>(json['sex']),
       age: serializer.fromJson<int?>(json['age']),
@@ -14565,14 +14564,14 @@ class HerpMeasurementData extends DataClass
     };
   }
 
-  HerpMeasurementData copyWith({
+  HerpAttributeData copyWith({
     String? specimenUuid,
     Value<int?> sex = const Value.absent(),
     Value<int?> age = const Value.absent(),
     Value<double?> weight = const Value.absent(),
     Value<double?> svl = const Value.absent(),
     Value<String?> remark = const Value.absent(),
-  }) => HerpMeasurementData(
+  }) => HerpAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
     sex: sex.present ? sex.value : this.sex,
     age: age.present ? age.value : this.age,
@@ -14580,8 +14579,8 @@ class HerpMeasurementData extends DataClass
     svl: svl.present ? svl.value : this.svl,
     remark: remark.present ? remark.value : this.remark,
   );
-  HerpMeasurementData copyWithCompanion(HerpMeasurementCompanion data) {
-    return HerpMeasurementData(
+  HerpAttributeData copyWithCompanion(HerpAttributeCompanion data) {
+    return HerpAttributeData(
       specimenUuid: data.specimenUuid.present
           ? data.specimenUuid.value
           : this.specimenUuid,
@@ -14595,7 +14594,7 @@ class HerpMeasurementData extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('HerpMeasurementData(')
+    return (StringBuffer('HerpAttributeData(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('sex: $sex, ')
           ..write('age: $age, ')
@@ -14611,7 +14610,7 @@ class HerpMeasurementData extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is HerpMeasurementData &&
+      (other is HerpAttributeData &&
           other.specimenUuid == this.specimenUuid &&
           other.sex == this.sex &&
           other.age == this.age &&
@@ -14620,7 +14619,7 @@ class HerpMeasurementData extends DataClass
           other.remark == this.remark);
 }
 
-class HerpMeasurementCompanion extends UpdateCompanion<HerpMeasurementData> {
+class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   final Value<String> specimenUuid;
   final Value<int?> sex;
   final Value<int?> age;
@@ -14628,7 +14627,7 @@ class HerpMeasurementCompanion extends UpdateCompanion<HerpMeasurementData> {
   final Value<double?> svl;
   final Value<String?> remark;
   final Value<int> rowid;
-  const HerpMeasurementCompanion({
+  const HerpAttributeCompanion({
     this.specimenUuid = const Value.absent(),
     this.sex = const Value.absent(),
     this.age = const Value.absent(),
@@ -14637,7 +14636,7 @@ class HerpMeasurementCompanion extends UpdateCompanion<HerpMeasurementData> {
     this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  HerpMeasurementCompanion.insert({
+  HerpAttributeCompanion.insert({
     required String specimenUuid,
     this.sex = const Value.absent(),
     this.age = const Value.absent(),
@@ -14646,7 +14645,7 @@ class HerpMeasurementCompanion extends UpdateCompanion<HerpMeasurementData> {
     this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
-  static Insertable<HerpMeasurementData> custom({
+  static Insertable<HerpAttributeData> custom({
     Expression<String>? specimenUuid,
     Expression<int>? sex,
     Expression<int>? age,
@@ -14666,7 +14665,7 @@ class HerpMeasurementCompanion extends UpdateCompanion<HerpMeasurementData> {
     });
   }
 
-  HerpMeasurementCompanion copyWith({
+  HerpAttributeCompanion copyWith({
     Value<String>? specimenUuid,
     Value<int?>? sex,
     Value<int?>? age,
@@ -14675,7 +14674,7 @@ class HerpMeasurementCompanion extends UpdateCompanion<HerpMeasurementData> {
     Value<String?>? remark,
     Value<int>? rowid,
   }) {
-    return HerpMeasurementCompanion(
+    return HerpAttributeCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
       sex: sex ?? this.sex,
       age: age ?? this.age,
@@ -14715,7 +14714,7 @@ class HerpMeasurementCompanion extends UpdateCompanion<HerpMeasurementData> {
 
   @override
   String toString() {
-    return (StringBuffer('HerpMeasurementCompanion(')
+    return (StringBuffer('HerpAttributeCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('sex: $sex, ')
           ..write('age: $age, ')
@@ -15628,9 +15627,9 @@ abstract class _$Database extends GeneratedDatabase {
   late final SpecimenMedia specimenMedia = SpecimenMedia(this);
   late final AssociatedData associatedData = AssociatedData(this);
   late final PersonnelList personnelList = PersonnelList(this);
-  late final MammalMeasurement mammalMeasurement = MammalMeasurement(this);
-  late final AvianMeasurement avianMeasurement = AvianMeasurement(this);
-  late final HerpMeasurement herpMeasurement = HerpMeasurement(this);
+  late final MammalAttribute mammalAttribute = MammalAttribute(this);
+  late final BirdAttribute birdAttribute = BirdAttribute(this);
+  late final HerpAttribute herpAttribute = HerpAttribute(this);
   late final SpecimenPart specimenPart = SpecimenPart(this);
   late final Index specimenProjectSpeciesIdx = Index(
     'specimen_project_species_idx',
@@ -15682,9 +15681,9 @@ abstract class _$Database extends GeneratedDatabase {
     specimenMedia,
     associatedData,
     personnelList,
-    mammalMeasurement,
-    avianMeasurement,
-    herpMeasurement,
+    mammalAttribute,
+    birdAttribute,
+    herpAttribute,
     specimenPart,
     specimenProjectSpeciesIdx,
     specimenProjectEventIdx,
@@ -21048,8 +21047,8 @@ typedef $PersonnelListProcessedTableManager =
       PersonnelListData,
       PrefetchHooks Function()
     >;
-typedef $MammalMeasurementCreateCompanionBuilder =
-    MammalMeasurementCompanion Function({
+typedef $MammalAttributeCreateCompanionBuilder =
+    MammalAttributeCompanion Function({
       required String specimenUuid,
       Value<int?> showBatFields,
       Value<double?> totalLength,
@@ -21088,8 +21087,8 @@ typedef $MammalMeasurementCreateCompanionBuilder =
       Value<String?> remark,
       Value<int> rowid,
     });
-typedef $MammalMeasurementUpdateCompanionBuilder =
-    MammalMeasurementCompanion Function({
+typedef $MammalAttributeUpdateCompanionBuilder =
+    MammalAttributeCompanion Function({
       Value<String> specimenUuid,
       Value<int?> showBatFields,
       Value<double?> totalLength,
@@ -21129,9 +21128,9 @@ typedef $MammalMeasurementUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-class $MammalMeasurementFilterComposer
-    extends Composer<_$Database, MammalMeasurement> {
-  $MammalMeasurementFilterComposer({
+class $MammalAttributeFilterComposer
+    extends Composer<_$Database, MammalAttribute> {
+  $MammalAttributeFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -21319,9 +21318,9 @@ class $MammalMeasurementFilterComposer
   );
 }
 
-class $MammalMeasurementOrderingComposer
-    extends Composer<_$Database, MammalMeasurement> {
-  $MammalMeasurementOrderingComposer({
+class $MammalAttributeOrderingComposer
+    extends Composer<_$Database, MammalAttribute> {
+  $MammalAttributeOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -21509,9 +21508,9 @@ class $MammalMeasurementOrderingComposer
   );
 }
 
-class $MammalMeasurementAnnotationComposer
-    extends Composer<_$Database, MammalMeasurement> {
-  $MammalMeasurementAnnotationComposer({
+class $MammalAttributeAnnotationComposer
+    extends Composer<_$Database, MammalAttribute> {
+  $MammalAttributeAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -21679,39 +21678,35 @@ class $MammalMeasurementAnnotationComposer
       $composableBuilder(column: $table.remark, builder: (column) => column);
 }
 
-class $MammalMeasurementTableManager
+class $MammalAttributeTableManager
     extends
         RootTableManager<
           _$Database,
-          MammalMeasurement,
-          MammalMeasurementData,
-          $MammalMeasurementFilterComposer,
-          $MammalMeasurementOrderingComposer,
-          $MammalMeasurementAnnotationComposer,
-          $MammalMeasurementCreateCompanionBuilder,
-          $MammalMeasurementUpdateCompanionBuilder,
+          MammalAttribute,
+          MammalAttributeData,
+          $MammalAttributeFilterComposer,
+          $MammalAttributeOrderingComposer,
+          $MammalAttributeAnnotationComposer,
+          $MammalAttributeCreateCompanionBuilder,
+          $MammalAttributeUpdateCompanionBuilder,
           (
-            MammalMeasurementData,
-            BaseReferences<
-              _$Database,
-              MammalMeasurement,
-              MammalMeasurementData
-            >,
+            MammalAttributeData,
+            BaseReferences<_$Database, MammalAttribute, MammalAttributeData>,
           ),
-          MammalMeasurementData,
+          MammalAttributeData,
           PrefetchHooks Function()
         > {
-  $MammalMeasurementTableManager(_$Database db, MammalMeasurement table)
+  $MammalAttributeTableManager(_$Database db, MammalAttribute table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $MammalMeasurementFilterComposer($db: db, $table: table),
+              $MammalAttributeFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $MammalMeasurementOrderingComposer($db: db, $table: table),
+              $MammalAttributeOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $MammalMeasurementAnnotationComposer($db: db, $table: table),
+              $MammalAttributeAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> specimenUuid = const Value.absent(),
@@ -21751,7 +21746,7 @@ class $MammalMeasurementTableManager
                 Value<int?> embryoCR = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => MammalMeasurementCompanion(
+              }) => MammalAttributeCompanion(
                 specimenUuid: specimenUuid,
                 showBatFields: showBatFields,
                 totalLength: totalLength,
@@ -21829,7 +21824,7 @@ class $MammalMeasurementTableManager
                 Value<int?> embryoCR = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => MammalMeasurementCompanion.insert(
+              }) => MammalAttributeCompanion.insert(
                 specimenUuid: specimenUuid,
                 showBatFields: showBatFields,
                 totalLength: totalLength,
@@ -21876,25 +21871,25 @@ class $MammalMeasurementTableManager
       );
 }
 
-typedef $MammalMeasurementProcessedTableManager =
+typedef $MammalAttributeProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      MammalMeasurement,
-      MammalMeasurementData,
-      $MammalMeasurementFilterComposer,
-      $MammalMeasurementOrderingComposer,
-      $MammalMeasurementAnnotationComposer,
-      $MammalMeasurementCreateCompanionBuilder,
-      $MammalMeasurementUpdateCompanionBuilder,
+      MammalAttribute,
+      MammalAttributeData,
+      $MammalAttributeFilterComposer,
+      $MammalAttributeOrderingComposer,
+      $MammalAttributeAnnotationComposer,
+      $MammalAttributeCreateCompanionBuilder,
+      $MammalAttributeUpdateCompanionBuilder,
       (
-        MammalMeasurementData,
-        BaseReferences<_$Database, MammalMeasurement, MammalMeasurementData>,
+        MammalAttributeData,
+        BaseReferences<_$Database, MammalAttribute, MammalAttributeData>,
       ),
-      MammalMeasurementData,
+      MammalAttributeData,
       PrefetchHooks Function()
     >;
-typedef $AvianMeasurementCreateCompanionBuilder =
-    AvianMeasurementCompanion Function({
+typedef $BirdAttributeCreateCompanionBuilder =
+    BirdAttributeCompanion Function({
       required String specimenUuid,
       Value<double?> weight,
       Value<double?> wingspan,
@@ -21936,8 +21931,8 @@ typedef $AvianMeasurementCreateCompanionBuilder =
       Value<String?> habitatRemark,
       Value<int> rowid,
     });
-typedef $AvianMeasurementUpdateCompanionBuilder =
-    AvianMeasurementCompanion Function({
+typedef $BirdAttributeUpdateCompanionBuilder =
+    BirdAttributeCompanion Function({
       Value<String> specimenUuid,
       Value<double?> weight,
       Value<double?> wingspan,
@@ -21980,9 +21975,8 @@ typedef $AvianMeasurementUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-class $AvianMeasurementFilterComposer
-    extends Composer<_$Database, AvianMeasurement> {
-  $AvianMeasurementFilterComposer({
+class $BirdAttributeFilterComposer extends Composer<_$Database, BirdAttribute> {
+  $BirdAttributeFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -22185,9 +22179,9 @@ class $AvianMeasurementFilterComposer
   );
 }
 
-class $AvianMeasurementOrderingComposer
-    extends Composer<_$Database, AvianMeasurement> {
-  $AvianMeasurementOrderingComposer({
+class $BirdAttributeOrderingComposer
+    extends Composer<_$Database, BirdAttribute> {
+  $BirdAttributeOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -22390,9 +22384,9 @@ class $AvianMeasurementOrderingComposer
   );
 }
 
-class $AvianMeasurementAnnotationComposer
-    extends Composer<_$Database, AvianMeasurement> {
-  $AvianMeasurementAnnotationComposer({
+class $BirdAttributeAnnotationComposer
+    extends Composer<_$Database, BirdAttribute> {
+  $BirdAttributeAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -22565,35 +22559,35 @@ class $AvianMeasurementAnnotationComposer
   );
 }
 
-class $AvianMeasurementTableManager
+class $BirdAttributeTableManager
     extends
         RootTableManager<
           _$Database,
-          AvianMeasurement,
-          AvianMeasurementData,
-          $AvianMeasurementFilterComposer,
-          $AvianMeasurementOrderingComposer,
-          $AvianMeasurementAnnotationComposer,
-          $AvianMeasurementCreateCompanionBuilder,
-          $AvianMeasurementUpdateCompanionBuilder,
+          BirdAttribute,
+          BirdAttributeData,
+          $BirdAttributeFilterComposer,
+          $BirdAttributeOrderingComposer,
+          $BirdAttributeAnnotationComposer,
+          $BirdAttributeCreateCompanionBuilder,
+          $BirdAttributeUpdateCompanionBuilder,
           (
-            AvianMeasurementData,
-            BaseReferences<_$Database, AvianMeasurement, AvianMeasurementData>,
+            BirdAttributeData,
+            BaseReferences<_$Database, BirdAttribute, BirdAttributeData>,
           ),
-          AvianMeasurementData,
+          BirdAttributeData,
           PrefetchHooks Function()
         > {
-  $AvianMeasurementTableManager(_$Database db, AvianMeasurement table)
+  $BirdAttributeTableManager(_$Database db, BirdAttribute table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $AvianMeasurementFilterComposer($db: db, $table: table),
+              $BirdAttributeFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $AvianMeasurementOrderingComposer($db: db, $table: table),
+              $BirdAttributeOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $AvianMeasurementAnnotationComposer($db: db, $table: table),
+              $BirdAttributeAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> specimenUuid = const Value.absent(),
@@ -22636,7 +22630,7 @@ class $AvianMeasurementTableManager
                 Value<String?> specimenRemark = const Value.absent(),
                 Value<String?> habitatRemark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => AvianMeasurementCompanion(
+              }) => BirdAttributeCompanion(
                 specimenUuid: specimenUuid,
                 weight: weight,
                 wingspan: wingspan,
@@ -22720,7 +22714,7 @@ class $AvianMeasurementTableManager
                 Value<String?> specimenRemark = const Value.absent(),
                 Value<String?> habitatRemark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => AvianMeasurementCompanion.insert(
+              }) => BirdAttributeCompanion.insert(
                 specimenUuid: specimenUuid,
                 weight: weight,
                 wingspan: wingspan,
@@ -22770,25 +22764,25 @@ class $AvianMeasurementTableManager
       );
 }
 
-typedef $AvianMeasurementProcessedTableManager =
+typedef $BirdAttributeProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      AvianMeasurement,
-      AvianMeasurementData,
-      $AvianMeasurementFilterComposer,
-      $AvianMeasurementOrderingComposer,
-      $AvianMeasurementAnnotationComposer,
-      $AvianMeasurementCreateCompanionBuilder,
-      $AvianMeasurementUpdateCompanionBuilder,
+      BirdAttribute,
+      BirdAttributeData,
+      $BirdAttributeFilterComposer,
+      $BirdAttributeOrderingComposer,
+      $BirdAttributeAnnotationComposer,
+      $BirdAttributeCreateCompanionBuilder,
+      $BirdAttributeUpdateCompanionBuilder,
       (
-        AvianMeasurementData,
-        BaseReferences<_$Database, AvianMeasurement, AvianMeasurementData>,
+        BirdAttributeData,
+        BaseReferences<_$Database, BirdAttribute, BirdAttributeData>,
       ),
-      AvianMeasurementData,
+      BirdAttributeData,
       PrefetchHooks Function()
     >;
-typedef $HerpMeasurementCreateCompanionBuilder =
-    HerpMeasurementCompanion Function({
+typedef $HerpAttributeCreateCompanionBuilder =
+    HerpAttributeCompanion Function({
       required String specimenUuid,
       Value<int?> sex,
       Value<int?> age,
@@ -22797,8 +22791,8 @@ typedef $HerpMeasurementCreateCompanionBuilder =
       Value<String?> remark,
       Value<int> rowid,
     });
-typedef $HerpMeasurementUpdateCompanionBuilder =
-    HerpMeasurementCompanion Function({
+typedef $HerpAttributeUpdateCompanionBuilder =
+    HerpAttributeCompanion Function({
       Value<String> specimenUuid,
       Value<int?> sex,
       Value<int?> age,
@@ -22808,9 +22802,8 @@ typedef $HerpMeasurementUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-class $HerpMeasurementFilterComposer
-    extends Composer<_$Database, HerpMeasurement> {
-  $HerpMeasurementFilterComposer({
+class $HerpAttributeFilterComposer extends Composer<_$Database, HerpAttribute> {
+  $HerpAttributeFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -22848,9 +22841,9 @@ class $HerpMeasurementFilterComposer
   );
 }
 
-class $HerpMeasurementOrderingComposer
-    extends Composer<_$Database, HerpMeasurement> {
-  $HerpMeasurementOrderingComposer({
+class $HerpAttributeOrderingComposer
+    extends Composer<_$Database, HerpAttribute> {
+  $HerpAttributeOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -22888,9 +22881,9 @@ class $HerpMeasurementOrderingComposer
   );
 }
 
-class $HerpMeasurementAnnotationComposer
-    extends Composer<_$Database, HerpMeasurement> {
-  $HerpMeasurementAnnotationComposer({
+class $HerpAttributeAnnotationComposer
+    extends Composer<_$Database, HerpAttribute> {
+  $HerpAttributeAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -22918,35 +22911,35 @@ class $HerpMeasurementAnnotationComposer
       $composableBuilder(column: $table.remark, builder: (column) => column);
 }
 
-class $HerpMeasurementTableManager
+class $HerpAttributeTableManager
     extends
         RootTableManager<
           _$Database,
-          HerpMeasurement,
-          HerpMeasurementData,
-          $HerpMeasurementFilterComposer,
-          $HerpMeasurementOrderingComposer,
-          $HerpMeasurementAnnotationComposer,
-          $HerpMeasurementCreateCompanionBuilder,
-          $HerpMeasurementUpdateCompanionBuilder,
+          HerpAttribute,
+          HerpAttributeData,
+          $HerpAttributeFilterComposer,
+          $HerpAttributeOrderingComposer,
+          $HerpAttributeAnnotationComposer,
+          $HerpAttributeCreateCompanionBuilder,
+          $HerpAttributeUpdateCompanionBuilder,
           (
-            HerpMeasurementData,
-            BaseReferences<_$Database, HerpMeasurement, HerpMeasurementData>,
+            HerpAttributeData,
+            BaseReferences<_$Database, HerpAttribute, HerpAttributeData>,
           ),
-          HerpMeasurementData,
+          HerpAttributeData,
           PrefetchHooks Function()
         > {
-  $HerpMeasurementTableManager(_$Database db, HerpMeasurement table)
+  $HerpAttributeTableManager(_$Database db, HerpAttribute table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $HerpMeasurementFilterComposer($db: db, $table: table),
+              $HerpAttributeFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $HerpMeasurementOrderingComposer($db: db, $table: table),
+              $HerpAttributeOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $HerpMeasurementAnnotationComposer($db: db, $table: table),
+              $HerpAttributeAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> specimenUuid = const Value.absent(),
@@ -22956,7 +22949,7 @@ class $HerpMeasurementTableManager
                 Value<double?> svl = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => HerpMeasurementCompanion(
+              }) => HerpAttributeCompanion(
                 specimenUuid: specimenUuid,
                 sex: sex,
                 age: age,
@@ -22974,7 +22967,7 @@ class $HerpMeasurementTableManager
                 Value<double?> svl = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => HerpMeasurementCompanion.insert(
+              }) => HerpAttributeCompanion.insert(
                 specimenUuid: specimenUuid,
                 sex: sex,
                 age: age,
@@ -22991,21 +22984,21 @@ class $HerpMeasurementTableManager
       );
 }
 
-typedef $HerpMeasurementProcessedTableManager =
+typedef $HerpAttributeProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      HerpMeasurement,
-      HerpMeasurementData,
-      $HerpMeasurementFilterComposer,
-      $HerpMeasurementOrderingComposer,
-      $HerpMeasurementAnnotationComposer,
-      $HerpMeasurementCreateCompanionBuilder,
-      $HerpMeasurementUpdateCompanionBuilder,
+      HerpAttribute,
+      HerpAttributeData,
+      $HerpAttributeFilterComposer,
+      $HerpAttributeOrderingComposer,
+      $HerpAttributeAnnotationComposer,
+      $HerpAttributeCreateCompanionBuilder,
+      $HerpAttributeUpdateCompanionBuilder,
       (
-        HerpMeasurementData,
-        BaseReferences<_$Database, HerpMeasurement, HerpMeasurementData>,
+        HerpAttributeData,
+        BaseReferences<_$Database, HerpAttribute, HerpAttributeData>,
       ),
-      HerpMeasurementData,
+      HerpAttributeData,
       PrefetchHooks Function()
     >;
 typedef $SpecimenPartCreateCompanionBuilder =
@@ -23434,12 +23427,12 @@ class $DatabaseManager {
       $AssociatedDataTableManager(_db, _db.associatedData);
   $PersonnelListTableManager get personnelList =>
       $PersonnelListTableManager(_db, _db.personnelList);
-  $MammalMeasurementTableManager get mammalMeasurement =>
-      $MammalMeasurementTableManager(_db, _db.mammalMeasurement);
-  $AvianMeasurementTableManager get avianMeasurement =>
-      $AvianMeasurementTableManager(_db, _db.avianMeasurement);
-  $HerpMeasurementTableManager get herpMeasurement =>
-      $HerpMeasurementTableManager(_db, _db.herpMeasurement);
+  $MammalAttributeTableManager get mammalAttribute =>
+      $MammalAttributeTableManager(_db, _db.mammalAttribute);
+  $BirdAttributeTableManager get birdAttribute =>
+      $BirdAttributeTableManager(_db, _db.birdAttribute);
+  $HerpAttributeTableManager get herpAttribute =>
+      $HerpAttributeTableManager(_db, _db.herpAttribute);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db, _db.specimenPart);
 }

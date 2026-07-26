@@ -154,9 +154,9 @@ void main() {
     test(
         'substituteDocumentPlaceholders maps encoded fields using enum default',
         () {
-      final text = 'Testis: [mammalMeasurement::testisPosition]';
+      final text = 'Testis: [mammalAttribute::testisPosition]';
       final data = {
-        'mammalMeasurement::testisPosition': '0',
+        'mammalAttribute::testisPosition': '0',
       };
       final result = substituteDocumentPlaceholders(
         text,
@@ -188,7 +188,7 @@ void main() {
         () {
       final text = 'Testis: [testisPosition]';
       final data = {
-        'mammalMeasurement::testisPosition': '0',
+        'mammalAttribute::testisPosition': '0',
       };
       final result = substituteDocumentPlaceholders(
         text,

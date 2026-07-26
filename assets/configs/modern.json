@@ -71,8 +71,8 @@
           {"id": "taxon", "text": "[taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 34, "yMm": 4, "fontSizePt": 9, "fontFamily": "SourceSans3", "italic": true, "maxWidthMm": 56},
           {"id": "date", "text": "[specimen::collectionDate]", "xMm": 34, "yMm": 11, "fontSizePt": 7, "fontFamily": "SourceSans3", "colorArgb": 4283782485, "maxWidthMm": 56},
           {"id": "locality", "text": "[site::locality]", "xMm": 3, "yMm": 19, "fontSizePt": 7, "fontFamily": "SourceSans3", "maxWidthMm": 87, "heightMm": 12},
-          {"id": "metrics", "text": "TL [mammalMeasurement::totalLength] / T [mammalMeasurement::tailLength] / HF [mammalMeasurement::hindFootLength] / E [mammalMeasurement::earLength] / W [mammalMeasurement::weight]", "xMm": 3, "yMm": 33, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87},
-          {"id": "meta", "text": "Sex [mammalMeasurement::sex]  Age [mammalMeasurement::age]  Prep [specimenPart::type]", "xMm": 3, "yMm": 39, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87}
+          {"id": "metrics", "text": "TL [mammalAttribute::totalLength] / T [mammalAttribute::tailLength] / HF [mammalAttribute::hindFootLength] / E [mammalAttribute::earLength] / W [mammalAttribute::weight]", "xMm": 3, "yMm": 33, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87},
+          {"id": "meta", "text": "Sex [mammalAttribute::sex]  Age [mammalAttribute::age]  Prep [specimenPart::type]", "xMm": 3, "yMm": 39, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87}
         ]
       },
       "page2": {}
@@ -89,8 +89,8 @@
           {"id": "taxon", "text": "[taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 34, "yMm": 4, "fontSizePt": 9, "fontFamily": "SourceSans3", "italic": true, "maxWidthMm": 56},
           {"id": "date", "text": "[specimen::collectionDate]", "xMm": 34, "yMm": 11, "fontSizePt": 7, "fontFamily": "SourceSans3", "colorArgb": 4283782485, "maxWidthMm": 56},
           {"id": "locality", "text": "[site::locality]", "xMm": 3, "yMm": 19, "fontSizePt": 7, "fontFamily": "SourceSans3", "maxWidthMm": 87, "heightMm": 12},
-          {"id": "metrics", "text": "FA [mammalMeasurement::forearm] / Tib [mammalMeasurement::tibia] / W [mammalMeasurement::weight] / Sex [mammalMeasurement::sex]", "xMm": 3, "yMm": 33, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87},
-          {"id": "echo", "text": "Fmax [mammalMeasurement::frequencyMax]  Fmin [mammalMeasurement::frequencyMin]  FME [mammalMeasurement::frequencyAtMaxEnergy]", "xMm": 3, "yMm": 39, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87}
+          {"id": "metrics", "text": "FA [mammalAttribute::forearm] / Tib [mammalAttribute::tibia] / W [mammalAttribute::weight] / Sex [mammalAttribute::sex]", "xMm": 3, "yMm": 33, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87},
+          {"id": "echo", "text": "Fmax [mammalAttribute::frequencyMax]  Fmin [mammalAttribute::frequencyMin]  FME [mammalAttribute::frequencyAtMaxEnergy]", "xMm": 3, "yMm": 39, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87}
         ]
       },
       "page2": {}
@@ -107,8 +107,8 @@
           {"id": "taxon", "text": "[taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 34, "yMm": 4, "fontSizePt": 9, "fontFamily": "SourceSans3", "italic": true, "maxWidthMm": 56},
           {"id": "date", "text": "[specimen::collectionDate]", "xMm": 34, "yMm": 11, "fontSizePt": 7, "fontFamily": "SourceSans3", "colorArgb": 4283782485, "maxWidthMm": 56},
           {"id": "locality", "text": "[site::locality]", "xMm": 3, "yMm": 19, "fontSizePt": 7, "fontFamily": "SourceSans3", "maxWidthMm": 87, "heightMm": 12},
-          {"id": "metrics", "text": "Wt [avianMeasurement::weight] / Wing [avianMeasurement::wingspan] / Sex [avianMeasurement::sex] / Fat [avianMeasurement::fat]", "xMm": 3, "yMm": 33, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87},
-          {"id": "repro", "text": "BP [avianMeasurement::broodPatch]  Skull [avianMeasurement::skullOssification]  Bursa [avianMeasurement::hasBursa]", "xMm": 3, "yMm": 39, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87}
+          {"id": "metrics", "text": "Wt [birdAttribute::weight] / Wing [birdAttribute::wingspan] / Sex [birdAttribute::sex] / Fat [birdAttribute::fat]", "xMm": 3, "yMm": 33, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87},
+          {"id": "repro", "text": "BP [birdAttribute::broodPatch]  Skull [birdAttribute::skullOssification]  Bursa [birdAttribute::hasBursa]", "xMm": 3, "yMm": 39, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87}
         ]
       },
       "page2": {}
@@ -125,8 +125,8 @@
           {"id": "taxon", "text": "[taxonomy::genus] [taxonomy::specificEpithet]", "xMm": 34, "yMm": 4, "fontSizePt": 9, "fontFamily": "SourceSans3", "italic": true, "maxWidthMm": 56},
           {"id": "date", "text": "[specimen::collectionDate]", "xMm": 34, "yMm": 11, "fontSizePt": 7, "fontFamily": "SourceSans3", "colorArgb": 4283782485, "maxWidthMm": 56},
           {"id": "locality", "text": "[site::locality]", "xMm": 3, "yMm": 19, "fontSizePt": 7, "fontFamily": "SourceSans3", "maxWidthMm": 87, "heightMm": 12},
-          {"id": "metrics", "text": "SVL [herpMeasurement::svl] / Wt [herpMeasurement::weight] / Sex [herpMeasurement::sex] / Age [herpMeasurement::age]", "xMm": 3, "yMm": 34, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87},
-          {"id": "remark", "text": "[herpMeasurement::remark]", "xMm": 3, "yMm": 40, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87}
+          {"id": "metrics", "text": "SVL [herpAttribute::svl] / Wt [herpAttribute::weight] / Sex [herpAttribute::sex] / Age [herpAttribute::age]", "xMm": 3, "yMm": 34, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87},
+          {"id": "remark", "text": "[herpAttribute::remark]", "xMm": 3, "yMm": 40, "fontSizePt": 6.8, "fontFamily": "SourceSans3", "maxWidthMm": 87}
         ]
       },
       "page2": {}

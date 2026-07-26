@@ -5,18 +5,15 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/utility_services.dart';
 
-class HerpetofaunaMeasurements extends AppServices {
-  HerpetofaunaMeasurements({
-    required super.ref,
-    required this.specimenUuid,
-  });
+/// Formats herpetofauna attribute records for specimen exports.
+class HerpAttributes extends AppServices {
+  HerpAttributes({required super.ref, required this.specimenUuid});
 
   final String specimenUuid;
-  late HerpMeasurementData data;
+  late HerpAttributeData data;
 
-  Future<List<String>> getMeasurements() async {
-    data =
-        await SpecimenServices(ref: ref).getHerpMeasurementData(specimenUuid);
+  Future<List<String>> getAttributes() async {
+    data = await SpecimenServices(ref: ref).getHerpAttributeData(specimenUuid);
     List<String> sexData = _getSexData();
     String age = data.age != null ? specimenAgeList[data.age!] : '';
     List<String> measurement = _getStdMeasurement();
@@ -28,10 +25,7 @@ class HerpetofaunaMeasurements extends AppServices {
     String weight = _getWeight(data.weight);
     String svl = _getSVL(data.svl);
 
-    List<String> measurements = [
-      weight,
-      svl,
-    ];
+    List<String> measurements = [weight, svl];
 
     return measurements;
   }

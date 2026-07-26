@@ -402,8 +402,8 @@ class SpecimenFormCtrModel {
   }
 }
 
-class MammalMeasurementCtrModel {
-  MammalMeasurementCtrModel({
+class MammalAttributeCtrModel {
+  MammalAttributeCtrModel({
     required this.showBatFieldsCtr,
     required this.totalLengthCtr,
     required this.tailLengthCtr,
@@ -475,7 +475,7 @@ class MammalMeasurementCtrModel {
   TextEditingController embryoCRCtr;
   TextEditingController remarksCtr;
 
-  factory MammalMeasurementCtrModel.empty() => MammalMeasurementCtrModel(
+  factory MammalAttributeCtrModel.empty() => MammalAttributeCtrModel(
       showBatFieldsCtr: null,
       totalLengthCtr: TextEditingController(),
       tailLengthCtr: TextEditingController(),
@@ -511,8 +511,8 @@ class MammalMeasurementCtrModel {
       embryoCRCtr: TextEditingController(),
       remarksCtr: TextEditingController());
 
-  factory MammalMeasurementCtrModel.fromData(MammalMeasurementData data) =>
-      MammalMeasurementCtrModel(
+  factory MammalAttributeCtrModel.fromData(MammalAttributeData data) =>
+      MammalAttributeCtrModel(
         showBatFieldsCtr: data.showBatFields == 1,
         totalLengthCtr:
             TextEditingController(text: data.totalLength?.truncateZero() ?? ''),
@@ -590,8 +590,8 @@ class MammalMeasurementCtrModel {
   }
 }
 
-class AvianMeasurementCtrModel {
-  AvianMeasurementCtrModel({
+class BirdAttributeCtrModel {
+  BirdAttributeCtrModel({
     required this.weightCtr,
     required this.wingspanCtr,
     required this.irisCtr,
@@ -663,7 +663,7 @@ class AvianMeasurementCtrModel {
   TextEditingController specimenRemarkCtr;
   TextEditingController habitatRemarkCtr;
 
-  factory AvianMeasurementCtrModel.empty() => AvianMeasurementCtrModel(
+  factory BirdAttributeCtrModel.empty() => BirdAttributeCtrModel(
         weightCtr: TextEditingController(),
         wingspanCtr: TextEditingController(),
         irisCtr: TextEditingController(),
@@ -700,8 +700,8 @@ class AvianMeasurementCtrModel {
         habitatRemarkCtr: TextEditingController(),
       );
 
-  factory AvianMeasurementCtrModel.fromData(AvianMeasurementData data) =>
-      AvianMeasurementCtrModel(
+  factory BirdAttributeCtrModel.fromData(BirdAttributeData data) =>
+      BirdAttributeCtrModel(
         weightCtr: TextEditingController(text: data.weight?.truncateZero()),
         wingspanCtr: TextEditingController(text: data.wingspan?.truncateZero()),
         irisCtr: TextEditingController(text: data.irisColor ?? ''),
@@ -778,8 +778,8 @@ class AvianMeasurementCtrModel {
   }
 }
 
-class HerpMeasurementCtrModel {
-  HerpMeasurementCtrModel({
+class HerpAttributeCtrModel {
+  HerpAttributeCtrModel({
     required this.sexCtr,
     required this.ageCtr,
     required this.weightCtr,
@@ -793,7 +793,7 @@ class HerpMeasurementCtrModel {
   TextEditingController svlCtr;
   TextEditingController remarkCtr;
 
-  factory HerpMeasurementCtrModel.empty() => HerpMeasurementCtrModel(
+  factory HerpAttributeCtrModel.empty() => HerpAttributeCtrModel(
         sexCtr: null,
         ageCtr: null,
         weightCtr: TextEditingController(),
@@ -801,8 +801,8 @@ class HerpMeasurementCtrModel {
         remarkCtr: TextEditingController(),
       );
 
-  factory HerpMeasurementCtrModel.fromData(HerpMeasurementData data) =>
-      HerpMeasurementCtrModel(
+  factory HerpAttributeCtrModel.fromData(HerpAttributeData data) =>
+      HerpAttributeCtrModel(
         sexCtr: data.sex,
         ageCtr: data.age,
         weightCtr:

@@ -12,12 +12,12 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9]) {
-    test('upgrade from v$version to v10', () async {
+  for (final version in [6, 7, 8, 9, 10]) {
+    test('upgrade from v$version to v11', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 10);
+      await verifier.migrateAndValidate(db, 11);
       await db.close();
     });
   }
@@ -29,7 +29,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 10);
+    await verifier.migrateAndValidate(db, 11);
     await db.close();
   });
 
@@ -41,7 +41,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 10);
+    await verifier.migrateAndValidate(db, 11);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -50,6 +50,78 @@ void main() {
         .get();
 
     expect(columns.map((row) => row.data['name']), ['projectUuid']);
+    await db.close();
+  });
+
+  test('v11 attribute-table renames preserve every stored column', () async {
+    final schema = await verifier.schemaAt(10);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO specimen (uuid, projectUuid) VALUES ('specimen', 'project')",
+    );
+
+    const legacyToCanonical = {
+      'mammalMeasurement': 'mammalAttribute',
+      'avianMeasurement': 'birdAttribute',
+      'herpMeasurement': 'herpAttribute',
+    };
+    final expected = <String, Map<String, Object?>>{};
+    for (final table in legacyToCanonical.keys) {
+      final columns = raw.select('PRAGMA table_info("$table")');
+      final names = columns.map((column) => column['name'] as String).toList();
+      final values = <Object?>[];
+      for (var index = 0; index < columns.length; index++) {
+        final column = columns[index];
+        final name = column['name'] as String;
+        final type = (column['type'] as String).toUpperCase();
+        values.add(switch ((name, type)) {
+          ('specimenUuid', _) => 'specimen',
+          (_, 'REAL') => index + 0.25,
+          (_, 'INT') => index,
+          _ => '$table-$name',
+        });
+      }
+      final placeholders = List.filled(values.length, '?').join(', ');
+      raw.execute(
+        'INSERT INTO "$table" (${names.map((name) => '"$name"').join(', ')}) '
+        'VALUES ($placeholders)',
+        values,
+      );
+      expected[table] = Map<String, Object?>.from(
+        raw.select('SELECT * FROM "$table"').single,
+      );
+    }
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 11);
+
+    for (final entry in legacyToCanonical.entries) {
+      final actual = await db
+          .customSelect('SELECT * FROM "${entry.value}"', readsFrom: const {})
+          .getSingle();
+      expect(actual.data, expected[entry.key]);
+    }
+    final tables = await db
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table'",
+          readsFrom: const {},
+        )
+        .get();
+    final tableNames = tables.map((row) => row.data['name']).toSet();
+    expect(tableNames, containsAll(legacyToCanonical.values));
+    for (final legacyName in legacyToCanonical.keys) {
+      expect(tableNames, isNot(contains(legacyName)));
+    }
+
+    final foreignKeyViolations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    expect(foreignKeyViolations, isEmpty);
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    expect(integrity.data.values.single, 'ok');
     await db.close();
   });
 }

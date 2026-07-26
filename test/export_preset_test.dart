@@ -85,7 +85,8 @@ void main() {
           IndexedHeaderStyle.underscore);
     });
 
-    test('serializes the Darwin Core header format as schema version 6', () {
+    test('serializes the Darwin Core header format using the current schema',
+        () {
       const preset = ExportPresetModel(
         recordType: RecordType.site,
         specimenRecordType: SpecimenRecordType.allTaxa,
@@ -96,9 +97,41 @@ void main() {
       final serialized = preset.toJson();
       final restored = ExportPresetModel.fromJson(serialized);
 
-      expect(serialized['schemaVersion'], 6);
+      expect(serialized['schemaVersion'], recordExportPresetSchemaVersion);
       expect(serialized['headerFormat'], 'darwinCore');
       expect(restored.headerFormat, ExportHeaderFormat.darwinCore);
+    });
+
+    test('canonicalizes legacy attribute sources from schema version 6', () {
+      final restored = ExportPresetModel.fromJson({
+        'schemaVersion': 6,
+        'recordType': 'specimen',
+        'specimenRecordType': 'allTaxa',
+        'headerFormat': 'tableFieldName',
+        'mappings': [
+          {
+            'expression': '[mammalMeasurement::tailLength]',
+            'nestedNamespace': 'avianMeasurement',
+            'nestedFields': ['herpMeasurement::svl'],
+            'bracketConditions': [
+              {
+                'sourceField': 'mammalMeasurement::accuracy',
+                'operator': 'equals',
+                'comparisonValue': 'Tail cropped',
+              },
+            ],
+          },
+        ],
+      });
+
+      final mapping = restored.mappings.single;
+      expect(mapping.expression, '[mammalAttribute::tailLength]');
+      expect(mapping.nestedNamespace, 'birdAttribute');
+      expect(mapping.nestedFields, ['herpAttribute::svl']);
+      expect(
+        mapping.bracketConditions.single.sourceField,
+        'mammalAttribute::accuracy',
+      );
     });
 
     test('rejects the removed legacy schema', () {

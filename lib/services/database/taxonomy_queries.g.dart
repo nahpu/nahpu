@@ -21,9 +21,9 @@ mixin _$TaxonomyQueryMixin on DatabaseAccessor<Database> {
   SpecimenMedia get specimenMedia => attachedDatabase.specimenMedia;
   AssociatedData get associatedData => attachedDatabase.associatedData;
   PersonnelList get personnelList => attachedDatabase.personnelList;
-  MammalMeasurement get mammalMeasurement => attachedDatabase.mammalMeasurement;
-  AvianMeasurement get avianMeasurement => attachedDatabase.avianMeasurement;
-  HerpMeasurement get herpMeasurement => attachedDatabase.herpMeasurement;
+  MammalAttribute get mammalAttribute => attachedDatabase.mammalAttribute;
+  BirdAttribute get birdAttribute => attachedDatabase.birdAttribute;
+  HerpAttribute get herpAttribute => attachedDatabase.herpAttribute;
   SpecimenPart get specimenPart => attachedDatabase.specimenPart;
   TaxonomyQueryManager get managers => TaxonomyQueryManager(this);
 }
@@ -65,15 +65,12 @@ class TaxonomyQueryManager {
       $AssociatedDataTableManager(_db.attachedDatabase, _db.associatedData);
   $PersonnelListTableManager get personnelList =>
       $PersonnelListTableManager(_db.attachedDatabase, _db.personnelList);
-  $MammalMeasurementTableManager get mammalMeasurement =>
-      $MammalMeasurementTableManager(
-        _db.attachedDatabase,
-        _db.mammalMeasurement,
-      );
-  $AvianMeasurementTableManager get avianMeasurement =>
-      $AvianMeasurementTableManager(_db.attachedDatabase, _db.avianMeasurement);
-  $HerpMeasurementTableManager get herpMeasurement =>
-      $HerpMeasurementTableManager(_db.attachedDatabase, _db.herpMeasurement);
+  $MammalAttributeTableManager get mammalAttribute =>
+      $MammalAttributeTableManager(_db.attachedDatabase, _db.mammalAttribute);
+  $BirdAttributeTableManager get birdAttribute =>
+      $BirdAttributeTableManager(_db.attachedDatabase, _db.birdAttribute);
+  $HerpAttributeTableManager get herpAttribute =>
+      $HerpAttributeTableManager(_db.attachedDatabase, _db.herpAttribute);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db.attachedDatabase, _db.specimenPart);
 }

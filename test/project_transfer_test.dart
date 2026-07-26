@@ -56,6 +56,55 @@ void main() {
       expect(decoded.version, projectTransferVersion);
     });
 
+    test('normalizes version 1 measurement collections', () {
+      final decoded = ProjectTransferPayload.parse(
+        jsonEncode({
+          'nahpu_project': 'project',
+          'version': 1,
+          'project': {'uuid': 'project-a', 'name': 'Project A'},
+          'records': {
+            'mammalMeasurement': [
+              {'specimenUuid': 'mammal', 'weight': 12.5},
+            ],
+            'avianMeasurement': [
+              {'specimenUuid': 'bird', 'wingspan': 42.0},
+            ],
+            'herpMeasurement': [
+              {'specimenUuid': 'herp', 'svl': 7.5},
+            ],
+          },
+        }),
+      );
+
+      expect(decoded.rows('mammalAttribute').single['weight'], 12.5);
+      expect(decoded.rows('birdAttribute').single['wingspan'], 42.0);
+      expect(decoded.rows('herpAttribute').single['svl'], 7.5);
+      expect(decoded.records, isNot(contains('mammalMeasurement')));
+      expect(decoded.records, isNot(contains('avianMeasurement')));
+      expect(decoded.records, isNot(contains('herpMeasurement')));
+    });
+
+    test('rejects conflicting legacy and canonical collections', () {
+      expect(
+        () => ProjectTransferPayload.parse(
+          jsonEncode({
+            'nahpu_project': 'project',
+            'version': 2,
+            'project': {'uuid': 'project-a', 'name': 'Project A'},
+            'records': {
+              'mammalMeasurement': [
+                {'specimenUuid': 'legacy'},
+              ],
+              'mammalAttribute': [
+                {'specimenUuid': 'canonical'},
+              ],
+            },
+          }),
+        ),
+        throwsFormatException,
+      );
+    });
+
     test('light encoding excludes media and clears media references', () {
       final payload = ProjectTransferPayload(
         exportedAt: '2026-07-23T12:00:00Z',

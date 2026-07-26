@@ -26,6 +26,10 @@ const String tissueIDPrefixKey = 'tissueIDPrefix';
 const String tissueIDNumberKey = 'tissueIDNumber';
 const String projectFieldIDNumberKey = 'projectFieldIdNumber';
 
+/// Coordinates specimen persistence, including taxon-specific attribute rows.
+///
+/// Each specimen owns at most one mammal, bird, or herpetofauna attribute row,
+/// selected by its active catalog format.
 class SpecimenServices extends AppServices {
   const SpecimenServices({required super.ref});
 
@@ -232,38 +236,38 @@ class SpecimenServices extends AppServices {
   }
 
   void _createMammalSpecimen(String specimenUuid) {
-    MammalSpecimenQuery(dbAccess).createMammalMeasurements(
-        MammalMeasurementCompanion(specimenUuid: db.Value(specimenUuid)));
+    MammalSpecimenQuery(dbAccess).createMammalAttributes(
+        MammalAttributeCompanion(specimenUuid: db.Value(specimenUuid)));
   }
 
-  Future<MammalMeasurementData> getMammalMeasurementData(String specimenUuid) {
+  Future<MammalAttributeData> getMammalAttributeData(String specimenUuid) {
     return MammalSpecimenQuery(dbAccess)
-        .getMammalMeasurementByUuid(specimenUuid);
+        .getMammalAttributeByUuid(specimenUuid);
   }
 
-  void updateMammalMeasurement(
-      String specimenUuid, MammalMeasurementCompanion entries) {
+  void updateMammalAttribute(
+      String specimenUuid, MammalAttributeCompanion entries) {
     MammalSpecimenQuery(dbAccess)
-        .updateMammalMeasurements(specimenUuid, entries);
+        .updateMammalAttributes(specimenUuid, entries);
   }
 
   void _createHerpSpecimen(String specimenUuid) {
-    HerpSpecimenQuery(dbAccess).createHerpMeasurements(
-        HerpMeasurementCompanion(specimenUuid: db.Value(specimenUuid)));
+    HerpSpecimenQuery(dbAccess).createHerpAttributes(
+        HerpAttributeCompanion(specimenUuid: db.Value(specimenUuid)));
   }
 
-  Future<HerpMeasurementData> getHerpMeasurementData(String specimenUuid) {
-    return HerpSpecimenQuery(dbAccess).getHerpMeasurementByUuid(specimenUuid);
+  Future<HerpAttributeData> getHerpAttributeData(String specimenUuid) {
+    return HerpSpecimenQuery(dbAccess).getHerpAttributeByUuid(specimenUuid);
   }
 
-  void updateHerpMeasurement(
-      String specimenUuid, HerpMeasurementCompanion entries) {
-    HerpSpecimenQuery(dbAccess).updateHerpMeasurements(specimenUuid, entries);
+  void updateHerpAttribute(
+      String specimenUuid, HerpAttributeCompanion entries) {
+    HerpSpecimenQuery(dbAccess).updateHerpAttributes(specimenUuid, entries);
   }
 
   void _createBirdSpecimen(String specimenUuid) {
-    AvianSpecimenQuery(dbAccess).createAvianMeasurements(
-        AvianMeasurementCompanion(specimenUuid: db.Value(specimenUuid)));
+    BirdSpecimenQuery(dbAccess).createBirdAttributes(
+        BirdAttributeCompanion(specimenUuid: db.Value(specimenUuid)));
   }
 
   Future<void> updateSpecimenSkipInvalidation(
@@ -284,29 +288,29 @@ class SpecimenServices extends AppServices {
     }
   }
 
-  Future<AvianMeasurementData> getAvianMeasurementData(String specimenUuid) {
-    return AvianSpecimenQuery(dbAccess).getAvianMeasurementByUuid(specimenUuid);
+  Future<BirdAttributeData> getBirdAttributeData(String specimenUuid) {
+    return BirdSpecimenQuery(dbAccess).getBirdAttributeByUuid(specimenUuid);
   }
 
   Future<List<SpecimenMediaData>> getSpecimenMedia(String specimenUuid) async {
     return await SpecimenQuery(dbAccess).getSpecimenMedia(specimenUuid);
   }
 
-  void updateAvianMeasurement(
-      String specimenUuid, AvianMeasurementCompanion entries) {
-    AvianSpecimenQuery(dbAccess).updateAvianMeasurements(specimenUuid, entries);
+  void updateBirdAttribute(
+      String specimenUuid, BirdAttributeCompanion entries) {
+    BirdSpecimenQuery(dbAccess).updateBirdAttributes(specimenUuid, entries);
   }
 
-  Future<void> deleteAvianMeasurements(String specimenUuid) async {
-    await AvianSpecimenQuery(dbAccess).deleteAvianMeasurements(specimenUuid);
+  Future<void> deleteBirdAttributes(String specimenUuid) async {
+    await BirdSpecimenQuery(dbAccess).deleteBirdAttributes(specimenUuid);
   }
 
-  Future<void> deleteMammalMeasurements(String specimenUuid) async {
-    await MammalSpecimenQuery(dbAccess).deleteMammalMeasurements(specimenUuid);
+  Future<void> deleteMammalAttributes(String specimenUuid) async {
+    await MammalSpecimenQuery(dbAccess).deleteMammalAttributes(specimenUuid);
   }
 
-  Future<void> deleteHerpMeasurements(String specimenUuid) async {
-    await HerpSpecimenQuery(dbAccess).deleteHerpMeasurements(specimenUuid);
+  Future<void> deleteHerpAttributes(String specimenUuid) async {
+    await HerpSpecimenQuery(dbAccess).deleteHerpAttributes(specimenUuid);
   }
 
   Future<void> deleteSpecimen(
@@ -314,13 +318,13 @@ class SpecimenServices extends AppServices {
     await deleteAllSpecimenParts(specimenUuid);
     switch (catalogFmt) {
       case CatalogFmt.birds:
-        await deleteAvianMeasurements(specimenUuid);
+        await deleteBirdAttributes(specimenUuid);
         break;
       case CatalogFmt.mammals:
-        await deleteMammalMeasurements(specimenUuid);
+        await deleteMammalAttributes(specimenUuid);
         break;
       case CatalogFmt.herpetofauna:
-        await deleteHerpMeasurements(specimenUuid);
+        await deleteHerpAttributes(specimenUuid);
         break;
     }
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimenUuid);
@@ -339,13 +343,13 @@ class SpecimenServices extends AppServices {
       CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(specimen.taxonGroup);
       switch (catalogFmt) {
         case CatalogFmt.birds:
-          await deleteAvianMeasurements(specimen.uuid);
+          await deleteBirdAttributes(specimen.uuid);
           break;
         case CatalogFmt.mammals:
-          await deleteMammalMeasurements(specimen.uuid);
+          await deleteMammalAttributes(specimen.uuid);
           break;
         case CatalogFmt.herpetofauna:
-          await deleteHerpMeasurements(specimen.uuid);
+          await deleteHerpAttributes(specimen.uuid);
           break;
       }
     }
@@ -712,6 +716,7 @@ class AssociatedDataServices extends AppServices {
   }
 }
 
+/// Calculates derived values from standard mammal length measurements.
 class MammalMeasurementServices {
   const MammalMeasurementServices({
     required this.totalLengthText,

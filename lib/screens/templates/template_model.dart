@@ -5,6 +5,7 @@ import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/birds.dart' as birds;
 import 'package:nahpu/services/types/specimens.dart' as specimens;
 import 'package:nahpu/services/types/herps.dart' as herps;
+import 'package:nahpu/services/specimen_attribute_names.dart';
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
 bool isTemplateImagePathUsable(String path) {
@@ -346,11 +347,13 @@ String? getEncodedDefaultValue(String key, String value) {
     if (intVal >= 0 && intVal < specimens.specimenSexList.length) {
       return specimens.specimenSexList[intVal];
     }
-  } else if (cleanKey == 'mammalmeasurement::age') {
+  } else if (cleanKey == 'mammalattribute::age' ||
+      cleanKey == 'mammalmeasurement::age') {
     if (intVal >= 0 && intVal < mammals.specimenAgeList.length) {
       return mammals.specimenAgeList[intVal];
     }
-  } else if (cleanKey == 'herpmeasurement::age') {
+  } else if (cleanKey == 'herpattribute::age' ||
+      cleanKey == 'herpmeasurement::age') {
     if (intVal >= 0 && intVal < herps.specimenAgeList.length) {
       return herps.specimenAgeList[intVal];
     }
@@ -832,7 +835,9 @@ class CustomTextElement {
         inferTemplateCustomNullFallback(rawText);
     return CustomTextElement(
       id: json['id'] as String,
-      text: stripTemplatePlaceholderFallbacks(rawText),
+      text: canonicalizeSpecimenAttributeExpression(
+        stripTemplatePlaceholderFallbacks(rawText),
+      ),
       xMm: (json['xMm'] as num?)?.toDouble() ?? 0,
       yMm: (json['yMm'] as num?)?.toDouble() ?? 0,
       fontSizePt: (json['fontSizePt'] as num?)?.toDouble() ?? 10,

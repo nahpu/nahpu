@@ -6,7 +6,7 @@ void main() {
   group('conditional brackets', () {
     test('matches trimmed, case-sensitive conditions', () {
       const condition = ConditionalBracketCondition(
-        sourceField: 'mammalMeasurement::accuracy',
+        sourceField: 'mammalAttribute::accuracy',
         operator: ConditionalComparisonOperator.equals,
         comparisonValue: 'Tail cropped',
       );
@@ -75,8 +75,8 @@ void main() {
         () {
       const text = 'TTL: [[totalLength][accuracy=="Tail cropped"]] mm';
       final value = substituteDocumentPlaceholders(text, {
-        'mammalMeasurement::totalLength': '123',
-        'mammalMeasurement::accuracy': 'Tail cropped',
+        'mammalAttribute::totalLength': '123',
+        'mammalAttribute::accuracy': 'Tail cropped',
       });
 
       expect(value, 'TTL: [123] mm');
@@ -85,8 +85,8 @@ void main() {
     test('renders an unmatched inline conditional placeholder normally', () {
       const text = '[[totalLength][accuracy=="Tail cropped"]]';
       final value = substituteDocumentPlaceholders(text, {
-        'mammalMeasurement::totalLength': '123',
-        'mammalMeasurement::accuracy': 'Accurate',
+        'mammalAttribute::totalLength': '123',
+        'mammalAttribute::accuracy': 'Accurate',
       });
 
       expect(value, '123');

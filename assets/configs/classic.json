@@ -68,8 +68,8 @@
           {"id": "id", "text": "FN [specimen::fieldNumber]  Cat. [specimen::museumID]", "xMm": 3, "yMm": 10, "fontSizePt": 7.5, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
           {"id": "date", "text": "[specimen::collectionDate]  [personnel::name]", "xMm": 3, "yMm": 15, "fontSizePt": 7.5, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
           {"id": "locality", "text": "[site::locality]", "xMm": 3, "yMm": 20, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86, "heightMm": 9},
-          {"id": "measure", "text": "TL [mammalMeasurement::totalLength]  T [mammalMeasurement::tailLength]  HF [mammalMeasurement::hindFootLength]  E [mammalMeasurement::earLength]  Wt [mammalMeasurement::weight]g", "xMm": 3, "yMm": 30, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
-          {"id": "sex", "text": "Sex [mammalMeasurement::sex]  Age [mammalMeasurement::age]  Prep [specimenPart::type]", "xMm": 3, "yMm": 35, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86}
+          {"id": "measure", "text": "TL [mammalAttribute::totalLength]  T [mammalAttribute::tailLength]  HF [mammalAttribute::hindFootLength]  E [mammalAttribute::earLength]  Wt [mammalAttribute::weight]g", "xMm": 3, "yMm": 30, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
+          {"id": "sex", "text": "Sex [mammalAttribute::sex]  Age [mammalAttribute::age]  Prep [specimenPart::type]", "xMm": 3, "yMm": 35, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86}
         ]
       },
       "page2": {}
@@ -86,8 +86,8 @@
           {"id": "id", "text": "FN [specimen::fieldNumber]  Cat. [specimen::museumID]", "xMm": 3, "yMm": 10, "fontSizePt": 7.5, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
           {"id": "date", "text": "[specimen::collectionDate]  [personnel::name]", "xMm": 3, "yMm": 15, "fontSizePt": 7.5, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
           {"id": "locality", "text": "[site::locality]", "xMm": 3, "yMm": 20, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86, "heightMm": 9},
-          {"id": "measure", "text": "FA [mammalMeasurement::forearm]  Tib [mammalMeasurement::tibia]  Wt [mammalMeasurement::weight]g  Sex [mammalMeasurement::sex]", "xMm": 3, "yMm": 30, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
-          {"id": "echo", "text": "Fmax [mammalMeasurement::frequencyMax]  Fmin [mammalMeasurement::frequencyMin]  FME [mammalMeasurement::frequencyAtMaxEnergy]", "xMm": 3, "yMm": 35, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86}
+          {"id": "measure", "text": "FA [mammalAttribute::forearm]  Tib [mammalAttribute::tibia]  Wt [mammalAttribute::weight]g  Sex [mammalAttribute::sex]", "xMm": 3, "yMm": 30, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
+          {"id": "echo", "text": "Fmax [mammalAttribute::frequencyMax]  Fmin [mammalAttribute::frequencyMin]  FME [mammalAttribute::frequencyAtMaxEnergy]", "xMm": 3, "yMm": 35, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86}
         ]
       },
       "page2": {}
@@ -104,8 +104,8 @@
           {"id": "id", "text": "FN [specimen::fieldNumber]  Cat. [specimen::museumID]", "xMm": 3, "yMm": 10, "fontSizePt": 7.5, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
           {"id": "date", "text": "[specimen::collectionDate]  [personnel::name]", "xMm": 3, "yMm": 15, "fontSizePt": 7.5, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
           {"id": "locality", "text": "[site::locality]", "xMm": 3, "yMm": 20, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86, "heightMm": 9},
-          {"id": "measure", "text": "Wt [avianMeasurement::weight]g  Wing [avianMeasurement::wingspan]  Sex [avianMeasurement::sex]  Fat [avianMeasurement::fat]", "xMm": 3, "yMm": 30, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
-          {"id": "repro", "text": "BP [avianMeasurement::broodPatch]  Skull [avianMeasurement::skullOssification]  Bursa [avianMeasurement::hasBursa]", "xMm": 3, "yMm": 35, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86}
+          {"id": "measure", "text": "Wt [birdAttribute::weight]g  Wing [birdAttribute::wingspan]  Sex [birdAttribute::sex]  Fat [birdAttribute::fat]", "xMm": 3, "yMm": 30, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
+          {"id": "repro", "text": "BP [birdAttribute::broodPatch]  Skull [birdAttribute::skullOssification]  Bursa [birdAttribute::hasBursa]", "xMm": 3, "yMm": 35, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86}
         ]
       },
       "page2": {}
@@ -122,8 +122,8 @@
           {"id": "id", "text": "FN [specimen::fieldNumber]  Cat. [specimen::museumID]", "xMm": 3, "yMm": 10, "fontSizePt": 7.5, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
           {"id": "date", "text": "[specimen::collectionDate]  [personnel::name]", "xMm": 3, "yMm": 15, "fontSizePt": 7.5, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
           {"id": "locality", "text": "[site::locality]", "xMm": 3, "yMm": 20, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86, "heightMm": 9},
-          {"id": "measure", "text": "SVL [herpMeasurement::svl]  Wt [herpMeasurement::weight]g  Sex [herpMeasurement::sex]  Age [herpMeasurement::age]", "xMm": 3, "yMm": 31, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
-          {"id": "remark", "text": "[herpMeasurement::remark]", "xMm": 3, "yMm": 36, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86}
+          {"id": "measure", "text": "SVL [herpAttribute::svl]  Wt [herpAttribute::weight]g  Sex [herpAttribute::sex]  Age [herpAttribute::age]", "xMm": 3, "yMm": 31, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86},
+          {"id": "remark", "text": "[herpAttribute::remark]", "xMm": 3, "yMm": 36, "fontSizePt": 7, "fontFamily": "LibertinusSerif", "maxWidthMm": 86}
         ]
       },
       "page2": {}
