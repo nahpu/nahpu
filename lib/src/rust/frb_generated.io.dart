@@ -50,6 +50,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GeographicBoundsFfi dco_decode_box_autoadd_geographic_bounds_ffi(dynamic raw);
 
   @protected
+  GzipExtractor dco_decode_box_autoadd_gzip_extractor(dynamic raw);
+
+  @protected
+  GzipWriter dco_decode_box_autoadd_gzip_writer(dynamic raw);
+
+  @protected
   RecordReader dco_decode_box_autoadd_record_reader(dynamic raw);
 
   @protected
@@ -116,6 +122,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GeographicBoundsFfi dco_decode_geographic_bounds_ffi(dynamic raw);
+
+  @protected
+  GzipExtractor dco_decode_gzip_extractor(dynamic raw);
+
+  @protected
+  GzipWriter dco_decode_gzip_writer(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -272,6 +284,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  GzipExtractor sse_decode_box_autoadd_gzip_extractor(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GzipWriter sse_decode_box_autoadd_gzip_writer(SseDeserializer deserializer);
+
+  @protected
   RecordReader sse_decode_box_autoadd_record_reader(
     SseDeserializer deserializer,
   );
@@ -366,6 +386,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GeographicBoundsFfi sse_decode_geographic_bounds_ffi(
     SseDeserializer deserializer,
   );
+
+  @protected
+  GzipExtractor sse_decode_gzip_extractor(SseDeserializer deserializer);
+
+  @protected
+  GzipWriter sse_decode_gzip_writer(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -544,6 +570,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_gzip_extractor(
+    GzipExtractor self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_gzip_writer(
+    GzipWriter self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_record_reader(
     RecordReader self,
     SseSerializer serializer,
@@ -668,6 +706,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     GeographicBoundsFfi self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_gzip_extractor(GzipExtractor self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_gzip_writer(GzipWriter self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);

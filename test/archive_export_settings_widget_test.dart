@@ -122,7 +122,11 @@ void main() {
     expect(find.text('.tar.gz'), findsOneWidget);
     expect(find.text('Append current date'), findsOneWidget);
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester
+          .widget<SwitchListTile>(
+            find.widgetWithText(SwitchListTile, 'Append current date'),
+          )
+          .value,
       isFalse,
     );
     expect(find.text('Select directory'), findsOneWidget);
@@ -148,10 +152,16 @@ void main() {
       ProjectTransferArchiveFormat.tarGzip,
       ProjectTransferArchiveFormat.zip,
     ]);
+    expect(find.text('Light export'), findsOneWidget);
+    expect(find.textContaining('limited-internet uploads'), findsNothing);
     expect(find.text('.tar.gz'), findsOneWidget);
     expect(find.text('Append current date'), findsOneWidget);
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester
+          .widget<SwitchListTile>(
+            find.widgetWithText(SwitchListTile, 'Light export'),
+          )
+          .value,
       isFalse,
     );
   });

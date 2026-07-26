@@ -6,6 +6,66 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+class GzipExtractor {
+  final String archivePath;
+  final String outputPath;
+
+  const GzipExtractor({required this.archivePath, required this.outputPath});
+
+  Future<void> extract() =>
+      RustLib.instance.api.crateApiArchiveGzipExtractorExtract(that: this);
+
+  // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
+  static Future<GzipExtractor> newInstance({
+    required String archivePath,
+    required String outputPath,
+  }) => RustLib.instance.api.crateApiArchiveGzipExtractorNew(
+    archivePath: archivePath,
+    outputPath: outputPath,
+  );
+
+  @override
+  int get hashCode => archivePath.hashCode ^ outputPath.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GzipExtractor &&
+          runtimeType == other.runtimeType &&
+          archivePath == other.archivePath &&
+          outputPath == other.outputPath;
+}
+
+class GzipWriter {
+  final String inputPath;
+  final String outputPath;
+
+  const GzipWriter({required this.inputPath, required this.outputPath});
+
+  // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
+  static Future<GzipWriter> newInstance({
+    required String inputPath,
+    required String outputPath,
+  }) => RustLib.instance.api.crateApiArchiveGzipWriterNew(
+    inputPath: inputPath,
+    outputPath: outputPath,
+  );
+
+  Future<void> write() =>
+      RustLib.instance.api.crateApiArchiveGzipWriterWrite(that: this);
+
+  @override
+  int get hashCode => inputPath.hashCode ^ outputPath.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GzipWriter &&
+          runtimeType == other.runtimeType &&
+          inputPath == other.inputPath &&
+          outputPath == other.outputPath;
+}
+
 class TarGzipExtractor {
   final String archivePath;
   final String outputDir;

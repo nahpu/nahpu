@@ -19,6 +19,7 @@ class ExportProjectScreen extends ConsumerStatefulWidget {
 class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   final _fileNameController = TextEditingController();
   ProjectTransferArchiveFormat _format = ProjectTransferArchiveFormat.tarGzip;
+  bool _lightExport = false;
   ProjectTransferPayload? _payload;
   Directory? _directory;
   File? _output;
@@ -50,6 +51,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
             final settings = _SettingsCard(
               controller: _fileNameController,
               format: _format,
+              lightExport: _lightExport,
               directory: _directory,
               appendDate: _appendDate,
               enabled: !_isLoading && !_isSaving,
@@ -65,6 +67,12 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                   _output = null;
                 });
               },
+              onLightExportChanged: (value) {
+                setState(() {
+                  _lightExport = value;
+                  _output = null;
+                });
+              },
               onSelectDirectory: _selectDirectory,
               onClearDirectory: () => setState(() {
                 _directory = null;
@@ -75,6 +83,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
               payload: _payload,
               isLoading: _isLoading,
               error: _error,
+              includeMedia: !_lightExport,
             );
             return Column(
               children: [
@@ -157,7 +166,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
         fileStem: _appendDate
             ? appendDateToFileStem(_fileNameController.text, DateTime.now())
             : _fileNameController.text,
-        format: _format,
+        format: _lightExport ? ProjectTransferArchiveFormat.jsonGzip : _format,
         destinationDirectory: _directory,
       );
       if (!mounted) return;
@@ -198,22 +207,26 @@ class _SettingsCard extends StatelessWidget {
   const _SettingsCard({
     required this.controller,
     required this.format,
+    required this.lightExport,
     required this.directory,
     required this.appendDate,
     required this.enabled,
     required this.onFormatChanged,
     required this.onAppendDateChanged,
+    required this.onLightExportChanged,
     required this.onSelectDirectory,
     required this.onClearDirectory,
   });
 
   final TextEditingController controller;
   final ProjectTransferArchiveFormat format;
+  final bool lightExport;
   final Directory? directory;
   final bool appendDate;
   final bool enabled;
   final ValueChanged<ProjectTransferArchiveFormat> onFormatChanged;
   final ValueChanged<bool> onAppendDateChanged;
+  final ValueChanged<bool> onLightExportChanged;
   final VoidCallback onSelectDirectory;
   final VoidCallback onClearDirectory;
 
@@ -227,32 +240,45 @@ class _SettingsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Transfer archive',
+              'Backup and transfer archive',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             const Text(
-              'Use this archive to add data from this project to the same '
-              'project on another device.',
+              'Use this archive to create a project backup, '
+              'transfer, or merge this project data to another device.',
             ),
             const SizedBox(height: 20),
-            SegmentedButton<ProjectTransferArchiveFormat>(
-              segments: const [
-                ButtonSegment(
-                  value: ProjectTransferArchiveFormat.tarGzip,
-                  label: Text('TAR.GZ'),
-                  icon: Icon(Icons.folder_zip_outlined),
-                ),
-                ButtonSegment(
-                  value: ProjectTransferArchiveFormat.zip,
-                  label: Text('ZIP'),
-                  icon: Icon(Icons.folder_zip_outlined),
-                ),
-              ],
-              selected: {format},
-              onSelectionChanged: enabled
-                  ? (values) => onFormatChanged(values.single)
+            if (!lightExport)
+              SegmentedButton<ProjectTransferArchiveFormat>(
+                segments: const [
+                  ButtonSegment(
+                    value: ProjectTransferArchiveFormat.tarGzip,
+                    label: Text('TAR.GZ'),
+                    icon: Icon(Icons.folder_zip_outlined),
+                  ),
+                  ButtonSegment(
+                    value: ProjectTransferArchiveFormat.zip,
+                    label: Text('ZIP'),
+                    icon: Icon(Icons.folder_zip_outlined),
+                  ),
+                ],
+                selected: {format},
+                onSelectionChanged: enabled
+                    ? (values) => onFormatChanged(values.single)
+                    : null,
+              ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Light export'),
+              subtitle: lightExport
+                  ? const Text(
+                      'Export the project without media files for limited-internet uploads. '
+                      'Use TAR.GZ or ZIP for a full project backup.',
+                    )
                   : null,
+              value: lightExport,
+              onChanged: enabled ? onLightExportChanged : null,
             ),
             const SizedBox(height: 20),
             TextField(
@@ -260,7 +286,8 @@ class _SettingsCard extends StatelessWidget {
               enabled: enabled,
               decoration: InputDecoration(
                 labelText: 'File name',
-                suffixText: '.${format.extension}',
+                suffixText:
+                    '.${lightExport ? ProjectTransferArchiveFormat.jsonGzip.extension : format.extension}',
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -288,11 +315,13 @@ class _SummaryCard extends StatelessWidget {
     required this.payload,
     required this.isLoading,
     required this.error,
+    required this.includeMedia,
   });
 
   final ProjectTransferPayload? payload;
   final bool isLoading;
   final String? error;
+  final bool includeMedia;
 
   @override
   Widget build(BuildContext context) {
@@ -325,11 +354,13 @@ class _SummaryCard extends StatelessWidget {
                   leading: const Icon(Icons.check_circle_outline_rounded),
                   title: Text(entry.key),
                   trailing: Text(
-                    '${entry.value}',
+                    entry.key == 'Media' && !includeMedia
+                        ? 'Excluded'
+                        : '${entry.value}',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-              if (payload!.warnings.isNotEmpty) ...[
+              if (includeMedia && payload!.warnings.isNotEmpty) ...[
                 const Divider(),
                 Text(
                   '${payload!.warnings.length} warning(s)',

@@ -1,5 +1,5 @@
 //! Rust FRB Boilerplate to access the archive API
-use nahpu_archive::{archive, tar_gzip};
+use nahpu_archive::{archive, gzip, tar_gzip};
 use std::path::{Path, PathBuf};
 
 pub struct ZipWriter {
@@ -95,5 +95,43 @@ impl TarGzipExtractor {
             Path::new(&self.output_dir),
         );
         archive.extract().expect("Failed extracting tar.gz file");
+    }
+}
+
+pub struct GzipWriter {
+    pub input_path: String,
+    pub output_path: String,
+}
+
+impl GzipWriter {
+    pub fn new(input_path: String, output_path: String) -> Self {
+        Self {
+            input_path,
+            output_path,
+        }
+    }
+
+    pub fn write(&self) {
+        gzip::compress(Path::new(&self.input_path), Path::new(&self.output_path))
+            .expect("Failed writing gzip file");
+    }
+}
+
+pub struct GzipExtractor {
+    pub archive_path: String,
+    pub output_path: String,
+}
+
+impl GzipExtractor {
+    pub fn new(archive_path: String, output_path: String) -> Self {
+        Self {
+            archive_path,
+            output_path,
+        }
+    }
+
+    pub fn extract(&self) {
+        gzip::decompress(Path::new(&self.archive_path), Path::new(&self.output_path))
+            .expect("Failed extracting gzip file");
     }
 }

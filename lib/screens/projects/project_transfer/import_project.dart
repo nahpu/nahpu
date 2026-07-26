@@ -219,8 +219,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Project transfers are ZIP or TAR.GZ archives created by '
-                'Export project. Bundle records archives are not accepted.',
+                'Project transfers can be JSON.GZ, ZIP, or TAR.GZ. JSON.GZ '
+                'contains records only; ZIP and TAR.GZ include media.',
               ),
               const SizedBox(height: 20),
               Center(

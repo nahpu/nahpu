@@ -43,7 +43,24 @@ class ProjectTransferArchiveService extends AppServices {
       final manifest = File(
         path.join(staging.path, projectTransferManifestName),
       );
-      await manifest.writeAsString(payload.encoded);
+      await manifest.writeAsString(
+        format == ProjectTransferArchiveFormat.jsonGzip
+            ? payload.encodedWithoutMedia
+            : payload.encoded,
+      );
+      final output = await AppIOServices(
+        dir: destinationDirectory,
+        fileStem: _safeFileStem(fileStem),
+        ext: format.extension,
+      ).getSavePath();
+      if (format == ProjectTransferArchiveFormat.jsonGzip) {
+        final writer = await GzipWriter.newInstance(
+          inputPath: manifest.path,
+          outputPath: output.path,
+        );
+        await writer.write();
+        return output;
+      }
       final archiveFiles = <String>[manifest.path];
       for (final media in payload.mediaFiles) {
         final sourcePath = media.sourcePath;
@@ -58,11 +75,6 @@ class ProjectTransferArchiveService extends AppServices {
         await File(sourcePath).copy(target.path);
         archiveFiles.add(target.path);
       }
-      final output = await AppIOServices(
-        dir: destinationDirectory,
-        fileStem: _safeFileStem(fileStem),
-        ext: format.extension,
-      ).getSavePath();
       if (format == ProjectTransferArchiveFormat.zip) {
         final writer = await ZipWriter.newInstance(
           parentDir: staging.path,
@@ -86,9 +98,11 @@ class ProjectTransferArchiveService extends AppServices {
 
   Future<ProjectTransferArchiveFile> read(XFile input) async {
     final lowerPath = input.path.toLowerCase();
-    if (!lowerPath.endsWith('.zip') && !lowerPath.endsWith('.tar.gz')) {
+    if (!lowerPath.endsWith('.json.gz') &&
+        !lowerPath.endsWith('.zip') &&
+        !lowerPath.endsWith('.tar.gz')) {
       throw const FormatException(
-        'Choose a NAHPU project transfer ZIP or TAR.GZ archive.',
+        'Choose a NAHPU project transfer JSON.GZ, ZIP, or TAR.GZ archive.',
       );
     }
     final root = await tempDirectory;
@@ -100,7 +114,16 @@ class ProjectTransferArchiveService extends AppServices {
     );
     await extraction.create(recursive: true);
     try {
-      if (lowerPath.endsWith('.zip')) {
+      if (lowerPath.endsWith('.json.gz')) {
+        final manifest = File(
+          path.join(extraction.path, projectTransferManifestName),
+        );
+        final extractor = await GzipExtractor.newInstance(
+          archivePath: input.path,
+          outputPath: manifest.path,
+        );
+        await extractor.extract();
+      } else if (lowerPath.endsWith('.zip')) {
         final extractor = await ZipExtractor.newInstance(
           archivePath: input.path,
           outputDir: extraction.path,
@@ -161,7 +184,7 @@ class ProjectTransferArchiveService extends AppServices {
 
   String _safeFileStem(String value) {
     final withoutExtension = value.trim().replaceFirst(
-      RegExp(r'\.(zip|tar\.gz)$', caseSensitive: false),
+      RegExp(r'\.(json\.gz|zip|tar\.gz)$', caseSensitive: false),
       '',
     );
     final cleaned = withoutExtension

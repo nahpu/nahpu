@@ -4,15 +4,17 @@ const int projectTransferVersion = 1;
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
 
-enum ProjectTransferArchiveFormat { zip, tarGzip }
+enum ProjectTransferArchiveFormat { jsonGzip, zip, tarGzip }
 
 extension ProjectTransferArchiveFormatLabel on ProjectTransferArchiveFormat {
   String get label => switch (this) {
+    ProjectTransferArchiveFormat.jsonGzip => 'JSON.GZ (light)',
     ProjectTransferArchiveFormat.tarGzip => 'TAR.GZ',
     ProjectTransferArchiveFormat.zip => 'ZIP',
   };
 
   String get extension => switch (this) {
+    ProjectTransferArchiveFormat.jsonGzip => 'json.gz',
     ProjectTransferArchiveFormat.tarGzip => 'tar.gz',
     ProjectTransferArchiveFormat.zip => 'zip',
   };
@@ -137,17 +139,48 @@ class ProjectTransferPayload {
 
   String get encoded => const JsonEncoder.withIndent('  ').convert(toJson());
 
-  Map<String, dynamic> toJson() => {
+  String get encodedWithoutMedia =>
+      const JsonEncoder.withIndent('  ').convert(toJson(includeMedia: false));
+
+  Map<String, dynamic> toJson({bool includeMedia = true}) => {
     'nahpu_project': projectTransferMarker,
     'version': version,
     'exportedAt': exportedAt,
     'appVersion': appVersion,
     'databaseVersion': databaseVersion,
     'project': project,
-    'records': records,
-    'media': mediaFiles.map((entry) => entry.toJson()).toList(),
-    'warnings': warnings,
+    'records': includeMedia ? records : _recordsWithoutMedia,
+    'media': includeMedia
+        ? mediaFiles.map((entry) => entry.toJson()).toList()
+        : const [],
+    'warnings': includeMedia ? warnings : const [],
   };
+
+  Map<String, List<Map<String, dynamic>>> get _recordsWithoutMedia {
+    const mediaCollections = {
+      'media',
+      'personnelPhoto',
+      'siteMedia',
+      'narrativeMedia',
+      'specimenMedia',
+    };
+    final sanitized = <String, List<Map<String, dynamic>>>{};
+    for (final entry in records.entries) {
+      if (mediaCollections.contains(entry.key)) continue;
+      sanitized[entry.key] = entry.value
+          .map((row) {
+            final copy = Map<String, dynamic>.from(row);
+            if (entry.key == 'taxonomy') copy['mediaId'] = null;
+            if (entry.key == 'site' || entry.key == 'narrative') {
+              copy['mediaID'] = null;
+            }
+            if (entry.key == 'personnel') copy['photoPath'] = null;
+            return copy;
+          })
+          .toList(growable: false);
+    }
+    return sanitized;
+  }
 
   factory ProjectTransferPayload.parse(String source) {
     try {

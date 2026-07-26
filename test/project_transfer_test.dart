@@ -56,6 +56,63 @@ void main() {
       expect(decoded.version, projectTransferVersion);
     });
 
+    test('light encoding excludes media and clears media references', () {
+      final payload = ProjectTransferPayload(
+        exportedAt: '2026-07-23T12:00:00Z',
+        appVersion: '1.0.0+36',
+        databaseVersion: kSchemaVersion,
+        project: const {'uuid': 'project-a', 'name': 'Project A'},
+        records: {
+          'personnel': [
+            {'uuid': 'person-1', 'photoPath': 'person.jpg'},
+          ],
+          'taxonomy': [
+            {'id': 1, 'mediaId': 4},
+          ],
+          'site': [
+            {'id': 1, 'mediaID': '4'},
+          ],
+          'narrative': [
+            {'id': 1, 'mediaID': 4},
+          ],
+          'media': [
+            {'primaryId': 4, 'fileName': 'site.jpg'},
+          ],
+          'siteMedia': [
+            {'siteId': 1, 'mediaId': 4},
+          ],
+          'personnelPhoto': [
+            {'personnelUuid': 'person-1'},
+          ],
+        },
+        mediaFiles: [
+          const ProjectTransferMediaFile(
+            sourceId: 'media:4',
+            kind: 'site',
+            archivePath: 'media/4-site.jpg',
+            originalFileName: 'site.jpg',
+          ),
+        ],
+      );
+
+      final decoded =
+          jsonDecode(payload.encodedWithoutMedia) as Map<String, dynamic>;
+      final records = decoded['records'] as Map<String, dynamic>;
+
+      expect(records.keys, isNot(contains('media')));
+      expect(records.keys, isNot(contains('siteMedia')));
+      expect(records.keys, isNot(contains('personnelPhoto')));
+      expect(decoded['media'], isEmpty);
+      expect((records['personnel'] as List).single['photoPath'], isNull);
+      expect((records['taxonomy'] as List).single['mediaId'], isNull);
+      expect((records['site'] as List).single['mediaID'], isNull);
+      expect((records['narrative'] as List).single['mediaID'], isNull);
+
+      final parsed = ProjectTransferPayload.parse(payload.encodedWithoutMedia);
+      expect(parsed.mediaFiles, isEmpty);
+      expect(parsed.rows('media'), isEmpty);
+    });
+
     test('rejects bundle records and unsupported versions', () {
       expect(
         () => ProjectTransferPayload.parse(
