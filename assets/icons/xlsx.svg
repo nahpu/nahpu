@@ -1,9 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
   <path d="M28 4H12a4 4 0 0 0-4 4v32a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4V16z" />
   <path d="M28 4v12h12" />
+  <path d="M14 31h20" />
   <g stroke-width="2">
-    <path d="M15 26h18" />
-    <path d="M15 32h18" />
-    <path d="M15 38h11" />
+    <path d="M14 27.5a1.5 1.5 0 0 1 1.5-1.5h17a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-17a1.5 1.5 0 0 1-1.5-1.5z" />
+    <path d="M24 26v14" />
+    <path d="M14 35.5h20" />
   </g>
 </svg>

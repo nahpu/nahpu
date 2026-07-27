@@ -227,6 +227,28 @@ const List<String> specimenPartList = [
   'whole-specimen'
 ];
 
+/// Whole-specimen preparations that have their own icon per catalog format.
+///
+/// Checked before [specimenPartList], which otherwise collapses every
+/// preparation onto the single whole-animal icon from
+/// [matchCatalogFmtToIconPath]. A format missing an entry falls back to that
+/// whole-animal icon rather than throwing, so partial coverage is safe.
+const Map<CatalogFmt, Map<String, String>> preparationIconPath = {
+  CatalogFmt.mammals: {
+    'skin': 'assets/icons/mammal_skin.svg',
+    'skull': 'assets/icons/mammal_skull.svg',
+    'skeleton': 'assets/icons/mammal_skeleton.svg',
+  },
+  CatalogFmt.birds: {
+    'skull': 'assets/icons/bird_skull.svg',
+    'skeleton': 'assets/icons/bird_skeleton.svg',
+  },
+  CatalogFmt.herpetofauna: {
+    'skull': 'assets/icons/herp_skull.svg',
+    'skeleton': 'assets/icons/herp_skeleton.svg',
+  },
+};
+
 class SpecimenPartIcon {
   const SpecimenPartIcon({required this.catalogFmt, required this.part});
 
@@ -236,6 +258,10 @@ class SpecimenPartIcon {
   String match() {
     final lowercased = _cleanPart();
     if (kDebugMode) print('Part: $part, Lowercased: $lowercased');
+    final preparation = preparationIconPath[catalogFmt]?[lowercased];
+    if (preparation != null) {
+      return preparation;
+    }
     bool isSpecimen = specimenPartList.contains(lowercased);
     if (isSpecimen) {
       return matchCatalogFmtToIconPath(catalogFmt);
@@ -268,7 +294,7 @@ class SpecimenPartIcon {
       return 'testis';
     }
     if (lowercased.endsWith('s') || lowercased.endsWith('es')) {
-      return lowercased.substring(0, part.length - 1).toLowerCase();
+      return lowercased.substring(0, lowercased.length - 1);
     }
     return lowercased;
   }

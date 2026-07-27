@@ -1,3 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <polygon points="12,2 2,14 8,14 2,22 22,22 16,14 22,14"></polygon>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M24 5 16 19h4l-6 13h20l-6-13h4z" />
+  <path d="M24 32v8" />
+  <path d="M4 40h40" />
+  <g stroke-width="2">
+    <path d="M9 20 3.5 31H15z" />
+    <path d="M9 31v9" />
+    <path d="M39 20 33 31h11.5z" />
+    <path d="M39 31v9" />
+  </g>
 </svg>

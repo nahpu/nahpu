@@ -74,8 +74,9 @@ class SpecimenServices extends AppServices {
           data: (fmt) {
             return matchCatalogFmtToIconPath(fmt);
           },
-          loading: () => 'assets/icons/mouse.svg',
-          error: (error, stack) => 'assets/icons/mouse.svg',
+          loading: () => matchCatalogFmtToIconPath(CatalogFmt.mammals),
+          error: (error, stack) =>
+              matchCatalogFmtToIconPath(CatalogFmt.mammals),
         );
   }
 
