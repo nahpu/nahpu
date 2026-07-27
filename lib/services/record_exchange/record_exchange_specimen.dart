@@ -66,6 +66,7 @@ class RecordExchangeSpecimen extends AppServices {
                 (value) => RecordExchangeDatabase.without(value.toJson(), {
                   'primaryId',
                   'specimenUuid',
+                  'projectUuid',
                 }),
               )
               .toList(growable: false),
@@ -457,15 +458,14 @@ class RecordExchangeSpecimen extends AppServices {
     for (final json in RecordExchangePayload.mapList(
       payload.data['associatedData'],
     )) {
-      await dbAccess
-          .into(dbAccess.associatedData)
-          .insert(
-            AssociatedDataData.fromJson({
-              ...json,
-              'primaryId': null,
-              'specimenUuid': uuid,
-            }).toCompanion(true),
-          );
+      await AssociatedDataQuery(dbAccess).createSpecimenDataAssociation(
+        AssociatedDataData.fromJson({
+          ...json,
+          'primaryId': null,
+          'specimenUuid': uuid,
+          'projectUuid': currentProjectUuid,
+        }).toCompanion(true),
+      );
     }
   }
 

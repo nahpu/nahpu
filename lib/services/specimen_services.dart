@@ -316,6 +316,7 @@ class SpecimenServices extends AppServices {
   Future<void> deleteSpecimen(
       String specimenUuid, CatalogFmt catalogFmt) async {
     await deleteAllSpecimenParts(specimenUuid);
+    await AssociatedDataQuery(dbAccess).deleteAllAssociatedData(specimenUuid);
     switch (catalogFmt) {
       case CatalogFmt.birds:
         await deleteBirdAttributes(specimenUuid);
@@ -680,8 +681,45 @@ class AssociatedDataServices extends AppServices {
         .getAllAssociatedData(specimenUuid);
   }
 
+  Future<List<AssociatedDataData>> getAssociatedDataForSite(int siteId) {
+    return AssociatedDataQuery(dbAccess).getAssociatedDataForSite(siteId);
+  }
+
+  Future<List<AssociatedDataData>> getProjectAssociatedData() {
+    return AssociatedDataQuery(dbAccess)
+        .getAssociatedDataForProject(currentProjectUuid);
+  }
+
   Future<void> createAssociatedData(AssociatedDataCompanion form) async {
     await AssociatedDataQuery(dbAccess).createSpecimenDataAssociation(form);
+    _invalidateData();
+  }
+
+  Future<int> createProjectAssociatedData(AssociatedDataCompanion form) async {
+    final id = await AssociatedDataQuery(dbAccess).createProjectAssociatedData(
+      form.copyWith(projectUuid: db.Value(currentProjectUuid)),
+    );
+    _invalidateData();
+    return id;
+  }
+
+  Future<void> linkToSpecimen(int id, String specimenUuid) async {
+    await AssociatedDataQuery(dbAccess).linkToSpecimen(id, specimenUuid);
+    _invalidateData();
+  }
+
+  Future<void> linkToSite(int id, int siteId) async {
+    await AssociatedDataQuery(dbAccess).linkToSite(id, siteId);
+    _invalidateData();
+  }
+
+  Future<void> unlinkFromSpecimen(int id, String specimenUuid) async {
+    await AssociatedDataQuery(dbAccess).unlinkFromSpecimen(id, specimenUuid);
+    _invalidateData();
+  }
+
+  Future<void> unlinkFromSite(int id, int siteId) async {
+    await AssociatedDataQuery(dbAccess).unlinkFromSite(id, siteId);
     _invalidateData();
   }
 
@@ -699,7 +737,21 @@ class AssociatedDataServices extends AppServices {
   }
 
   Future<void> deleteAssociatedData(int associatedDataId) async {
-    await AssociatedDataQuery(dbAccess).deleteAssociatedData(associatedDataId);
+    final query = AssociatedDataQuery(dbAccess);
+    final data = await query.getAssociatedDataById(associatedDataId);
+    await query.deleteAssociatedData(associatedDataId);
+    if (data?.type == 'File' &&
+        data?.projectUuid != null &&
+        data?.url?.isNotEmpty == true &&
+        !await query.isFileUsed(data!.url!)) {
+      final projectDir = await FileServices(
+        ref: ref,
+      ).getProjectDirByUUID(data.projectUuid!);
+      final file = File(join(projectDir.path, 'associatedData', data.url));
+      if (file.existsSync()) {
+        await file.delete();
+      }
+    }
     _invalidateData();
   }
 
@@ -712,7 +764,7 @@ class AssociatedDataServices extends AppServices {
   }
 
   void _invalidateData() {
-    // ref.invalidate(associatedDataProvider);
+    ref.invalidate(associatedDataProvider);
   }
 }
 

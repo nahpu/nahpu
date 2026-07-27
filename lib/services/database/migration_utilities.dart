@@ -192,20 +192,22 @@ Future<void> migrateSpecimenDateTimeFormat(Migrator m) async {
       }
 
       // Associated data update
-      final associatedDataList =
-          await AssociatedDataQuery(db).getAllAssociatedData(specimenData.uuid);
+      final associatedDataList = await db.customSelect(
+        'SELECT primaryId, date FROM associatedData WHERE specimenUuid = ?',
+        variables: [Variable.withString(specimenData.uuid)],
+        readsFrom: const {},
+      ).get();
 
       for (final associatedDatum in associatedDataList) {
-        final associatedDatumJson = associatedDatum.toJson();
-        final dateString = associatedDatumJson['date'];
+        final dateString = associatedDatum.readNullable<String>('date');
 
         if (dateString != null && dateString.isNotEmpty) {
           final updatedDateString = convertDateString(dateString);
 
           if (updatedDateString != dateString) {
             db.customStatement('''UPDATE associatedData 
-              SET date = '${associatedDatumJson['date']}'
-              WHERE primaryId = '${associatedDatumJson['primaryId']}'
+              SET date = '$updatedDateString'
+              WHERE primaryId = '${associatedDatum.read<int>('primaryId')}'
               ''');
           }
         }

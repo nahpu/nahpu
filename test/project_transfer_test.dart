@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/project_transfer/project_transfer_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -292,6 +293,39 @@ void main() {
       expect(payload.rows('specimen'), hasLength(1));
     });
 
+    testWidgets('exports shared specimen and site associated-data links', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('specimen-a'),
+              projectUuid: Value('project-a'),
+            ),
+          );
+      final siteId = await database
+          .into(database.site)
+          .insert(const SiteCompanion(projectUuid: Value('project-a')));
+      final query = AssociatedDataQuery(database);
+      final dataId = await query.createSpecimenDataAssociation(
+        const AssociatedDataCompanion(
+          specimenUuid: Value('specimen-a'),
+          name: Value('Recording'),
+        ),
+      );
+      await query.linkToSite(dataId, siteId);
+
+      final payload = await tester.runAsync(service.buildExport);
+
+      expect(payload!.version, 3);
+      expect(payload.rows('associatedData'), hasLength(1));
+      expect(payload.rows('specimenAssociatedData'), hasLength(1));
+      expect(payload.rows('siteAssociatedData'), hasLength(1));
+    });
+
     testWidgets('finds normalized taxonomy and cross-project UUID conflicts', (
       tester,
     ) async {
@@ -416,6 +450,68 @@ void main() {
       final importedSite = await database.select(database.site).getSingle();
       expect(importedSite.siteID, 'Remote camp');
       expect(importedSite.projectUuid, 'project-a');
+    });
+
+    testWidgets('force merge remaps associated-data links', (tester) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      final payload = _payload(
+        projectUuid: 'project-from-device-b',
+        records: {
+          'site': [
+            {
+              'id': 8,
+              'siteID': 'Remote camp',
+              'projectUuid': 'project-from-device-b',
+            },
+          ],
+          'specimen': [
+            {'uuid': 'remote-specimen', 'projectUuid': 'project-from-device-b'},
+          ],
+          'associatedData': [
+            {
+              'primaryId': 5,
+              'projectUuid': 'project-from-device-b',
+              'name': 'Recording',
+            },
+          ],
+          'specimenAssociatedData': [
+            {'specimenUuid': 'remote-specimen', 'associatedDataId': 5},
+          ],
+          'siteAssociatedData': [
+            {'siteId': 8, 'associatedDataId': 5},
+          ],
+        },
+      );
+      final plan = await service.planImport(payload);
+      final extraction = Directory.systemTemp.createTempSync(
+        'nahpu-transfer-test-',
+      );
+      addTearDown(() {
+        if (extraction.existsSync()) extraction.deleteSync(recursive: true);
+      });
+
+      await tester.runAsync(
+        () => service.importProject(
+          plan,
+          forceMerge: true,
+          conflictActions: const {},
+          importedProjectFields: const {},
+          extractedDirectory: extraction,
+        ),
+      );
+
+      final data = await database.select(database.associatedData).getSingle();
+      expect(data.projectUuid, 'project-a');
+      expect(data.name, 'Recording');
+      expect(
+        await database.select(database.specimenAssociatedData).get(),
+        hasLength(1),
+      );
+      expect(
+        await database.select(database.siteAssociatedData).get(),
+        hasLength(1),
+      );
     });
 
     testWidgets('rolls back all database writes when final import fails', (

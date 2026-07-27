@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'generated_migrations/schema.dart';
@@ -12,12 +14,12 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10]) {
-    test('upgrade from v$version to v11', () async {
+  for (final version in [6, 7, 8, 9, 10, 11]) {
+    test('upgrade from v$version to v12', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 11);
+      await verifier.migrateAndValidate(db, 12);
       await db.close();
     });
   }
@@ -29,7 +31,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 11);
+    await verifier.migrateAndValidate(db, 12);
     await db.close();
   });
 
@@ -41,7 +43,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 11);
+    await verifier.migrateAndValidate(db, 12);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -94,7 +96,7 @@ void main() {
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 11);
+    await verifier.migrateAndValidate(db, 12);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -122,6 +124,123 @@ void main() {
         .customSelect('PRAGMA integrity_check', readsFrom: const {})
         .getSingle();
     expect(integrity.data.values.single, 'ok');
+    await db.close();
+  });
+
+  test(
+    'v12 preserves legacy specimen associated data without site links',
+    () async {
+      final schema = await verifier.schemaAt(11);
+      final raw = schema.rawDatabase;
+      raw.execute(
+        "INSERT INTO project (uuid, name) VALUES ('project-a', 'Project A')",
+      );
+      raw.execute(
+        "INSERT INTO project (uuid, name) VALUES ('project-b', 'Project B')",
+      );
+      raw.execute(
+        "INSERT INTO specimen (uuid, projectUuid) "
+        "VALUES ('specimen-a', 'project-a')",
+      );
+      raw.execute(
+        "INSERT INTO site (siteID, projectUuid) "
+        "VALUES ('Site A', 'project-a')",
+      );
+      raw.execute(
+        "INSERT INTO site (siteID, projectUuid) "
+        "VALUES ('Site B', 'project-b')",
+      );
+      raw.execute(
+        "INSERT INTO associatedData "
+        "(specimenUuid, name, type, date, description, url) "
+        "VALUES ('specimen-a', 'Recording', 'File', '2026-07-26', "
+        "'Call recording', 'call.wav')",
+      );
+
+      final db = Database.forMigrationTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 12);
+
+      final data = await db.select(db.associatedData).getSingle();
+      expect(data.projectUuid, 'project-a');
+      expect(data.specimenUuid, 'specimen-a');
+      expect(data.name, 'Recording');
+      expect(data.url, 'call.wav');
+
+      final specimenLinks = await db.select(db.specimenAssociatedData).get();
+      expect(specimenLinks, hasLength(1));
+      expect(specimenLinks.single.specimenUuid, 'specimen-a');
+      expect(specimenLinks.single.associatedDataId, data.primaryId);
+      expect(await db.select(db.siteAssociatedData).get(), isEmpty);
+
+      final sites = await db.select(db.site).get();
+      expect(sites.map((site) => site.projectUuid), {'project-a', 'project-b'});
+      await db.close();
+    },
+  );
+
+  test('v12 associated data links enforce project ownership', () async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    await db
+        .into(db.project)
+        .insert(
+          const ProjectCompanion(
+            uuid: Value('project-a'),
+            name: Value('Project A'),
+          ),
+        );
+    await db
+        .into(db.project)
+        .insert(
+          const ProjectCompanion(
+            uuid: Value('project-b'),
+            name: Value('Project B'),
+          ),
+        );
+    await db
+        .into(db.specimen)
+        .insert(
+          const SpecimenCompanion(
+            uuid: Value('specimen-a'),
+            projectUuid: Value('project-a'),
+          ),
+        );
+    final siteA = await db
+        .into(db.site)
+        .insert(const SiteCompanion(projectUuid: Value('project-a')));
+    final siteB = await db
+        .into(db.site)
+        .insert(const SiteCompanion(projectUuid: Value('project-b')));
+    final dataId = await db
+        .into(db.associatedData)
+        .insert(const AssociatedDataCompanion(projectUuid: Value('project-a')));
+
+    await db
+        .into(db.specimenAssociatedData)
+        .insert(
+          SpecimenAssociatedDataCompanion.insert(
+            specimenUuid: 'specimen-a',
+            associatedDataId: dataId,
+          ),
+        );
+    await db
+        .into(db.siteAssociatedData)
+        .insert(
+          SiteAssociatedDataCompanion.insert(
+            siteId: siteA,
+            associatedDataId: dataId,
+          ),
+        );
+    await expectLater(
+      db
+          .into(db.siteAssociatedData)
+          .insert(
+            SiteAssociatedDataCompanion.insert(
+              siteId: siteB,
+              associatedDataId: dataId,
+            ),
+          ),
+      throwsA(anything),
+    );
     await db.close();
   });
 }

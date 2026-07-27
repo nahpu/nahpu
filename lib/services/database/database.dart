@@ -8,6 +8,7 @@ import 'package:nahpu/services/database/migration_utilities.dart';
 import 'package:path/path.dart' as p;
 
 part 'database.g.dart';
+part 'migration_coordinator.dart';
 
 /// The database schema version.
 /// Steps to update the schema:
@@ -23,7 +24,7 @@ part 'database.g.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 11;
+const int kSchemaVersion = 12;
 
 @DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {
@@ -44,49 +45,7 @@ class Database extends _$Database {
       },
       onUpgrade: (Migrator m, int from, int to) async {
         try {
-          await customStatement('PRAGMA foreign_keys = OFF');
-          if (from < 11) {
-            await _renameSpecimenAttributeTables(from);
-          }
-          if (from < 2) {
-            await m.addColumn(specimen, specimen.taxonGroup);
-          }
-
-          if (from < 3) {
-            await _migrateFromVersion2(m);
-          }
-
-          if (from == 3) {
-            await _migrateV3only(m);
-          }
-
-          if (from < 4) {
-            await _migrateFromVersion3(m);
-          }
-
-          if (from < 5) {
-            await _migrateFromVersion4(m);
-          }
-
-          if (from < 6) {
-            await _migrateFromVersion5(m);
-          }
-
-          if (from < 7) {
-            await _migrateFromVersion6(m);
-          }
-          if (from < 8) {
-            await _migrateFromVersion7(m);
-          }
-          if (from < 9) {
-            await _migrateFromVersion8(m);
-          }
-          if (from < 10) {
-            await _migrateFromVersion9(m);
-          }
-          if (from < 11) {
-            await _validateSpecimenAttributeTables();
-          }
+          await _MigrationCoordinator(this).upgrade(m, from, to);
         } catch (error, stackTrace) {
           if (kDebugMode) {
             debugPrint('Database migration from v$from to v$to failed: $error');

@@ -568,8 +568,63 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
 
   Future<int> createSpecimenDataAssociation(
     AssociatedDataCompanion form,
-  ) async =>
-      await into(associatedData).insert(form);
+  ) async {
+    final specimenUuid = form.specimenUuid.value;
+    if (specimenUuid == null) {
+      throw ArgumentError('Associated data requires a specimen.');
+    }
+    final specimenRow = await (select(specimen)
+          ..where((row) => row.uuid.equals(specimenUuid)))
+        .getSingle();
+    final projectUuid = specimenRow.projectUuid;
+    if (projectUuid == null) {
+      throw StateError('Associated data requires a specimen project.');
+    }
+
+    return transaction(() async {
+      final id = await into(associatedData).insert(
+        form.copyWith(projectUuid: Value(projectUuid)),
+      );
+      await into(specimenAssociatedData).insert(
+        SpecimenAssociatedDataCompanion.insert(
+          specimenUuid: specimenUuid,
+          associatedDataId: id,
+        ),
+      );
+      return id;
+    });
+  }
+
+  Future<int> createProjectAssociatedData(
+    AssociatedDataCompanion form,
+  ) async {
+    if (!form.projectUuid.present || form.projectUuid.value == null) {
+      throw ArgumentError('Associated data requires a project.');
+    }
+    return into(associatedData).insert(
+      form.copyWith(specimenUuid: const Value(null)),
+    );
+  }
+
+  Future<void> linkToSpecimen(int id, String specimenUuid) {
+    return into(specimenAssociatedData).insert(
+      SpecimenAssociatedDataCompanion.insert(
+        specimenUuid: specimenUuid,
+        associatedDataId: id,
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<void> linkToSite(int id, int siteId) {
+    return into(siteAssociatedData).insert(
+      SiteAssociatedDataCompanion.insert(
+        siteId: siteId,
+        associatedDataId: id,
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
 
   Future<int> updateAssociatedData(int id, AssociatedDataCompanion form) async {
     return (update(
@@ -581,10 +636,41 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
   Future<List<AssociatedDataData>> getAllAssociatedData(
     String specimenUuid,
   ) async {
-    return await (select(
-      associatedData,
-    )..where((t) => t.specimenUuid.equals(specimenUuid)))
+    final linkedIds = selectOnly(specimenAssociatedData)
+      ..addColumns([specimenAssociatedData.associatedDataId])
+      ..where(specimenAssociatedData.specimenUuid.equals(specimenUuid));
+    return (select(associatedData)
+          ..where(
+            (row) =>
+                row.primaryId.isInQuery(linkedIds) |
+                row.specimenUuid.equals(specimenUuid),
+          ))
         .get();
+  }
+
+  Future<List<AssociatedDataData>> getAssociatedDataForSite(int siteId) {
+    final query = select(associatedData).join([
+      innerJoin(
+        siteAssociatedData,
+        siteAssociatedData.associatedDataId.equalsExp(
+          associatedData.primaryId,
+        ),
+      ),
+    ])..where(siteAssociatedData.siteId.equals(siteId));
+    return query.map((row) => row.readTable(associatedData)).get();
+  }
+
+  Future<List<AssociatedDataData>> getAssociatedDataForProject(
+    String projectUuid,
+  ) {
+    return (select(associatedData)
+          ..where((row) => row.projectUuid.equals(projectUuid)))
+        .get();
+  }
+
+  Future<AssociatedDataData?> getAssociatedDataById(int id) {
+    return (select(associatedData)..where((row) => row.primaryId.equals(id)))
+        .getSingleOrNull();
   }
 
   Future<bool> isFileUsed(String baseName) async {
@@ -600,9 +686,39 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteAllAssociatedData(String specimenUuid) {
-    return (delete(
-      associatedData,
-    )..where((t) => t.specimenUuid.equals(specimenUuid)))
+    return transaction(() async {
+      await (delete(specimenAssociatedData)
+            ..where((row) => row.specimenUuid.equals(specimenUuid)))
+          .go();
+      await (update(associatedData)
+            ..where((row) => row.specimenUuid.equals(specimenUuid)))
+          .write(const AssociatedDataCompanion(specimenUuid: Value(null)));
+    });
+  }
+
+  Future<void> unlinkFromSpecimen(int id, String specimenUuid) {
+    return (delete(specimenAssociatedData)
+          ..where((row) => row.associatedDataId.equals(id))
+          ..where((row) => row.specimenUuid.equals(specimenUuid)))
+        .go();
+  }
+
+  Future<void> unlinkFromSite(int id, int siteId) {
+    return (delete(siteAssociatedData)
+          ..where((row) => row.associatedDataId.equals(id))
+          ..where((row) => row.siteId.equals(siteId)))
+        .go();
+  }
+
+  Future<void> unlinkAllFromSite(int siteId) {
+    return (delete(siteAssociatedData)
+          ..where((row) => row.siteId.equals(siteId)))
+        .go();
+  }
+
+  Future<void> deleteAllAssociatedDataForProject(String projectUuid) {
+    return (delete(associatedData)
+          ..where((row) => row.projectUuid.equals(projectUuid)))
         .go();
   }
 }

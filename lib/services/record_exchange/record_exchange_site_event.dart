@@ -3,6 +3,7 @@ import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/site_queries.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
@@ -38,6 +39,18 @@ class RecordExchangeSiteEvent extends AppServices {
         'coordinates': coordinates
             .map(support.portableCoordinate)
             .toList(growable: false),
+        'associatedData':
+            (await AssociatedDataQuery(
+                  dbAccess,
+                ).getAssociatedDataForSite(site.id))
+                .map(
+                  (value) => RecordExchangeDatabase.without(value.toJson(), {
+                    'primaryId',
+                    'specimenUuid',
+                    'projectUuid',
+                  }),
+                )
+                .toList(growable: false),
         'personnel': personnel,
       },
     );
@@ -155,6 +168,7 @@ class RecordExchangeSiteEvent extends AppServices {
       await (dbAccess.delete(
         dbAccess.coordinate,
       )..where((row) => row.siteID.equals(targetId))).go();
+      await AssociatedDataQuery(dbAccess).unlinkAllFromSite(targetId);
     }
     for (final coordinateJson in RecordExchangePayload.mapList(
       payload.data['coordinates'],
@@ -162,6 +176,20 @@ class RecordExchangeSiteEvent extends AppServices {
       await dbAccess
           .into(dbAccess.coordinate)
           .insert(support.coordinateCompanion(coordinateJson, siteId));
+    }
+    for (final json in RecordExchangePayload.mapList(
+      payload.data['associatedData'],
+    )) {
+      final associatedDataId = await AssociatedDataQuery(dbAccess)
+          .createProjectAssociatedData(
+            AssociatedDataData.fromJson({
+              ...json,
+              'primaryId': null,
+              'specimenUuid': null,
+              'projectUuid': currentProjectUuid,
+            }).toCompanion(true),
+          );
+      await AssociatedDataQuery(dbAccess).linkToSite(associatedDataId, siteId);
     }
     return RecordExchangeResult(recordId: siteId);
   }

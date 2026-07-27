@@ -77,10 +77,16 @@ class ProjectTransferService extends AppServices {
       'specimenUuid',
       specimenUuids,
     );
-    records['associatedData'] = await _rowsForStrings(
-      'associatedData',
+    records['associatedData'] = await _projectRows('associatedData');
+    records['specimenAssociatedData'] = await _rowsForStrings(
+      'specimenAssociatedData',
       'specimenUuid',
       specimenUuids,
+    );
+    records['siteAssociatedData'] = await _rowsForIds(
+      'siteAssociatedData',
+      'siteId',
+      siteIds,
     );
     records['narrative'] = await _projectRows('narrative');
     final narrativeIds = _intIds(records['narrative']!, 'id');
@@ -698,6 +704,13 @@ class ProjectTransferService extends AppServices {
           personnelMap,
           specimensUsingImportedChildren,
         );
+        await _importAssociatedData(
+          plan.payload,
+          specimenMap,
+          siteMap,
+          specimensUsingImportedChildren,
+          sitesUsingImportedChildren,
+        );
 
         final narrativeMap = <int, int?>{};
         final narrativesUsingImportedChildren = <int>{};
@@ -935,16 +948,82 @@ class ProjectTransferService extends AppServices {
         );
       }
     }
-    for (final row in payload.rows('associatedData')) {
+  }
+
+  Future<void> _importAssociatedData(
+    ProjectTransferPayload payload,
+    Map<String, String?> specimenMap,
+    Map<int, int?> siteMap,
+    Set<String> specimensUsingImportedChildren,
+    Set<int> sitesUsingImportedChildren,
+  ) async {
+    final specimenLinks = payload.rows('specimenAssociatedData').isEmpty
+        ? payload
+              .rows('associatedData')
+              .where((row) => row['specimenUuid'] is String)
+              .map(
+                (row) => {
+                  'specimenUuid': row['specimenUuid'],
+                  'associatedDataId': row['primaryId'],
+                },
+              )
+              .toList(growable: false)
+        : payload.rows('specimenAssociatedData');
+    final siteLinks = payload.rows('siteAssociatedData');
+    final sourceDataIds = <int>{};
+    for (final row in specimenLinks) {
       final sourceUuid = row['specimenUuid'] as String?;
-      if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
-      final uuid = specimenMap[sourceUuid];
-      if (uuid != null) {
-        await _insert(
-          'associatedData',
-          {...row, 'specimenUuid': uuid},
-          omit: {'primaryId'},
-        );
+      final sourceId = row['associatedDataId'] as int?;
+      if (sourceId != null &&
+          specimensUsingImportedChildren.contains(sourceUuid) &&
+          specimenMap[sourceUuid] != null) {
+        sourceDataIds.add(sourceId);
+      }
+    }
+    for (final row in siteLinks) {
+      final sourceSiteId = row['siteId'] as int?;
+      final sourceId = row['associatedDataId'] as int?;
+      if (sourceId != null &&
+          sitesUsingImportedChildren.contains(sourceSiteId) &&
+          siteMap[sourceSiteId] != null) {
+        sourceDataIds.add(sourceId);
+      }
+    }
+
+    final dataMap = <int, int>{};
+    for (final row in payload.rows('associatedData')) {
+      final sourceId = row['primaryId'] as int?;
+      if (sourceId == null || !sourceDataIds.contains(sourceId)) continue;
+      dataMap[sourceId] = await _insert(
+        'associatedData',
+        {...row, 'specimenUuid': null, 'projectUuid': currentProjectUuid},
+        omit: {'primaryId'},
+      );
+    }
+    for (final row in specimenLinks) {
+      final sourceUuid = row['specimenUuid'] as String?;
+      final targetUuid = specimenMap[sourceUuid];
+      final dataId = dataMap[row['associatedDataId'] as int?];
+      if (targetUuid != null &&
+          dataId != null &&
+          specimensUsingImportedChildren.contains(sourceUuid)) {
+        await _insert('specimenAssociatedData', {
+          'specimenUuid': targetUuid,
+          'associatedDataId': dataId,
+        });
+      }
+    }
+    for (final row in siteLinks) {
+      final sourceSiteId = row['siteId'] as int?;
+      final targetSiteId = siteMap[sourceSiteId];
+      final dataId = dataMap[row['associatedDataId'] as int?];
+      if (targetSiteId != null &&
+          dataId != null &&
+          sitesUsingImportedChildren.contains(sourceSiteId)) {
+        await _insert('siteAssociatedData', {
+          'siteId': targetSiteId,
+          'associatedDataId': dataId,
+        });
       }
     }
   }
@@ -1072,11 +1151,15 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'specimenPart',
-      'associatedData',
       'specimenMedia',
     ]) {
       await _deleteWhere(table, 'specimenUuid', uuid);
     }
+    await _deleteWhere('specimenAssociatedData', 'specimenUuid', uuid);
+    await dbAccess.customStatement(
+      'UPDATE associatedData SET specimenUuid = NULL WHERE specimenUuid = ?',
+      [uuid],
+    );
   }
 
   void _validateReferences(Map<String, List<Map<String, dynamic>>> records) {
@@ -1111,13 +1194,44 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'specimenPart',
-      'associatedData',
       'specimenMedia',
     ]) {
       for (final row in records[table] ?? const []) {
         if (!specimenIds.contains(row['specimenUuid'])) {
           throw FormatException('$table has an unresolved specimen.');
         }
+      }
+    }
+    final associatedDataIds = _intIds(
+      records['associatedData'] ?? const [],
+      'primaryId',
+    ).toSet();
+    final specimenLinks = records['specimenAssociatedData'] ?? const [];
+    if (specimenLinks.isEmpty) {
+      for (final row in records['associatedData'] ?? const []) {
+        if (row['specimenUuid'] != null &&
+            !specimenIds.contains(row['specimenUuid'])) {
+          throw const FormatException(
+            'Associated data has an unresolved specimen.',
+          );
+        }
+      }
+    } else {
+      for (final row in specimenLinks) {
+        if (!specimenIds.contains(row['specimenUuid']) ||
+            !associatedDataIds.contains(row['associatedDataId'])) {
+          throw const FormatException(
+            'Specimen associated data has an unresolved reference.',
+          );
+        }
+      }
+    }
+    for (final row in records['siteAssociatedData'] ?? const []) {
+      if (!siteIds.contains(row['siteId']) ||
+          !associatedDataIds.contains(row['associatedDataId'])) {
+        throw const FormatException(
+          'Site associated data has an unresolved reference.',
+        );
       }
     }
   }

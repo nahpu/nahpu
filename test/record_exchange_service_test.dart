@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
@@ -80,8 +81,17 @@ void main() {
             decimalLongitude: const Value(-45.6),
           ),
         );
+    final sourceData = await AssociatedDataQuery(database)
+        .createProjectAssociatedData(
+          const AssociatedDataCompanion(
+            projectUuid: Value('project-a'),
+            name: Value('Site recording'),
+          ),
+        );
+    await AssociatedDataQuery(database).linkToSite(sourceData, sourceSite);
 
     final payload = await service.exportSite(sourceSite);
+    expect(payload.associatedDataCount, 1);
     final parsed = RecordExchangePayload.parse(
       payload.compactEncoded,
       expectedType: 'site',
@@ -101,6 +111,12 @@ void main() {
     )..where((row) => row.siteID.equals(result.recordId))).get();
     expect(coordinates, hasLength(1));
     expect(coordinates.single.decimalLatitude, 12.3);
+    expect(
+      await AssociatedDataQuery(
+        database,
+      ).getAssociatedDataForSite(result.recordId),
+      hasLength(1),
+    );
     expect(
       await (database.select(
         database.personnel,
