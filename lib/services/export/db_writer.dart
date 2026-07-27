@@ -150,12 +150,12 @@ class DbExport extends AppServices {
     final root = await nahpuDocumentDir;
     final rows = await dbAccess
         .customSelect(
-          "SELECT projectUuid, url FROM associatedData WHERE type = 'File'",
+          "SELECT projectUuid, uri FROM associatedData WHERE type = 'File'",
         )
         .get();
     File? associatedDataFile(QueryRow row) {
       final projectUuid = row.data['projectUuid'] as String?;
-      final fileName = row.data['url'] as String?;
+      final fileName = row.data['uri'] as String?;
       if (projectUuid == null || fileName == null || fileName.isEmpty) {
         return null;
       }

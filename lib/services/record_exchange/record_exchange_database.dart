@@ -95,6 +95,22 @@ class RecordExchangeDatabase extends AppServices {
   Map<String, dynamic> portableWeather(WeatherData value) =>
       without(value.toJson(), {'eventID'});
 
+  Map<String, dynamic> portableAssociatedData(AssociatedDataData value) {
+    final json = without(value.toJson(), {'primaryId', 'projectUuid'});
+    json['url'] = json.remove('uri');
+    return json;
+  }
+
+  Map<String, dynamic> associatedDataJson(Map<String, dynamic> source) {
+    final json = Map<String, dynamic>.from(source);
+    json['primaryId'] = null;
+    json['projectUuid'] = currentProjectUuid;
+    json['uri'] ??= json['url'];
+    json.remove('url');
+    json.remove('specimenUuid');
+    return json;
+  }
+
   Map<String, dynamic> portablePersonnel(PersonnelData value) {
     final json = without(value.toJson(), {'photoPath'});
     json['photoPath'] = null;

@@ -133,7 +133,7 @@ class ProjectNotFound extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           Text(
-            'Create a new project to get started.',
+            'Create or import a project to get started.',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],

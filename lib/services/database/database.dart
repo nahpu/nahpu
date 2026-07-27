@@ -24,7 +24,7 @@ part 'migration_coordinator.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 12;
+const int kSchemaVersion = 13;
 
 @DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {
@@ -264,14 +264,35 @@ class Database extends _$Database {
     await m.addColumn(taxonomy, taxonomy.countryStatus);
     await m.addColumn(taxonomy, taxonomy.sortingOrder);
 
-    // Associated data
-    await m.addColumn(associatedData, associatedData.date);
-    await m.addColumn(associatedData, associatedData.specimenUuid);
-    await m.renameColumn(associatedData, 'secondaryId', associatedData.name);
-    await m.renameColumn(associatedData, 'fileId', associatedData.url);
-
-    // Remove secondaryIdRef
-    await alterTableHelper(m, associatedData);
+    // Associated data. Keep the historical v5 layout so later migrations can
+    // be applied sequentially even though the generated table is now v13.
+    await customStatement(
+      'ALTER TABLE associatedData RENAME TO tmp_associatedData_v4',
+    );
+    await customStatement('''
+      CREATE TABLE associatedData (
+        primaryId INTEGER PRIMARY KEY AUTOINCREMENT,
+        specimenUuid TEXT,
+        name TEXT,
+        type TEXT,
+        date TEXT,
+        description TEXT,
+        url TEXT,
+        FOREIGN KEY(specimenUuid) REFERENCES specimen(uuid)
+      )
+    ''');
+    await customStatement('''
+      INSERT INTO associatedData (
+        primaryId,
+        name,
+        type,
+        description,
+        url
+      )
+      SELECT primaryId, secondaryId, type, description, fileId
+      FROM tmp_associatedData_v4
+    ''');
+    await customStatement('DROP TABLE tmp_associatedData_v4');
 
     // Sites
     await alterTableHelper(m, coordinate);

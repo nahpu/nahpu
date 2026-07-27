@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift_dev/api/migrations_native.dart';
@@ -14,12 +14,12 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11]) {
-    test('upgrade from v$version to v12', () async {
+  for (final version in [6, 7, 8, 9, 10, 11, 12]) {
+    test('upgrade from v$version to v13', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 12);
+      await verifier.migrateAndValidate(db, 13);
       await db.close();
     });
   }
@@ -31,7 +31,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 12);
+    await verifier.migrateAndValidate(db, 13);
     await db.close();
   });
 
@@ -43,7 +43,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 12);
+    await verifier.migrateAndValidate(db, 13);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -96,7 +96,7 @@ void main() {
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 12);
+    await verifier.migrateAndValidate(db, 13);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -128,7 +128,7 @@ void main() {
   });
 
   test(
-    'v12 preserves legacy specimen associated data without site links',
+    'v13 moves legacy specimen associated data into the link table',
     () async {
       final schema = await verifier.schemaAt(11);
       final raw = schema.rawDatabase;
@@ -158,13 +158,12 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 12);
+      await verifier.migrateAndValidate(db, 13);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
-      expect(data.specimenUuid, 'specimen-a');
       expect(data.name, 'Recording');
-      expect(data.url, 'call.wav');
+      expect(data.uri, 'call.wav');
 
       final specimenLinks = await db.select(db.specimenAssociatedData).get();
       expect(specimenLinks, hasLength(1));
@@ -178,7 +177,89 @@ void main() {
     },
   );
 
-  test('v12 associated data links enforce project ownership', () async {
+  test('v12 to v13 preserves renamed tables, columns, and links', () async {
+    final schema = await verifier.schemaAt(12);
+    final raw = schema.rawDatabase;
+    raw.execute(
+      "INSERT INTO project (uuid, name) VALUES ('project-a', 'Project A')",
+    );
+    raw.execute(
+      "INSERT INTO specimen (uuid, projectUuid) "
+      "VALUES ('specimen-a', 'project-a')",
+    );
+    raw.execute(
+      "INSERT INTO site (id, siteID, projectUuid) "
+      "VALUES (7, 'Fossil locality', 'project-a')",
+    );
+    raw.execute(
+      "INSERT INTO paleontologySite (siteID, formation) "
+      "VALUES (7, 'Hell Creek')",
+    );
+    raw.execute(
+      "INSERT INTO associatedData "
+      "(primaryId, specimenUuid, projectUuid, name, url) "
+      "VALUES (11, 'specimen-a', 'project-a', 'Audio', 'call.wav')",
+    );
+    raw.execute(
+      "INSERT INTO media (primaryId, projectUuid, fileName) "
+      "VALUES (13, 'project-a', 'photo.jpg')",
+    );
+    raw.execute(
+      "INSERT INTO customFieldDefinition (id, name) VALUES (17, 'Mass')",
+    );
+    raw.execute(
+      "INSERT INTO customFieldValue "
+      "(id, fieldDefinitionId, projectUuid, value) "
+      "VALUES (19, 17, 'project-a', '2.5')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 13);
+
+    final fossilSite = await db.select(db.fossilSite).getSingle();
+    expect(fossilSite.siteID, 7);
+    expect(fossilSite.formation, 'Hell Creek');
+    expect((await db.select(db.associatedData).getSingle()).uri, 'call.wav');
+    expect((await db.select(db.media).getSingle()).uri, isNull);
+    expect((await db.select(db.customFieldValue).getSingle()).unit, isNull);
+
+    final links = await db.select(db.specimenAssociatedData).get();
+    expect(links, hasLength(1));
+    expect(links.single.specimenUuid, 'specimen-a');
+    expect(links.single.associatedDataId, 11);
+
+    final tables = await db
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table'",
+          readsFrom: const {},
+        )
+        .get();
+    final tableNames = tables.map((row) => row.read<String>('name')).toSet();
+    expect(tableNames, contains('fossilSite'));
+    expect(tableNames, isNot(contains('paleontologySite')));
+
+    final associatedColumns = await db
+        .customSelect('PRAGMA table_info(associatedData)', readsFrom: const {})
+        .get();
+    final columnNames = associatedColumns
+        .map((row) => row.read<String>('name'))
+        .toSet();
+    expect(columnNames, contains('uri'));
+    expect(columnNames, isNot(contains('url')));
+    expect(columnNames, isNot(contains('specimenUuid')));
+
+    final associatedDataTriggers = await db
+        .customSelect(
+          "SELECT name FROM sqlite_master "
+          "WHERE type = 'trigger' AND tbl_name = 'associatedData'",
+          readsFrom: const {},
+        )
+        .get();
+    expect(associatedDataTriggers, isEmpty);
+    await db.close();
+  });
+
+  test('v13 associated data links enforce project ownership', () async {
     final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     await db
         .into(db.project)

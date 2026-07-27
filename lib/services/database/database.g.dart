@@ -1438,6 +1438,15 @@ class Media extends Table with TableInfo<Media, MediaData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _uriMeta = const VerificationMeta('uri');
+  late final GeneratedColumn<String> uri = GeneratedColumn<String>(
+    'uri',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _captionMeta = const VerificationMeta(
     'caption',
   );
@@ -1462,6 +1471,7 @@ class Media extends Table with TableInfo<Media, MediaData> {
     additionalExif,
     personnelId,
     fileName,
+    uri,
     caption,
   ];
   @override
@@ -1554,6 +1564,12 @@ class Media extends Table with TableInfo<Media, MediaData> {
         fileName.isAcceptableOrUnknown(data['fileName']!, _fileNameMeta),
       );
     }
+    if (data.containsKey('uri')) {
+      context.handle(
+        _uriMeta,
+        uri.isAcceptableOrUnknown(data['uri']!, _uriMeta),
+      );
+    }
     if (data.containsKey('caption')) {
       context.handle(
         _captionMeta,
@@ -1613,6 +1629,10 @@ class Media extends Table with TableInfo<Media, MediaData> {
         DriftSqlType.string,
         data['${effectivePrefix}fileName'],
       ),
+      uri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uri'],
+      ),
       caption: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}caption'],
@@ -1646,6 +1666,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
   final String? additionalExif;
   final String? personnelId;
   final String? fileName;
+  final String? uri;
   final String? caption;
   const MediaData({
     required this.primaryId,
@@ -1659,6 +1680,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
     this.additionalExif,
     this.personnelId,
     this.fileName,
+    this.uri,
     this.caption,
   });
   @override
@@ -1694,6 +1716,9 @@ class MediaData extends DataClass implements Insertable<MediaData> {
     }
     if (!nullToAbsent || fileName != null) {
       map['fileName'] = Variable<String>(fileName);
+    }
+    if (!nullToAbsent || uri != null) {
+      map['uri'] = Variable<String>(uri);
     }
     if (!nullToAbsent || caption != null) {
       map['caption'] = Variable<String>(caption);
@@ -1732,6 +1757,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
       fileName: fileName == null && nullToAbsent
           ? const Value.absent()
           : Value(fileName),
+      uri: uri == null && nullToAbsent ? const Value.absent() : Value(uri),
       caption: caption == null && nullToAbsent
           ? const Value.absent()
           : Value(caption),
@@ -1755,6 +1781,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
       additionalExif: serializer.fromJson<String?>(json['additionalExif']),
       personnelId: serializer.fromJson<String?>(json['personnelId']),
       fileName: serializer.fromJson<String?>(json['fileName']),
+      uri: serializer.fromJson<String?>(json['uri']),
       caption: serializer.fromJson<String?>(json['caption']),
     );
   }
@@ -1773,6 +1800,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
       'additionalExif': serializer.toJson<String?>(additionalExif),
       'personnelId': serializer.toJson<String?>(personnelId),
       'fileName': serializer.toJson<String?>(fileName),
+      'uri': serializer.toJson<String?>(uri),
       'caption': serializer.toJson<String?>(caption),
     };
   }
@@ -1789,6 +1817,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
     Value<String?> additionalExif = const Value.absent(),
     Value<String?> personnelId = const Value.absent(),
     Value<String?> fileName = const Value.absent(),
+    Value<String?> uri = const Value.absent(),
     Value<String?> caption = const Value.absent(),
   }) => MediaData(
     primaryId: primaryId ?? this.primaryId,
@@ -1804,6 +1833,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
         : this.additionalExif,
     personnelId: personnelId.present ? personnelId.value : this.personnelId,
     fileName: fileName.present ? fileName.value : this.fileName,
+    uri: uri.present ? uri.value : this.uri,
     caption: caption.present ? caption.value : this.caption,
   );
   MediaData copyWithCompanion(MediaCompanion data) {
@@ -1827,6 +1857,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
           ? data.personnelId.value
           : this.personnelId,
       fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      uri: data.uri.present ? data.uri.value : this.uri,
       caption: data.caption.present ? data.caption.value : this.caption,
     );
   }
@@ -1845,6 +1876,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
           ..write('additionalExif: $additionalExif, ')
           ..write('personnelId: $personnelId, ')
           ..write('fileName: $fileName, ')
+          ..write('uri: $uri, ')
           ..write('caption: $caption')
           ..write(')'))
         .toString();
@@ -1863,6 +1895,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
     additionalExif,
     personnelId,
     fileName,
+    uri,
     caption,
   );
   @override
@@ -1880,6 +1913,7 @@ class MediaData extends DataClass implements Insertable<MediaData> {
           other.additionalExif == this.additionalExif &&
           other.personnelId == this.personnelId &&
           other.fileName == this.fileName &&
+          other.uri == this.uri &&
           other.caption == this.caption);
 }
 
@@ -1895,6 +1929,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
   final Value<String?> additionalExif;
   final Value<String?> personnelId;
   final Value<String?> fileName;
+  final Value<String?> uri;
   final Value<String?> caption;
   const MediaCompanion({
     this.primaryId = const Value.absent(),
@@ -1908,6 +1943,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
     this.additionalExif = const Value.absent(),
     this.personnelId = const Value.absent(),
     this.fileName = const Value.absent(),
+    this.uri = const Value.absent(),
     this.caption = const Value.absent(),
   });
   MediaCompanion.insert({
@@ -1922,6 +1958,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
     this.additionalExif = const Value.absent(),
     this.personnelId = const Value.absent(),
     this.fileName = const Value.absent(),
+    this.uri = const Value.absent(),
     this.caption = const Value.absent(),
   });
   static Insertable<MediaData> custom({
@@ -1936,6 +1973,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
     Expression<String>? additionalExif,
     Expression<String>? personnelId,
     Expression<String>? fileName,
+    Expression<String>? uri,
     Expression<String>? caption,
   }) {
     return RawValuesInsertable({
@@ -1950,6 +1988,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
       if (additionalExif != null) 'additionalExif': additionalExif,
       if (personnelId != null) 'personnelId': personnelId,
       if (fileName != null) 'fileName': fileName,
+      if (uri != null) 'uri': uri,
       if (caption != null) 'caption': caption,
     });
   }
@@ -1966,6 +2005,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
     Value<String?>? additionalExif,
     Value<String?>? personnelId,
     Value<String?>? fileName,
+    Value<String?>? uri,
     Value<String?>? caption,
   }) {
     return MediaCompanion(
@@ -1980,6 +2020,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
       additionalExif: additionalExif ?? this.additionalExif,
       personnelId: personnelId ?? this.personnelId,
       fileName: fileName ?? this.fileName,
+      uri: uri ?? this.uri,
       caption: caption ?? this.caption,
     );
   }
@@ -2020,6 +2061,9 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
     if (fileName.present) {
       map['fileName'] = Variable<String>(fileName.value);
     }
+    if (uri.present) {
+      map['uri'] = Variable<String>(uri.value);
+    }
     if (caption.present) {
       map['caption'] = Variable<String>(caption.value);
     }
@@ -2040,6 +2084,7 @@ class MediaCompanion extends UpdateCompanion<MediaData> {
           ..write('additionalExif: $additionalExif, ')
           ..write('personnelId: $personnelId, ')
           ..write('fileName: $fileName, ')
+          ..write('uri: $uri, ')
           ..write('caption: $caption')
           ..write(')'))
         .toString();
@@ -2942,12 +2987,11 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
   }
 }
 
-class PaleontologySite extends Table
-    with TableInfo<PaleontologySite, PaleontologySiteData> {
+class FossilSite extends Table with TableInfo<FossilSite, FossilSiteData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  PaleontologySite(this.attachedDatabase, [this._alias]);
+  FossilSite(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _siteIDMeta = const VerificationMeta('siteID');
   late final GeneratedColumn<int> siteID = GeneratedColumn<int>(
     'siteID',
@@ -3157,10 +3201,10 @@ class PaleontologySite extends Table
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'paleontologySite';
+  static const String $name = 'fossilSite';
   @override
   VerificationContext validateIntegrity(
-    Insertable<PaleontologySiteData> instance, {
+    Insertable<FossilSiteData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -3312,9 +3356,9 @@ class PaleontologySite extends Table
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  PaleontologySiteData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  FossilSiteData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return PaleontologySiteData(
+    return FossilSiteData(
       siteID: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}siteID'],
@@ -3387,8 +3431,8 @@ class PaleontologySite extends Table
   }
 
   @override
-  PaleontologySite createAlias(String alias) {
-    return PaleontologySite(attachedDatabase, alias);
+  FossilSite createAlias(String alias) {
+    return FossilSite(attachedDatabase, alias);
   }
 
   @override
@@ -3399,8 +3443,7 @@ class PaleontologySite extends Table
   bool get dontWriteConstraints => true;
 }
 
-class PaleontologySiteData extends DataClass
-    implements Insertable<PaleontologySiteData> {
+class FossilSiteData extends DataClass implements Insertable<FossilSiteData> {
   final int? siteID;
   final String? formation;
   final int? geologicEra;
@@ -3418,7 +3461,7 @@ class PaleontologySiteData extends DataClass
   final String? stratigraphyRemark;
   final String? stratigraphicSource;
   final String? sedimentologyRemark;
-  const PaleontologySiteData({
+  const FossilSiteData({
     this.siteID,
     this.formation,
     this.geologicEra,
@@ -3498,8 +3541,8 @@ class PaleontologySiteData extends DataClass
     return map;
   }
 
-  PaleontologySiteCompanion toCompanion(bool nullToAbsent) {
-    return PaleontologySiteCompanion(
+  FossilSiteCompanion toCompanion(bool nullToAbsent) {
+    return FossilSiteCompanion(
       siteID: siteID == null && nullToAbsent
           ? const Value.absent()
           : Value(siteID),
@@ -3555,12 +3598,12 @@ class PaleontologySiteData extends DataClass
     );
   }
 
-  factory PaleontologySiteData.fromJson(
+  factory FossilSiteData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return PaleontologySiteData(
+    return FossilSiteData(
       siteID: serializer.fromJson<int?>(json['siteID']),
       formation: serializer.fromJson<String?>(json['formation']),
       geologicEra: serializer.fromJson<int?>(json['geologicEra']),
@@ -3630,7 +3673,7 @@ class PaleontologySiteData extends DataClass
     };
   }
 
-  PaleontologySiteData copyWith({
+  FossilSiteData copyWith({
     Value<int?> siteID = const Value.absent(),
     Value<String?> formation = const Value.absent(),
     Value<int?> geologicEra = const Value.absent(),
@@ -3648,7 +3691,7 @@ class PaleontologySiteData extends DataClass
     Value<String?> stratigraphyRemark = const Value.absent(),
     Value<String?> stratigraphicSource = const Value.absent(),
     Value<String?> sedimentologyRemark = const Value.absent(),
-  }) => PaleontologySiteData(
+  }) => FossilSiteData(
     siteID: siteID.present ? siteID.value : this.siteID,
     formation: formation.present ? formation.value : this.formation,
     geologicEra: geologicEra.present ? geologicEra.value : this.geologicEra,
@@ -3691,8 +3734,8 @@ class PaleontologySiteData extends DataClass
         ? sedimentologyRemark.value
         : this.sedimentologyRemark,
   );
-  PaleontologySiteData copyWithCompanion(PaleontologySiteCompanion data) {
-    return PaleontologySiteData(
+  FossilSiteData copyWithCompanion(FossilSiteCompanion data) {
+    return FossilSiteData(
       siteID: data.siteID.present ? data.siteID.value : this.siteID,
       formation: data.formation.present ? data.formation.value : this.formation,
       geologicEra: data.geologicEra.present
@@ -3741,7 +3784,7 @@ class PaleontologySiteData extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('PaleontologySiteData(')
+    return (StringBuffer('FossilSiteData(')
           ..write('siteID: $siteID, ')
           ..write('formation: $formation, ')
           ..write('geologicEra: $geologicEra, ')
@@ -3786,7 +3829,7 @@ class PaleontologySiteData extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is PaleontologySiteData &&
+      (other is FossilSiteData &&
           other.siteID == this.siteID &&
           other.formation == this.formation &&
           other.geologicEra == this.geologicEra &&
@@ -3807,7 +3850,7 @@ class PaleontologySiteData extends DataClass
           other.sedimentologyRemark == this.sedimentologyRemark);
 }
 
-class PaleontologySiteCompanion extends UpdateCompanion<PaleontologySiteData> {
+class FossilSiteCompanion extends UpdateCompanion<FossilSiteData> {
   final Value<int?> siteID;
   final Value<String?> formation;
   final Value<int?> geologicEra;
@@ -3826,7 +3869,7 @@ class PaleontologySiteCompanion extends UpdateCompanion<PaleontologySiteData> {
   final Value<String?> stratigraphicSource;
   final Value<String?> sedimentologyRemark;
   final Value<int> rowid;
-  const PaleontologySiteCompanion({
+  const FossilSiteCompanion({
     this.siteID = const Value.absent(),
     this.formation = const Value.absent(),
     this.geologicEra = const Value.absent(),
@@ -3846,7 +3889,7 @@ class PaleontologySiteCompanion extends UpdateCompanion<PaleontologySiteData> {
     this.sedimentologyRemark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  PaleontologySiteCompanion.insert({
+  FossilSiteCompanion.insert({
     this.siteID = const Value.absent(),
     this.formation = const Value.absent(),
     this.geologicEra = const Value.absent(),
@@ -3866,7 +3909,7 @@ class PaleontologySiteCompanion extends UpdateCompanion<PaleontologySiteData> {
     this.sedimentologyRemark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  static Insertable<PaleontologySiteData> custom({
+  static Insertable<FossilSiteData> custom({
     Expression<int>? siteID,
     Expression<String>? formation,
     Expression<int>? geologicEra,
@@ -3915,7 +3958,7 @@ class PaleontologySiteCompanion extends UpdateCompanion<PaleontologySiteData> {
     });
   }
 
-  PaleontologySiteCompanion copyWith({
+  FossilSiteCompanion copyWith({
     Value<int?>? siteID,
     Value<String?>? formation,
     Value<int?>? geologicEra,
@@ -3935,7 +3978,7 @@ class PaleontologySiteCompanion extends UpdateCompanion<PaleontologySiteData> {
     Value<String?>? sedimentologyRemark,
     Value<int>? rowid,
   }) {
-    return PaleontologySiteCompanion(
+    return FossilSiteCompanion(
       siteID: siteID ?? this.siteID,
       formation: formation ?? this.formation,
       geologicEra: geologicEra ?? this.geologicEra,
@@ -4033,7 +4076,7 @@ class PaleontologySiteCompanion extends UpdateCompanion<PaleontologySiteData> {
 
   @override
   String toString() {
-    return (StringBuffer('PaleontologySiteCompanion(')
+    return (StringBuffer('FossilSiteCompanion(')
           ..write('siteID: $siteID, ')
           ..write('formation: $formation, ')
           ..write('geologicEra: $geologicEra, ')
@@ -10665,17 +10708,6 @@ class AssociatedData extends Table
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
   );
-  static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
-    'specimenUuid',
-  );
-  late final GeneratedColumn<String> specimenUuid = GeneratedColumn<String>(
-    'specimenUuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
   static const VerificationMeta _projectUuidMeta = const VerificationMeta(
     'projectUuid',
   );
@@ -10725,9 +10757,9 @@ class AssociatedData extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _urlMeta = const VerificationMeta('url');
-  late final GeneratedColumn<String> url = GeneratedColumn<String>(
-    'url',
+  static const VerificationMeta _uriMeta = const VerificationMeta('uri');
+  late final GeneratedColumn<String> uri = GeneratedColumn<String>(
+    'uri',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -10737,13 +10769,12 @@ class AssociatedData extends Table
   @override
   List<GeneratedColumn> get $columns => [
     primaryId,
-    specimenUuid,
     projectUuid,
     name,
     type,
     date,
     description,
-    url,
+    uri,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -10761,15 +10792,6 @@ class AssociatedData extends Table
       context.handle(
         _primaryIdMeta,
         primaryId.isAcceptableOrUnknown(data['primaryId']!, _primaryIdMeta),
-      );
-    }
-    if (data.containsKey('specimenUuid')) {
-      context.handle(
-        _specimenUuidMeta,
-        specimenUuid.isAcceptableOrUnknown(
-          data['specimenUuid']!,
-          _specimenUuidMeta,
-        ),
       );
     }
     if (data.containsKey('projectUuid')) {
@@ -10808,10 +10830,10 @@ class AssociatedData extends Table
         ),
       );
     }
-    if (data.containsKey('url')) {
+    if (data.containsKey('uri')) {
       context.handle(
-        _urlMeta,
-        url.isAcceptableOrUnknown(data['url']!, _urlMeta),
+        _uriMeta,
+        uri.isAcceptableOrUnknown(data['uri']!, _uriMeta),
       );
     }
     return context;
@@ -10826,10 +10848,6 @@ class AssociatedData extends Table
       primaryId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}primaryId'],
-      ),
-      specimenUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}specimenUuid'],
       ),
       projectUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -10851,9 +10869,9 @@ class AssociatedData extends Table
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
-      url: attachedDatabase.typeMapping.read(
+      uri: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}url'],
+        data['${effectivePrefix}uri'],
       ),
     );
   }
@@ -10864,41 +10882,32 @@ class AssociatedData extends Table
   }
 
   @override
-  List<String> get customConstraints => const [
-    'FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)',
-  ];
-  @override
   bool get dontWriteConstraints => true;
 }
 
 class AssociatedDataData extends DataClass
     implements Insertable<AssociatedDataData> {
   final int? primaryId;
-  final String? specimenUuid;
   final String? projectUuid;
   final String? name;
   final String? type;
   final String? date;
   final String? description;
-  final String? url;
+  final String? uri;
   const AssociatedDataData({
     this.primaryId,
-    this.specimenUuid,
     this.projectUuid,
     this.name,
     this.type,
     this.date,
     this.description,
-    this.url,
+    this.uri,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (!nullToAbsent || primaryId != null) {
       map['primaryId'] = Variable<int>(primaryId);
-    }
-    if (!nullToAbsent || specimenUuid != null) {
-      map['specimenUuid'] = Variable<String>(specimenUuid);
     }
     if (!nullToAbsent || projectUuid != null) {
       map['projectUuid'] = Variable<String>(projectUuid);
@@ -10915,8 +10924,8 @@ class AssociatedDataData extends DataClass
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
-    if (!nullToAbsent || url != null) {
-      map['url'] = Variable<String>(url);
+    if (!nullToAbsent || uri != null) {
+      map['uri'] = Variable<String>(uri);
     }
     return map;
   }
@@ -10926,9 +10935,6 @@ class AssociatedDataData extends DataClass
       primaryId: primaryId == null && nullToAbsent
           ? const Value.absent()
           : Value(primaryId),
-      specimenUuid: specimenUuid == null && nullToAbsent
-          ? const Value.absent()
-          : Value(specimenUuid),
       projectUuid: projectUuid == null && nullToAbsent
           ? const Value.absent()
           : Value(projectUuid),
@@ -10938,7 +10944,7 @@ class AssociatedDataData extends DataClass
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
-      url: url == null && nullToAbsent ? const Value.absent() : Value(url),
+      uri: uri == null && nullToAbsent ? const Value.absent() : Value(uri),
     );
   }
 
@@ -10949,13 +10955,12 @@ class AssociatedDataData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AssociatedDataData(
       primaryId: serializer.fromJson<int?>(json['primaryId']),
-      specimenUuid: serializer.fromJson<String?>(json['specimenUuid']),
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
       name: serializer.fromJson<String?>(json['name']),
       type: serializer.fromJson<String?>(json['type']),
       date: serializer.fromJson<String?>(json['date']),
       description: serializer.fromJson<String?>(json['description']),
-      url: serializer.fromJson<String?>(json['url']),
+      uri: serializer.fromJson<String?>(json['uri']),
     );
   }
   @override
@@ -10963,41 +10968,35 @@ class AssociatedDataData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'primaryId': serializer.toJson<int?>(primaryId),
-      'specimenUuid': serializer.toJson<String?>(specimenUuid),
       'projectUuid': serializer.toJson<String?>(projectUuid),
       'name': serializer.toJson<String?>(name),
       'type': serializer.toJson<String?>(type),
       'date': serializer.toJson<String?>(date),
       'description': serializer.toJson<String?>(description),
-      'url': serializer.toJson<String?>(url),
+      'uri': serializer.toJson<String?>(uri),
     };
   }
 
   AssociatedDataData copyWith({
     Value<int?> primaryId = const Value.absent(),
-    Value<String?> specimenUuid = const Value.absent(),
     Value<String?> projectUuid = const Value.absent(),
     Value<String?> name = const Value.absent(),
     Value<String?> type = const Value.absent(),
     Value<String?> date = const Value.absent(),
     Value<String?> description = const Value.absent(),
-    Value<String?> url = const Value.absent(),
+    Value<String?> uri = const Value.absent(),
   }) => AssociatedDataData(
     primaryId: primaryId.present ? primaryId.value : this.primaryId,
-    specimenUuid: specimenUuid.present ? specimenUuid.value : this.specimenUuid,
     projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
     name: name.present ? name.value : this.name,
     type: type.present ? type.value : this.type,
     date: date.present ? date.value : this.date,
     description: description.present ? description.value : this.description,
-    url: url.present ? url.value : this.url,
+    uri: uri.present ? uri.value : this.uri,
   );
   AssociatedDataData copyWithCompanion(AssociatedDataCompanion data) {
     return AssociatedDataData(
       primaryId: data.primaryId.present ? data.primaryId.value : this.primaryId,
-      specimenUuid: data.specimenUuid.present
-          ? data.specimenUuid.value
-          : this.specimenUuid,
       projectUuid: data.projectUuid.present
           ? data.projectUuid.value
           : this.projectUuid,
@@ -11007,7 +11006,7 @@ class AssociatedDataData extends DataClass
       description: data.description.present
           ? data.description.value
           : this.description,
-      url: data.url.present ? data.url.value : this.url,
+      uri: data.uri.present ? data.uri.value : this.uri,
     );
   }
 
@@ -11015,112 +11014,95 @@ class AssociatedDataData extends DataClass
   String toString() {
     return (StringBuffer('AssociatedDataData(')
           ..write('primaryId: $primaryId, ')
-          ..write('specimenUuid: $specimenUuid, ')
           ..write('projectUuid: $projectUuid, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
           ..write('date: $date, ')
           ..write('description: $description, ')
-          ..write('url: $url')
+          ..write('uri: $uri')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    primaryId,
-    specimenUuid,
-    projectUuid,
-    name,
-    type,
-    date,
-    description,
-    url,
-  );
+  int get hashCode =>
+      Object.hash(primaryId, projectUuid, name, type, date, description, uri);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is AssociatedDataData &&
           other.primaryId == this.primaryId &&
-          other.specimenUuid == this.specimenUuid &&
           other.projectUuid == this.projectUuid &&
           other.name == this.name &&
           other.type == this.type &&
           other.date == this.date &&
           other.description == this.description &&
-          other.url == this.url);
+          other.uri == this.uri);
 }
 
 class AssociatedDataCompanion extends UpdateCompanion<AssociatedDataData> {
   final Value<int?> primaryId;
-  final Value<String?> specimenUuid;
   final Value<String?> projectUuid;
   final Value<String?> name;
   final Value<String?> type;
   final Value<String?> date;
   final Value<String?> description;
-  final Value<String?> url;
+  final Value<String?> uri;
   const AssociatedDataCompanion({
     this.primaryId = const Value.absent(),
-    this.specimenUuid = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
     this.date = const Value.absent(),
     this.description = const Value.absent(),
-    this.url = const Value.absent(),
+    this.uri = const Value.absent(),
   });
   AssociatedDataCompanion.insert({
     this.primaryId = const Value.absent(),
-    this.specimenUuid = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
     this.date = const Value.absent(),
     this.description = const Value.absent(),
-    this.url = const Value.absent(),
+    this.uri = const Value.absent(),
   });
   static Insertable<AssociatedDataData> custom({
     Expression<int>? primaryId,
-    Expression<String>? specimenUuid,
     Expression<String>? projectUuid,
     Expression<String>? name,
     Expression<String>? type,
     Expression<String>? date,
     Expression<String>? description,
-    Expression<String>? url,
+    Expression<String>? uri,
   }) {
     return RawValuesInsertable({
       if (primaryId != null) 'primaryId': primaryId,
-      if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (projectUuid != null) 'projectUuid': projectUuid,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
       if (date != null) 'date': date,
       if (description != null) 'description': description,
-      if (url != null) 'url': url,
+      if (uri != null) 'uri': uri,
     });
   }
 
   AssociatedDataCompanion copyWith({
     Value<int?>? primaryId,
-    Value<String?>? specimenUuid,
     Value<String?>? projectUuid,
     Value<String?>? name,
     Value<String?>? type,
     Value<String?>? date,
     Value<String?>? description,
-    Value<String?>? url,
+    Value<String?>? uri,
   }) {
     return AssociatedDataCompanion(
       primaryId: primaryId ?? this.primaryId,
-      specimenUuid: specimenUuid ?? this.specimenUuid,
       projectUuid: projectUuid ?? this.projectUuid,
       name: name ?? this.name,
       type: type ?? this.type,
       date: date ?? this.date,
       description: description ?? this.description,
-      url: url ?? this.url,
+      uri: uri ?? this.uri,
     );
   }
 
@@ -11129,9 +11111,6 @@ class AssociatedDataCompanion extends UpdateCompanion<AssociatedDataData> {
     final map = <String, Expression>{};
     if (primaryId.present) {
       map['primaryId'] = Variable<int>(primaryId.value);
-    }
-    if (specimenUuid.present) {
-      map['specimenUuid'] = Variable<String>(specimenUuid.value);
     }
     if (projectUuid.present) {
       map['projectUuid'] = Variable<String>(projectUuid.value);
@@ -11148,8 +11127,8 @@ class AssociatedDataCompanion extends UpdateCompanion<AssociatedDataData> {
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
-    if (url.present) {
-      map['url'] = Variable<String>(url.value);
+    if (uri.present) {
+      map['uri'] = Variable<String>(uri.value);
     }
     return map;
   }
@@ -11158,13 +11137,12 @@ class AssociatedDataCompanion extends UpdateCompanion<AssociatedDataData> {
   String toString() {
     return (StringBuffer('AssociatedDataCompanion(')
           ..write('primaryId: $primaryId, ')
-          ..write('specimenUuid: $specimenUuid, ')
           ..write('projectUuid: $projectUuid, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
           ..write('date: $date, ')
           ..write('description: $description, ')
-          ..write('url: $url')
+          ..write('uri: $uri')
           ..write(')'))
         .toString();
   }
@@ -20863,12 +20841,22 @@ class CustomFieldValue extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     fieldDefinitionId,
     projectUuid,
     value,
+    unit,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -20909,6 +20897,12 @@ class CustomFieldValue extends Table
         value.isAcceptableOrUnknown(data['value']!, _valueMeta),
       );
     }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
     return context;
   }
 
@@ -20933,6 +20927,10 @@ class CustomFieldValue extends Table
       value: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}value'],
+      ),
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
       ),
     );
   }
@@ -20959,11 +20957,13 @@ class CustomFieldValueData extends DataClass
   final int? fieldDefinitionId;
   final String? projectUuid;
   final String? value;
+  final String? unit;
   const CustomFieldValueData({
     this.id,
     this.fieldDefinitionId,
     this.projectUuid,
     this.value,
+    this.unit,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -20980,6 +20980,9 @@ class CustomFieldValueData extends DataClass
     if (!nullToAbsent || value != null) {
       map['value'] = Variable<String>(value);
     }
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
     return map;
   }
 
@@ -20995,6 +20998,7 @@ class CustomFieldValueData extends DataClass
       value: value == null && nullToAbsent
           ? const Value.absent()
           : Value(value),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
     );
   }
 
@@ -21008,6 +21012,7 @@ class CustomFieldValueData extends DataClass
       fieldDefinitionId: serializer.fromJson<int?>(json['fieldDefinitionId']),
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
       value: serializer.fromJson<String?>(json['value']),
+      unit: serializer.fromJson<String?>(json['unit']),
     );
   }
   @override
@@ -21018,6 +21023,7 @@ class CustomFieldValueData extends DataClass
       'fieldDefinitionId': serializer.toJson<int?>(fieldDefinitionId),
       'projectUuid': serializer.toJson<String?>(projectUuid),
       'value': serializer.toJson<String?>(value),
+      'unit': serializer.toJson<String?>(unit),
     };
   }
 
@@ -21026,6 +21032,7 @@ class CustomFieldValueData extends DataClass
     Value<int?> fieldDefinitionId = const Value.absent(),
     Value<String?> projectUuid = const Value.absent(),
     Value<String?> value = const Value.absent(),
+    Value<String?> unit = const Value.absent(),
   }) => CustomFieldValueData(
     id: id.present ? id.value : this.id,
     fieldDefinitionId: fieldDefinitionId.present
@@ -21033,6 +21040,7 @@ class CustomFieldValueData extends DataClass
         : this.fieldDefinitionId,
     projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
     value: value.present ? value.value : this.value,
+    unit: unit.present ? unit.value : this.unit,
   );
   CustomFieldValueData copyWithCompanion(CustomFieldValueCompanion data) {
     return CustomFieldValueData(
@@ -21044,6 +21052,7 @@ class CustomFieldValueData extends DataClass
           ? data.projectUuid.value
           : this.projectUuid,
       value: data.value.present ? data.value.value : this.value,
+      unit: data.unit.present ? data.unit.value : this.unit,
     );
   }
 
@@ -21053,13 +21062,15 @@ class CustomFieldValueData extends DataClass
           ..write('id: $id, ')
           ..write('fieldDefinitionId: $fieldDefinitionId, ')
           ..write('projectUuid: $projectUuid, ')
-          ..write('value: $value')
+          ..write('value: $value, ')
+          ..write('unit: $unit')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, fieldDefinitionId, projectUuid, value);
+  int get hashCode =>
+      Object.hash(id, fieldDefinitionId, projectUuid, value, unit);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -21067,7 +21078,8 @@ class CustomFieldValueData extends DataClass
           other.id == this.id &&
           other.fieldDefinitionId == this.fieldDefinitionId &&
           other.projectUuid == this.projectUuid &&
-          other.value == this.value);
+          other.value == this.value &&
+          other.unit == this.unit);
 }
 
 class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
@@ -21075,29 +21087,34 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
   final Value<int?> fieldDefinitionId;
   final Value<String?> projectUuid;
   final Value<String?> value;
+  final Value<String?> unit;
   const CustomFieldValueCompanion({
     this.id = const Value.absent(),
     this.fieldDefinitionId = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.value = const Value.absent(),
+    this.unit = const Value.absent(),
   });
   CustomFieldValueCompanion.insert({
     this.id = const Value.absent(),
     this.fieldDefinitionId = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.value = const Value.absent(),
+    this.unit = const Value.absent(),
   });
   static Insertable<CustomFieldValueData> custom({
     Expression<int>? id,
     Expression<int>? fieldDefinitionId,
     Expression<String>? projectUuid,
     Expression<String>? value,
+    Expression<String>? unit,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (fieldDefinitionId != null) 'fieldDefinitionId': fieldDefinitionId,
       if (projectUuid != null) 'projectUuid': projectUuid,
       if (value != null) 'value': value,
+      if (unit != null) 'unit': unit,
     });
   }
 
@@ -21106,12 +21123,14 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     Value<int?>? fieldDefinitionId,
     Value<String?>? projectUuid,
     Value<String?>? value,
+    Value<String?>? unit,
   }) {
     return CustomFieldValueCompanion(
       id: id ?? this.id,
       fieldDefinitionId: fieldDefinitionId ?? this.fieldDefinitionId,
       projectUuid: projectUuid ?? this.projectUuid,
       value: value ?? this.value,
+      unit: unit ?? this.unit,
     );
   }
 
@@ -21130,6 +21149,9 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     if (value.present) {
       map['value'] = Variable<String>(value.value);
     }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
     return map;
   }
 
@@ -21139,7 +21161,8 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
           ..write('id: $id, ')
           ..write('fieldDefinitionId: $fieldDefinitionId, ')
           ..write('projectUuid: $projectUuid, ')
-          ..write('value: $value')
+          ..write('value: $value, ')
+          ..write('unit: $unit')
           ..write(')'))
         .toString();
   }
@@ -21152,7 +21175,7 @@ abstract class _$Database extends GeneratedDatabase {
   late final Personnel personnel = Personnel(this);
   late final Media media = Media(this);
   late final Site site = Site(this);
-  late final PaleontologySite paleontologySite = PaleontologySite(this);
+  late final FossilSite fossilSite = FossilSite(this);
   late final Coordinate coordinate = Coordinate(this);
   late final CollEvent collEvent = CollEvent(this);
   late final Weather weather = Weather(this);
@@ -21237,7 +21260,7 @@ abstract class _$Database extends GeneratedDatabase {
     personnel,
     media,
     site,
-    paleontologySite,
+    fossilSite,
     coordinate,
     collEvent,
     weather,
@@ -22050,6 +22073,7 @@ typedef $MediaCreateCompanionBuilder =
       Value<String?> additionalExif,
       Value<String?> personnelId,
       Value<String?> fileName,
+      Value<String?> uri,
       Value<String?> caption,
     });
 typedef $MediaUpdateCompanionBuilder =
@@ -22065,6 +22089,7 @@ typedef $MediaUpdateCompanionBuilder =
       Value<String?> additionalExif,
       Value<String?> personnelId,
       Value<String?> fileName,
+      Value<String?> uri,
       Value<String?> caption,
     });
 
@@ -22150,6 +22175,11 @@ class $MediaFilterComposer extends Composer<_$Database, Media> {
 
   ColumnFilters<String> get fileName => $composableBuilder(
     column: $table.fileName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get uri => $composableBuilder(
+    column: $table.uri,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -22247,6 +22277,11 @@ class $MediaOrderingComposer extends Composer<_$Database, Media> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get uri => $composableBuilder(
+    column: $table.uri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get caption => $composableBuilder(
     column: $table.caption,
     builder: (column) => ColumnOrderings(column),
@@ -22301,6 +22336,9 @@ class $MediaAnnotationComposer extends Composer<_$Database, Media> {
 
   GeneratedColumn<String> get fileName =>
       $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<String> get uri =>
+      $composableBuilder(column: $table.uri, builder: (column) => column);
 
   GeneratedColumn<String> get caption =>
       $composableBuilder(column: $table.caption, builder: (column) => column);
@@ -22370,6 +22408,7 @@ class $MediaTableManager
                 Value<String?> additionalExif = const Value.absent(),
                 Value<String?> personnelId = const Value.absent(),
                 Value<String?> fileName = const Value.absent(),
+                Value<String?> uri = const Value.absent(),
                 Value<String?> caption = const Value.absent(),
               }) => MediaCompanion(
                 primaryId: primaryId,
@@ -22383,6 +22422,7 @@ class $MediaTableManager
                 additionalExif: additionalExif,
                 personnelId: personnelId,
                 fileName: fileName,
+                uri: uri,
                 caption: caption,
               ),
           createCompanionCallback:
@@ -22398,6 +22438,7 @@ class $MediaTableManager
                 Value<String?> additionalExif = const Value.absent(),
                 Value<String?> personnelId = const Value.absent(),
                 Value<String?> fileName = const Value.absent(),
+                Value<String?> uri = const Value.absent(),
                 Value<String?> caption = const Value.absent(),
               }) => MediaCompanion.insert(
                 primaryId: primaryId,
@@ -22411,6 +22452,7 @@ class $MediaTableManager
                 additionalExif: additionalExif,
                 personnelId: personnelId,
                 fileName: fileName,
+                uri: uri,
                 caption: caption,
               ),
           withReferenceMapper: (p0) => p0
@@ -22938,8 +22980,8 @@ typedef $SiteProcessedTableManager =
       SiteData,
       PrefetchHooks Function({bool collEventRefs})
     >;
-typedef $PaleontologySiteCreateCompanionBuilder =
-    PaleontologySiteCompanion Function({
+typedef $FossilSiteCreateCompanionBuilder =
+    FossilSiteCompanion Function({
       Value<int?> siteID,
       Value<String?> formation,
       Value<int?> geologicEra,
@@ -22959,8 +23001,8 @@ typedef $PaleontologySiteCreateCompanionBuilder =
       Value<String?> sedimentologyRemark,
       Value<int> rowid,
     });
-typedef $PaleontologySiteUpdateCompanionBuilder =
-    PaleontologySiteCompanion Function({
+typedef $FossilSiteUpdateCompanionBuilder =
+    FossilSiteCompanion Function({
       Value<int?> siteID,
       Value<String?> formation,
       Value<int?> geologicEra,
@@ -22981,9 +23023,8 @@ typedef $PaleontologySiteUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-class $PaleontologySiteFilterComposer
-    extends Composer<_$Database, PaleontologySite> {
-  $PaleontologySiteFilterComposer({
+class $FossilSiteFilterComposer extends Composer<_$Database, FossilSite> {
+  $FossilSiteFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23076,9 +23117,8 @@ class $PaleontologySiteFilterComposer
   );
 }
 
-class $PaleontologySiteOrderingComposer
-    extends Composer<_$Database, PaleontologySite> {
-  $PaleontologySiteOrderingComposer({
+class $FossilSiteOrderingComposer extends Composer<_$Database, FossilSite> {
+  $FossilSiteOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23171,9 +23211,8 @@ class $PaleontologySiteOrderingComposer
   );
 }
 
-class $PaleontologySiteAnnotationComposer
-    extends Composer<_$Database, PaleontologySite> {
-  $PaleontologySiteAnnotationComposer({
+class $FossilSiteAnnotationComposer extends Composer<_$Database, FossilSite> {
+  $FossilSiteAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23258,35 +23297,35 @@ class $PaleontologySiteAnnotationComposer
   );
 }
 
-class $PaleontologySiteTableManager
+class $FossilSiteTableManager
     extends
         RootTableManager<
           _$Database,
-          PaleontologySite,
-          PaleontologySiteData,
-          $PaleontologySiteFilterComposer,
-          $PaleontologySiteOrderingComposer,
-          $PaleontologySiteAnnotationComposer,
-          $PaleontologySiteCreateCompanionBuilder,
-          $PaleontologySiteUpdateCompanionBuilder,
+          FossilSite,
+          FossilSiteData,
+          $FossilSiteFilterComposer,
+          $FossilSiteOrderingComposer,
+          $FossilSiteAnnotationComposer,
+          $FossilSiteCreateCompanionBuilder,
+          $FossilSiteUpdateCompanionBuilder,
           (
-            PaleontologySiteData,
-            BaseReferences<_$Database, PaleontologySite, PaleontologySiteData>,
+            FossilSiteData,
+            BaseReferences<_$Database, FossilSite, FossilSiteData>,
           ),
-          PaleontologySiteData,
+          FossilSiteData,
           PrefetchHooks Function()
         > {
-  $PaleontologySiteTableManager(_$Database db, PaleontologySite table)
+  $FossilSiteTableManager(_$Database db, FossilSite table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $PaleontologySiteFilterComposer($db: db, $table: table),
+              $FossilSiteFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $PaleontologySiteOrderingComposer($db: db, $table: table),
+              $FossilSiteOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $PaleontologySiteAnnotationComposer($db: db, $table: table),
+              $FossilSiteAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int?> siteID = const Value.absent(),
@@ -23307,7 +23346,7 @@ class $PaleontologySiteTableManager
                 Value<String?> stratigraphicSource = const Value.absent(),
                 Value<String?> sedimentologyRemark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => PaleontologySiteCompanion(
+              }) => FossilSiteCompanion(
                 siteID: siteID,
                 formation: formation,
                 geologicEra: geologicEra,
@@ -23347,7 +23386,7 @@ class $PaleontologySiteTableManager
                 Value<String?> stratigraphicSource = const Value.absent(),
                 Value<String?> sedimentologyRemark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => PaleontologySiteCompanion.insert(
+              }) => FossilSiteCompanion.insert(
                 siteID: siteID,
                 formation: formation,
                 geologicEra: geologicEra,
@@ -23375,21 +23414,18 @@ class $PaleontologySiteTableManager
       );
 }
 
-typedef $PaleontologySiteProcessedTableManager =
+typedef $FossilSiteProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      PaleontologySite,
-      PaleontologySiteData,
-      $PaleontologySiteFilterComposer,
-      $PaleontologySiteOrderingComposer,
-      $PaleontologySiteAnnotationComposer,
-      $PaleontologySiteCreateCompanionBuilder,
-      $PaleontologySiteUpdateCompanionBuilder,
-      (
-        PaleontologySiteData,
-        BaseReferences<_$Database, PaleontologySite, PaleontologySiteData>,
-      ),
-      PaleontologySiteData,
+      FossilSite,
+      FossilSiteData,
+      $FossilSiteFilterComposer,
+      $FossilSiteOrderingComposer,
+      $FossilSiteAnnotationComposer,
+      $FossilSiteCreateCompanionBuilder,
+      $FossilSiteUpdateCompanionBuilder,
+      (FossilSiteData, BaseReferences<_$Database, FossilSite, FossilSiteData>),
+      FossilSiteData,
       PrefetchHooks Function()
     >;
 typedef $CoordinateCreateCompanionBuilder =
@@ -26904,24 +26940,22 @@ typedef $SpecimenMediaProcessedTableManager =
 typedef $AssociatedDataCreateCompanionBuilder =
     AssociatedDataCompanion Function({
       Value<int?> primaryId,
-      Value<String?> specimenUuid,
       Value<String?> projectUuid,
       Value<String?> name,
       Value<String?> type,
       Value<String?> date,
       Value<String?> description,
-      Value<String?> url,
+      Value<String?> uri,
     });
 typedef $AssociatedDataUpdateCompanionBuilder =
     AssociatedDataCompanion Function({
       Value<int?> primaryId,
-      Value<String?> specimenUuid,
       Value<String?> projectUuid,
       Value<String?> name,
       Value<String?> type,
       Value<String?> date,
       Value<String?> description,
-      Value<String?> url,
+      Value<String?> uri,
     });
 
 final class $AssociatedDataReferences
@@ -26960,11 +26994,6 @@ class $AssociatedDataFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get specimenUuid => $composableBuilder(
-    column: $table.specimenUuid,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
@@ -26985,8 +27014,8 @@ class $AssociatedDataFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get url => $composableBuilder(
-    column: $table.url,
+  ColumnFilters<String> get uri => $composableBuilder(
+    column: $table.uri,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27028,11 +27057,6 @@ class $AssociatedDataOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get specimenUuid => $composableBuilder(
-    column: $table.specimenUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -27053,8 +27077,8 @@ class $AssociatedDataOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get url => $composableBuilder(
-    column: $table.url,
+  ColumnOrderings<String> get uri => $composableBuilder(
+    column: $table.uri,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -27094,11 +27118,6 @@ class $AssociatedDataAnnotationComposer
   GeneratedColumn<int> get primaryId =>
       $composableBuilder(column: $table.primaryId, builder: (column) => column);
 
-  GeneratedColumn<String> get specimenUuid => $composableBuilder(
-    column: $table.specimenUuid,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -27113,8 +27132,8 @@ class $AssociatedDataAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get url =>
-      $composableBuilder(column: $table.url, builder: (column) => column);
+  GeneratedColumn<String> get uri =>
+      $composableBuilder(column: $table.uri, builder: (column) => column);
 
   $ProjectAnnotationComposer get projectUuid {
     final $ProjectAnnotationComposer composer = $composerBuilder(
@@ -27169,42 +27188,38 @@ class $AssociatedDataTableManager
           updateCompanionCallback:
               ({
                 Value<int?> primaryId = const Value.absent(),
-                Value<String?> specimenUuid = const Value.absent(),
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String?> name = const Value.absent(),
                 Value<String?> type = const Value.absent(),
                 Value<String?> date = const Value.absent(),
                 Value<String?> description = const Value.absent(),
-                Value<String?> url = const Value.absent(),
+                Value<String?> uri = const Value.absent(),
               }) => AssociatedDataCompanion(
                 primaryId: primaryId,
-                specimenUuid: specimenUuid,
                 projectUuid: projectUuid,
                 name: name,
                 type: type,
                 date: date,
                 description: description,
-                url: url,
+                uri: uri,
               ),
           createCompanionCallback:
               ({
                 Value<int?> primaryId = const Value.absent(),
-                Value<String?> specimenUuid = const Value.absent(),
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String?> name = const Value.absent(),
                 Value<String?> type = const Value.absent(),
                 Value<String?> date = const Value.absent(),
                 Value<String?> description = const Value.absent(),
-                Value<String?> url = const Value.absent(),
+                Value<String?> uri = const Value.absent(),
               }) => AssociatedDataCompanion.insert(
                 primaryId: primaryId,
-                specimenUuid: specimenUuid,
                 projectUuid: projectUuid,
                 name: name,
                 type: type,
                 date: date,
                 description: description,
-                url: url,
+                uri: uri,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -31645,6 +31660,7 @@ typedef $CustomFieldValueCreateCompanionBuilder =
       Value<int?> fieldDefinitionId,
       Value<String?> projectUuid,
       Value<String?> value,
+      Value<String?> unit,
     });
 typedef $CustomFieldValueUpdateCompanionBuilder =
     CustomFieldValueCompanion Function({
@@ -31652,6 +31668,7 @@ typedef $CustomFieldValueUpdateCompanionBuilder =
       Value<int?> fieldDefinitionId,
       Value<String?> projectUuid,
       Value<String?> value,
+      Value<String?> unit,
     });
 
 class $CustomFieldValueFilterComposer
@@ -31680,6 +31697,11 @@ class $CustomFieldValueFilterComposer
 
   ColumnFilters<String> get value => $composableBuilder(
     column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -31712,6 +31734,11 @@ class $CustomFieldValueOrderingComposer
     column: $table.value,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $CustomFieldValueAnnotationComposer
@@ -31738,6 +31765,9 @@ class $CustomFieldValueAnnotationComposer
 
   GeneratedColumn<String> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
 }
 
 class $CustomFieldValueTableManager
@@ -31775,11 +31805,13 @@ class $CustomFieldValueTableManager
                 Value<int?> fieldDefinitionId = const Value.absent(),
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String?> value = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
               }) => CustomFieldValueCompanion(
                 id: id,
                 fieldDefinitionId: fieldDefinitionId,
                 projectUuid: projectUuid,
                 value: value,
+                unit: unit,
               ),
           createCompanionCallback:
               ({
@@ -31787,11 +31819,13 @@ class $CustomFieldValueTableManager
                 Value<int?> fieldDefinitionId = const Value.absent(),
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String?> value = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
               }) => CustomFieldValueCompanion.insert(
                 id: id,
                 fieldDefinitionId: fieldDefinitionId,
                 projectUuid: projectUuid,
                 value: value,
+                unit: unit,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -31827,8 +31861,8 @@ class $DatabaseManager {
       $PersonnelTableManager(_db, _db.personnel);
   $MediaTableManager get media => $MediaTableManager(_db, _db.media);
   $SiteTableManager get site => $SiteTableManager(_db, _db.site);
-  $PaleontologySiteTableManager get paleontologySite =>
-      $PaleontologySiteTableManager(_db, _db.paleontologySite);
+  $FossilSiteTableManager get fossilSite =>
+      $FossilSiteTableManager(_db, _db.fossilSite);
   $CoordinateTableManager get coordinate =>
       $CoordinateTableManager(_db, _db.coordinate);
   $CollEventTableManager get collEvent =>

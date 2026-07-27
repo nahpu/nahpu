@@ -1,4 +1,4 @@
 #!/bin/bash
 dart run drift_dev schema dump \
   lib/services/database/database.dart \
-  db_schemas/drift_schema_v12.json
+  db_schemas/drift_schema_v13.json

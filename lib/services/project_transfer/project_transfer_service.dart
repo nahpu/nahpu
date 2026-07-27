@@ -5,6 +5,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/project_transfer/project_transfer_archive.dart';
 import 'package:nahpu/services/project_transfer/project_transfer_models.dart';
+import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/personnel.dart';
@@ -21,8 +22,8 @@ export 'project_transfer_models.dart';
 
 /// Exports and imports complete NAHPU projects with related attribute records.
 ///
-/// Version 2 archives use the canonical mammal, bird, and herpetofauna
-/// attribute collection names. Version 1 names are normalized while parsing.
+/// Archives are normalized while parsing so legacy attribute names and the
+/// v1-v3 associated-data URL field remain importable.
 class ProjectTransferService extends AppServices {
   const ProjectTransferService({required super.ref});
 
@@ -172,14 +173,31 @@ class ProjectTransferService extends AppServices {
   }
 
   Future<ProjectTransferImportPlan> planImport(
-    ProjectTransferPayload payload,
-  ) async {
+    ProjectTransferPayload payload, {
+    ProjectTransferImportMode mode = ProjectTransferImportMode.merge,
+    String? destinationName,
+  }) async {
     _validateReferences(payload.records);
-    final activeRows = await _query('SELECT * FROM project WHERE uuid = ?', [
-      currentProjectUuid,
-    ]);
-    if (activeRows.isEmpty) {
-      throw StateError('The active project no longer exists.');
+    late final String destinationProjectUuid;
+    late final String destinationProjectName;
+    ProjectTransferProjectMatch? nameConflict;
+    if (mode == ProjectTransferImportMode.merge) {
+      final activeRows = await _query('SELECT * FROM project WHERE uuid = ?', [
+        currentProjectUuid,
+      ]);
+      if (activeRows.isEmpty) {
+        throw StateError('The active project no longer exists.');
+      }
+      destinationProjectUuid = currentProjectUuid;
+      destinationProjectName = activeRows.single['name'] as String;
+    } else {
+      final uuidMatch = await findProjectUuidMatch(payload.sourceProjectUuid);
+      if (uuidMatch != null) {
+        throw ProjectTransferProjectExistsException(uuidMatch);
+      }
+      destinationProjectUuid = payload.sourceProjectUuid;
+      destinationProjectName = (destinationName ?? payload.projectName).trim();
+      nameConflict = await findProjectNameMatch(destinationProjectName);
     }
     final conflicts = <ProjectTransferConflict>[];
     final matched = {
@@ -241,7 +259,9 @@ class ProjectTransferService extends AppServices {
       }
     }
 
-    final localSites = await _projectRows('site');
+    final localSites = mode == ProjectTransferImportMode.merge
+        ? await _projectRows('site', projectUuid: destinationProjectUuid)
+        : <Map<String, dynamic>>[];
     final sourceSiteMatches = <int, int>{};
     for (final imported in payload.rows('site')) {
       final current = _findSite(localSites, imported);
@@ -265,7 +285,9 @@ class ProjectTransferService extends AppServices {
       }
     }
 
-    final localEvents = await _projectRows('collEvent');
+    final localEvents = mode == ProjectTransferImportMode.merge
+        ? await _projectRows('collEvent', projectUuid: destinationProjectUuid)
+        : <Map<String, dynamic>>[];
     for (final imported in payload.rows('collEvent')) {
       final current = _findEvent(localEvents, imported, sourceSiteMatches);
       if (current == null) {
@@ -299,7 +321,8 @@ class ProjectTransferService extends AppServices {
       } else {
         matched[ProjectTransferSection.specimens] =
             matched[ProjectTransferSection.specimens]! + 1;
-        final belongsToActive = current['projectUuid'] == currentProjectUuid;
+        final belongsToDestination =
+            current['projectUuid'] == destinationProjectUuid;
         conflicts.add(
           ProjectTransferConflict(
             id: _conflictId('specimen', uuid),
@@ -307,13 +330,15 @@ class ProjectTransferService extends AppServices {
             label: uuid,
             currentSummary: 'Project ${current['projectUuid'] ?? 'unknown'}',
             importedSummary: 'Source project ${payload.sourceProjectUuid}',
-            allowedActions: belongsToActive
+            allowedActions:
+                mode == ProjectTransferImportMode.merge && belongsToDestination
                 ? ProjectTransferConflictAction.values
                 : const [
                     ProjectTransferConflictAction.importAsNew,
                     ProjectTransferConflictAction.skip,
                   ],
-            warning: belongsToActive
+            warning:
+                mode == ProjectTransferImportMode.merge && belongsToDestination
                 ? null
                 : 'This UUID belongs to another project and cannot be '
                       'replaced.',
@@ -322,7 +347,9 @@ class ProjectTransferService extends AppServices {
       }
     }
 
-    final localNarratives = await _projectRows('narrative');
+    final localNarratives = mode == ProjectTransferImportMode.merge
+        ? await _projectRows('narrative', projectUuid: destinationProjectUuid)
+        : <Map<String, dynamic>>[];
     for (final imported in payload.rows('narrative')) {
       final current = _findNarrative(
         localNarratives,
@@ -349,13 +376,43 @@ class ProjectTransferService extends AppServices {
 
     return ProjectTransferImportPlan(
       payload: payload,
-      activeProjectUuid: currentProjectUuid,
-      activeProjectName: activeRows.single['name'] as String,
+      mode: mode,
+      destinationProjectUuid: destinationProjectUuid,
+      destinationProjectName: destinationProjectName,
       conflicts: conflicts,
       matchedBySection: matched,
       newBySection: fresh,
       warnings: [...payload.warnings],
+      nameConflict: nameConflict,
     );
+  }
+
+  Future<ProjectTransferProjectMatch?> findProjectUuidMatch(String uuid) async {
+    final rows = await _query(
+      'SELECT uuid, name FROM project WHERE uuid = ? LIMIT 1',
+      [uuid],
+    );
+    if (rows.isEmpty) return null;
+    return ProjectTransferProjectMatch(
+      uuid: rows.single['uuid'] as String,
+      name: rows.single['name'] as String,
+    );
+  }
+
+  Future<ProjectTransferProjectMatch?> findProjectNameMatch(String name) async {
+    final normalized = name.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+    final rows = await _query('SELECT uuid, name FROM project');
+    for (final row in rows) {
+      final currentName = row['name'] as String;
+      if (currentName.trim().toLowerCase() == normalized) {
+        return ProjectTransferProjectMatch(
+          uuid: row['uuid'] as String,
+          name: currentName,
+        );
+      }
+    }
+    return null;
   }
 
   Future<ProjectTransferImportResult> importProject(
@@ -364,6 +421,7 @@ class ProjectTransferService extends AppServices {
     required Map<String, ProjectTransferConflictAction> conflictActions,
     required Map<String, bool> importedProjectFields,
     required Directory extractedDirectory,
+    String? destinationProjectName,
   }) async {
     if (plan.hasUuidMismatch && !forceMerge) {
       throw const FormatException(
@@ -374,9 +432,20 @@ class ProjectTransferService extends AppServices {
     var imported = 0;
     var updated = 0;
     var skipped = 0;
+    final targetProjectUuid = plan.destinationProjectUuid;
+    final targetProjectName =
+        (destinationProjectName ?? plan.destinationProjectName).trim();
     try {
       await dbAccess.transaction(() async {
-        await _importProjectFields(plan, importedProjectFields);
+        if (plan.isNewProject) {
+          await _createImportedProject(plan, targetProjectName);
+        } else {
+          await _importProjectFields(
+            plan,
+            importedProjectFields,
+            targetProjectUuid,
+          );
+        }
         final personnelMap = <String, String?>{};
         for (final row in plan.payload.rows('personnel')) {
           final sourceUuid = row['uuid'] as String;
@@ -407,11 +476,11 @@ class ProjectTransferService extends AppServices {
           final linked = await _query(
             'SELECT 1 FROM personnelList '
             'WHERE projectUuid = ? AND personnelUuid = ? LIMIT 1',
-            [currentProjectUuid, targetUuid],
+            [targetProjectUuid, targetUuid],
           );
           if (linked.isEmpty) {
             await _insert('personnelList', {
-              'projectUuid': currentProjectUuid,
+              'projectUuid': targetProjectUuid,
               'personnelUuid': targetUuid,
             });
           }
@@ -455,7 +524,10 @@ class ProjectTransferService extends AppServices {
         final siteMap = <int, int?>{};
         final coordinateMap = <int, int?>{};
         final sitesUsingImportedChildren = <int>{};
-        var localSites = await _projectRows('site');
+        var localSites = await _projectRows(
+          'site',
+          projectUuid: targetProjectUuid,
+        );
         for (final row in plan.payload.rows('site')) {
           final sourceId = row['id'] as int;
           final current = _findSite(localSites, row);
@@ -474,7 +546,7 @@ class ProjectTransferService extends AppServices {
             await _update(
               'site',
               _remapPersonnel(
-                {...row, 'id': targetId, 'projectUuid': currentProjectUuid},
+                {...row, 'id': targetId, 'projectUuid': targetProjectUuid},
                 'leadStaffId',
                 personnelMap,
               ),
@@ -488,9 +560,12 @@ class ProjectTransferService extends AppServices {
             final newRow = _remapPersonnel(
               {
                 ...row,
-                'projectUuid': currentProjectUuid,
+                'projectUuid': targetProjectUuid,
                 if (current != null)
-                  'siteID': await _uniqueSiteId(row['siteID'] as String?),
+                  'siteID': await _uniqueSiteId(
+                    row['siteID'] as String?,
+                    targetProjectUuid,
+                  ),
               },
               'leadStaffId',
               personnelMap,
@@ -502,7 +577,10 @@ class ProjectTransferService extends AppServices {
             );
             sitesUsingImportedChildren.add(sourceId);
             imported++;
-            localSites = await _projectRows('site');
+            localSites = await _projectRows(
+              'site',
+              projectUuid: targetProjectUuid,
+            );
           }
         }
         for (final row in plan.payload.rows('coordinate')) {
@@ -534,7 +612,10 @@ class ProjectTransferService extends AppServices {
         final effortMap = <int, int?>{};
         final collPersonnelMap = <int, int?>{};
         final eventsUsingImportedChildren = <int>{};
-        var localEvents = await _projectRows('collEvent');
+        var localEvents = await _projectRows(
+          'collEvent',
+          projectUuid: targetProjectUuid,
+        );
         for (final row in plan.payload.rows('collEvent')) {
           final sourceId = row['id'] as int;
           final current = _findEvent(localEvents, row, siteMap);
@@ -560,7 +641,7 @@ class ProjectTransferService extends AppServices {
               {
                 ...row,
                 'id': targetId,
-                'projectUuid': currentProjectUuid,
+                'projectUuid': targetProjectUuid,
                 'siteID': targetSite,
               },
               'id',
@@ -575,12 +656,15 @@ class ProjectTransferService extends AppServices {
           } else {
             eventMap[sourceId] = await _insert(
               'collEvent',
-              {...row, 'projectUuid': currentProjectUuid, 'siteID': targetSite},
+              {...row, 'projectUuid': targetProjectUuid, 'siteID': targetSite},
               omit: {'id'},
             );
             eventsUsingImportedChildren.add(sourceId);
             imported++;
-            localEvents = await _projectRows('collEvent');
+            localEvents = await _projectRows(
+              'collEvent',
+              projectUuid: targetProjectUuid,
+            );
           }
         }
         for (final row in plan.payload.rows('weather')) {
@@ -670,7 +754,7 @@ class ProjectTransferService extends AppServices {
           final targetRow = {
             ...row,
             'uuid': targetUuid,
-            'projectUuid': currentProjectUuid,
+            'projectUuid': targetProjectUuid,
             'speciesID': taxonomyMap[row['speciesID'] as int?],
             'collEventID': eventMap[row['collEventID'] as int?],
             'coordinateID': coordinateMap[row['coordinateID'] as int?],
@@ -685,7 +769,7 @@ class ProjectTransferService extends AppServices {
             updated++;
           } else if (current != null &&
               action == ProjectTransferConflictAction.useImported &&
-              current['projectUuid'] == currentProjectUuid) {
+              current['projectUuid'] == targetProjectUuid) {
             await _deleteSpecimenChildren(sourceUuid);
             await _update('specimen', targetRow, 'uuid', sourceUuid);
             specimenMap[sourceUuid] = sourceUuid;
@@ -710,11 +794,15 @@ class ProjectTransferService extends AppServices {
           siteMap,
           specimensUsingImportedChildren,
           sitesUsingImportedChildren,
+          targetProjectUuid,
         );
 
         final narrativeMap = <int, int?>{};
         final narrativesUsingImportedChildren = <int>{};
-        var localNarratives = await _projectRows('narrative');
+        var localNarratives = await _projectRows(
+          'narrative',
+          projectUuid: targetProjectUuid,
+        );
         for (final row in plan.payload.rows('narrative')) {
           final sourceId = row['id'] as int;
           final current = _findNarrative(localNarratives, row, siteMap);
@@ -740,7 +828,7 @@ class ProjectTransferService extends AppServices {
               {
                 ...row,
                 'id': targetId,
-                'projectUuid': currentProjectUuid,
+                'projectUuid': targetProjectUuid,
                 'siteID': siteId,
                 'writerId': personnelMap[row['writerId'] as String?],
                 'mediaID': null,
@@ -757,7 +845,7 @@ class ProjectTransferService extends AppServices {
               'narrative',
               {
                 ...row,
-                'projectUuid': currentProjectUuid,
+                'projectUuid': targetProjectUuid,
                 'siteID': siteId,
                 'writerId': personnelMap[row['writerId'] as String?],
                 'mediaID': null,
@@ -766,7 +854,10 @@ class ProjectTransferService extends AppServices {
             );
             narrativesUsingImportedChildren.add(sourceId);
             imported++;
-            localNarratives = await _projectRows('narrative');
+            localNarratives = await _projectRows(
+              'narrative',
+              projectUuid: targetProjectUuid,
+            );
           }
         }
         final mediaMap = await _importMedia(
@@ -774,6 +865,7 @@ class ProjectTransferService extends AppServices {
           extractedDirectory,
           personnelMap,
           copiedFiles,
+          targetProjectUuid,
         );
         await _importMediaLinks(
           plan.payload,
@@ -792,7 +884,7 @@ class ProjectTransferService extends AppServices {
       }
       rethrow;
     }
-    _invalidateProjectProviders();
+    _invalidateProjectProviders(targetProjectUuid);
     return ProjectTransferImportResult(
       imported: imported,
       updated: updated,
@@ -892,9 +984,37 @@ class ProjectTransferService extends AppServices {
     }
   }
 
+  Future<void> _createImportedProject(
+    ProjectTransferImportPlan plan,
+    String destinationProjectName,
+  ) async {
+    if (destinationProjectName.length < 3 ||
+        destinationProjectName.length > 25 ||
+        !destinationProjectName.isValidProjectName) {
+      throw const FormatException('Choose a valid project name.');
+    }
+    final uuidMatch = await findProjectUuidMatch(plan.destinationProjectUuid);
+    if (uuidMatch != null) {
+      throw ProjectTransferProjectExistsException(uuidMatch);
+    }
+    final nameMatch = await findProjectNameMatch(destinationProjectName);
+    if (nameMatch != null) {
+      throw FormatException(
+        'A project named ${nameMatch.name} already exists. '
+        'Choose a different project name.',
+      );
+    }
+    await _insert('project', {
+      ...plan.payload.project,
+      'uuid': plan.destinationProjectUuid,
+      'name': destinationProjectName,
+    });
+  }
+
   Future<void> _importProjectFields(
     ProjectTransferImportPlan plan,
     Map<String, bool> importedFields,
+    String targetProjectUuid,
   ) async {
     const fields = [
       'name',
@@ -912,9 +1032,9 @@ class ProjectTransferService extends AppServices {
     if (selected.isNotEmpty) {
       await _update(
         'project',
-        {...selected, 'uuid': currentProjectUuid},
+        {...selected, 'uuid': targetProjectUuid},
         'uuid',
-        currentProjectUuid,
+        targetProjectUuid,
       );
     }
   }
@@ -956,6 +1076,7 @@ class ProjectTransferService extends AppServices {
     Map<int, int?> siteMap,
     Set<String> specimensUsingImportedChildren,
     Set<int> sitesUsingImportedChildren,
+    String targetProjectUuid,
   ) async {
     final specimenLinks = payload.rows('specimenAssociatedData').isEmpty
         ? payload
@@ -994,9 +1115,12 @@ class ProjectTransferService extends AppServices {
     for (final row in payload.rows('associatedData')) {
       final sourceId = row['primaryId'] as int?;
       if (sourceId == null || !sourceDataIds.contains(sourceId)) continue;
+      final data = Map<String, dynamic>.from(row)
+        ..remove('specimenUuid')
+        ..['projectUuid'] = targetProjectUuid;
       dataMap[sourceId] = await _insert(
         'associatedData',
-        {...row, 'specimenUuid': null, 'projectUuid': currentProjectUuid},
+        data,
         omit: {'primaryId'},
       );
     }
@@ -1033,6 +1157,7 @@ class ProjectTransferService extends AppServices {
     Directory extractedDirectory,
     Map<String, String?> personnelMap,
     List<File> copiedFiles,
+    String targetProjectUuid,
   ) async {
     final mediaMap = <int, int>{};
     final manifestById = {
@@ -1040,7 +1165,7 @@ class ProjectTransferService extends AppServices {
     };
     final projectDir = await FileServices(
       ref: ref,
-    ).getProjectDirByUUID(currentProjectUuid);
+    ).getProjectDirByUUID(targetProjectUuid);
     for (final row in payload.rows('media')) {
       final sourceId = row['primaryId'] as int;
       final manifest = manifestById['media:$sourceId'];
@@ -1063,7 +1188,7 @@ class ProjectTransferService extends AppServices {
         'media',
         {
           ...row,
-          'projectUuid': currentProjectUuid,
+          'projectUuid': targetProjectUuid,
           'personnelId': personnelMap[row['personnelId'] as String?],
           'fileName': path.basename(destination.path),
         },
@@ -1156,10 +1281,6 @@ class ProjectTransferService extends AppServices {
       await _deleteWhere(table, 'specimenUuid', uuid);
     }
     await _deleteWhere('specimenAssociatedData', 'specimenUuid', uuid);
-    await dbAccess.customStatement(
-      'UPDATE associatedData SET specimenUuid = NULL WHERE specimenUuid = ?',
-      [uuid],
-    );
   }
 
   void _validateReferences(Map<String, List<Map<String, dynamic>>> records) {
@@ -1236,10 +1357,12 @@ class ProjectTransferService extends AppServices {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _projectRows(String table) => _query(
-    'SELECT * FROM $table WHERE projectUuid = ?',
-    [currentProjectUuid],
-  );
+  Future<List<Map<String, dynamic>>> _projectRows(
+    String table, {
+    String? projectUuid,
+  }) => _query('SELECT * FROM $table WHERE projectUuid = ?', [
+    projectUuid ?? currentProjectUuid,
+  ]);
 
   Future<List<Map<String, dynamic>>> _rowsForIds(
     String table,
@@ -1412,7 +1535,10 @@ class ProjectTransferService extends AppServices {
     return matches.length == 1 ? matches.single : null;
   }
 
-  Future<String> _uniqueSiteId(String? original) async {
+  Future<String> _uniqueSiteId(
+    String? original,
+    String targetProjectUuid,
+  ) async {
     final base = (original == null || original.trim().isEmpty)
         ? 'Imported site'
         : '${original.trim()} imported';
@@ -1420,7 +1546,7 @@ class ProjectTransferService extends AppServices {
     var suffix = 2;
     while ((await _query(
       'SELECT 1 FROM site WHERE projectUuid = ? AND lower(siteID) = lower(?)',
-      [currentProjectUuid, candidate],
+      [targetProjectUuid, candidate],
     )).isNotEmpty) {
       candidate = '$base $suffix';
       suffix++;
@@ -1441,9 +1567,10 @@ class ProjectTransferService extends AppServices {
     return candidate;
   }
 
-  void _invalidateProjectProviders() {
+  void _invalidateProjectProviders(String targetProjectUuid) {
+    ref.invalidate(projectListProvider);
     ref.invalidate(currProjInfoProvider);
-    ref.invalidate(projectInfoProvider(currentProjectUuid));
+    ref.invalidate(projectInfoProvider(targetProjectUuid));
     ref.invalidate(projectPersonnelProvider);
     ref.invalidate(allPersonnelProvider);
     ref.invalidate(taxonRegistryProvider);

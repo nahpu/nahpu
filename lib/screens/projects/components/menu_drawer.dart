@@ -6,7 +6,6 @@ import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/exports/export_documents.dart';
 import 'package:nahpu/screens/exports/export_records.dart';
-import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/export_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:drift/drift.dart' as db;
@@ -33,19 +32,6 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
     return NavigationDrawer(
       children: [
         MenuAvatar(projectUuid: projectUuid),
-        ListTile(
-          leading: const Icon(Icons.create_rounded),
-          title: const Text('Create project'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CreateProjectForm(),
-              ),
-            );
-          },
-        ),
-        const Divider(color: Colors.grey),
         ListTile(
           leading: const Icon(Icons.move_to_inbox_rounded),
           title: const Text('Merge project'),

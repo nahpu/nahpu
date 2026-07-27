@@ -1316,21 +1316,21 @@ class AssociatedDataCtr {
     required this.typeCtr,
     required this.descriptionCtr,
     required this.dateCtr,
-    required this.urlCtr,
+    required this.uriCtr,
   });
 
   final TextEditingController nameCtr;
   String? typeCtr;
   final TextEditingController descriptionCtr;
   final DateEditingController dateCtr;
-  final TextEditingController urlCtr;
+  final TextEditingController uriCtr;
 
   factory AssociatedDataCtr.empty() => AssociatedDataCtr(
         nameCtr: TextEditingController(),
         typeCtr: null,
         descriptionCtr: TextEditingController(),
         dateCtr: DateEditingController(),
-        urlCtr: TextEditingController(),
+        uriCtr: TextEditingController(),
       );
 
   factory AssociatedDataCtr.fromData(AssociatedDataData data) =>
@@ -1339,13 +1339,13 @@ class AssociatedDataCtr {
         typeCtr: data.type,
         descriptionCtr: TextEditingController(text: data.description ?? ''),
         dateCtr: DateEditingController(date: data.date ?? ''),
-        urlCtr: TextEditingController(text: data.url ?? ''),
+        uriCtr: TextEditingController(text: data.uri ?? ''),
       );
 
   void dispose() {
     nameCtr.dispose();
     descriptionCtr.dispose();
     dateCtr.dispose();
-    urlCtr.dispose();
+    uriCtr.dispose();
   }
 }

@@ -52,10 +52,8 @@ void main() {
         .into(db.site)
         .insert(const SiteCompanion(projectUuid: Value('project-a')));
     final id = await query.createSpecimenDataAssociation(
-      const AssociatedDataCompanion(
-        specimenUuid: Value('specimen-a'),
-        name: Value('Recording'),
-      ),
+      'specimen-a',
+      const AssociatedDataCompanion(name: Value('Recording')),
     );
 
     await query.linkToSpecimen(id, 'specimen-b');
@@ -72,10 +70,8 @@ void main() {
         .into(db.site)
         .insert(const SiteCompanion(projectUuid: Value('project-a')));
     final id = await query.createSpecimenDataAssociation(
-      const AssociatedDataCompanion(
-        specimenUuid: Value('specimen-a'),
-        name: Value('Recording'),
-      ),
+      'specimen-a',
+      const AssociatedDataCompanion(name: Value('Recording')),
     );
     await query.linkToSpecimen(id, 'specimen-b');
     await query.linkToSite(id, siteId);
@@ -88,7 +84,7 @@ void main() {
     final data = await (db.select(
       db.associatedData,
     )..where((row) => row.primaryId.equals(id))).getSingle();
-    expect(data.specimenUuid, isNull);
+    expect(data.name, 'Recording');
   });
 
   test('site links cannot cross project boundaries', () async {
@@ -96,7 +92,8 @@ void main() {
         .into(db.site)
         .insert(const SiteCompanion(projectUuid: Value('project-b')));
     final id = await query.createSpecimenDataAssociation(
-      const AssociatedDataCompanion(specimenUuid: Value('specimen-a')),
+      'specimen-a',
+      const AssociatedDataCompanion(),
     );
 
     await expectLater(query.linkToSite(id, siteId), throwsA(anything));

@@ -59,17 +59,9 @@ class RecordExchangeSpecimen extends AppServices {
               )
               .toList(growable: false),
       'associatedData':
-          (await AssociatedDataQuery(
-                dbAccess,
-              ).getAllAssociatedData(specimenUuid))
-              .map(
-                (value) => RecordExchangeDatabase.without(value.toJson(), {
-                  'primaryId',
-                  'specimenUuid',
-                  'projectUuid',
-                }),
-              )
-              .toList(growable: false),
+          (await AssociatedDataQuery(dbAccess).getAllAssociatedData(
+            specimenUuid,
+          )).map(support.portableAssociatedData).toList(growable: false),
       'coordinates': await _exportCoordinate(specimen.coordinateID),
       'taxonomy': await _exportTaxonomy(specimen.speciesID),
       'event': await _exportEvent(specimen.collEventID),
@@ -459,12 +451,10 @@ class RecordExchangeSpecimen extends AppServices {
       payload.data['associatedData'],
     )) {
       await AssociatedDataQuery(dbAccess).createSpecimenDataAssociation(
-        AssociatedDataData.fromJson({
-          ...json,
-          'primaryId': null,
-          'specimenUuid': uuid,
-          'projectUuid': currentProjectUuid,
-        }).toCompanion(true),
+        uuid,
+        AssociatedDataData.fromJson(
+          support.associatedDataJson(json),
+        ).toCompanion(true),
       );
     }
   }
@@ -523,6 +513,7 @@ class RecordExchangeSpecimen extends AppServices {
               additionalExif: db.Value(media.additionalExif),
               personnelId: db.Value(media.personnelId),
               fileName: db.Value(path.basename(target.path)),
+              uri: db.Value(media.uri),
               caption: db.Value(media.caption),
             ),
           );

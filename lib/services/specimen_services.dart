@@ -690,8 +690,10 @@ class AssociatedDataServices extends AppServices {
         .getAssociatedDataForProject(currentProjectUuid);
   }
 
-  Future<void> createAssociatedData(AssociatedDataCompanion form) async {
-    await AssociatedDataQuery(dbAccess).createSpecimenDataAssociation(form);
+  Future<void> createAssociatedData(
+      String specimenUuid, AssociatedDataCompanion form) async {
+    await AssociatedDataQuery(dbAccess)
+        .createSpecimenDataAssociation(specimenUuid, form);
     _invalidateData();
   }
 
@@ -742,12 +744,12 @@ class AssociatedDataServices extends AppServices {
     await query.deleteAssociatedData(associatedDataId);
     if (data?.type == 'File' &&
         data?.projectUuid != null &&
-        data?.url?.isNotEmpty == true &&
-        !await query.isFileUsed(data!.url!)) {
+        data?.uri?.isNotEmpty == true &&
+        !await query.isFileUsed(data!.uri!)) {
       final projectDir = await FileServices(
         ref: ref,
       ).getProjectDirByUUID(data.projectUuid!);
-      final file = File(join(projectDir.path, 'associatedData', data.url));
+      final file = File(join(projectDir.path, 'associatedData', data.uri));
       if (file.existsSync()) {
         await file.delete();
       }

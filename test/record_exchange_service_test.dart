@@ -370,20 +370,24 @@ void main() {
               type: Value('Tissue'),
             ),
           );
-      await database
-          .into(database.associatedData)
-          .insert(
-            AssociatedDataCompanion.insert(
-              specimenUuid: Value(specimenUuid),
-              name: Value('Field note'),
-              description: Value('Collected beside stream'),
-            ),
-          );
+      await AssociatedDataQuery(database).createSpecimenDataAssociation(
+        specimenUuid,
+        const AssociatedDataCompanion(
+          name: Value('Field note'),
+          description: Value('Collected beside stream'),
+          uri: Value('https://example.org/field-note'),
+        ),
+      );
 
       final payload = await service.exportSpecimen(specimenUuid);
       expect(payload.type, RecordExchangeType.specimen);
       expect(payload.partCount, 1);
       expect(payload.associatedDataCount, 1);
+      final exportedAssociatedData = RecordExchangePayload.mapList(
+        payload.data['associatedData'],
+      ).single;
+      expect(exportedAssociatedData['url'], 'https://example.org/field-note');
+      expect(exportedAssociatedData, isNot(contains('uri')));
       expect(payload.data['taxonomy'], isNotNull);
       expect(payload.data['event'], isNotNull);
 
@@ -414,11 +418,13 @@ void main() {
         )..where((row) => row.specimenUuid.equals(result.recordUuid!))).get(),
         hasLength(1),
       );
+      final importedAssociatedData = await AssociatedDataQuery(
+        database,
+      ).getAllAssociatedData(result.recordUuid!);
+      expect(importedAssociatedData, hasLength(1));
       expect(
-        await (database.select(
-          database.associatedData,
-        )..where((row) => row.specimenUuid.equals(result.recordUuid!))).get(),
-        hasLength(1),
+        importedAssociatedData.single.uri,
+        'https://example.org/field-note',
       );
     },
   );

@@ -1,16 +1,30 @@
 import 'dart:async';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/project_transfer/project_transfer_service.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:path/path.dart' as path;
 
 class ImportProjectScreen extends ConsumerStatefulWidget {
-  const ImportProjectScreen({super.key});
+  const ImportProjectScreen({
+    super.key,
+    this.mode = ProjectTransferImportMode.merge,
+    this.initialArchive,
+  });
+
+  const ImportProjectScreen.newProject({super.key})
+    : mode = ProjectTransferImportMode.newProject,
+      initialArchive = null;
+
+  final ProjectTransferImportMode mode;
+  final XFile? initialArchive;
 
   @override
   ConsumerState<ImportProjectScreen> createState() =>
@@ -18,7 +32,7 @@ class ImportProjectScreen extends ConsumerStatefulWidget {
 }
 
 class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
-  static const _steps = [
+  static const _mergeSteps = [
     'File and safety',
     'Project info',
     'Personnel',
@@ -30,7 +44,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     'Review and merge',
     'Result',
   ];
-  static const _sectionByStep = {
+  static const _mergeSectionByStep = {
     2: ProjectTransferSection.personnel,
     3: ProjectTransferSection.taxonomy,
     4: ProjectTransferSection.sites,
@@ -38,8 +52,22 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     6: ProjectTransferSection.specimens,
     7: ProjectTransferSection.narratives,
   };
+  static const _newProjectSteps = [
+    'File and safety',
+    'Personnel',
+    'Taxonomy',
+    'Specimens',
+    'Review and import',
+    'Result',
+  ];
+  static const _newProjectSectionByStep = {
+    1: ProjectTransferSection.personnel,
+    2: ProjectTransferSection.taxonomy,
+    3: ProjectTransferSection.specimens,
+  };
 
   final _forceConfirmationController = TextEditingController();
+  final _destinationNameController = TextEditingController();
   final _stepChipScrollController = ScrollController();
   final _stepChipKeys = List<GlobalKey>.generate(10, (_) => GlobalKey());
   final Map<String, ProjectTransferConflictAction> _actions = {};
@@ -53,11 +81,36 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   bool _forceMerge = false;
   bool _isReading = false;
   bool _isImporting = false;
+  bool _isValidatingName = false;
   String? _error;
+  String? _destinationNameError;
+  ProjectTransferProjectMatch? _nameConflict;
+  ProjectTransferProjectMatch? _existingProject;
+  XFile? _selectedInput;
+  int _nameValidationGeneration = 0;
+
+  bool get _isNewProject => widget.mode == ProjectTransferImportMode.newProject;
+  List<String> get _steps => _isNewProject ? _newProjectSteps : _mergeSteps;
+  Map<int, ProjectTransferSection> get _sectionByStep =>
+      _isNewProject ? _newProjectSectionByStep : _mergeSectionByStep;
+  int get _reviewStep => _steps.length - 2;
+  int get _resultStep => _steps.length - 1;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialArchive = widget.initialArchive;
+    if (initialArchive != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadArchive(initialArchive);
+      });
+    }
+  }
 
   @override
   void dispose() {
     _forceConfirmationController.dispose();
+    _destinationNameController.dispose();
     _stepChipScrollController.dispose();
     final archive = _archiveFile;
     if (archive != null) unawaited(archive.dispose());
@@ -68,7 +121,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 880;
     return Scaffold(
-      appBar: AppBar(title: const Text('Merge project')),
+      appBar: AppBar(
+        title: Text(_isNewProject ? 'Import project' : 'Merge project'),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -95,9 +150,15 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               lastStep: _steps.length - 1,
               isRunning: _isImporting,
               canContinue: _canContinue,
+              finalActionLabel: _isNewProject
+                  ? 'Import project'
+                  : 'Merge project',
+              finalActionIcon: _isNewProject
+                  ? Icons.download_rounded
+                  : Icons.merge_rounded,
               onBack: _back,
               onContinue: _continue,
-              onClose: () => Navigator.pop(context),
+              onClose: _close,
             ),
           ],
         ),
@@ -196,9 +257,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         message: 'Return to File and safety to select an archive.',
       );
     }
-    if (_step == 1) return _projectInfo(plan);
-    if (_step == 8) return _review(plan);
-    if (_step == 9) return _resultView();
+    if (!_isNewProject && _step == 1) return _projectInfo(plan);
+    if (_step == _reviewStep) return _review(plan);
+    if (_step == _resultStep) return _resultView();
     final section = _sectionByStep[_step];
     if (section != null) return _conflictSection(plan, section);
     return const SizedBox.shrink();
@@ -233,7 +294,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                         )
                       : const Icon(Icons.upload_file_rounded),
                   label: Text(
-                    plan == null ? 'Choose archive' : 'Choose another archive',
+                    _selectedInput == null
+                        ? 'Choose archive'
+                        : 'Choose another archive',
                   ),
                 ),
               ),
@@ -257,6 +320,14 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
             ],
           ),
         ),
+        if (_isNewProject && plan != null) ...[
+          const SizedBox(height: 16),
+          _newProjectIdentityCard(plan),
+        ],
+        if (_isNewProject && _existingProject != null) ...[
+          const SizedBox(height: 16),
+          _existingProjectCard(_existingProject!),
+        ],
         const SizedBox(height: 16),
         _RoundedCard(
           color: Theme.of(context).colorScheme.tertiaryContainer,
@@ -269,7 +340,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Back up before merging',
+                      _isNewProject
+                          ? 'Back up before importing'
+                          : 'Back up before merging',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ),
@@ -291,8 +364,12 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _backupAcknowledged,
-                title: const Text(
-                  'I understand that I should keep a backup before merging.',
+                title: Text(
+                  _isNewProject
+                      ? 'I understand that I should keep a backup before '
+                            'importing.'
+                      : 'I understand that I should keep a backup before '
+                            'merging.',
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
                 onChanged: (value) =>
@@ -306,6 +383,75 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           _forceMergeCard(plan!),
         ],
       ],
+    );
+  }
+
+  Widget _newProjectIdentityCard(ProjectTransferImportPlan plan) {
+    return _RoundedCard(
+      color: _nameConflict == null
+          ? null
+          : Theme.of(context).colorScheme.errorContainer,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'New project identity',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text('Archive UUID: ${plan.payload.sourceProjectUuid}'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _destinationNameController,
+            onChanged: _validateDestinationName,
+            maxLength: 25,
+            decoration: InputDecoration(
+              labelText: 'Destination project name',
+              border: const OutlineInputBorder(),
+              errorText: _destinationNameError,
+              helperText: _nameConflict == null
+                  ? 'The archive itself is not changed.'
+                  : null,
+            ),
+          ),
+          if (_nameConflict != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'A project named “${_nameConflict!.name}” already exists. '
+              'Choose another name. If these are copies of the same project, '
+              'cancel and use Merge project instead.',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _existingProjectCard(ProjectTransferProjectMatch project) {
+    return _RoundedCard(
+      color: Theme.of(context).colorScheme.errorContainer,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'This project already exists',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${project.name}\n${project.uuid}\n\n'
+            'Matching UUIDs identify the same project. Import is blocked; '
+            'merge this archive into the existing project instead.',
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _openMatchingProjectMerge,
+            icon: const Icon(Icons.merge_rounded),
+            label: const Text('Open Merge project'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -533,8 +679,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _StepHeading(
-          title: 'Review and merge',
+        _StepHeading(
+          title: _isNewProject ? 'Review and import' : 'Review and merge',
           message:
               'Nothing has been written yet. The database changes will be '
               'committed together; a failure rolls them all back.',
@@ -547,10 +693,17 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 label: 'Source project',
                 value: plan.payload.projectName,
               ),
-              _ReviewRow(label: 'Destination', value: plan.activeProjectName),
+              _ReviewRow(
+                label: 'Destination',
+                value: _isNewProject
+                    ? _destinationNameController.text.trim()
+                    : plan.activeProjectName,
+              ),
               _ReviewRow(
                 label: 'UUID handling',
-                value: plan.hasUuidMismatch
+                value: _isNewProject
+                    ? 'New project UUID: ${plan.destinationProjectUuid}'
+                    : plan.hasUuidMismatch
                     ? 'Force merge into active UUID'
                     : 'Matching project UUID',
               ),
@@ -561,6 +714,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 label: 'Media files',
                 value: '${plan.payload.mediaFiles.length}',
               ),
+              if (_isNewProject)
+                for (final entry in plan.payload.summary.entries)
+                  if (entry.key != 'Media')
+                    _ReviewRow(label: entry.key, value: '${entry.value}'),
             ],
           ),
         ),
@@ -590,8 +747,12 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     if (result == null) {
       return _MessageCard(
         icon: Icons.error_outline_rounded,
-        title: 'Merge did not finish',
-        message: _error ?? 'Return to Review and merge and try again.',
+        title: _isNewProject ? 'Import did not finish' : 'Merge did not finish',
+        message:
+            _error ??
+            (_isNewProject
+                ? 'Return to Review and import and try again.'
+                : 'Return to Review and merge and try again.'),
       );
     }
     return _RoundedCard(
@@ -604,7 +765,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Project data merged',
+            _isNewProject ? 'Project imported' : 'Project data merged',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 20),
@@ -613,7 +774,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
             runSpacing: 16,
             alignment: WrapAlignment.center,
             children: [
-              _ResultCount(label: 'Merged', value: result.imported),
+              _ResultCount(
+                label: _isNewProject ? 'Imported' : 'Merged',
+                value: result.imported,
+              ),
               _ResultCount(label: 'Updated', value: result.updated),
               _ResultCount(label: 'Skipped', value: result.skipped),
               _ResultCount(label: 'Media copied', value: result.mediaCopied),
@@ -626,9 +790,16 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
 
   bool get _canContinue {
     if (_isReading || _isImporting) return false;
+    if (_isNewProject &&
+        (_isValidatingName ||
+            _destinationNameError != null ||
+            _nameConflict != null)) {
+      return false;
+    }
     if (_step == 0) {
       final plan = _plan;
       if (plan == null || !_backupAcknowledged) return false;
+      if (_isNewProject) return true;
       if (!plan.hasUuidMismatch) return true;
       return _forceMerge &&
           _forceConfirmationController.text.trim() == plan.activeProjectName;
@@ -639,16 +810,22 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   Future<void> _chooseArchive() async {
     final input = await FilePickerServices().selectAnyFile();
     if (input == null || !mounted) return;
+    await _loadArchive(input);
+  }
+
+  Future<void> _loadArchive(XFile input) async {
     setState(() {
       _isReading = true;
       _error = null;
+      _existingProject = null;
+      _selectedInput = input;
     });
     ProjectTransferArchiveFile? opened;
     try {
       opened = await ProjectTransferService(ref: ref).archive.read(input);
       final plan = await ProjectTransferService(
         ref: ref,
-      ).planImport(opened.payload);
+      ).planImport(opened.payload, mode: widget.mode);
       final previous = _archiveFile;
       if (previous != null) await previous.dispose();
       if (!mounted) {
@@ -658,6 +835,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       setState(() {
         _archiveFile = opened;
         _plan = plan;
+        _destinationNameController.text = plan.destinationProjectName;
+        _nameConflict = plan.nameConflict;
+        _destinationNameError = _projectNameError(plan.destinationProjectName);
+        _isValidatingName = false;
         _result = null;
         _actions
           ..clear()
@@ -682,7 +863,15 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     } catch (error) {
       if (opened != null) await opened.dispose();
       if (!mounted) return;
-      setState(() => _error = error.toString());
+      setState(() {
+        _plan = null;
+        if (error is ProjectTransferProjectExistsException) {
+          _existingProject = error.project;
+          _error = null;
+        } else {
+          _error = error.toString();
+        }
+      });
     } finally {
       if (mounted) setState(() => _isReading = false);
     }
@@ -704,7 +893,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
 
   Future<void> _continue() async {
     if (!_canContinue) return;
-    if (_step == 8) {
+    if (_step == _reviewStep) {
       await _runImport();
       return;
     }
@@ -732,12 +921,21 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         conflictActions: _actions,
         importedProjectFields: _importedProjectFields,
         extractedDirectory: archive.extractedDirectory,
+        destinationProjectName: _isNewProject
+            ? _destinationNameController.text.trim()
+            : null,
       );
       if (!mounted) return;
+      if (_isNewProject) {
+        ref
+            .read(projectUuidProvider.notifier)
+            .updateProjectUuid(plan.destinationProjectUuid);
+        ref.read(projectNavbarIndexProvider.notifier).updateState(0);
+      }
       setState(() {
         _result = result;
-        _step = 9;
-        _maxVisitedStep = 9;
+        _step = _resultStep;
+        _maxVisitedStep = _resultStep;
       });
       _scrollActiveStepChip();
     } catch (error) {
@@ -753,6 +951,61 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       if (mounted) setState(() => _isImporting = false);
     }
   }
+
+  String? _projectNameError(String value) {
+    final trimmed = value.trim();
+    if (trimmed.length < 3) return 'Project name is too short';
+    if (trimmed.length > 25) return 'Project name is too long';
+    if (!trimmed.isValidProjectName) return 'Project name is invalid';
+    return null;
+  }
+
+  Future<void> _validateDestinationName(String value) async {
+    final generation = ++_nameValidationGeneration;
+    final formatError = _projectNameError(value);
+    if (formatError != null) {
+      setState(() {
+        _destinationNameError = formatError;
+        _nameConflict = null;
+        _isValidatingName = false;
+      });
+      return;
+    }
+    setState(() => _isValidatingName = true);
+    final match = await ProjectTransferService(
+      ref: ref,
+    ).findProjectNameMatch(value);
+    if (!mounted || generation != _nameValidationGeneration) return;
+    setState(() {
+      _nameConflict = match;
+      _destinationNameError = match == null
+          ? null
+          : 'Project name already exists';
+      _isValidatingName = false;
+    });
+  }
+
+  void _openMatchingProjectMerge() {
+    final project = _existingProject;
+    final input = _selectedInput;
+    if (project == null || input == null) return;
+    ref.read(projectUuidProvider.notifier).updateProjectUuid(project.uuid);
+    ref.read(projectNavbarIndexProvider.notifier).updateState(0);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => ImportProjectScreen(initialArchive: input),
+      ),
+    );
+  }
+
+  void _close() {
+    if (!_isNewProject || _result == null) {
+      Navigator.pop(context);
+      return;
+    }
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.of(context).push(ProjectShell.route());
+  }
 }
 
 class _WizardActionBar extends StatelessWidget {
@@ -761,6 +1014,8 @@ class _WizardActionBar extends StatelessWidget {
     required this.lastStep,
     required this.isRunning,
     required this.canContinue,
+    required this.finalActionLabel,
+    required this.finalActionIcon,
     required this.onBack,
     required this.onContinue,
     required this.onClose,
@@ -770,6 +1025,8 @@ class _WizardActionBar extends StatelessWidget {
   final int lastStep;
   final bool isRunning;
   final bool canContinue;
+  final String finalActionLabel;
+  final IconData finalActionIcon;
   final VoidCallback onBack;
   final VoidCallback onContinue;
   final VoidCallback onClose;
@@ -803,11 +1060,11 @@ class _WizardActionBar extends StatelessWidget {
                         )
                       : Icon(
                           step == lastStep - 1
-                              ? Icons.merge_rounded
+                              ? finalActionIcon
                               : Icons.arrow_forward_rounded,
                         ),
                   label: Text(
-                    step == lastStep - 1 ? 'Merge project' : 'Continue',
+                    step == lastStep - 1 ? finalActionLabel : 'Continue',
                   ),
                 ),
             ],

@@ -567,12 +567,9 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
   AssociatedDataQuery(super.db);
 
   Future<int> createSpecimenDataAssociation(
+    String specimenUuid,
     AssociatedDataCompanion form,
   ) async {
-    final specimenUuid = form.specimenUuid.value;
-    if (specimenUuid == null) {
-      throw ArgumentError('Associated data requires a specimen.');
-    }
     final specimenRow = await (select(specimen)
           ..where((row) => row.uuid.equals(specimenUuid)))
         .getSingle();
@@ -602,7 +599,7 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
       throw ArgumentError('Associated data requires a project.');
     }
     return into(associatedData).insert(
-      form.copyWith(specimenUuid: const Value(null)),
+      form,
     );
   }
 
@@ -640,11 +637,7 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
       ..addColumns([specimenAssociatedData.associatedDataId])
       ..where(specimenAssociatedData.specimenUuid.equals(specimenUuid));
     return (select(associatedData)
-          ..where(
-            (row) =>
-                row.primaryId.isInQuery(linkedIds) |
-                row.specimenUuid.equals(specimenUuid),
-          ))
+          ..where((row) => row.primaryId.isInQuery(linkedIds)))
         .get();
   }
 
@@ -675,7 +668,7 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
 
   Future<bool> isFileUsed(String baseName) async {
     AssociatedDataData? data = await (select(associatedData)
-          ..where((t) => t.url.equals(baseName))
+          ..where((t) => t.uri.equals(baseName))
           ..limit(1))
         .getSingleOrNull();
     return data != null;
@@ -686,14 +679,9 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteAllAssociatedData(String specimenUuid) {
-    return transaction(() async {
-      await (delete(specimenAssociatedData)
-            ..where((row) => row.specimenUuid.equals(specimenUuid)))
-          .go();
-      await (update(associatedData)
-            ..where((row) => row.specimenUuid.equals(specimenUuid)))
-          .write(const AssociatedDataCompanion(specimenUuid: Value(null)));
-    });
+    return (delete(specimenAssociatedData)
+          ..where((row) => row.specimenUuid.equals(specimenUuid)))
+        .go();
   }
 
   Future<void> unlinkFromSpecimen(int id, String specimenUuid) {

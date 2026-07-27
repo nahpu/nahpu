@@ -8,7 +8,7 @@ mixin _$ProjectQueryMixin on DatabaseAccessor<Database> {
   Personnel get personnel => attachedDatabase.personnel;
   Media get media => attachedDatabase.media;
   Site get site => attachedDatabase.site;
-  PaleontologySite get paleontologySite => attachedDatabase.paleontologySite;
+  FossilSite get fossilSite => attachedDatabase.fossilSite;
   Coordinate get coordinate => attachedDatabase.coordinate;
   CollEvent get collEvent => attachedDatabase.collEvent;
   Weather get weather => attachedDatabase.weather;
@@ -52,8 +52,8 @@ class ProjectQueryManager {
       $MediaTableManager(_db.attachedDatabase, _db.media);
   $SiteTableManager get site =>
       $SiteTableManager(_db.attachedDatabase, _db.site);
-  $PaleontologySiteTableManager get paleontologySite =>
-      $PaleontologySiteTableManager(_db.attachedDatabase, _db.paleontologySite);
+  $FossilSiteTableManager get fossilSite =>
+      $FossilSiteTableManager(_db.attachedDatabase, _db.fossilSite);
   $CoordinateTableManager get coordinate =>
       $CoordinateTableManager(_db.attachedDatabase, _db.coordinate);
   $CollEventTableManager get collEvent =>

@@ -20,6 +20,7 @@ class _MigrationCoordinator {
 
     final releaseSteps = <int, _MigrationStep>{
       11: (m) => _Version12Migration(db).upgrade(m),
+      12: (m) => _Version13Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -85,13 +86,13 @@ class _Version12Migration {
     await migrator.addColumn(db.specimenPart, db.specimenPart.storage);
     await migrator.addColumn(db.associatedData, db.associatedData.projectUuid);
 
-    await migrator.createTable(db.paleontologySite);
+    await _createPaleontologySite();
     await migrator.createTable(db.arthropodAttribute);
     await migrator.createTable(db.fossilAttribute);
     await migrator.createTable(db.parasiteDetection);
     await migrator.createTable(db.parasite);
     await migrator.createTable(db.customFieldDefinition);
-    await migrator.createTable(db.customFieldValue);
+    await _createCustomFieldValue();
     await migrator.createTable(db.specimenAssociatedData);
     await migrator.createTable(db.siteAssociatedData);
 
@@ -179,6 +180,138 @@ class _Version12Migration {
         .getSingle();
     if (integrity.data.values.single != 'ok') {
       throw StateError('Database integrity check failed after v12 migration.');
+    }
+  }
+
+  Future<void> _createPaleontologySite() {
+    return db.customStatement('''
+      CREATE TABLE paleontologySite (
+        siteID INT,
+        formation TEXT,
+        geologicEra INT,
+        geologicPeriod INT,
+        geologicSeries INT,
+        geologicEpoch INT,
+        narrowerGeologicStage TEXT,
+        broaderGeologicStage TEXT,
+        biozone TEXT,
+        rockType TEXT,
+        depositionalEnvironmentType INT,
+        depositionalContinent TEXT,
+        depositionalMarine TEXT,
+        standardPreservationType TEXT,
+        stratigraphyRemark TEXT,
+        stratigraphicSource TEXT,
+        sedimentologyRemark TEXT,
+        FOREIGN KEY(siteID) REFERENCES site(id)
+      )
+    ''');
+  }
+
+  Future<void> _createCustomFieldValue() {
+    return db.customStatement('''
+      CREATE TABLE customFieldValue (
+        id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT,
+        fieldDefinitionId INT,
+        projectUuid TEXT,
+        value TEXT,
+        FOREIGN KEY(fieldDefinitionId) REFERENCES customFieldDefinition(id),
+        FOREIGN KEY(projectUuid) REFERENCES project(uuid)
+      )
+    ''');
+  }
+}
+
+class _Version13Migration {
+  const _Version13Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await db.customStatement('''
+      INSERT OR IGNORE INTO specimenAssociatedData (
+        specimenUuid,
+        associatedDataId
+      )
+      SELECT associatedData.specimenUuid, associatedData.primaryId
+      FROM associatedData
+      INNER JOIN specimen
+        ON specimen.uuid = associatedData.specimenUuid
+       AND specimen.projectUuid = associatedData.projectUuid
+      WHERE associatedData.specimenUuid IS NOT NULL
+        AND associatedData.projectUuid IS NOT NULL
+    ''');
+    await _validateLegacySpecimenLinks();
+
+    await migrator.alterTable(
+      TableMigration(
+        db.associatedData,
+        columnTransformer: {
+          db.associatedData.uri: const CustomExpression<String>('url'),
+        },
+      ),
+    );
+    await db._renameTableIfPresent('paleontologySite', 'fossilSite');
+    await migrator.addColumn(db.media, db.media.uri);
+    await migrator.addColumn(db.customFieldValue, db.customFieldValue.unit);
+
+    await _validate();
+  }
+
+  Future<void> _validateLegacySpecimenLinks() async {
+    final missingLinks = await db.customSelect('''
+      SELECT COUNT(*) AS count
+      FROM associatedData
+      LEFT JOIN specimen
+        ON specimen.uuid = associatedData.specimenUuid
+       AND specimen.projectUuid = associatedData.projectUuid
+      LEFT JOIN specimenAssociatedData AS link
+        ON link.specimenUuid = associatedData.specimenUuid
+       AND link.associatedDataId = associatedData.primaryId
+      WHERE associatedData.specimenUuid IS NOT NULL
+        AND (
+          specimen.uuid IS NULL
+          OR link.associatedDataId IS NULL
+        )
+    ''', readsFrom: const {}).getSingle();
+    if (missingLinks.read<int>('count') != 0) {
+      throw StateError(
+        'Database migration cannot preserve a legacy specimen association.',
+      );
+    }
+  }
+
+  Future<void> _validate() async {
+    await db._requireTable('fossilSite');
+    if (await db._tableExists('paleontologySite')) {
+      throw StateError('Database migration retained paleontologySite.');
+    }
+
+    final columns = await db
+        .customSelect('PRAGMA table_info(associatedData)', readsFrom: const {})
+        .get();
+    final names = columns.map((row) => row.read<String>('name')).toSet();
+    if (names.contains('specimenUuid') ||
+        names.contains('url') ||
+        !names.contains('uri')) {
+      throw StateError('Database migration retained legacy associated data.');
+    }
+
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
+
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v13 migration.');
     }
   }
 }

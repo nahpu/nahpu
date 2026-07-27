@@ -40,17 +40,9 @@ class RecordExchangeSiteEvent extends AppServices {
             .map(support.portableCoordinate)
             .toList(growable: false),
         'associatedData':
-            (await AssociatedDataQuery(
-                  dbAccess,
-                ).getAssociatedDataForSite(site.id))
-                .map(
-                  (value) => RecordExchangeDatabase.without(value.toJson(), {
-                    'primaryId',
-                    'specimenUuid',
-                    'projectUuid',
-                  }),
-                )
-                .toList(growable: false),
+            (await AssociatedDataQuery(dbAccess).getAssociatedDataForSite(
+              site.id,
+            )).map(support.portableAssociatedData).toList(growable: false),
         'personnel': personnel,
       },
     );
@@ -182,12 +174,9 @@ class RecordExchangeSiteEvent extends AppServices {
     )) {
       final associatedDataId = await AssociatedDataQuery(dbAccess)
           .createProjectAssociatedData(
-            AssociatedDataData.fromJson({
-              ...json,
-              'primaryId': null,
-              'specimenUuid': null,
-              'projectUuid': currentProjectUuid,
-            }).toCompanion(true),
+            AssociatedDataData.fromJson(
+              support.associatedDataJson(json),
+            ).toCompanion(true),
           );
       await AssociatedDataQuery(dbAccess).linkToSite(associatedDataId, siteId);
     }

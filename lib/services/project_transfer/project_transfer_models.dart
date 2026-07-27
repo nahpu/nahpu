@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:nahpu/services/specimen_attribute_names.dart';
 
-const int projectTransferVersion = 3;
-const Set<int> supportedProjectTransferVersions = {1, 2, 3};
+const int projectTransferVersion = 4;
+const Set<int> supportedProjectTransferVersions = {1, 2, 3, 4};
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
 
 enum ProjectTransferArchiveFormat { jsonGzip, zip, tarGzip }
+
+enum ProjectTransferImportMode { merge, newProject }
 
 extension ProjectTransferArchiveFormatLabel on ProjectTransferArchiveFormat {
   String get label => switch (this) {
@@ -287,10 +289,21 @@ class ProjectTransferPayload {
         );
       }
       if (existing == null || existing.isEmpty) {
-        canonical[key] = entry.value;
+        canonical[key] = key == 'associatedData'
+            ? entry.value.map(_normalizeAssociatedData).toList(growable: false)
+            : entry.value;
       }
     }
     return canonical;
+  }
+
+  static Map<String, dynamic> _normalizeAssociatedData(
+    Map<String, dynamic> source,
+  ) {
+    final normalized = Map<String, dynamic>.from(source);
+    normalized['uri'] ??= normalized['url'];
+    normalized.remove('url');
+    return normalized;
   }
 
   static void validateArchivePath(String value) {
@@ -327,26 +340,54 @@ class ProjectTransferConflict {
   final String? warning;
 }
 
+class ProjectTransferProjectMatch {
+  const ProjectTransferProjectMatch({required this.uuid, required this.name});
+
+  final String uuid;
+  final String name;
+}
+
+class ProjectTransferProjectExistsException implements Exception {
+  const ProjectTransferProjectExistsException(this.project);
+
+  final ProjectTransferProjectMatch project;
+
+  @override
+  String toString() =>
+      'Project ${project.name} (${project.uuid}) already exists. '
+      'Use Merge project instead.';
+}
+
 class ProjectTransferImportPlan {
   const ProjectTransferImportPlan({
     required this.payload,
-    required this.activeProjectUuid,
-    required this.activeProjectName,
+    required this.mode,
+    required this.destinationProjectUuid,
+    required this.destinationProjectName,
     required this.conflicts,
     required this.matchedBySection,
     required this.newBySection,
     required this.warnings,
+    this.nameConflict,
   });
 
   final ProjectTransferPayload payload;
-  final String activeProjectUuid;
-  final String activeProjectName;
+  final ProjectTransferImportMode mode;
+  final String destinationProjectUuid;
+  final String destinationProjectName;
   final List<ProjectTransferConflict> conflicts;
   final Map<ProjectTransferSection, int> matchedBySection;
   final Map<ProjectTransferSection, int> newBySection;
   final List<String> warnings;
+  final ProjectTransferProjectMatch? nameConflict;
 
-  bool get hasUuidMismatch => payload.sourceProjectUuid != activeProjectUuid;
+  String get activeProjectUuid => destinationProjectUuid;
+  String get activeProjectName => destinationProjectName;
+  bool get isNewProject => mode == ProjectTransferImportMode.newProject;
+
+  bool get hasUuidMismatch =>
+      mode == ProjectTransferImportMode.merge &&
+      payload.sourceProjectUuid != destinationProjectUuid;
 
   List<ProjectTransferConflict> conflictsFor(ProjectTransferSection section) =>
       conflicts.where((conflict) => conflict.section == section).toList();
