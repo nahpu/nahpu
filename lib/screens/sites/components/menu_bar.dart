@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
+import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
+import 'package:nahpu/screens/sites/components/copy_from_project_dialog.dart';
 import 'package:nahpu/services/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
@@ -96,6 +98,14 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
               : () async => await _duplicateSite(),
           child: const DuplicateMenuButton(text: 'Duplicate site'),
         ),
+        PopupMenuItem(
+          enabled: widget.siteId != null,
+          onTap: widget.siteId == null ? null : _copyFromProject,
+          child: const ListTile(
+            leading: Icon(Icons.content_copy_outlined),
+            title: Text('Copy from project ...'),
+          ),
+        ),
         const PopupMenuDivider(height: 10),
         PopupMenuItem(
           enabled: widget.siteId != null,
@@ -171,6 +181,28 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
     } catch (e) {
       _showError(e.toString());
     }
+  }
+
+  Future<void> _copyFromProject() async {
+    final result = await showCopyFromProjectDialog(
+      context: context,
+      targetSiteId: widget.siteId!,
+    );
+    if (!mounted || result == null) return;
+    ref.invalidate(siteEntryProvider);
+    ref.invalidate(coordinateBySiteProvider(widget.siteId!));
+    ref.invalidate(coordinateByProjectProvider);
+    ref.invalidate(projectPersonnelProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Copied ${result.fieldCount} ${result.fieldCount == 1 ? 'field' : 'fields'} '
+          'and ${result.coordinateCount} '
+          '${result.coordinateCount == 1 ? 'coordinate' : 'coordinates'} '
+          'from ${result.sourceSiteLabel} in ${result.sourceProjectName}.',
+        ),
+      ),
+    );
   }
 
   Future<void> _deleteSite() async {
