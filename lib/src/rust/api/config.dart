@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `build_config_transfer_preview`, `config_label`, `display_json_value`, `is_controlled_vocabulary`, `read_config_export`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `eq`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `eq`, `eq`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Initializes the configuration database at the specified path.
 Future<void> initConfigDb({required String path}) =>
@@ -37,6 +37,14 @@ Future<String?> getUserConfigString({required String key}) =>
 
 Future<void> deleteUserConfig({required String key}) =>
     RustLib.instance.api.crateApiConfigDeleteUserConfig(key: key);
+
+Future<void> setTemplateTablePreviewColumns({required List<String> columns}) =>
+    RustLib.instance.api.crateApiConfigSetTemplateTablePreviewColumns(
+      columns: columns,
+    );
+
+Future<List<String>?> getTemplateTablePreviewColumns() =>
+    RustLib.instance.api.crateApiConfigGetTemplateTablePreviewColumns();
 
 Future<void> setRecordExportPreset({
   required String name,
@@ -237,6 +245,8 @@ class DocumentLayoutBlock {
   final double templatePadRightMm;
   final double templatePadBottomMm;
   final bool pageBreakAfter;
+  final String? sortField;
+  final DocumentSortDirection sortDirection;
 
   const DocumentLayoutBlock({
     required this.templateName,
@@ -248,6 +258,8 @@ class DocumentLayoutBlock {
     required this.templatePadRightMm,
     required this.templatePadBottomMm,
     required this.pageBreakAfter,
+    this.sortField,
+    required this.sortDirection,
   });
 
   @override
@@ -260,7 +272,9 @@ class DocumentLayoutBlock {
       templatePadLeftMm.hashCode ^
       templatePadRightMm.hashCode ^
       templatePadBottomMm.hashCode ^
-      pageBreakAfter.hashCode;
+      pageBreakAfter.hashCode ^
+      sortField.hashCode ^
+      sortDirection.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -275,7 +289,9 @@ class DocumentLayoutBlock {
           templatePadLeftMm == other.templatePadLeftMm &&
           templatePadRightMm == other.templatePadRightMm &&
           templatePadBottomMm == other.templatePadBottomMm &&
-          pageBreakAfter == other.pageBreakAfter;
+          pageBreakAfter == other.pageBreakAfter &&
+          sortField == other.sortField &&
+          sortDirection == other.sortDirection;
 }
 
 /// Represents the overall configuration for document layouts.
@@ -402,6 +418,8 @@ class DocumentLayoutStatus {
           error == other.error;
 }
 
+enum DocumentSortDirection { ascending, descending }
+
 class RecordExportPresetPreview {
   final String name;
   final String recordType;
@@ -513,6 +531,7 @@ enum UserConfigSection {
   recordExportPresets,
   templatePresets,
   documentLayouts,
+  templateTablePreview,
 }
 
 class UserConfigTransferPreview {
@@ -522,6 +541,7 @@ class UserConfigTransferPreview {
   final List<RecordExportPresetPreview> recordExportPresets;
   final List<TemplatePresetPreview> templatePresets;
   final List<DocumentLayoutPreview> documentLayouts;
+  final List<String> templateTablePreviewColumns;
 
   const UserConfigTransferPreview({
     required this.schemaVersion,
@@ -530,6 +550,7 @@ class UserConfigTransferPreview {
     required this.recordExportPresets,
     required this.templatePresets,
     required this.documentLayouts,
+    required this.templateTablePreviewColumns,
   });
 
   @override
@@ -539,7 +560,8 @@ class UserConfigTransferPreview {
       userConfigs.hashCode ^
       recordExportPresets.hashCode ^
       templatePresets.hashCode ^
-      documentLayouts.hashCode;
+      documentLayouts.hashCode ^
+      templateTablePreviewColumns.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -551,7 +573,8 @@ class UserConfigTransferPreview {
           userConfigs == other.userConfigs &&
           recordExportPresets == other.recordExportPresets &&
           templatePresets == other.templatePresets &&
-          documentLayouts == other.documentLayouts;
+          documentLayouts == other.documentLayouts &&
+          templateTablePreviewColumns == other.templateTablePreviewColumns;
 }
 
 class UserConfigValuePreview {

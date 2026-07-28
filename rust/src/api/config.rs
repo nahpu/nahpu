@@ -13,6 +13,13 @@ pub enum UserConfigSection {
     RecordExportPresets,
     TemplatePresets,
     DocumentLayouts,
+    TemplateTablePreview,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum DocumentSortDirection {
+    Ascending,
+    Descending,
 }
 
 pub struct UserConfigValuePreview {
@@ -50,6 +57,7 @@ pub struct UserConfigTransferPreview {
     pub record_export_presets: Vec<RecordExportPresetPreview>,
     pub template_presets: Vec<TemplatePresetPreview>,
     pub document_layouts: Vec<DocumentLayoutPreview>,
+    pub template_table_preview_columns: Vec<String>,
 }
 
 impl From<UserConfigSection> for nahpu_configs::UserConfigSection {
@@ -59,6 +67,7 @@ impl From<UserConfigSection> for nahpu_configs::UserConfigSection {
             UserConfigSection::RecordExportPresets => Self::RecordExportPresets,
             UserConfigSection::TemplatePresets => Self::TemplatePresets,
             UserConfigSection::DocumentLayouts => Self::DocumentLayouts,
+            UserConfigSection::TemplateTablePreview => Self::TemplateTablePreview,
         }
     }
 }
@@ -70,6 +79,7 @@ impl From<nahpu_configs::UserConfigSection> for UserConfigSection {
             nahpu_configs::UserConfigSection::RecordExportPresets => Self::RecordExportPresets,
             nahpu_configs::UserConfigSection::TemplatePresets => Self::TemplatePresets,
             nahpu_configs::UserConfigSection::DocumentLayouts => Self::DocumentLayouts,
+            nahpu_configs::UserConfigSection::TemplateTablePreview => Self::TemplateTablePreview,
         }
     }
 }
@@ -109,6 +119,26 @@ pub struct DocumentLayoutBlock {
     pub template_pad_right_mm: f64,
     pub template_pad_bottom_mm: f64,
     pub page_break_after: bool,
+    pub sort_field: Option<String>,
+    pub sort_direction: DocumentSortDirection,
+}
+
+impl From<nahpu_configs::DocumentSortDirection> for DocumentSortDirection {
+    fn from(direction: nahpu_configs::DocumentSortDirection) -> Self {
+        match direction {
+            nahpu_configs::DocumentSortDirection::Ascending => Self::Ascending,
+            nahpu_configs::DocumentSortDirection::Descending => Self::Descending,
+        }
+    }
+}
+
+impl From<DocumentSortDirection> for nahpu_configs::DocumentSortDirection {
+    fn from(direction: DocumentSortDirection) -> Self {
+        match direction {
+            DocumentSortDirection::Ascending => Self::Ascending,
+            DocumentSortDirection::Descending => Self::Descending,
+        }
+    }
 }
 
 /// Represents the overall configuration for document layouts.
@@ -163,6 +193,8 @@ impl From<nahpu_configs::DocumentLayoutBlock> for DocumentLayoutBlock {
             template_pad_right_mm: b.template_pad_right_mm,
             template_pad_bottom_mm: b.template_pad_bottom_mm,
             page_break_after: b.page_break_after,
+            sort_field: b.sort_field,
+            sort_direction: b.sort_direction.into(),
         }
     }
 }
@@ -179,6 +211,8 @@ impl From<DocumentLayoutBlock> for nahpu_configs::DocumentLayoutBlock {
             template_pad_right_mm: b.template_pad_right_mm,
             template_pad_bottom_mm: b.template_pad_bottom_mm,
             page_break_after: b.page_break_after,
+            sort_field: b.sort_field,
+            sort_direction: b.sort_direction.into(),
         }
     }
 }
@@ -326,6 +360,16 @@ pub fn get_user_config_string(key: String) -> Result<Option<String>, String> {
 pub fn delete_user_config(key: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.delete_user_config(&key)
+}
+
+pub fn set_template_table_preview_columns(columns: Vec<String>) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.set_template_table_preview_columns(&columns)
+}
+
+pub fn get_template_table_preview_columns() -> Result<Option<Vec<String>>, String> {
+    let db = ConfigDb::get_instance()?;
+    db.get_template_table_preview_columns()
 }
 
 pub fn set_record_export_preset(name: String, preset: ConfigExportPreset) -> Result<(), String> {
@@ -493,6 +537,7 @@ fn build_config_transfer_preview(
         record_export_presets,
         template_presets,
         document_layouts,
+        template_table_preview_columns: export.template_table_preview_columns.clone(),
     }
 }
 

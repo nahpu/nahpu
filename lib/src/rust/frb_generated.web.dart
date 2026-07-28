@@ -120,6 +120,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DocumentLayoutStatus dco_decode_document_layout_status(dynamic raw);
 
   @protected
+  DocumentSortDirection dco_decode_document_sort_direction(dynamic raw);
+
+  @protected
   DwcHeader dco_decode_dwc_header(dynamic raw);
 
   @protected
@@ -425,6 +428,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DocumentLayoutStatus sse_decode_document_layout_status(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  DocumentSortDirection sse_decode_document_sort_direction(
     SseDeserializer deserializer,
   );
 
@@ -800,6 +808,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_document_layout_status(
     DocumentLayoutStatus self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_document_sort_direction(
+    DocumentSortDirection self,
     SseSerializer serializer,
   );
 

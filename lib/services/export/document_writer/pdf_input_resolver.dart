@@ -39,7 +39,7 @@ class _DocumentPdfInputResolver {
         _DocumentPdfBlockInput(
           block: block,
           template: templates[block.templateName]!,
-          data: data,
+          data: _DocumentRecordSorter.sort(data, block),
         ),
     ];
   }
@@ -61,7 +61,11 @@ class _DocumentPdfInputResolver {
         previewRecords,
       );
       inputs.add(
-        _DocumentPdfBlockInput(block: block, template: template, data: data),
+        _DocumentPdfBlockInput(
+          block: block,
+          template: template,
+          data: _DocumentRecordSorter.sort(data, block),
+        ),
       );
     }
     return inputs;

@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1347270615;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 609251378;
 
 // Section: executor
 
@@ -940,6 +940,38 @@ fn wire__crate__api__config__get_template_preset_usages_impl(
             move |context| {
                 transform_result_sse::<_, String>((move || {
                     let output_ok = crate::api::config::get_template_preset_usages(api_name)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__get_template_table_preview_columns_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_template_table_preview_columns",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::get_template_table_preview_columns()?;
                     Ok(output_ok)
                 })())
             }
@@ -1848,6 +1880,40 @@ fn wire__crate__api__config__set_template_preset_impl(
         },
     )
 }
+fn wire__crate__api__config__set_template_table_preview_columns_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "set_template_table_preview_columns",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_columns = <Vec<String>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok =
+                        crate::api::config::set_template_table_preview_columns(api_columns)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__config__set_user_config_list_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -2607,6 +2673,9 @@ impl SseDecode for crate::api::config::DocumentLayoutBlock {
         let mut var_templatePadRightMm = <f64>::sse_decode(deserializer);
         let mut var_templatePadBottomMm = <f64>::sse_decode(deserializer);
         let mut var_pageBreakAfter = <bool>::sse_decode(deserializer);
+        let mut var_sortField = <Option<String>>::sse_decode(deserializer);
+        let mut var_sortDirection =
+            <crate::api::config::DocumentSortDirection>::sse_decode(deserializer);
         return crate::api::config::DocumentLayoutBlock {
             template_name: var_templateName,
             template_count: var_templateCount,
@@ -2617,6 +2686,8 @@ impl SseDecode for crate::api::config::DocumentLayoutBlock {
             template_pad_right_mm: var_templatePadRightMm,
             template_pad_bottom_mm: var_templatePadBottomMm,
             page_break_after: var_pageBreakAfter,
+            sort_field: var_sortField,
+            sort_direction: var_sortDirection,
         };
     }
 }
@@ -2682,6 +2753,18 @@ impl SseDecode for crate::api::config::DocumentLayoutStatus {
             name: var_name,
             is_compatible: var_isCompatible,
             error: var_error,
+        };
+    }
+}
+
+impl SseDecode for crate::api::config::DocumentSortDirection {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::config::DocumentSortDirection::Ascending,
+            1 => crate::api::config::DocumentSortDirection::Descending,
+            _ => unreachable!("Invalid variant for DocumentSortDirection: {}", inner),
         };
     }
 }
@@ -3258,6 +3341,7 @@ impl SseDecode for crate::api::config::UserConfigSection {
             1 => crate::api::config::UserConfigSection::RecordExportPresets,
             2 => crate::api::config::UserConfigSection::TemplatePresets,
             3 => crate::api::config::UserConfigSection::DocumentLayouts,
+            4 => crate::api::config::UserConfigSection::TemplateTablePreview,
             _ => unreachable!("Invalid variant for UserConfigSection: {}", inner),
         };
     }
@@ -3277,6 +3361,7 @@ impl SseDecode for crate::api::config::UserConfigTransferPreview {
             <Vec<crate::api::config::TemplatePresetPreview>>::sse_decode(deserializer);
         let mut var_documentLayouts =
             <Vec<crate::api::config::DocumentLayoutPreview>>::sse_decode(deserializer);
+        let mut var_templateTablePreviewColumns = <Vec<String>>::sse_decode(deserializer);
         return crate::api::config::UserConfigTransferPreview {
             schema_version: var_schemaVersion,
             included_sections: var_includedSections,
@@ -3284,6 +3369,7 @@ impl SseDecode for crate::api::config::UserConfigTransferPreview {
             record_export_presets: var_recordExportPresets,
             template_presets: var_templatePresets,
             document_layouts: var_documentLayouts,
+            template_table_preview_columns: var_templateTablePreviewColumns,
         };
     }
 }
@@ -3448,122 +3534,134 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        27 => {
+        27 => wire__crate__api__config__get_template_table_preview_columns_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        28 => {
             wire__crate__api__config__get_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        28 => {
+        29 => {
             wire__crate__api__config__get_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        29 => wire__crate__api__archive__gzip_extractor_extract_impl(
+        30 => wire__crate__api__archive__gzip_extractor_extract_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => wire__crate__api__archive__gzip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__archive__gzip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__archive__gzip_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__config__import_config_from_file_impl(
+        31 => wire__crate__api__archive__gzip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__archive__gzip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__archive__gzip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__config__import_config_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        34 => wire__crate__api__gis__import_coordinates_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__config__import_document_layout_from_file_impl(
+        35 => wire__crate__api__gis__import_coordinates_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__config__import_document_layout_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        36 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__config__inspect_config_file_impl(port, ptr, rust_vec_len, data_len),
-        39 => {
+        37 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__config__inspect_config_file_impl(port, ptr, rust_vec_len, data_len),
+        40 => {
             wire__crate__api__config__list_template_presets_impl(port, ptr, rust_vec_len, data_len)
         }
-        40 => wire__crate__api__document__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
-        41 => {
+        41 => wire__crate__api__document__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
+        42 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        42 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        43 => {
+        43 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        44 => {
             wire__crate__api__nahpu_dp__plan_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        44 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        45 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        46 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        46 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        47 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        47 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        48 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        51 => wire__crate__api__config__set_record_export_preset_impl(
+        48 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        50 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        51 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        52 => wire__crate__api__config__set_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        53 => {
+        53 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__config__set_template_table_preview_columns_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        55 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        54 => {
+        56 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        55 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
+        57 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        56 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
+        58 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => {
+        59 => {
             wire__crate__api__archive__tar_gzip_writer_new_impl(port, ptr, rust_vec_len, data_len)
         }
-        58 => {
+        60 => {
             wire__crate__api__archive__tar_gzip_writer_write_impl(port, ptr, rust_vec_len, data_len)
         }
-        59 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        61 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
+        61 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        63 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        62 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        63 => {
+        64 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        65 => {
             wire__crate__api__nahpu_dp__write_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        64 => {
+        66 => {
             wire__crate__api__export__write_tabular_records_impl(port, ptr, rust_vec_len, data_len)
         }
-        65 => {
+        67 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        66 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        67 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        68 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        68 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        69 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        70 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -3815,6 +3913,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::config::DocumentLayoutBlock {
             self.template_pad_right_mm.into_into_dart().into_dart(),
             self.template_pad_bottom_mm.into_into_dart().into_dart(),
             self.page_break_after.into_into_dart().into_dart(),
+            self.sort_field.into_into_dart().into_dart(),
+            self.sort_direction.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -3904,6 +4004,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::config::DocumentLayoutStatus>
     for crate::api::config::DocumentLayoutStatus
 {
     fn into_into_dart(self) -> crate::api::config::DocumentLayoutStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::DocumentSortDirection {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Ascending => 0.into_dart(),
+            Self::Descending => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::DocumentSortDirection
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::DocumentSortDirection>
+    for crate::api::config::DocumentSortDirection
+{
+    fn into_into_dart(self) -> crate::api::config::DocumentSortDirection {
         self
     }
 }
@@ -4192,6 +4313,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::config::UserConfigSection {
             Self::RecordExportPresets => 1.into_dart(),
             Self::TemplatePresets => 2.into_dart(),
             Self::DocumentLayouts => 3.into_dart(),
+            Self::TemplateTablePreview => 4.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -4217,6 +4339,9 @@ impl flutter_rust_bridge::IntoDart for crate::api::config::UserConfigTransferPre
             self.record_export_presets.into_into_dart().into_dart(),
             self.template_presets.into_into_dart().into_dart(),
             self.document_layouts.into_into_dart().into_dart(),
+            self.template_table_preview_columns
+                .into_into_dart()
+                .into_dart(),
         ]
         .into_dart()
     }
@@ -4474,6 +4599,8 @@ impl SseEncode for crate::api::config::DocumentLayoutBlock {
         <f64>::sse_encode(self.template_pad_right_mm, serializer);
         <f64>::sse_encode(self.template_pad_bottom_mm, serializer);
         <bool>::sse_encode(self.page_break_after, serializer);
+        <Option<String>>::sse_encode(self.sort_field, serializer);
+        <crate::api::config::DocumentSortDirection>::sse_encode(self.sort_direction, serializer);
     }
 }
 
@@ -4512,6 +4639,22 @@ impl SseEncode for crate::api::config::DocumentLayoutStatus {
         <String>::sse_encode(self.name, serializer);
         <bool>::sse_encode(self.is_compatible, serializer);
         <Option<String>>::sse_encode(self.error, serializer);
+    }
+}
+
+impl SseEncode for crate::api::config::DocumentSortDirection {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::config::DocumentSortDirection::Ascending => 0,
+                crate::api::config::DocumentSortDirection::Descending => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 
@@ -4946,6 +5089,7 @@ impl SseEncode for crate::api::config::UserConfigSection {
                 crate::api::config::UserConfigSection::RecordExportPresets => 1,
                 crate::api::config::UserConfigSection::TemplatePresets => 2,
                 crate::api::config::UserConfigSection::DocumentLayouts => 3,
+                crate::api::config::UserConfigSection::TemplateTablePreview => 4,
                 _ => {
                     unimplemented!("");
                 }
@@ -4979,6 +5123,7 @@ impl SseEncode for crate::api::config::UserConfigTransferPreview {
             self.document_layouts,
             serializer,
         );
+        <Vec<String>>::sse_encode(self.template_table_preview_columns, serializer);
     }
 }
 

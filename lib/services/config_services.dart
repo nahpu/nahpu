@@ -70,6 +70,30 @@ class ConfigDbService {
       }
     }
 
+    const previewColumnKeys = [
+      'document_print_table_columns',
+      'label_print_table_columns',
+    ];
+    final existingPreviewColumns = await rust_config
+        .getTemplateTablePreviewColumns();
+    if (existingPreviewColumns == null) {
+      final rawColumns =
+          prefs.getString(previewColumnKeys.first) ??
+          prefs.getString(previewColumnKeys.last);
+      if (rawColumns != null && rawColumns.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(rawColumns);
+          if (decoded is List) {
+            await rust_config.setTemplateTablePreviewColumns(
+              columns: decoded.map((value) => value.toString()).toList(),
+            );
+          }
+        } on FormatException {
+          // Ignore corrupt legacy state and let the preview use its defaults.
+        }
+      }
+    }
+
     // Record export presets from SharedPreferences used the unsupported v1
     // schema. They are intentionally not migrated because they lack record
     // type and mapping metadata required for reproducible exports.
@@ -82,6 +106,7 @@ class ConfigDbService {
       ...listKeys,
       ...stringKeys,
       'exportPresets',
+      ...previewColumnKeys,
     ];
 
     for (final key in allDeprecatedKeys) {
@@ -98,10 +123,10 @@ class ConfigDbService {
     // app update can add a new default without overwriting user changes.
     final assetBundle = bundle ?? rootBundle;
 
-    final existingTemplateNames =
-        (await rust_config.listTemplatePresets()).toSet();
-    final suppressedTemplateNames =
-        await const BundledTemplatePresetService().getSuppressedNames();
+    final existingTemplateNames = (await rust_config.listTemplatePresets())
+        .toSet();
+    final suppressedTemplateNames = await const BundledTemplatePresetService()
+        .getSuppressedNames();
     final existingLayoutNames =
         (await const DocumentLayoutService().listLayoutStatuses())
             .map((status) => status.name)
@@ -112,7 +137,8 @@ class ConfigDbService {
       final decoded = jsonDecode(raw);
       if (decoded is! Map) {
         throw FormatException(
-            'Default preset must be a JSON object: $assetPath');
+          'Default preset must be a JSON object: $assetPath',
+        );
       }
       final preset = Map<String, dynamic>.from(decoded);
 

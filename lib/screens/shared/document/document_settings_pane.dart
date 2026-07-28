@@ -16,7 +16,8 @@ import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
-import 'package:nahpu/services/templates/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_field_catalog.dart';
+import 'package:nahpu/services/templates/template_table_preview_settings_service.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
@@ -165,10 +166,7 @@ class _RecordSelectionSummary extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text(label, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 4),
                 Text(
                   '$selectedCount of $totalCount selected',
@@ -209,15 +207,9 @@ class _FileSettingsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'File settings',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('File settings', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 10),
-          FileNameField(
-            controller: exportCtr,
-            onChanged: onFileNameChanged,
-          ),
+          FileNameField(controller: exportCtr, onChanged: onFileNameChanged),
           if (!Platform.isIOS && !Platform.isAndroid) ...[
             const SizedBox(height: 16),
             FileSettingsDirectoryPicker(
@@ -263,9 +255,7 @@ class _ExportActions extends StatelessWidget {
 }
 
 class _SettingsPaneCard extends StatelessWidget {
-  const _SettingsPaneCard({
-    required this.child,
-  });
+  const _SettingsPaneCard({required this.child});
 
   final Widget child;
 
@@ -275,9 +265,7 @@ class _SettingsPaneCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(16),
       ),
       child: child,
@@ -308,6 +296,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
     this.incompatibleSetupNames = const {},
     this.showProfileDropdown = true,
     this.showSpecimenSelection = false,
+    this.showBlockOrderingImmediately = false,
   });
 
   final rust_config.DocumentLayoutPreset layout;
@@ -330,6 +319,7 @@ class DocumentLayoutSection extends ConsumerStatefulWidget {
   final Set<String> incompatibleSetupNames;
   final bool showProfileDropdown;
   final bool showSpecimenSelection;
+  final bool showBlockOrderingImmediately;
 
   @override
   ConsumerState<DocumentLayoutSection> createState() =>
@@ -372,9 +362,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -447,7 +435,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
                   key: ValueKey(
-                      'multi-block-mode-${widget.layout.multiBlockMode}'),
+                    'multi-block-mode-${widget.layout.multiBlockMode}',
+                  ),
                   initialValue: widget.layout.multiBlockMode,
                   isExpanded: true,
                   decoration: const InputDecoration(
@@ -485,8 +474,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                 final idx = entry.key;
                 final block = entry.value;
                 final isExpanded = _expandedBlocks[idx] ?? false;
-                final templateExists =
-                    widget.templateNames.contains(block.templateName);
+                final templateExists = widget.templateNames.contains(
+                  block.templateName,
+                );
                 final selectedTemplateName = block.templateName;
                 final templateNames = [
                   if (!templateExists) block.templateName,
@@ -512,12 +502,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                             children: [
                               Text(
                                 'Block #${idx + 1}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -528,18 +514,22 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                         _expandedBlocks[idx] = !isExpanded;
                                       });
                                     },
-                                    icon: Icon(isExpanded
-                                        ? Icons.expand_less
-                                        : Icons.expand_more),
+                                    icon: Icon(
+                                      isExpanded
+                                          ? Icons.expand_less
+                                          : Icons.expand_more,
+                                    ),
                                     label: Text(
-                                        isExpanded ? 'Show less' : 'Show more'),
+                                      isExpanded ? 'Show less' : 'Show more',
+                                    ),
                                   ),
                                   if (widget.layout.blocks.length > 1)
                                     IconButton(
                                       onPressed: () => _deleteBlock(idx),
                                       icon: const Icon(
-                                          Icons.delete_sweep_outlined,
-                                          color: Colors.red),
+                                        Icons.delete_sweep_outlined,
+                                        color: Colors.red,
+                                      ),
                                       tooltip: 'Delete Block',
                                     ),
                                 ],
@@ -556,7 +546,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                 width: _blockTemplateFieldWidth,
                                 child: DropdownButtonFormField<String>(
                                   key: ValueKey(
-                                      'block-template-$idx-${block.templateName}'),
+                                    'block-template-$idx-${block.templateName}',
+                                  ),
                                   initialValue: selectedTemplateName,
                                   isExpanded: true,
                                   decoration: InputDecoration(
@@ -569,14 +560,15 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   ),
                                   selectedItemBuilder: (context) =>
                                       templateNames
-                                          .map((name) => Text(
-                                                templateExists ||
-                                                        name !=
-                                                            block.templateName
-                                                    ? name
-                                                    : 'Missing: $name',
-                                                overflow: TextOverflow.ellipsis,
-                                              ))
+                                          .map(
+                                            (name) => Text(
+                                              templateExists ||
+                                                      name != block.templateName
+                                                  ? name
+                                                  : 'Missing: $name',
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          )
                                           .toList(),
                                   items: templateNames
                                       .map(
@@ -595,7 +587,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   onChanged: (v) {
                                     if (v != null) {
                                       _updateBlock(
-                                          idx, block.copyWith(templateName: v));
+                                        idx,
+                                        block.copyWith(templateName: v),
+                                      );
                                     }
                                   },
                                 ),
@@ -605,7 +599,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   onPressed: !templateExists
                                       ? null
                                       : () => widget.onEditTemplate!(
-                                          selectedTemplateName),
+                                          selectedTemplateName,
+                                        ),
                                   icon: const Icon(Icons.edit_outlined),
                                   tooltip: 'Edit template',
                                 ),
@@ -618,15 +613,33 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                     idx,
                                     block.copyWith(
                                       templateCount: _parseIntOrCurrent(
-                                          value, block.templateCount),
+                                        value,
+                                        block.templateCount,
+                                      ),
                                     ),
                                   );
                                 },
                               ),
+                              if (widget.showBlockOrderingImmediately)
+                                _BlockOrderControls(
+                                  blockIndex: idx,
+                                  block: block,
+                                  onChanged: (updated) =>
+                                      _updateBlock(idx, updated),
+                                ),
                             ],
                           ),
                           if (isExpanded) ...[
                             const SizedBox(height: 12),
+                            if (!widget.showBlockOrderingImmediately) ...[
+                              _BlockOrderControls(
+                                blockIndex: idx,
+                                block: block,
+                                onChanged: (updated) =>
+                                    _updateBlock(idx, updated),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                             Wrap(
                               spacing: 10,
                               runSpacing: 10,
@@ -642,7 +655,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                           idx,
                                           block.copyWith(
                                             rows: _parseIntOrCurrent(
-                                                value, block.fixedRows),
+                                              value,
+                                              block.fixedRows,
+                                            ),
                                           ),
                                         );
                                       },
@@ -655,7 +670,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                         idx,
                                         block.copyWith(
                                           cols: _parseIntOrCurrent(
-                                              value, block.cols),
+                                            value,
+                                            block.cols,
+                                          ),
                                         ),
                                       );
                                     },
@@ -690,14 +707,16 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                               children: [
                                 NumberField(
                                   label: 'Top',
-                                  initialValue:
-                                      block.templatePadTopMm.toStringAsFixed(1),
+                                  initialValue: block.templatePadTopMm
+                                      .toStringAsFixed(1),
                                   onChanged: (value) {
                                     _updateBlock(
                                       idx,
                                       block.copyWith(
                                         templatePadTopMm: _parseMmOrCurrent(
-                                            value, block.templatePadTopMm),
+                                          value,
+                                          block.templatePadTopMm,
+                                        ),
                                       ),
                                     );
                                   },
@@ -711,7 +730,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       idx,
                                       block.copyWith(
                                         templatePadLeftMm: _parseMmOrCurrent(
-                                            value, block.templatePadLeftMm),
+                                          value,
+                                          block.templatePadLeftMm,
+                                        ),
                                       ),
                                     );
                                   },
@@ -725,7 +746,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       idx,
                                       block.copyWith(
                                         templatePadRightMm: _parseMmOrCurrent(
-                                            value, block.templatePadRightMm),
+                                          value,
+                                          block.templatePadRightMm,
+                                        ),
                                       ),
                                     );
                                   },
@@ -739,7 +762,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       idx,
                                       block.copyWith(
                                         templatePadBottomMm: _parseMmOrCurrent(
-                                            value, block.templatePadBottomMm),
+                                          value,
+                                          block.templatePadBottomMm,
+                                        ),
                                       ),
                                     );
                                   },
@@ -766,14 +791,15 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       onChanged: (v) {
                                         if (v != null) {
                                           _updateBlock(
-                                              idx,
-                                              block.copyWith(
-                                                  pageBreakAfter: v));
+                                            idx,
+                                            block.copyWith(pageBreakAfter: v),
+                                          );
                                         }
                                       },
                                     ),
                                     const Text(
-                                        'Insert page break after this block'),
+                                      'Insert page break after this block',
+                                    ),
                                   ],
                                 ),
                               ],
@@ -786,15 +812,19 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                             Consumer(
                               builder: (context, ref, child) {
                                 final recordTypeAsync = ref.watch(
-                                    templateRecordTypeProvider(
-                                        block.templateName));
+                                  templateRecordTypeProvider(
+                                    block.templateName,
+                                  ),
+                                );
                                 return recordTypeAsync.when(
                                   data: (recordType) {
                                     final param = BlockRecordSelectionParam(
-                                        blockIndex: idx,
-                                        recordType: recordType);
+                                      blockIndex: idx,
+                                      recordType: recordType,
+                                    );
                                     final selectedIds = ref.watch(
-                                        blockRecordSelectionProvider(param));
+                                      blockRecordSelectionProvider(param),
+                                    );
 
                                     int totalCount = 0;
                                     String label = '';
@@ -808,9 +838,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               children: [
                                                 Text(
                                                   'Current Project Selection',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleSmall,
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.titleSmall,
                                                 ),
                                                 const SizedBox(height: 4),
                                                 const Text(
@@ -827,7 +857,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                     }
                                     if (recordType ==
                                         RecordType.specimenRecord) {
-                                      totalCount = ref
+                                      totalCount =
+                                          ref
                                               .watch(specimenEntryProvider)
                                               .value
                                               ?.length ??
@@ -835,14 +866,16 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       label = 'Specimens';
                                     } else if (recordType ==
                                         RecordType.specimenParts) {
-                                      totalCount = ref
+                                      totalCount =
+                                          ref
                                               .watch(specimenPartEntryProvider)
                                               .value
                                               ?.length ??
                                           0;
                                       label = 'Specimen Parts';
                                     } else if (recordType == RecordType.site) {
-                                      totalCount = ref
+                                      totalCount =
+                                          ref
                                               .watch(siteEntryProvider)
                                               .value
                                               ?.length ??
@@ -850,7 +883,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       label = 'Sites';
                                     } else if (recordType ==
                                         RecordType.collEvent) {
-                                      totalCount = ref
+                                      totalCount =
+                                          ref
                                               .watch(collEventEntryProvider)
                                               .value
                                               ?.length ??
@@ -858,7 +892,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       label = 'Collecting Events';
                                     } else if (recordType ==
                                         RecordType.narrative) {
-                                      totalCount = ref
+                                      totalCount =
+                                          ref
                                               .watch(narrativeEntryProvider)
                                               .value
                                               ?.length ??
@@ -874,16 +909,16 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                             children: [
                                               Text(
                                                 '$label Selection',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleSmall,
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.titleSmall,
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
                                                 '${selectedIds.length} of $totalCount selected',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium,
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.bodyMedium,
                                               ),
                                             ],
                                           ),
@@ -921,8 +956,10 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
 
   void _updateBlockAutoFill(int index, bool enabled) {
     final blocks = widget.layout.blocks
-        .map((block) =>
-            widget.layout.fillPage ? block.copyWithAutoFill(true) : block)
+        .map(
+          (block) =>
+              widget.layout.fillPage ? block.copyWithAutoFill(true) : block,
+        )
         .toList();
     blocks[index] = blocks[index].copyWithAutoFill(enabled);
     widget.onLayoutChanged(
@@ -949,38 +986,175 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   }
 
   void _addBlock() {
-    final newBlocks =
-        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
+    final newBlocks = List<rust_config.DocumentLayoutBlock>.from(
+      widget.layout.blocks,
+    );
     final defaultTemplate = widget.templateNames.isNotEmpty
         ? widget.templateNames.first
         : 'Default';
-    newBlocks.add(rust_config.DocumentLayoutBlock(
-      templateName: defaultTemplate,
-      templateCount: 1,
-      rows: 1,
-      cols: 1,
-      templatePadTopMm: 0,
-      templatePadLeftMm: 0,
-      templatePadRightMm: 0,
-      templatePadBottomMm: 0,
-      pageBreakAfter: false,
-    ));
+    newBlocks.add(
+      rust_config.DocumentLayoutBlock(
+        templateName: defaultTemplate,
+        templateCount: 1,
+        rows: 1,
+        cols: 1,
+        templatePadTopMm: 0,
+        templatePadLeftMm: 0,
+        templatePadRightMm: 0,
+        templatePadBottomMm: 0,
+        pageBreakAfter: false,
+        sortField: null,
+        sortDirection: rust_config.DocumentSortDirection.ascending,
+      ),
+    );
     widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
   }
 
   void _updateBlock(int index, rust_config.DocumentLayoutBlock block) {
-    final newBlocks =
-        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
+    final newBlocks = List<rust_config.DocumentLayoutBlock>.from(
+      widget.layout.blocks,
+    );
     newBlocks[index] = block;
     widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
   }
 
   void _deleteBlock(int index) {
     if (widget.layout.blocks.length <= 1) return;
-    final newBlocks =
-        List<rust_config.DocumentLayoutBlock>.from(widget.layout.blocks);
+    final newBlocks = List<rust_config.DocumentLayoutBlock>.from(
+      widget.layout.blocks,
+    );
     newBlocks.removeAt(index);
     widget.onLayoutChanged(widget.layout.copyWith(blocks: newBlocks));
+  }
+}
+
+class _BlockOrderControls extends ConsumerWidget {
+  const _BlockOrderControls({
+    required this.blockIndex,
+    required this.block,
+    required this.onChanged,
+  });
+
+  final int blockIndex;
+  final rust_config.DocumentLayoutBlock block;
+  final ValueChanged<rust_config.DocumentLayoutBlock> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recordTypeAsync = ref.watch(
+      templateRecordTypeProvider(block.templateName),
+    );
+    return recordTypeAsync.when(
+      data: (recordType) {
+        final groups = availableTemplateFieldGroups(
+          ref.watch(databaseProvider),
+          recordType,
+        );
+        final fields = groups.values.expand((values) => values).toList()
+          ..sort(
+            (left, right) => _sortFieldLabel(
+              left,
+            ).toLowerCase().compareTo(_sortFieldLabel(right).toLowerCase()),
+          );
+        final selectedField = block.sortField?.trim() ?? '';
+        if (selectedField.isNotEmpty && !fields.contains(selectedField)) {
+          fields.insert(0, selectedField);
+        }
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _ResponsiveFieldBox(
+              width: 260,
+              child: DropdownButtonFormField<String>(
+                key: ValueKey(
+                  'block-order-field-$blockIndex-${block.templateName}-$selectedField',
+                ),
+                initialValue: selectedField,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Order by',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                items: [
+                  const DropdownMenuItem(
+                    value: '',
+                    child: Text('Original order'),
+                  ),
+                  for (final field in fields)
+                    DropdownMenuItem(
+                      value: field,
+                      child: Text(
+                        fields.contains(field) &&
+                                field == selectedField &&
+                                !groups.values.any(
+                                  (values) => values.contains(field),
+                                )
+                            ? 'Missing: ${_sortFieldLabel(field)}'
+                            : _sortFieldLabel(field),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+                onChanged: (field) {
+                  if (field == null) return;
+                  onChanged(
+                    field.isEmpty
+                        ? block.copyWith(clearSortField: true)
+                        : block.copyWith(sortField: field),
+                  );
+                },
+              ),
+            ),
+            _ResponsiveFieldBox(
+              width: 160,
+              child: DropdownButtonFormField<rust_config.DocumentSortDirection>(
+                key: ValueKey(
+                  'block-order-direction-$blockIndex-${block.sortDirection.name}',
+                ),
+                initialValue: block.sortDirection,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Direction',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: rust_config.DocumentSortDirection.ascending,
+                    child: Text('Ascending'),
+                  ),
+                  DropdownMenuItem(
+                    value: rust_config.DocumentSortDirection.descending,
+                    child: Text('Descending'),
+                  ),
+                ],
+                onChanged: selectedField.isEmpty
+                    ? null
+                    : (direction) {
+                        if (direction != null) {
+                          onChanged(block.copyWith(sortDirection: direction));
+                        }
+                      },
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+      error: (_, _) => const Text('Unable to load ordering fields'),
+    );
+  }
+
+  static String _sortFieldLabel(String field) {
+    final table = field.contains('::') ? field.split('::').first : 'Other';
+    return '${specimenColumnDisplayTitle(field)} ($table)';
   }
 }
 
@@ -1004,10 +1178,7 @@ class _LayoutProfileControls extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Document Layout',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text('Document Layout', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 10),
         SizedBox(
           width: double.infinity,
@@ -1097,10 +1268,7 @@ class _PageSetupControls extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Page Setup',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+            Text('Page Setup', style: Theme.of(context).textTheme.titleSmall),
             TextButton.icon(
               onPressed: onToggleShowMore,
               icon: Icon(showMore ? Icons.expand_less : Icons.expand_more),
@@ -1129,10 +1297,7 @@ class _PageSetupControls extends StatelessWidget {
                     .map(
                       (e) => DropdownMenuItem<String>(
                         value: e.key,
-                        child: Text(
-                          e.value,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: Text(e.value, overflow: TextOverflow.ellipsis),
                       ),
                     )
                     .toList(),
@@ -1143,14 +1308,14 @@ class _PageSetupControls extends StatelessWidget {
               if (layout.pageSizeKey == 'Custom') ...[
                 NumberField(
                   label: 'Width mm',
-                  initialValue:
-                      (layout.customPageWidthMm ?? 210.0).toStringAsFixed(1),
+                  initialValue: (layout.customPageWidthMm ?? 210.0)
+                      .toStringAsFixed(1),
                   onChanged: _setCustomPageWidth,
                 ),
                 NumberField(
                   label: 'Height mm',
-                  initialValue:
-                      (layout.customPageHeightMm ?? 297.0).toStringAsFixed(1),
+                  initialValue: (layout.customPageHeightMm ?? 297.0)
+                      .toStringAsFixed(1),
                   onChanged: _setCustomPageHeight,
                 ),
               ],
@@ -1169,10 +1334,7 @@ class _PageSetupControls extends StatelessWidget {
                       .map(
                         (e) => DropdownMenuItem<String>(
                           value: e.key,
-                          child: Text(
-                            e.value,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child: Text(e.value, overflow: TextOverflow.ellipsis),
                         ),
                       )
                       .toList(),
@@ -1235,8 +1397,10 @@ class _PageSetupControls extends StatelessWidget {
   void _setCustomPageWidth(String value) {
     onLayoutChanged(
       layout.copyWith(
-        customPageWidthMm:
-            parseMmOrCurrent(value, layout.customPageWidthMm ?? 210.0),
+        customPageWidthMm: parseMmOrCurrent(
+          value,
+          layout.customPageWidthMm ?? 210.0,
+        ),
       ),
     );
   }
@@ -1244,8 +1408,10 @@ class _PageSetupControls extends StatelessWidget {
   void _setCustomPageHeight(String value) {
     onLayoutChanged(
       layout.copyWith(
-        customPageHeightMm:
-            parseMmOrCurrent(value, layout.customPageHeightMm ?? 297.0),
+        customPageHeightMm: parseMmOrCurrent(
+          value,
+          layout.customPageHeightMm ?? 297.0,
+        ),
       ),
     );
   }
@@ -1435,9 +1601,7 @@ class _BlockSpecimenSelectionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Select specimens'),
-      ),
+      appBar: AppBar(title: const Text('Select specimens')),
       body: SafeArea(
         child: SpecimenSelectionView(
           selectedUuidList: _selectedIds,
@@ -1451,15 +1615,8 @@ class _BlockSpecimenSelectionScreenState
 
   Future<void> _loadColumns() async {
     final db = ref.read(databaseProvider);
-    final settings = DocumentSettingsServices();
-    final storedCols = await settings.getPrintSpecimenTableColumnIds();
-    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
-    if (visible.isEmpty) {
-      visible = normalizePrintSpecimenTableColumnIds(
-        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-        db,
-      );
-    }
+    final visible = await const TemplateTablePreviewSettingsService()
+        .getColumns(db);
     if (mounted) {
       setState(() {
         _visibleColumnIds = visible;
@@ -1477,6 +1634,8 @@ class _BlockSpecimenSelectionScreenState
   }
 
   Future<void> _pickColumns() async {
+    final db = ref.read(databaseProvider);
+    final order = List<String>.from(_visibleColumnIds);
     List<String>? result;
 
     if (systemPlatform == PlatformType.mobile) {
@@ -1517,8 +1676,11 @@ class _BlockSpecimenSelectionScreenState
     }
 
     if (result != null && mounted) {
+      final columns = await const TemplateTablePreviewSettingsService()
+          .saveColumns(db: db, previousOrder: order, selectedColumns: result);
+      if (!mounted) return;
       setState(() {
-        _visibleColumnIds = result!;
+        _visibleColumnIds = columns;
       });
     }
   }
@@ -1667,10 +1829,7 @@ class NumberField extends StatefulWidget {
 }
 
 class _ResponsiveFieldBox extends StatelessWidget {
-  const _ResponsiveFieldBox({
-    required this.width,
-    required this.child,
-  });
+  const _ResponsiveFieldBox({required this.width, required this.child});
 
   final double width;
   final Widget child;
@@ -1680,22 +1839,17 @@ class _ResponsiveFieldBox extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = constraints.maxWidth;
-        final resolvedWidth =
-            maxWidth.isFinite && maxWidth < width ? maxWidth : width;
-        return SizedBox(
-          width: resolvedWidth,
-          child: child,
-        );
+        final resolvedWidth = maxWidth.isFinite && maxWidth < width
+            ? maxWidth
+            : width;
+        return SizedBox(width: resolvedWidth, child: child);
       },
     );
   }
 }
 
 class _DropdownText extends StatelessWidget {
-  const _DropdownText(
-    this.text, {
-    this.leadingIcon,
-  });
+  const _DropdownText(this.text, {this.leadingIcon});
 
   final String text;
   final Widget? leadingIcon;
@@ -1705,16 +1859,8 @@ class _DropdownText extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (leadingIcon != null) ...[
-          leadingIcon!,
-          const SizedBox(width: 6),
-        ],
-        Flexible(
-          child: Text(
-            text,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+        if (leadingIcon != null) ...[leadingIcon!, const SizedBox(width: 6)],
+        Flexible(child: Text(text, overflow: TextOverflow.ellipsis)),
       ],
     );
   }

@@ -41,6 +41,10 @@ void main() {
           blockCount: 2,
         ),
       ],
+      templateTablePreviewColumns: [
+        'specimen::fieldNumber',
+        'taxonomy::species',
+      ],
     );
 
     await tester.pumpWidget(
@@ -65,5 +69,8 @@ void main() {
     expect(find.text('8 mappings · Specimen records'), findsOneWidget);
     expect(find.text('Specimen label'), findsOneWidget);
     expect(find.text('Letter sheet'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -600));
+    await tester.pumpAndSettle();
+    expect(find.text('specimen::fieldNumber'), findsOneWidget);
   });
 }

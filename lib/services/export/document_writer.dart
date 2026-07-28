@@ -42,6 +42,7 @@ part 'document_writer/layout_record_collector.dart';
 part 'document_writer/template_substitutor.dart';
 part 'document_writer/typst_renderer.dart';
 part 'document_writer/pdf_build_models.dart';
+part 'document_writer/record_sorter.dart';
 part 'document_writer/pdf_layout_metrics.dart';
 part 'document_writer/pdf_input_resolver.dart';
 part 'document_writer/pdf_continuous_planner.dart';

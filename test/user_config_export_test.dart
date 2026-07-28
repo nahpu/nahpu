@@ -37,7 +37,9 @@ void main() {
     const templateName = 'Test Template';
     const presetName = 'Test Preset';
     final configValue = ['Forest', 'Stream', 'Desert'];
+    final previewColumns = ['specimen::fieldNumber', 'taxonomy::species'];
     await rust_config.setUserConfigList(key: configKey, value: configValue);
+    await rust_config.setTemplateTablePreviewColumns(columns: previewColumns);
     await rust_config.setTemplatePreset(
       name: templateName,
       value: '{"name":"Test Template","page1":{},"page2":{}}',
@@ -57,12 +59,14 @@ void main() {
     );
     final exported =
         jsonDecode(File(exportPath).readAsStringSync()) as Map<String, dynamic>;
-    expect(exported['schema_version'], 2);
-    expect(exported['included_sections'], hasLength(4));
+    expect(exported['schema_version'], 3);
+    expect(exported['included_sections'], hasLength(5));
+    expect(exported['template_table_preview_columns'], previewColumns);
 
     await rust_config.setUserConfigList(key: configKey, value: ['Ocean']);
     await rust_config.deleteTemplatePreset(name: templateName);
     await rust_config.deleteRecordExportPreset(name: presetName);
+    await rust_config.setTemplateTablePreviewColumns(columns: ['site::siteID']);
 
     await rust_config.importConfigFromFile(
       filePath: exportPath,
@@ -70,6 +74,7 @@ void main() {
     );
 
     expect(await rust_config.getUserConfigList(key: configKey), configValue);
+    expect(await rust_config.getTemplateTablePreviewColumns(), previewColumns);
     expect(await rust_config.listTemplatePresets(), contains(templateName));
     expect(
       (await rust_config.getAllRecordExportPresets()).any(

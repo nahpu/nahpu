@@ -7,6 +7,7 @@ const userConfigSectionOrder = [
   rust_config.UserConfigSection.recordExportPresets,
   rust_config.UserConfigSection.templatePresets,
   rust_config.UserConfigSection.documentLayouts,
+  rust_config.UserConfigSection.templateTablePreview,
 ];
 
 extension UserConfigSectionDisplay on rust_config.UserConfigSection {
@@ -17,6 +18,8 @@ extension UserConfigSectionDisplay on rust_config.UserConfigSection {
       'Tabular export presets',
     rust_config.UserConfigSection.templatePresets => 'Document templates',
     rust_config.UserConfigSection.documentLayouts => 'Document layout presets',
+    rust_config.UserConfigSection.templateTablePreview =>
+      'Template table preview columns',
   };
 
   IconData get icon => switch (this) {
@@ -26,6 +29,8 @@ extension UserConfigSectionDisplay on rust_config.UserConfigSection {
     rust_config.UserConfigSection.templatePresets => Icons.description_outlined,
     rust_config.UserConfigSection.documentLayouts =>
       Icons.dashboard_customize_outlined,
+    rust_config.UserConfigSection.templateTablePreview =>
+      Icons.view_column_outlined,
   };
 }
 
@@ -188,6 +193,8 @@ class _SectionPreview extends StatelessWidget {
         preview.templatePresets.length,
       rust_config.UserConfigSection.documentLayouts =>
         preview.documentLayouts.length,
+      rust_config.UserConfigSection.templateTablePreview =>
+        preview.templateTablePreviewColumns.length,
     };
     return ExpansionTile(
       initiallyExpanded: true,
@@ -208,7 +215,31 @@ class _SectionPreview extends StatelessWidget {
               _TemplatePresetsPreview(entries: preview.templatePresets),
             rust_config.UserConfigSection.documentLayouts =>
               _DocumentLayoutsPreview(entries: preview.documentLayouts),
+            rust_config.UserConfigSection.templateTablePreview =>
+              _TemplateTablePreviewColumnsPreview(
+                columns: preview.templateTablePreviewColumns,
+              ),
           },
+      ],
+    );
+  }
+}
+
+class _TemplateTablePreviewColumnsPreview extends StatelessWidget {
+  const _TemplateTablePreviewColumnsPreview({required this.columns});
+
+  final List<String> columns;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (final column in columns)
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.table_rows_outlined),
+            title: Text(column),
+          ),
       ],
     );
   }

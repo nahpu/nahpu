@@ -4,9 +4,8 @@ import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
-import 'package:nahpu/services/templates/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_table_preview_settings_service.dart';
 import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -41,9 +40,7 @@ class _TemplatePreviewSpecimenSelectionScreenState
   Widget build(BuildContext context) {
     if (widget.recordType == RecordType.none) {
       return const Scaffold(
-        body: Center(
-          child: Text('No preview records for this type'),
-        ),
+        body: Center(child: Text('No preview records for this type')),
       );
     }
     if (widget.recordType == RecordType.specimenParts) {
@@ -53,8 +50,9 @@ class _TemplatePreviewSpecimenSelectionScreenState
         ),
         body: SafeArea(
           child: SpecimenPartSelectionView(
-            selectedIds:
-                widget.selectedUuid != null ? {widget.selectedUuid!} : const {},
+            selectedIds: widget.selectedUuid != null
+                ? {widget.selectedUuid!}
+                : const {},
             isSingleSelection: true,
             onSelectionChanged: (selected) {
               if (selected.isNotEmpty) Navigator.pop(context, selected.first);
@@ -67,9 +65,9 @@ class _TemplatePreviewSpecimenSelectionScreenState
       return SiteSelectionScreen(
         isSingleSelection: true,
         selectedIds: widget.selectedUuid != null
-            ? {int.tryParse(widget.selectedUuid!) ?? 0}
-                .where((e) => e != 0)
-                .toSet()
+            ? {
+                int.tryParse(widget.selectedUuid!) ?? 0,
+              }.where((e) => e != 0).toSet()
             : const {},
         onSelectionChanged: (selected) {
           if (selected.isNotEmpty) {
@@ -81,9 +79,9 @@ class _TemplatePreviewSpecimenSelectionScreenState
       return EventSelectionScreen(
         isSingleSelection: true,
         selectedIds: widget.selectedUuid != null
-            ? {int.tryParse(widget.selectedUuid!) ?? 0}
-                .where((e) => e != 0)
-                .toSet()
+            ? {
+                int.tryParse(widget.selectedUuid!) ?? 0,
+              }.where((e) => e != 0).toSet()
             : const {},
         onSelectionChanged: (selected) {
           if (selected.isNotEmpty) {
@@ -95,9 +93,9 @@ class _TemplatePreviewSpecimenSelectionScreenState
       return NarrativeSelectionScreen(
         isSingleSelection: true,
         selectedIds: widget.selectedUuid != null
-            ? {int.tryParse(widget.selectedUuid!) ?? 0}
-                .where((e) => e != 0)
-                .toSet()
+            ? {
+                int.tryParse(widget.selectedUuid!) ?? 0,
+              }.where((e) => e != 0).toSet()
             : const {},
         onSelectionChanged: (selected) {
           if (selected.isNotEmpty) {
@@ -108,13 +106,12 @@ class _TemplatePreviewSpecimenSelectionScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Specimen Selection for Preview'),
-      ),
+      appBar: AppBar(title: const Text('Specimen Selection for Preview')),
       body: SafeArea(
         child: SpecimenSelectionView(
-          selectedUuidList:
-              widget.selectedUuid != null ? {widget.selectedUuid!} : const {},
+          selectedUuidList: widget.selectedUuid != null
+              ? {widget.selectedUuid!}
+              : const {},
           visibleColumnIds: _visibleColumnIds,
           isSingleSelection: true,
           onSelectionChanged: (selected) {
@@ -130,15 +127,8 @@ class _TemplatePreviewSpecimenSelectionScreenState
 
   Future<void> _loadColumns() async {
     final db = ref.read(databaseProvider);
-    final settings = DocumentSettingsServices();
-    final storedCols = await settings.getPrintSpecimenTableColumnIds();
-    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
-    if (visible.isEmpty) {
-      visible = normalizePrintSpecimenTableColumnIds(
-        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-        db,
-      );
-    }
+    final visible = await const TemplateTablePreviewSettingsService()
+        .getColumns(db);
     if (mounted) {
       setState(() {
         _visibleColumnIds = visible;
@@ -147,6 +137,8 @@ class _TemplatePreviewSpecimenSelectionScreenState
   }
 
   Future<void> _pickColumns() async {
+    final db = ref.read(databaseProvider);
+    final order = List<String>.from(_visibleColumnIds);
     List<String>? result;
 
     if (systemPlatform == PlatformType.mobile) {
@@ -187,8 +179,11 @@ class _TemplatePreviewSpecimenSelectionScreenState
     }
 
     if (result != null && mounted) {
+      final columns = await const TemplateTablePreviewSettingsService()
+          .saveColumns(db: db, previousOrder: order, selectedColumns: result);
+      if (!mounted) return;
       setState(() {
-        _visibleColumnIds = result!;
+        _visibleColumnIds = columns;
       });
     }
   }

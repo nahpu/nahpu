@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/export/export_document.dart';
 import 'package:nahpu/services/export/document_writer.dart'
     show documentFieldValuesForSpecimen;
 import 'package:nahpu/services/platform_services.dart';
@@ -11,7 +10,7 @@ import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/document_selection.dart';
-import 'package:nahpu/services/templates/template_settings_services.dart';
+import 'package:nahpu/services/templates/template_table_preview_settings_service.dart';
 
 class SpecimenSelectionView extends ConsumerStatefulWidget {
   const SpecimenSelectionView({
@@ -166,8 +165,9 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                       : 'Collection Date',
                 ),
                 onPressed: () => _pickDateRange(true),
-                onDeleted:
-                    _hasCollectionDate ? () => _clearDateFilter(true) : null,
+                onDeleted: _hasCollectionDate
+                    ? () => _clearDateFilter(true)
+                    : null,
                 showCheckmark: false,
                 avatar: const Icon(Icons.calendar_today_outlined, size: 16),
               ),
@@ -254,8 +254,8 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                                               onChanged: (v) {
                                                 final newSelected =
                                                     Set<String>.from(
-                                                  widget.selectedUuidList,
-                                                );
+                                                      widget.selectedUuidList,
+                                                    );
                                                 if (v == true) {
                                                   if (widget
                                                       .isSingleSelection) {
@@ -277,8 +277,8 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                                               ConstrainedBox(
                                                 constraints:
                                                     const BoxConstraints(
-                                                  maxWidth: 200,
-                                                ),
+                                                      maxWidth: 200,
+                                                    ),
                                                 child: Text(
                                                   _cellText(
                                                     _rowValues[s.uuid] ?? {},
@@ -567,15 +567,8 @@ class _SpecimenSelectionScreenState
 
   Future<void> _loadColumns() async {
     final db = ref.read(databaseProvider);
-    final settings = DocumentSettingsServices();
-    final storedCols = await settings.getPrintSpecimenTableColumnIds();
-    var visible = normalizePrintSpecimenTableColumnIds(storedCols, db);
-    if (visible.isEmpty) {
-      visible = normalizePrintSpecimenTableColumnIds(
-        List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-        db,
-      );
-    }
+    final visible = await const TemplateTablePreviewSettingsService()
+        .getColumns(db);
     if (mounted) {
       setState(() {
         _visibleColumnIds = visible;
@@ -585,7 +578,6 @@ class _SpecimenSelectionScreenState
 
   Future<void> _pickColumns() async {
     final db = ref.read(databaseProvider);
-    final settings = DocumentSettingsServices();
     final order = List<String>.from(_visibleColumnIds);
     List<String>? result;
 
@@ -627,18 +619,9 @@ class _SpecimenSelectionScreenState
     }
 
     if (result != null && mounted) {
-      var merged = const ExportDocumentService().mergeColumnOrder(
-        order,
-        result.toSet(),
-      );
-      merged = normalizePrintSpecimenTableColumnIds(merged, db);
-      if (merged.isEmpty) {
-        merged = normalizePrintSpecimenTableColumnIds(
-          List<String>.from(kDefaultPrintSpecimenTableColumnIds),
-          db,
-        );
-      }
-      await settings.setPrintSpecimenTableColumnIds(merged);
+      final merged = await const TemplateTablePreviewSettingsService()
+          .saveColumns(db: db, previousOrder: order, selectedColumns: result);
+      if (!mounted) return;
       setState(() {
         _visibleColumnIds = merged;
       });

@@ -74,11 +74,13 @@ class DocumentLayoutService {
     return await getDefaultLayout(name);
   }
 
-  Future<rust_config.DocumentLayoutPreset> getDefaultLayout(
-      [String name = 'Default']) async {
+  Future<rust_config.DocumentLayoutPreset> getDefaultLayout([
+    String name = 'Default',
+  ]) async {
     final templateNames = await rust_config.listTemplatePresets();
-    final templateName =
-        templateNames.isNotEmpty ? templateNames.first : 'Default';
+    final templateName = templateNames.isNotEmpty
+        ? templateNames.first
+        : 'Default';
 
     return rust_config.DocumentLayoutPreset(
       name: name,
@@ -102,6 +104,8 @@ class DocumentLayoutService {
           templatePadRightMm: 1.0,
           templatePadBottomMm: 1.0,
           pageBreakAfter: false,
+          sortField: null,
+          sortDirection: rust_config.DocumentSortDirection.ascending,
         ),
       ],
       fillPage: false,
@@ -127,6 +131,9 @@ extension DocumentLayoutBlockExtension on rust_config.DocumentLayoutBlock {
     double? templatePadRightMm,
     double? templatePadBottomMm,
     bool? pageBreakAfter,
+    String? sortField,
+    bool clearSortField = false,
+    rust_config.DocumentSortDirection? sortDirection,
   }) {
     return rust_config.DocumentLayoutBlock(
       templateName: templateName ?? this.templateName,
@@ -138,6 +145,8 @@ extension DocumentLayoutBlockExtension on rust_config.DocumentLayoutBlock {
       templatePadRightMm: templatePadRightMm ?? this.templatePadRightMm,
       templatePadBottomMm: templatePadBottomMm ?? this.templatePadBottomMm,
       pageBreakAfter: pageBreakAfter ?? this.pageBreakAfter,
+      sortField: clearSortField ? null : sortField ?? this.sortField,
+      sortDirection: sortDirection ?? this.sortDirection,
     );
   }
 
@@ -182,16 +191,18 @@ extension DocumentLayoutPresetExtension on rust_config.DocumentLayoutPreset {
 
 extension DocumentLayoutBlockJson on rust_config.DocumentLayoutBlock {
   Map<String, dynamic> toJson() => {
-        'templateName': templateName,
-        'templateCount': templateCount,
-        'rows': rows,
-        'cols': cols,
-        'templatePadTopMm': templatePadTopMm,
-        'templatePadLeftMm': templatePadLeftMm,
-        'templatePadRightMm': templatePadRightMm,
-        'templatePadBottomMm': templatePadBottomMm,
-        'pageBreakAfter': pageBreakAfter,
-      };
+    'templateName': templateName,
+    'templateCount': templateCount,
+    'rows': rows,
+    'cols': cols,
+    'templatePadTopMm': templatePadTopMm,
+    'templatePadLeftMm': templatePadLeftMm,
+    'templatePadRightMm': templatePadRightMm,
+    'templatePadBottomMm': templatePadBottomMm,
+    'pageBreakAfter': pageBreakAfter,
+    'sortField': sortField,
+    'sortDirection': sortDirection.name,
+  };
 
   static rust_config.DocumentLayoutBlock fromJson(Map<String, dynamic> json) {
     return rust_config.DocumentLayoutBlock(
@@ -204,26 +215,31 @@ extension DocumentLayoutBlockJson on rust_config.DocumentLayoutBlock {
       templatePadRightMm: (json['templatePadRightMm'] as num).toDouble(),
       templatePadBottomMm: (json['templatePadBottomMm'] as num).toDouble(),
       pageBreakAfter: json['pageBreakAfter'] as bool,
+      sortField: json['sortField'] as String?,
+      sortDirection: rust_config.DocumentSortDirection.values.firstWhere(
+        (direction) => direction.name == json['sortDirection'],
+        orElse: () => rust_config.DocumentSortDirection.ascending,
+      ),
     );
   }
 }
 
 extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'layoutType': layoutType,
-        'pageSizeKey': pageSizeKey,
-        'pageOrientation': pageOrientation,
-        'customPageWidthMm': customPageWidthMm,
-        'customPageHeightMm': customPageHeightMm,
-        'pagePadTopMm': pagePadTopMm,
-        'pagePadLeftMm': pagePadLeftMm,
-        'pagePadRightMm': pagePadRightMm,
-        'pagePadBottomMm': pagePadBottomMm,
-        'blocks': blocks.map((b) => b.toJson()).toList(),
-        'fillPage': fillPage,
-        'multiBlockMode': multiBlockMode,
-      };
+    'name': name,
+    'layoutType': layoutType,
+    'pageSizeKey': pageSizeKey,
+    'pageOrientation': pageOrientation,
+    'customPageWidthMm': customPageWidthMm,
+    'customPageHeightMm': customPageHeightMm,
+    'pagePadTopMm': pagePadTopMm,
+    'pagePadLeftMm': pagePadLeftMm,
+    'pagePadRightMm': pagePadRightMm,
+    'pagePadBottomMm': pagePadBottomMm,
+    'blocks': blocks.map((b) => b.toJson()).toList(),
+    'fillPage': fillPage,
+    'multiBlockMode': multiBlockMode,
+  };
 
   static rust_config.DocumentLayoutPreset fromJson(Map<String, dynamic> json) {
     return rust_config.DocumentLayoutPreset(
@@ -238,8 +254,11 @@ extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
       pagePadRightMm: (json['pagePadRightMm'] as num).toDouble(),
       pagePadBottomMm: (json['pagePadBottomMm'] as num).toDouble(),
       blocks: (json['blocks'] as List)
-          .map((b) => DocumentLayoutBlockJson.fromJson(
-              Map<String, dynamic>.from(b as Map)))
+          .map(
+            (b) => DocumentLayoutBlockJson.fromJson(
+              Map<String, dynamic>.from(b as Map),
+            ),
+          )
           .toList(),
       fillPage: json['fillPage'] as bool? ?? false,
       multiBlockMode: json['multiBlockMode'] as String? ?? 'Continuous',
