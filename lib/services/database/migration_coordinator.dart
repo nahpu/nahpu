@@ -22,6 +22,7 @@ class _MigrationCoordinator {
       11: (m) => _Version12Migration(db).upgrade(m),
       12: (m) => _Version13Migration(db).upgrade(m),
       13: (m) => _Version14Migration(db).upgrade(m),
+      14: (m) => _Version15Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -33,6 +34,136 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version15Migration {
+  const _Version15Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await migrator.addColumn(db.project, db.project.accession);
+    await migrator.addColumn(db.project, db.project.catalogNumberPrefix);
+    await migrator.addColumn(db.project, db.project.catalogNumberSuffix);
+    await migrator.addColumn(db.taxonomy, db.taxonomy.kingdom);
+    await migrator.addColumn(db.taxonomy, db.taxonomy.phylum);
+    final detectionColumns = await _columnNames('parasiteDetection');
+    if (detectionColumns.contains('parasiteRemark') &&
+        !detectionColumns.contains('detectionRemark')) {
+      await migrator.renameColumn(
+        db.parasiteDetection,
+        'parasiteRemark',
+        db.parasiteDetection.detectionRemark,
+      );
+    }
+
+    final parasiteColumns = await _columnNames('parasite');
+    if (!parasiteColumns.contains('parasiteUuid')) {
+      await db.customStatement(
+        'ALTER TABLE parasite ADD COLUMN parasiteUuid TEXT NOT NULL',
+      );
+    }
+    if (!parasiteColumns.contains('parasiteID')) {
+      await migrator.addColumn(db.parasite, db.parasite.parasiteID);
+    }
+    if (!parasiteColumns.contains('identifierID')) {
+      await migrator.addColumn(db.parasite, db.parasite.identifierID);
+    }
+
+    await migrator.createTable(db.eventMedia);
+    await migrator.createTable(db.eventAssociatedData);
+    await migrator.create(db.eventAssociatedDataSameProject);
+    await migrator.createIndex(db.eventAssociatedDataDataIdx);
+    await db.customStatement('''
+      DELETE FROM parasiteDetection
+      WHERE rowid NOT IN (
+        SELECT max(rowid)
+        FROM parasiteDetection
+        GROUP BY specimenUuid
+      )
+    ''');
+    await migrator.createIndex(db.parasiteDetectionSpecimenIdx);
+    await migrator.createIndex(db.parasiteSpecimenIdx);
+    await migrator.createIndex(db.parasiteUuidIdx);
+
+    await _backfillTaxonomy();
+    await _validate();
+  }
+
+  Future<void> _backfillTaxonomy() async {
+    await db.customStatement('''
+      UPDATE taxonomy
+      SET kingdom = 'Animalia'
+      WHERE kingdom IS NULL OR trim(kingdom) = ''
+    ''');
+    await db.customStatement('''
+      UPDATE taxonomy
+      SET phylum = CASE lower(coalesce(taxonClass, ''))
+        WHEN 'insecta' THEN 'Arthropoda'
+        WHEN 'arachnida' THEN 'Arthropoda'
+        WHEN 'chilopoda' THEN 'Arthropoda'
+        WHEN 'diplopoda' THEN 'Arthropoda'
+        WHEN 'gastropoda' THEN 'Mollusca'
+        WHEN 'bivalvia' THEN 'Mollusca'
+        WHEN 'cephalopoda' THEN 'Mollusca'
+        ELSE 'Chordata'
+      END
+      WHERE phylum IS NULL OR trim(phylum) = ''
+    ''');
+    await db.customStatement('''
+      UPDATE taxonomy
+      SET taxonRank = CASE
+        WHEN coalesce(trim(subspecificEpithet), '') != '' THEN 'subspecies'
+        WHEN coalesce(trim(specificEpithet), '') != '' THEN 'species'
+        WHEN coalesce(trim(genus), '') != '' THEN 'genus'
+        WHEN coalesce(trim(taxonFamily), '') != '' THEN 'family'
+        WHEN coalesce(trim(taxonOrder), '') != '' THEN 'order'
+        ELSE 'class'
+      END
+      WHERE taxonRank IS NULL OR trim(taxonRank) = ''
+    ''');
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
+  }
+
+  Future<void> _validate() async {
+    for (final table in const ['eventMedia', 'eventAssociatedData']) {
+      await db._requireTable(table);
+    }
+    final parasiteColumns = await db
+        .customSelect('PRAGMA table_info(parasite)', readsFrom: const {})
+        .get();
+    final parasiteColumnNames = parasiteColumns
+        .map((row) => row.read<String>('name'))
+        .toSet();
+    if (!parasiteColumnNames.containsAll({
+      'parasiteID',
+      'parasiteUuid',
+      'identifierID',
+    })) {
+      throw StateError('Database migration did not add parasite identifiers.');
+    }
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v15 migration.');
     }
   }
 }

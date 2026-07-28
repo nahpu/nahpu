@@ -1,9 +1,9 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'narrative_queries.dart';
+part of 'parasite_queries.dart';
 
 // ignore_for_file: type=lint
-mixin _$NarrativeQueryMixin on DatabaseAccessor<Database> {
+mixin _$ParasiteQueryMixin on DatabaseAccessor<Database> {
   Project get project => attachedDatabase.project;
   Personnel get personnel => attachedDatabase.personnel;
   Media get media => attachedDatabase.media;
@@ -41,12 +41,12 @@ mixin _$NarrativeQueryMixin on DatabaseAccessor<Database> {
   CustomFieldDefinition get customFieldDefinition =>
       attachedDatabase.customFieldDefinition;
   CustomFieldValue get customFieldValue => attachedDatabase.customFieldValue;
-  NarrativeQueryManager get managers => NarrativeQueryManager(this);
+  ParasiteQueryManager get managers => ParasiteQueryManager(this);
 }
 
-class NarrativeQueryManager {
-  final _$NarrativeQueryMixin _db;
-  NarrativeQueryManager(this._db);
+class ParasiteQueryManager {
+  final _$ParasiteQueryMixin _db;
+  ParasiteQueryManager(this._db);
   $ProjectTableManager get project =>
       $ProjectTableManager(_db.attachedDatabase, _db.project);
   $PersonnelTableManager get personnel =>

@@ -17,6 +17,39 @@ class Project extends Table with TableInfo<Project, ProjectData> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL PRIMARY KEY',
   );
+  static const VerificationMeta _accessionMeta = const VerificationMeta(
+    'accession',
+  );
+  late final GeneratedColumn<String> accession = GeneratedColumn<String>(
+    'accession',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _catalogNumberPrefixMeta =
+      const VerificationMeta('catalogNumberPrefix');
+  late final GeneratedColumn<String> catalogNumberPrefix =
+      GeneratedColumn<String>(
+        'catalogNumberPrefix',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _catalogNumberSuffixMeta =
+      const VerificationMeta('catalogNumberSuffix');
+  late final GeneratedColumn<String> catalogNumberSuffix =
+      GeneratedColumn<String>(
+        'catalogNumberSuffix',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
@@ -117,6 +150,9 @@ class Project extends Table with TableInfo<Project, ProjectData> {
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
+    accession,
+    catalogNumberPrefix,
+    catalogNumberSuffix,
     name,
     description,
     principalInvestigator,
@@ -146,6 +182,30 @@ class Project extends Table with TableInfo<Project, ProjectData> {
       );
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('accession')) {
+      context.handle(
+        _accessionMeta,
+        accession.isAcceptableOrUnknown(data['accession']!, _accessionMeta),
+      );
+    }
+    if (data.containsKey('catalogNumberPrefix')) {
+      context.handle(
+        _catalogNumberPrefixMeta,
+        catalogNumberPrefix.isAcceptableOrUnknown(
+          data['catalogNumberPrefix']!,
+          _catalogNumberPrefixMeta,
+        ),
+      );
+    }
+    if (data.containsKey('catalogNumberSuffix')) {
+      context.handle(
+        _catalogNumberSuffixMeta,
+        catalogNumberSuffix.isAcceptableOrUnknown(
+          data['catalogNumberSuffix']!,
+          _catalogNumberSuffixMeta,
+        ),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -225,6 +285,18 @@ class Project extends Table with TableInfo<Project, ProjectData> {
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
       )!,
+      accession: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}accession'],
+      ),
+      catalogNumberPrefix: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalogNumberPrefix'],
+      ),
+      catalogNumberSuffix: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalogNumberSuffix'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -275,6 +347,9 @@ class Project extends Table with TableInfo<Project, ProjectData> {
 
 class ProjectData extends DataClass implements Insertable<ProjectData> {
   final String uuid;
+  final String? accession;
+  final String? catalogNumberPrefix;
+  final String? catalogNumberSuffix;
   final String name;
   final String? description;
   final String? principalInvestigator;
@@ -286,6 +361,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   final String? lastAccessed;
   const ProjectData({
     required this.uuid,
+    this.accession,
+    this.catalogNumberPrefix,
+    this.catalogNumberSuffix,
     required this.name,
     this.description,
     this.principalInvestigator,
@@ -300,6 +378,15 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || accession != null) {
+      map['accession'] = Variable<String>(accession);
+    }
+    if (!nullToAbsent || catalogNumberPrefix != null) {
+      map['catalogNumberPrefix'] = Variable<String>(catalogNumberPrefix);
+    }
+    if (!nullToAbsent || catalogNumberSuffix != null) {
+      map['catalogNumberSuffix'] = Variable<String>(catalogNumberSuffix);
+    }
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
@@ -331,6 +418,15 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   ProjectCompanion toCompanion(bool nullToAbsent) {
     return ProjectCompanion(
       uuid: Value(uuid),
+      accession: accession == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accession),
+      catalogNumberPrefix: catalogNumberPrefix == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogNumberPrefix),
+      catalogNumberSuffix: catalogNumberSuffix == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogNumberSuffix),
       name: Value(name),
       description: description == null && nullToAbsent
           ? const Value.absent()
@@ -366,6 +462,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ProjectData(
       uuid: serializer.fromJson<String>(json['uuid']),
+      accession: serializer.fromJson<String?>(json['accession']),
+      catalogNumberPrefix: serializer.fromJson<String?>(
+        json['catalogNumberPrefix'],
+      ),
+      catalogNumberSuffix: serializer.fromJson<String?>(
+        json['catalogNumberSuffix'],
+      ),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
       principalInvestigator: serializer.fromJson<String?>(
@@ -384,6 +487,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
+      'accession': serializer.toJson<String?>(accession),
+      'catalogNumberPrefix': serializer.toJson<String?>(catalogNumberPrefix),
+      'catalogNumberSuffix': serializer.toJson<String?>(catalogNumberSuffix),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
       'principalInvestigator': serializer.toJson<String?>(
@@ -400,6 +506,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
 
   ProjectData copyWith({
     String? uuid,
+    Value<String?> accession = const Value.absent(),
+    Value<String?> catalogNumberPrefix = const Value.absent(),
+    Value<String?> catalogNumberSuffix = const Value.absent(),
     String? name,
     Value<String?> description = const Value.absent(),
     Value<String?> principalInvestigator = const Value.absent(),
@@ -411,6 +520,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     Value<String?> lastAccessed = const Value.absent(),
   }) => ProjectData(
     uuid: uuid ?? this.uuid,
+    accession: accession.present ? accession.value : this.accession,
+    catalogNumberPrefix: catalogNumberPrefix.present
+        ? catalogNumberPrefix.value
+        : this.catalogNumberPrefix,
+    catalogNumberSuffix: catalogNumberSuffix.present
+        ? catalogNumberSuffix.value
+        : this.catalogNumberSuffix,
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
     principalInvestigator: principalInvestigator.present
@@ -426,6 +542,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   ProjectData copyWithCompanion(ProjectCompanion data) {
     return ProjectData(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      accession: data.accession.present ? data.accession.value : this.accession,
+      catalogNumberPrefix: data.catalogNumberPrefix.present
+          ? data.catalogNumberPrefix.value
+          : this.catalogNumberPrefix,
+      catalogNumberSuffix: data.catalogNumberSuffix.present
+          ? data.catalogNumberSuffix.value
+          : this.catalogNumberSuffix,
       name: data.name.present ? data.name.value : this.name,
       description: data.description.present
           ? data.description.value
@@ -448,6 +571,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   String toString() {
     return (StringBuffer('ProjectData(')
           ..write('uuid: $uuid, ')
+          ..write('accession: $accession, ')
+          ..write('catalogNumberPrefix: $catalogNumberPrefix, ')
+          ..write('catalogNumberSuffix: $catalogNumberSuffix, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('principalInvestigator: $principalInvestigator, ')
@@ -464,6 +590,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   @override
   int get hashCode => Object.hash(
     uuid,
+    accession,
+    catalogNumberPrefix,
+    catalogNumberSuffix,
     name,
     description,
     principalInvestigator,
@@ -479,6 +608,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       identical(this, other) ||
       (other is ProjectData &&
           other.uuid == this.uuid &&
+          other.accession == this.accession &&
+          other.catalogNumberPrefix == this.catalogNumberPrefix &&
+          other.catalogNumberSuffix == this.catalogNumberSuffix &&
           other.name == this.name &&
           other.description == this.description &&
           other.principalInvestigator == this.principalInvestigator &&
@@ -492,6 +624,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
 
 class ProjectCompanion extends UpdateCompanion<ProjectData> {
   final Value<String> uuid;
+  final Value<String?> accession;
+  final Value<String?> catalogNumberPrefix;
+  final Value<String?> catalogNumberSuffix;
   final Value<String> name;
   final Value<String?> description;
   final Value<String?> principalInvestigator;
@@ -504,6 +639,9 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   final Value<int> rowid;
   const ProjectCompanion({
     this.uuid = const Value.absent(),
+    this.accession = const Value.absent(),
+    this.catalogNumberPrefix = const Value.absent(),
+    this.catalogNumberSuffix = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
     this.principalInvestigator = const Value.absent(),
@@ -517,6 +655,9 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   });
   ProjectCompanion.insert({
     required String uuid,
+    this.accession = const Value.absent(),
+    this.catalogNumberPrefix = const Value.absent(),
+    this.catalogNumberSuffix = const Value.absent(),
     required String name,
     this.description = const Value.absent(),
     this.principalInvestigator = const Value.absent(),
@@ -531,6 +672,9 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
        name = Value(name);
   static Insertable<ProjectData> custom({
     Expression<String>? uuid,
+    Expression<String>? accession,
+    Expression<String>? catalogNumberPrefix,
+    Expression<String>? catalogNumberSuffix,
     Expression<String>? name,
     Expression<String>? description,
     Expression<String>? principalInvestigator,
@@ -544,6 +688,11 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
+      if (accession != null) 'accession': accession,
+      if (catalogNumberPrefix != null)
+        'catalogNumberPrefix': catalogNumberPrefix,
+      if (catalogNumberSuffix != null)
+        'catalogNumberSuffix': catalogNumberSuffix,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
       if (principalInvestigator != null)
@@ -560,6 +709,9 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
 
   ProjectCompanion copyWith({
     Value<String>? uuid,
+    Value<String?>? accession,
+    Value<String?>? catalogNumberPrefix,
+    Value<String?>? catalogNumberSuffix,
     Value<String>? name,
     Value<String?>? description,
     Value<String?>? principalInvestigator,
@@ -573,6 +725,9 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   }) {
     return ProjectCompanion(
       uuid: uuid ?? this.uuid,
+      accession: accession ?? this.accession,
+      catalogNumberPrefix: catalogNumberPrefix ?? this.catalogNumberPrefix,
+      catalogNumberSuffix: catalogNumberSuffix ?? this.catalogNumberSuffix,
       name: name ?? this.name,
       description: description ?? this.description,
       principalInvestigator:
@@ -592,6 +747,15 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
     final map = <String, Expression>{};
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (accession.present) {
+      map['accession'] = Variable<String>(accession.value);
+    }
+    if (catalogNumberPrefix.present) {
+      map['catalogNumberPrefix'] = Variable<String>(catalogNumberPrefix.value);
+    }
+    if (catalogNumberSuffix.present) {
+      map['catalogNumberSuffix'] = Variable<String>(catalogNumberSuffix.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -632,6 +796,9 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   String toString() {
     return (StringBuffer('ProjectCompanion(')
           ..write('uuid: $uuid, ')
+          ..write('accession: $accession, ')
+          ..write('catalogNumberPrefix: $catalogNumberPrefix, ')
+          ..write('catalogNumberSuffix: $catalogNumberSuffix, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('principalInvestigator: $principalInvestigator, ')
@@ -7874,6 +8041,234 @@ class SiteMediaCompanion extends UpdateCompanion<SiteMediaData> {
   }
 }
 
+class EventMedia extends Table with TableInfo<EventMedia, EventMediaData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  EventMedia(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _eventIDMeta = const VerificationMeta(
+    'eventID',
+  );
+  late final GeneratedColumn<int> eventID = GeneratedColumn<int>(
+    'eventID',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _mediaIdMeta = const VerificationMeta(
+    'mediaId',
+  );
+  late final GeneratedColumn<int> mediaId = GeneratedColumn<int>(
+    'mediaId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [eventID, mediaId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'eventMedia';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EventMediaData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('eventID')) {
+      context.handle(
+        _eventIDMeta,
+        eventID.isAcceptableOrUnknown(data['eventID']!, _eventIDMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIDMeta);
+    }
+    if (data.containsKey('mediaId')) {
+      context.handle(
+        _mediaIdMeta,
+        mediaId.isAcceptableOrUnknown(data['mediaId']!, _mediaIdMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  EventMediaData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EventMediaData(
+      eventID: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}eventID'],
+      )!,
+      mediaId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}mediaId'],
+      ),
+    );
+  }
+
+  @override
+  EventMedia createAlias(String alias) {
+    return EventMedia(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(eventID)REFERENCES collEvent(id)',
+    'FOREIGN KEY(mediaId)REFERENCES media(primaryId)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class EventMediaData extends DataClass implements Insertable<EventMediaData> {
+  final int eventID;
+  final int? mediaId;
+  const EventMediaData({required this.eventID, this.mediaId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['eventID'] = Variable<int>(eventID);
+    if (!nullToAbsent || mediaId != null) {
+      map['mediaId'] = Variable<int>(mediaId);
+    }
+    return map;
+  }
+
+  EventMediaCompanion toCompanion(bool nullToAbsent) {
+    return EventMediaCompanion(
+      eventID: Value(eventID),
+      mediaId: mediaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaId),
+    );
+  }
+
+  factory EventMediaData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EventMediaData(
+      eventID: serializer.fromJson<int>(json['eventID']),
+      mediaId: serializer.fromJson<int?>(json['mediaId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'eventID': serializer.toJson<int>(eventID),
+      'mediaId': serializer.toJson<int?>(mediaId),
+    };
+  }
+
+  EventMediaData copyWith({
+    int? eventID,
+    Value<int?> mediaId = const Value.absent(),
+  }) => EventMediaData(
+    eventID: eventID ?? this.eventID,
+    mediaId: mediaId.present ? mediaId.value : this.mediaId,
+  );
+  EventMediaData copyWithCompanion(EventMediaCompanion data) {
+    return EventMediaData(
+      eventID: data.eventID.present ? data.eventID.value : this.eventID,
+      mediaId: data.mediaId.present ? data.mediaId.value : this.mediaId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventMediaData(')
+          ..write('eventID: $eventID, ')
+          ..write('mediaId: $mediaId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(eventID, mediaId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EventMediaData &&
+          other.eventID == this.eventID &&
+          other.mediaId == this.mediaId);
+}
+
+class EventMediaCompanion extends UpdateCompanion<EventMediaData> {
+  final Value<int> eventID;
+  final Value<int?> mediaId;
+  final Value<int> rowid;
+  const EventMediaCompanion({
+    this.eventID = const Value.absent(),
+    this.mediaId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EventMediaCompanion.insert({
+    required int eventID,
+    this.mediaId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : eventID = Value(eventID);
+  static Insertable<EventMediaData> custom({
+    Expression<int>? eventID,
+    Expression<int>? mediaId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (eventID != null) 'eventID': eventID,
+      if (mediaId != null) 'mediaId': mediaId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EventMediaCompanion copyWith({
+    Value<int>? eventID,
+    Value<int?>? mediaId,
+    Value<int>? rowid,
+  }) {
+    return EventMediaCompanion(
+      eventID: eventID ?? this.eventID,
+      mediaId: mediaId ?? this.mediaId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (eventID.present) {
+      map['eventID'] = Variable<int>(eventID.value);
+    }
+    if (mediaId.present) {
+      map['mediaId'] = Variable<int>(mediaId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventMediaCompanion(')
+          ..write('eventID: $eventID, ')
+          ..write('mediaId: $mediaId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class Taxonomy extends Table with TableInfo<Taxonomy, TaxonomyData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -7894,6 +8289,26 @@ class Taxonomy extends Table with TableInfo<Taxonomy, TaxonomyData> {
   );
   late final GeneratedColumn<String> taxonRank = GeneratedColumn<String>(
     'taxonRank',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _kingdomMeta = const VerificationMeta(
+    'kingdom',
+  );
+  late final GeneratedColumn<String> kingdom = GeneratedColumn<String>(
+    'kingdom',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _phylumMeta = const VerificationMeta('phylum');
+  late final GeneratedColumn<String> phylum = GeneratedColumn<String>(
+    'phylum',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -8054,6 +8469,8 @@ class Taxonomy extends Table with TableInfo<Taxonomy, TaxonomyData> {
   List<GeneratedColumn> get $columns => [
     id,
     taxonRank,
+    kingdom,
+    phylum,
     taxonClass,
     taxonOrder,
     taxonFamily,
@@ -8088,6 +8505,18 @@ class Taxonomy extends Table with TableInfo<Taxonomy, TaxonomyData> {
       context.handle(
         _taxonRankMeta,
         taxonRank.isAcceptableOrUnknown(data['taxonRank']!, _taxonRankMeta),
+      );
+    }
+    if (data.containsKey('kingdom')) {
+      context.handle(
+        _kingdomMeta,
+        kingdom.isAcceptableOrUnknown(data['kingdom']!, _kingdomMeta),
+      );
+    }
+    if (data.containsKey('phylum')) {
+      context.handle(
+        _phylumMeta,
+        phylum.isAcceptableOrUnknown(data['phylum']!, _phylumMeta),
       );
     }
     if (data.containsKey('taxonClass')) {
@@ -8212,6 +8641,14 @@ class Taxonomy extends Table with TableInfo<Taxonomy, TaxonomyData> {
         DriftSqlType.string,
         data['${effectivePrefix}taxonRank'],
       ),
+      kingdom: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kingdom'],
+      ),
+      phylum: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phylum'],
+      ),
       taxonClass: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}taxonClass'],
@@ -8287,6 +8724,8 @@ class Taxonomy extends Table with TableInfo<Taxonomy, TaxonomyData> {
 class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
   final int id;
   final String? taxonRank;
+  final String? kingdom;
+  final String? phylum;
   final String? taxonClass;
   final String? taxonOrder;
   final String? taxonFamily;
@@ -8304,6 +8743,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
   const TaxonomyData({
     required this.id,
     this.taxonRank,
+    this.kingdom,
+    this.phylum,
     this.taxonClass,
     this.taxonOrder,
     this.taxonFamily,
@@ -8325,6 +8766,12 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
     map['id'] = Variable<int>(id);
     if (!nullToAbsent || taxonRank != null) {
       map['taxonRank'] = Variable<String>(taxonRank);
+    }
+    if (!nullToAbsent || kingdom != null) {
+      map['kingdom'] = Variable<String>(kingdom);
+    }
+    if (!nullToAbsent || phylum != null) {
+      map['phylum'] = Variable<String>(phylum);
     }
     if (!nullToAbsent || taxonClass != null) {
       map['taxonClass'] = Variable<String>(taxonClass);
@@ -8377,6 +8824,12 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
       taxonRank: taxonRank == null && nullToAbsent
           ? const Value.absent()
           : Value(taxonRank),
+      kingdom: kingdom == null && nullToAbsent
+          ? const Value.absent()
+          : Value(kingdom),
+      phylum: phylum == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phylum),
       taxonClass: taxonClass == null && nullToAbsent
           ? const Value.absent()
           : Value(taxonClass),
@@ -8430,6 +8883,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
     return TaxonomyData(
       id: serializer.fromJson<int>(json['id']),
       taxonRank: serializer.fromJson<String?>(json['taxonRank']),
+      kingdom: serializer.fromJson<String?>(json['kingdom']),
+      phylum: serializer.fromJson<String?>(json['phylum']),
       taxonClass: serializer.fromJson<String?>(json['taxonClass']),
       taxonOrder: serializer.fromJson<String?>(json['taxonOrder']),
       taxonFamily: serializer.fromJson<String?>(json['taxonFamily']),
@@ -8454,6 +8909,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'taxonRank': serializer.toJson<String?>(taxonRank),
+      'kingdom': serializer.toJson<String?>(kingdom),
+      'phylum': serializer.toJson<String?>(phylum),
       'taxonClass': serializer.toJson<String?>(taxonClass),
       'taxonOrder': serializer.toJson<String?>(taxonOrder),
       'taxonFamily': serializer.toJson<String?>(taxonFamily),
@@ -8474,6 +8931,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
   TaxonomyData copyWith({
     int? id,
     Value<String?> taxonRank = const Value.absent(),
+    Value<String?> kingdom = const Value.absent(),
+    Value<String?> phylum = const Value.absent(),
     Value<String?> taxonClass = const Value.absent(),
     Value<String?> taxonOrder = const Value.absent(),
     Value<String?> taxonFamily = const Value.absent(),
@@ -8491,6 +8950,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
   }) => TaxonomyData(
     id: id ?? this.id,
     taxonRank: taxonRank.present ? taxonRank.value : this.taxonRank,
+    kingdom: kingdom.present ? kingdom.value : this.kingdom,
+    phylum: phylum.present ? phylum.value : this.phylum,
     taxonClass: taxonClass.present ? taxonClass.value : this.taxonClass,
     taxonOrder: taxonOrder.present ? taxonOrder.value : this.taxonOrder,
     taxonFamily: taxonFamily.present ? taxonFamily.value : this.taxonFamily,
@@ -8518,6 +8979,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
     return TaxonomyData(
       id: data.id.present ? data.id.value : this.id,
       taxonRank: data.taxonRank.present ? data.taxonRank.value : this.taxonRank,
+      kingdom: data.kingdom.present ? data.kingdom.value : this.kingdom,
+      phylum: data.phylum.present ? data.phylum.value : this.phylum,
       taxonClass: data.taxonClass.present
           ? data.taxonClass.value
           : this.taxonClass,
@@ -8560,6 +9023,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
     return (StringBuffer('TaxonomyData(')
           ..write('id: $id, ')
           ..write('taxonRank: $taxonRank, ')
+          ..write('kingdom: $kingdom, ')
+          ..write('phylum: $phylum, ')
           ..write('taxonClass: $taxonClass, ')
           ..write('taxonOrder: $taxonOrder, ')
           ..write('taxonFamily: $taxonFamily, ')
@@ -8582,6 +9047,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
   int get hashCode => Object.hash(
     id,
     taxonRank,
+    kingdom,
+    phylum,
     taxonClass,
     taxonOrder,
     taxonFamily,
@@ -8603,6 +9070,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
       (other is TaxonomyData &&
           other.id == this.id &&
           other.taxonRank == this.taxonRank &&
+          other.kingdom == this.kingdom &&
+          other.phylum == this.phylum &&
           other.taxonClass == this.taxonClass &&
           other.taxonOrder == this.taxonOrder &&
           other.taxonFamily == this.taxonFamily &&
@@ -8622,6 +9091,8 @@ class TaxonomyData extends DataClass implements Insertable<TaxonomyData> {
 class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
   final Value<int> id;
   final Value<String?> taxonRank;
+  final Value<String?> kingdom;
+  final Value<String?> phylum;
   final Value<String?> taxonClass;
   final Value<String?> taxonOrder;
   final Value<String?> taxonFamily;
@@ -8639,6 +9110,8 @@ class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
   const TaxonomyCompanion({
     this.id = const Value.absent(),
     this.taxonRank = const Value.absent(),
+    this.kingdom = const Value.absent(),
+    this.phylum = const Value.absent(),
     this.taxonClass = const Value.absent(),
     this.taxonOrder = const Value.absent(),
     this.taxonFamily = const Value.absent(),
@@ -8657,6 +9130,8 @@ class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
   TaxonomyCompanion.insert({
     this.id = const Value.absent(),
     this.taxonRank = const Value.absent(),
+    this.kingdom = const Value.absent(),
+    this.phylum = const Value.absent(),
     this.taxonClass = const Value.absent(),
     this.taxonOrder = const Value.absent(),
     this.taxonFamily = const Value.absent(),
@@ -8675,6 +9150,8 @@ class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
   static Insertable<TaxonomyData> custom({
     Expression<int>? id,
     Expression<String>? taxonRank,
+    Expression<String>? kingdom,
+    Expression<String>? phylum,
     Expression<String>? taxonClass,
     Expression<String>? taxonOrder,
     Expression<String>? taxonFamily,
@@ -8693,6 +9170,8 @@ class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (taxonRank != null) 'taxonRank': taxonRank,
+      if (kingdom != null) 'kingdom': kingdom,
+      if (phylum != null) 'phylum': phylum,
       if (taxonClass != null) 'taxonClass': taxonClass,
       if (taxonOrder != null) 'taxonOrder': taxonOrder,
       if (taxonFamily != null) 'taxonFamily': taxonFamily,
@@ -8713,6 +9192,8 @@ class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
   TaxonomyCompanion copyWith({
     Value<int>? id,
     Value<String?>? taxonRank,
+    Value<String?>? kingdom,
+    Value<String?>? phylum,
     Value<String?>? taxonClass,
     Value<String?>? taxonOrder,
     Value<String?>? taxonFamily,
@@ -8731,6 +9212,8 @@ class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
     return TaxonomyCompanion(
       id: id ?? this.id,
       taxonRank: taxonRank ?? this.taxonRank,
+      kingdom: kingdom ?? this.kingdom,
+      phylum: phylum ?? this.phylum,
       taxonClass: taxonClass ?? this.taxonClass,
       taxonOrder: taxonOrder ?? this.taxonOrder,
       taxonFamily: taxonFamily ?? this.taxonFamily,
@@ -8756,6 +9239,12 @@ class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
     }
     if (taxonRank.present) {
       map['taxonRank'] = Variable<String>(taxonRank.value);
+    }
+    if (kingdom.present) {
+      map['kingdom'] = Variable<String>(kingdom.value);
+    }
+    if (phylum.present) {
+      map['phylum'] = Variable<String>(phylum.value);
     }
     if (taxonClass.present) {
       map['taxonClass'] = Variable<String>(taxonClass.value);
@@ -8807,6 +9296,8 @@ class TaxonomyCompanion extends UpdateCompanion<TaxonomyData> {
     return (StringBuffer('TaxonomyCompanion(')
           ..write('id: $id, ')
           ..write('taxonRank: $taxonRank, ')
+          ..write('kingdom: $kingdom, ')
+          ..write('phylum: $phylum, ')
           ..write('taxonClass: $taxonClass, ')
           ..write('taxonOrder: $taxonOrder, ')
           ..write('taxonFamily: $taxonFamily, ')
@@ -11625,6 +12116,246 @@ class SiteAssociatedDataCompanion
   String toString() {
     return (StringBuffer('SiteAssociatedDataCompanion(')
           ..write('siteId: $siteId, ')
+          ..write('associatedDataId: $associatedDataId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class EventAssociatedData extends Table
+    with TableInfo<EventAssociatedData, EventAssociatedDataData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  EventAssociatedData(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _eventIDMeta = const VerificationMeta(
+    'eventID',
+  );
+  late final GeneratedColumn<int> eventID = GeneratedColumn<int>(
+    'eventID',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _associatedDataIdMeta = const VerificationMeta(
+    'associatedDataId',
+  );
+  late final GeneratedColumn<int> associatedDataId = GeneratedColumn<int>(
+    'associatedDataId',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [eventID, associatedDataId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'eventAssociatedData';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EventAssociatedDataData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('eventID')) {
+      context.handle(
+        _eventIDMeta,
+        eventID.isAcceptableOrUnknown(data['eventID']!, _eventIDMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIDMeta);
+    }
+    if (data.containsKey('associatedDataId')) {
+      context.handle(
+        _associatedDataIdMeta,
+        associatedDataId.isAcceptableOrUnknown(
+          data['associatedDataId']!,
+          _associatedDataIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_associatedDataIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {eventID, associatedDataId};
+  @override
+  EventAssociatedDataData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EventAssociatedDataData(
+      eventID: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}eventID'],
+      )!,
+      associatedDataId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}associatedDataId'],
+      )!,
+    );
+  }
+
+  @override
+  EventAssociatedData createAlias(String alias) {
+    return EventAssociatedData(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(eventID, associatedDataId)',
+    'FOREIGN KEY(eventID)REFERENCES collEvent(id)ON DELETE CASCADE',
+    'FOREIGN KEY(associatedDataId)REFERENCES associatedData(primaryId)ON DELETE CASCADE',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class EventAssociatedDataData extends DataClass
+    implements Insertable<EventAssociatedDataData> {
+  final int eventID;
+  final int associatedDataId;
+  const EventAssociatedDataData({
+    required this.eventID,
+    required this.associatedDataId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['eventID'] = Variable<int>(eventID);
+    map['associatedDataId'] = Variable<int>(associatedDataId);
+    return map;
+  }
+
+  EventAssociatedDataCompanion toCompanion(bool nullToAbsent) {
+    return EventAssociatedDataCompanion(
+      eventID: Value(eventID),
+      associatedDataId: Value(associatedDataId),
+    );
+  }
+
+  factory EventAssociatedDataData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EventAssociatedDataData(
+      eventID: serializer.fromJson<int>(json['eventID']),
+      associatedDataId: serializer.fromJson<int>(json['associatedDataId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'eventID': serializer.toJson<int>(eventID),
+      'associatedDataId': serializer.toJson<int>(associatedDataId),
+    };
+  }
+
+  EventAssociatedDataData copyWith({int? eventID, int? associatedDataId}) =>
+      EventAssociatedDataData(
+        eventID: eventID ?? this.eventID,
+        associatedDataId: associatedDataId ?? this.associatedDataId,
+      );
+  EventAssociatedDataData copyWithCompanion(EventAssociatedDataCompanion data) {
+    return EventAssociatedDataData(
+      eventID: data.eventID.present ? data.eventID.value : this.eventID,
+      associatedDataId: data.associatedDataId.present
+          ? data.associatedDataId.value
+          : this.associatedDataId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventAssociatedDataData(')
+          ..write('eventID: $eventID, ')
+          ..write('associatedDataId: $associatedDataId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(eventID, associatedDataId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EventAssociatedDataData &&
+          other.eventID == this.eventID &&
+          other.associatedDataId == this.associatedDataId);
+}
+
+class EventAssociatedDataCompanion
+    extends UpdateCompanion<EventAssociatedDataData> {
+  final Value<int> eventID;
+  final Value<int> associatedDataId;
+  final Value<int> rowid;
+  const EventAssociatedDataCompanion({
+    this.eventID = const Value.absent(),
+    this.associatedDataId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EventAssociatedDataCompanion.insert({
+    required int eventID,
+    required int associatedDataId,
+    this.rowid = const Value.absent(),
+  }) : eventID = Value(eventID),
+       associatedDataId = Value(associatedDataId);
+  static Insertable<EventAssociatedDataData> custom({
+    Expression<int>? eventID,
+    Expression<int>? associatedDataId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (eventID != null) 'eventID': eventID,
+      if (associatedDataId != null) 'associatedDataId': associatedDataId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EventAssociatedDataCompanion copyWith({
+    Value<int>? eventID,
+    Value<int>? associatedDataId,
+    Value<int>? rowid,
+  }) {
+    return EventAssociatedDataCompanion(
+      eventID: eventID ?? this.eventID,
+      associatedDataId: associatedDataId ?? this.associatedDataId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (eventID.present) {
+      map['eventID'] = Variable<int>(eventID.value);
+    }
+    if (associatedDataId.present) {
+      map['associatedDataId'] = Variable<int>(associatedDataId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventAssociatedDataCompanion(')
+          ..write('eventID: $eventID, ')
           ..write('associatedDataId: $associatedDataId, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -18113,11 +18844,11 @@ class ParasiteDetection extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _parasiteRemarkMeta = const VerificationMeta(
-    'parasiteRemark',
+  static const VerificationMeta _detectionRemarkMeta = const VerificationMeta(
+    'detectionRemark',
   );
-  late final GeneratedColumn<String> parasiteRemark = GeneratedColumn<String>(
-    'parasiteRemark',
+  late final GeneratedColumn<String> detectionRemark = GeneratedColumn<String>(
+    'detectionRemark',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -18129,7 +18860,7 @@ class ParasiteDetection extends Table
     specimenUuid,
     parasiteExamined,
     parasiteDetected,
-    parasiteRemark,
+    detectionRemark,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -18172,12 +18903,12 @@ class ParasiteDetection extends Table
         ),
       );
     }
-    if (data.containsKey('parasiteRemark')) {
+    if (data.containsKey('detectionRemark')) {
       context.handle(
-        _parasiteRemarkMeta,
-        parasiteRemark.isAcceptableOrUnknown(
-          data['parasiteRemark']!,
-          _parasiteRemarkMeta,
+        _detectionRemarkMeta,
+        detectionRemark.isAcceptableOrUnknown(
+          data['detectionRemark']!,
+          _detectionRemarkMeta,
         ),
       );
     }
@@ -18202,9 +18933,9 @@ class ParasiteDetection extends Table
         DriftSqlType.int,
         data['${effectivePrefix}parasiteDetected'],
       ),
-      parasiteRemark: attachedDatabase.typeMapping.read(
+      detectionRemark: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}parasiteRemark'],
+        data['${effectivePrefix}detectionRemark'],
       ),
     );
   }
@@ -18227,12 +18958,12 @@ class ParasiteDetectionData extends DataClass
   final String specimenUuid;
   final int? parasiteExamined;
   final int? parasiteDetected;
-  final String? parasiteRemark;
+  final String? detectionRemark;
   const ParasiteDetectionData({
     required this.specimenUuid,
     this.parasiteExamined,
     this.parasiteDetected,
-    this.parasiteRemark,
+    this.detectionRemark,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -18244,8 +18975,8 @@ class ParasiteDetectionData extends DataClass
     if (!nullToAbsent || parasiteDetected != null) {
       map['parasiteDetected'] = Variable<int>(parasiteDetected);
     }
-    if (!nullToAbsent || parasiteRemark != null) {
-      map['parasiteRemark'] = Variable<String>(parasiteRemark);
+    if (!nullToAbsent || detectionRemark != null) {
+      map['detectionRemark'] = Variable<String>(detectionRemark);
     }
     return map;
   }
@@ -18259,9 +18990,9 @@ class ParasiteDetectionData extends DataClass
       parasiteDetected: parasiteDetected == null && nullToAbsent
           ? const Value.absent()
           : Value(parasiteDetected),
-      parasiteRemark: parasiteRemark == null && nullToAbsent
+      detectionRemark: detectionRemark == null && nullToAbsent
           ? const Value.absent()
-          : Value(parasiteRemark),
+          : Value(detectionRemark),
     );
   }
 
@@ -18274,7 +19005,7 @@ class ParasiteDetectionData extends DataClass
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
       parasiteExamined: serializer.fromJson<int?>(json['parasiteExamined']),
       parasiteDetected: serializer.fromJson<int?>(json['parasiteDetected']),
-      parasiteRemark: serializer.fromJson<String?>(json['parasiteRemark']),
+      detectionRemark: serializer.fromJson<String?>(json['detectionRemark']),
     );
   }
   @override
@@ -18284,7 +19015,7 @@ class ParasiteDetectionData extends DataClass
       'specimenUuid': serializer.toJson<String>(specimenUuid),
       'parasiteExamined': serializer.toJson<int?>(parasiteExamined),
       'parasiteDetected': serializer.toJson<int?>(parasiteDetected),
-      'parasiteRemark': serializer.toJson<String?>(parasiteRemark),
+      'detectionRemark': serializer.toJson<String?>(detectionRemark),
     };
   }
 
@@ -18292,7 +19023,7 @@ class ParasiteDetectionData extends DataClass
     String? specimenUuid,
     Value<int?> parasiteExamined = const Value.absent(),
     Value<int?> parasiteDetected = const Value.absent(),
-    Value<String?> parasiteRemark = const Value.absent(),
+    Value<String?> detectionRemark = const Value.absent(),
   }) => ParasiteDetectionData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
     parasiteExamined: parasiteExamined.present
@@ -18301,9 +19032,9 @@ class ParasiteDetectionData extends DataClass
     parasiteDetected: parasiteDetected.present
         ? parasiteDetected.value
         : this.parasiteDetected,
-    parasiteRemark: parasiteRemark.present
-        ? parasiteRemark.value
-        : this.parasiteRemark,
+    detectionRemark: detectionRemark.present
+        ? detectionRemark.value
+        : this.detectionRemark,
   );
   ParasiteDetectionData copyWithCompanion(ParasiteDetectionCompanion data) {
     return ParasiteDetectionData(
@@ -18316,9 +19047,9 @@ class ParasiteDetectionData extends DataClass
       parasiteDetected: data.parasiteDetected.present
           ? data.parasiteDetected.value
           : this.parasiteDetected,
-      parasiteRemark: data.parasiteRemark.present
-          ? data.parasiteRemark.value
-          : this.parasiteRemark,
+      detectionRemark: data.detectionRemark.present
+          ? data.detectionRemark.value
+          : this.detectionRemark,
     );
   }
 
@@ -18328,7 +19059,7 @@ class ParasiteDetectionData extends DataClass
           ..write('specimenUuid: $specimenUuid, ')
           ..write('parasiteExamined: $parasiteExamined, ')
           ..write('parasiteDetected: $parasiteDetected, ')
-          ..write('parasiteRemark: $parasiteRemark')
+          ..write('detectionRemark: $detectionRemark')
           ..write(')'))
         .toString();
   }
@@ -18338,7 +19069,7 @@ class ParasiteDetectionData extends DataClass
     specimenUuid,
     parasiteExamined,
     parasiteDetected,
-    parasiteRemark,
+    detectionRemark,
   );
   @override
   bool operator ==(Object other) =>
@@ -18347,7 +19078,7 @@ class ParasiteDetectionData extends DataClass
           other.specimenUuid == this.specimenUuid &&
           other.parasiteExamined == this.parasiteExamined &&
           other.parasiteDetected == this.parasiteDetected &&
-          other.parasiteRemark == this.parasiteRemark);
+          other.detectionRemark == this.detectionRemark);
 }
 
 class ParasiteDetectionCompanion
@@ -18355,34 +19086,34 @@ class ParasiteDetectionCompanion
   final Value<String> specimenUuid;
   final Value<int?> parasiteExamined;
   final Value<int?> parasiteDetected;
-  final Value<String?> parasiteRemark;
+  final Value<String?> detectionRemark;
   final Value<int> rowid;
   const ParasiteDetectionCompanion({
     this.specimenUuid = const Value.absent(),
     this.parasiteExamined = const Value.absent(),
     this.parasiteDetected = const Value.absent(),
-    this.parasiteRemark = const Value.absent(),
+    this.detectionRemark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ParasiteDetectionCompanion.insert({
     required String specimenUuid,
     this.parasiteExamined = const Value.absent(),
     this.parasiteDetected = const Value.absent(),
-    this.parasiteRemark = const Value.absent(),
+    this.detectionRemark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
   static Insertable<ParasiteDetectionData> custom({
     Expression<String>? specimenUuid,
     Expression<int>? parasiteExamined,
     Expression<int>? parasiteDetected,
-    Expression<String>? parasiteRemark,
+    Expression<String>? detectionRemark,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (parasiteExamined != null) 'parasiteExamined': parasiteExamined,
       if (parasiteDetected != null) 'parasiteDetected': parasiteDetected,
-      if (parasiteRemark != null) 'parasiteRemark': parasiteRemark,
+      if (detectionRemark != null) 'detectionRemark': detectionRemark,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -18391,14 +19122,14 @@ class ParasiteDetectionCompanion
     Value<String>? specimenUuid,
     Value<int?>? parasiteExamined,
     Value<int?>? parasiteDetected,
-    Value<String?>? parasiteRemark,
+    Value<String?>? detectionRemark,
     Value<int>? rowid,
   }) {
     return ParasiteDetectionCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
       parasiteExamined: parasiteExamined ?? this.parasiteExamined,
       parasiteDetected: parasiteDetected ?? this.parasiteDetected,
-      parasiteRemark: parasiteRemark ?? this.parasiteRemark,
+      detectionRemark: detectionRemark ?? this.detectionRemark,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -18415,8 +19146,8 @@ class ParasiteDetectionCompanion
     if (parasiteDetected.present) {
       map['parasiteDetected'] = Variable<int>(parasiteDetected.value);
     }
-    if (parasiteRemark.present) {
-      map['parasiteRemark'] = Variable<String>(parasiteRemark.value);
+    if (detectionRemark.present) {
+      map['detectionRemark'] = Variable<String>(detectionRemark.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -18430,7 +19161,7 @@ class ParasiteDetectionCompanion
           ..write('specimenUuid: $specimenUuid, ')
           ..write('parasiteExamined: $parasiteExamined, ')
           ..write('parasiteDetected: $parasiteDetected, ')
-          ..write('parasiteRemark: $parasiteRemark, ')
+          ..write('detectionRemark: $detectionRemark, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -18473,6 +19204,39 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: '',
+  );
+  static const VerificationMeta _identifierIDMeta = const VerificationMeta(
+    'identifierID',
+  );
+  late final GeneratedColumn<String> identifierID = GeneratedColumn<String>(
+    'identifierID',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'REFERENCES personnel(uuid)',
+  );
+  static const VerificationMeta _parasiteIDMeta = const VerificationMeta(
+    'parasiteID',
+  );
+  late final GeneratedColumn<String> parasiteID = GeneratedColumn<String>(
+    'parasiteID',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _parasiteUuidMeta = const VerificationMeta(
+    'parasiteUuid',
+  );
+  late final GeneratedColumn<String> parasiteUuid = GeneratedColumn<String>(
+    'parasiteUuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _countMeta = const VerificationMeta('count');
   late final GeneratedColumn<int> count = GeneratedColumn<int>(
@@ -18652,6 +19416,9 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     id,
     specimenUuid,
     speciesID,
+    identifierID,
+    parasiteID,
+    parasiteUuid,
     count,
     preparationMethod,
     storage,
@@ -18698,6 +19465,32 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         _speciesIDMeta,
         speciesID.isAcceptableOrUnknown(data['speciesID']!, _speciesIDMeta),
       );
+    }
+    if (data.containsKey('identifierID')) {
+      context.handle(
+        _identifierIDMeta,
+        identifierID.isAcceptableOrUnknown(
+          data['identifierID']!,
+          _identifierIDMeta,
+        ),
+      );
+    }
+    if (data.containsKey('parasiteID')) {
+      context.handle(
+        _parasiteIDMeta,
+        parasiteID.isAcceptableOrUnknown(data['parasiteID']!, _parasiteIDMeta),
+      );
+    }
+    if (data.containsKey('parasiteUuid')) {
+      context.handle(
+        _parasiteUuidMeta,
+        parasiteUuid.isAcceptableOrUnknown(
+          data['parasiteUuid']!,
+          _parasiteUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_parasiteUuidMeta);
     }
     if (data.containsKey('count')) {
       context.handle(
@@ -18843,6 +19636,18 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         DriftSqlType.int,
         data['${effectivePrefix}speciesID'],
       ),
+      identifierID: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}identifierID'],
+      ),
+      parasiteID: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parasiteID'],
+      ),
+      parasiteUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parasiteUuid'],
+      )!,
       count: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}count'],
@@ -18930,6 +19735,11 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
   /// internal id
   final String? specimenUuid;
   final int? speciesID;
+  final String? identifierID;
+  final String? parasiteID;
+
+  /// user defined ID similar to specimen part
+  final String parasiteUuid;
   final int? count;
   final String? preparationMethod;
   final String? storage;
@@ -18952,6 +19762,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     this.id,
     this.specimenUuid,
     this.speciesID,
+    this.identifierID,
+    this.parasiteID,
+    required this.parasiteUuid,
     this.count,
     this.preparationMethod,
     this.storage,
@@ -18981,6 +19794,13 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     if (!nullToAbsent || speciesID != null) {
       map['speciesID'] = Variable<int>(speciesID);
     }
+    if (!nullToAbsent || identifierID != null) {
+      map['identifierID'] = Variable<String>(identifierID);
+    }
+    if (!nullToAbsent || parasiteID != null) {
+      map['parasiteID'] = Variable<String>(parasiteID);
+    }
+    map['parasiteUuid'] = Variable<String>(parasiteUuid);
     if (!nullToAbsent || count != null) {
       map['count'] = Variable<int>(count);
     }
@@ -19041,6 +19861,13 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       speciesID: speciesID == null && nullToAbsent
           ? const Value.absent()
           : Value(speciesID),
+      identifierID: identifierID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(identifierID),
+      parasiteID: parasiteID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parasiteID),
+      parasiteUuid: Value(parasiteUuid),
       count: count == null && nullToAbsent
           ? const Value.absent()
           : Value(count),
@@ -19101,6 +19928,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       id: serializer.fromJson<int?>(json['id']),
       specimenUuid: serializer.fromJson<String?>(json['specimenUuid']),
       speciesID: serializer.fromJson<int?>(json['speciesID']),
+      identifierID: serializer.fromJson<String?>(json['identifierID']),
+      parasiteID: serializer.fromJson<String?>(json['parasiteID']),
+      parasiteUuid: serializer.fromJson<String>(json['parasiteUuid']),
       count: serializer.fromJson<int?>(json['count']),
       preparationMethod: serializer.fromJson<String?>(
         json['preparationMethod'],
@@ -19130,6 +19960,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       'id': serializer.toJson<int?>(id),
       'specimenUuid': serializer.toJson<String?>(specimenUuid),
       'speciesID': serializer.toJson<int?>(speciesID),
+      'identifierID': serializer.toJson<String?>(identifierID),
+      'parasiteID': serializer.toJson<String?>(parasiteID),
+      'parasiteUuid': serializer.toJson<String>(parasiteUuid),
       'count': serializer.toJson<int?>(count),
       'preparationMethod': serializer.toJson<String?>(preparationMethod),
       'storage': serializer.toJson<String?>(storage),
@@ -19153,6 +19986,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     Value<int?> id = const Value.absent(),
     Value<String?> specimenUuid = const Value.absent(),
     Value<int?> speciesID = const Value.absent(),
+    Value<String?> identifierID = const Value.absent(),
+    Value<String?> parasiteID = const Value.absent(),
+    String? parasiteUuid,
     Value<int?> count = const Value.absent(),
     Value<String?> preparationMethod = const Value.absent(),
     Value<String?> storage = const Value.absent(),
@@ -19173,6 +20009,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     id: id.present ? id.value : this.id,
     specimenUuid: specimenUuid.present ? specimenUuid.value : this.specimenUuid,
     speciesID: speciesID.present ? speciesID.value : this.speciesID,
+    identifierID: identifierID.present ? identifierID.value : this.identifierID,
+    parasiteID: parasiteID.present ? parasiteID.value : this.parasiteID,
+    parasiteUuid: parasiteUuid ?? this.parasiteUuid,
     count: count.present ? count.value : this.count,
     preparationMethod: preparationMethod.present
         ? preparationMethod.value
@@ -19215,6 +20054,15 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ? data.specimenUuid.value
           : this.specimenUuid,
       speciesID: data.speciesID.present ? data.speciesID.value : this.speciesID,
+      identifierID: data.identifierID.present
+          ? data.identifierID.value
+          : this.identifierID,
+      parasiteID: data.parasiteID.present
+          ? data.parasiteID.value
+          : this.parasiteID,
+      parasiteUuid: data.parasiteUuid.present
+          ? data.parasiteUuid.value
+          : this.parasiteUuid,
       count: data.count.present ? data.count.value : this.count,
       preparationMethod: data.preparationMethod.present
           ? data.preparationMethod.value
@@ -19260,6 +20108,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ..write('id: $id, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('speciesID: $speciesID, ')
+          ..write('identifierID: $identifierID, ')
+          ..write('parasiteID: $parasiteID, ')
+          ..write('parasiteUuid: $parasiteUuid, ')
           ..write('count: $count, ')
           ..write('preparationMethod: $preparationMethod, ')
           ..write('storage: $storage, ')
@@ -19281,10 +20132,13 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     specimenUuid,
     speciesID,
+    identifierID,
+    parasiteID,
+    parasiteUuid,
     count,
     preparationMethod,
     storage,
@@ -19301,7 +20155,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     museumPermanent,
     museumLoan,
     remark,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -19309,6 +20163,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           other.id == this.id &&
           other.specimenUuid == this.specimenUuid &&
           other.speciesID == this.speciesID &&
+          other.identifierID == this.identifierID &&
+          other.parasiteID == this.parasiteID &&
+          other.parasiteUuid == this.parasiteUuid &&
           other.count == this.count &&
           other.preparationMethod == this.preparationMethod &&
           other.storage == this.storage &&
@@ -19331,6 +20188,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
   final Value<int?> id;
   final Value<String?> specimenUuid;
   final Value<int?> speciesID;
+  final Value<String?> identifierID;
+  final Value<String?> parasiteID;
+  final Value<String> parasiteUuid;
   final Value<int?> count;
   final Value<String?> preparationMethod;
   final Value<String?> storage;
@@ -19351,6 +20211,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.id = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.speciesID = const Value.absent(),
+    this.identifierID = const Value.absent(),
+    this.parasiteID = const Value.absent(),
+    this.parasiteUuid = const Value.absent(),
     this.count = const Value.absent(),
     this.preparationMethod = const Value.absent(),
     this.storage = const Value.absent(),
@@ -19372,6 +20235,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.id = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.speciesID = const Value.absent(),
+    this.identifierID = const Value.absent(),
+    this.parasiteID = const Value.absent(),
+    required String parasiteUuid,
     this.count = const Value.absent(),
     this.preparationMethod = const Value.absent(),
     this.storage = const Value.absent(),
@@ -19388,11 +20254,14 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.museumPermanent = const Value.absent(),
     this.museumLoan = const Value.absent(),
     this.remark = const Value.absent(),
-  });
+  }) : parasiteUuid = Value(parasiteUuid);
   static Insertable<ParasiteData> custom({
     Expression<int>? id,
     Expression<String>? specimenUuid,
     Expression<int>? speciesID,
+    Expression<String>? identifierID,
+    Expression<String>? parasiteID,
+    Expression<String>? parasiteUuid,
     Expression<int>? count,
     Expression<String>? preparationMethod,
     Expression<String>? storage,
@@ -19414,6 +20283,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
       if (id != null) 'id': id,
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (speciesID != null) 'speciesID': speciesID,
+      if (identifierID != null) 'identifierID': identifierID,
+      if (parasiteID != null) 'parasiteID': parasiteID,
+      if (parasiteUuid != null) 'parasiteUuid': parasiteUuid,
       if (count != null) 'count': count,
       if (preparationMethod != null) 'preparationMethod': preparationMethod,
       if (storage != null) 'storage': storage,
@@ -19437,6 +20309,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     Value<int?>? id,
     Value<String?>? specimenUuid,
     Value<int?>? speciesID,
+    Value<String?>? identifierID,
+    Value<String?>? parasiteID,
+    Value<String>? parasiteUuid,
     Value<int?>? count,
     Value<String?>? preparationMethod,
     Value<String?>? storage,
@@ -19458,6 +20333,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
       id: id ?? this.id,
       specimenUuid: specimenUuid ?? this.specimenUuid,
       speciesID: speciesID ?? this.speciesID,
+      identifierID: identifierID ?? this.identifierID,
+      parasiteID: parasiteID ?? this.parasiteID,
+      parasiteUuid: parasiteUuid ?? this.parasiteUuid,
       count: count ?? this.count,
       preparationMethod: preparationMethod ?? this.preparationMethod,
       storage: storage ?? this.storage,
@@ -19488,6 +20366,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     }
     if (speciesID.present) {
       map['speciesID'] = Variable<int>(speciesID.value);
+    }
+    if (identifierID.present) {
+      map['identifierID'] = Variable<String>(identifierID.value);
+    }
+    if (parasiteID.present) {
+      map['parasiteID'] = Variable<String>(parasiteID.value);
+    }
+    if (parasiteUuid.present) {
+      map['parasiteUuid'] = Variable<String>(parasiteUuid.value);
     }
     if (count.present) {
       map['count'] = Variable<int>(count.value);
@@ -19546,6 +20433,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
           ..write('id: $id, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('speciesID: $speciesID, ')
+          ..write('identifierID: $identifierID, ')
+          ..write('parasiteID: $parasiteID, ')
+          ..write('parasiteUuid: $parasiteUuid, ')
           ..write('count: $count, ')
           ..write('preparationMethod: $preparationMethod, ')
           ..write('storage: $storage, ')
@@ -21397,6 +22287,7 @@ abstract class _$Database extends GeneratedDatabase {
   late final Narrative narrative = Narrative(this);
   late final NarrativeMedia narrativeMedia = NarrativeMedia(this);
   late final SiteMedia siteMedia = SiteMedia(this);
+  late final EventMedia eventMedia = EventMedia(this);
   late final Taxonomy taxonomy = Taxonomy(this);
   late final Specimen specimen = Specimen(this);
   late final SpecimenMedia specimenMedia = SpecimenMedia(this);
@@ -21404,6 +22295,9 @@ abstract class _$Database extends GeneratedDatabase {
   late final SpecimenAssociatedData specimenAssociatedData =
       SpecimenAssociatedData(this);
   late final SiteAssociatedData siteAssociatedData = SiteAssociatedData(this);
+  late final EventAssociatedData eventAssociatedData = EventAssociatedData(
+    this,
+  );
   late final Trigger specimenAssociatedDataSameProject = Trigger(
     'CREATE TRIGGER specimen_associated_data_same_project BEFORE INSERT ON specimenAssociatedData BEGIN SELECT CASE WHEN (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) IS NULL OR (SELECT projectUuid FROM specimen WHERE uuid = NEW.specimenUuid) IS NULL OR (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) != (SELECT projectUuid FROM specimen WHERE uuid = NEW.specimenUuid) THEN RAISE (ABORT, \'Associated data and specimen must share a project\') END;END',
     'specimen_associated_data_same_project',
@@ -21411,6 +22305,10 @@ abstract class _$Database extends GeneratedDatabase {
   late final Trigger siteAssociatedDataSameProject = Trigger(
     'CREATE TRIGGER site_associated_data_same_project BEFORE INSERT ON siteAssociatedData BEGIN SELECT CASE WHEN (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) IS NULL OR (SELECT projectUuid FROM site WHERE id = NEW.siteId) IS NULL OR (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) != (SELECT projectUuid FROM site WHERE id = NEW.siteId) THEN RAISE (ABORT, \'Associated data and site must share a project\') END;END',
     'site_associated_data_same_project',
+  );
+  late final Trigger eventAssociatedDataSameProject = Trigger(
+    'CREATE TRIGGER event_associated_data_same_project BEFORE INSERT ON eventAssociatedData BEGIN SELECT CASE WHEN (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) IS NULL OR (SELECT projectUuid FROM collEvent WHERE id = NEW.eventID) IS NULL OR (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) != (SELECT projectUuid FROM collEvent WHERE id = NEW.eventID) THEN RAISE (ABORT, \'Associated data and event must share a project\') END;END',
+    'event_associated_data_same_project',
   );
   late final PersonnelList personnelList = PersonnelList(this);
   late final MammalAttribute mammalAttribute = MammalAttribute(this);
@@ -21464,6 +22362,22 @@ abstract class _$Database extends GeneratedDatabase {
     'site_associated_data_data_idx',
     'CREATE INDEX IF NOT EXISTS site_associated_data_data_idx ON siteAssociatedData (associatedDataId)',
   );
+  late final Index eventAssociatedDataDataIdx = Index(
+    'event_associated_data_data_idx',
+    'CREATE INDEX IF NOT EXISTS event_associated_data_data_idx ON eventAssociatedData (associatedDataId)',
+  );
+  late final Index parasiteDetectionSpecimenIdx = Index(
+    'parasite_detection_specimen_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS parasite_detection_specimen_idx ON parasiteDetection (specimenUuid)',
+  );
+  late final Index parasiteSpecimenIdx = Index(
+    'parasite_specimen_idx',
+    'CREATE INDEX IF NOT EXISTS parasite_specimen_idx ON parasite (specimenUuid)',
+  );
+  late final Index parasiteUuidIdx = Index(
+    'parasite_uuid_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS parasite_uuid_idx ON parasite (parasiteUuid)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -21482,14 +22396,17 @@ abstract class _$Database extends GeneratedDatabase {
     narrative,
     narrativeMedia,
     siteMedia,
+    eventMedia,
     taxonomy,
     specimen,
     specimenMedia,
     associatedData,
     specimenAssociatedData,
     siteAssociatedData,
+    eventAssociatedData,
     specimenAssociatedDataSameProject,
     siteAssociatedDataSameProject,
+    eventAssociatedDataSameProject,
     personnelList,
     mammalAttribute,
     birdAttribute,
@@ -21511,6 +22428,10 @@ abstract class _$Database extends GeneratedDatabase {
     associatedDataProjectIdx,
     specimenAssociatedDataDataIdx,
     siteAssociatedDataDataIdx,
+    eventAssociatedDataDataIdx,
+    parasiteDetectionSpecimenIdx,
+    parasiteSpecimenIdx,
+    parasiteUuidIdx,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -21551,6 +22472,20 @@ abstract class _$Database extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'collEvent',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('eventAssociatedData', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'associatedData',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('eventAssociatedData', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'specimenAssociatedData',
         limitUpdateKind: UpdateKind.insert,
       ),
@@ -21563,12 +22498,22 @@ abstract class _$Database extends GeneratedDatabase {
       ),
       result: [],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'eventAssociatedData',
+        limitUpdateKind: UpdateKind.insert,
+      ),
+      result: [],
+    ),
   ]);
 }
 
 typedef $ProjectCreateCompanionBuilder =
     ProjectCompanion Function({
       required String uuid,
+      Value<String?> accession,
+      Value<String?> catalogNumberPrefix,
+      Value<String?> catalogNumberSuffix,
       required String name,
       Value<String?> description,
       Value<String?> principalInvestigator,
@@ -21583,6 +22528,9 @@ typedef $ProjectCreateCompanionBuilder =
 typedef $ProjectUpdateCompanionBuilder =
     ProjectCompanion Function({
       Value<String> uuid,
+      Value<String?> accession,
+      Value<String?> catalogNumberPrefix,
+      Value<String?> catalogNumberSuffix,
       Value<String> name,
       Value<String?> description,
       Value<String?> principalInvestigator,
@@ -21628,6 +22576,21 @@ class $ProjectFilterComposer extends Composer<_$Database, Project> {
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accession => $composableBuilder(
+    column: $table.accession,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogNumberPrefix => $composableBuilder(
+    column: $table.catalogNumberPrefix,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogNumberSuffix => $composableBuilder(
+    column: $table.catalogNumberSuffix,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -21715,6 +22678,21 @@ class $ProjectOrderingComposer extends Composer<_$Database, Project> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get accession => $composableBuilder(
+    column: $table.accession,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogNumberPrefix => $composableBuilder(
+    column: $table.catalogNumberPrefix,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogNumberSuffix => $composableBuilder(
+    column: $table.catalogNumberSuffix,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -21771,6 +22749,19 @@ class $ProjectAnnotationComposer extends Composer<_$Database, Project> {
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get accession =>
+      $composableBuilder(column: $table.accession, builder: (column) => column);
+
+  GeneratedColumn<String> get catalogNumberPrefix => $composableBuilder(
+    column: $table.catalogNumberPrefix,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get catalogNumberSuffix => $composableBuilder(
+    column: $table.catalogNumberSuffix,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -21860,6 +22851,9 @@ class $ProjectTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
+                Value<String?> accession = const Value.absent(),
+                Value<String?> catalogNumberPrefix = const Value.absent(),
+                Value<String?> catalogNumberSuffix = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String?> principalInvestigator = const Value.absent(),
@@ -21872,6 +22866,9 @@ class $ProjectTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ProjectCompanion(
                 uuid: uuid,
+                accession: accession,
+                catalogNumberPrefix: catalogNumberPrefix,
+                catalogNumberSuffix: catalogNumberSuffix,
                 name: name,
                 description: description,
                 principalInvestigator: principalInvestigator,
@@ -21886,6 +22883,9 @@ class $ProjectTableManager
           createCompanionCallback:
               ({
                 required String uuid,
+                Value<String?> accession = const Value.absent(),
+                Value<String?> catalogNumberPrefix = const Value.absent(),
+                Value<String?> catalogNumberSuffix = const Value.absent(),
                 required String name,
                 Value<String?> description = const Value.absent(),
                 Value<String?> principalInvestigator = const Value.absent(),
@@ -21898,6 +22898,9 @@ class $ProjectTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ProjectCompanion.insert(
                 uuid: uuid,
+                accession: accession,
+                catalogNumberPrefix: catalogNumberPrefix,
+                catalogNumberSuffix: catalogNumberSuffix,
                 name: name,
                 description: description,
                 principalInvestigator: principalInvestigator,
@@ -21993,6 +22996,29 @@ typedef $PersonnelUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $PersonnelReferences
+    extends BaseReferences<_$Database, Personnel, PersonnelData> {
+  $PersonnelReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<Parasite, List<ParasiteData>> _parasiteRefsTable(
+    _$Database db,
+  ) => MultiTypedResultKey.fromTable(
+    db.parasite,
+    aliasName: 'personnel__uuid__parasite__identifierID',
+  );
+
+  $ParasiteProcessedTableManager get parasiteRefs {
+    final manager = $ParasiteTableManager($_db, $_db.parasite).filter(
+      (f) => f.identifierID.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_parasiteRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $PersonnelFilterComposer extends Composer<_$Database, Personnel> {
   $PersonnelFilterComposer({
     required super.$db,
@@ -22055,6 +23081,31 @@ class $PersonnelFilterComposer extends Composer<_$Database, Personnel> {
     column: $table.isRegisterField,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> parasiteRefs(
+    Expression<bool> Function($ParasiteFilterComposer f) f,
+  ) {
+    final $ParasiteFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.parasite,
+      getReferencedColumn: (t) => t.identifierID,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ParasiteFilterComposer(
+            $db: $db,
+            $table: $db.parasite,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $PersonnelOrderingComposer extends Composer<_$Database, Personnel> {
@@ -22167,6 +23218,31 @@ class $PersonnelAnnotationComposer extends Composer<_$Database, Personnel> {
     column: $table.isRegisterField,
     builder: (column) => column,
   );
+
+  Expression<T> parasiteRefs<T extends Object>(
+    Expression<T> Function($ParasiteAnnotationComposer a) f,
+  ) {
+    final $ParasiteAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.parasite,
+      getReferencedColumn: (t) => t.identifierID,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ParasiteAnnotationComposer(
+            $db: $db,
+            $table: $db.parasite,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $PersonnelTableManager
@@ -22180,9 +23256,9 @@ class $PersonnelTableManager
           $PersonnelAnnotationComposer,
           $PersonnelCreateCompanionBuilder,
           $PersonnelUpdateCompanionBuilder,
-          (PersonnelData, BaseReferences<_$Database, Personnel, PersonnelData>),
+          (PersonnelData, $PersonnelReferences),
           PersonnelData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool parasiteRefs})
         > {
   $PersonnelTableManager(_$Database db, Personnel table)
     : super(
@@ -22252,9 +23328,39 @@ class $PersonnelTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (e.readTable(table), $PersonnelReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({parasiteRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (parasiteRefs) db.parasite],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (parasiteRefs)
+                    await $_getPrefetchedData<
+                      PersonnelData,
+                      Personnel,
+                      ParasiteData
+                    >(
+                      currentTable: table,
+                      referencedTable: $PersonnelReferences._parasiteRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $PersonnelReferences(db, table, p0).parasiteRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.identifierID == item.uuid,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -22269,9 +23375,9 @@ typedef $PersonnelProcessedTableManager =
       $PersonnelAnnotationComposer,
       $PersonnelCreateCompanionBuilder,
       $PersonnelUpdateCompanionBuilder,
-      (PersonnelData, BaseReferences<_$Database, Personnel, PersonnelData>),
+      (PersonnelData, $PersonnelReferences),
       PersonnelData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool parasiteRefs})
     >;
 typedef $MediaCreateCompanionBuilder =
     MediaCompanion Function({
@@ -25723,10 +26829,149 @@ typedef $SiteMediaProcessedTableManager =
       SiteMediaData,
       PrefetchHooks Function()
     >;
+typedef $EventMediaCreateCompanionBuilder =
+    EventMediaCompanion Function({
+      required int eventID,
+      Value<int?> mediaId,
+      Value<int> rowid,
+    });
+typedef $EventMediaUpdateCompanionBuilder =
+    EventMediaCompanion Function({
+      Value<int> eventID,
+      Value<int?> mediaId,
+      Value<int> rowid,
+    });
+
+class $EventMediaFilterComposer extends Composer<_$Database, EventMedia> {
+  $EventMediaFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get eventID => $composableBuilder(
+    column: $table.eventID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get mediaId => $composableBuilder(
+    column: $table.mediaId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $EventMediaOrderingComposer extends Composer<_$Database, EventMedia> {
+  $EventMediaOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get eventID => $composableBuilder(
+    column: $table.eventID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get mediaId => $composableBuilder(
+    column: $table.mediaId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $EventMediaAnnotationComposer extends Composer<_$Database, EventMedia> {
+  $EventMediaAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get eventID =>
+      $composableBuilder(column: $table.eventID, builder: (column) => column);
+
+  GeneratedColumn<int> get mediaId =>
+      $composableBuilder(column: $table.mediaId, builder: (column) => column);
+}
+
+class $EventMediaTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          EventMedia,
+          EventMediaData,
+          $EventMediaFilterComposer,
+          $EventMediaOrderingComposer,
+          $EventMediaAnnotationComposer,
+          $EventMediaCreateCompanionBuilder,
+          $EventMediaUpdateCompanionBuilder,
+          (
+            EventMediaData,
+            BaseReferences<_$Database, EventMedia, EventMediaData>,
+          ),
+          EventMediaData,
+          PrefetchHooks Function()
+        > {
+  $EventMediaTableManager(_$Database db, EventMedia table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $EventMediaFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $EventMediaOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $EventMediaAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> eventID = const Value.absent(),
+                Value<int?> mediaId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EventMediaCompanion(
+                eventID: eventID,
+                mediaId: mediaId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int eventID,
+                Value<int?> mediaId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EventMediaCompanion.insert(
+                eventID: eventID,
+                mediaId: mediaId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $EventMediaProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      EventMedia,
+      EventMediaData,
+      $EventMediaFilterComposer,
+      $EventMediaOrderingComposer,
+      $EventMediaAnnotationComposer,
+      $EventMediaCreateCompanionBuilder,
+      $EventMediaUpdateCompanionBuilder,
+      (EventMediaData, BaseReferences<_$Database, EventMedia, EventMediaData>),
+      EventMediaData,
+      PrefetchHooks Function()
+    >;
 typedef $TaxonomyCreateCompanionBuilder =
     TaxonomyCompanion Function({
       Value<int> id,
       Value<String?> taxonRank,
+      Value<String?> kingdom,
+      Value<String?> phylum,
       Value<String?> taxonClass,
       Value<String?> taxonOrder,
       Value<String?> taxonFamily,
@@ -25746,6 +26991,8 @@ typedef $TaxonomyUpdateCompanionBuilder =
     TaxonomyCompanion Function({
       Value<int> id,
       Value<String?> taxonRank,
+      Value<String?> kingdom,
+      Value<String?> phylum,
       Value<String?> taxonClass,
       Value<String?> taxonOrder,
       Value<String?> taxonFamily,
@@ -25777,6 +27024,16 @@ class $TaxonomyFilterComposer extends Composer<_$Database, Taxonomy> {
 
   ColumnFilters<String> get taxonRank => $composableBuilder(
     column: $table.taxonRank,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kingdom => $composableBuilder(
+    column: $table.kingdom,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phylum => $composableBuilder(
+    column: $table.phylum,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -25869,6 +27126,16 @@ class $TaxonomyOrderingComposer extends Composer<_$Database, Taxonomy> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get kingdom => $composableBuilder(
+    column: $table.kingdom,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phylum => $composableBuilder(
+    column: $table.phylum,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get taxonClass => $composableBuilder(
     column: $table.taxonClass,
     builder: (column) => ColumnOrderings(column),
@@ -25953,6 +27220,12 @@ class $TaxonomyAnnotationComposer extends Composer<_$Database, Taxonomy> {
 
   GeneratedColumn<String> get taxonRank =>
       $composableBuilder(column: $table.taxonRank, builder: (column) => column);
+
+  GeneratedColumn<String> get kingdom =>
+      $composableBuilder(column: $table.kingdom, builder: (column) => column);
+
+  GeneratedColumn<String> get phylum =>
+      $composableBuilder(column: $table.phylum, builder: (column) => column);
 
   GeneratedColumn<String> get taxonClass => $composableBuilder(
     column: $table.taxonClass,
@@ -26047,6 +27320,8 @@ class $TaxonomyTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> taxonRank = const Value.absent(),
+                Value<String?> kingdom = const Value.absent(),
+                Value<String?> phylum = const Value.absent(),
                 Value<String?> taxonClass = const Value.absent(),
                 Value<String?> taxonOrder = const Value.absent(),
                 Value<String?> taxonFamily = const Value.absent(),
@@ -26064,6 +27339,8 @@ class $TaxonomyTableManager
               }) => TaxonomyCompanion(
                 id: id,
                 taxonRank: taxonRank,
+                kingdom: kingdom,
+                phylum: phylum,
                 taxonClass: taxonClass,
                 taxonOrder: taxonOrder,
                 taxonFamily: taxonFamily,
@@ -26083,6 +27360,8 @@ class $TaxonomyTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> taxonRank = const Value.absent(),
+                Value<String?> kingdom = const Value.absent(),
+                Value<String?> phylum = const Value.absent(),
                 Value<String?> taxonClass = const Value.absent(),
                 Value<String?> taxonOrder = const Value.absent(),
                 Value<String?> taxonFamily = const Value.absent(),
@@ -26100,6 +27379,8 @@ class $TaxonomyTableManager
               }) => TaxonomyCompanion.insert(
                 id: id,
                 taxonRank: taxonRank,
+                kingdom: kingdom,
+                phylum: phylum,
                 taxonClass: taxonClass,
                 taxonOrder: taxonOrder,
                 taxonFamily: taxonFamily,
@@ -27805,6 +29086,159 @@ typedef $SiteAssociatedDataProcessedTableManager =
         BaseReferences<_$Database, SiteAssociatedData, SiteAssociatedDataData>,
       ),
       SiteAssociatedDataData,
+      PrefetchHooks Function()
+    >;
+typedef $EventAssociatedDataCreateCompanionBuilder =
+    EventAssociatedDataCompanion Function({
+      required int eventID,
+      required int associatedDataId,
+      Value<int> rowid,
+    });
+typedef $EventAssociatedDataUpdateCompanionBuilder =
+    EventAssociatedDataCompanion Function({
+      Value<int> eventID,
+      Value<int> associatedDataId,
+      Value<int> rowid,
+    });
+
+class $EventAssociatedDataFilterComposer
+    extends Composer<_$Database, EventAssociatedData> {
+  $EventAssociatedDataFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get eventID => $composableBuilder(
+    column: $table.eventID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get associatedDataId => $composableBuilder(
+    column: $table.associatedDataId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $EventAssociatedDataOrderingComposer
+    extends Composer<_$Database, EventAssociatedData> {
+  $EventAssociatedDataOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get eventID => $composableBuilder(
+    column: $table.eventID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get associatedDataId => $composableBuilder(
+    column: $table.associatedDataId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $EventAssociatedDataAnnotationComposer
+    extends Composer<_$Database, EventAssociatedData> {
+  $EventAssociatedDataAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get eventID =>
+      $composableBuilder(column: $table.eventID, builder: (column) => column);
+
+  GeneratedColumn<int> get associatedDataId => $composableBuilder(
+    column: $table.associatedDataId,
+    builder: (column) => column,
+  );
+}
+
+class $EventAssociatedDataTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          EventAssociatedData,
+          EventAssociatedDataData,
+          $EventAssociatedDataFilterComposer,
+          $EventAssociatedDataOrderingComposer,
+          $EventAssociatedDataAnnotationComposer,
+          $EventAssociatedDataCreateCompanionBuilder,
+          $EventAssociatedDataUpdateCompanionBuilder,
+          (
+            EventAssociatedDataData,
+            BaseReferences<
+              _$Database,
+              EventAssociatedData,
+              EventAssociatedDataData
+            >,
+          ),
+          EventAssociatedDataData,
+          PrefetchHooks Function()
+        > {
+  $EventAssociatedDataTableManager(_$Database db, EventAssociatedData table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $EventAssociatedDataFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $EventAssociatedDataOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $EventAssociatedDataAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> eventID = const Value.absent(),
+                Value<int> associatedDataId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EventAssociatedDataCompanion(
+                eventID: eventID,
+                associatedDataId: associatedDataId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int eventID,
+                required int associatedDataId,
+                Value<int> rowid = const Value.absent(),
+              }) => EventAssociatedDataCompanion.insert(
+                eventID: eventID,
+                associatedDataId: associatedDataId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $EventAssociatedDataProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      EventAssociatedData,
+      EventAssociatedDataData,
+      $EventAssociatedDataFilterComposer,
+      $EventAssociatedDataOrderingComposer,
+      $EventAssociatedDataAnnotationComposer,
+      $EventAssociatedDataCreateCompanionBuilder,
+      $EventAssociatedDataUpdateCompanionBuilder,
+      (
+        EventAssociatedDataData,
+        BaseReferences<
+          _$Database,
+          EventAssociatedData,
+          EventAssociatedDataData
+        >,
+      ),
+      EventAssociatedDataData,
       PrefetchHooks Function()
     >;
 typedef $PersonnelListCreateCompanionBuilder =
@@ -30620,7 +32054,7 @@ typedef $ParasiteDetectionCreateCompanionBuilder =
       required String specimenUuid,
       Value<int?> parasiteExamined,
       Value<int?> parasiteDetected,
-      Value<String?> parasiteRemark,
+      Value<String?> detectionRemark,
       Value<int> rowid,
     });
 typedef $ParasiteDetectionUpdateCompanionBuilder =
@@ -30628,7 +32062,7 @@ typedef $ParasiteDetectionUpdateCompanionBuilder =
       Value<String> specimenUuid,
       Value<int?> parasiteExamined,
       Value<int?> parasiteDetected,
-      Value<String?> parasiteRemark,
+      Value<String?> detectionRemark,
       Value<int> rowid,
     });
 
@@ -30656,8 +32090,8 @@ class $ParasiteDetectionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get parasiteRemark => $composableBuilder(
-    column: $table.parasiteRemark,
+  ColumnFilters<String> get detectionRemark => $composableBuilder(
+    column: $table.detectionRemark,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -30686,8 +32120,8 @@ class $ParasiteDetectionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get parasiteRemark => $composableBuilder(
-    column: $table.parasiteRemark,
+  ColumnOrderings<String> get detectionRemark => $composableBuilder(
+    column: $table.detectionRemark,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -30716,8 +32150,8 @@ class $ParasiteDetectionAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get parasiteRemark => $composableBuilder(
-    column: $table.parasiteRemark,
+  GeneratedColumn<String> get detectionRemark => $composableBuilder(
+    column: $table.detectionRemark,
     builder: (column) => column,
   );
 }
@@ -30760,13 +32194,13 @@ class $ParasiteDetectionTableManager
                 Value<String> specimenUuid = const Value.absent(),
                 Value<int?> parasiteExamined = const Value.absent(),
                 Value<int?> parasiteDetected = const Value.absent(),
-                Value<String?> parasiteRemark = const Value.absent(),
+                Value<String?> detectionRemark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ParasiteDetectionCompanion(
                 specimenUuid: specimenUuid,
                 parasiteExamined: parasiteExamined,
                 parasiteDetected: parasiteDetected,
-                parasiteRemark: parasiteRemark,
+                detectionRemark: detectionRemark,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -30774,13 +32208,13 @@ class $ParasiteDetectionTableManager
                 required String specimenUuid,
                 Value<int?> parasiteExamined = const Value.absent(),
                 Value<int?> parasiteDetected = const Value.absent(),
-                Value<String?> parasiteRemark = const Value.absent(),
+                Value<String?> detectionRemark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ParasiteDetectionCompanion.insert(
                 specimenUuid: specimenUuid,
                 parasiteExamined: parasiteExamined,
                 parasiteDetected: parasiteDetected,
-                parasiteRemark: parasiteRemark,
+                detectionRemark: detectionRemark,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -30813,6 +32247,9 @@ typedef $ParasiteCreateCompanionBuilder =
       Value<int?> id,
       Value<String?> specimenUuid,
       Value<int?> speciesID,
+      Value<String?> identifierID,
+      Value<String?> parasiteID,
+      required String parasiteUuid,
       Value<int?> count,
       Value<String?> preparationMethod,
       Value<String?> storage,
@@ -30835,6 +32272,9 @@ typedef $ParasiteUpdateCompanionBuilder =
       Value<int?> id,
       Value<String?> specimenUuid,
       Value<int?> speciesID,
+      Value<String?> identifierID,
+      Value<String?> parasiteID,
+      Value<String> parasiteUuid,
       Value<int?> count,
       Value<String?> preparationMethod,
       Value<String?> storage,
@@ -30852,6 +32292,28 @@ typedef $ParasiteUpdateCompanionBuilder =
       Value<String?> museumLoan,
       Value<String?> remark,
     });
+
+final class $ParasiteReferences
+    extends BaseReferences<_$Database, Parasite, ParasiteData> {
+  $ParasiteReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Personnel _identifierIDTable(_$Database db) =>
+      db.personnel.createAlias('parasite__identifierID__personnel__uuid');
+
+  $PersonnelProcessedTableManager? get identifierID {
+    final $_column = $_itemColumn<String>('identifierID');
+    if ($_column == null) return null;
+    final manager = $PersonnelTableManager(
+      $_db,
+      $_db.personnel,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_identifierIDTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
   $ParasiteFilterComposer({
@@ -30873,6 +32335,16 @@ class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
 
   ColumnFilters<int> get speciesID => $composableBuilder(
     column: $table.speciesID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parasiteID => $composableBuilder(
+    column: $table.parasiteID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parasiteUuid => $composableBuilder(
+    column: $table.parasiteUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -30955,6 +32427,29 @@ class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
     column: $table.remark,
     builder: (column) => ColumnFilters(column),
   );
+
+  $PersonnelFilterComposer get identifierID {
+    final $PersonnelFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identifierID,
+      referencedTable: $db.personnel,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $PersonnelFilterComposer(
+            $db: $db,
+            $table: $db.personnel,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
@@ -30977,6 +32472,16 @@ class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
 
   ColumnOrderings<int> get speciesID => $composableBuilder(
     column: $table.speciesID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parasiteID => $composableBuilder(
+    column: $table.parasiteID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parasiteUuid => $composableBuilder(
+    column: $table.parasiteUuid,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -31059,6 +32564,29 @@ class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
     column: $table.remark,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $PersonnelOrderingComposer get identifierID {
+    final $PersonnelOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identifierID,
+      referencedTable: $db.personnel,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $PersonnelOrderingComposer(
+            $db: $db,
+            $table: $db.personnel,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
@@ -31079,6 +32607,16 @@ class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
 
   GeneratedColumn<int> get speciesID =>
       $composableBuilder(column: $table.speciesID, builder: (column) => column);
+
+  GeneratedColumn<String> get parasiteID => $composableBuilder(
+    column: $table.parasiteID,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get parasiteUuid => $composableBuilder(
+    column: $table.parasiteUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get count =>
       $composableBuilder(column: $table.count, builder: (column) => column);
@@ -31147,6 +32685,29 @@ class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
 
   GeneratedColumn<String> get remark =>
       $composableBuilder(column: $table.remark, builder: (column) => column);
+
+  $PersonnelAnnotationComposer get identifierID {
+    final $PersonnelAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identifierID,
+      referencedTable: $db.personnel,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $PersonnelAnnotationComposer(
+            $db: $db,
+            $table: $db.personnel,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ParasiteTableManager
@@ -31160,9 +32721,9 @@ class $ParasiteTableManager
           $ParasiteAnnotationComposer,
           $ParasiteCreateCompanionBuilder,
           $ParasiteUpdateCompanionBuilder,
-          (ParasiteData, BaseReferences<_$Database, Parasite, ParasiteData>),
+          (ParasiteData, $ParasiteReferences),
           ParasiteData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool identifierID})
         > {
   $ParasiteTableManager(_$Database db, Parasite table)
     : super(
@@ -31180,6 +32741,9 @@ class $ParasiteTableManager
                 Value<int?> id = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> speciesID = const Value.absent(),
+                Value<String?> identifierID = const Value.absent(),
+                Value<String?> parasiteID = const Value.absent(),
+                Value<String> parasiteUuid = const Value.absent(),
                 Value<int?> count = const Value.absent(),
                 Value<String?> preparationMethod = const Value.absent(),
                 Value<String?> storage = const Value.absent(),
@@ -31200,6 +32764,9 @@ class $ParasiteTableManager
                 id: id,
                 specimenUuid: specimenUuid,
                 speciesID: speciesID,
+                identifierID: identifierID,
+                parasiteID: parasiteID,
+                parasiteUuid: parasiteUuid,
                 count: count,
                 preparationMethod: preparationMethod,
                 storage: storage,
@@ -31222,6 +32789,9 @@ class $ParasiteTableManager
                 Value<int?> id = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> speciesID = const Value.absent(),
+                Value<String?> identifierID = const Value.absent(),
+                Value<String?> parasiteID = const Value.absent(),
+                required String parasiteUuid,
                 Value<int?> count = const Value.absent(),
                 Value<String?> preparationMethod = const Value.absent(),
                 Value<String?> storage = const Value.absent(),
@@ -31242,6 +32812,9 @@ class $ParasiteTableManager
                 id: id,
                 specimenUuid: specimenUuid,
                 speciesID: speciesID,
+                identifierID: identifierID,
+                parasiteID: parasiteID,
+                parasiteUuid: parasiteUuid,
                 count: count,
                 preparationMethod: preparationMethod,
                 storage: storage,
@@ -31260,9 +32833,51 @@ class $ParasiteTableManager
                 remark: remark,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (e.readTable(table), $ParasiteReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({identifierID = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (identifierID) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.identifierID,
+                                referencedTable: $ParasiteReferences
+                                    ._identifierIDTable(db),
+                                referencedColumn: $ParasiteReferences
+                                    ._identifierIDTable(db)
+                                    .uuid,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -31277,9 +32892,9 @@ typedef $ParasiteProcessedTableManager =
       $ParasiteAnnotationComposer,
       $ParasiteCreateCompanionBuilder,
       $ParasiteUpdateCompanionBuilder,
-      (ParasiteData, BaseReferences<_$Database, Parasite, ParasiteData>),
+      (ParasiteData, $ParasiteReferences),
       ParasiteData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool identifierID})
     >;
 typedef $SpecimenPartCreateCompanionBuilder =
     SpecimenPartCompanion Function({
@@ -32175,6 +33790,8 @@ class $DatabaseManager {
       $NarrativeMediaTableManager(_db, _db.narrativeMedia);
   $SiteMediaTableManager get siteMedia =>
       $SiteMediaTableManager(_db, _db.siteMedia);
+  $EventMediaTableManager get eventMedia =>
+      $EventMediaTableManager(_db, _db.eventMedia);
   $TaxonomyTableManager get taxonomy =>
       $TaxonomyTableManager(_db, _db.taxonomy);
   $SpecimenTableManager get specimen =>
@@ -32187,6 +33804,8 @@ class $DatabaseManager {
       $SpecimenAssociatedDataTableManager(_db, _db.specimenAssociatedData);
   $SiteAssociatedDataTableManager get siteAssociatedData =>
       $SiteAssociatedDataTableManager(_db, _db.siteAssociatedData);
+  $EventAssociatedDataTableManager get eventAssociatedData =>
+      $EventAssociatedDataTableManager(_db, _db.eventAssociatedData);
   $PersonnelListTableManager get personnelList =>
       $PersonnelListTableManager(_db, _db.personnelList);
   $MammalAttributeTableManager get mammalAttribute =>

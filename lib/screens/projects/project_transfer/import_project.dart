@@ -511,6 +511,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       'timeZone': 'Time zone',
       'startDate': 'Start date',
       'endDate': 'End date',
+      'accession': 'Accession',
+      'catalogNumberPrefix': 'Catalog number prefix',
+      'catalogNumberSuffix': 'Catalog number suffix',
     };
     final current = ref.watch(currProjInfoProvider);
     return Column(

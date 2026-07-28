@@ -1011,11 +1011,15 @@ class PersonnelFormCtrModel {
 
 class TaxonRegistryCtrModel {
   TaxonRegistryCtrModel({
+    required this.taxonRankCtr,
+    required this.kingdomCtr,
+    required this.phylumCtr,
     required this.taxonClassCtr,
     required this.taxonOrderCtr,
     required this.taxonFamilyCtr,
     required this.genusCtr,
     required this.specificEpithetCtr,
+    required this.subspecificEpithetCtr,
     required this.authorCtr,
     required this.commonNameCtr,
     required this.redListCategoryCtr,
@@ -1025,11 +1029,15 @@ class TaxonRegistryCtrModel {
     required this.noteCtr,
   });
 
-  String? taxonClassCtr;
+  String? taxonRankCtr;
+  TextEditingController kingdomCtr;
+  TextEditingController phylumCtr;
+  TextEditingController taxonClassCtr;
   TextEditingController taxonOrderCtr;
   TextEditingController taxonFamilyCtr;
   TextEditingController genusCtr;
   TextEditingController specificEpithetCtr;
+  TextEditingController subspecificEpithetCtr;
   TextEditingController authorCtr;
   TextEditingController commonNameCtr;
   TextEditingController redListCategoryCtr;
@@ -1039,11 +1047,15 @@ class TaxonRegistryCtrModel {
   TextEditingController noteCtr;
 
   factory TaxonRegistryCtrModel.empty() => TaxonRegistryCtrModel(
-    taxonClassCtr: null,
+    taxonRankCtr: null,
+    kingdomCtr: TextEditingController(),
+    phylumCtr: TextEditingController(),
+    taxonClassCtr: TextEditingController(),
     taxonOrderCtr: TextEditingController(),
     taxonFamilyCtr: TextEditingController(),
     genusCtr: TextEditingController(),
     specificEpithetCtr: TextEditingController(),
+    subspecificEpithetCtr: TextEditingController(),
     authorCtr: TextEditingController(),
     commonNameCtr: TextEditingController(),
     redListCategoryCtr: TextEditingController(),
@@ -1056,11 +1068,17 @@ class TaxonRegistryCtrModel {
   factory TaxonRegistryCtrModel.fromData(
     TaxonomyData data,
   ) => TaxonRegistryCtrModel(
-    taxonClassCtr: data.taxonClass ?? '',
+    taxonRankCtr: data.taxonRank,
+    kingdomCtr: TextEditingController(text: data.kingdom ?? ''),
+    phylumCtr: TextEditingController(text: data.phylum ?? ''),
+    taxonClassCtr: TextEditingController(text: data.taxonClass ?? ''),
     taxonOrderCtr: TextEditingController(text: data.taxonOrder ?? ''),
     taxonFamilyCtr: TextEditingController(text: data.taxonFamily ?? ''),
     genusCtr: TextEditingController(text: data.genus ?? ''),
     specificEpithetCtr: TextEditingController(text: data.specificEpithet ?? ''),
+    subspecificEpithetCtr: TextEditingController(
+      text: data.subspecificEpithet ?? '',
+    ),
     authorCtr: TextEditingController(text: data.authors ?? ''),
     commonNameCtr: TextEditingController(text: data.commonName ?? ''),
     redListCategoryCtr: TextEditingController(text: data.redListCategory ?? ''),
@@ -1073,10 +1091,14 @@ class TaxonRegistryCtrModel {
   );
 
   void dispose() {
+    kingdomCtr.dispose();
+    phylumCtr.dispose();
+    taxonClassCtr.dispose();
     taxonOrderCtr.dispose();
     taxonFamilyCtr.dispose();
     genusCtr.dispose();
     specificEpithetCtr.dispose();
+    subspecificEpithetCtr.dispose();
     authorCtr.dispose();
     commonNameCtr.dispose();
     redListCategoryCtr.dispose();
@@ -1084,6 +1106,119 @@ class TaxonRegistryCtrModel {
     countryStatusCtr.dispose();
     sortingOrderCtr.dispose();
     noteCtr.dispose();
+  }
+}
+
+class ParasiteFormCtrModel {
+  ParasiteFormCtrModel({
+    required this.parasiteIdCtr,
+    required this.speciesId,
+    required this.identifierId,
+    required this.countCtr,
+    required this.preparationMethodCtr,
+    required this.storageCtr,
+    required this.treatmentCtr,
+    required this.anatomicalLocationCtr,
+    required this.lifeStageCtr,
+    required this.categoryCtr,
+    required this.associationStatus,
+    required this.detectionMethodCtr,
+    required this.dateCollectedCtr,
+    required this.timeCollectedCtr,
+    required this.datePreservedCtr,
+    required this.timePreservedCtr,
+    required this.museumPermanentCtr,
+    required this.museumLoanCtr,
+    required this.remarkCtr,
+  });
+
+  TextEditingController parasiteIdCtr;
+  int? speciesId;
+  String? identifierId;
+  TextEditingController countCtr;
+  TextEditingController preparationMethodCtr;
+  TextEditingController storageCtr;
+  TextEditingController treatmentCtr;
+  TextEditingController anatomicalLocationCtr;
+  TextEditingController lifeStageCtr;
+  TextEditingController categoryCtr;
+  int? associationStatus;
+  TextEditingController detectionMethodCtr;
+  DateEditingController dateCollectedCtr;
+  TimeEditingController timeCollectedCtr;
+  DateEditingController datePreservedCtr;
+  TimeEditingController timePreservedCtr;
+  TextEditingController museumPermanentCtr;
+  TextEditingController museumLoanCtr;
+  TextEditingController remarkCtr;
+
+  factory ParasiteFormCtrModel.empty() => ParasiteFormCtrModel(
+    parasiteIdCtr: TextEditingController(),
+    speciesId: null,
+    identifierId: null,
+    countCtr: TextEditingController(text: '1'),
+    preparationMethodCtr: TextEditingController(),
+    storageCtr: TextEditingController(),
+    treatmentCtr: TextEditingController(),
+    anatomicalLocationCtr: TextEditingController(),
+    lifeStageCtr: TextEditingController(),
+    categoryCtr: TextEditingController(),
+    associationStatus: null,
+    detectionMethodCtr: TextEditingController(),
+    dateCollectedCtr: DateEditingController(),
+    timeCollectedCtr: TimeEditingController(),
+    datePreservedCtr: DateEditingController(),
+    timePreservedCtr: TimeEditingController(),
+    museumPermanentCtr: TextEditingController(),
+    museumLoanCtr: TextEditingController(),
+    remarkCtr: TextEditingController(),
+  );
+
+  factory ParasiteFormCtrModel.fromData(
+    ParasiteData data,
+  ) => ParasiteFormCtrModel(
+    parasiteIdCtr: TextEditingController(text: data.parasiteID ?? ''),
+    speciesId: data.speciesID,
+    identifierId: data.identifierID,
+    countCtr: TextEditingController(text: data.count?.toString() ?? ''),
+    preparationMethodCtr: TextEditingController(
+      text: data.preparationMethod ?? '',
+    ),
+    storageCtr: TextEditingController(text: data.storage ?? ''),
+    treatmentCtr: TextEditingController(text: data.treatment ?? ''),
+    anatomicalLocationCtr: TextEditingController(
+      text: data.anatomicalLocation ?? '',
+    ),
+    lifeStageCtr: TextEditingController(text: data.lifeStage ?? ''),
+    categoryCtr: TextEditingController(text: data.category ?? ''),
+    associationStatus: data.associationStatus,
+    detectionMethodCtr: TextEditingController(text: data.detectionMethod ?? ''),
+    dateCollectedCtr: DateEditingController(date: data.dateCollected),
+    timeCollectedCtr: TimeEditingController(time: data.timeCollected),
+    datePreservedCtr: DateEditingController(date: data.datePreserved),
+    timePreservedCtr: TimeEditingController(time: data.timePreserved),
+    museumPermanentCtr: TextEditingController(text: data.museumPermanent ?? ''),
+    museumLoanCtr: TextEditingController(text: data.museumLoan ?? ''),
+    remarkCtr: TextEditingController(text: data.remark ?? ''),
+  );
+
+  void dispose() {
+    parasiteIdCtr.dispose();
+    countCtr.dispose();
+    preparationMethodCtr.dispose();
+    storageCtr.dispose();
+    treatmentCtr.dispose();
+    anatomicalLocationCtr.dispose();
+    lifeStageCtr.dispose();
+    categoryCtr.dispose();
+    detectionMethodCtr.dispose();
+    dateCollectedCtr.dispose();
+    timeCollectedCtr.dispose();
+    datePreservedCtr.dispose();
+    timePreservedCtr.dispose();
+    museumPermanentCtr.dispose();
+    museumLoanCtr.dispose();
+    remarkCtr.dispose();
   }
 }
 

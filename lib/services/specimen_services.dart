@@ -15,6 +15,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/personnel_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/project_services.dart';
@@ -52,6 +53,7 @@ class SpecimenServices extends AppServices {
       taxonGroup: db.Value(matchCatFmtToTaxonGroup(catalogFmt)),
       projectFieldNumber: db.Value(int.tryParse(currentProjectNumber ?? '')),
     ));
+    await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
 
     switch (catalogFmt) {
       case CatalogFmt.birds:
@@ -317,6 +319,7 @@ class SpecimenServices extends AppServices {
   Future<void> deleteSpecimen(
       String specimenUuid, CatalogFmt catalogFmt) async {
     await deleteAllSpecimenParts(specimenUuid);
+    await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimenUuid);
     await AssociatedDataQuery(dbAccess).deleteAllAssociatedData(specimenUuid);
     switch (catalogFmt) {
       case CatalogFmt.birds:
@@ -339,6 +342,7 @@ class SpecimenServices extends AppServices {
         await SpecimenQuery(dbAccess).getAllSpecimens(projectUuid);
     for (var specimen in specimenList) {
       await deleteAllSpecimenParts(specimen.uuid);
+      await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimen.uuid);
       await AssociatedDataQuery(dbAccess)
           .deleteAllAssociatedData(specimen.uuid);
       await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimen.uuid);

@@ -304,6 +304,7 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
           useHorizontalLayout: widget.useHorizontalLayout,
         ),
         Notes(specimenUuid: widget.specimenUuid, ctr: ctr),
+        ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
       ],
     );
   }

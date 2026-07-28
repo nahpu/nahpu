@@ -73,8 +73,7 @@ class TaxonomicForm extends ConsumerWidget {
         context: context,
         builder: (context) => AlertDialog(
           title: TaxonInfoTitle(
-            genus: taxonData.genus,
-            specificEpithet: taxonData.specificEpithet,
+            displayName: getTaxonDisplayName(taxonData),
             authors: taxonData.authors,
             commonName: taxonData.commonName,
           ),
@@ -99,8 +98,7 @@ class TaxonomicForm extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TaxonInfoTitle(
-                  genus: taxonData.genus,
-                  specificEpithet: taxonData.specificEpithet,
+                  displayName: getTaxonDisplayName(taxonData),
                   authors: taxonData.authors,
                   commonName: taxonData.commonName,
                 ),
@@ -119,14 +117,12 @@ class TaxonomicForm extends ConsumerWidget {
 class TaxonInfoTitle extends StatelessWidget {
   const TaxonInfoTitle({
     super.key,
-    required this.genus,
-    required this.specificEpithet,
+    required this.displayName,
     required this.authors,
     required this.commonName,
   });
 
-  final String? genus;
-  final String? specificEpithet;
+  final String displayName;
   final String? authors;
   final String? commonName;
 
@@ -137,7 +133,7 @@ class TaxonInfoTitle extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '${genus ?? "N/A"} ${specificEpithet ?? "N/A"}',
+          displayName,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w400,
               fontStyle: FontStyle.italic,
@@ -180,8 +176,14 @@ class TaxonDetailsView extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         TaxonDetailRow(
-            label: 'Kingdom', value: getKingdom(taxonData.taxonClass)),
-        TaxonDetailRow(label: 'Phylum', value: getPhylum(taxonData.taxonClass)),
+            label: 'Rank',
+            value: taxonRankFromString(taxonData.taxonRank)?.label),
+        TaxonDetailRow(
+            label: 'Kingdom',
+            value: taxonData.kingdom ?? getKingdom(taxonData.taxonClass)),
+        TaxonDetailRow(
+            label: 'Phylum',
+            value: taxonData.phylum ?? getPhylum(taxonData.taxonClass)),
         TaxonDetailRow(label: 'Class', value: taxonData.taxonClass),
         TaxonDetailRow(label: 'Order', value: taxonData.taxonOrder),
         TaxonDetailRow(label: 'Family', value: taxonData.taxonFamily),
@@ -191,6 +193,10 @@ class TaxonDetailsView extends StatelessWidget {
           value: '${taxonData.genus} ${taxonData.specificEpithet}',
           isItalic: true,
         ),
+        TaxonDetailRow(
+            label: 'Subspecies',
+            value: taxonData.subspecificEpithet,
+            isItalic: true),
         TaxonDetailRow(label: 'Authors', value: taxonData.authors),
         const SizedBox(height: 8),
         if (taxonData.redListCategory != null &&

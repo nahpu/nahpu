@@ -190,8 +190,7 @@ class TaxonListViewState extends ConsumerState<TaxonListView> {
               itemCount: widget.taxonList.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(
-                      '${widget.taxonList[index].genus} ${widget.taxonList[index].specificEpithet}'),
+                  title: Text(getTaxonDisplayName(widget.taxonList[index])),
                   subtitle: Text(
                     '${widget.taxonList[index].taxonClass}'
                     '$listTileSeparator'

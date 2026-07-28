@@ -14,12 +14,12 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11, 12, 13]) {
-    test('upgrade from v$version to v14', () async {
+  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14]) {
+    test('upgrade from v$version to v15', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 14);
+      await verifier.migrateAndValidate(db, 15);
       await db.close();
     });
   }
@@ -31,7 +31,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 14);
+    await verifier.migrateAndValidate(db, 15);
     await db.close();
   });
 
@@ -43,7 +43,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 14);
+    await verifier.migrateAndValidate(db, 15);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -107,7 +107,7 @@ void main() {
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 14);
+    await verifier.migrateAndValidate(db, 15);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -169,7 +169,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 14);
+      await verifier.migrateAndValidate(db, 15);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -225,7 +225,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 14);
+    await verifier.migrateAndValidate(db, 15);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -285,7 +285,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 14);
+    await verifier.migrateAndValidate(db, 15);
 
     final specimens = await db.select(db.specimen).get();
     expect(
@@ -301,6 +301,70 @@ void main() {
     expect(bird.toeHex, '#808080');
     expect(bird.maxillaColor, isNull);
     expect(bird.mandibleColor, isNull);
+    await db.close();
+  });
+
+  test('v14 to v15 adds columns to the empty parasite table', () async {
+    final schema = await verifier.schemaAt(14);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO personnel (uuid, name) VALUES ('identifier', 'A. Expert')",
+    );
+    raw.execute(
+      "INSERT INTO taxonomy (id, taxonClass, genus, specificEpithet) "
+      "VALUES (7, 'Mammalia', 'Peromyscus', 'maniculatus')",
+    );
+    raw.execute(
+      "INSERT INTO specimen (uuid, projectUuid, speciesID) "
+      "VALUES ('specimen', 'project', 7)",
+    );
+    raw.execute(
+      "INSERT INTO parasiteDetection "
+      "(specimenUuid, parasiteExamined, parasiteDetected, parasiteRemark) "
+      "VALUES ('specimen', 1, 0, 'Initial examination'), "
+      "('specimen', 1, 1, 'Fleas observed')",
+    );
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 15);
+
+    final project = await db.select(db.project).getSingle();
+    expect(project.accession, isNull);
+    expect(project.catalogNumberPrefix, isNull);
+    expect(project.catalogNumberSuffix, isNull);
+
+    final taxon = await db.select(db.taxonomy).getSingle();
+    expect(taxon.kingdom, 'Animalia');
+    expect(taxon.phylum, 'Chordata');
+    expect(taxon.taxonRank, 'species');
+
+    final detection = await db.select(db.parasiteDetection).getSingle();
+    expect(detection.detectionRemark, 'Fleas observed');
+    expect(await db.select(db.parasite).get(), isEmpty);
+
+    await db
+        .into(db.parasite)
+        .insert(
+          ParasiteCompanion.insert(
+            specimenUuid: const Value('specimen'),
+            speciesID: const Value(7),
+            identifierID: const Value('identifier'),
+            parasiteUuid: 'parasite-with-identifier',
+          ),
+        );
+    final parasite = await db.select(db.parasite).getSingle();
+    expect(parasite.parasiteUuid, 'parasite-with-identifier');
+    expect(parasite.identifierID, 'identifier');
+
+    final tableNames =
+        (await db
+                .customSelect(
+                  "SELECT name FROM sqlite_master WHERE type = 'table'",
+                  readsFrom: const {},
+                )
+                .get())
+            .map((row) => row.read<String>('name'));
+    expect(tableNames, containsAll(['eventMedia', 'eventAssociatedData']));
     await db.close();
   });
 

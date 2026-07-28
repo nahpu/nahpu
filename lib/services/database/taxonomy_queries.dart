@@ -3,9 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 
 part 'taxonomy_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class TaxonomyQuery extends DatabaseAccessor<Database>
     with _$TaxonomyQueryMixin {
   TaxonomyQuery(super.db);
@@ -34,13 +32,14 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
             ..where((t) => t.specificEpithet.like('%${taxon[1]}%')))
           .get();
     }
-    return await (select(taxonomy)
-          ..where((t) =>
+    return await (select(taxonomy)..where(
+          (t) =>
               t.taxonOrder.like('%$query%') |
               t.taxonFamily.like('%$query%') |
               t.genus.like('%$query%') |
               t.specificEpithet.like('%$query%') |
-              t.commonName.like('%$query%')))
+              t.commonName.like('%$query%'),
+        ))
         .get();
   }
 
@@ -53,17 +52,17 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
 
   Future<List<TaxonomyData>> getTaxonList() async {
     // Get all taxon order by genus and species
-    return (select(taxonomy)
-          ..orderBy([
-            (t) => OrderingTerm(expression: t.genus),
-            (t) => OrderingTerm(expression: t.specificEpithet),
-          ]))
+    return (select(taxonomy)..orderBy([
+          (t) => OrderingTerm(expression: t.genus),
+          (t) => OrderingTerm(expression: t.specificEpithet),
+        ]))
         .get();
   }
 
   Future<List<int>> getAllUniqueTaxonFromSpecimen() async {
-    List<int?> specimenTaxonIds =
-        await select(specimen).map((s) => s.speciesID).get();
+    List<int?> specimenTaxonIds = await select(
+      specimen,
+    ).map((s) => s.speciesID).get();
     return specimenTaxonIds
         .toSet()
         .toList()
@@ -72,7 +71,13 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
         .toList();
   }
 
-  Future<void> createTaxon(TaxonomyCompanion form) {
+  Future<List<int>> getAllUniqueTaxonInUse() async {
+    final specimenTaxa = await select(specimen).map((s) => s.speciesID).get();
+    final parasiteTaxa = await select(parasite).map((p) => p.speciesID).get();
+    return {...specimenTaxa, ...parasiteTaxa}.whereType<int>().toList();
+  }
+
+  Future<int> createTaxon(TaxonomyCompanion form) {
     return into(taxonomy).insert(form);
   }
 

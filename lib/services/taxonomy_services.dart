@@ -12,25 +12,27 @@ class TaxonomyServices extends AppServices {
   }
 
   Future<List<int>> searchTaxa(String query) async {
-    List<TaxonomyData> results =
-        await TaxonomyQuery(dbAccess).searchTaxon(query);
+    List<TaxonomyData> results = await TaxonomyQuery(
+      dbAccess,
+    ).searchTaxon(query);
     return results.map((e) => e.id).toList();
   }
 
   Future<TaxonomyData?> getTaxonBySpecies(String genus, String epithet) async {
-    return await TaxonomyQuery(dbAccess)
-        .getTaxonIdByGenusEpithet(genus, epithet);
+    return await TaxonomyQuery(
+      dbAccess,
+    ).getTaxonIdByGenusEpithet(genus, epithet);
   }
 
   Future<List<int>> getUsedTaxa() async {
-    return await TaxonomyQuery(dbAccess).getAllUniqueTaxonFromSpecimen();
+    return await TaxonomyQuery(dbAccess).getAllUniqueTaxonInUse();
   }
 
   Future<List<TaxonomyData>> getTaxonList() {
     return TaxonomyQuery(dbAccess).getTaxonList();
   }
 
-  Future<void> createTaxon(TaxonomyCompanion form) {
+  Future<int> createTaxon(TaxonomyCompanion form) {
     return TaxonomyQuery(dbAccess).createTaxon(form);
   }
 
@@ -58,11 +60,63 @@ class TaxonomyServices extends AppServices {
   }
 }
 
+enum TaxonRank { taxonClass, order, family, genus, species, subspecies }
+
+extension TaxonRankDetails on TaxonRank {
+  String get databaseValue => switch (this) {
+    TaxonRank.taxonClass => 'class',
+    _ => name,
+  };
+
+  String get label => switch (this) {
+    TaxonRank.taxonClass => 'Class',
+    TaxonRank.order => 'Order',
+    TaxonRank.family => 'Family',
+    TaxonRank.genus => 'Genus',
+    TaxonRank.species => 'Species',
+    TaxonRank.subspecies => 'Subspecies',
+  };
+}
+
+TaxonRank? taxonRankFromString(String? value) {
+  final normalized = value?.trim().toLowerCase();
+  for (final rank in TaxonRank.values) {
+    if (rank.databaseValue == normalized) return rank;
+  }
+  return null;
+}
+
+String getTaxonDisplayName(TaxonomyData data) {
+  final rank = taxonRankFromString(data.taxonRank);
+  final scientific = [
+    data.genus,
+    data.specificEpithet,
+    data.subspecificEpithet,
+  ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
+  return switch (rank) {
+    TaxonRank.taxonClass => data.taxonClass ?? '',
+    TaxonRank.order => data.taxonOrder ?? '',
+    TaxonRank.family => data.taxonFamily ?? '',
+    TaxonRank.genus => data.genus ?? '',
+    TaxonRank.species || TaxonRank.subspecies => scientific,
+    null =>
+      scientific.isNotEmpty
+          ? scientific
+          : data.genus ??
+                data.taxonFamily ??
+                data.taxonOrder ??
+                data.taxonClass ??
+                '',
+  };
+}
+
 class TaxonFilterServices {
   TaxonFilterServices();
 
   List<TaxonomyData> filterTaxonList(
-      List<TaxonomyData> data, String searchValue) {
+    List<TaxonomyData> data,
+    String searchValue,
+  ) {
     return data
         .where((taxon) => _isTaxonMatch(taxon, searchValue.toLowerCase()))
         .toList();
@@ -88,11 +142,7 @@ class TaxonFilterServices {
 }
 
 String getSpeciesName(TaxonomyData data) {
-  if (data.genus != null && data.specificEpithet != null) {
-    return '${data.genus} ${data.specificEpithet}';
-  } else {
-    return '';
-  }
+  return getTaxonDisplayName(data);
 }
 
 // String _getAxisLabel(String value) {
@@ -134,8 +184,9 @@ Color matchRedListCategoryColor(String category) {
     return Colors.black;
   } else if (RegExp(r'\b(ew|extinct in the wild)\b').hasMatch(lowerCategory)) {
     return Colors.brown;
-  } else if (RegExp(r'\b(cr|critically endangered)\b')
-      .hasMatch(lowerCategory)) {
+  } else if (RegExp(
+    r'\b(cr|critically endangered)\b',
+  ).hasMatch(lowerCategory)) {
     return Colors.red[900]!;
   } else if (RegExp(r'\b(en|endangered)\b').hasMatch(lowerCategory)) {
     return Colors.red;

@@ -368,6 +368,85 @@ void main() {
       expect(payload.rows('specimen'), hasLength(1));
     });
 
+    testWidgets('exports parasite identifiers and event data links', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.personnel)
+          .insert(
+            const PersonnelCompanion(
+              uuid: Value('identifier'),
+              name: Value('Parasite identifier'),
+            ),
+          );
+      final parasiteTaxon = await database
+          .into(database.taxonomy)
+          .insert(
+            const TaxonomyCompanion(
+              taxonRank: Value('genus'),
+              genus: Value('Ixodes'),
+            ),
+          );
+      final eventId = await database
+          .into(database.collEvent)
+          .insert(const CollEventCompanion(projectUuid: Value('project-a')));
+      await database
+          .into(database.specimen)
+          .insert(
+            SpecimenCompanion(
+              uuid: const Value('specimen-a'),
+              projectUuid: const Value('project-a'),
+              collEventID: Value(eventId),
+            ),
+          );
+      await database
+          .into(database.parasiteDetection)
+          .insert(
+            const ParasiteDetectionCompanion(
+              specimenUuid: Value('specimen-a'),
+              parasiteDetected: Value(1),
+            ),
+          );
+      await database
+          .into(database.parasite)
+          .insert(
+            ParasiteCompanion(
+              specimenUuid: const Value('specimen-a'),
+              speciesID: Value(parasiteTaxon),
+              identifierID: const Value('identifier'),
+              parasiteID: const Value('P-1'),
+              parasiteUuid: const Value('parasite-uuid'),
+            ),
+          );
+      final dataId = await database
+          .into(database.associatedData)
+          .insert(
+            const AssociatedDataCompanion(
+              projectUuid: Value('project-a'),
+              name: Value('Event data'),
+            ),
+          );
+      await database
+          .into(database.eventAssociatedData)
+          .insert(
+            EventAssociatedDataCompanion(
+              eventID: Value(eventId),
+              associatedDataId: Value(dataId),
+            ),
+          );
+
+      final payload = await tester.runAsync(service.buildExport);
+
+      expect(payload!.rows('parasite'), hasLength(1));
+      expect(payload.rows('parasite').single['identifierID'], 'identifier');
+      expect(payload.rows('personnel').single['uuid'], 'identifier');
+      expect(payload.rows('taxonomy').single['genus'], 'Ixodes');
+      expect(payload.rows('eventAssociatedData'), hasLength(1));
+      expect(payload.rows('eventAssociatedData').single['eventID'], eventId);
+    });
+
     testWidgets('export survives disposal of its originating widget', (
       tester,
     ) async {

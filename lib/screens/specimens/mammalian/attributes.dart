@@ -441,6 +441,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             },
           ),
         ),
+        ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
       ],
     );
   }

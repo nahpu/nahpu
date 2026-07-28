@@ -8,14 +8,13 @@ import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/export/common.dart';
 
+enum MultiEntryExpansion { concatenate, specimenParts, parasites }
+
 /// Builds template source maps using canonical database `table::field` keys.
 class DynamicRecordExporter {
-  DynamicRecordExporter({
-    required this.ref,
-    required this.concatenateMultiEntry,
-  });
+  DynamicRecordExporter({required this.ref, required this.expansion});
   final WidgetRef ref;
-  final bool concatenateMultiEntry;
+  final MultiEntryExpansion expansion;
 
   Future<List<Map<String, String>>> getRecord(SpecimenData data) async {
     final Map<String, String> baseRecord = {};
@@ -36,10 +35,44 @@ class DynamicRecordExporter {
       'pmi',
       'museumPermanent',
       'museumLoan',
-      'remark'
+      'remark',
     ];
     for (var col in partColumns) {
       baseRecord['specimenPart::$col'] = '';
+    }
+    for (final col in const [
+      'specimenUuid',
+      'parasiteExamined',
+      'parasiteDetected',
+      'detectionRemark',
+    ]) {
+      baseRecord['parasiteDetection::$col'] = '';
+    }
+    for (final col in const [
+      'specimenUuid',
+      'speciesID',
+      'identifierID',
+      'parasiteID',
+      'parasiteUuid',
+      'count',
+      'preparationMethod',
+      'storage',
+      'treatment',
+      'anatomicalLocation',
+      'lifeStage',
+      'category',
+      'associationStatus',
+      'detectionMethod',
+      'dateCollected',
+      'timeCollected',
+      'datePreserved',
+      'timePreserved',
+      'museumPermanent',
+      'museumLoan',
+      'remark',
+      'scientificName',
+    ]) {
+      baseRecord['parasite::$col'] = '';
     }
 
     await _getSpecimenData(data, baseRecord);
@@ -49,30 +82,29 @@ class DynamicRecordExporter {
     await _getAttributeData(data.uuid, baseRecord);
 
     final List<Map<String, dynamic>> parts = await _getPartData(data.uuid);
+    final parasites = await _getParasiteData(data.uuid);
 
-    if (parts.isEmpty) {
-      return [baseRecord];
-    }
-
-    if (concatenateMultiEntry) {
-      final Set<String> allKeys = {};
-      for (var part in parts) {
-        allKeys.addAll(part.keys);
-      }
-      for (var key in allKeys) {
-        String combinedValue =
-            parts.map((part) => part[key]?.toString() ?? '').join(' | ');
-        baseRecord['specimenPart::$key'] = combinedValue;
-      }
-      return [baseRecord];
-    } else {
-      List<Map<String, String>> records = [];
-      for (var part in parts) {
-        var row = Map<String, String>.from(baseRecord);
-        _addData(row, 'specimenPart', part);
-        records.add(row);
-      }
-      return records;
+    switch (expansion) {
+      case MultiEntryExpansion.concatenate:
+        _addCombinedData(baseRecord, 'specimenPart', parts);
+        _addCombinedData(baseRecord, 'parasite', parasites);
+        return [baseRecord];
+      case MultiEntryExpansion.specimenParts:
+        _addCombinedData(baseRecord, 'parasite', parasites);
+        if (parts.isEmpty) return [baseRecord];
+        return [
+          for (final part in parts)
+            Map<String, String>.from(baseRecord)
+              ..addAll(_namespacedData('specimenPart', part)),
+        ];
+      case MultiEntryExpansion.parasites:
+        _addCombinedData(baseRecord, 'specimenPart', parts);
+        if (parasites.isEmpty) return [baseRecord];
+        return [
+          for (final parasite in parasites)
+            Map<String, String>.from(baseRecord)
+              ..addAll(_namespacedData('parasite', parasite)),
+        ];
     }
   }
 
@@ -94,13 +126,18 @@ class DynamicRecordExporter {
       ).getPersonnelByUuid(data.preparatorID!);
       record['specimen::preparatorID'] = p.name ?? '';
     }
+    if (data.identifierID != null) {
+      final p = await PersonnelServices(
+        ref: ref,
+      ).getPersonnelByUuid(data.identifierID!);
+      record['specimen::identifierID'] = p.name ?? '';
+    }
     if (data.speciesID != null) {
       final tax = await TaxonomyServices(
         ref: ref,
       ).getTaxonById(data.speciesID!);
       record['specimen::speciesID'] = tax.id.toString();
-      record['specimen::scientificName'] =
-          '${tax.genus ?? ''} ${tax.specificEpithet ?? ''}'.trim();
+      record['specimen::scientificName'] = getTaxonDisplayName(tax);
       _addData(record, 'taxonomy', tax.toJson());
     }
   }
@@ -129,7 +166,7 @@ class DynamicRecordExporter {
       'brand',
       'count',
       'size',
-      'notes'
+      'notes',
     ];
     for (var col in effortColumns) {
       record['collEffort::$col'] = '';
@@ -141,8 +178,9 @@ class DynamicRecordExporter {
         _addData(record, 'collEvent', event.toJson());
         _addData(record, 'event', event.toJson());
 
-        final formattedEventID =
-            await CollEventServices(ref: ref).getCollEventID(event);
+        final formattedEventID = await CollEventServices(
+          ref: ref,
+        ).getCollEventID(event);
         record['collEvent::collEventID'] = formattedEventID;
         record['collEvent::collEventId'] = formattedEventID;
         record['event::collEventID'] = formattedEventID;
@@ -157,18 +195,21 @@ class DynamicRecordExporter {
         record['collEvent::Activity'] = event.primaryCollMethod ?? '';
         record['event::Activity'] = event.primaryCollMethod ?? '';
 
-        final efforts =
-            await CollEventServices(ref: ref).getAllCollEffort(event.id);
+        final efforts = await CollEventServices(
+          ref: ref,
+        ).getAllCollEffort(event.id);
         if (efforts.isNotEmpty) {
           final Set<String> effortKeys = {};
-          final List<Map<String, dynamic>> effortJsons =
-              efforts.map((e) => e.toJson()).toList();
+          final List<Map<String, dynamic>> effortJsons = efforts
+              .map((e) => e.toJson())
+              .toList();
           for (var effortJson in effortJsons) {
             effortKeys.addAll(effortJson.keys);
           }
           for (var key in effortKeys) {
-            final combined =
-                effortJsons.map((e) => e[key]?.toString() ?? '').join(' | ');
+            final combined = effortJsons
+                .map((e) => e[key]?.toString() ?? '')
+                .join(' | ');
             record['collEffort::$key'] = combined;
           }
         }
@@ -193,21 +234,26 @@ class DynamicRecordExporter {
   }
 
   Future<String> _getEventEffort(int id) async {
-    List<CollEffortData> effort =
-        await CollEventServices(ref: ref).getAllCollEffort(id);
+    List<CollEffortData> effort = await CollEventServices(
+      ref: ref,
+    ).getAllCollEffort(id);
     return effort.map((e) => '"${e.method}";${e.count}').join(writerSeparator);
   }
 
   Future<String> _getEventPersonnel(int id) async {
-    List<CollPersonnelData> personnel =
-        await CollEventServices(ref: ref).getAllCollPersonnel(id);
+    List<CollPersonnelData> personnel = await CollEventServices(
+      ref: ref,
+    ).getAllCollPersonnel(id);
 
-    String person = await Future.wait(personnel.map((e) async {
-      if (e.personnelId == null) return '';
-      final p =
-          await PersonnelServices(ref: ref).getPersonnelByUuid(e.personnelId!);
-      return '${p.name};${e.role}';
-    })).then((value) => value.where((v) => v.isNotEmpty).join(writerSeparator));
+    String person = await Future.wait(
+      personnel.map((e) async {
+        if (e.personnelId == null) return '';
+        final p = await PersonnelServices(
+          ref: ref,
+        ).getPersonnelByUuid(e.personnelId!);
+        return '${p.name};${e.role}';
+      }),
+    ).then((value) => value.where((v) => v.isNotEmpty).join(writerSeparator));
 
     return person;
   }
@@ -233,26 +279,37 @@ class DynamicRecordExporter {
     final db = ref.read(databaseProvider);
     final mammal = await (db.select(
       db.mammalAttribute,
-    )..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .getSingleOrNull();
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
     if (mammal != null) {
       _addData(record, 'mammalAttribute', mammal.toJson());
     }
 
     final bird = await (db.select(
       db.birdAttribute,
-    )..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .getSingleOrNull();
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
     if (bird != null) {
       _addData(record, 'birdAttribute', bird.toJson());
     }
 
     final herp = await (db.select(
       db.herpAttribute,
-    )..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .getSingleOrNull();
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
     if (herp != null) {
       _addData(record, 'herpAttribute', herp.toJson());
+    }
+    final detection = await (db.select(
+      db.parasiteDetection,
+    )..where((row) => row.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+    if (detection != null) {
+      final json = detection.toJson();
+      for (final field in ['parasiteExamined', 'parasiteDetected']) {
+        json[field] = switch (json[field]) {
+          1 => 'Yes',
+          0 => 'No',
+          _ => '',
+        };
+      }
+      _addData(record, 'parasiteDetection', json);
     }
   }
 
@@ -260,9 +317,60 @@ class DynamicRecordExporter {
     final db = ref.read(databaseProvider);
     final parts = await (db.select(
       db.specimenPart,
-    )..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .get();
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).get();
     return parts.map((e) => e.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _getParasiteData(
+    String specimenUuid,
+  ) async {
+    final db = ref.read(databaseProvider);
+    final records = await (db.select(
+      db.parasite,
+    )..where((row) => row.specimenUuid.equals(specimenUuid))).get();
+    return Future.wait(
+      records.map((record) async {
+        final json = record.toJson()..remove('id');
+        json['associationStatus'] = switch (record.associationStatus) {
+          1 => 'Yes',
+          0 => 'No',
+          _ => '',
+        };
+        if (record.speciesID != null) {
+          final taxon = await TaxonomyServices(
+            ref: ref,
+          ).getTaxonById(record.speciesID!);
+          json['scientificName'] = getTaxonDisplayName(taxon);
+        }
+        if (record.identifierID != null) {
+          final identifier = await PersonnelServices(
+            ref: ref,
+          ).getPersonnelByUuid(record.identifierID!);
+          json['identifierID'] = identifier.name;
+        }
+        return json;
+      }),
+    );
+  }
+
+  void _addCombinedData(
+    Map<String, String> record,
+    String table,
+    List<Map<String, dynamic>> rows,
+  ) {
+    final keys = rows.expand((row) => row.keys).toSet();
+    for (final key in keys) {
+      record['$table::$key'] = rows
+          .map((row) => row[key]?.toString() ?? '')
+          .join(writerSeparator);
+    }
+  }
+
+  Map<String, String> _namespacedData(String table, Map<String, dynamic> data) {
+    return {
+      for (final entry in data.entries)
+        '$table::${entry.key}': entry.value?.toString() ?? '',
+    };
   }
 
   void _addData(

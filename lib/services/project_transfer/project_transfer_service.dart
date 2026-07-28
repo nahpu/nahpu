@@ -70,6 +70,11 @@ class ProjectTransferService extends AppServices {
       'eventID',
       eventIds,
     );
+    records['eventAssociatedData'] = await _rowsForIds(
+      'eventAssociatedData',
+      'eventID',
+      eventIds,
+    );
     records['specimen'] = await _projectRows('specimen');
     final specimenUuids = _stringIds(records['specimen']!, 'uuid');
     records['mammalAttribute'] = await _rowsForStrings(
@@ -92,6 +97,16 @@ class ProjectTransferService extends AppServices {
       'specimenUuid',
       specimenUuids,
     );
+    records['parasiteDetection'] = await _rowsForStrings(
+      'parasiteDetection',
+      'specimenUuid',
+      specimenUuids,
+    );
+    records['parasite'] = await _rowsForStrings(
+      'parasite',
+      'specimenUuid',
+      specimenUuids,
+    );
     records['associatedData'] = await _projectRows('associatedData');
     records['specimenAssociatedData'] = await _rowsForStrings(
       'specimenAssociatedData',
@@ -106,11 +121,10 @@ class ProjectTransferService extends AppServices {
     records['narrative'] = await _projectRows('narrative');
     final narrativeIds = _intIds(records['narrative']!, 'id');
 
-    final taxonomyIds = records['specimen']!
-        .map((row) => row['speciesID'])
-        .whereType<int>()
-        .toSet()
-        .toList();
+    final taxonomyIds = {
+      ...records['specimen']!.map((row) => row['speciesID']).whereType<int>(),
+      ...records['parasite']!.map((row) => row['speciesID']).whereType<int>(),
+    }.toList();
     records['taxonomy'] = await _rowsForIds('taxonomy', 'id', taxonomyIds);
 
     final personnelIds = <String>{};
@@ -124,8 +138,10 @@ class ProjectTransferService extends AppServices {
     _addStringValues(records['site']!, 'leadStaffId', personnelIds);
     _addStringValues(records['collPersonnel']!, 'personnelId', personnelIds);
     _addStringValues(records['specimen']!, 'catalogerID', personnelIds);
+    _addStringValues(records['specimen']!, 'identifierID', personnelIds);
     _addStringValues(records['specimen']!, 'preparatorID', personnelIds);
     _addStringValues(records['specimenPart']!, 'personnelId', personnelIds);
+    _addStringValues(records['parasite']!, 'identifierID', personnelIds);
     _addStringValues(records['narrative']!, 'writerId', personnelIds);
     records['personnel'] = await _rowsForStrings(
       'personnel',
@@ -143,6 +159,11 @@ class ProjectTransferService extends AppServices {
 
     final linkedMediaIds = <int>{};
     records['siteMedia'] = await _rowsForIds('siteMedia', 'siteId', siteIds);
+    records['eventMedia'] = await _rowsForIds(
+      'eventMedia',
+      'eventID',
+      eventIds,
+    );
     records['narrativeMedia'] = await _rowsForIds(
       'narrativeMedia',
       'narrativeId',
@@ -153,7 +174,12 @@ class ProjectTransferService extends AppServices {
       'specimenUuid',
       specimenUuids,
     );
-    for (final key in ['siteMedia', 'narrativeMedia', 'specimenMedia']) {
+    for (final key in [
+      'siteMedia',
+      'eventMedia',
+      'narrativeMedia',
+      'specimenMedia',
+    ]) {
       linkedMediaIds.addAll(
         records[key]!.map((row) => row['mediaId']).whereType<int>(),
       );
@@ -664,6 +690,8 @@ class ProjectTransferService extends AppServices {
             await _deleteWhere('weather', 'eventID', targetId);
             await _deleteWhere('collPersonnel', 'eventID', targetId);
             await _deleteWhere('collEffort', 'eventID', targetId);
+            await _deleteWhere('eventMedia', 'eventID', targetId);
+            await _deleteWhere('eventAssociatedData', 'eventID', targetId);
             eventMap[sourceId] = targetId;
             eventsUsingImportedChildren.add(sourceId);
             updated++;
@@ -773,6 +801,7 @@ class ProjectTransferService extends AppServices {
             'collEventID': eventMap[row['collEventID'] as int?],
             'coordinateID': coordinateMap[row['coordinateID'] as int?],
             'catalogerID': personnelMap[row['catalogerID'] as String?],
+            'identifierID': personnelMap[row['identifierID'] as String?],
             'preparatorID': personnelMap[row['preparatorID'] as String?],
             'collPersonnelID': collPersonnelMap[row['collPersonnelID'] as int?],
             'collMethodID': effortMap[row['collMethodID'] as int?],
@@ -801,14 +830,17 @@ class ProjectTransferService extends AppServices {
           plan.payload,
           specimenMap,
           personnelMap,
+          taxonomyMap,
           specimensUsingImportedChildren,
         );
         await _importAssociatedData(
           plan.payload,
           specimenMap,
           siteMap,
+          eventMap,
           specimensUsingImportedChildren,
           sitesUsingImportedChildren,
+          eventsUsingImportedChildren,
           targetProjectUuid,
         );
 
@@ -885,10 +917,12 @@ class ProjectTransferService extends AppServices {
         await _importMediaLinks(
           plan.payload,
           siteMap,
+          eventMap,
           specimenMap,
           narrativeMap,
           mediaMap,
           sitesUsingImportedChildren,
+          eventsUsingImportedChildren,
           specimensUsingImportedChildren,
           narrativesUsingImportedChildren,
         );
@@ -952,7 +986,12 @@ class ProjectTransferService extends AppServices {
     records['media']!.removeWhere(
       (row) => missingIds.contains(row['primaryId']),
     );
-    for (final key in ['siteMedia', 'narrativeMedia', 'specimenMedia']) {
+    for (final key in [
+      'siteMedia',
+      'eventMedia',
+      'narrativeMedia',
+      'specimenMedia',
+    ]) {
       records[key]!.removeWhere((row) => missingIds.contains(row['mediaId']));
     }
     for (final taxon in records['taxonomy']!) {
@@ -1039,6 +1078,9 @@ class ProjectTransferService extends AppServices {
       'timeZone',
       'startDate',
       'endDate',
+      'accession',
+      'catalogNumberPrefix',
+      'catalogNumberSuffix',
     ];
     final selected = {
       for (final field in fields)
@@ -1058,6 +1100,7 @@ class ProjectTransferService extends AppServices {
     ProjectTransferPayload payload,
     Map<String, String?> specimenMap,
     Map<String, String?> personnelMap,
+    Map<int, int?> taxonomyMap,
     Set<String> specimensUsingImportedChildren,
   ) async {
     for (final table in ['mammalAttribute', 'birdAttribute', 'herpAttribute']) {
@@ -1083,14 +1126,56 @@ class ProjectTransferService extends AppServices {
         );
       }
     }
+    for (final row in payload.rows('parasiteDetection')) {
+      final sourceUuid = row['specimenUuid'] as String?;
+      if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
+      final uuid = specimenMap[sourceUuid];
+      if (uuid != null) {
+        await _insert('parasiteDetection', {...row, 'specimenUuid': uuid});
+      }
+    }
+    for (final row in payload.rows('parasite')) {
+      final sourceUuid = row['specimenUuid'] as String?;
+      if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
+      final uuid = specimenMap[sourceUuid];
+      final taxonId = taxonomyMap[row['speciesID'] as int?];
+      final identifierId = personnelMap[row['identifierID'] as String?];
+      if (uuid == null ||
+          (row['speciesID'] != null && taxonId == null) ||
+          (row['identifierID'] != null && identifierId == null)) {
+        continue;
+      }
+      var parasiteUuid = row['parasiteUuid'] as String?;
+      final duplicate = parasiteUuid == null
+          ? const <Map<String, dynamic>>[]
+          : await _query('SELECT id FROM parasite WHERE parasiteUuid = ?', [
+              parasiteUuid,
+            ]);
+      if (parasiteUuid == null || duplicate.isNotEmpty) {
+        parasiteUuid = const Uuid().v4();
+      }
+      await _insert(
+        'parasite',
+        {
+          ...row,
+          'specimenUuid': uuid,
+          'speciesID': taxonId,
+          'identifierID': identifierId,
+          'parasiteUuid': parasiteUuid,
+        },
+        omit: {'id'},
+      );
+    }
   }
 
   Future<void> _importAssociatedData(
     ProjectTransferPayload payload,
     Map<String, String?> specimenMap,
     Map<int, int?> siteMap,
+    Map<int, int?> eventMap,
     Set<String> specimensUsingImportedChildren,
     Set<int> sitesUsingImportedChildren,
+    Set<int> eventsUsingImportedChildren,
     String targetProjectUuid,
   ) async {
     final specimenLinks = payload.rows('specimenAssociatedData').isEmpty
@@ -1106,6 +1191,7 @@ class ProjectTransferService extends AppServices {
               .toList(growable: false)
         : payload.rows('specimenAssociatedData');
     final siteLinks = payload.rows('siteAssociatedData');
+    final eventLinks = payload.rows('eventAssociatedData');
     final sourceDataIds = <int>{};
     for (final row in specimenLinks) {
       final sourceUuid = row['specimenUuid'] as String?;
@@ -1122,6 +1208,15 @@ class ProjectTransferService extends AppServices {
       if (sourceId != null &&
           sitesUsingImportedChildren.contains(sourceSiteId) &&
           siteMap[sourceSiteId] != null) {
+        sourceDataIds.add(sourceId);
+      }
+    }
+    for (final row in eventLinks) {
+      final sourceEventId = row['eventID'] as int?;
+      final sourceId = row['associatedDataId'] as int?;
+      if (sourceId != null &&
+          eventsUsingImportedChildren.contains(sourceEventId) &&
+          eventMap[sourceEventId] != null) {
         sourceDataIds.add(sourceId);
       }
     }
@@ -1161,6 +1256,19 @@ class ProjectTransferService extends AppServices {
           sitesUsingImportedChildren.contains(sourceSiteId)) {
         await _insert('siteAssociatedData', {
           'siteId': targetSiteId,
+          'associatedDataId': dataId,
+        });
+      }
+    }
+    for (final row in eventLinks) {
+      final sourceEventId = row['eventID'] as int?;
+      final targetEventId = eventMap[sourceEventId];
+      final dataId = dataMap[row['associatedDataId'] as int?];
+      if (targetEventId != null &&
+          dataId != null &&
+          eventsUsingImportedChildren.contains(sourceEventId)) {
+        await _insert('eventAssociatedData', {
+          'eventID': targetEventId,
           'associatedDataId': dataId,
         });
       }
@@ -1239,10 +1347,12 @@ class ProjectTransferService extends AppServices {
   Future<void> _importMediaLinks(
     ProjectTransferPayload payload,
     Map<int, int?> siteMap,
+    Map<int, int?> eventMap,
     Map<String, String?> specimenMap,
     Map<int, int?> narrativeMap,
     Map<int, int> mediaMap,
     Set<int> sitesUsingImportedChildren,
+    Set<int> eventsUsingImportedChildren,
     Set<String> specimensUsingImportedChildren,
     Set<int> narrativesUsingImportedChildren,
   ) async {
@@ -1253,6 +1363,15 @@ class ProjectTransferService extends AppServices {
       final mediaId = mediaMap[row['mediaId'] as int?];
       if (siteId != null && mediaId != null) {
         await _insert('siteMedia', {'siteId': siteId, 'mediaId': mediaId});
+      }
+    }
+    for (final row in payload.rows('eventMedia')) {
+      final sourceEventId = row['eventID'] as int?;
+      if (!eventsUsingImportedChildren.contains(sourceEventId)) continue;
+      final eventId = eventMap[sourceEventId];
+      final mediaId = mediaMap[row['mediaId'] as int?];
+      if (eventId != null && mediaId != null) {
+        await _insert('eventMedia', {'eventID': eventId, 'mediaId': mediaId});
       }
     }
     for (final row in payload.rows('specimenMedia')) {
@@ -1291,6 +1410,8 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'specimenPart',
+      'parasiteDetection',
+      'parasite',
       'specimenMedia',
     ]) {
       await _deleteWhere(table, 'specimenUuid', uuid);
@@ -1330,12 +1451,19 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'specimenPart',
+      'parasiteDetection',
+      'parasite',
       'specimenMedia',
     ]) {
       for (final row in records[table] ?? const []) {
         if (!specimenIds.contains(row['specimenUuid'])) {
           throw FormatException('$table has an unresolved specimen.');
         }
+      }
+    }
+    for (final row in records['parasite'] ?? const []) {
+      if (row['speciesID'] != null && !taxonIds.contains(row['speciesID'])) {
+        throw const FormatException('A parasite has unresolved taxonomy.');
       }
     }
     final associatedDataIds = _intIds(
@@ -1367,6 +1495,14 @@ class ProjectTransferService extends AppServices {
           !associatedDataIds.contains(row['associatedDataId'])) {
         throw const FormatException(
           'Site associated data has an unresolved reference.',
+        );
+      }
+    }
+    for (final row in records['eventAssociatedData'] ?? const []) {
+      if (!eventIds.contains(row['eventID']) ||
+          !associatedDataIds.contains(row['associatedDataId'])) {
+        throw const FormatException(
+          'Event associated data has an unresolved reference.',
         );
       }
     }

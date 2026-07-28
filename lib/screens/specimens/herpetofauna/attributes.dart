@@ -168,6 +168,7 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
             ),
           ],
         ),
+        ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
       ],
     );
   }

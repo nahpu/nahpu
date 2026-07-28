@@ -137,6 +137,36 @@ const List<String> partExportListDelimited = [
   'part::remark',
 ];
 
+const List<String> parasiteDetectionExportList = [
+  'parasiteDetection::parasiteExamined',
+  'parasiteDetection::parasiteDetected',
+  'parasiteDetection::detectionRemark',
+];
+
+const List<String> parasiteExportList = [
+  'parasite::parasiteUuid',
+  'parasite::parasiteID',
+  'parasite::scientificName',
+  'parasite::speciesID',
+  'parasite::identifierID',
+  'parasite::count',
+  'parasite::category',
+  'parasite::anatomicalLocation',
+  'parasite::lifeStage',
+  'parasite::associationStatus',
+  'parasite::detectionMethod',
+  'parasite::dateCollected',
+  'parasite::timeCollected',
+  'parasite::preparationMethod',
+  'parasite::storage',
+  'parasite::treatment',
+  'parasite::datePreserved',
+  'parasite::timePreserved',
+  'parasite::museumPermanent',
+  'parasite::museumLoan',
+  'parasite::remark',
+];
+
 const siteExportList = [
   'site::site',
   'site::habitatType',
