@@ -21,23 +21,19 @@ enum SpecimenSearchOption {
   prepDate,
   prepTime,
   taxa,
-  prepType
+  prepType,
 }
 
 enum FieldIdMode { personnel, project }
 
-const List<String> specimenSexList = [
-  'Male',
-  'Female',
-  'Unknown',
-];
+const List<String> specimenSexList = ['Male', 'Female', 'Unknown'];
 
-String normalizeCondition(String? value) {
+String? canonicalizeCondition(String? value) {
   if (value == 'Freshly Euthanized') return 'Freshly euthanized';
-  return value ?? conditionList.first;
+  return value;
 }
 
-const List<String> conditionList = [
+const List<String> defaultCondition = [
   'Freshly euthanized',
   'Good',
   'Fair',
@@ -97,17 +93,9 @@ const List<String> relativeTimeList = [
   'Night',
 ];
 
-const List<String> idConfidenceList = [
-  'Low',
-  'Medium',
-  'High',
-];
+const List<String> idConfidenceList = ['Low', 'Medium', 'High'];
 
-const List<String> taxonGroupList = [
-  'Birds',
-  'Mammals',
-  'Herpetofauna',
-];
+const List<String> taxonGroupList = ['Birds', 'Mammals', 'Herpetofauna'];
 
 CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
   switch (taxonGroup) {
@@ -224,7 +212,7 @@ const List<String> specimenPartList = [
   'skeleton',
   'alcohol',
   'formalin',
-  'whole-specimen'
+  'whole-specimen',
 ];
 
 /// Whole-specimen preparations that have their own icon per catalog format.
@@ -278,8 +266,9 @@ class SpecimenPartIcon {
     List<String> availableKeys = partIconPath.keys.toList();
     List<String> words = lowercased.split(' ');
 
-    List<String> matches =
-        availableKeys.where((element) => words.contains(element)).toList();
+    List<String> matches = availableKeys
+        .where((element) => words.contains(element))
+        .toList();
 
     if (matches.isNotEmpty) {
       return partIconPath[matches.first] ?? partIconPath['unknown']!;

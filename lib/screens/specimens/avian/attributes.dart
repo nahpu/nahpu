@@ -106,6 +106,43 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             CommonTextField(
+              controller: ctr.maxillaCtr,
+              labelText: 'Maxilla color',
+              hintText: 'Enter maxilla color',
+              isLastField: false,
+              onChanged: (value) {
+                SpecimenServices(ref: ref).updateBirdAttribute(
+                  widget.specimenUuid,
+                  BirdAttributeCompanion(
+                    maxillaColor: db.Value(
+                      value == null || value.isEmpty ? null : value,
+                    ),
+                  ),
+                );
+              },
+            ),
+            CommonTextField(
+              controller: ctr.mandibleCtr,
+              labelText: 'Mandible color',
+              hintText: 'Enter mandible color',
+              isLastField: false,
+              onChanged: (value) {
+                SpecimenServices(ref: ref).updateBirdAttribute(
+                  widget.specimenUuid,
+                  BirdAttributeCompanion(
+                    mandibleColor: db.Value(
+                      value == null || value.isEmpty ? null : value,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            CommonTextField(
               controller: ctr.irisCtr,
               labelText: 'Iris color',
               hintText: 'Enter iris color',
@@ -122,8 +159,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
             CommonTextField(
               controller: ctr.tarsusCtr,
               labelText: 'Tarsus color',
-              hintText: 'Enter foot color',
-              isLastField: true,
+              hintText: 'Enter tarsus color',
+              isLastField: false,
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
                   SpecimenServices(ref: ref).updateBirdAttribute(
@@ -134,15 +171,15 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
               },
             ),
             CommonTextField(
-              controller: ctr.footCtr,
+              controller: ctr.toeCtr,
               labelText: 'Toe color',
               hintText: 'Enter toe color',
-              isLastField: false,
+              isLastField: true,
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
                   SpecimenServices(ref: ref).updateBirdAttribute(
                     widget.specimenUuid,
-                    BirdAttributeCompanion(footColor: db.Value(value)),
+                    BirdAttributeCompanion(toeColor: db.Value(value)),
                   );
                 }
               },
@@ -400,7 +437,7 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
               ),
               DropdownMenuItem(
                 value: true,
-                child: CommonDropdownText(text: '1 × 1 mm or greater'),
+                child: CommonDropdownText(text: '1 mm or greater'),
               ),
             ],
             onChanged: (value) {
@@ -434,14 +471,12 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
                   isDouble: true,
                   isLastField: false,
                   onChanged: (String? value) {
-                    if (value != null && value.isNotEmpty) {
-                      SpecimenServices(ref: ref).updateBirdAttribute(
-                        widget.specimenUuid,
-                        BirdAttributeCompanion(
-                          testisLength: db.Value(double.tryParse(value) ?? 0),
-                        ),
-                      );
-                    }
+                    final parsed = double.tryParse(value ?? '');
+                    if (value?.isNotEmpty == true && parsed == null) return;
+                    SpecimenServices(ref: ref).updateBirdAttribute(
+                      widget.specimenUuid,
+                      BirdAttributeCompanion(testisLength: db.Value(parsed)),
+                    );
                   },
                 ),
                 CommonNumField(
@@ -451,14 +486,12 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
                   isDouble: true,
                   isLastField: false,
                   onChanged: (String? value) {
-                    if (value != null && value.isNotEmpty) {
-                      SpecimenServices(ref: ref).updateBirdAttribute(
-                        widget.specimenUuid,
-                        BirdAttributeCompanion(
-                          testisWidth: db.Value(double.tryParse(value) ?? 0),
-                        ),
-                      );
-                    }
+                    final parsed = double.tryParse(value ?? '');
+                    if (value?.isNotEmpty == true && parsed == null) return;
+                    SpecimenServices(ref: ref).updateBirdAttribute(
+                      widget.specimenUuid,
+                      BirdAttributeCompanion(testisWidth: db.Value(parsed)),
+                    );
                   },
                 ),
               ],
@@ -508,16 +541,29 @@ class FemaleGonadForm extends ConsumerStatefulWidget {
 
 class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
   bool _isLargeOvum = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncLargeOvumVisibility();
+  }
+
+  @override
+  void didUpdateWidget(covariant FemaleGonadForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncLargeOvumVisibility();
+  }
+
+  void _syncLargeOvumVisibility() {
+    _isLargeOvum = widget.ctr.ovaryAppearanceCtr == OvaryAppearance.large.index;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final List<DropdownMenuItem<int?>> ovaryApperanceItems = ovaryAppearanceList
-        .map(
-          (e) => DropdownMenuItem<int?>(
-            value: ovaryAppearanceList.indexOf(e),
-            child: CommonDropdownText(text: e),
-          ),
-        )
-        .toList();
+    final ovaryApperanceItems = _birdEncodedDropdownItems(
+      ovaryAppearanceList,
+      widget.ctr.ovaryAppearanceCtr,
+    );
 
     return Visibility(
       visible: widget.sex == SpecimenSex.female,
@@ -573,6 +619,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
               items: DropDownMenuItems.addChooseOneToList(ovaryApperanceItems),
               onChanged: (int? newValue) {
                 setState(() {
+                  widget.ctr.ovaryAppearanceCtr = newValue;
                   if (kDebugMode) print(OvaryAppearance.large.index);
                   _isLargeOvum = (newValue == OvaryAppearance.large.index);
                   SpecimenServices(ref: ref).updateBirdAttribute(
@@ -668,14 +715,10 @@ class FatField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<DropdownMenuItem<int?>> fatCategoryItems = fatCategoryList
-        .map(
-          (e) => DropdownMenuItem<int?>(
-            value: fatCategoryList.indexOf(e),
-            child: CommonDropdownText(text: e),
-          ),
-        )
-        .toList();
+    final fatCategoryItems = _birdEncodedDropdownItems(
+      fatCategoryList,
+      ctr.fatCtr,
+    );
 
     return DropdownButtonFormField<int?>(
       initialValue: ctr.fatCtr,
@@ -799,15 +842,10 @@ class _OviductFormState extends ConsumerState<OviductForm> {
 
   @override
   Widget build(BuildContext context) {
-    final List<DropdownMenuItem<int?>> oviductAppearanceItems =
-        oviductAppearanceList
-            .map(
-              (e) => DropdownMenuItem<int?>(
-                value: oviductAppearanceList.indexOf(e),
-                child: CommonDropdownText(text: e),
-              ),
-            )
-            .toList();
+    final oviductAppearanceItems = _birdEncodedDropdownItems(
+      oviductAppearanceList,
+      widget.ctr.oviductAppearanceCtr,
+    );
 
     return Column(
       children: [
@@ -851,14 +889,12 @@ class _OviductFormState extends ConsumerState<OviductForm> {
                 isDouble: true,
                 isLastField: false,
                 onChanged: (String? value) {
-                  if (value != null && value.isNotEmpty) {
-                    SpecimenServices(ref: ref).updateBirdAttribute(
-                      widget.specimenUuid,
-                      BirdAttributeCompanion(
-                        oviductWidth: db.Value(double.parse(value)),
-                      ),
-                    );
-                  }
+                  final parsed = double.tryParse(value ?? '');
+                  if (value?.isNotEmpty == true && parsed == null) return;
+                  SpecimenServices(ref: ref).updateBirdAttribute(
+                    widget.specimenUuid,
+                    BirdAttributeCompanion(oviductWidth: db.Value(parsed)),
+                  );
                 },
               ),
           ],
@@ -907,6 +943,23 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
   bool _tailMolting = false;
 
   @override
+  void initState() {
+    super.initState();
+    _syncMoltVisibility();
+  }
+
+  @override
+  void didUpdateWidget(covariant MoltingForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncMoltVisibility();
+  }
+
+  void _syncMoltVisibility() {
+    _wingMolting = widget.ctr.wingIsMoltCtr == 1;
+    _tailMolting = widget.ctr.tailIsMoltCtr == 1;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(5),
@@ -921,6 +974,7 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
             items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
               setState(() {
+                widget.ctr.wingIsMoltCtr = newValue;
                 _wingMolting = newValue == 1;
                 SpecimenServices(ref: ref).updateBirdAttribute(
                   widget.specimenUuid,
@@ -938,11 +992,12 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
             ),
           ),
           DropdownButtonFormField<int?>(
-            initialValue: widget.ctr.wingIsMoltCtr,
+            initialValue: widget.ctr.tailIsMoltCtr,
             decoration: const InputDecoration(labelText: 'Tail molt'),
             items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
               setState(() {
+                widget.ctr.tailIsMoltCtr = newValue;
                 _tailMolting = newValue == 1;
                 SpecimenServices(ref: ref).updateBirdAttribute(
                   widget.specimenUuid,
@@ -1056,14 +1111,10 @@ class BodyMoltForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<DropdownMenuItem<int?>> bodyMoltItems = bodyMoltList
-        .map(
-          (e) => DropdownMenuItem<int?>(
-            value: bodyMoltList.indexOf(e),
-            child: CommonDropdownText(text: e),
-          ),
-        )
-        .toList();
+    final bodyMoltItems = _birdEncodedDropdownItems(
+      bodyMoltList,
+      ctr.bodyMoltCtr,
+    );
 
     return DropdownButtonFormField<int?>(
       initialValue: ctr.bodyMoltCtr,
@@ -1077,6 +1128,25 @@ class BodyMoltForm extends ConsumerWidget {
       },
     );
   }
+}
+
+List<DropdownMenuItem<int?>> _birdEncodedDropdownItems(
+  List<String> labels,
+  int? currentValue,
+) {
+  return [
+    for (final (index, label) in labels.indexed)
+      DropdownMenuItem<int?>(
+        value: index,
+        child: CommonDropdownText(text: label),
+      ),
+    if (currentValue != null &&
+        (currentValue < 0 || currentValue >= labels.length))
+      DropdownMenuItem<int?>(
+        value: currentValue,
+        child: CommonDropdownText(text: birdLabelForCode(labels, currentValue)),
+      ),
+  ];
 }
 
 class Notes extends ConsumerWidget {

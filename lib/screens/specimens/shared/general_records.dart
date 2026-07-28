@@ -14,6 +14,8 @@ import 'package:nahpu/screens/specimens/shared/taxonomy.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 
 class GeneralRecordField extends ConsumerStatefulWidget {
   const GeneralRecordField({
@@ -307,29 +309,42 @@ class SpecimenConditionField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CommonPadding(
-      child: DropdownButtonFormField(
-        initialValue: specimenCtr.conditionCtr,
-        onChanged: (String? value) {
-          SpecimenServices(ref: ref).updateSpecimen(
-            specimenUuid,
-            SpecimenCompanion(condition: db.Value(value)),
-          );
-        },
-        decoration: const InputDecoration(
-          labelText: 'Condition',
-          hintText: 'Choose a condition',
-        ),
-        items: conditionList
-            .map(
-              (String condition) => DropdownMenuItem(
-                value: condition,
-                child: CommonDropdownText(text: condition),
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(conditionPrefKey))
+        .when(
+          data: (data) {
+            final options = includeCurrentVocabularyValue(
+              data,
+              specimenCtr.conditionCtr,
+            );
+            return CommonPadding(
+              child: DropdownButtonFormField<String>(
+                initialValue: specimenCtr.conditionCtr,
+                onChanged: (String? value) {
+                  specimenCtr.conditionCtr = value;
+                  SpecimenServices(ref: ref).updateSpecimen(
+                    specimenUuid,
+                    SpecimenCompanion(condition: db.Value(value)),
+                  );
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Condition',
+                  hintText: 'Choose a condition',
+                ),
+                items: options
+                    .map(
+                      (condition) => DropdownMenuItem(
+                        value: condition,
+                        child: CommonDropdownText(text: condition),
+                      ),
+                    )
+                    .toList(),
               ),
-            )
-            .toList(),
-      ),
-    );
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Error: $error'),
+        );
   }
 }
 

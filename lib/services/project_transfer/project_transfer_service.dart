@@ -13,6 +13,8 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/taxa.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
@@ -762,6 +764,7 @@ class ProjectTransferService extends AppServices {
             'preparatorID': personnelMap[row['preparatorID'] as String?],
             'collPersonnelID': collPersonnelMap[row['collPersonnelID'] as int?],
             'collMethodID': effortMap[row['collMethodID'] as int?],
+            'condition': canonicalizeCondition(row['condition'] as String?),
           };
           if (current != null &&
               action == ProjectTransferConflictAction.keepCurrent) {
@@ -1580,6 +1583,7 @@ class ProjectTransferService extends AppServices {
     ref.invalidate(collEventEntryProvider);
     ref.invalidate(specimenEntryProvider);
     ref.invalidate(narrativeEntryProvider);
+    invalidateEffectiveControlledVocabularies(ref);
   }
 
   static List<int> _intIds(List<Map<String, dynamic>> rows, String column) =>

@@ -21,6 +21,7 @@ class _MigrationCoordinator {
     final releaseSteps = <int, _MigrationStep>{
       11: (m) => _Version12Migration(db).upgrade(m),
       12: (m) => _Version13Migration(db).upgrade(m),
+      13: (m) => _Version14Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -33,6 +34,34 @@ class _MigrationCoordinator {
       await step(migrator);
       currentVersion++;
     }
+  }
+}
+
+class _Version14Migration {
+  const _Version14Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await migrator.renameColumn(
+      db.birdAttribute,
+      'footColor',
+      db.birdAttribute.toeColor,
+    );
+    await migrator.renameColumn(
+      db.birdAttribute,
+      'footHex',
+      db.birdAttribute.toeHex,
+    );
+    await migrator.addColumn(db.birdAttribute, db.birdAttribute.maxillaColor);
+    await migrator.addColumn(db.birdAttribute, db.birdAttribute.maxillaHex);
+    await migrator.addColumn(db.birdAttribute, db.birdAttribute.mandibleColor);
+    await migrator.addColumn(db.birdAttribute, db.birdAttribute.mandibleHex);
+    await db.customStatement('''
+      UPDATE specimen
+      SET condition = 'Freshly euthanized'
+      WHERE condition = 'Freshly Euthanized'
+    ''');
   }
 }
 

@@ -11,6 +11,8 @@ import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_site_event.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:uuid/uuid.dart';
 
 /// Exchanges a specimen and its related attributes using the portable v1 wire
@@ -149,6 +151,8 @@ class RecordExchangeSpecimen extends AppServices {
     if (payload.hasMedia) {
       await _importMedia(payload, newUuid, extractedMediaDirectory);
     }
+
+    invalidateEffectiveControlledVocabularies(ref);
 
     return RecordExchangeResult(recordUuid: newUuid);
   }
@@ -353,6 +357,7 @@ class RecordExchangeSpecimen extends AppServices {
   ) {
     final source = SpecimenData.fromJson({
       ...json,
+      'condition': canonicalizeCondition(json['condition'] as String?),
       'uuid': uuid,
       'projectUuid': currentProjectUuid,
       'speciesID': taxonomyId,
@@ -399,11 +404,16 @@ class RecordExchangeSpecimen extends AppServices {
     }
     final bird = attributes['avian'];
     if (bird is Map) {
+      final birdJson = Map<String, dynamic>.from(bird);
+      birdJson['toeColor'] ??= birdJson['footColor'];
+      birdJson['toeHex'] ??= birdJson['footHex'];
+      birdJson.remove('footColor');
+      birdJson.remove('footHex');
       await dbAccess
           .into(dbAccess.birdAttribute)
           .insert(
             BirdAttributeData.fromJson({
-              ...Map<String, dynamic>.from(bird),
+              ...birdJson,
               'specimenUuid': uuid,
             }).toCompanion(true),
           );

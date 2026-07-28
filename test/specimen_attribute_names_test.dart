@@ -34,4 +34,15 @@ void main() {
       'SVL [herpAttribute::svl]',
     );
   });
+
+  test('canonicalizes legacy foot color fields to toe color fields', () {
+    expect(
+      canonicalizeSpecimenAttributeSourceKey('avianMeasurement::footColor'),
+      'birdAttribute::toeColor',
+    );
+    expect(
+      canonicalizeSpecimenAttributeSourceKey('measurement::footHex'),
+      'measurement::toeHex',
+    );
+  });
 }

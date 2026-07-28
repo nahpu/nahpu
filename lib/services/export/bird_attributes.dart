@@ -22,8 +22,12 @@ class BirdAttributes {
       data.irisHex ?? '',
       data.billColor ?? '',
       data.billHex ?? '',
-      data.footColor ?? '',
-      data.footHex ?? '',
+      data.maxillaColor ?? '',
+      data.maxillaHex ?? '',
+      data.mandibleColor ?? '',
+      data.mandibleHex ?? '',
+      data.toeColor ?? '',
+      data.toeHex ?? '',
       data.tarsusColor ?? '',
       data.tarsusHex ?? '',
       data.sex != null ? specimenSexList[data.sex!] : '',
@@ -63,7 +67,7 @@ class BirdAttributes {
     if (data.fat == null) {
       return '';
     } else {
-      return fatCategoryList[data.fat!];
+      return birdLabelForCode(fatCategoryList, data.fat!);
     }
   }
 
@@ -109,7 +113,7 @@ class BirdAttributes {
     if (data.ovaryAppearance == null) {
       return '';
     } else {
-      return ovaryAppearanceList[data.ovaryAppearance!];
+      return birdLabelForCode(ovaryAppearanceList, data.ovaryAppearance!);
     }
   }
 
@@ -117,7 +121,7 @@ class BirdAttributes {
     if (data.oviductAppearance == null) {
       return '';
     } else {
-      return oviductAppearanceList[data.oviductAppearance!];
+      return birdLabelForCode(oviductAppearanceList, data.oviductAppearance!);
     }
   }
 
@@ -125,7 +129,7 @@ class BirdAttributes {
     if (data.bodyMolt == null) {
       return '';
     } else {
-      return bodyMoltList[data.bodyMolt!];
+      return birdLabelForCode(bodyMoltList, data.bodyMolt!);
     }
   }
 

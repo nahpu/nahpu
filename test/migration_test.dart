@@ -14,12 +14,12 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11, 12]) {
-    test('upgrade from v$version to v13', () async {
+  for (final version in [6, 7, 8, 9, 10, 11, 12, 13]) {
+    test('upgrade from v$version to v14', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 13);
+      await verifier.migrateAndValidate(db, 14);
       await db.close();
     });
   }
@@ -31,7 +31,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 13);
+    await verifier.migrateAndValidate(db, 14);
     await db.close();
   });
 
@@ -43,7 +43,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 13);
+    await verifier.migrateAndValidate(db, 14);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -90,13 +90,24 @@ void main() {
         'VALUES ($placeholders)',
         values,
       );
-      expected[table] = Map<String, Object?>.from(
+      final expectedRow = Map<String, Object?>.from(
         raw.select('SELECT * FROM "$table"').single,
       );
+      if (table == 'avianMeasurement') {
+        expectedRow['toeColor'] = expectedRow.remove('footColor');
+        expectedRow['toeHex'] = expectedRow.remove('footHex');
+        expectedRow.addAll({
+          'maxillaColor': null,
+          'maxillaHex': null,
+          'mandibleColor': null,
+          'mandibleHex': null,
+        });
+      }
+      expected[table] = expectedRow;
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 13);
+    await verifier.migrateAndValidate(db, 14);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -158,7 +169,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 13);
+      await verifier.migrateAndValidate(db, 14);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -214,7 +225,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 13);
+    await verifier.migrateAndValidate(db, 14);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -256,6 +267,40 @@ void main() {
         )
         .get();
     expect(associatedDataTriggers, isEmpty);
+    await db.close();
+  });
+
+  test('v13 to v14 preserves toe colors and canonicalizes condition', () async {
+    final schema = await verifier.schemaAt(13);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO specimen (uuid, projectUuid, condition) VALUES "
+      "('legacy', 'project', 'Freshly Euthanized'), "
+      "('custom', 'project', 'Custom condition')",
+    );
+    raw.execute(
+      "INSERT INTO birdAttribute (specimenUuid, footColor, footHex) "
+      "VALUES ('legacy', 'Gray', '#808080')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 14);
+
+    final specimens = await db.select(db.specimen).get();
+    expect(
+      specimens.firstWhere((row) => row.uuid == 'legacy').condition,
+      'Freshly euthanized',
+    );
+    expect(
+      specimens.firstWhere((row) => row.uuid == 'custom').condition,
+      'Custom condition',
+    );
+    final bird = await db.select(db.birdAttribute).getSingle();
+    expect(bird.toeColor, 'Gray');
+    expect(bird.toeHex, '#808080');
+    expect(bird.maxillaColor, isNull);
+    expect(bird.mandibleColor, isNull);
     await db.close();
   });
 

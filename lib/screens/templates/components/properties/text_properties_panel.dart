@@ -8,6 +8,7 @@ import 'package:nahpu/screens/templates/components/properties/template_color_pic
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/screens/templates/components/dialogs/map_encoded_values_dialog.dart';
+import 'package:nahpu/services/types/birds.dart';
 
 class TextPropertiesPanel extends StatelessWidget {
   const TextPropertiesPanel({
@@ -45,8 +46,11 @@ class TextPropertiesPanel extends StatelessWidget {
     return _buildCustomTextPanel(context, selectedElement, inToolbar: true);
   }
 
-  Widget _buildPanelContainer(BuildContext context,
-      {required Widget child, required bool inToolbar}) {
+  Widget _buildPanelContainer(
+    BuildContext context, {
+    required Widget child,
+    required bool inToolbar,
+  }) {
     final scheme = Theme.of(context).colorScheme;
 
     final wrappedChild = Row(
@@ -87,10 +91,7 @@ class TextPropertiesPanel extends StatelessWidget {
     return Material(
       elevation: 2,
       color: scheme.surfaceContainerHigh,
-      child: SafeArea(
-        top: false,
-        child: wrappedChild,
-      ),
+      child: SafeArea(top: false, child: wrappedChild),
     );
   }
 
@@ -130,8 +131,11 @@ class TextPropertiesPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomTextPanel(BuildContext context, String sel,
-      {bool inToolbar = false}) {
+  Widget _buildCustomTextPanel(
+    BuildContext context,
+    String sel, {
+    bool inToolbar = false,
+  }) {
     final parts = sel.split(':');
     if (parts.length != 3) return const SizedBox.shrink();
     final page1 = parts[1] == '1';
@@ -157,8 +161,11 @@ class TextPropertiesPanel extends StatelessWidget {
           children: [actionControls, const Spacer(), deleteButton],
         ),
       );
-      return _buildPanelContainer(context,
-          inToolbar: inToolbar, child: content);
+      return _buildPanelContainer(
+        context,
+        inToolbar: inToolbar,
+        child: content,
+      );
     }
 
     final content = _CustomTextToolbar(
@@ -172,11 +179,7 @@ class TextPropertiesPanel extends StatelessWidget {
       buildOptionSlider: _buildOptionSlider,
     );
 
-    return _buildPanelContainer(
-      context,
-      inToolbar: inToolbar,
-      child: content,
-    );
+    return _buildPanelContainer(context, inToolbar: inToolbar, child: content);
   }
 }
 
@@ -206,7 +209,8 @@ class _CustomTextToolbar extends StatefulWidget {
     required int divisions,
     required String label,
     required ValueChanged<double> onChanged,
-  }) buildOptionSlider;
+  })
+  buildOptionSlider;
 
   @override
   State<_CustomTextToolbar> createState() => _CustomTextToolbarState();
@@ -291,8 +295,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
           ),
           const SizedBox(width: 8),
           if (ct.isQrCode) ...[
-            Text('QR Size (mm)',
-                style: Theme.of(context).textTheme.labelMedium),
+            Text(
+              'QR Size (mm)',
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
             const SizedBox(width: 8),
             SizedBox(
               width: 100,
@@ -304,10 +310,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 divisions: 95,
                 label: '${ct.qrSizeMm.toStringAsFixed(1)} mm',
                 onChanged: (v) {
-                  onUpdateCustomText(
-                    page1,
-                    ct.copyWith(qrSizeMm: v),
-                  );
+                  onUpdateCustomText(page1, ct.copyWith(qrSizeMm: v));
                 },
               ),
             ),
@@ -333,10 +336,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               selected: {ct.qrShape},
               onSelectionChanged: (next) {
                 if (next.isEmpty) return;
-                onUpdateCustomText(
-                  page1,
-                  ct.copyWith(qrShape: next.first),
-                );
+                onUpdateCustomText(page1, ct.copyWith(qrShape: next.first));
               },
             ),
             const SizedBox(width: 12),
@@ -374,10 +374,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               child: SyncedFontSizeField(
                 key: ValueKey('fs_${ct.id}'),
                 fontSizePt: ct.fontSizePt,
-                onValidSize: (p) => onUpdateCustomText(
-                  page1,
-                  ct.copyWith(fontSizePt: p),
-                ),
+                onValidSize: (p) =>
+                    onUpdateCustomText(page1, ct.copyWith(fontSizePt: p)),
               ),
             ),
             IconButton(
@@ -385,11 +383,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               tooltip: 'Decrease font size',
               onPressed: ct.fontSizePt > 4
                   ? () => onUpdateCustomText(
-                        page1,
-                        ct.copyWith(
-                          fontSizePt: (ct.fontSizePt - 0.5).clamp(4.0, 72.0),
-                        ),
-                      )
+                      page1,
+                      ct.copyWith(
+                        fontSizePt: (ct.fontSizePt - 0.5).clamp(4.0, 72.0),
+                      ),
+                    )
                   : null,
             ),
             IconButton(
@@ -397,11 +395,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               tooltip: 'Increase font size',
               onPressed: ct.fontSizePt < 72
                   ? () => onUpdateCustomText(
-                        page1,
-                        ct.copyWith(
-                          fontSizePt: (ct.fontSizePt + 0.5).clamp(4.0, 72.0),
-                        ),
-                      )
+                      page1,
+                      ct.copyWith(
+                        fontSizePt: (ct.fontSizePt + 0.5).clamp(4.0, 72.0),
+                      ),
+                    )
                   : null,
             ),
             const SizedBox(width: 8),
@@ -427,18 +425,18 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
               },
             ),
             const SizedBox(width: 12),
-            Text('Max Width (mm)',
-                style: Theme.of(context).textTheme.labelMedium),
+            Text(
+              'Max Width (mm)',
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
             const SizedBox(width: 8),
             SizedBox(
               width: 64,
               child: SyncedMaxWidthField(
                 key: ValueKey('mw_${ct.id}'),
                 maxWidthMm: ct.maxWidthMm,
-                onValidSize: (p) => onUpdateCustomText(
-                  page1,
-                  ct.copyWith(maxWidthMm: p),
-                ),
+                onValidSize: (p) =>
+                    onUpdateCustomText(page1, ct.copyWith(maxWidthMm: p)),
               ),
             ),
             SizedBox(
@@ -455,27 +453,25 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                 onChanged: (v) {
                   onUpdateCustomText(
                     page1,
-                    ct.copyWith(
-                      maxWidthMm: v == 0.0 ? null : v,
-                    ),
+                    ct.copyWith(maxWidthMm: v == 0.0 ? null : v),
                   );
                 },
               ),
             ),
             if (!ct.isDynamic) ...[
               const SizedBox(width: 12),
-              Text('Max Height (mm)',
-                  style: Theme.of(context).textTheme.labelMedium),
+              Text(
+                'Max Height (mm)',
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
               const SizedBox(width: 8),
               SizedBox(
                 width: 64,
                 child: SyncedMaxHeightField(
                   key: ValueKey('mh_${ct.id}'),
                   maxHeightMm: ct.heightMm,
-                  onValidSize: (p) => onUpdateCustomText(
-                    page1,
-                    ct.copyWith(heightMm: p),
-                  ),
+                  onValidSize: (p) =>
+                      onUpdateCustomText(page1, ct.copyWith(heightMm: p)),
                 ),
               ),
               SizedBox(
@@ -492,9 +488,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                   onChanged: (v) {
                     onUpdateCustomText(
                       page1,
-                      ct.copyWith(
-                        heightMm: v == 0.0 ? null : v,
-                      ),
+                      ct.copyWith(heightMm: v == 0.0 ? null : v),
                     );
                   },
                 ),
@@ -526,7 +520,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
 
     final isCustomSep =
         ct.formatOption.startsWith('custom:') || ct.formatOption == 'custom';
-    final isCustomMap = ct.formatOption.startsWith('custom_map:') ||
+    final isCustomMap =
+        ct.formatOption.startsWith('custom_map:') ||
         ct.formatOption == 'custom_map';
     final hasTextPlaceholder = _hasTextPlaceholder(ct.text);
     final nullFallbackControls = _NullFallbackControls(
@@ -556,8 +551,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                     child: Row(
                       children: [
                         if (!ct.isQrCode) ...[
-                          Text('Font',
-                              style: Theme.of(context).textTheme.labelMedium),
+                          Text(
+                            'Font',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
                           const SizedBox(width: 8),
                           DropdownButton<String>(
                             value: fontKey,
@@ -573,7 +570,9 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             onChanged: (v) {
                               if (v == null) return;
                               onUpdateCustomText(
-                                  page1, ct.copyWith(fontFamily: v));
+                                page1,
+                                ct.copyWith(fontFamily: v),
+                              );
                             },
                           ),
                           const SizedBox(width: 12),
@@ -586,8 +585,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           IconButton(
                             isSelected: ct.bold,
                             icon: const Icon(Icons.format_bold, size: 20),
-                            selectedIcon: Icon(Icons.format_bold,
-                                color: scheme.primary, size: 20),
+                            selectedIcon: Icon(
+                              Icons.format_bold,
+                              color: scheme.primary,
+                              size: 20,
+                            ),
                             onPressed: () => onUpdateCustomText(
                               page1,
                               ct.copyWith(bold: !ct.bold),
@@ -597,8 +599,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           IconButton(
                             isSelected: ct.italic,
                             icon: const Icon(Icons.format_italic, size: 20),
-                            selectedIcon: Icon(Icons.format_italic,
-                                color: scheme.primary, size: 20),
+                            selectedIcon: Icon(
+                              Icons.format_italic,
+                              color: scheme.primary,
+                              size: 20,
+                            ),
                             onPressed: () => onUpdateCustomText(
                               page1,
                               ct.copyWith(italic: !ct.italic),
@@ -608,8 +613,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           IconButton(
                             isSelected: ct.underline,
                             icon: const Icon(Icons.format_underline, size: 20),
-                            selectedIcon: Icon(Icons.format_underline,
-                                color: scheme.primary, size: 20),
+                            selectedIcon: Icon(
+                              Icons.format_underline,
+                              color: scheme.primary,
+                              size: 20,
+                            ),
                             onPressed: () => onUpdateCustomText(
                               page1,
                               ct.copyWith(underline: !ct.underline),
@@ -618,10 +626,15 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           ),
                           IconButton(
                             isSelected: ct.strikethrough,
-                            icon: const Icon(Icons.format_strikethrough,
-                                size: 20),
-                            selectedIcon: Icon(Icons.format_strikethrough,
-                                color: scheme.primary, size: 20),
+                            icon: const Icon(
+                              Icons.format_strikethrough,
+                              size: 20,
+                            ),
+                            selectedIcon: Icon(
+                              Icons.format_strikethrough,
+                              color: scheme.primary,
+                              size: 20,
+                            ),
                             onPressed: () => onUpdateCustomText(
                               page1,
                               ct.copyWith(strikethrough: !ct.strikethrough),
@@ -631,8 +644,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           const SizedBox(width: 16),
                         ],
                         if (ct.isQrCode) ...[
-                          Text('Foreground',
-                              style: Theme.of(context).textTheme.labelMedium),
+                          Text(
+                            'Foreground',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
                           const SizedBox(width: 8),
                           TemplateColorSwatch(
                             color: Color(ct.colorArgb),
@@ -644,8 +659,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Text('Background',
-                              style: Theme.of(context).textTheme.labelMedium),
+                          Text(
+                            'Background',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
                           const SizedBox(width: 8),
                           TemplateColorSwatch(
                             color: Color(ct.qrBgColorArgb),
@@ -710,8 +727,8 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                                     context: context,
                                     builder: (context) =>
                                         _ConditionalBracketTextDialog(
-                                      text: ct.text,
-                                    ),
+                                          text: ct.text,
+                                        ),
                                   );
                                   if (updated != null) {
                                     onUpdateCustomText(
@@ -741,12 +758,14 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               String nextOpt = v;
                               if (v == 'custom') {
                                 if (ct.textType == 'encoded') {
-                                  final placeholder =
-                                      _detectPlaceholderKey(ct.text);
+                                  final placeholder = _detectPlaceholderKey(
+                                    ct.text,
+                                  );
                                   if (placeholder != null) {
                                     final defaultMap =
                                         _getDefaultEnumMapForPlaceholder(
-                                            placeholder);
+                                          placeholder,
+                                        );
                                     final pairs = defaultMap.entries
                                         .map((e) => '${e.key}=${e.value}')
                                         .join(',');
@@ -804,16 +823,21 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               underline: const SizedBox.shrink(),
                               items: const [
                                 DropdownMenuItem(
-                                    value: 'title', child: Text('Title Case')),
+                                  value: 'title',
+                                  child: Text('Title Case'),
+                                ),
                                 DropdownMenuItem(
-                                    value: 'sentence',
-                                    child: Text('Sentence Case')),
+                                  value: 'sentence',
+                                  child: Text('Sentence Case'),
+                                ),
                                 DropdownMenuItem(
-                                    value: 'uppercase',
-                                    child: Text('Uppercase')),
+                                  value: 'uppercase',
+                                  child: Text('Uppercase'),
+                                ),
                                 DropdownMenuItem(
-                                    value: 'lowercase',
-                                    child: Text('Lowercase')),
+                                  value: 'lowercase',
+                                  child: Text('Lowercase'),
+                                ),
                               ],
                               onChanged: (v) {
                                 if (v == null) return;
@@ -841,9 +865,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               final missing = _getSexMissing(ct.formatOption);
                               onUpdateCustomText(
                                 page1,
-                                ct.copyWith(
-                                  formatOption: '$v:$missing',
-                                ),
+                                ct.copyWith(formatOption: '$v:$missing'),
                               );
                             },
                           ),
@@ -861,13 +883,12 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                             items: textDropdownItems(kSexMissingOptions),
                             onChanged: (v) {
                               if (v == null) return;
-                              final presentation =
-                                  _getSexPresentation(ct.formatOption);
+                              final presentation = _getSexPresentation(
+                                ct.formatOption,
+                              );
                               onUpdateCustomText(
                                 page1,
-                                ct.copyWith(
-                                  formatOption: '$presentation:$v',
-                                ),
+                                ct.copyWith(formatOption: '$presentation:$v'),
                               );
                             },
                           ),
@@ -893,9 +914,7 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               onChanged: (val) {
                                 onUpdateCustomText(
                                   page1,
-                                  ct.copyWith(
-                                    formatOption: 'custom:$val',
-                                  ),
+                                  ct.copyWith(formatOption: 'custom:$val'),
                                 );
                               },
                             ),
@@ -956,8 +975,9 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               page1,
                               ct.copyWith(
                                 borderColorArgb: selectedColor.toARGB32(),
-                                borderWidthPt:
-                                    ct.borderWidthPt <= 0 ? 1.0 : null,
+                                borderWidthPt: ct.borderWidthPt <= 0
+                                    ? 1.0
+                                    : null,
                                 borderStrokeStyle: ct.borderStrokeStyle,
                               ),
                             );
@@ -973,8 +993,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           },
                         ),
                         const SizedBox(width: 8),
-                        Text('Stroke',
-                            style: Theme.of(context).textTheme.labelMedium),
+                        Text(
+                          'Stroke',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         const SizedBox(width: 8),
                         _StrokeThicknessPicker(
                           value: ct.borderWidthPt,
@@ -985,16 +1007,18 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                                 borderWidthPt: v,
                                 borderColorArgb:
                                     v > 0 && ct.borderColorArgb == null
-                                        ? Colors.black.toARGB32()
-                                        : null,
+                                    ? Colors.black.toARGB32()
+                                    : null,
                                 clearBorderColor: v == 0,
                               ),
                             );
                           },
                         ),
                         const SizedBox(width: 8),
-                        Text('Style',
-                            style: Theme.of(context).textTheme.labelMedium),
+                        Text(
+                          'Style',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         const SizedBox(width: 8),
                         _StylePicker(
                           value: ct.borderStrokeStyle,
@@ -1003,17 +1027,21 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                               page1,
                               ct.copyWith(
                                 borderStrokeStyle: v,
-                                borderWidthPt:
-                                    ct.borderWidthPt <= 0 ? 1.0 : null,
-                                borderColorArgb: ct.borderColorArgb ??
+                                borderWidthPt: ct.borderWidthPt <= 0
+                                    ? 1.0
+                                    : null,
+                                borderColorArgb:
+                                    ct.borderColorArgb ??
                                     Colors.black.toARGB32(),
                               ),
                             );
                           },
                         ),
                         const SizedBox(width: 12),
-                        Text('Radius',
-                            style: Theme.of(context).textTheme.labelMedium),
+                        Text(
+                          'Radius',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         SizedBox(
                           width: 96,
                           child: widget.buildOptionSlider(
@@ -1032,8 +1060,10 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Text('Padding',
-                            style: Theme.of(context).textTheme.labelMedium),
+                        Text(
+                          'Padding',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         SizedBox(
                           width: 96,
                           child: widget.buildOptionSlider(
@@ -1100,10 +1130,7 @@ class _TextAlignPicker extends StatelessWidget {
       selected: {ct.textAlign},
       onSelectionChanged: (next) {
         if (next.isEmpty) return;
-        onUpdateCustomText(
-          page1,
-          ct.copyWith(textAlign: next.first),
-        );
+        onUpdateCustomText(page1, ct.copyWith(textAlign: next.first));
       },
       showSelectedIcon: false,
     );
@@ -1344,11 +1371,7 @@ class _NullFallbackBottomSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _NullFallbackContent(
-            text: text,
-            page1: page1,
-            onUpdate: onUpdate,
-          ),
+          _NullFallbackContent(text: text, page1: page1, onUpdate: onUpdate),
         ],
       ),
     );
@@ -1403,10 +1426,7 @@ class _NullFallbackControls extends StatelessWidget {
 }
 
 class _StrokeThicknessPicker extends StatelessWidget {
-  const _StrokeThicknessPicker({
-    required this.value,
-    required this.onChanged,
-  });
+  const _StrokeThicknessPicker({required this.value, required this.onChanged});
 
   static const values = [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0];
 
@@ -1420,10 +1440,12 @@ class _StrokeThicknessPicker extends StatelessWidget {
       isDense: true,
       underline: const SizedBox.shrink(),
       items: values
-          .map((thickness) => DropdownMenuItem(
-                value: thickness,
-                child: Text(thickness == 0.0 ? 'None' : '${thickness}pt'),
-              ))
+          .map(
+            (thickness) => DropdownMenuItem(
+              value: thickness,
+              child: Text(thickness == 0.0 ? 'None' : '${thickness}pt'),
+            ),
+          )
           .toList(),
       onChanged: (val) {
         if (val != null) onChanged(val);
@@ -1433,10 +1455,7 @@ class _StrokeThicknessPicker extends StatelessWidget {
 }
 
 class _StylePicker extends StatelessWidget {
-  const _StylePicker({
-    required this.value,
-    required this.onChanged,
-  });
+  const _StylePicker({required this.value, required this.onChanged});
 
   static const values = ['solid', 'dashed', 'dotted', 'double'];
 
@@ -1478,10 +1497,7 @@ class _StylePicker extends StatelessWidget {
 }
 
 class _StylePreviewPainter extends CustomPainter {
-  const _StylePreviewPainter({
-    required this.style,
-    required this.color,
-  });
+  const _StylePreviewPainter({required this.style, required this.color});
 
   final String style;
   final Color color;
@@ -1523,11 +1539,7 @@ class _StylePreviewPainter extends CustomPainter {
     double d = 0.0;
     while (d < width) {
       final end = (d + dashLen).clamp(0.0, width);
-      canvas.drawLine(
-        Offset(d, y),
-        Offset(end, y),
-        paint,
-      );
+      canvas.drawLine(Offset(d, y), Offset(end, y), paint);
       d += dashLen + gapLen;
     }
   }
@@ -1559,26 +1571,23 @@ class _ConditionalBracketTextDialogState
     super.initState();
     final expressions = conditionalBracketExpressionsInText(widget.text);
     final existing = expressions.isEmpty ? null : expressions.first;
-    final fallbackTarget = RegExp(r'\[([^\[\]]+)\]')
-        .firstMatch(widget.text)
-        ?.group(1)
-        ?.trim()
-        .split('??')
-        .first
-        .trim();
+    final fallbackTarget = RegExp(
+      r'\[([^\[\]]+)\]',
+    ).firstMatch(widget.text)?.group(1)?.trim().split('??').first.trim();
     _targetController = TextEditingController(
       text: existing?.targetField ?? fallbackTarget ?? '',
     );
-    _conditions = (existing?.conditions ??
-            const [
-              ConditionalBracketCondition(
-                sourceField: '',
-                operator: ConditionalComparisonOperator.equals,
-                comparisonValue: '',
-              ),
-            ])
-        .map(_TemplateConditionDraft.fromCondition)
-        .toList();
+    _conditions =
+        (existing?.conditions ??
+                const [
+                  ConditionalBracketCondition(
+                    sourceField: '',
+                    operator: ConditionalComparisonOperator.equals,
+                    comparisonValue: '',
+                  ),
+                ])
+            .map(_TemplateConditionDraft.fromCondition)
+            .toList();
     if (existing != null) {
       _mode = existing.matchMode;
     }
@@ -1595,7 +1604,8 @@ class _ConditionalBracketTextDialogState
 
   @override
   Widget build(BuildContext context) {
-    final valid = _targetController.text.trim().isNotEmpty &&
+    final valid =
+        _targetController.text.trim().isNotEmpty &&
         _conditions.isNotEmpty &&
         _conditions.every((condition) => condition.isValid);
     return AlertDialog(
@@ -1623,9 +1633,9 @@ class _ConditionalBracketTextDialogState
                 onRemove: _conditions.length == 1
                     ? null
                     : () => setState(() {
-                          final removed = _conditions.removeAt(index);
-                          removed.dispose();
-                        }),
+                        final removed = _conditions.removeAt(index);
+                        removed.dispose();
+                      }),
               ),
             Align(
               alignment: Alignment.centerLeft,
@@ -1675,8 +1685,9 @@ class _ConditionalBracketTextDialogState
     final target = _targetController.text.trim();
     final syntax = ConditionalBracketExpression(
       targetField: target,
-      conditions:
-          _conditions.map((condition) => condition.toCondition()).toList(),
+      conditions: _conditions
+          .map((condition) => condition.toCondition())
+          .toList(),
       matchMode: _mode,
       start: 0,
       end: 0,
@@ -1710,23 +1721,22 @@ class _TemplateConditionDraft {
     required String sourceField,
     required this.operator,
     required String comparisonValue,
-  })  : fieldController = TextEditingController(text: sourceField),
-        valueController = TextEditingController(text: comparisonValue);
+  }) : fieldController = TextEditingController(text: sourceField),
+       valueController = TextEditingController(text: comparisonValue);
 
   factory _TemplateConditionDraft.empty() => _TemplateConditionDraft(
-        sourceField: '',
-        operator: ConditionalComparisonOperator.equals,
-        comparisonValue: '',
-      );
+    sourceField: '',
+    operator: ConditionalComparisonOperator.equals,
+    comparisonValue: '',
+  );
 
   factory _TemplateConditionDraft.fromCondition(
     ConditionalBracketCondition condition,
-  ) =>
-      _TemplateConditionDraft(
-        sourceField: condition.sourceField,
-        operator: condition.operator,
-        comparisonValue: condition.comparisonValue,
-      );
+  ) => _TemplateConditionDraft(
+    sourceField: condition.sourceField,
+    operator: condition.operator,
+    comparisonValue: condition.comparisonValue,
+  );
 
   final TextEditingController fieldController;
   final TextEditingController valueController;
@@ -1737,10 +1747,10 @@ class _TemplateConditionDraft {
       valueController.text.trim().isNotEmpty;
 
   ConditionalBracketCondition toCondition() => ConditionalBracketCondition(
-        sourceField: fieldController.text.trim(),
-        operator: operator,
-        comparisonValue: valueController.text.trim(),
-      );
+    sourceField: fieldController.text.trim(),
+    operator: operator,
+    comparisonValue: valueController.text.trim(),
+  );
 
   void dispose() {
     fieldController.dispose();
@@ -1835,7 +1845,7 @@ Map<String, String> _getDefaultEnumMapForPlaceholder(String key) {
       '1': 'Juvenile',
       '2': 'Neonate',
       '3': 'Metamorph',
-      '4': 'Unknown'
+      '4': 'Unknown',
     };
   } else if (cleanKey.endsWith('::testisposition')) {
     return {'0': 'Scrotal', '1': 'Abdominal'};
@@ -1850,26 +1860,13 @@ Map<String, String> _getDefaultEnumMapForPlaceholder(String key) {
   } else if (cleanKey.endsWith('::mammaecondition')) {
     return {'0': 'Small', '1': 'Large', '2': 'Lactating'};
   } else if (cleanKey.endsWith('::ovaryappearance')) {
-    return {'0': 'Smooth', '1': 'Small', '2': 'At least one ovum >1 mm'};
+    return birdLabelsByIndex(ovaryAppearanceList);
   } else if (cleanKey.endsWith('::oviductappearance')) {
-    return {'0': 'Straight', '1': 'Convoluted'};
+    return birdLabelsByIndex(oviductAppearanceList);
   } else if (cleanKey.endsWith('::fat')) {
-    return {
-      '0': 'No Fat',
-      '1': 'Trace',
-      '2': 'Light',
-      '3': 'Moderate',
-      '4': 'Heavy',
-      '5': 'Extremely Heavy'
-    };
+    return birdLabelsByIndex(fatCategoryList);
   } else if (cleanKey.endsWith('::bodymolt')) {
-    return {
-      '0': 'None',
-      '1': 'Trace',
-      '2': 'Light',
-      '3': 'Moderate',
-      '4': 'Heavy'
-    };
+    return birdLabelsByIndex(bodyMoltList);
   } else if (cleanKey.endsWith('::echolocation')) {
     return {'0': 'FM', '1': 'CF', '2': 'QCF', '3': 'None'};
   } else if (cleanKey.endsWith('::broodpatch') ||

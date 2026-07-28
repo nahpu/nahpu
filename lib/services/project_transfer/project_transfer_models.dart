@@ -289,9 +289,13 @@ class ProjectTransferPayload {
         );
       }
       if (existing == null || existing.isEmpty) {
-        canonical[key] = key == 'associatedData'
-            ? entry.value.map(_normalizeAssociatedData).toList(growable: false)
-            : entry.value;
+        canonical[key] = switch (key) {
+          'associatedData' =>
+            entry.value.map(_normalizeAssociatedData).toList(growable: false),
+          'birdAttribute' =>
+            entry.value.map(_normalizeBirdAttribute).toList(growable: false),
+          _ => entry.value,
+        };
       }
     }
     return canonical;
@@ -303,6 +307,17 @@ class ProjectTransferPayload {
     final normalized = Map<String, dynamic>.from(source);
     normalized['uri'] ??= normalized['url'];
     normalized.remove('url');
+    return normalized;
+  }
+
+  static Map<String, dynamic> _normalizeBirdAttribute(
+    Map<String, dynamic> source,
+  ) {
+    final normalized = Map<String, dynamic>.from(source);
+    normalized['toeColor'] ??= normalized['footColor'];
+    normalized['toeHex'] ??= normalized['footHex'];
+    normalized.remove('footColor');
+    normalized.remove('footHex');
     return normalized;
   }
 

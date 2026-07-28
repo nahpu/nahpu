@@ -90,6 +90,31 @@ void main() {
       expect(decoded.records, isNot(contains('herpMeasurement')));
     });
 
+    test('normalizes legacy bird foot colors to toe colors', () {
+      final decoded = ProjectTransferPayload.parse(
+        jsonEncode({
+          'nahpu_project': 'project',
+          'version': 1,
+          'project': {'uuid': 'project-a', 'name': 'Project A'},
+          'records': {
+            'avianMeasurement': [
+              {
+                'specimenUuid': 'bird',
+                'footColor': 'Gray',
+                'footHex': '#808080',
+              },
+            ],
+          },
+        }),
+      );
+
+      final bird = decoded.rows('birdAttribute').single;
+      expect(bird['toeColor'], 'Gray');
+      expect(bird['toeHex'], '#808080');
+      expect(bird, isNot(contains('footColor')));
+      expect(bird, isNot(contains('footHex')));
+    });
+
     test('normalizes legacy associated-data URL fields', () {
       final decoded = ProjectTransferPayload.parse(
         jsonEncode({

@@ -19,6 +19,7 @@ import 'package:nahpu/services/types/herps.dart' as herps;
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/src/rust/api/dwc.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/api/nahpu_dp.dart';
@@ -33,49 +34,48 @@ enum BundleArchiveFormat { tarGzip, zip }
 
 extension BundleArchiveFormatLabel on BundleArchiveFormat {
   String get label => switch (this) {
-        BundleArchiveFormat.tarGzip => 'TAR.GZ',
-        BundleArchiveFormat.zip => 'ZIP',
-      };
+    BundleArchiveFormat.tarGzip => 'TAR.GZ',
+    BundleArchiveFormat.zip => 'ZIP',
+  };
 
   String get wireValue => switch (this) {
-        BundleArchiveFormat.tarGzip => 'tar_gzip',
-        BundleArchiveFormat.zip => 'zip',
-      };
+    BundleArchiveFormat.tarGzip => 'tar_gzip',
+    BundleArchiveFormat.zip => 'zip',
+  };
 }
 
 extension DwcBundleFormatLabel on DwcBundleFormat {
   String get label => switch (this) {
-        DwcBundleFormat.darwinCoreArchive => 'Darwin Core Archive',
-        DwcBundleFormat.darwinCoreDataPackage => 'Darwin Core Data Package',
-        DwcBundleFormat.nahpuDataPackage => 'NAHPU Data Package',
-      };
+    DwcBundleFormat.darwinCoreArchive => 'Darwin Core Archive',
+    DwcBundleFormat.darwinCoreDataPackage => 'Darwin Core Data Package',
+    DwcBundleFormat.nahpuDataPackage => 'NAHPU Data Package',
+  };
 
   bool get usesTaxonSelection => this != DwcBundleFormat.nahpuDataPackage;
 
   BundleArchiveFormat get defaultArchive => switch (this) {
-        DwcBundleFormat.darwinCoreArchive => BundleArchiveFormat.zip,
-        DwcBundleFormat.darwinCoreDataPackage ||
-        DwcBundleFormat.nahpuDataPackage =>
-          BundleArchiveFormat.tarGzip,
-      };
+    DwcBundleFormat.darwinCoreArchive => BundleArchiveFormat.zip,
+    DwcBundleFormat.darwinCoreDataPackage ||
+    DwcBundleFormat.nahpuDataPackage => BundleArchiveFormat.tarGzip,
+  };
 
   Set<BundleArchiveFormat> get allowedArchives => switch (this) {
-        DwcBundleFormat.darwinCoreArchive => {BundleArchiveFormat.zip},
-        DwcBundleFormat.darwinCoreDataPackage ||
-        DwcBundleFormat.nahpuDataPackage =>
-          BundleArchiveFormat.values.toSet(),
-      };
+    DwcBundleFormat.darwinCoreArchive => {BundleArchiveFormat.zip},
+    DwcBundleFormat.darwinCoreDataPackage ||
+    DwcBundleFormat.nahpuDataPackage => BundleArchiveFormat.values.toSet(),
+  };
 
   String get wireValue => switch (this) {
-        DwcBundleFormat.darwinCoreArchive => 'darwin_core_archive',
-        DwcBundleFormat.darwinCoreDataPackage => 'darwin_core_data_package',
-        DwcBundleFormat.nahpuDataPackage => 'nahpu_data_package',
-      };
+    DwcBundleFormat.darwinCoreArchive => 'darwin_core_archive',
+    DwcBundleFormat.darwinCoreDataPackage => 'darwin_core_data_package',
+    DwcBundleFormat.nahpuDataPackage => 'nahpu_data_package',
+  };
 
   String outputExtension(BundleArchiveFormat archive) {
     if (this == DwcBundleFormat.darwinCoreArchive) return 'dwca.zip';
-    final package =
-        this == DwcBundleFormat.darwinCoreDataPackage ? 'dwc-dp' : 'nahpu-dp';
+    final package = this == DwcBundleFormat.darwinCoreDataPackage
+        ? 'dwc-dp'
+        : 'nahpu-dp';
     return archive == BundleArchiveFormat.tarGzip
         ? '$package.tar.gz'
         : '$package.zip';
@@ -84,10 +84,7 @@ extension DwcBundleFormatLabel on DwcBundleFormat {
 
 /// A complete, display-ready description of a bundle before it is written.
 class DwcBundleManifest {
-  const DwcBundleManifest({
-    required this.files,
-    required this.warnings,
-  });
+  const DwcBundleManifest({required this.files, required this.warnings});
 
   final List<DwcBundleFile> files;
   final List<String> warnings;
@@ -119,13 +116,13 @@ class DwcBundleFile {
   final List<String> columns;
 
   factory DwcBundleFile.fromMap(Map<String, dynamic> json) => DwcBundleFile(
-        path: json['path'] as String,
-        mediaType: json['media_type'] as String,
-        records: json['records'] as int,
-        columns: (json['columns'] as List<dynamic>? ?? const [])
-            .map((entry) => entry.toString())
-            .toList(growable: false),
-      );
+    path: json['path'] as String,
+    mediaType: json['media_type'] as String,
+    records: json['records'] as int,
+    columns: (json['columns'] as List<dynamic>? ?? const [])
+        .map((entry) => entry.toString())
+        .toList(growable: false),
+  );
 }
 
 /// Builds Darwin Core specimen packages from the current NAHPU project.
@@ -153,8 +150,11 @@ class DwcBundleWriter extends AppServices {
         ),
       );
     }
-    final request =
-        await _buildRequest(format, archiveFormat, selectedTaxonGroups);
+    final request = await _buildRequest(
+      format,
+      archiveFormat,
+      selectedTaxonGroups,
+    );
     return DwcBundleManifest.fromJson(
       await planDwcBundle(requestJson: jsonEncode(request)),
     );
@@ -182,10 +182,14 @@ class DwcBundleWriter extends AppServices {
         );
       });
     }
-    final request =
-        await _buildRequest(format, archiveFormat, selectedTaxonGroups);
-    final validation =
-        await validateDwcBundle(requestJson: jsonEncode(request));
+    final request = await _buildRequest(
+      format,
+      archiveFormat,
+      selectedTaxonGroups,
+    );
+    final validation = await validateDwcBundle(
+      requestJson: jsonEncode(request),
+    );
     final errors = jsonDecode(validation) as List<dynamic>;
     if (errors.isNotEmpty) {
       throw StateError(errors.join('\n'));
@@ -204,13 +208,17 @@ class DwcBundleWriter extends AppServices {
     Set<String> requestedGroups,
   ) async {
     final selectedGroups = _expandTaxonSelection(requestedGroups);
-    final project =
-        await ProjectServices(ref: ref).getProjectByUuid(currentProjectUuid);
+    final project = await ProjectServices(
+      ref: ref,
+    ).getProjectByUuid(currentProjectUuid);
     final specimens = await SpecimenServices(ref: ref).getAllSpecimens();
-    final selected = specimens.where((specimen) {
-      return selectedGroups
-          .contains(normalizeBundleTaxonGroup(specimen.taxonGroup));
-    }).toList(growable: false);
+    final selected = specimens
+        .where((specimen) {
+          return selectedGroups.contains(
+            normalizeBundleTaxonGroup(specimen.taxonGroup),
+          );
+        })
+        .toList(growable: false);
 
     final events = <String, Map<String, dynamic>>{};
     final occurrenceRows = <Map<String, dynamic>>[];
@@ -224,8 +232,9 @@ class DwcBundleWriter extends AppServices {
     final mediaAgentRoles = <Map<String, dynamic>>[];
 
     for (final specimen in selected) {
-      final event =
-          await CollEventServices(ref: ref).getCollEvent(specimen.collEventID);
+      final event = await CollEventServices(
+        ref: ref,
+      ).getCollEvent(specimen.collEventID);
       final site = event == null
           ? null
           : await SiteServices(ref: ref).getSite(event.siteID);
@@ -249,15 +258,17 @@ class DwcBundleWriter extends AppServices {
       if (eventAgents.isEmpty && cataloger != null) eventAgents = [cataloger];
       final recorders = _catalogerFirst(cataloger, eventAgents);
 
-      occurrenceRows.add(_occurrenceRow(
-        specimen: specimen,
-        taxon: taxon,
-        event: event,
-        eventId: eventId,
-        site: site,
-        coordinate: coordinate,
-        recorders: recorders,
-      ));
+      occurrenceRows.add(
+        _occurrenceRow(
+          specimen: specimen,
+          taxon: taxon,
+          event: event,
+          eventId: eventId,
+          site: site,
+          coordinate: coordinate,
+          recorders: recorders,
+        ),
+      );
       if (event != null) {
         events.putIfAbsent(
           eventId!,
@@ -276,18 +287,13 @@ class DwcBundleWriter extends AppServices {
         agents: recorders,
         output: occurrenceAgentRoles,
       );
-      materialRows.addAll(await _materialRows(
-        specimen.uuid,
-        eventId,
-        agents,
-        materialAgentRoles,
-      ));
+      materialRows.addAll(
+        await _materialRows(specimen.uuid, eventId, agents, materialAgentRoles),
+      );
       measurementRows.addAll(await _measurementRows(specimen));
-      mediaRows.addAll(await _mediaRows(
-        specimen.uuid,
-        agents,
-        mediaAgentRoles,
-      ));
+      mediaRows.addAll(
+        await _mediaRows(specimen.uuid, agents, mediaAgentRoles),
+      );
     }
 
     return <String, dynamic>{
@@ -304,14 +310,18 @@ class DwcBundleWriter extends AppServices {
           .map((agent) => agent.toJson())
           .map(_removeEmpty)
           .toList(growable: false),
-      'occurrence_agent_roles':
-          occurrenceAgentRoles.map(_removeEmpty).toList(growable: false),
-      'event_agent_roles':
-          eventAgentRoles.map(_removeEmpty).toList(growable: false),
-      'material_agent_roles':
-          materialAgentRoles.map(_removeEmpty).toList(growable: false),
-      'media_agent_roles':
-          mediaAgentRoles.map(_removeEmpty).toList(growable: false),
+      'occurrence_agent_roles': occurrenceAgentRoles
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'event_agent_roles': eventAgentRoles
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'material_agent_roles': materialAgentRoles
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'media_agent_roles': mediaAgentRoles
+          .map(_removeEmpty)
+          .toList(growable: false),
     };
   }
 
@@ -320,21 +330,25 @@ class DwcBundleWriter extends AppServices {
     Future<T> Function(Map<String, dynamic> request) action,
   ) async {
     final root = await tempDirectory;
-    final snapshotDir = await Directory(path.join(
-      root.path,
-      'nahpu-package-${DateTime.now().microsecondsSinceEpoch}',
-    )).create(recursive: true);
+    final snapshotDir = await Directory(
+      path.join(
+        root.path,
+        'nahpu-package-${DateTime.now().microsecondsSinceEpoch}',
+      ),
+    ).create(recursive: true);
     try {
       final databaseFile = File(path.join(snapshotDir.path, 'nahpu.sqlite3'));
       await dbAccess.exportInto(databaseFile);
-      final configsFile =
-          File(path.join(snapshotDir.path, 'user_configs.json'));
+      final configsFile = File(
+        path.join(snapshotDir.path, 'user_configs.json'),
+      );
       await rust_config.exportConfigToFile(
         filePath: configsFile.path,
         isJson: true,
       );
-      final project =
-          await ProjectServices(ref: ref).getProjectByUuid(currentProjectUuid);
+      final project = await ProjectServices(
+        ref: ref,
+      ).getProjectByUuid(currentProjectUuid);
       final packageInfo = await PackageInfo.fromPlatform();
       final controlledVocabularies = await _readNahpuControlledVocabularies();
       final request = <String, dynamic>{
@@ -366,33 +380,40 @@ class DwcBundleWriter extends AppServices {
       mode: sqlite.OpenMode.readOnly,
     );
     try {
-      return _nahpuTableNames.map((tableName) {
-        final columns = database.select('PRAGMA table_info("$tableName")');
-        final foreignKeys =
-            database.select('PRAGMA foreign_key_list("$tableName")');
-        final rows = database.select('SELECT * FROM "$tableName"');
-        return <String, dynamic>{
-          'name': tableName,
-          'columns': columns
-              .map((column) => <String, dynamic>{
-                    'name': column['name'].toString(),
-                    'data_type': column['type'].toString(),
-                    'required': column['notnull'] == 1,
-                    'primary_key': column['pk'] != 0,
-                  })
-              .toList(growable: false),
-          'foreign_keys': foreignKeys
-              .map((foreignKey) => <String, dynamic>{
-                    'fields': foreignKey['from'].toString(),
-                    'resource': foreignKey['table'].toString(),
-                    'reference_fields': foreignKey['to'].toString(),
-                  })
-              .toList(growable: false),
-          'rows': rows
-              .map((row) => Map<String, dynamic>.from(row))
-              .toList(growable: false),
-        };
-      }).toList(growable: false);
+      return _nahpuTableNames
+          .map((tableName) {
+            final columns = database.select('PRAGMA table_info("$tableName")');
+            final foreignKeys = database.select(
+              'PRAGMA foreign_key_list("$tableName")',
+            );
+            final rows = database.select('SELECT * FROM "$tableName"');
+            return <String, dynamic>{
+              'name': tableName,
+              'columns': columns
+                  .map(
+                    (column) => <String, dynamic>{
+                      'name': column['name'].toString(),
+                      'data_type': column['type'].toString(),
+                      'required': column['notnull'] == 1,
+                      'primary_key': column['pk'] != 0,
+                    },
+                  )
+                  .toList(growable: false),
+              'foreign_keys': foreignKeys
+                  .map(
+                    (foreignKey) => <String, dynamic>{
+                      'fields': foreignKey['from'].toString(),
+                      'resource': foreignKey['table'].toString(),
+                      'reference_fields': foreignKey['to'].toString(),
+                    },
+                  )
+                  .toList(growable: false),
+              'rows': rows
+                  .map((row) => Map<String, dynamic>.from(row))
+                  .toList(growable: false),
+            };
+          })
+          .toList(growable: false);
     } finally {
       database.close();
     }
@@ -401,13 +422,14 @@ class DwcBundleWriter extends AppServices {
   Future<List<Map<String, dynamic>>> _readNahpuControlledVocabularies() async {
     final output = <Map<String, dynamic>>[];
     for (final definition in _nahpuControlledVocabularyDefinitions) {
-      final configured =
-          await rust_config.getUserConfigList(key: definition.configKey);
+      final configured = await ref.read(
+        effectiveUserDefinedFieldProvider(definition.configKey).future,
+      );
       output.add({
         'section': definition.section,
         'config_key': definition.configKey,
         'vocabulary_name': definition.name,
-        'values': configured ?? getDefaultOptionsList(definition.configKey),
+        'values': configured,
       });
     }
     return output;
@@ -420,7 +442,8 @@ class DwcBundleWriter extends AppServices {
       if (entity is! File) continue;
       final relative = path.relative(entity.path, from: root.path);
       final normalized = relative.replaceAll('\\', '/');
-      final include = normalized.startsWith('appMedia/') ||
+      final include =
+          normalized.startsWith('appMedia/') ||
           normalized.startsWith('UserConfigs/fonts/') ||
           normalized.split('/').contains('media');
       if (!include) continue;
@@ -458,17 +481,18 @@ class DwcBundleWriter extends AppServices {
     required List<_ResolvedAgent> recorders,
   }) {
     final released = specimen.condition?.toLowerCase() == 'released';
-    final scientificName = [taxon?.genus, taxon?.specificEpithet]
-        .whereType<String>()
-        .where((value) => value.trim().isNotEmpty)
-        .join(' ');
+    final scientificName = [
+      taxon?.genus,
+      taxon?.specificEpithet,
+    ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
     return <String, dynamic>{
       'occurrenceID': specimen.uuid,
       'basisOfRecord': released ? 'HumanObservation' : 'PreservedSpecimen',
       'occurrenceStatus': 'detected',
       'catalogNumber': specimen.projectFieldNumber ?? specimen.fieldNumber,
       'eventID': eventId,
-      'eventDate': specimen.collectionDate ??
+      'eventDate':
+          specimen.collectionDate ??
           specimen.captureDate ??
           _eventDate(event?.startDate, event?.endDate),
       'eventTime':
@@ -538,20 +562,19 @@ class DwcBundleWriter extends AppServices {
     Map<String, _ResolvedAgent> agents,
     List<Map<String, dynamic>> roles,
   ) async {
-    final parts =
-        await SpecimenPartServices(ref: ref).getSpecimenParts(specimenUuid);
+    final parts = await SpecimenPartServices(
+      ref: ref,
+    ).getSpecimenParts(specimenUuid);
     final rows = <Map<String, dynamic>>[];
     for (final part in parts) {
       final materialEntityId = '$specimenUuid:part:${part.id}';
-      final preparations = [
-        part.treatment,
-        part.additionalTreatment,
-      ]
+      final preparations = [part.treatment, part.additionalTreatment]
           .whereType<String>()
           .where((value) => value.trim().isNotEmpty)
           .join(' | ');
-      final otherCatalogNumbers =
-          part.barcodeID == part.tissueID ? null : part.barcodeID;
+      final otherCatalogNumbers = part.barcodeID == part.tissueID
+          ? null
+          : part.barcodeID;
       rows.add(<String, dynamic>{
         'occurrenceID': specimenUuid,
         'eventID': eventId,
@@ -581,7 +604,8 @@ class DwcBundleWriter extends AppServices {
   }
 
   Future<List<Map<String, dynamic>>> _measurementRows(
-      SpecimenData specimen) async {
+    SpecimenData specimen,
+  ) async {
     final raw = await _measurementValues(specimen);
     final rows = <Map<String, dynamic>>[];
     for (final entry in _measurementDefinitions.entries) {
@@ -602,17 +626,17 @@ class DwcBundleWriter extends AppServices {
     try {
       switch (normalizeBundleTaxonGroup(specimen.taxonGroup)) {
         case 'Birds':
-          return (await SpecimenServices(ref: ref)
-                  .getBirdAttributeData(specimen.uuid))
-              .toJson();
+          return (await SpecimenServices(
+            ref: ref,
+          ).getBirdAttributeData(specimen.uuid)).toJson();
         case 'Herpetofauna':
-          return (await SpecimenServices(ref: ref)
-                  .getHerpAttributeData(specimen.uuid))
-              .toJson();
+          return (await SpecimenServices(
+            ref: ref,
+          ).getHerpAttributeData(specimen.uuid)).toJson();
         default:
-          return (await SpecimenServices(ref: ref)
-                  .getMammalAttributeData(specimen.uuid))
-              .toJson();
+          return (await SpecimenServices(
+            ref: ref,
+          ).getMammalAttributeData(specimen.uuid)).toJson();
       }
     } catch (_) {
       return const <String, dynamic>{};
@@ -624,8 +648,9 @@ class DwcBundleWriter extends AppServices {
     Map<String, _ResolvedAgent> agents,
     List<Map<String, dynamic>> roles,
   ) async {
-    final links =
-        await SpecimenServices(ref: ref).getSpecimenMedia(specimenUuid);
+    final links = await SpecimenServices(
+      ref: ref,
+    ).getSpecimenMedia(specimenUuid);
     final rows = <Map<String, dynamic>>[];
     for (final link in links) {
       final mediaId = link.mediaId;
@@ -663,8 +688,9 @@ class DwcBundleWriter extends AppServices {
         'creator': creator?.name,
         'creatorID': creator?.id,
         'description': media.additionalExif,
-        'accessURI':
-            media.fileName == null ? null : 'media/$mediaId-${media.fileName}',
+        'accessURI': media.fileName == null
+            ? null
+            : 'media/$mediaId-${media.fileName}',
         'source_path': sourcePath,
       });
     }
@@ -675,8 +701,9 @@ class DwcBundleWriter extends AppServices {
     int eventId,
     Map<String, _ResolvedAgent> agents,
   ) async {
-    final personnel =
-        await CollEventServices(ref: ref).getAllCollPersonnel(eventId);
+    final personnel = await CollEventServices(
+      ref: ref,
+    ).getAllCollPersonnel(eventId);
     final resolved = <_ResolvedAgent>[];
     for (final entry in personnel) {
       final agent = await _resolveAgent(
@@ -743,10 +770,12 @@ class DwcBundleWriter extends AppServices {
         'agentRole': agent.role,
         'agentRoleOrder': index + 1,
       };
-      final duplicate = output.any((entry) =>
-          entry[targetKey] == targetId &&
-          entry['agentID'] == agent.id &&
-          entry['agentRole'] == agent.role);
+      final duplicate = output.any(
+        (entry) =>
+            entry[targetKey] == targetId &&
+            entry['agentID'] == agent.id &&
+            entry['agentRole'] == agent.role,
+      );
       if (!duplicate) output.add(role);
     }
   }
@@ -769,8 +798,15 @@ class DwcBundleWriter extends AppServices {
 
   String _mediaType(String? fileName) {
     final extension = fileName?.split('.').last.toLowerCase() ?? '';
-    if (const {'jpg', 'jpeg', 'png', 'gif', 'webp', 'tif', 'tiff'}
-        .contains(extension)) {
+    if (const {
+      'jpg',
+      'jpeg',
+      'png',
+      'gif',
+      'webp',
+      'tif',
+      'tiff',
+    }.contains(extension)) {
       return 'StillImage';
     }
     if (const {'wav', 'mp3', 'm4a', 'flac', 'ogg'}.contains(extension)) {
@@ -1008,6 +1044,11 @@ const _nahpuControlledVocabularyDefinitions = [
     configKey: treatmentPrefKey,
     name: 'Specimen treatment',
   ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: conditionPrefKey,
+    name: 'Specimen condition',
+  ),
 ];
 
 class _MeasurementDefinition {
@@ -1029,10 +1070,10 @@ class _ResolvedAgent {
   final String role;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'agentID': id,
-        'agentType': 'person',
-        'preferredAgentName': name,
-      };
+    'agentID': id,
+    'agentType': 'person',
+    'preferredAgentName': name,
+  };
 }
 
 const _measurementDefinitions = <String, _MeasurementDefinition>{
@@ -1047,14 +1088,18 @@ const _measurementDefinitions = <String, _MeasurementDefinition>{
   'svl': _MeasurementDefinition('snout-vent length', 'cm'),
   'frequencyMax': _MeasurementDefinition('maximum frequency', 'kHz'),
   'frequencyMin': _MeasurementDefinition('minimum frequency', 'kHz'),
-  'frequencyAtMaxEnergy':
-      _MeasurementDefinition('frequency at maximum energy', 'kHz'),
+  'frequencyAtMaxEnergy': _MeasurementDefinition(
+    'frequency at maximum energy',
+    'kHz',
+  ),
 };
 
 /// Normalizes both current and legacy database labels to package choices.
 String normalizeBundleTaxonGroup(String? value) {
-  final normalized =
-      (value ?? '').toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
+  final normalized = (value ?? '').toLowerCase().replaceAll(
+    RegExp(r'[^a-z]'),
+    '',
+  );
   if (normalized == 'bat' || normalized == 'bats') return 'Bats';
   if (normalized.contains('mammal')) return 'Mammals';
   if (normalized.contains('bird') ||
@@ -1095,8 +1140,10 @@ const List<String> _nahpuTableNames = [
 ];
 
 Map<String, dynamic> _removeEmpty(Map<String, dynamic> source) {
-  return Map<String, dynamic>.fromEntries(source.entries.where((entry) {
-    final value = entry.value;
-    return value != null && (value is! String || value.trim().isNotEmpty);
-  }));
+  return Map<String, dynamic>.fromEntries(
+    source.entries.where((entry) {
+      final value = entry.value;
+      return value != null && (value is! String || value.trim().isNotEmpty);
+    }),
+  );
 }

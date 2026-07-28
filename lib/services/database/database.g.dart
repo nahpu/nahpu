@@ -14026,22 +14026,64 @@ class BirdAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _footColorMeta = const VerificationMeta(
-    'footColor',
+  static const VerificationMeta _maxillaColorMeta = const VerificationMeta(
+    'maxillaColor',
   );
-  late final GeneratedColumn<String> footColor = GeneratedColumn<String>(
-    'footColor',
+  late final GeneratedColumn<String> maxillaColor = GeneratedColumn<String>(
+    'maxillaColor',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _footHexMeta = const VerificationMeta(
-    'footHex',
+  static const VerificationMeta _maxillaHexMeta = const VerificationMeta(
+    'maxillaHex',
   );
-  late final GeneratedColumn<String> footHex = GeneratedColumn<String>(
-    'footHex',
+  late final GeneratedColumn<String> maxillaHex = GeneratedColumn<String>(
+    'maxillaHex',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _mandibleColorMeta = const VerificationMeta(
+    'mandibleColor',
+  );
+  late final GeneratedColumn<String> mandibleColor = GeneratedColumn<String>(
+    'mandibleColor',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _mandibleHexMeta = const VerificationMeta(
+    'mandibleHex',
+  );
+  late final GeneratedColumn<String> mandibleHex = GeneratedColumn<String>(
+    'mandibleHex',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _toeColorMeta = const VerificationMeta(
+    'toeColor',
+  );
+  late final GeneratedColumn<String> toeColor = GeneratedColumn<String>(
+    'toeColor',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _toeHexMeta = const VerificationMeta('toeHex');
+  late final GeneratedColumn<String> toeHex = GeneratedColumn<String>(
+    'toeHex',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -14383,8 +14425,12 @@ class BirdAttribute extends Table
     irisHex,
     billColor,
     billHex,
-    footColor,
-    footHex,
+    maxillaColor,
+    maxillaHex,
+    mandibleColor,
+    mandibleHex,
+    toeColor,
+    toeHex,
     tarsusColor,
     tarsusHex,
     sex,
@@ -14475,16 +14521,49 @@ class BirdAttribute extends Table
         billHex.isAcceptableOrUnknown(data['billHex']!, _billHexMeta),
       );
     }
-    if (data.containsKey('footColor')) {
+    if (data.containsKey('maxillaColor')) {
       context.handle(
-        _footColorMeta,
-        footColor.isAcceptableOrUnknown(data['footColor']!, _footColorMeta),
+        _maxillaColorMeta,
+        maxillaColor.isAcceptableOrUnknown(
+          data['maxillaColor']!,
+          _maxillaColorMeta,
+        ),
       );
     }
-    if (data.containsKey('footHex')) {
+    if (data.containsKey('maxillaHex')) {
       context.handle(
-        _footHexMeta,
-        footHex.isAcceptableOrUnknown(data['footHex']!, _footHexMeta),
+        _maxillaHexMeta,
+        maxillaHex.isAcceptableOrUnknown(data['maxillaHex']!, _maxillaHexMeta),
+      );
+    }
+    if (data.containsKey('mandibleColor')) {
+      context.handle(
+        _mandibleColorMeta,
+        mandibleColor.isAcceptableOrUnknown(
+          data['mandibleColor']!,
+          _mandibleColorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('mandibleHex')) {
+      context.handle(
+        _mandibleHexMeta,
+        mandibleHex.isAcceptableOrUnknown(
+          data['mandibleHex']!,
+          _mandibleHexMeta,
+        ),
+      );
+    }
+    if (data.containsKey('toeColor')) {
+      context.handle(
+        _toeColorMeta,
+        toeColor.isAcceptableOrUnknown(data['toeColor']!, _toeColorMeta),
+      );
+    }
+    if (data.containsKey('toeHex')) {
+      context.handle(
+        _toeHexMeta,
+        toeHex.isAcceptableOrUnknown(data['toeHex']!, _toeHexMeta),
       );
     }
     if (data.containsKey('tarsusColor')) {
@@ -14755,13 +14834,29 @@ class BirdAttribute extends Table
         DriftSqlType.string,
         data['${effectivePrefix}billHex'],
       ),
-      footColor: attachedDatabase.typeMapping.read(
+      maxillaColor: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}footColor'],
+        data['${effectivePrefix}maxillaColor'],
       ),
-      footHex: attachedDatabase.typeMapping.read(
+      maxillaHex: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}footHex'],
+        data['${effectivePrefix}maxillaHex'],
+      ),
+      mandibleColor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mandibleColor'],
+      ),
+      mandibleHex: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mandibleHex'],
+      ),
+      toeColor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toeColor'],
+      ),
+      toeHex: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toeHex'],
       ),
       tarsusColor: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -14910,8 +15005,12 @@ class BirdAttributeData extends DataClass
   /// Hex number for iris color
   final String? billColor;
   final String? billHex;
-  final String? footColor;
-  final String? footHex;
+  final String? maxillaColor;
+  final String? maxillaHex;
+  final String? mandibleColor;
+  final String? mandibleHex;
+  final String? toeColor;
+  final String? toeHex;
   final String? tarsusColor;
   final String? tarsusHex;
   final int? sex;
@@ -14956,8 +15055,12 @@ class BirdAttributeData extends DataClass
     this.irisHex,
     this.billColor,
     this.billHex,
-    this.footColor,
-    this.footHex,
+    this.maxillaColor,
+    this.maxillaHex,
+    this.mandibleColor,
+    this.mandibleHex,
+    this.toeColor,
+    this.toeHex,
     this.tarsusColor,
     this.tarsusHex,
     this.sex,
@@ -15011,11 +15114,23 @@ class BirdAttributeData extends DataClass
     if (!nullToAbsent || billHex != null) {
       map['billHex'] = Variable<String>(billHex);
     }
-    if (!nullToAbsent || footColor != null) {
-      map['footColor'] = Variable<String>(footColor);
+    if (!nullToAbsent || maxillaColor != null) {
+      map['maxillaColor'] = Variable<String>(maxillaColor);
     }
-    if (!nullToAbsent || footHex != null) {
-      map['footHex'] = Variable<String>(footHex);
+    if (!nullToAbsent || maxillaHex != null) {
+      map['maxillaHex'] = Variable<String>(maxillaHex);
+    }
+    if (!nullToAbsent || mandibleColor != null) {
+      map['mandibleColor'] = Variable<String>(mandibleColor);
+    }
+    if (!nullToAbsent || mandibleHex != null) {
+      map['mandibleHex'] = Variable<String>(mandibleHex);
+    }
+    if (!nullToAbsent || toeColor != null) {
+      map['toeColor'] = Variable<String>(toeColor);
+    }
+    if (!nullToAbsent || toeHex != null) {
+      map['toeHex'] = Variable<String>(toeHex);
     }
     if (!nullToAbsent || tarsusColor != null) {
       map['tarsusColor'] = Variable<String>(tarsusColor);
@@ -15131,12 +15246,24 @@ class BirdAttributeData extends DataClass
       billHex: billHex == null && nullToAbsent
           ? const Value.absent()
           : Value(billHex),
-      footColor: footColor == null && nullToAbsent
+      maxillaColor: maxillaColor == null && nullToAbsent
           ? const Value.absent()
-          : Value(footColor),
-      footHex: footHex == null && nullToAbsent
+          : Value(maxillaColor),
+      maxillaHex: maxillaHex == null && nullToAbsent
           ? const Value.absent()
-          : Value(footHex),
+          : Value(maxillaHex),
+      mandibleColor: mandibleColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mandibleColor),
+      mandibleHex: mandibleHex == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mandibleHex),
+      toeColor: toeColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(toeColor),
+      toeHex: toeHex == null && nullToAbsent
+          ? const Value.absent()
+          : Value(toeHex),
       tarsusColor: tarsusColor == null && nullToAbsent
           ? const Value.absent()
           : Value(tarsusColor),
@@ -15239,8 +15366,12 @@ class BirdAttributeData extends DataClass
       irisHex: serializer.fromJson<String?>(json['irisHex']),
       billColor: serializer.fromJson<String?>(json['billColor']),
       billHex: serializer.fromJson<String?>(json['billHex']),
-      footColor: serializer.fromJson<String?>(json['footColor']),
-      footHex: serializer.fromJson<String?>(json['footHex']),
+      maxillaColor: serializer.fromJson<String?>(json['maxillaColor']),
+      maxillaHex: serializer.fromJson<String?>(json['maxillaHex']),
+      mandibleColor: serializer.fromJson<String?>(json['mandibleColor']),
+      mandibleHex: serializer.fromJson<String?>(json['mandibleHex']),
+      toeColor: serializer.fromJson<String?>(json['toeColor']),
+      toeHex: serializer.fromJson<String?>(json['toeHex']),
       tarsusColor: serializer.fromJson<String?>(json['tarsusColor']),
       tarsusHex: serializer.fromJson<String?>(json['tarsusHex']),
       sex: serializer.fromJson<int?>(json['sex']),
@@ -15284,8 +15415,12 @@ class BirdAttributeData extends DataClass
       'irisHex': serializer.toJson<String?>(irisHex),
       'billColor': serializer.toJson<String?>(billColor),
       'billHex': serializer.toJson<String?>(billHex),
-      'footColor': serializer.toJson<String?>(footColor),
-      'footHex': serializer.toJson<String?>(footHex),
+      'maxillaColor': serializer.toJson<String?>(maxillaColor),
+      'maxillaHex': serializer.toJson<String?>(maxillaHex),
+      'mandibleColor': serializer.toJson<String?>(mandibleColor),
+      'mandibleHex': serializer.toJson<String?>(mandibleHex),
+      'toeColor': serializer.toJson<String?>(toeColor),
+      'toeHex': serializer.toJson<String?>(toeHex),
       'tarsusColor': serializer.toJson<String?>(tarsusColor),
       'tarsusHex': serializer.toJson<String?>(tarsusHex),
       'sex': serializer.toJson<int?>(sex),
@@ -15327,8 +15462,12 @@ class BirdAttributeData extends DataClass
     Value<String?> irisHex = const Value.absent(),
     Value<String?> billColor = const Value.absent(),
     Value<String?> billHex = const Value.absent(),
-    Value<String?> footColor = const Value.absent(),
-    Value<String?> footHex = const Value.absent(),
+    Value<String?> maxillaColor = const Value.absent(),
+    Value<String?> maxillaHex = const Value.absent(),
+    Value<String?> mandibleColor = const Value.absent(),
+    Value<String?> mandibleHex = const Value.absent(),
+    Value<String?> toeColor = const Value.absent(),
+    Value<String?> toeHex = const Value.absent(),
     Value<String?> tarsusColor = const Value.absent(),
     Value<String?> tarsusHex = const Value.absent(),
     Value<int?> sex = const Value.absent(),
@@ -15367,8 +15506,14 @@ class BirdAttributeData extends DataClass
     irisHex: irisHex.present ? irisHex.value : this.irisHex,
     billColor: billColor.present ? billColor.value : this.billColor,
     billHex: billHex.present ? billHex.value : this.billHex,
-    footColor: footColor.present ? footColor.value : this.footColor,
-    footHex: footHex.present ? footHex.value : this.footHex,
+    maxillaColor: maxillaColor.present ? maxillaColor.value : this.maxillaColor,
+    maxillaHex: maxillaHex.present ? maxillaHex.value : this.maxillaHex,
+    mandibleColor: mandibleColor.present
+        ? mandibleColor.value
+        : this.mandibleColor,
+    mandibleHex: mandibleHex.present ? mandibleHex.value : this.mandibleHex,
+    toeColor: toeColor.present ? toeColor.value : this.toeColor,
+    toeHex: toeHex.present ? toeHex.value : this.toeHex,
     tarsusColor: tarsusColor.present ? tarsusColor.value : this.tarsusColor,
     tarsusHex: tarsusHex.present ? tarsusHex.value : this.tarsusHex,
     sex: sex.present ? sex.value : this.sex,
@@ -15425,8 +15570,20 @@ class BirdAttributeData extends DataClass
       irisHex: data.irisHex.present ? data.irisHex.value : this.irisHex,
       billColor: data.billColor.present ? data.billColor.value : this.billColor,
       billHex: data.billHex.present ? data.billHex.value : this.billHex,
-      footColor: data.footColor.present ? data.footColor.value : this.footColor,
-      footHex: data.footHex.present ? data.footHex.value : this.footHex,
+      maxillaColor: data.maxillaColor.present
+          ? data.maxillaColor.value
+          : this.maxillaColor,
+      maxillaHex: data.maxillaHex.present
+          ? data.maxillaHex.value
+          : this.maxillaHex,
+      mandibleColor: data.mandibleColor.present
+          ? data.mandibleColor.value
+          : this.mandibleColor,
+      mandibleHex: data.mandibleHex.present
+          ? data.mandibleHex.value
+          : this.mandibleHex,
+      toeColor: data.toeColor.present ? data.toeColor.value : this.toeColor,
+      toeHex: data.toeHex.present ? data.toeHex.value : this.toeHex,
       tarsusColor: data.tarsusColor.present
           ? data.tarsusColor.value
           : this.tarsusColor,
@@ -15516,8 +15673,12 @@ class BirdAttributeData extends DataClass
           ..write('irisHex: $irisHex, ')
           ..write('billColor: $billColor, ')
           ..write('billHex: $billHex, ')
-          ..write('footColor: $footColor, ')
-          ..write('footHex: $footHex, ')
+          ..write('maxillaColor: $maxillaColor, ')
+          ..write('maxillaHex: $maxillaHex, ')
+          ..write('mandibleColor: $mandibleColor, ')
+          ..write('mandibleHex: $mandibleHex, ')
+          ..write('toeColor: $toeColor, ')
+          ..write('toeHex: $toeHex, ')
           ..write('tarsusColor: $tarsusColor, ')
           ..write('tarsusHex: $tarsusHex, ')
           ..write('sex: $sex, ')
@@ -15561,8 +15722,12 @@ class BirdAttributeData extends DataClass
     irisHex,
     billColor,
     billHex,
-    footColor,
-    footHex,
+    maxillaColor,
+    maxillaHex,
+    mandibleColor,
+    mandibleHex,
+    toeColor,
+    toeHex,
     tarsusColor,
     tarsusHex,
     sex,
@@ -15605,8 +15770,12 @@ class BirdAttributeData extends DataClass
           other.irisHex == this.irisHex &&
           other.billColor == this.billColor &&
           other.billHex == this.billHex &&
-          other.footColor == this.footColor &&
-          other.footHex == this.footHex &&
+          other.maxillaColor == this.maxillaColor &&
+          other.maxillaHex == this.maxillaHex &&
+          other.mandibleColor == this.mandibleColor &&
+          other.mandibleHex == this.mandibleHex &&
+          other.toeColor == this.toeColor &&
+          other.toeHex == this.toeHex &&
           other.tarsusColor == this.tarsusColor &&
           other.tarsusHex == this.tarsusHex &&
           other.sex == this.sex &&
@@ -15647,8 +15816,12 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
   final Value<String?> irisHex;
   final Value<String?> billColor;
   final Value<String?> billHex;
-  final Value<String?> footColor;
-  final Value<String?> footHex;
+  final Value<String?> maxillaColor;
+  final Value<String?> maxillaHex;
+  final Value<String?> mandibleColor;
+  final Value<String?> mandibleHex;
+  final Value<String?> toeColor;
+  final Value<String?> toeHex;
   final Value<String?> tarsusColor;
   final Value<String?> tarsusHex;
   final Value<int?> sex;
@@ -15688,8 +15861,12 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     this.irisHex = const Value.absent(),
     this.billColor = const Value.absent(),
     this.billHex = const Value.absent(),
-    this.footColor = const Value.absent(),
-    this.footHex = const Value.absent(),
+    this.maxillaColor = const Value.absent(),
+    this.maxillaHex = const Value.absent(),
+    this.mandibleColor = const Value.absent(),
+    this.mandibleHex = const Value.absent(),
+    this.toeColor = const Value.absent(),
+    this.toeHex = const Value.absent(),
     this.tarsusColor = const Value.absent(),
     this.tarsusHex = const Value.absent(),
     this.sex = const Value.absent(),
@@ -15730,8 +15907,12 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     this.irisHex = const Value.absent(),
     this.billColor = const Value.absent(),
     this.billHex = const Value.absent(),
-    this.footColor = const Value.absent(),
-    this.footHex = const Value.absent(),
+    this.maxillaColor = const Value.absent(),
+    this.maxillaHex = const Value.absent(),
+    this.mandibleColor = const Value.absent(),
+    this.mandibleHex = const Value.absent(),
+    this.toeColor = const Value.absent(),
+    this.toeHex = const Value.absent(),
     this.tarsusColor = const Value.absent(),
     this.tarsusHex = const Value.absent(),
     this.sex = const Value.absent(),
@@ -15772,8 +15953,12 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     Expression<String>? irisHex,
     Expression<String>? billColor,
     Expression<String>? billHex,
-    Expression<String>? footColor,
-    Expression<String>? footHex,
+    Expression<String>? maxillaColor,
+    Expression<String>? maxillaHex,
+    Expression<String>? mandibleColor,
+    Expression<String>? mandibleHex,
+    Expression<String>? toeColor,
+    Expression<String>? toeHex,
     Expression<String>? tarsusColor,
     Expression<String>? tarsusHex,
     Expression<int>? sex,
@@ -15814,8 +15999,12 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
       if (irisHex != null) 'irisHex': irisHex,
       if (billColor != null) 'billColor': billColor,
       if (billHex != null) 'billHex': billHex,
-      if (footColor != null) 'footColor': footColor,
-      if (footHex != null) 'footHex': footHex,
+      if (maxillaColor != null) 'maxillaColor': maxillaColor,
+      if (maxillaHex != null) 'maxillaHex': maxillaHex,
+      if (mandibleColor != null) 'mandibleColor': mandibleColor,
+      if (mandibleHex != null) 'mandibleHex': mandibleHex,
+      if (toeColor != null) 'toeColor': toeColor,
+      if (toeHex != null) 'toeHex': toeHex,
       if (tarsusColor != null) 'tarsusColor': tarsusColor,
       if (tarsusHex != null) 'tarsusHex': tarsusHex,
       if (sex != null) 'sex': sex,
@@ -15858,8 +16047,12 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     Value<String?>? irisHex,
     Value<String?>? billColor,
     Value<String?>? billHex,
-    Value<String?>? footColor,
-    Value<String?>? footHex,
+    Value<String?>? maxillaColor,
+    Value<String?>? maxillaHex,
+    Value<String?>? mandibleColor,
+    Value<String?>? mandibleHex,
+    Value<String?>? toeColor,
+    Value<String?>? toeHex,
     Value<String?>? tarsusColor,
     Value<String?>? tarsusHex,
     Value<int?>? sex,
@@ -15900,8 +16093,12 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
       irisHex: irisHex ?? this.irisHex,
       billColor: billColor ?? this.billColor,
       billHex: billHex ?? this.billHex,
-      footColor: footColor ?? this.footColor,
-      footHex: footHex ?? this.footHex,
+      maxillaColor: maxillaColor ?? this.maxillaColor,
+      maxillaHex: maxillaHex ?? this.maxillaHex,
+      mandibleColor: mandibleColor ?? this.mandibleColor,
+      mandibleHex: mandibleHex ?? this.mandibleHex,
+      toeColor: toeColor ?? this.toeColor,
+      toeHex: toeHex ?? this.toeHex,
       tarsusColor: tarsusColor ?? this.tarsusColor,
       tarsusHex: tarsusHex ?? this.tarsusHex,
       sex: sex ?? this.sex,
@@ -15960,11 +16157,23 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     if (billHex.present) {
       map['billHex'] = Variable<String>(billHex.value);
     }
-    if (footColor.present) {
-      map['footColor'] = Variable<String>(footColor.value);
+    if (maxillaColor.present) {
+      map['maxillaColor'] = Variable<String>(maxillaColor.value);
     }
-    if (footHex.present) {
-      map['footHex'] = Variable<String>(footHex.value);
+    if (maxillaHex.present) {
+      map['maxillaHex'] = Variable<String>(maxillaHex.value);
+    }
+    if (mandibleColor.present) {
+      map['mandibleColor'] = Variable<String>(mandibleColor.value);
+    }
+    if (mandibleHex.present) {
+      map['mandibleHex'] = Variable<String>(mandibleHex.value);
+    }
+    if (toeColor.present) {
+      map['toeColor'] = Variable<String>(toeColor.value);
+    }
+    if (toeHex.present) {
+      map['toeHex'] = Variable<String>(toeHex.value);
     }
     if (tarsusColor.present) {
       map['tarsusColor'] = Variable<String>(tarsusColor.value);
@@ -16072,8 +16281,12 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
           ..write('irisHex: $irisHex, ')
           ..write('billColor: $billColor, ')
           ..write('billHex: $billHex, ')
-          ..write('footColor: $footColor, ')
-          ..write('footHex: $footHex, ')
+          ..write('maxillaColor: $maxillaColor, ')
+          ..write('maxillaHex: $maxillaHex, ')
+          ..write('mandibleColor: $mandibleColor, ')
+          ..write('mandibleHex: $mandibleHex, ')
+          ..write('toeColor: $toeColor, ')
+          ..write('toeHex: $toeHex, ')
           ..write('tarsusColor: $tarsusColor, ')
           ..write('tarsusHex: $tarsusHex, ')
           ..write('sex: $sex, ')
@@ -28590,8 +28803,12 @@ typedef $BirdAttributeCreateCompanionBuilder =
       Value<String?> irisHex,
       Value<String?> billColor,
       Value<String?> billHex,
-      Value<String?> footColor,
-      Value<String?> footHex,
+      Value<String?> maxillaColor,
+      Value<String?> maxillaHex,
+      Value<String?> mandibleColor,
+      Value<String?> mandibleHex,
+      Value<String?> toeColor,
+      Value<String?> toeHex,
       Value<String?> tarsusColor,
       Value<String?> tarsusHex,
       Value<int?> sex,
@@ -28633,8 +28850,12 @@ typedef $BirdAttributeUpdateCompanionBuilder =
       Value<String?> irisHex,
       Value<String?> billColor,
       Value<String?> billHex,
-      Value<String?> footColor,
-      Value<String?> footHex,
+      Value<String?> maxillaColor,
+      Value<String?> maxillaHex,
+      Value<String?> mandibleColor,
+      Value<String?> mandibleHex,
+      Value<String?> toeColor,
+      Value<String?> toeHex,
       Value<String?> tarsusColor,
       Value<String?> tarsusHex,
       Value<int?> sex,
@@ -28711,13 +28932,33 @@ class $BirdAttributeFilterComposer extends Composer<_$Database, BirdAttribute> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get footColor => $composableBuilder(
-    column: $table.footColor,
+  ColumnFilters<String> get maxillaColor => $composableBuilder(
+    column: $table.maxillaColor,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get footHex => $composableBuilder(
-    column: $table.footHex,
+  ColumnFilters<String> get maxillaHex => $composableBuilder(
+    column: $table.maxillaHex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mandibleColor => $composableBuilder(
+    column: $table.mandibleColor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mandibleHex => $composableBuilder(
+    column: $table.mandibleHex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toeColor => $composableBuilder(
+    column: $table.toeColor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toeHex => $composableBuilder(
+    column: $table.toeHex,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -28916,13 +29157,33 @@ class $BirdAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get footColor => $composableBuilder(
-    column: $table.footColor,
+  ColumnOrderings<String> get maxillaColor => $composableBuilder(
+    column: $table.maxillaColor,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get footHex => $composableBuilder(
-    column: $table.footHex,
+  ColumnOrderings<String> get maxillaHex => $composableBuilder(
+    column: $table.maxillaHex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mandibleColor => $composableBuilder(
+    column: $table.mandibleColor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mandibleHex => $composableBuilder(
+    column: $table.mandibleHex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toeColor => $composableBuilder(
+    column: $table.toeColor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toeHex => $composableBuilder(
+    column: $table.toeHex,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -29109,11 +29370,31 @@ class $BirdAttributeAnnotationComposer
   GeneratedColumn<String> get billHex =>
       $composableBuilder(column: $table.billHex, builder: (column) => column);
 
-  GeneratedColumn<String> get footColor =>
-      $composableBuilder(column: $table.footColor, builder: (column) => column);
+  GeneratedColumn<String> get maxillaColor => $composableBuilder(
+    column: $table.maxillaColor,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<String> get footHex =>
-      $composableBuilder(column: $table.footHex, builder: (column) => column);
+  GeneratedColumn<String> get maxillaHex => $composableBuilder(
+    column: $table.maxillaHex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mandibleColor => $composableBuilder(
+    column: $table.mandibleColor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mandibleHex => $composableBuilder(
+    column: $table.mandibleHex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toeColor =>
+      $composableBuilder(column: $table.toeColor, builder: (column) => column);
+
+  GeneratedColumn<String> get toeHex =>
+      $composableBuilder(column: $table.toeHex, builder: (column) => column);
 
   GeneratedColumn<String> get tarsusColor => $composableBuilder(
     column: $table.tarsusColor,
@@ -29290,8 +29571,12 @@ class $BirdAttributeTableManager
                 Value<String?> irisHex = const Value.absent(),
                 Value<String?> billColor = const Value.absent(),
                 Value<String?> billHex = const Value.absent(),
-                Value<String?> footColor = const Value.absent(),
-                Value<String?> footHex = const Value.absent(),
+                Value<String?> maxillaColor = const Value.absent(),
+                Value<String?> maxillaHex = const Value.absent(),
+                Value<String?> mandibleColor = const Value.absent(),
+                Value<String?> mandibleHex = const Value.absent(),
+                Value<String?> toeColor = const Value.absent(),
+                Value<String?> toeHex = const Value.absent(),
                 Value<String?> tarsusColor = const Value.absent(),
                 Value<String?> tarsusHex = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
@@ -29331,8 +29616,12 @@ class $BirdAttributeTableManager
                 irisHex: irisHex,
                 billColor: billColor,
                 billHex: billHex,
-                footColor: footColor,
-                footHex: footHex,
+                maxillaColor: maxillaColor,
+                maxillaHex: maxillaHex,
+                mandibleColor: mandibleColor,
+                mandibleHex: mandibleHex,
+                toeColor: toeColor,
+                toeHex: toeHex,
                 tarsusColor: tarsusColor,
                 tarsusHex: tarsusHex,
                 sex: sex,
@@ -29374,8 +29663,12 @@ class $BirdAttributeTableManager
                 Value<String?> irisHex = const Value.absent(),
                 Value<String?> billColor = const Value.absent(),
                 Value<String?> billHex = const Value.absent(),
-                Value<String?> footColor = const Value.absent(),
-                Value<String?> footHex = const Value.absent(),
+                Value<String?> maxillaColor = const Value.absent(),
+                Value<String?> maxillaHex = const Value.absent(),
+                Value<String?> mandibleColor = const Value.absent(),
+                Value<String?> mandibleHex = const Value.absent(),
+                Value<String?> toeColor = const Value.absent(),
+                Value<String?> toeHex = const Value.absent(),
                 Value<String?> tarsusColor = const Value.absent(),
                 Value<String?> tarsusHex = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
@@ -29415,8 +29708,12 @@ class $BirdAttributeTableManager
                 irisHex: irisHex,
                 billColor: billColor,
                 billHex: billHex,
-                footColor: footColor,
-                footHex: footHex,
+                maxillaColor: maxillaColor,
+                maxillaHex: maxillaHex,
+                mandibleColor: mandibleColor,
+                mandibleHex: mandibleHex,
+                toeColor: toeColor,
+                toeHex: toeHex,
                 tarsusColor: tarsusColor,
                 tarsusHex: tarsusHex,
                 sex: sex,

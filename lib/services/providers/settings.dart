@@ -36,6 +36,8 @@ const String specimenTypePrefKey = 'specimenTypes';
 const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
+const String conditionPrefKey = 'specimenConditions';
+const String conditionFmtPrefKey = 'conditionFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
 
 // Document Export settings
@@ -150,6 +152,8 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultSpecimenType;
     case treatmentPrefKey:
       return defaultTreatment;
+    case conditionPrefKey:
+      return defaultCondition;
     default:
       return [];
   }
@@ -278,8 +282,11 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   Future<TextCaseFmt> _fetchSettings() async {
     final fmtString = await rust_config.getUserConfigString(key: prefKey);
 
+    final defaultFormat = prefKey == conditionFmtPrefKey
+        ? TextCaseFmt.sentenceCase
+        : TextCaseFmt.anyCase;
     TextCaseFmt fmt = TextCaseFmt.values.byName(
-      fmtString ?? TextCaseFmt.anyCase.name,
+      fmtString ?? defaultFormat.name,
     );
 
     if (fmtString == null) {
@@ -298,9 +305,10 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final fmtString = await rust_config.getUserConfigString(key: prefKey);
-      final setFmt = TextCaseFmt.values.byName(
-        fmtString ?? TextCaseFmt.anyCase.name,
-      );
+      final defaultFormat = prefKey == conditionFmtPrefKey
+          ? TextCaseFmt.sentenceCase
+          : TextCaseFmt.anyCase;
+      final setFmt = TextCaseFmt.values.byName(fmtString ?? defaultFormat.name);
 
       if (setFmt == fmt) return fmt;
 

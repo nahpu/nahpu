@@ -5,6 +5,11 @@ const Map<String, String> specimenAttributeTableAliases = {
   'herpMeasurement': 'herpAttribute',
 };
 
+const Map<String, String> specimenAttributeFieldAliases = {
+  'footColor': 'toeColor',
+  'footHex': 'toeHex',
+};
+
 /// Returns the canonical specimen-attribute table name for [name].
 String canonicalizeSpecimenAttributeTableName(String name) =>
     specimenAttributeTableAliases[name] ?? name;
@@ -16,8 +21,9 @@ String canonicalizeSpecimenAttributeSourceKey(String sourceKey) {
     return canonicalizeSpecimenAttributeTableName(sourceKey);
   }
   final table = sourceKey.substring(0, separator);
+  final field = sourceKey.substring(separator + 2);
   return '${canonicalizeSpecimenAttributeTableName(table)}'
-      '${sourceKey.substring(separator)}';
+      '::${specimenAttributeFieldAliases[field] ?? field}';
 }
 
 /// Rewrites legacy specimen-attribute namespaces embedded in [expression].
@@ -25,6 +31,9 @@ String canonicalizeSpecimenAttributeExpression(String expression) {
   var canonical = expression;
   for (final entry in specimenAttributeTableAliases.entries) {
     canonical = canonical.replaceAll('${entry.key}::', '${entry.value}::');
+  }
+  for (final entry in specimenAttributeFieldAliases.entries) {
+    canonical = canonical.replaceAll('::${entry.key}', '::${entry.value}');
   }
   return canonical;
 }

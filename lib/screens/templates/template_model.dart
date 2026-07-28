@@ -47,10 +47,13 @@ String formatTextWithCase(String rawText, String caseFormat) {
       return rawText.toLowerCase();
     case 'capitalize':
       if (rawText.isEmpty) return rawText;
-      return rawText.split(' ').map((word) {
-        if (word.isEmpty) return word;
-        return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
-      }).join(' ');
+      return rawText
+          .split(' ')
+          .map((word) {
+            if (word.isEmpty) return word;
+            return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+          })
+          .join(' ');
     default:
       return rawText;
   }
@@ -141,7 +144,7 @@ String _formatDate(DateTime dt, String format) {
     'September',
     'October',
     'November',
-    'December'
+    'December',
   ];
   final monthAbbr = [
     'Jan',
@@ -155,7 +158,7 @@ String _formatDate(DateTime dt, String format) {
     'Sep',
     'Oct',
     'Nov',
-    'Dec'
+    'Dec',
   ];
 
   final y = dt.year.toString();
@@ -194,7 +197,9 @@ String formatDateTimeText(String text, String formatOption) {
     final dt = DateTime.tryParse(raw);
     if (dt != null) {
       return text.replaceFirst(
-          match.group(0)!, _formatDateTime(dt, formatOption));
+        match.group(0)!,
+        _formatDateTime(dt, formatOption),
+      );
     }
   }
 
@@ -219,7 +224,7 @@ String _formatDateTime(DateTime dt, String format) {
     'September',
     'October',
     'November',
-    'December'
+    'December',
   ];
   final monthAbbr = [
     'Jan',
@@ -233,7 +238,7 @@ String _formatDateTime(DateTime dt, String format) {
     'Sep',
     'Oct',
     'Nov',
-    'Dec'
+    'Dec',
   ];
 
   final y = dt.year.toString();
@@ -298,7 +303,9 @@ String formatTimeText(String text, String formatOption) {
       final now = DateTime.now();
       final dt = DateTime(now.year, now.month, now.day, hour, minute, second);
       return text.replaceFirst(
-          match.group(0)!, _formatDateTime(dt, formatOption));
+        match.group(0)!,
+        _formatDateTime(dt, formatOption),
+      );
     }
   }
   return formatDateTimeText(text, formatOption);
@@ -382,21 +389,13 @@ String? getEncodedDefaultValue(String key, String value) {
       return mammals.mammaeConditionList[intVal];
     }
   } else if (cleanKey.endsWith('::ovaryappearance')) {
-    if (intVal >= 0 && intVal < birds.ovaryAppearanceList.length) {
-      return birds.ovaryAppearanceList[intVal];
-    }
+    return birds.birdLabelForCode(birds.ovaryAppearanceList, intVal);
   } else if (cleanKey.endsWith('::oviductappearance')) {
-    if (intVal >= 0 && intVal < birds.oviductAppearanceList.length) {
-      return birds.oviductAppearanceList[intVal];
-    }
+    return birds.birdLabelForCode(birds.oviductAppearanceList, intVal);
   } else if (cleanKey.endsWith('::fat')) {
-    if (intVal >= 0 && intVal < birds.fatCategoryList.length) {
-      return birds.fatCategoryList[intVal];
-    }
+    return birds.birdLabelForCode(birds.fatCategoryList, intVal);
   } else if (cleanKey.endsWith('::bodymolt')) {
-    if (intVal >= 0 && intVal < birds.bodyMoltList.length) {
-      return birds.bodyMoltList[intVal];
-    }
+    return birds.birdLabelForCode(birds.bodyMoltList, intVal);
   } else if (cleanKey.endsWith('::echolocation')) {
     if (intVal >= 0 && intVal < mammals.echolocationList.length) {
       return mammals.echolocationList[intVal];
@@ -425,11 +424,13 @@ String formatSexText(String text, String formatOption) {
   // editor, placeholder substitution, and PDF measurement/rendering paths.
   // Treat already-rendered sex symbols as their source value so formatting is
   // idempotent instead of turning them into the unknown-value fallback.
-  final isMale = cleanText == '0' ||
+  final isMale =
+      cleanText == '0' ||
       cleanText == 'male' ||
       cleanText == 'm' ||
       cleanText == '\u2642';
-  final isFemale = cleanText == '1' ||
+  final isFemale =
+      cleanText == '1' ||
       cleanText == 'female' ||
       cleanText == 'f' ||
       cleanText == '\u2640';
@@ -559,10 +560,9 @@ String formatExportTemplateText(
   String textType,
   String formatOption, [
   String? oldCaseFormat,
-]) =>
-    truncateTrailingDecimalZeroText(
-      formatTemplateText(rawText, textType, formatOption, oldCaseFormat),
-    );
+]) => truncateTrailingDecimalZeroText(
+  formatTemplateText(rawText, textType, formatOption, oldCaseFormat),
+);
 
 const kTemplateNullFallbackBlank = 'blank';
 const kTemplateNullFallbackField = 'field';
@@ -763,8 +763,9 @@ class CustomTextElement {
       backgroundColorArgb: clearBackgroundColor
           ? null
           : (backgroundColorArgb ?? this.backgroundColorArgb),
-      borderColorArgb:
-          clearBorderColor ? null : (borderColorArgb ?? this.borderColorArgb),
+      borderColorArgb: clearBorderColor
+          ? null
+          : (borderColorArgb ?? this.borderColorArgb),
       borderWidthPt: borderWidthPt ?? this.borderWidthPt,
       borderStrokeStyle: borderStrokeStyle ?? this.borderStrokeStyle,
       cornerRadiusPt: cornerRadiusPt ?? this.cornerRadiusPt,
@@ -786,52 +787,52 @@ class CustomTextElement {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'text': text,
-        'xMm': xMm,
-        'yMm': yMm,
-        'fontSizePt': fontSizePt,
-        'fontFamily': fontFamily,
-        'bold': bold,
-        'italic': italic,
-        'underline': underline,
-        'strikethrough': strikethrough,
-        'textAlign': textAlign,
-        'caseFormat': caseFormat,
-        'rotationDegrees': rotationDegrees,
-        if (iconWidthMm != null) 'iconWidthMm': iconWidthMm,
-        if (iconHeightMm != null) 'iconHeightMm': iconHeightMm,
-        if (maxWidthMm != null) 'maxWidthMm': maxWidthMm,
-        if (heightMm != null) 'heightMm': heightMm,
-        'zIndex': zIndex,
-        'colorArgb': colorArgb,
-        if (backgroundColorArgb != null)
-          'backgroundColorArgb': backgroundColorArgb,
-        if (borderColorArgb != null) 'borderColorArgb': borderColorArgb,
-        'borderWidthPt': borderWidthPt,
-        'borderStrokeStyle': borderStrokeStyle,
-        'cornerRadiusPt': cornerRadiusPt,
-        'paddingPt': paddingPt,
-        'textType': textType,
-        'formatOption': formatOption,
-        'nullFallbackOption': nullFallbackOption,
-        if (customNullFallbackText.isNotEmpty)
-          'customNullFallbackText': customNullFallbackText,
-        'isQrCode': isQrCode,
-        'qrSizeMm': qrSizeMm,
-        'qrBgColorArgb': qrBgColorArgb,
-        'qrShape': qrShape,
-        'isDynamic': isDynamic,
-        'isLocked': isLocked,
-        'isVisible': isVisible,
-      };
+    'id': id,
+    'text': text,
+    'xMm': xMm,
+    'yMm': yMm,
+    'fontSizePt': fontSizePt,
+    'fontFamily': fontFamily,
+    'bold': bold,
+    'italic': italic,
+    'underline': underline,
+    'strikethrough': strikethrough,
+    'textAlign': textAlign,
+    'caseFormat': caseFormat,
+    'rotationDegrees': rotationDegrees,
+    if (iconWidthMm != null) 'iconWidthMm': iconWidthMm,
+    if (iconHeightMm != null) 'iconHeightMm': iconHeightMm,
+    if (maxWidthMm != null) 'maxWidthMm': maxWidthMm,
+    if (heightMm != null) 'heightMm': heightMm,
+    'zIndex': zIndex,
+    'colorArgb': colorArgb,
+    if (backgroundColorArgb != null) 'backgroundColorArgb': backgroundColorArgb,
+    if (borderColorArgb != null) 'borderColorArgb': borderColorArgb,
+    'borderWidthPt': borderWidthPt,
+    'borderStrokeStyle': borderStrokeStyle,
+    'cornerRadiusPt': cornerRadiusPt,
+    'paddingPt': paddingPt,
+    'textType': textType,
+    'formatOption': formatOption,
+    'nullFallbackOption': nullFallbackOption,
+    if (customNullFallbackText.isNotEmpty)
+      'customNullFallbackText': customNullFallbackText,
+    'isQrCode': isQrCode,
+    'qrSizeMm': qrSizeMm,
+    'qrBgColorArgb': qrBgColorArgb,
+    'qrShape': qrShape,
+    'isDynamic': isDynamic,
+    'isLocked': isLocked,
+    'isVisible': isVisible,
+  };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
     final rawText = json['text'] as String? ?? '';
     final legacyNullFallbackOption = inferTemplateNullFallbackOption(rawText);
     final nullFallbackOption =
         json['nullFallbackOption'] as String? ?? legacyNullFallbackOption;
-    final customNullFallbackText = json['customNullFallbackText'] as String? ??
+    final customNullFallbackText =
+        json['customNullFallbackText'] as String? ??
         inferTemplateCustomNullFallback(rawText);
     return CustomTextElement(
       id: json['id'] as String,
@@ -928,17 +929,17 @@ class CustomImageElement {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'imagePath': imagePath,
-        'xMm': xMm,
-        'yMm': yMm,
-        'widthMm': widthMm,
-        'heightMm': heightMm,
-        'rotationDegrees': rotationDegrees,
-        'zIndex': zIndex,
-        'isLocked': isLocked,
-        'isVisible': isVisible,
-      };
+    'id': id,
+    'imagePath': imagePath,
+    'xMm': xMm,
+    'yMm': yMm,
+    'widthMm': widthMm,
+    'heightMm': heightMm,
+    'rotationDegrees': rotationDegrees,
+    'zIndex': zIndex,
+    'isLocked': isLocked,
+    'isVisible': isVisible,
+  };
 
   factory CustomImageElement.fromJson(Map<String, dynamic> json) {
     return CustomImageElement(
@@ -1019,18 +1020,18 @@ class CustomLineElement {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'xMm': xMm,
-        'yMm': yMm,
-        'lengthMm': lengthMm,
-        'rotationDegrees': rotationDegrees,
-        'thicknessPt': thicknessPt,
-        'colorArgb': colorArgb,
-        'zIndex': zIndex,
-        'strokeStyle': strokeStyle,
-        'isLocked': isLocked,
-        'isVisible': isVisible,
-      };
+    'id': id,
+    'xMm': xMm,
+    'yMm': yMm,
+    'lengthMm': lengthMm,
+    'rotationDegrees': rotationDegrees,
+    'thicknessPt': thicknessPt,
+    'colorArgb': colorArgb,
+    'zIndex': zIndex,
+    'strokeStyle': strokeStyle,
+    'isLocked': isLocked,
+    'isVisible': isVisible,
+  };
 
   factory CustomLineElement.fromJson(Map<String, dynamic> json) {
     return CustomLineElement(
@@ -1113,8 +1114,9 @@ class CustomShapeElement {
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
       strokeThicknessPt: strokeThicknessPt ?? this.strokeThicknessPt,
       strokeColorArgb: strokeColorArgb ?? this.strokeColorArgb,
-      fillColorArgb:
-          clearFillColor ? null : (fillColorArgb ?? this.fillColorArgb),
+      fillColorArgb: clearFillColor
+          ? null
+          : (fillColorArgb ?? this.fillColorArgb),
       zIndex: zIndex ?? this.zIndex,
       strokeStyle: strokeStyle ?? this.strokeStyle,
       isLocked: isLocked ?? this.isLocked,
@@ -1123,22 +1125,22 @@ class CustomShapeElement {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'xMm': xMm,
-        'yMm': yMm,
-        'widthMm': widthMm,
-        'heightMm': heightMm,
-        'shapeType': shapeType,
-        'polygonSides': polygonSides,
-        'rotationDegrees': rotationDegrees,
-        'strokeThicknessPt': strokeThicknessPt,
-        'strokeColorArgb': strokeColorArgb,
-        if (fillColorArgb != null) 'fillColorArgb': fillColorArgb,
-        'zIndex': zIndex,
-        'strokeStyle': strokeStyle,
-        'isLocked': isLocked,
-        'isVisible': isVisible,
-      };
+    'id': id,
+    'xMm': xMm,
+    'yMm': yMm,
+    'widthMm': widthMm,
+    'heightMm': heightMm,
+    'shapeType': shapeType,
+    'polygonSides': polygonSides,
+    'rotationDegrees': rotationDegrees,
+    'strokeThicknessPt': strokeThicknessPt,
+    'strokeColorArgb': strokeColorArgb,
+    if (fillColorArgb != null) 'fillColorArgb': fillColorArgb,
+    'zIndex': zIndex,
+    'strokeStyle': strokeStyle,
+    'isLocked': isLocked,
+    'isVisible': isVisible,
+  };
 
   factory CustomShapeElement.fromJson(Map<String, dynamic> json) {
     return CustomShapeElement(
@@ -1187,11 +1189,7 @@ class TemplateSelection {
     };
     if (type == null) return null;
 
-    return TemplateSelection(
-      type: type,
-      page1: parts[1] == '1',
-      id: parts[2],
-    );
+    return TemplateSelection(type: type, page1: parts[1] == '1', id: parts[2]);
   }
 }
 
@@ -1250,7 +1248,8 @@ class TemplatePage {
 
   TemplatePage withoutCustomImage(String id) {
     return copyWith(
-        customImages: customImages.where((im) => im.id != id).toList());
+      customImages: customImages.where((im) => im.id != id).toList(),
+    );
   }
 
   TemplatePage withCustomLine(CustomLineElement e) {
@@ -1281,36 +1280,45 @@ class TemplatePage {
 
   TemplatePage withoutCustomShape(String id) {
     return copyWith(
-        customShapes: customShapes.where((s) => s.id != id).toList());
+      customShapes: customShapes.where((s) => s.id != id).toList(),
+    );
   }
 
   Map<String, dynamic> toJson() => {
-        'customTexts': customTexts.map((e) => e.toJson()).toList(),
-        'customImages': customImages.map((e) => e.toJson()).toList(),
-        'customLines': customLines.map((e) => e.toJson()).toList(),
-        'customShapes': customShapes.map((e) => e.toJson()).toList(),
-      };
+    'customTexts': customTexts.map((e) => e.toJson()).toList(),
+    'customImages': customImages.map((e) => e.toJson()).toList(),
+    'customLines': customLines.map((e) => e.toJson()).toList(),
+    'customShapes': customShapes.map((e) => e.toJson()).toList(),
+  };
 
   factory TemplatePage.fromJson(Map<String, dynamic> json) {
     return TemplatePage(
-      customTexts: (json['customTexts'] as List<dynamic>?)
+      customTexts:
+          (json['customTexts'] as List<dynamic>?)
               ?.map(
-                  (e) => CustomTextElement.fromJson(e as Map<String, dynamic>))
+                (e) => CustomTextElement.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
-      customImages: (json['customImages'] as List<dynamic>?)
+      customImages:
+          (json['customImages'] as List<dynamic>?)
               ?.map(
-                  (e) => CustomImageElement.fromJson(e as Map<String, dynamic>))
+                (e) => CustomImageElement.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
-      customLines: (json['customLines'] as List<dynamic>?)
+      customLines:
+          (json['customLines'] as List<dynamic>?)
               ?.map(
-                  (e) => CustomLineElement.fromJson(e as Map<String, dynamic>))
+                (e) => CustomLineElement.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
-      customShapes: (json['customShapes'] as List<dynamic>?)
+      customShapes:
+          (json['customShapes'] as List<dynamic>?)
               ?.map(
-                  (e) => CustomShapeElement.fromJson(e as Map<String, dynamic>))
+                (e) => CustomShapeElement.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
     );
@@ -1352,23 +1360,21 @@ class TemplatePrintOptions {
   final double? documentPadBottomMm;
 
   Map<String, dynamic> toJson() => {
-        'isDuplex': isDuplex,
-        'mirrorFront': mirrorFront,
-        'mirrorBack': mirrorBack,
-        if (pageSizeKey != null) 'pageSizeKey': pageSizeKey,
-        if (rowsPerPage != null) 'rowsPerPage': rowsPerPage,
-        if (colsPerPage != null) 'colsPerPage': colsPerPage,
-        if (pagePadTopMm != null) 'pagePadTopMm': pagePadTopMm,
-        if (pagePadLeftMm != null) 'pagePadLeftMm': pagePadLeftMm,
-        if (pagePadRightMm != null) 'pagePadRightMm': pagePadRightMm,
-        if (pagePadBottomMm != null) 'pagePadBottomMm': pagePadBottomMm,
-        if (documentPadTopMm != null) 'documentPadTopMm': documentPadTopMm,
-        if (documentPadLeftMm != null) 'documentPadLeftMm': documentPadLeftMm,
-        if (documentPadRightMm != null)
-          'documentPadRightMm': documentPadRightMm,
-        if (documentPadBottomMm != null)
-          'documentPadBottomMm': documentPadBottomMm,
-      };
+    'isDuplex': isDuplex,
+    'mirrorFront': mirrorFront,
+    'mirrorBack': mirrorBack,
+    if (pageSizeKey != null) 'pageSizeKey': pageSizeKey,
+    if (rowsPerPage != null) 'rowsPerPage': rowsPerPage,
+    if (colsPerPage != null) 'colsPerPage': colsPerPage,
+    if (pagePadTopMm != null) 'pagePadTopMm': pagePadTopMm,
+    if (pagePadLeftMm != null) 'pagePadLeftMm': pagePadLeftMm,
+    if (pagePadRightMm != null) 'pagePadRightMm': pagePadRightMm,
+    if (pagePadBottomMm != null) 'pagePadBottomMm': pagePadBottomMm,
+    if (documentPadTopMm != null) 'documentPadTopMm': documentPadTopMm,
+    if (documentPadLeftMm != null) 'documentPadLeftMm': documentPadLeftMm,
+    if (documentPadRightMm != null) 'documentPadRightMm': documentPadRightMm,
+    if (documentPadBottomMm != null) 'documentPadBottomMm': documentPadBottomMm,
+  };
 
   factory TemplatePrintOptions.fromJson(Map<String, dynamic> json) {
     double? readDouble(String key, String legacyKey) {
@@ -1390,20 +1396,18 @@ class TemplatePrintOptions {
       documentPadTopMm: readDouble('documentPadTopMm', 'labelPadTopMm'),
       documentPadLeftMm: readDouble('documentPadLeftMm', 'labelPadLeftMm'),
       documentPadRightMm: readDouble('documentPadRightMm', 'labelPadRightMm'),
-      documentPadBottomMm:
-          readDouble('documentPadBottomMm', 'labelPadBottomMm'),
+      documentPadBottomMm: readDouble(
+        'documentPadBottomMm',
+        'labelPadBottomMm',
+      ),
     );
   }
 }
 
-TemplatePrintOptions? templatePrintOptionsFromJson(
-  Map<String, dynamic> json,
-) {
+TemplatePrintOptions? templatePrintOptionsFromJson(Map<String, dynamic> json) {
   final nested = json['printOptions'];
   if (nested is Map) {
-    return TemplatePrintOptions.fromJson(
-      Map<String, dynamic>.from(nested),
-    );
+    return TemplatePrintOptions.fromJson(Map<String, dynamic>.from(nested));
   }
   if (json.containsKey('isDuplex') ||
       json.containsKey('mirrorFront') ||
@@ -1455,12 +1459,7 @@ String templateOutlineStyleToJson(TemplateOutlineStyle s) {
 }
 
 /// Line style for the optional rectangle drawn around the label in editor, preview, and PDF.
-enum TemplateOutlineStyle {
-  solid,
-  dashed,
-  dotted,
-  doubleLine,
-}
+enum TemplateOutlineStyle { solid, dashed, dotted, doubleLine }
 
 /// Per-template outline around the template area (saved with the template JSON).
 class TemplateOutline {
@@ -1491,10 +1490,10 @@ class TemplateOutline {
   }
 
   Map<String, dynamic> toJson() => {
-        'style': templateOutlineStyleToJson(style),
-        'widthPt': widthPt,
-        'colorArgb': colorArgb,
-      };
+    'style': templateOutlineStyleToJson(style),
+    'widthPt': widthPt,
+    'colorArgb': colorArgb,
+  };
 
   factory TemplateOutline.fromJson(Map<String, dynamic> json) {
     return TemplateOutline(
@@ -1552,8 +1551,9 @@ class Template {
       page2: page2 ?? this.page2,
       widthMm: widthMm ?? this.widthMm,
       heightMm: heightMm ?? this.heightMm,
-      printOptions:
-          clearPrintOptions ? null : (printOptions ?? this.printOptions),
+      printOptions: clearPrintOptions
+          ? null
+          : (printOptions ?? this.printOptions),
       outline: clearOutline ? null : (outline ?? this.outline),
       recordType: recordType ?? this.recordType,
       description: description ?? this.description,
@@ -1561,16 +1561,16 @@ class Template {
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'page1': page1.toJson(),
-        'page2': page2.toJson(),
-        'widthMm': widthMm,
-        'heightMm': heightMm,
-        if (printOptions != null) 'printOptions': printOptions!.toJson(),
-        if (outline != null) 'outline': outline!.toJson(),
-        'recordType': recordTypeToString(recordType),
-        'description': description,
-      };
+    'name': name,
+    'page1': page1.toJson(),
+    'page2': page2.toJson(),
+    'widthMm': widthMm,
+    'heightMm': heightMm,
+    if (printOptions != null) 'printOptions': printOptions!.toJson(),
+    if (outline != null) 'outline': outline!.toJson(),
+    'recordType': recordTypeToString(recordType),
+    'description': description,
+  };
 
   factory Template.fromJson(Map<String, dynamic> json) {
     final opts = templatePrintOptionsFromJson(json);
