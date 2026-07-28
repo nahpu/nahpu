@@ -26,28 +26,37 @@ const String tissueIDPrefixKey = 'tissueIDPrefix';
 const String tissueIDNumberKey = 'tissueIDNumber';
 const String projectFieldIDNumberKey = 'projectFieldIdNumber';
 
+/// Coordinates specimen persistence, including taxon-specific attribute rows.
+///
+/// Each specimen owns at most one mammal, bird, or herpetofauna attribute row,
+/// selected by its active catalog format.
 class SpecimenServices extends AppServices {
   const SpecimenServices({required super.ref});
 
   Future<String> createSpecimen() async {
-    final CatalogFmt catalogFmt =
-        await ref.watch(catalogFmtNotifierProvider.future);
+    final CatalogFmt catalogFmt = await ref.watch(
+      catalogFmtNotifierProvider.future,
+    );
     final String specimenUuid = uuid;
-    final FieldIdMode fieldIdMode =
-        await ref.watch(fieldIdModeNotifierProvider.future);
+    final FieldIdMode fieldIdMode = await ref.watch(
+      fieldIdModeNotifierProvider.future,
+    );
     String? currentProjectNumber;
 
     if (fieldIdMode == FieldIdMode.project) {
-      currentProjectNumber =
-          await ProjectFieldIdServices(ref: ref).getNewNumber();
+      currentProjectNumber = await ProjectFieldIdServices(
+        ref: ref,
+      ).getNewNumber();
     }
 
-    await SpecimenQuery(dbAccess).createSpecimen(SpecimenCompanion(
-      uuid: db.Value(specimenUuid),
-      projectUuid: db.Value(currentProjectUuid),
-      taxonGroup: db.Value(matchCatFmtToTaxonGroup(catalogFmt)),
-      projectFieldNumber: db.Value(int.tryParse(currentProjectNumber ?? '')),
-    ));
+    await SpecimenQuery(dbAccess).createSpecimen(
+      SpecimenCompanion(
+        uuid: db.Value(specimenUuid),
+        projectUuid: db.Value(currentProjectUuid),
+        taxonGroup: db.Value(matchCatFmtToTaxonGroup(catalogFmt)),
+        projectFieldNumber: db.Value(int.tryParse(currentProjectNumber ?? '')),
+      ),
+    );
 
     switch (catalogFmt) {
       case CatalogFmt.birds:
@@ -67,34 +76,40 @@ class SpecimenServices extends AppServices {
   }
 
   String getIconPath() {
-    return ref.watch(catalogFmtNotifierProvider).when(
+    return ref
+        .watch(catalogFmtNotifierProvider)
+        .when(
           data: (fmt) {
             return matchCatalogFmtToIconPath(fmt);
           },
-          loading: () => 'assets/icons/mouse.svg',
-          error: (error, stack) => 'assets/icons/mouse.svg',
+          loading: () => matchCatalogFmtToIconPath(CatalogFmt.mammals),
+          error: (error, stack) =>
+              matchCatalogFmtToIconPath(CatalogFmt.mammals),
         );
   }
 
   /// Returns the new specimen's uuid, or null when the origin has no parts.
   Future<String?> createSpecimenDuplicatePart(String specimenUuid) async {
-    List<SpecimenPartData> partData =
-        await SpecimenPartQuery(dbAccess).getSpecimenParts(specimenUuid);
+    List<SpecimenPartData> partData = await SpecimenPartQuery(
+      dbAccess,
+    ).getSpecimenParts(specimenUuid);
     if (partData.isEmpty) {
       return null;
     }
     String newSpecimenUuid = await createSpecimen();
 
     for (var part in partData) {
-      SpecimenPartServices(ref: ref).createSpecimenPart(SpecimenPartCompanion(
-        specimenUuid: db.Value(newSpecimenUuid),
-        type: db.Value(part.type),
-        count: db.Value(part.count),
-        treatment: db.Value(part.treatment),
-        additionalTreatment: db.Value(part.additionalTreatment),
-        museumPermanent: db.Value(part.museumPermanent),
-        museumLoan: db.Value(part.museumLoan),
-      ));
+      SpecimenPartServices(ref: ref).createSpecimenPart(
+        SpecimenPartCompanion(
+          specimenUuid: db.Value(newSpecimenUuid),
+          type: db.Value(part.type),
+          count: db.Value(part.count),
+          treatment: db.Value(part.treatment),
+          additionalTreatment: db.Value(part.additionalTreatment),
+          museumPermanent: db.Value(part.museumPermanent),
+          museumLoan: db.Value(part.museumLoan),
+        ),
+      );
     }
 
     ref.invalidate(partBySpecimenProvider);
@@ -130,20 +145,19 @@ class SpecimenServices extends AppServices {
     }
   }
 
-  Future<void> createSpecimenMedia(
-    String specimenUuid,
-    String filePath,
-  ) async {
+  Future<void> createSpecimenMedia(String specimenUuid, String filePath) async {
     final metadata = await MediaMetadataServices().extract(File(filePath));
-    int mediaId = await MediaDbQuery(dbAccess).createMedia(MediaCompanion(
-      projectUuid: db.Value(currentProjectUuid),
-      fileName: db.Value(basename(filePath)),
-      category: db.Value(matchMediaCategory(MediaCategory.specimen)),
-      taken: db.Value(metadata.taken),
-      camera: db.Value(metadata.camera),
-      lenses: db.Value(metadata.lenses),
-      additionalExif: db.Value(metadata.additionalExif),
-    ));
+    int mediaId = await MediaDbQuery(dbAccess).createMedia(
+      MediaCompanion(
+        projectUuid: db.Value(currentProjectUuid),
+        fileName: db.Value(basename(filePath)),
+        category: db.Value(matchMediaCategory(MediaCategory.specimen)),
+        taken: db.Value(metadata.taken),
+        camera: db.Value(metadata.camera),
+        lenses: db.Value(metadata.lenses),
+        additionalExif: db.Value(metadata.additionalExif),
+      ),
+    );
     SpecimenMediaCompanion entries = SpecimenMediaCompanion(
       specimenUuid: db.Value(specimenUuid),
       mediaId: db.Value(mediaId),
@@ -173,19 +187,22 @@ class SpecimenServices extends AppServices {
   }
 
   Future<List<SpecimenData>> getSpecimenPerSite(int siteID) async {
-    List<int> eventID =
-        await CollEventServices(ref: ref).getEventPerSite(siteID);
+    List<int> eventID = await CollEventServices(
+      ref: ref,
+    ).getEventPerSite(siteID);
     List<SpecimenData> allSpecimens = [];
     for (var id in eventID) {
-      List<SpecimenData> specimenList =
-          await SpecimenQuery(dbAccess).getSpecimenPerEvent(id);
+      List<SpecimenData> specimenList = await SpecimenQuery(
+        dbAccess,
+      ).getSpecimenPerEvent(id);
       allSpecimens.addAll(specimenList);
     }
     return allSpecimens;
   }
 
   Future<List<SpecimenData>> getSpecimenListByTaxonGroup(
-      String taxonGroup) async {
+    String taxonGroup,
+  ) async {
     List<SpecimenData> specimenList = await getSpecimenList();
     List<SpecimenData> filteredList = specimenList
         .where((element) => element.taxonGroup == taxonGroup)
@@ -196,9 +213,11 @@ class SpecimenServices extends AppServices {
   Future<List<SpecimenData>> getSpecimenListForAllMammals() async {
     List<SpecimenData> specimenList = await getSpecimenList();
     List<SpecimenData> filteredList = specimenList
-        .where((element) =>
-            element.taxonGroup == 'General Mammals' ||
-            element.taxonGroup == 'Bats')
+        .where(
+          (element) =>
+              element.taxonGroup == 'General Mammals' ||
+              element.taxonGroup == 'Bats',
+        )
         .toList();
     return filteredList;
   }
@@ -216,11 +235,10 @@ class SpecimenServices extends AppServices {
     return TaxonomyQuery(dbAccess).getTaxonById(id);
   }
 
-  Future<int> getSpecimenFieldNumber(
-    String personnelUuid,
-  ) async {
-    int? fieldNumber = await PersonnelQuery(dbAccess)
-        .getCurrentFieldNumberByUuid(personnelUuid);
+  Future<int> getSpecimenFieldNumber(String personnelUuid) async {
+    int? fieldNumber = await PersonnelQuery(
+      dbAccess,
+    ).getCurrentFieldNumberByUuid(personnelUuid);
     return _getCurrentFieldNumber(fieldNumber);
   }
 
@@ -233,42 +251,49 @@ class SpecimenServices extends AppServices {
   }
 
   void _createMammalSpecimen(String specimenUuid) {
-    MammalSpecimenQuery(dbAccess).createMammalMeasurements(
-        MammalMeasurementCompanion(specimenUuid: db.Value(specimenUuid)));
+    MammalSpecimenQuery(dbAccess).createMammalAttributes(
+      MammalAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
+    );
   }
 
-  Future<MammalMeasurementData> getMammalMeasurementData(String specimenUuid) {
-    return MammalSpecimenQuery(dbAccess)
-        .getMammalMeasurementByUuid(specimenUuid);
+  Future<MammalAttributeData> getMammalAttributeData(String specimenUuid) {
+    return MammalSpecimenQuery(dbAccess).getMammalAttributeByUuid(specimenUuid);
   }
 
-  void updateMammalMeasurement(
-      String specimenUuid, MammalMeasurementCompanion entries) {
-    MammalSpecimenQuery(dbAccess)
-        .updateMammalMeasurements(specimenUuid, entries);
+  void updateMammalAttribute(
+    String specimenUuid,
+    MammalAttributeCompanion entries,
+  ) {
+    MammalSpecimenQuery(dbAccess).updateMammalAttributes(specimenUuid, entries);
   }
 
   void _createHerpSpecimen(String specimenUuid) {
-    HerpSpecimenQuery(dbAccess).createHerpMeasurements(
-        HerpMeasurementCompanion(specimenUuid: db.Value(specimenUuid)));
+    HerpSpecimenQuery(dbAccess).createHerpAttributes(
+      HerpAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
+    );
   }
 
-  Future<HerpMeasurementData> getHerpMeasurementData(String specimenUuid) {
-    return HerpSpecimenQuery(dbAccess).getHerpMeasurementByUuid(specimenUuid);
+  Future<HerpAttributeData> getHerpAttributeData(String specimenUuid) {
+    return HerpSpecimenQuery(dbAccess).getHerpAttributeByUuid(specimenUuid);
   }
 
-  void updateHerpMeasurement(
-      String specimenUuid, HerpMeasurementCompanion entries) {
-    HerpSpecimenQuery(dbAccess).updateHerpMeasurements(specimenUuid, entries);
+  void updateHerpAttribute(
+    String specimenUuid,
+    HerpAttributeCompanion entries,
+  ) {
+    HerpSpecimenQuery(dbAccess).updateHerpAttributes(specimenUuid, entries);
   }
 
   void _createBirdSpecimen(String specimenUuid) {
-    AvianSpecimenQuery(dbAccess).createAvianMeasurements(
-        AvianMeasurementCompanion(specimenUuid: db.Value(specimenUuid)));
+    BirdSpecimenQuery(dbAccess).createBirdAttributes(
+      BirdAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
+    );
   }
 
   Future<void> updateSpecimenSkipInvalidation(
-      String uuid, SpecimenCompanion entries) async {
+    String uuid,
+    SpecimenCompanion entries,
+  ) async {
     await _updateSpecimen(uuid, entries);
   }
 
@@ -285,44 +310,49 @@ class SpecimenServices extends AppServices {
     }
   }
 
-  Future<AvianMeasurementData> getAvianMeasurementData(String specimenUuid) {
-    return AvianSpecimenQuery(dbAccess).getAvianMeasurementByUuid(specimenUuid);
+  Future<BirdAttributeData> getBirdAttributeData(String specimenUuid) {
+    return BirdSpecimenQuery(dbAccess).getBirdAttributeByUuid(specimenUuid);
   }
 
   Future<List<SpecimenMediaData>> getSpecimenMedia(String specimenUuid) async {
     return await SpecimenQuery(dbAccess).getSpecimenMedia(specimenUuid);
   }
 
-  void updateAvianMeasurement(
-      String specimenUuid, AvianMeasurementCompanion entries) {
-    AvianSpecimenQuery(dbAccess).updateAvianMeasurements(specimenUuid, entries);
+  void updateBirdAttribute(
+    String specimenUuid,
+    BirdAttributeCompanion entries,
+  ) {
+    BirdSpecimenQuery(dbAccess).updateBirdAttributes(specimenUuid, entries);
   }
 
-  Future<void> deleteAvianMeasurements(String specimenUuid) async {
-    await AvianSpecimenQuery(dbAccess).deleteAvianMeasurements(specimenUuid);
+  Future<void> deleteBirdAttributes(String specimenUuid) async {
+    await BirdSpecimenQuery(dbAccess).deleteBirdAttributes(specimenUuid);
   }
 
-  Future<void> deleteMammalMeasurements(String specimenUuid) async {
-    await MammalSpecimenQuery(dbAccess).deleteMammalMeasurements(specimenUuid);
+  Future<void> deleteMammalAttributes(String specimenUuid) async {
+    await MammalSpecimenQuery(dbAccess).deleteMammalAttributes(specimenUuid);
   }
 
-  Future<void> deleteHerpMeasurements(String specimenUuid) async {
-    await HerpSpecimenQuery(dbAccess).deleteHerpMeasurements(specimenUuid);
+  Future<void> deleteHerpAttributes(String specimenUuid) async {
+    await HerpSpecimenQuery(dbAccess).deleteHerpAttributes(specimenUuid);
   }
 
   Future<void> deleteSpecimen(
-      String specimenUuid, CatalogFmt catalogFmt) async {
+    String specimenUuid,
+    CatalogFmt catalogFmt,
+  ) async {
     await deleteAllSpecimenParts(specimenUuid);
+    await AssociatedDataQuery(dbAccess).deleteAllAssociatedData(specimenUuid);
     switch (catalogFmt) {
       case CatalogFmt.birds:
-        await deleteAvianMeasurements(specimenUuid);
+        await deleteBirdAttributes(specimenUuid);
         break;
       case CatalogFmt.mammals:
-      case CatalogFmt.fossils: // TODO: Placeholder
-        await deleteMammalMeasurements(specimenUuid);
+      case CatalogFmt.fossils: // TODO: Use dedicated fossil attributes.
+        await deleteMammalAttributes(specimenUuid);
         break;
       case CatalogFmt.herpetofauna:
-        await deleteHerpMeasurements(specimenUuid);
+        await deleteHerpAttributes(specimenUuid);
         break;
     }
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimenUuid);
@@ -331,24 +361,26 @@ class SpecimenServices extends AppServices {
   }
 
   Future<void> deleteAllSpecimens(String projectUuid) async {
-    List<SpecimenData> specimenList =
-        await SpecimenQuery(dbAccess).getAllSpecimens(projectUuid);
+    List<SpecimenData> specimenList = await SpecimenQuery(
+      dbAccess,
+    ).getAllSpecimens(projectUuid);
     for (var specimen in specimenList) {
       await deleteAllSpecimenParts(specimen.uuid);
-      await AssociatedDataQuery(dbAccess)
-          .deleteAllAssociatedData(specimen.uuid);
+      await AssociatedDataQuery(
+        dbAccess,
+      ).deleteAllAssociatedData(specimen.uuid);
       await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimen.uuid);
       CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(specimen.taxonGroup);
       switch (catalogFmt) {
         case CatalogFmt.birds:
-          await deleteAvianMeasurements(specimen.uuid);
+          await deleteBirdAttributes(specimen.uuid);
           break;
         case CatalogFmt.mammals:
-        case CatalogFmt.fossils: // TODO: Placeholder
-          await deleteMammalMeasurements(specimen.uuid);
+        case CatalogFmt.fossils: // TODO: Use dedicated fossil attributes.
+          await deleteMammalAttributes(specimen.uuid);
           break;
         case CatalogFmt.herpetofauna:
-          await deleteHerpMeasurements(specimen.uuid);
+          await deleteHerpAttributes(specimen.uuid);
           break;
       }
     }
@@ -358,22 +390,28 @@ class SpecimenServices extends AppServices {
 
   Future<void> deleteAllSpecimenParts(String specimenUuid) async {
     await SpecimenPartQuery(dbAccess).deleteAllSpecimenParts(specimenUuid);
+    _invalidateParts();
   }
 
   Future<void> deleteSpecimenPart(int partId) async {
     await SpecimenPartQuery(dbAccess).deleteSpecimenPart(partId);
-    // ref.invalidate(partBySpecimenProvider);
+    _invalidateParts();
   }
 
   Future<void> deleteSpecimenPartsFromList(List<int> partIds) async {
     await SpecimenPartQuery(dbAccess).deleteSpecimenPartsFromList(partIds);
-    // ref.invalidate(partBySpecimenProvider);
+    _invalidateParts();
   }
 
   void invalidateSpecimenList() {
     ref.invalidate(specimenEntryProvider);
     ref.invalidate(taxonDataProvider);
     ref.invalidate(projectPersonnelProvider);
+  }
+
+  void _invalidateParts() {
+    ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(specimenPartEntryProvider);
   }
 }
 
@@ -394,36 +432,37 @@ class SpecimenSearchServices {
         return await searchAll(query);
       case SpecimenSearchOption.fieldNumber:
         return specimenEntries
-            .where((element) => _isMatchFieldNum(
-                  element.fieldNumber,
-                  query,
-                ))
+            .where((element) => _isMatchFieldNum(element.fieldNumber, query))
             .toList();
       case SpecimenSearchOption.cataloger:
         List<String> matchedPersons = await _searchPersonnel(query);
         return specimenEntries
-            .where((element) => _isMatchedPerson(
-                  matchedPersons,
-                  element.catalogerID,
-                ))
+            .where(
+              (element) =>
+                  _isMatchedPerson(matchedPersons, element.catalogerID),
+            )
             .toList();
       case SpecimenSearchOption.preparator:
         List<String> matchedPersons = await _searchPersonnel(query);
         return specimenEntries
-            .where((element) => _isMatchedPerson(
-                  matchedPersons,
-                  element.preparatorID,
-                ))
+            .where(
+              (element) =>
+                  _isMatchedPerson(matchedPersons, element.preparatorID),
+            )
             .toList();
       case SpecimenSearchOption.collector:
         List<String> matchedPersons = await _searchPersonnel(query);
-        List<int> matchedColPersons =
-            await _searchColPersonnel(matchedPersons, query);
+        List<int> matchedColPersons = await _searchColPersonnel(
+          matchedPersons,
+          query,
+        );
         return specimenEntries
-            .where((element) => _isMatchedColPerson(
-                  matchedColPersons,
-                  element.collPersonnelID,
-                ))
+            .where(
+              (element) => _isMatchedColPerson(
+                matchedColPersons,
+                element.collPersonnelID,
+              ),
+            )
             .toList();
       case SpecimenSearchOption.condition:
         return specimenEntries
@@ -440,26 +479,22 @@ class SpecimenSearchServices {
       case SpecimenSearchOption.taxa:
         List<int> matchedTaxa = await _searchTaxa(query);
         return specimenEntries
-            .where((element) => _isMatchTaxa(
-                  matchedTaxa,
-                  element.speciesID,
-                ))
+            .where((element) => _isMatchTaxa(matchedTaxa, element.speciesID))
             .toList();
       case SpecimenSearchOption.prepType:
         List<String> matchedPrepType = await _searchPrepType(query);
         return specimenEntries
-            .where((element) => _isMatchPrepType(
-                  matchedPrepType,
-                  element.uuid,
-                ))
+            .where((element) => _isMatchPrepType(matchedPrepType, element.uuid))
             .toList();
     }
   }
 
   Future<List<SpecimenData>> searchAll(String query) async {
     List<String> matchedPersons = await _searchPersonnel(query);
-    List<int> matchedColPersons =
-        await _searchColPersonnel(matchedPersons, query);
+    List<int> matchedColPersons = await _searchColPersonnel(
+      matchedPersons,
+      query,
+    );
     List<String> matchedPrepType = await _searchPrepType(query);
     List<int> matchedTaxa = await _searchTaxa(query);
     List<SpecimenData> filteredList = specimenEntries
@@ -527,12 +562,15 @@ class SpecimenSearchServices {
   }
 
   Future<List<int>> _searchColPersonnel(
-      List<String> matchedPersons, String query) async {
+    List<String> matchedPersons,
+    String query,
+  ) async {
     if (matchedPersons.isEmpty) {
       return [];
     }
-    final person = await CollPersonnelQuery(db)
-        .searchCollectingPersonnel(matchedPersons, query);
+    final person = await CollPersonnelQuery(
+      db,
+    ).searchCollectingPersonnel(matchedPersons, query);
     return person.map((e) => e.id).toList();
   }
 }
@@ -623,17 +661,27 @@ class SpecimenPartServices extends AppServices {
 
   Future<void> createSpecimenPart(SpecimenPartCompanion form) async {
     await SpecimenPartQuery(dbAccess).createSpecimenPart(form);
-    // ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(specimenPartEntryProvider);
   }
 
   Future<List<SpecimenPartData>> getSpecimenParts(String specimenUuid) {
     return SpecimenPartQuery(dbAccess).getSpecimenParts(specimenUuid);
   }
 
+  Future<List<SpecimenPartProjectRecord>> getProjectSpecimenParts() {
+    return SpecimenPartQuery(
+      dbAccess,
+    ).getSpecimenPartsForProject(currentProjectUuid);
+  }
+
   Future<void> updateSpecimenPart(
-      int partId, SpecimenPartCompanion form) async {
+    int partId,
+    SpecimenPartCompanion form,
+  ) async {
     await SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
-    // ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(partBySpecimenProvider);
+    ref.invalidate(specimenPartEntryProvider);
   }
 }
 
@@ -660,47 +708,109 @@ class AssociatedDataServices extends AppServices {
   const AssociatedDataServices({required super.ref});
 
   Future<List<AssociatedDataData>> getAssociatedData(
-      String specimenUuid) async {
-    return await AssociatedDataQuery(dbAccess)
-        .getAllAssociatedData(specimenUuid);
+    String specimenUuid,
+  ) async {
+    return await AssociatedDataQuery(
+      dbAccess,
+    ).getAllAssociatedData(specimenUuid);
   }
 
-  Future<void> createAssociatedData(AssociatedDataCompanion form) async {
-    await AssociatedDataQuery(dbAccess).createSpecimenDataAssociation(form);
+  Future<List<AssociatedDataData>> getAssociatedDataForSite(int siteId) {
+    return AssociatedDataQuery(dbAccess).getAssociatedDataForSite(siteId);
+  }
+
+  Future<List<AssociatedDataData>> getProjectAssociatedData() {
+    return AssociatedDataQuery(
+      dbAccess,
+    ).getAssociatedDataForProject(currentProjectUuid);
+  }
+
+  Future<void> createAssociatedData(
+    String specimenUuid,
+    AssociatedDataCompanion form,
+  ) async {
+    await AssociatedDataQuery(
+      dbAccess,
+    ).createSpecimenDataAssociation(specimenUuid, form);
+    _invalidateData();
+  }
+
+  Future<int> createProjectAssociatedData(AssociatedDataCompanion form) async {
+    final id = await AssociatedDataQuery(dbAccess).createProjectAssociatedData(
+      form.copyWith(projectUuid: db.Value(currentProjectUuid)),
+    );
+    _invalidateData();
+    return id;
+  }
+
+  Future<void> linkToSpecimen(int id, String specimenUuid) async {
+    await AssociatedDataQuery(dbAccess).linkToSpecimen(id, specimenUuid);
+    _invalidateData();
+  }
+
+  Future<void> linkToSite(int id, int siteId) async {
+    await AssociatedDataQuery(dbAccess).linkToSite(id, siteId);
+    _invalidateData();
+  }
+
+  Future<void> unlinkFromSpecimen(int id, String specimenUuid) async {
+    await AssociatedDataQuery(dbAccess).unlinkFromSpecimen(id, specimenUuid);
+    _invalidateData();
+  }
+
+  Future<void> unlinkFromSite(int id, int siteId) async {
+    await AssociatedDataQuery(dbAccess).unlinkFromSite(id, siteId);
     _invalidateData();
   }
 
   Future<void> updateAssociatedData(
-      int associatedDataId, AssociatedDataCompanion form) async {
-    await AssociatedDataQuery(dbAccess)
-        .updateAssociatedData(associatedDataId, form);
+    int associatedDataId,
+    AssociatedDataCompanion form,
+  ) async {
+    await AssociatedDataQuery(
+      dbAccess,
+    ).updateAssociatedData(associatedDataId, form);
     _invalidateData();
   }
 
   Future<bool> isFileUsed(File file) async {
-    return await AssociatedDataQuery(dbAccess).isFileUsed(
-      basename(file.path),
-    );
+    return await AssociatedDataQuery(dbAccess).isFileUsed(basename(file.path));
   }
 
   Future<void> deleteAssociatedData(int associatedDataId) async {
-    await AssociatedDataQuery(dbAccess).deleteAssociatedData(associatedDataId);
+    final query = AssociatedDataQuery(dbAccess);
+    final data = await query.getAssociatedDataById(associatedDataId);
+    await query.deleteAssociatedData(associatedDataId);
+    if (data?.type == 'File' &&
+        data?.projectUuid != null &&
+        data?.uri?.isNotEmpty == true &&
+        !await query.isFileUsed(data!.uri!)) {
+      final projectDir = await FileServices(
+        ref: ref,
+      ).getProjectDirByUUID(data.projectUuid!);
+      final file = File(join(projectDir.path, 'associatedData', data.uri));
+      if (file.existsSync()) {
+        await file.delete();
+      }
+    }
     _invalidateData();
   }
 
   Future<File> copyAssociatedDataFile(File path) async {
     final dataDir = Directory('associatedData');
 
-    File dataPath =
-        await FileServices(ref: ref).copyFileToProjectDir(path, dataDir);
+    File dataPath = await FileServices(
+      ref: ref,
+    ).copyFileToProjectDir(path, dataDir);
     return dataPath;
   }
 
   void _invalidateData() {
-    // ref.invalidate(associatedDataProvider);
+    ref.invalidate(associatedDataProvider);
   }
 }
 
+/// Calculates derived values from standard mammal length measurements.
 class MammalMeasurementServices {
   const MammalMeasurementServices({
     required this.totalLengthText,
@@ -711,11 +821,13 @@ class MammalMeasurementServices {
   final String tailLengthText;
 
   ({String headAndBodyText, String percentTailText, String errorText})?
-      getHBandTailPercentage() {
-    double? totalLength =
-        totalLengthText.isNotEmpty ? double.tryParse(totalLengthText) : null;
-    double? tailLength =
-        tailLengthText.isNotEmpty ? double.tryParse(tailLengthText) : null;
+  getHBandTailPercentage() {
+    double? totalLength = totalLengthText.isNotEmpty
+        ? double.tryParse(totalLengthText)
+        : null;
+    double? tailLength = tailLengthText.isNotEmpty
+        ? double.tryParse(tailLengthText)
+        : null;
     if (totalLength == null || tailLength == null || totalLength < 1) {
       return null;
     }
@@ -730,8 +842,8 @@ class MammalMeasurementServices {
       );
     } else {
       String headAndBodyText = headBodyLength.truncateZeroFixed(1);
-      String tailHeadBodyPercent =
-          (tailLength / headBodyLength * 100).truncateZeroFixed(1);
+      String tailHeadBodyPercent = (tailLength / headBodyLength * 100)
+          .truncateZeroFixed(1);
       String percentTailText = '$tailHeadBodyPercent%';
 
       return (

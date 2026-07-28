@@ -112,22 +112,31 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
-                  child: TextField(
+                  child: SearchBar(
                     controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Search site ID, locality...',
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            _searchController.clear();
-                            _searchQuery = '';
-                          });
-                        },
-                      ),
+                    hintText: 'Search site ID, locality...',
+                    leading: const Icon(Icons.search_rounded),
+                    padding: const WidgetStatePropertyAll<EdgeInsets>(
+                      EdgeInsets.symmetric(horizontal: 8),
                     ),
+                    elevation: const WidgetStatePropertyAll(0),
+                    backgroundColor: WidgetStatePropertyAll(
+                      Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.45),
+                    ),
+                    trailing: [
+                      if (_searchQuery.isNotEmpty)
+                        IconButton(
+                          tooltip: 'Clear search',
+                          icon: const Icon(Icons.clear_rounded),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        ),
+                    ],
                     onChanged: (val) {
                       setState(() {
                         _searchQuery = val.trim();
@@ -170,6 +179,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              controlAffinity: ListTileControlAffinity.leading,
                               onChanged: (val) {
                                 final newSelected = Set<int>.from(selectedIds);
                                 if (val == true) {
@@ -394,6 +404,8 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                       '${event.primaryCollMethod ?? 'No method'} | '
                                       '${event.startDate ?? 'No date'}',
                                     ),
+                                    controlAffinity:
+                                        ListTileControlAffinity.leading,
                                     onChanged: (val) {
                                       final newSelected =
                                           Set<int>.from(selectedIds);
@@ -589,6 +601,7 @@ class _NarrativeSelectionScreenState
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              controlAffinity: ListTileControlAffinity.leading,
                               onChanged: (val) {
                                 final newSelected = Set<int>.from(selectedIds);
                                 if (val == true) {

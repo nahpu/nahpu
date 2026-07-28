@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/screens/exports/bundle_project.dart';
+import 'package:nahpu/screens/exports/bundle_records.dart';
 import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/exports/export_documents.dart';
 import 'package:nahpu/screens/exports/export_records.dart';
-import 'package:nahpu/screens/exports/export_report.dart';
-import 'package:nahpu/screens/projects/new_project.dart';
+import 'package:nahpu/screens/projects/project_transfer/export_project.dart';
+import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/settings.dart';
@@ -31,39 +31,41 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
     final projectUuid = ref.watch(projectUuidProvider);
     return NavigationDrawer(
       children: [
-        MenuAvatar(
-          projectUuid: projectUuid,
-        ),
+        MenuAvatar(projectUuid: projectUuid),
         ListTile(
-          leading: const Icon(Icons.create_rounded),
-          title: const Text('Create project'),
+          leading: const Icon(Icons.move_to_inbox_rounded),
+          title: const Text('Merge project'),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const CreateProjectForm()),
+                builder: (context) => const ImportProjectScreen(),
+              ),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.outbox_rounded),
+          title: const Text('Export project'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ExportProjectScreen(),
+              ),
             );
           },
         ),
         const Divider(color: Colors.grey),
         ListTile(
           leading: const Icon(Icons.archive_rounded),
-          title: const Text('Bundle project'),
+          title: const Text('Bundle records'),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const BundleProjectForm()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.table_view_rounded),
-          title: const Text('Create report'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ReportForm()),
+                builder: (context) => const BundleRecordsForm(),
+              ),
             );
           },
         ),
@@ -84,7 +86,8 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const ExportDocumentsView()),
+                builder: (context) => const ExportDocumentsView(),
+              ),
             );
           },
         ),
@@ -104,29 +107,33 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           leading: const Icon(Icons.settings_rounded),
           title: const Text('Settings'),
           onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const AppSettings()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AppSettings()),
+            );
           },
         ),
         ListTile(
           leading: const Icon(Icons.share_rounded),
-          title: const Text('Export settings'),
+          title: const Text('Export user configs'),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const ExportSettingsForm()),
+                builder: (context) => const ExportSettingsForm(),
+              ),
             );
           },
         ),
         ListTile(
           leading: const Icon(Icons.input_rounded),
-          title: const Text('Import settings'),
+          title: const Text('Import user configs'),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const AppSettingsImport()),
+                builder: (context) => const AppSettingsImport(),
+              ),
             );
           },
         ),
@@ -137,11 +144,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           onTap: () {
             ProjectServices(ref: ref).updateProject(
               projectUuid,
-              ProjectCompanion(
-                lastAccessed: db.Value(
-                  getSystemDateTime(),
-                ),
-              ),
+              ProjectCompanion(lastAccessed: db.Value(getSystemDateTime())),
             );
             Navigator.pushReplacement(
               context,
@@ -149,13 +152,13 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             );
           },
         ),
-        const Divider(
-          color: Colors.grey,
-        ),
         const SizedBox(height: 24),
+        const Divider(color: Colors.grey),
         ListTile(
-          leading: Icon(Icons.delete_rounded,
-              color: Theme.of(context).colorScheme.error),
+          leading: Icon(
+            Icons.delete_rounded,
+            color: Theme.of(context).colorScheme.error,
+          ),
           title: Text(
             'Delete project',
             style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -165,44 +168,45 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
                 ? projectUuid.substring(0, 5)
                 : projectUuid;
             return showDeleteAlertOnMenu(
-                context: context,
-                title: 'Delete project?',
-                deletePrompt:
-                    'You will delete this project and its related data. This cannot be undone.',
-                requiredConfirmationText: confirmationCode,
-                onDelete: () async {
-                  try {
-                    final message = await ProjectServices(ref: ref)
-                        .deleteProjectAndData(projectUuid);
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      Navigator.pushReplacement(
+              context: context,
+              title: 'Delete project?',
+              deletePrompt:
+                  'You will delete this project and its related data. This cannot be undone.',
+              requiredConfirmationText: confirmationCode,
+              onDelete: () async {
+                try {
+                  final message = await ProjectServices(
+                    ref: ref,
+                  ).deleteProjectAndData(projectUuid);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Home()),
+                    );
+                    if (message != null) {
+                      ScaffoldMessenger.of(
                         context,
-                        MaterialPageRoute(builder: (context) => const Home()),
-                      );
-                      if (message != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(message)),
-                        );
-                      }
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      final errorMessage = e is ProjectDeletionFailure
-                          ? e.toUserMessage()
-                          : e.toString();
-                      showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                                title: const Text(
-                                  'Error',
-                                ),
-                                content: Text(errorMessage),
-                              ));
+                      ).showSnackBar(SnackBar(content: Text(message)));
                     }
                   }
-                });
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    final errorMessage = e is ProjectDeletionFailure
+                        ? e.toUserMessage()
+                        : e.toString();
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Error'),
+                        content: Text(errorMessage),
+                      ),
+                    );
+                  }
+                }
+              },
+            );
           },
         ),
       ],
@@ -221,42 +225,41 @@ class MenuAvatar extends ConsumerWidget {
     return projectInfo.when(
       data: (data) {
         return DrawerHeader(
-            decoration: BoxDecoration(
-              color: Color.lerp(
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.surface,
-                0.2,
-              ),
+          decoration: BoxDecoration(
+            color: Color.lerp(
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.surface,
+              0.2,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data?.name ?? 'No Project',
-                  style: TextStyle(
-                    fontFamily: 'Merriweather',
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                data?.name ?? 'No Project',
+                style: TextStyle(
+                  fontFamily: 'Merriweather',
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
-                Text(
-                  data?.uuid ?? '',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                data?.uuid ?? '',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
-              ],
-            ));
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        );
       },
       loading: () => const CommonProgressIndicator(),
-      error: (error, stack) => Text(
-        error.toString(),
-      ),
+      error: (error, stack) => Text(error.toString()),
     );
   }
 }

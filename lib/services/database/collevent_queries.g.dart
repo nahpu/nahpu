@@ -8,6 +8,7 @@ mixin _$CollEventQueryMixin on DatabaseAccessor<Database> {
   Personnel get personnel => attachedDatabase.personnel;
   Media get media => attachedDatabase.media;
   Site get site => attachedDatabase.site;
+  FossilSite get fossilSite => attachedDatabase.fossilSite;
   Coordinate get coordinate => attachedDatabase.coordinate;
   CollEvent get collEvent => attachedDatabase.collEvent;
   Weather get weather => attachedDatabase.weather;
@@ -20,84 +21,23 @@ mixin _$CollEventQueryMixin on DatabaseAccessor<Database> {
   Specimen get specimen => attachedDatabase.specimen;
   SpecimenMedia get specimenMedia => attachedDatabase.specimenMedia;
   AssociatedData get associatedData => attachedDatabase.associatedData;
+  SpecimenAssociatedData get specimenAssociatedData =>
+      attachedDatabase.specimenAssociatedData;
+  SiteAssociatedData get siteAssociatedData =>
+      attachedDatabase.siteAssociatedData;
   PersonnelList get personnelList => attachedDatabase.personnelList;
-  MammalMeasurement get mammalMeasurement => attachedDatabase.mammalMeasurement;
-  AvianMeasurement get avianMeasurement => attachedDatabase.avianMeasurement;
-  HerpMeasurement get herpMeasurement => attachedDatabase.herpMeasurement;
+  MammalAttribute get mammalAttribute => attachedDatabase.mammalAttribute;
+  BirdAttribute get birdAttribute => attachedDatabase.birdAttribute;
+  HerpAttribute get herpAttribute => attachedDatabase.herpAttribute;
+  ArthropodAttribute get arthropodAttribute =>
+      attachedDatabase.arthropodAttribute;
+  FossilAttribute get fossilAttribute => attachedDatabase.fossilAttribute;
+  ParasiteDetection get parasiteDetection => attachedDatabase.parasiteDetection;
+  Parasite get parasite => attachedDatabase.parasite;
   SpecimenPart get specimenPart => attachedDatabase.specimenPart;
-  Selectable<ListProjectResult> listProject() {
-    return customSelect('SELECT uuid, name, created, lastAccessed FROM project',
-        variables: [],
-        readsFrom: {
-          project,
-        }).map((QueryRow row) => ListProjectResult(
-          uuid: row.read<String>('uuid'),
-          name: row.read<String>('name'),
-          created: row.readNullable<String>('created'),
-          lastAccessed: row.readNullable<String>('lastAccessed'),
-        ));
-  }
-
-  Selectable<SpecimenData> searchSpecimens(
-      String? projectUuid,
-      String searchQuery,
-      bool hasCollectionDate,
-      String? collectionStartDate,
-      String? collectionEndDate,
-      bool hasPrepDate,
-      String? prepStartDate,
-      String? prepEndDate,
-      int limit,
-      int offset) {
-    return customSelect(
-        'SELECT s.* FROM specimen AS s LEFT JOIN personnel AS c ON s.catalogerID = c.uuid LEFT JOIN personnel AS p ON s.preparatorID = p.uuid LEFT JOIN taxonomy AS t ON s.speciesID = t.id WHERE s.projectUuid = ?1 AND(?2 IS NULL OR ?2 = \'\' OR s.fieldNumber LIKE ?2 OR c.name LIKE ?2 OR p.name LIKE ?2 OR t.genus || \' \' || t.specificEpithet LIKE ?2)AND(?3 = FALSE OR(s.collectionDate >= ?4 AND s.collectionDate <= ?5))AND(?6 = FALSE OR(s.prepDate >= ?7 AND s.prepDate <= ?8))ORDER BY s.fieldNumber ASC LIMIT ?9 OFFSET ?10',
-        variables: [
-          Variable<String>(projectUuid),
-          Variable<String>(searchQuery),
-          Variable<bool>(hasCollectionDate),
-          Variable<String>(collectionStartDate),
-          Variable<String>(collectionEndDate),
-          Variable<bool>(hasPrepDate),
-          Variable<String>(prepStartDate),
-          Variable<String>(prepEndDate),
-          Variable<int>(limit),
-          Variable<int>(offset)
-        ],
-        readsFrom: {
-          specimen,
-          personnel,
-          taxonomy,
-        }).asyncMap(specimen.mapFromRow);
-  }
-
-  Selectable<int> countSpecimens(
-      String? projectUuid,
-      String searchQuery,
-      bool hasCollectionDate,
-      String? collectionStartDate,
-      String? collectionEndDate,
-      bool hasPrepDate,
-      String? prepStartDate,
-      String? prepEndDate) {
-    return customSelect(
-        'SELECT COUNT(s.uuid) AS _c0 FROM specimen AS s LEFT JOIN personnel AS c ON s.catalogerID = c.uuid LEFT JOIN personnel AS p ON s.preparatorID = p.uuid LEFT JOIN taxonomy AS t ON s.speciesID = t.id WHERE s.projectUuid = ?1 AND(?2 IS NULL OR ?2 = \'\' OR s.fieldNumber LIKE ?2 OR c.name LIKE ?2 OR p.name LIKE ?2 OR t.genus || \' \' || t.specificEpithet LIKE ?2)AND(?3 = FALSE OR(s.collectionDate >= ?4 AND s.collectionDate <= ?5))AND(?6 = FALSE OR(s.prepDate >= ?7 AND s.prepDate <= ?8))',
-        variables: [
-          Variable<String>(projectUuid),
-          Variable<String>(searchQuery),
-          Variable<bool>(hasCollectionDate),
-          Variable<String>(collectionStartDate),
-          Variable<String>(collectionEndDate),
-          Variable<bool>(hasPrepDate),
-          Variable<String>(prepStartDate),
-          Variable<String>(prepEndDate)
-        ],
-        readsFrom: {
-          specimen,
-          personnel,
-          taxonomy,
-        }).map((QueryRow row) => row.read<int>('_c0'));
-  }
-
+  CustomFieldDefinition get customFieldDefinition =>
+      attachedDatabase.customFieldDefinition;
+  CustomFieldValue get customFieldValue => attachedDatabase.customFieldValue;
   CollEventQueryManager get managers => CollEventQueryManager(this);
 }
 
@@ -112,6 +52,8 @@ class CollEventQueryManager {
       $MediaTableManager(_db.attachedDatabase, _db.media);
   $SiteTableManager get site =>
       $SiteTableManager(_db.attachedDatabase, _db.site);
+  $FossilSiteTableManager get fossilSite =>
+      $FossilSiteTableManager(_db.attachedDatabase, _db.fossilSite);
   $CoordinateTableManager get coordinate =>
       $CoordinateTableManager(_db.attachedDatabase, _db.coordinate);
   $CollEventTableManager get collEvent =>
@@ -136,28 +78,45 @@ class CollEventQueryManager {
       $SpecimenMediaTableManager(_db.attachedDatabase, _db.specimenMedia);
   $AssociatedDataTableManager get associatedData =>
       $AssociatedDataTableManager(_db.attachedDatabase, _db.associatedData);
+  $SpecimenAssociatedDataTableManager get specimenAssociatedData =>
+      $SpecimenAssociatedDataTableManager(
+        _db.attachedDatabase,
+        _db.specimenAssociatedData,
+      );
+  $SiteAssociatedDataTableManager get siteAssociatedData =>
+      $SiteAssociatedDataTableManager(
+        _db.attachedDatabase,
+        _db.siteAssociatedData,
+      );
   $PersonnelListTableManager get personnelList =>
       $PersonnelListTableManager(_db.attachedDatabase, _db.personnelList);
-  $MammalMeasurementTableManager get mammalMeasurement =>
-      $MammalMeasurementTableManager(
-          _db.attachedDatabase, _db.mammalMeasurement);
-  $AvianMeasurementTableManager get avianMeasurement =>
-      $AvianMeasurementTableManager(_db.attachedDatabase, _db.avianMeasurement);
-  $HerpMeasurementTableManager get herpMeasurement =>
-      $HerpMeasurementTableManager(_db.attachedDatabase, _db.herpMeasurement);
+  $MammalAttributeTableManager get mammalAttribute =>
+      $MammalAttributeTableManager(_db.attachedDatabase, _db.mammalAttribute);
+  $BirdAttributeTableManager get birdAttribute =>
+      $BirdAttributeTableManager(_db.attachedDatabase, _db.birdAttribute);
+  $HerpAttributeTableManager get herpAttribute =>
+      $HerpAttributeTableManager(_db.attachedDatabase, _db.herpAttribute);
+  $ArthropodAttributeTableManager get arthropodAttribute =>
+      $ArthropodAttributeTableManager(
+        _db.attachedDatabase,
+        _db.arthropodAttribute,
+      );
+  $FossilAttributeTableManager get fossilAttribute =>
+      $FossilAttributeTableManager(_db.attachedDatabase, _db.fossilAttribute);
+  $ParasiteDetectionTableManager get parasiteDetection =>
+      $ParasiteDetectionTableManager(
+        _db.attachedDatabase,
+        _db.parasiteDetection,
+      );
+  $ParasiteTableManager get parasite =>
+      $ParasiteTableManager(_db.attachedDatabase, _db.parasite);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db.attachedDatabase, _db.specimenPart);
-}
-
-class ListProjectResult {
-  final String uuid;
-  final String name;
-  final String? created;
-  final String? lastAccessed;
-  ListProjectResult({
-    required this.uuid,
-    required this.name,
-    this.created,
-    this.lastAccessed,
-  });
+  $CustomFieldDefinitionTableManager get customFieldDefinition =>
+      $CustomFieldDefinitionTableManager(
+        _db.attachedDatabase,
+        _db.customFieldDefinition,
+      );
+  $CustomFieldValueTableManager get customFieldValue =>
+      $CustomFieldValueTableManager(_db.attachedDatabase, _db.customFieldValue);
 }

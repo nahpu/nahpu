@@ -16,19 +16,24 @@ class _DocumentTemplateSubstitutor {
         texts.add(ct);
         continue;
       }
-      var subbedText = substituteDocumentPlaceholders(ct.text, data);
-      var textType = ct.textType;
-      if (ct.textType == 'markdown' ||
-          ct.text.toLowerCase().contains('narrative::narrative')) {
-        subbedText = await rust_export.markdownToTypst(mdContent: subbedText);
-        textType = 'markdown';
-      }
+      final subbedText = resolveDocumentTemplatePlaceholders(
+        text: ct.text,
+        data: data,
+        textType: ct.textType,
+        formatOption: ct.formatOption,
+        caseFormat: ct.caseFormat,
+        nullFallbackOption: ct.nullFallbackOption,
+        customNullFallbackText: ct.customNullFallbackText,
+      );
       if (ct.isQrCode) {
-        final formattedText = formatTemplateText(
-          subbedText,
-          textType,
-          ct.formatOption,
-          ct.caseFormat,
+        final formattedText = applyTextReplacementRules(
+          formatTemplateText(
+            subbedText,
+            ct.textType,
+            ct.formatOption,
+            ct.caseFormat,
+          ),
+          ct.replacementRules,
         );
         final fgColorHex = _colorToHex(ct.colorArgb);
         final bgColorHex = _colorToHex(ct.qrBgColorArgb);
@@ -38,21 +43,39 @@ class _DocumentTemplateSubstitutor {
           bgColorHex,
           ct.qrShape,
         );
-        final tempFile = File(path.join(
-          tempDir.path,
-          'qr_${DateTime.now().microsecondsSinceEpoch}_${ct.id}.svg',
-        ));
+        final tempFile = File(
+          path.join(
+            tempDir.path,
+            'qr_${DateTime.now().microsecondsSinceEpoch}_${ct.id}.svg',
+          ),
+        );
         await tempFile.writeAsString(svgString);
-        texts.add(ct.copyWith(
-          text: formattedText,
-          tempPath: tempFile.path,
-          textType: textType,
-        ));
+        texts.add(
+          ct.copyWith(
+            text: formattedText,
+            tempPath: tempFile.path,
+            textType: ct.textType,
+          ),
+        );
       } else {
-        texts.add(ct.copyWith(
-          text: subbedText,
-          textType: textType,
-        ));
+        var formattedText = applyTextReplacementRules(
+          formatExportTemplateText(
+            subbedText,
+            ct.textType,
+            ct.formatOption,
+            ct.caseFormat,
+          ),
+          ct.replacementRules,
+        );
+        var textType = ct.textType;
+        if (isTemplateRichTextType(ct.textType) ||
+            ct.text.toLowerCase().contains('narrative::narrative')) {
+          formattedText = await rust_document.markdownToTypst(
+            markdownContent: formattedText,
+          );
+          textType = 'markdown';
+        }
+        texts.add(ct.copyWith(text: formattedText, textType: textType));
       }
     }
     return page.copyWith(customTexts: texts);
@@ -82,16 +105,19 @@ class _DocumentTemplateSubstitutor {
 
     final sb = StringBuffer();
     sb.writeln(
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 $moduleCount $moduleCount" shape-rendering="crispEdges">');
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 $moduleCount $moduleCount" shape-rendering="crispEdges">',
+    );
     sb.writeln(
-        '  <rect width="$moduleCount" height="$moduleCount" fill="$bgColorHex"/>');
+      '  <rect width="$moduleCount" height="$moduleCount" fill="$bgColorHex"/>',
+    );
 
     if (shape == 'circle') {
       for (int y = 0; y < moduleCount; y++) {
         for (int x = 0; x < moduleCount; x++) {
           if (qrImage.isDark(y, x)) {
             sb.writeln(
-                '  <circle cx="${x + 0.5}" cy="${y + 0.5}" r="0.5" fill="$fgColorHex"/>');
+              '  <circle cx="${x + 0.5}" cy="${y + 0.5}" r="0.5" fill="$fgColorHex"/>',
+            );
           }
         }
       }

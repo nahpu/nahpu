@@ -8,13 +8,15 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 
 class Habitat extends ConsumerWidget {
-  const Habitat(
-      {super.key,
-      required this.id,
-      required this.useHorizontalLayout,
-      required this.siteFormCtr});
+  const Habitat({
+    super.key,
+    required this.id,
+    required this.useHorizontalLayout,
+    required this.siteFormCtr,
+  });
 
   final int id;
   final bool useHorizontalLayout;
@@ -33,9 +35,18 @@ class Habitat extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Column(
               children: [
-                ref.watch(userDefinedFieldProvider(habitatTypePrefKey)).when(
+                ref
+                    .watch(
+                      effectiveUserDefinedFieldProvider(habitatTypePrefKey),
+                    )
+                    .when(
                       data: (data) {
-                        final items = data
+                        final current = siteFormCtr.habitatTypeCtr.text;
+                        final options = includeCurrentVocabularyValue(
+                          data,
+                          current.isEmpty ? null : current,
+                        );
+                        final items = options
                             .map(
                               (e) => DropdownMenuItem<String?>(
                                 value: e,
@@ -44,11 +55,7 @@ class Habitat extends ConsumerWidget {
                             )
                             .toList();
 
-                        final current = siteFormCtr.habitatTypeCtr.text;
-                        final initialValue =
-                            (current.isNotEmpty && data.contains(current))
-                                ? current
-                                : null;
+                        final initialValue = current.isEmpty ? null : current;
 
                         return DropdownButtonFormField<String?>(
                           isExpanded: true,
@@ -70,7 +77,7 @@ class Habitat extends ConsumerWidget {
                         );
                       },
                       loading: () => const CommonProgressIndicator(),
-                      error: (e, __) => Text(e.toString()),
+                      error: (e, _) => Text(e.toString()),
                     ),
                 TextFormField(
                   controller: siteFormCtr.habitatConditionCtr,
@@ -113,9 +120,11 @@ class HabitatInfoContent extends StatelessWidget {
     return const InfoContainer(
       content: [
         InfoContent(
-            content: 'Information about the habitat of the site.'
-                ' Note important information about the habitat in the description.'
-                ' For example, the dominant tree species, ground cover, etc.'),
+          content:
+              'Information about the habitat of the site.'
+              ' Note important information about the habitat in the description.'
+              ' For example, the dominant tree species, ground cover, etc.',
+        ),
       ],
     );
   }

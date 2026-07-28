@@ -1,6 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/mammals.dart' as mammals;
+import 'package:nahpu/services/types/birds.dart' as birds;
+import 'package:nahpu/services/types/specimens.dart' as specimens;
+import 'package:nahpu/services/types/herps.dart' as herps;
+import 'package:nahpu/services/specimen_attribute_names.dart';
+import 'package:nahpu/services/text_replacements.dart';
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
 bool isTemplateImagePathUsable(String path) {
@@ -13,26 +19,26 @@ bool isTemplateImagePathUsable(String path) {
   }
 }
 
-/// Whole-line text `[mammal.sex]-img` → show sex as a resizable icon (see [isTemplateBracketGenderIconText]).
-final RegExp kTemplateGenderIconBracketText = RegExp(
+/// Whole-line text `[mammal.sex]-img` → show sex as a resizable icon (see [isTemplateBracketSpecimenSexIconText]).
+final RegExp kTemplateSpecimenSexIconBracketText = RegExp(
   r'^\s*\[([^\]]+)\]-img\s*$',
   caseSensitive: false,
 );
 
 /// Field id inside brackets, e.g. `mammal.sex`, when [text] is `[mammal.sex]-img`.
-String? templateGenderIconFieldKeyFromBracketText(String text) {
-  final m = kTemplateGenderIconBracketText.firstMatch(text.trim());
+String? templateSpecimenSexIconFieldKeyFromBracketText(String text) {
+  final m = kTemplateSpecimenSexIconBracketText.firstMatch(text.trim());
   if (m == null) return null;
   final key = m.group(1)!.trim();
   if (!key.toLowerCase().endsWith('.sex')) return null;
   return key;
 }
 
-bool isTemplateBracketGenderIconText(String text) =>
-    templateGenderIconFieldKeyFromBracketText(text) != null;
+bool isTemplateBracketSpecimenSexIconText(String text) =>
+    templateSpecimenSexIconFieldKeyFromBracketText(text) != null;
 
-const double kTemplateGenderIconDefaultWidthMm = 6.0;
-const double kTemplateGenderIconDefaultHeightMm = 6.0;
+const double kTemplateSpecimenSexIconDefaultWidthMm = 6.0;
+const double kTemplateSpecimenSexIconDefaultHeightMm = 6.0;
 
 String formatTextWithCase(String rawText, String caseFormat) {
   switch (caseFormat) {
@@ -42,10 +48,13 @@ String formatTextWithCase(String rawText, String caseFormat) {
       return rawText.toLowerCase();
     case 'capitalize':
       if (rawText.isEmpty) return rawText;
-      return rawText.split(' ').map((word) {
-        if (word.isEmpty) return word;
-        return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
-      }).join(' ');
+      return rawText
+          .split(' ')
+          .map((word) {
+            if (word.isEmpty) return word;
+            return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+          })
+          .join(' ');
     default:
       return rawText;
   }
@@ -136,7 +145,7 @@ String _formatDate(DateTime dt, String format) {
     'September',
     'October',
     'November',
-    'December'
+    'December',
   ];
   final monthAbbr = [
     'Jan',
@@ -150,7 +159,7 @@ String _formatDate(DateTime dt, String format) {
     'Sep',
     'Oct',
     'Nov',
-    'Dec'
+    'Dec',
   ];
 
   final y = dt.year.toString();
@@ -189,7 +198,9 @@ String formatDateTimeText(String text, String formatOption) {
     final dt = DateTime.tryParse(raw);
     if (dt != null) {
       return text.replaceFirst(
-          match.group(0)!, _formatDateTime(dt, formatOption));
+        match.group(0)!,
+        _formatDateTime(dt, formatOption),
+      );
     }
   }
 
@@ -214,7 +225,7 @@ String _formatDateTime(DateTime dt, String format) {
     'September',
     'October',
     'November',
-    'December'
+    'December',
   ];
   final monthAbbr = [
     'Jan',
@@ -228,7 +239,7 @@ String _formatDateTime(DateTime dt, String format) {
     'Sep',
     'Oct',
     'Nov',
-    'Dec'
+    'Dec',
   ];
 
   final y = dt.year.toString();
@@ -293,7 +304,9 @@ String formatTimeText(String text, String formatOption) {
       final now = DateTime.now();
       final dt = DateTime(now.year, now.month, now.day, hour, minute, second);
       return text.replaceFirst(
-          match.group(0)!, _formatDateTime(dt, formatOption));
+        match.group(0)!,
+        _formatDateTime(dt, formatOption),
+      );
     }
   }
   return formatDateTimeText(text, formatOption);
@@ -333,6 +346,74 @@ String formatListText(String text, String formatOption) {
   }
 }
 
+String? getEncodedDefaultValue(String key, String value) {
+  final cleanKey = key.toLowerCase();
+  final intVal = int.tryParse(value);
+  if (intVal == null) return null;
+
+  if (cleanKey.endsWith('::sex')) {
+    if (intVal >= 0 && intVal < specimens.specimenSexList.length) {
+      return specimens.specimenSexList[intVal];
+    }
+  } else if (cleanKey == 'mammalattribute::age' ||
+      cleanKey == 'mammalmeasurement::age') {
+    if (intVal >= 0 && intVal < mammals.specimenAgeList.length) {
+      return mammals.specimenAgeList[intVal];
+    }
+  } else if (cleanKey == 'herpattribute::age' ||
+      cleanKey == 'herpmeasurement::age') {
+    if (intVal >= 0 && intVal < herps.specimenAgeList.length) {
+      return herps.specimenAgeList[intVal];
+    }
+  } else if (cleanKey.endsWith('::testisposition')) {
+    if (intVal >= 0 && intVal < mammals.testisPositionList.length) {
+      return mammals.testisPositionList[intVal];
+    }
+  } else if (cleanKey.endsWith('::epididymisappearance')) {
+    if (intVal >= 0 && intVal < mammals.epididymisAppearanceList.length) {
+      return mammals.epididymisAppearanceList[intVal];
+    }
+  } else if (cleanKey.endsWith('::vaginaopening')) {
+    if (intVal >= 0 && intVal < mammals.vaginaOpeningList.length) {
+      return mammals.vaginaOpeningList[intVal];
+    }
+  } else if (cleanKey.endsWith('::pubicsymphysis')) {
+    if (intVal >= 0 && intVal < mammals.pubicSymphysisList.length) {
+      return mammals.pubicSymphysisList[intVal];
+    }
+  } else if (cleanKey.endsWith('::reproductivestage')) {
+    if (intVal >= 0 && intVal < mammals.reproductiveStageList.length) {
+      return mammals.reproductiveStageList[intVal];
+    }
+  } else if (cleanKey.endsWith('::mammaecondition')) {
+    if (intVal >= 0 && intVal < mammals.mammaeConditionList.length) {
+      return mammals.mammaeConditionList[intVal];
+    }
+  } else if (cleanKey.endsWith('::ovaryappearance')) {
+    return birds.birdLabelForCode(birds.ovaryAppearanceList, intVal);
+  } else if (cleanKey.endsWith('::oviductappearance')) {
+    return birds.birdLabelForCode(birds.oviductAppearanceList, intVal);
+  } else if (cleanKey.endsWith('::fat')) {
+    return birds.birdLabelForCode(birds.fatCategoryList, intVal);
+  } else if (cleanKey.endsWith('::bodymolt')) {
+    return birds.birdLabelForCode(birds.bodyMoltList, intVal);
+  } else if (cleanKey.endsWith('::echolocation')) {
+    if (intVal >= 0 && intVal < mammals.echolocationList.length) {
+      return mammals.echolocationList[intVal];
+    }
+  } else if (cleanKey.endsWith('::broodpatch') ||
+      cleanKey.endsWith('::hasbursa') ||
+      cleanKey.endsWith('::wingismolt') ||
+      cleanKey.endsWith('::tailismolt') ||
+      cleanKey.endsWith('::showbatfields') ||
+      cleanKey.endsWith('::showechofields')) {
+    if (intVal == 1) return 'Yes';
+    if (intVal == 0) return 'No';
+  }
+
+  return null;
+}
+
 String formatSexText(String text, String formatOption) {
   final cleanText = text.trim().toLowerCase();
 
@@ -340,9 +421,20 @@ String formatSexText(String text, String formatOption) {
   final presentation = parts.isNotEmpty ? parts[0] : 'text';
   final missingOpt = parts.length > 1 ? parts[1] : 'unknown';
 
-  final isMale = cleanText == '0' || cleanText == 'male' || cleanText == 'm';
+  // Formatting can run more than once while a template moves through the
+  // editor, placeholder substitution, and PDF measurement/rendering paths.
+  // Treat already-rendered sex symbols as their source value so formatting is
+  // idempotent instead of turning them into the unknown-value fallback.
+  final isMale =
+      cleanText == '0' ||
+      cleanText == 'male' ||
+      cleanText == 'm' ||
+      cleanText == '\u2642';
   final isFemale =
-      cleanText == '1' || cleanText == 'female' || cleanText == 'f';
+      cleanText == '1' ||
+      cleanText == 'female' ||
+      cleanText == 'f' ||
+      cleanText == '\u2640';
 
   if (isMale) {
     if (presentation == 'symbol') return '\u2642'; // ♂
@@ -384,12 +476,29 @@ String formatNumberText(String text, String formatOption) {
   });
 }
 
-String formatFieldPlaceholderText(String text, bool showFieldOnly) {
-  if (!showFieldOnly) return text;
-  final regex = RegExp(r'\[([^\]\s]+)::([^\]\s]+)\]');
-  return text.replaceAllMapped(regex, (match) => '[${match.group(2)}]');
+/// Removes the trailing `.0` from each whole-number decimal token in [text].
+///
+/// This is intended for export presentation only. It leaves fractional values
+/// such as `12.50` and `0.5` unchanged, and does not parse or mutate stored
+/// record data.
+String truncateTrailingDecimalZeroText(String text) {
+  final wholeNumberDecimal = RegExp(r'(?<![\d.])-?\d+\.0(?![\d.])');
+  return text.replaceAllMapped(wholeNumberDecimal, (match) {
+    final value = match.group(0)!;
+    return value.substring(0, value.length - 2);
+  });
 }
 
+String formatFieldPlaceholderText(String text, bool showFieldOnly) {
+  if (!showFieldOnly) return text;
+  final regex = RegExp(r'\[([^\]\s?]+)::([^\]\s?]+)(\?\?[^\]]+)?\]');
+  return text.replaceAllMapped(
+    regex,
+    (match) => '[${match.group(2)}${match.group(3) ?? ''}]',
+  );
+}
+
+/// Formats template text according to its selected type and option.
 String formatTemplateText(
   String rawText,
   String textType,
@@ -422,7 +531,11 @@ String formatTemplateText(
       result = formatNumberText(rawText, formatOption);
       break;
     case 'markdown':
+    case 'nestedList':
       result = rawText;
+      break;
+    case 'encoded':
+      result = formatTextWithCase(rawText, oldCaseFormat ?? 'normal');
       break;
     case 'normal':
     default:
@@ -436,6 +549,66 @@ String formatTemplateText(
       break;
   }
   return result;
+}
+
+/// Formats [rawText] for an export-facing template surface.
+///
+/// The result uses the normal template format selection and then removes a
+/// trailing `.0` from whole-number decimal tokens. QR-code payloads must use
+/// [formatTemplateText] directly so their encoded content remains unchanged.
+String formatExportTemplateText(
+  String rawText,
+  String textType,
+  String formatOption, [
+  String? oldCaseFormat,
+]) => truncateTrailingDecimalZeroText(
+  formatTemplateText(rawText, textType, formatOption, oldCaseFormat),
+);
+
+const kTemplateNullFallbackBlank = 'blank';
+const kTemplateNullFallbackField = 'field';
+const kTemplateNullFallbackNa = 'na';
+const kTemplateNullFallbackNone = 'none';
+const kTemplateNullFallbackCustom = 'custom';
+
+String stripTemplatePlaceholderFallbacks(String text) {
+  return text.replaceAllMapped(RegExp(r'\[([^\]]+)\]'), (match) {
+    final placeholder = match.group(1);
+    if (placeholder == null) return match.group(0)!;
+    return '[${placeholder.split('??').first.trim()}]';
+  });
+}
+
+String inferTemplateNullFallbackOption(String text) {
+  for (final match in RegExp(r'\[([^\]]+)\]').allMatches(text)) {
+    final placeholder = match.group(1);
+    if (placeholder == null || placeholder.endsWith('-img')) continue;
+    final parts = placeholder.split('??');
+    if (parts.length <= 1) continue;
+    final fieldId = parts.first.trim();
+    final fallback = parts.sublist(1).join('??').trim();
+    if (fallback == fieldId) return kTemplateNullFallbackField;
+    if (fallback == 'N/A') return kTemplateNullFallbackNa;
+    if (fallback == 'None') return kTemplateNullFallbackNone;
+    return kTemplateNullFallbackCustom;
+  }
+  return kTemplateNullFallbackBlank;
+}
+
+String inferTemplateCustomNullFallback(String text) {
+  for (final match in RegExp(r'\[([^\]]+)\]').allMatches(text)) {
+    final placeholder = match.group(1);
+    if (placeholder == null || placeholder.endsWith('-img')) continue;
+    final parts = placeholder.split('??');
+    if (parts.length <= 1) continue;
+    final fieldId = parts.first.trim();
+    final fallback = parts.sublist(1).join('??').trim();
+    if (fallback == fieldId || fallback == 'N/A' || fallback == 'None') {
+      continue;
+    }
+    return fallback;
+  }
+  return '';
 }
 
 class CustomTextElement {
@@ -467,6 +640,8 @@ class CustomTextElement {
     this.paddingPt = 2.0,
     this.textType = 'normal',
     this.formatOption = 'normal',
+    this.nullFallbackOption = kTemplateNullFallbackBlank,
+    this.customNullFallbackText = '',
     this.isQrCode = false,
     this.qrSizeMm = 15.0,
     this.qrBgColorArgb = 0xFFFFFFFF,
@@ -475,6 +650,7 @@ class CustomTextElement {
     this.isDynamic = false,
     this.isLocked = false,
     this.isVisible = true,
+    this.replacementRules = const [],
   });
 
   final String id;
@@ -500,8 +676,10 @@ class CustomTextElement {
   final double paddingPt;
   final String textType;
   final String formatOption;
+  final String nullFallbackOption;
+  final String customNullFallbackText;
 
-  /// For [isTemplateBracketGenderIconText] only: box size in mm (defaults in editor/PDF).
+  /// For [isTemplateBracketSpecimenSexIconText] only: box size in mm (defaults in editor/PDF).
   final double? iconWidthMm;
   final double? iconHeightMm;
 
@@ -519,6 +697,7 @@ class CustomTextElement {
   final bool isDynamic;
   final bool isLocked;
   final bool isVisible;
+  final List<TextReplacementRule> replacementRules;
 
   CustomTextElement copyWith({
     String? id,
@@ -552,6 +731,8 @@ class CustomTextElement {
     bool clearHeightMm = false,
     String? textType,
     String? formatOption,
+    String? nullFallbackOption,
+    String? customNullFallbackText,
     bool? isQrCode,
     double? qrSizeMm,
     int? qrBgColorArgb,
@@ -561,6 +742,7 @@ class CustomTextElement {
     bool? isDynamic,
     bool? isLocked,
     bool? isVisible,
+    List<TextReplacementRule>? replacementRules,
   }) {
     return CustomTextElement(
       id: id ?? this.id,
@@ -585,14 +767,18 @@ class CustomTextElement {
       backgroundColorArgb: clearBackgroundColor
           ? null
           : (backgroundColorArgb ?? this.backgroundColorArgb),
-      borderColorArgb:
-          clearBorderColor ? null : (borderColorArgb ?? this.borderColorArgb),
+      borderColorArgb: clearBorderColor
+          ? null
+          : (borderColorArgb ?? this.borderColorArgb),
       borderWidthPt: borderWidthPt ?? this.borderWidthPt,
       borderStrokeStyle: borderStrokeStyle ?? this.borderStrokeStyle,
       cornerRadiusPt: cornerRadiusPt ?? this.cornerRadiusPt,
       paddingPt: paddingPt ?? this.paddingPt,
       textType: textType ?? this.textType,
       formatOption: formatOption ?? this.formatOption,
+      nullFallbackOption: nullFallbackOption ?? this.nullFallbackOption,
+      customNullFallbackText:
+          customNullFallbackText ?? this.customNullFallbackText,
       isQrCode: isQrCode ?? this.isQrCode,
       qrSizeMm: qrSizeMm ?? this.qrSizeMm,
       qrBgColorArgb: qrBgColorArgb ?? this.qrBgColorArgb,
@@ -601,51 +787,67 @@ class CustomTextElement {
       isDynamic: isDynamic ?? this.isDynamic,
       isLocked: isLocked ?? this.isLocked,
       isVisible: isVisible ?? this.isVisible,
+      replacementRules: replacementRules ?? this.replacementRules,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'text': text,
-        'xMm': xMm,
-        'yMm': yMm,
-        'fontSizePt': fontSizePt,
-        'fontFamily': fontFamily,
-        'bold': bold,
-        'italic': italic,
-        'underline': underline,
-        'strikethrough': strikethrough,
-        'textAlign': textAlign,
-        'caseFormat': caseFormat,
-        'rotationDegrees': rotationDegrees,
-        if (iconWidthMm != null) 'iconWidthMm': iconWidthMm,
-        if (iconHeightMm != null) 'iconHeightMm': iconHeightMm,
-        if (maxWidthMm != null) 'maxWidthMm': maxWidthMm,
-        if (heightMm != null) 'heightMm': heightMm,
-        'zIndex': zIndex,
-        'colorArgb': colorArgb,
-        if (backgroundColorArgb != null)
-          'backgroundColorArgb': backgroundColorArgb,
-        if (borderColorArgb != null) 'borderColorArgb': borderColorArgb,
-        'borderWidthPt': borderWidthPt,
-        'borderStrokeStyle': borderStrokeStyle,
-        'cornerRadiusPt': cornerRadiusPt,
-        'paddingPt': paddingPt,
-        'textType': textType,
-        'formatOption': formatOption,
-        'isQrCode': isQrCode,
-        'qrSizeMm': qrSizeMm,
-        'qrBgColorArgb': qrBgColorArgb,
-        'qrShape': qrShape,
-        'isDynamic': isDynamic,
-        'isLocked': isLocked,
-        'isVisible': isVisible,
-      };
+    'id': id,
+    'text': text,
+    'xMm': xMm,
+    'yMm': yMm,
+    'fontSizePt': fontSizePt,
+    'fontFamily': fontFamily,
+    'bold': bold,
+    'italic': italic,
+    'underline': underline,
+    'strikethrough': strikethrough,
+    'textAlign': textAlign,
+    'caseFormat': caseFormat,
+    'rotationDegrees': rotationDegrees,
+    if (iconWidthMm != null) 'iconWidthMm': iconWidthMm,
+    if (iconHeightMm != null) 'iconHeightMm': iconHeightMm,
+    if (maxWidthMm != null) 'maxWidthMm': maxWidthMm,
+    if (heightMm != null) 'heightMm': heightMm,
+    'zIndex': zIndex,
+    'colorArgb': colorArgb,
+    if (backgroundColorArgb != null) 'backgroundColorArgb': backgroundColorArgb,
+    if (borderColorArgb != null) 'borderColorArgb': borderColorArgb,
+    'borderWidthPt': borderWidthPt,
+    'borderStrokeStyle': borderStrokeStyle,
+    'cornerRadiusPt': cornerRadiusPt,
+    'paddingPt': paddingPt,
+    'textType': textType,
+    'formatOption': formatOption,
+    'nullFallbackOption': nullFallbackOption,
+    if (customNullFallbackText.isNotEmpty)
+      'customNullFallbackText': customNullFallbackText,
+    'isQrCode': isQrCode,
+    'qrSizeMm': qrSizeMm,
+    'qrBgColorArgb': qrBgColorArgb,
+    'qrShape': qrShape,
+    'isDynamic': isDynamic,
+    'isLocked': isLocked,
+    'isVisible': isVisible,
+    if (replacementRules.isNotEmpty)
+      'replacementRules': replacementRules
+          .map((rule) => rule.toJson())
+          .toList(),
+  };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
+    final rawText = json['text'] as String? ?? '';
+    final legacyNullFallbackOption = inferTemplateNullFallbackOption(rawText);
+    final nullFallbackOption =
+        json['nullFallbackOption'] as String? ?? legacyNullFallbackOption;
+    final customNullFallbackText =
+        json['customNullFallbackText'] as String? ??
+        inferTemplateCustomNullFallback(rawText);
     return CustomTextElement(
       id: json['id'] as String,
-      text: json['text'] as String? ?? '',
+      text: canonicalizeSpecimenAttributeExpression(
+        stripTemplatePlaceholderFallbacks(rawText),
+      ),
       xMm: (json['xMm'] as num?)?.toDouble() ?? 0,
       yMm: (json['yMm'] as num?)?.toDouble() ?? 0,
       fontSizePt: (json['fontSizePt'] as num?)?.toDouble() ?? 10,
@@ -671,6 +873,8 @@ class CustomTextElement {
       paddingPt: (json['paddingPt'] as num?)?.toDouble() ?? 2.0,
       textType: json['textType'] as String? ?? 'normal',
       formatOption: json['formatOption'] as String? ?? 'normal',
+      nullFallbackOption: nullFallbackOption,
+      customNullFallbackText: customNullFallbackText,
       isQrCode: json['isQrCode'] as bool? ?? false,
       qrSizeMm: (json['qrSizeMm'] as num?)?.toDouble() ?? 15.0,
       qrBgColorArgb: (json['qrBgColorArgb'] as num?)?.toInt() ?? 0xFFFFFFFF,
@@ -678,6 +882,13 @@ class CustomTextElement {
       isDynamic: json['isDynamic'] as bool? ?? false,
       isLocked: json['isLocked'] as bool? ?? false,
       isVisible: json['isVisible'] as bool? ?? true,
+      replacementRules: (json['replacementRules'] as List? ?? [])
+          .whereType<Map>()
+          .map(
+            (value) =>
+                TextReplacementRule.fromJson(Map<String, dynamic>.from(value)),
+          )
+          .toList(growable: false),
     );
   }
 }
@@ -734,17 +945,17 @@ class CustomImageElement {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'imagePath': imagePath,
-        'xMm': xMm,
-        'yMm': yMm,
-        'widthMm': widthMm,
-        'heightMm': heightMm,
-        'rotationDegrees': rotationDegrees,
-        'zIndex': zIndex,
-        'isLocked': isLocked,
-        'isVisible': isVisible,
-      };
+    'id': id,
+    'imagePath': imagePath,
+    'xMm': xMm,
+    'yMm': yMm,
+    'widthMm': widthMm,
+    'heightMm': heightMm,
+    'rotationDegrees': rotationDegrees,
+    'zIndex': zIndex,
+    'isLocked': isLocked,
+    'isVisible': isVisible,
+  };
 
   factory CustomImageElement.fromJson(Map<String, dynamic> json) {
     return CustomImageElement(
@@ -825,18 +1036,18 @@ class CustomLineElement {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'xMm': xMm,
-        'yMm': yMm,
-        'lengthMm': lengthMm,
-        'rotationDegrees': rotationDegrees,
-        'thicknessPt': thicknessPt,
-        'colorArgb': colorArgb,
-        'zIndex': zIndex,
-        'strokeStyle': strokeStyle,
-        'isLocked': isLocked,
-        'isVisible': isVisible,
-      };
+    'id': id,
+    'xMm': xMm,
+    'yMm': yMm,
+    'lengthMm': lengthMm,
+    'rotationDegrees': rotationDegrees,
+    'thicknessPt': thicknessPt,
+    'colorArgb': colorArgb,
+    'zIndex': zIndex,
+    'strokeStyle': strokeStyle,
+    'isLocked': isLocked,
+    'isVisible': isVisible,
+  };
 
   factory CustomLineElement.fromJson(Map<String, dynamic> json) {
     return CustomLineElement(
@@ -919,8 +1130,9 @@ class CustomShapeElement {
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
       strokeThicknessPt: strokeThicknessPt ?? this.strokeThicknessPt,
       strokeColorArgb: strokeColorArgb ?? this.strokeColorArgb,
-      fillColorArgb:
-          clearFillColor ? null : (fillColorArgb ?? this.fillColorArgb),
+      fillColorArgb: clearFillColor
+          ? null
+          : (fillColorArgb ?? this.fillColorArgb),
       zIndex: zIndex ?? this.zIndex,
       strokeStyle: strokeStyle ?? this.strokeStyle,
       isLocked: isLocked ?? this.isLocked,
@@ -929,22 +1141,22 @@ class CustomShapeElement {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'xMm': xMm,
-        'yMm': yMm,
-        'widthMm': widthMm,
-        'heightMm': heightMm,
-        'shapeType': shapeType,
-        'polygonSides': polygonSides,
-        'rotationDegrees': rotationDegrees,
-        'strokeThicknessPt': strokeThicknessPt,
-        'strokeColorArgb': strokeColorArgb,
-        if (fillColorArgb != null) 'fillColorArgb': fillColorArgb,
-        'zIndex': zIndex,
-        'strokeStyle': strokeStyle,
-        'isLocked': isLocked,
-        'isVisible': isVisible,
-      };
+    'id': id,
+    'xMm': xMm,
+    'yMm': yMm,
+    'widthMm': widthMm,
+    'heightMm': heightMm,
+    'shapeType': shapeType,
+    'polygonSides': polygonSides,
+    'rotationDegrees': rotationDegrees,
+    'strokeThicknessPt': strokeThicknessPt,
+    'strokeColorArgb': strokeColorArgb,
+    if (fillColorArgb != null) 'fillColorArgb': fillColorArgb,
+    'zIndex': zIndex,
+    'strokeStyle': strokeStyle,
+    'isLocked': isLocked,
+    'isVisible': isVisible,
+  };
 
   factory CustomShapeElement.fromJson(Map<String, dynamic> json) {
     return CustomShapeElement(
@@ -993,11 +1205,7 @@ class TemplateSelection {
     };
     if (type == null) return null;
 
-    return TemplateSelection(
-      type: type,
-      page1: parts[1] == '1',
-      id: parts[2],
-    );
+    return TemplateSelection(type: type, page1: parts[1] == '1', id: parts[2]);
   }
 }
 
@@ -1056,7 +1264,8 @@ class TemplatePage {
 
   TemplatePage withoutCustomImage(String id) {
     return copyWith(
-        customImages: customImages.where((im) => im.id != id).toList());
+      customImages: customImages.where((im) => im.id != id).toList(),
+    );
   }
 
   TemplatePage withCustomLine(CustomLineElement e) {
@@ -1087,36 +1296,45 @@ class TemplatePage {
 
   TemplatePage withoutCustomShape(String id) {
     return copyWith(
-        customShapes: customShapes.where((s) => s.id != id).toList());
+      customShapes: customShapes.where((s) => s.id != id).toList(),
+    );
   }
 
   Map<String, dynamic> toJson() => {
-        'customTexts': customTexts.map((e) => e.toJson()).toList(),
-        'customImages': customImages.map((e) => e.toJson()).toList(),
-        'customLines': customLines.map((e) => e.toJson()).toList(),
-        'customShapes': customShapes.map((e) => e.toJson()).toList(),
-      };
+    'customTexts': customTexts.map((e) => e.toJson()).toList(),
+    'customImages': customImages.map((e) => e.toJson()).toList(),
+    'customLines': customLines.map((e) => e.toJson()).toList(),
+    'customShapes': customShapes.map((e) => e.toJson()).toList(),
+  };
 
   factory TemplatePage.fromJson(Map<String, dynamic> json) {
     return TemplatePage(
-      customTexts: (json['customTexts'] as List<dynamic>?)
+      customTexts:
+          (json['customTexts'] as List<dynamic>?)
               ?.map(
-                  (e) => CustomTextElement.fromJson(e as Map<String, dynamic>))
+                (e) => CustomTextElement.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
-      customImages: (json['customImages'] as List<dynamic>?)
+      customImages:
+          (json['customImages'] as List<dynamic>?)
               ?.map(
-                  (e) => CustomImageElement.fromJson(e as Map<String, dynamic>))
+                (e) => CustomImageElement.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
-      customLines: (json['customLines'] as List<dynamic>?)
+      customLines:
+          (json['customLines'] as List<dynamic>?)
               ?.map(
-                  (e) => CustomLineElement.fromJson(e as Map<String, dynamic>))
+                (e) => CustomLineElement.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
-      customShapes: (json['customShapes'] as List<dynamic>?)
+      customShapes:
+          (json['customShapes'] as List<dynamic>?)
               ?.map(
-                  (e) => CustomShapeElement.fromJson(e as Map<String, dynamic>))
+                (e) => CustomShapeElement.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
     );
@@ -1158,23 +1376,21 @@ class TemplatePrintOptions {
   final double? documentPadBottomMm;
 
   Map<String, dynamic> toJson() => {
-        'isDuplex': isDuplex,
-        'mirrorFront': mirrorFront,
-        'mirrorBack': mirrorBack,
-        if (pageSizeKey != null) 'pageSizeKey': pageSizeKey,
-        if (rowsPerPage != null) 'rowsPerPage': rowsPerPage,
-        if (colsPerPage != null) 'colsPerPage': colsPerPage,
-        if (pagePadTopMm != null) 'pagePadTopMm': pagePadTopMm,
-        if (pagePadLeftMm != null) 'pagePadLeftMm': pagePadLeftMm,
-        if (pagePadRightMm != null) 'pagePadRightMm': pagePadRightMm,
-        if (pagePadBottomMm != null) 'pagePadBottomMm': pagePadBottomMm,
-        if (documentPadTopMm != null) 'documentPadTopMm': documentPadTopMm,
-        if (documentPadLeftMm != null) 'documentPadLeftMm': documentPadLeftMm,
-        if (documentPadRightMm != null)
-          'documentPadRightMm': documentPadRightMm,
-        if (documentPadBottomMm != null)
-          'documentPadBottomMm': documentPadBottomMm,
-      };
+    'isDuplex': isDuplex,
+    'mirrorFront': mirrorFront,
+    'mirrorBack': mirrorBack,
+    if (pageSizeKey != null) 'pageSizeKey': pageSizeKey,
+    if (rowsPerPage != null) 'rowsPerPage': rowsPerPage,
+    if (colsPerPage != null) 'colsPerPage': colsPerPage,
+    if (pagePadTopMm != null) 'pagePadTopMm': pagePadTopMm,
+    if (pagePadLeftMm != null) 'pagePadLeftMm': pagePadLeftMm,
+    if (pagePadRightMm != null) 'pagePadRightMm': pagePadRightMm,
+    if (pagePadBottomMm != null) 'pagePadBottomMm': pagePadBottomMm,
+    if (documentPadTopMm != null) 'documentPadTopMm': documentPadTopMm,
+    if (documentPadLeftMm != null) 'documentPadLeftMm': documentPadLeftMm,
+    if (documentPadRightMm != null) 'documentPadRightMm': documentPadRightMm,
+    if (documentPadBottomMm != null) 'documentPadBottomMm': documentPadBottomMm,
+  };
 
   factory TemplatePrintOptions.fromJson(Map<String, dynamic> json) {
     double? readDouble(String key, String legacyKey) {
@@ -1196,20 +1412,18 @@ class TemplatePrintOptions {
       documentPadTopMm: readDouble('documentPadTopMm', 'labelPadTopMm'),
       documentPadLeftMm: readDouble('documentPadLeftMm', 'labelPadLeftMm'),
       documentPadRightMm: readDouble('documentPadRightMm', 'labelPadRightMm'),
-      documentPadBottomMm:
-          readDouble('documentPadBottomMm', 'labelPadBottomMm'),
+      documentPadBottomMm: readDouble(
+        'documentPadBottomMm',
+        'labelPadBottomMm',
+      ),
     );
   }
 }
 
-TemplatePrintOptions? templatePrintOptionsFromJson(
-  Map<String, dynamic> json,
-) {
+TemplatePrintOptions? templatePrintOptionsFromJson(Map<String, dynamic> json) {
   final nested = json['printOptions'];
   if (nested is Map) {
-    return TemplatePrintOptions.fromJson(
-      Map<String, dynamic>.from(nested),
-    );
+    return TemplatePrintOptions.fromJson(Map<String, dynamic>.from(nested));
   }
   if (json.containsKey('isDuplex') ||
       json.containsKey('mirrorFront') ||
@@ -1261,12 +1475,7 @@ String templateOutlineStyleToJson(TemplateOutlineStyle s) {
 }
 
 /// Line style for the optional rectangle drawn around the label in editor, preview, and PDF.
-enum TemplateOutlineStyle {
-  solid,
-  dashed,
-  dotted,
-  doubleLine,
-}
+enum TemplateOutlineStyle { solid, dashed, dotted, doubleLine }
 
 /// Per-template outline around the template area (saved with the template JSON).
 class TemplateOutline {
@@ -1297,10 +1506,10 @@ class TemplateOutline {
   }
 
   Map<String, dynamic> toJson() => {
-        'style': templateOutlineStyleToJson(style),
-        'widthPt': widthPt,
-        'colorArgb': colorArgb,
-      };
+    'style': templateOutlineStyleToJson(style),
+    'widthPt': widthPt,
+    'colorArgb': colorArgb,
+  };
 
   factory TemplateOutline.fromJson(Map<String, dynamic> json) {
     return TemplateOutline(
@@ -1316,6 +1525,8 @@ class Template {
     required this.name,
     required this.page1,
     required this.page2,
+    required this.widthMm,
+    required this.heightMm,
     this.printOptions,
     this.outline,
     this.recordType = RecordType.specimenRecord,
@@ -1325,6 +1536,8 @@ class Template {
   final String name;
   final TemplatePage page1;
   final TemplatePage page2;
+  final double widthMm;
+  final double heightMm;
 
   /// When null (legacy files), the editor uses app template settings instead.
   final TemplatePrintOptions? printOptions;
@@ -1339,6 +1552,8 @@ class Template {
     String? name,
     TemplatePage? page1,
     TemplatePage? page2,
+    double? widthMm,
+    double? heightMm,
     TemplatePrintOptions? printOptions,
     bool clearPrintOptions = false,
     TemplateOutline? outline,
@@ -1350,8 +1565,11 @@ class Template {
       name: name ?? this.name,
       page1: page1 ?? this.page1,
       page2: page2 ?? this.page2,
-      printOptions:
-          clearPrintOptions ? null : (printOptions ?? this.printOptions),
+      widthMm: widthMm ?? this.widthMm,
+      heightMm: heightMm ?? this.heightMm,
+      printOptions: clearPrintOptions
+          ? null
+          : (printOptions ?? this.printOptions),
       outline: clearOutline ? null : (outline ?? this.outline),
       recordType: recordType ?? this.recordType,
       description: description ?? this.description,
@@ -1359,14 +1577,16 @@ class Template {
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'page1': page1.toJson(),
-        'page2': page2.toJson(),
-        if (printOptions != null) 'printOptions': printOptions!.toJson(),
-        if (outline != null) 'outline': outline!.toJson(),
-        'recordType': recordTypeToString(recordType),
-        'description': description,
-      };
+    'name': name,
+    'page1': page1.toJson(),
+    'page2': page2.toJson(),
+    'widthMm': widthMm,
+    'heightMm': heightMm,
+    if (printOptions != null) 'printOptions': printOptions!.toJson(),
+    if (outline != null) 'outline': outline!.toJson(),
+    'recordType': recordTypeToString(recordType),
+    'description': description,
+  };
 
   factory Template.fromJson(Map<String, dynamic> json) {
     final opts = templatePrintOptionsFromJson(json);
@@ -1388,6 +1608,8 @@ class Template {
       page2: TemplatePage.fromJson(
         json['page2'] as Map<String, dynamic>? ?? {},
       ),
+      widthMm: (json['widthMm'] as num?)?.toDouble() ?? 215.9,
+      heightMm: (json['heightMm'] as num?)?.toDouble() ?? 279.4,
       printOptions: opts,
       outline: outline,
       recordType: parseRecordType(json['recordType'] as String?),
@@ -1411,11 +1633,15 @@ class DefaultTemplate {
     String name = 'Default',
     RecordType recordType = RecordType.specimenRecord,
     String description = '',
+    double widthMm = 215.9,
+    double heightMm = 279.4,
   ]) {
     return Template(
       name: name,
       page1: const TemplatePage(),
       page2: const TemplatePage(),
+      widthMm: widthMm,
+      heightMm: heightMm,
       printOptions: null,
       recordType: recordType,
       description: description,

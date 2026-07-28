@@ -6,6 +6,13 @@ void main() {
     CatalogFmt catalogFmt = CatalogFmt.mammals;
     String part = 'skull';
     String icon = SpecimenPartIcon(catalogFmt: catalogFmt, part: part).match();
+    expect(icon, 'assets/icons/mammal_skull.svg');
+  });
+
+  test('Match whole-specimen icon path', () {
+    CatalogFmt catalogFmt = CatalogFmt.mammals;
+    String part = 'alcohol';
+    String icon = SpecimenPartIcon(catalogFmt: catalogFmt, part: part).match();
     expect(icon, 'assets/icons/mouse_outlined.svg');
   });
 

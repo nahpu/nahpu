@@ -1,38 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 class NahpuTheme {
-  static final _defaultLightColorScheme =
-      FlexThemeData.light(scheme: FlexScheme.jungle).colorScheme;
+  static const _canopyTeal = Color(0xFF1B9E77);
+  static const _mistySage = Color(0xFF4D625B);
+  static const _mossShadow = Color(0xFF1E352F);
 
-  static final _defaultDarkColorScheme =
-      FlexThemeData.dark(scheme: FlexScheme.jungle).colorScheme;
+  static final _lightColorScheme = ColorScheme.fromSeed(
+    seedColor: _canopyTeal,
+    brightness: Brightness.light,
+    primary: _canopyTeal,
+    secondary: _mistySage,
+    tertiary: _mossShadow,
+  );
 
-  static ThemeData lightTheme(ColorScheme? lightColorScheme) {
+  static final _darkColorScheme = ColorScheme.fromSeed(
+    seedColor: _canopyTeal,
+    brightness: Brightness.dark,
+    primary: _canopyTeal,
+    secondary: _mistySage,
+    tertiary: _mossShadow,
+  );
+
+  /// Light surface used around printable template canvases in every app theme.
+  static Color get templateEditorWorkspaceSurface => _lightColorScheme.surface;
+
+  static ThemeData lightTheme() {
     return ThemeData(
-      colorScheme: lightColorScheme ?? _defaultLightColorScheme,
+      colorScheme: _lightColorScheme,
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: appBarLightTheme,
+      cardTheme: _cardTheme(_lightColorScheme),
       inputDecorationTheme: inputDecorationTheme,
     );
   }
 
-  static ThemeData darkTheme(ColorScheme? darkColorScheme) {
+  static ThemeData darkTheme() {
     return ThemeData(
-      colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
+      colorScheme: _darkColorScheme,
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: appBarDarkTheme,
+      cardTheme: _cardTheme(_darkColorScheme),
       inputDecorationTheme: inputDecorationTheme,
     );
   }
 
-  static CardTheme get cardTheme {
-    return const CardTheme(
-      elevation: 0.5,
+  static CardThemeData _cardTheme(ColorScheme colorScheme) {
+    return CardThemeData(
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),
+        side: BorderSide(color: colorScheme.outlineVariant),
       ),
     );
   }

@@ -1,627 +1,702 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/exports/components/columns.dart';
-import 'package:nahpu/screens/exports/components/record_options.dart';
-import 'package:nahpu/screens/exports/components/format_options.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/screens/settings/export_presets.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
-import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/types/export_columns.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/export/site_writer.dart';
-import 'package:nahpu/services/export/specimen_part_records.dart';
-import 'package:nahpu/services/export/coll_event_writer.dart';
-import 'package:nahpu/services/export/narrative_writer.dart';
-import 'package:nahpu/services/export/record_writer.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/export.dart';
 
+/// Runs record exports from a saved preset. Record shape is intentionally not
+/// editable here: the preset is the reproducible definition of an export.
 class ExportForm extends ConsumerStatefulWidget {
   const ExportForm({super.key});
 
   @override
-  ExportFormState createState() => ExportFormState();
+  ConsumerState<ExportForm> createState() => ExportFormState();
 }
 
-class ExportFormState extends ConsumerState<ExportForm> {
-  FileOpCtrModel exportCtr = FileOpCtrModel.empty();
-  RecordType _recordType = RecordType.narrative;
-  TaxonRecordType? _taxonRecordType;
-  SpecimenRecordType _specimenRecordType = SpecimenRecordType.generalMammals;
-  MammalRecordType _mammalRecordType = MammalRecordType.excludeBats;
-  SpecimenExportFmt _specimenExportFmt = SpecimenExportFmt.standard;
-  bool _concatenateMultiEntry = false;
-  bool _useFieldNamesOnly = false;
-  bool get _isCustomFields =>
-      _specimenExportFmt == SpecimenExportFmt.selectFields &&
-      _selectedPresetName == null;
+class ExportFormState extends ConsumerState<ExportForm>
+    with SingleTickerProviderStateMixin {
+  final FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   String _fileStem = 'export';
   Directory? _selectedDir;
-  bool _hasSaved = false;
-  late File _savePath;
-  bool _isRunning = false;
-  bool _inaccurateInBrackets = true;
-
-  List<String> _availableColumns = [];
-  List<String>? _selectedColumns;
   String? _selectedPresetName;
-  ExportPresetModel? _selectedPresetMap;
+  ExportPresetModel? _selectedPreset;
+  bool _hasSaved = false;
+  bool _isRunning = false;
+  late File _savePath;
+  late TabController _mobileTabController;
 
   @override
   void initState() {
     super.initState();
-    _updateAvailableColumns();
+    _mobileTabController = TabController(length: 2, vsync: this);
+    _initPresets();
+  }
+
+  Future<void> _initPresets() async {
+    final presets = await ref.read(exportPresetNotifierProvider.future);
+    if (presets.isNotEmpty && mounted) {
+      setState(() {
+        _selectedPresetName = presets.keys.first;
+        _selectedPreset = presets.values.first;
+      });
+    }
   }
 
   @override
   void dispose() {
     exportCtr.dispose();
+    _mobileTabController.dispose();
     super.dispose();
-  }
-
-  void _updateAvailableColumns() {
-    setState(() {
-      _availableColumns = getAvailableExportColumns(
-        recordType: _recordType,
-        specimenRecordType: _specimenRecordType,
-        specimenExportFmt: _specimenExportFmt,
-      );
-      // Reset selected columns when switching record types
-      _selectedColumns = List.from(_availableColumns);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final presetsAsync = ref.watch(exportPresetNotifierProvider);
+    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Export records'),
-      ),
-      body: isLargeScreen ? _buildLargeScreenLayout() : _buildMobileLayout(),
-    );
-  }
-
-  Widget _buildLargeScreenLayout() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: FileOperationPage(
-            children: _buildFormChildren(isLargeScreen: true),
-          ),
-        ),
-        if (_isCustomFields || _selectedPresetName != null)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              child: Material(
-                borderRadius: BorderRadius.circular(16.0),
-                color: Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest
-                    .withValues(alpha: 0.4),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: _selectedPresetMap != null
-                      ? PresetFieldViewer(preset: _selectedPresetMap!)
-                      : ColumnSelectionList(
-                          availableColumns: _availableColumns,
-                          selectedColumns:
-                              _selectedColumns ?? _availableColumns,
-                          onSelectionChanged: (selected) {
-                            setState(() {
-                              _selectedColumns = selected;
-                              _hasSaved = false;
-                            });
-                          },
-                        ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout() {
-    return FileOperationPage(
-      children: _buildFormChildren(isLargeScreen: false),
-    );
-  }
-
-  List<Widget> _buildFormChildren({required bool isLargeScreen}) {
-    final presets = ref.watch(exportPresetNotifierProvider);
-    return [
-      FileFormatIcon(path: _matchFileIconPath()),
-      const SizedBox(height: 8),
-      presets.when(
-        data: (data) {
-          if (data.isEmpty) {
-            return const SizedBox.shrink();
+      appBar: AppBar(title: const Text('Export records')),
+      body: presetsAsync.when(
+        data: (presets) {
+          // Synchronize selection with updated map of presets
+          if (_selectedPresetName != null &&
+              !presets.containsKey(_selectedPresetName)) {
+            _selectedPresetName = null;
+            _selectedPreset = null;
+          } else if (_selectedPresetName != null) {
+            _selectedPreset = presets[_selectedPresetName];
           }
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: DropdownButtonFormField<String?>(
-              initialValue: _selectedPresetName,
-              decoration: const InputDecoration(
-                labelText: 'Use Preset',
-                helperText: 'Select an export preset to apply custom columns',
-              ),
-              items: [
-                const DropdownMenuItem(
-                  value: null,
-                  child: Text('None (Default)'),
+
+          final settingsPane = ScrollableConstrainedLayout(
+            child: Column(
+              children: [
+                FileFormatIcon(path: _matchFileIconPath()),
+                const SizedBox(height: 8),
+                _PresetPicker(
+                  presets: presets,
+                  selectedPresetName: _selectedPresetName,
+                  onPresetChanged: (name) {
+                    setState(() {
+                      _selectedPresetName = name;
+                      _selectedPreset = name == null ? null : presets[name];
+                      _hasSaved = false;
+                    });
+                  },
+                  onManagePresets: _managePresets,
                 ),
-                ...data.keys.map((preset) {
-                  return DropdownMenuItem(
-                    value: preset,
-                    child: Text(preset),
-                  );
-                }),
-              ],
-              onChanged: (val) {
-                setState(() {
-                  _selectedPresetName = val;
-                  if (val != null) {
-                    _selectedPresetMap = data[val];
-                    if (_selectedPresetMap != null) {
-                      _selectedColumns =
-                          _selectedPresetMap!.fields.keys.toList();
-                      _useFieldNamesOnly = false;
-                      _specimenExportFmt = SpecimenExportFmt.selectFields;
+                const SizedBox(height: 8),
+                FileSettingsCard(
+                  exportCtr: exportCtr,
+                  selectedDir: _selectedDir,
+                  onExportFmtChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      exportCtr.exportFmtCtr = value;
+                      _hasSaved = false;
+                    });
+                  },
+                  onFileNameChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _fileStem = value;
+                      _hasSaved = false;
+                    });
+                  },
+                  onSelectDir: () async {
+                    final path = await FilePickerServices().selectDir();
+                    if (path != null) {
+                      setState(() {
+                        _selectedDir = path;
+                        _hasSaved = false;
+                      });
                     }
-                  } else {
-                    _selectedPresetMap = null;
-                    _selectedColumns = List.from(_availableColumns);
-                  }
-                  _hasSaved = false;
-                });
+                  },
+                  onClearDir: () => setState(() {
+                    _selectedDir = null;
+                    _hasSaved = false;
+                  }),
+                ),
+                const SizedBox(height: 24),
+                ExportShareButton(
+                  hasExported: _hasSaved,
+                  isRunning: _isRunning,
+                  onExport: _isValid() ? _exportFile : null,
+                  onShare: () => _shareFile(context),
+                ),
+              ],
+            ),
+          );
+
+          final previewPane = Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: PresetPreviewPane(
+              selectedPresetName: _selectedPresetName,
+              selectedPreset: _selectedPreset,
+              onSeeTable: () {
+                if (_selectedPreset != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ExportPresetTablePreviewScreen(
+                        preset: _selectedPreset!,
+                      ),
+                    ),
+                  );
+                }
               },
             ),
           );
-        },
-        loading: () => const SizedBox.shrink(),
-        error: (err, stack) => const SizedBox.shrink(),
-      ),
-      if (_selectedPresetName == null) ...[
-        RecordOptionsCard(
-          recordType: _recordType,
-          taxonRecordType: _taxonRecordType,
-          mammalRecordType: _mammalRecordType,
-          inaccurateInBrackets: _inaccurateInBrackets,
-          isMammalSpecimenRecord: _isMammalSpecimenRecord(),
-          onRecordTypeChanged: (RecordType? value) {
-            if (value != null) {
-              setState(() {
-                _recordType = value;
-                _hasSaved = false;
-                _updateAvailableColumns();
-              });
-            }
-          },
-          onTaxonRecordTypeChanged: (TaxonRecordType? value) {
-            if (value != null) {
-              setState(() {
-                _taxonRecordType = value;
-                _matchTaxonToRecordType();
-                _hasSaved = false;
-                _updateAvailableColumns();
-              });
-            }
-          },
-          onMammalRecordTypeChanged: (MammalRecordType? value) {
-            if (value != null) {
-              setState(() {
-                _mammalRecordType = value;
-                _matchTaxonToRecordType();
-                _hasSaved = false;
-                _updateAvailableColumns();
-              });
-            }
-          },
-          onInaccurateInBracketsChanged: (bool value) {
-            setState(() {
-              _inaccurateInBrackets = value;
-              _hasSaved = false;
-            });
-          },
-        ),
-        const SizedBox(height: 16),
-      ],
-      FormatOptionsCard(
-        recordType: _selectedPresetName != null
-            ? RecordType.specimenRecord
-            : _recordType,
-        specimenExportFmt: _specimenExportFmt,
-        concatenateMultiEntry: _concatenateMultiEntry,
-        useFieldNamesOnly: _useFieldNamesOnly,
-        isPreset: _selectedPresetName != null,
-        onSpecimenExportFmtChanged: (SpecimenExportFmt? value) {
-          if (value != null) {
-            setState(() {
-              _specimenExportFmt = value;
-              _hasSaved = false;
-              _updateAvailableColumns();
-            });
+
+          if (isLargeScreen) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: settingsPane),
+                Expanded(child: previewPane),
+              ],
+            );
+          } else {
+            return Column(
+              children: [
+                TabBar(
+                  controller: _mobileTabController,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
+                    Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _mobileTabController,
+                    children: [
+                      settingsPane,
+                      previewPane,
+                    ],
+                  ),
+                ),
+              ],
+            );
           }
         },
-        onConcatenateMultiEntryChanged: (bool value) {
-          setState(() {
-            _concatenateMultiEntry = value;
-            _hasSaved = false;
-          });
-        },
-        onSelectFields: !isLargeScreen && _selectedPresetName == null
-            ? () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) {
-                    return FractionallySizedBox(
-                      heightFactor: 0.8,
-                      child: ColumnSelectionList(
-                        availableColumns: _availableColumns,
-                        selectedColumns: _selectedColumns ?? _availableColumns,
-                        onSelectionChanged: (selected) {
-                          setState(() {
-                            _selectedColumns = selected;
-                            _hasSaved = false;
-                          });
-                        },
-                      ),
-                    );
-                  },
-                );
-              }
-            : null,
-        onUseFieldNamesOnlyChanged: (bool value) {
-          setState(() {
-            _useFieldNamesOnly = value;
-            _hasSaved = false;
-          });
-        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) =>
+            Center(child: Text('Unable to load export presets: $error')),
       ),
-      if (_selectedPresetName != null && !isLargeScreen)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: SecondaryButton(
-            text: 'View Preset Fields',
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) {
-                  return FractionallySizedBox(
-                    heightFactor: 0.8,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: PresetFieldViewer(preset: _selectedPresetMap!),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      const SizedBox(height: 16),
-      FileSettingsCard(
-        exportCtr: exportCtr,
-        selectedDir: _selectedDir,
-        onExportFmtChanged: (ExportFmt? value) {
-          if (value != null) {
-            setState(() {
-              exportCtr.exportFmtCtr = value;
-              _hasSaved = false;
-            });
-          }
-        },
-        onFileNameChanged: (String? value) {
-          if (value != null) {
-            setState(() {
-              _fileStem = value;
-              _hasSaved = false;
-            });
-          }
-        },
-        onSelectDir: () async {
-          final path = await FilePickerServices().selectDir();
-          if (path != null) {
-            setState(() {
-              _selectedDir = path;
-            });
-          }
-        },
-        onClearDir: () {
-          setState(() {
-            _selectedDir = null;
-            _hasSaved = false;
-          });
-        },
-      ),
-      const SizedBox(height: 24),
-      Wrap(
-        spacing: 20,
-        children: [
-          SaveSecondaryButton(hasSaved: _hasSaved),
-          !_hasSaved
-              ? ProgressButton(
-                  label: 'Save',
-                  isRunning: _isRunning,
-                  icon: Icons.save_alt_outlined,
-                  onPressed: !_isValid()
-                      ? null
-                      : () async {
-                          setState(() {
-                            _isRunning = true;
-                          });
-                          await _exportFile();
-                          setState(() {
-                            _isRunning = false;
-                          });
-                        },
-                )
-              : Builder(builder: (BuildContext context) {
-                  return ShareButton(
-                    onPressed: () async {
-                      _shareFile(context);
-                    },
-                  );
-                }),
-        ],
-      ),
-    ];
+    );
   }
 
-  String _matchFileIconPath() {
-    switch (exportCtr.exportFmtCtr) {
-      case ExportFmt.csv:
-        return 'assets/icons/csv.svg';
-      case ExportFmt.tsv:
-        return 'assets/icons/tsv.svg';
-      case ExportFmt.excel:
-        return 'assets/icons/csv.svg'; // fallback if no excel.svg
-      case ExportFmt.json:
-        return 'assets/icons/json.svg'; // fallback
-    }
-  }
+  bool _isValid() =>
+      exportCtr.isValid &&
+      _selectedPreset != null &&
+      !(_selectedPreset!.headerFormat == ExportHeaderFormat.darwinCore &&
+          exportCtr.exportFmtCtr == ExportFmt.json);
 
-  bool _isValid() {
-    bool isFieldValid = exportCtr.isValid;
-    if (_recordType == RecordType.specimenRecord) {
-      return isFieldValid && _taxonRecordType != null;
-    }
-    return isFieldValid;
-  }
-
-  bool _isMammalSpecimenRecord() {
-    return _recordType == RecordType.specimenRecord &&
-        _taxonRecordType == TaxonRecordType.mammals;
-  }
-
-  void _matchTaxonToRecordType() {
-    switch (_taxonRecordType) {
-      case TaxonRecordType.mammals:
-        switch (_mammalRecordType) {
-          case MammalRecordType.excludeBats:
-            _specimenRecordType = SpecimenRecordType.generalMammals;
-            break;
-          case MammalRecordType.onlyBats:
-            _specimenRecordType = SpecimenRecordType.bats;
-            break;
-          default:
-            _specimenRecordType = SpecimenRecordType.allMammals;
-            break;
-        }
-        break;
-      case TaxonRecordType.birds:
-        _specimenRecordType = SpecimenRecordType.birds;
-        break;
-      case TaxonRecordType.herps:
-        _specimenRecordType = SpecimenRecordType.herpetofauna;
-        break;
-      default:
-        break;
-    }
-  }
+  String _matchFileIconPath() => switch (exportCtr.exportFmtCtr) {
+        ExportFmt.csv => 'assets/icons/csv.svg',
+        ExportFmt.tsv => 'assets/icons/tsv.svg',
+        ExportFmt.excel => 'assets/icons/xlsx.svg',
+        ExportFmt.json => 'assets/icons/json.svg',
+      };
 
   Future<void> _exportFile() async {
-    await _writeDelimited(exportCtr.exportFmtCtr);
-  }
-
-  Future<void> _writeDelimited(ExportFmt format) async {
-    String ext;
-    if (format == ExportFmt.excel) {
-      ext = 'xlsx';
-    } else if (format == ExportFmt.json) {
-      ext = 'json';
-    } else {
-      ext = format.name;
-    }
+    setState(() => _isRunning = true);
     try {
+      final format = exportCtr.exportFmtCtr;
+      final ext = switch (format) {
+        ExportFmt.excel => 'xlsx',
+        ExportFmt.json => 'json',
+        _ => format.name,
+      };
       _savePath = await AppIOServices(
         dir: _selectedDir,
         fileStem: _fileStem,
         ext: ext,
       ).getSavePath();
-      await _matchRecordTypeToWriter(_savePath, format);
-      setState(() {
-        _hasSaved = true;
-      });
+      await PresetRecordExporter(ref: ref, preset: _selectedPreset!).write(
+        _savePath,
+        format,
+      );
+      if (mounted) setState(() => _hasSaved = true);
       _showSavedPath();
-    } catch (e) {
-      if (context.mounted) {
-        _showError(e.toString());
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
       }
+    } finally {
+      if (mounted) setState(() => _isRunning = false);
     }
-  }
-
-  void _showError(String errors) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errors),
-      ),
-    );
   }
 
   void _showSavedPath() {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            systemPlatform == PlatformType.desktop
-                ? 'File saved as $_savePath'
-                : 'File saved!',
-          ),
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          systemPlatform == PlatformType.desktop
+              ? 'Exported to $_savePath'
+              : 'Export complete!',
         ),
-      );
-    }
+      ),
+    );
   }
 
   Future<void> _shareFile(BuildContext context) async {
     try {
       await FilePickerServices().shareFile(context, _savePath);
-    } catch (e) {
+    } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            duration: const Duration(seconds: 8),
-          ),
+          SnackBar(content: Text('Error: $error')),
         );
       }
     }
   }
 
-  Future<void> _matchRecordTypeToWriter(File file, ExportFmt format) async {
-    if (_selectedPresetName != null) {
-      await SpecimenRecordWriter(
-        ref: ref,
-        recordType: SpecimenRecordType.allTaxa,
-        isInaccurateInBrackets: _inaccurateInBrackets,
-        isAllFields: false,
-        concatenateMultiEntry: _concatenateMultiEntry,
-        useFieldNamesOnly: _useFieldNamesOnly,
-        selectedColumns: _selectedColumns,
-        exportPreset: _selectedPresetMap,
-      ).writeRecordDelimited(file, format);
-      return;
-    }
-
-    switch (_recordType) {
-      case RecordType.narrative:
-        await NarrativeRecordWriter(
-          ref: ref,
-          useFieldNamesOnly: _useFieldNamesOnly,
-          selectedColumns: _isCustomFields ? _selectedColumns : null,
-        ).writeNarrativeDelimited(file, format);
-        break;
-      case RecordType.site:
-        await SiteWriterServices(
-          ref: ref,
-          useFieldNamesOnly: _useFieldNamesOnly,
-          selectedColumns: _isCustomFields ? _selectedColumns : null,
-        ).writeSiteDelimited(file, format);
-        break;
-      case RecordType.collEvent:
-        await CollEventRecordWriter(
-          ref: ref,
-          useFieldNamesOnly: _useFieldNamesOnly,
-          selectedColumns: _isCustomFields ? _selectedColumns : null,
-        ).writeCollEventDelimited(file, format);
-        break;
-      case RecordType.specimenRecord:
-        await SpecimenRecordWriter(
-          ref: ref,
-          recordType: _specimenRecordType,
-          isInaccurateInBrackets: _inaccurateInBrackets,
-          isAllFields: _specimenExportFmt == SpecimenExportFmt.allFields,
-          concatenateMultiEntry: _concatenateMultiEntry,
-          useFieldNamesOnly: _useFieldNamesOnly,
-          selectedColumns: _isCustomFields ? _selectedColumns : null,
-          exportPreset: _selectedPresetMap,
-        ).writeRecordDelimited(file, format);
-        break;
-      case RecordType.specimenParts:
-        await SpecimenPartWriter(
-          ref: ref,
-          useFieldNamesOnly: _useFieldNamesOnly,
-          selectedColumns: _isCustomFields ? _selectedColumns : null,
-        ).writeDelimited(
-          file,
-          format,
-        );
-        break;
-      case RecordType.none:
-        break;
-    }
+  void _managePresets() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ExportPresetsScreen(),
+      ),
+    );
+    setState(() {});
   }
 }
 
-class PresetFieldViewer extends StatelessWidget {
-  const PresetFieldViewer({super.key, required this.preset});
+class _PresetPicker extends StatelessWidget {
+  const _PresetPicker({
+    required this.presets,
+    required this.selectedPresetName,
+    required this.onPresetChanged,
+    required this.onManagePresets,
+  });
+
+  final Map<String, ExportPresetModel> presets;
+  final String? selectedPresetName;
+  final ValueChanged<String?> onPresetChanged;
+  final VoidCallback onManagePresets;
+
+  @override
+  Widget build(BuildContext context) {
+    if (presets.isEmpty) {
+      return FormCard(
+        title: 'Export preset',
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.warning_amber_rounded, size: 48),
+              const SizedBox(height: 12),
+              const Text(
+                'No export presets found. Manage presets in settings to create one.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              PrimaryButton(
+                label: 'Manage Presets',
+                icon: Icons.settings_outlined,
+                onPressed: onManagePresets,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Card(
+      elevation: 0,
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: selectedPresetName,
+              decoration: const InputDecoration(
+                labelText: 'Export preset',
+                helperText:
+                    'Record type, headers, and field mappings are set by the preset.',
+              ),
+              items: presets.keys
+                  .map((name) =>
+                      DropdownMenuItem(value: name, child: Text(name)))
+                  .toList(growable: false),
+              onChanged: onPresetChanged,
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onManagePresets,
+                icon: const Icon(Icons.settings_outlined, size: 16),
+                label: const Text('Manage presets'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PresetPreviewPane extends StatelessWidget {
+  const PresetPreviewPane({
+    super.key,
+    required this.selectedPresetName,
+    required this.selectedPreset,
+    required this.onSeeTable,
+  });
+
+  final String? selectedPresetName;
+  final ExportPresetModel? selectedPreset;
+  final VoidCallback onSeeTable;
+
+  @override
+  Widget build(BuildContext context) {
+    if (selectedPresetName == null || selectedPreset == null) {
+      return const FormCard(
+        title: 'Preset details',
+        isExpanded: true,
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Select an export preset to see details and preview.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final preset = selectedPreset!;
+    final isValid = preset.mappings.isNotEmpty;
+
+    return FormCard(
+      title: 'Preset: $selectedPresetName',
+      isExpanded: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Chip(
+                        label: Text(
+                            'Record: ${recordTypeToString(preset.recordType)}'),
+                        avatar:
+                            const Icon(Icons.description_outlined, size: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      if (preset.recordType == RecordType.specimenRecord)
+                        Chip(
+                          label:
+                              Text('Taxon: ${preset.specimenRecordType.name}'),
+                          avatar: const Icon(Icons.pets_outlined, size: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      Chip(
+                        label: Text('Header: ${preset.headerFormat.name}'),
+                        avatar: const Icon(Icons.title_outlined, size: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Selected Columns (${preset.mappings.length}):',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  PresetColumnChips(preset: preset),
+                  if (isValid) ...[
+                    const SizedBox(height: 24),
+                    Center(
+                      child: PrimaryButton(
+                        label: 'Preview Table',
+                        icon: Icons.table_chart_outlined,
+                        onPressed: onSeeTable,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PresetColumnChips extends StatelessWidget {
+  const PresetColumnChips({super.key, required this.preset});
+
   final ExportPresetModel preset;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            'Preset Fields (Read-Only)',
-            style: Theme.of(context).textTheme.titleMedium,
+    if (preset.mappings.isEmpty) {
+      return const Text('No fields mapped in this preset.');
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: preset.mappings.map((mapping) {
+        final label = _getMappingLabel(mapping, preset.headerFormat);
+        return Chip(
+          label: Text(label),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              if (preset.fields.isNotEmpty) ...[
-                Text('Standard Fields',
-                    style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: preset.fields.values.map((f) {
-                    return Chip(
-                      label: Text(f),
-                      backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-              ],
-              if (preset.combinedFields.isNotEmpty) ...[
-                Text('Combined Fields',
-                    style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: preset.combinedFields.map((f) {
-                    return Chip(
-                      label: Text(f.fieldId),
-                      backgroundColor:
-                          Theme.of(context).colorScheme.secondaryContainer,
-                    );
-                  }).toList(),
-                ),
-              ],
-            ],
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.secondary.withAlpha(24),
+            width: 1.5,
           ),
-        ),
-      ],
+        );
+      }).toList(),
+    );
+  }
+
+  String _getMappingLabel(
+      ExportFieldMapping mapping, ExportHeaderFormat format) {
+    final override = mapping.headerOverride?.trim();
+    if (override != null && override.isNotEmpty) return override;
+    if (mapping.isNested) {
+      return '${mapping.nestedNamespace} (${mapping.nestedFields.length} fields)';
+    }
+    final expr = mapping.expression.trim();
+    final match = RegExp(r'\[([^\]?\s]+)').firstMatch(expr);
+    final key = match?.group(1) ?? expr;
+    if (format == ExportHeaderFormat.fieldName) {
+      return key.split('::').last;
+    }
+    return key;
+  }
+}
+
+class ExportPresetTablePreviewScreen extends ConsumerStatefulWidget {
+  const ExportPresetTablePreviewScreen({super.key, required this.preset});
+
+  final ExportPresetModel preset;
+
+  @override
+  ConsumerState<ExportPresetTablePreviewScreen> createState() =>
+      _ExportPresetTablePreviewScreenState();
+}
+
+class _ExportPresetTablePreviewScreenState
+    extends ConsumerState<ExportPresetTablePreviewScreen> {
+  final ScrollController _hScrollController = ScrollController();
+  final ScrollController _vScrollController = ScrollController();
+  List<String> _headers = [];
+  List<List<String>> _rows = [];
+  bool _isLoading = true;
+  int _currentPage = 0;
+  final int _pageSize = 50;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void dispose() {
+    _hScrollController.dispose();
+    _vScrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() => _isLoading = true);
+    try {
+      final data = await PresetRecordExporter(ref: ref, preset: widget.preset)
+          .getPreviewData();
+      if (mounted) {
+        setState(() {
+          _headers = data.headers;
+          _rows = data.rows;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final startIndex = _currentPage * _pageSize;
+    final endIndex = (startIndex + _pageSize) < _rows.length
+        ? (startIndex + _pageSize)
+        : _rows.length;
+    final currentPageData = _isLoading || _rows.isEmpty
+        ? <List<String>>[]
+        : _rows.sublist(startIndex, endIndex);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Table preview'),
+      ),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _rows.isEmpty
+                ? const Center(child: Text('No records found for this preset.'))
+                : Column(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Scrollbar(
+                              controller: _vScrollController,
+                              child: SingleChildScrollView(
+                                controller: _vScrollController,
+                                scrollDirection: Axis.vertical,
+                                child: Scrollbar(
+                                  controller: _hScrollController,
+                                  child: SingleChildScrollView(
+                                    controller: _hScrollController,
+                                    scrollDirection: Axis.horizontal,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth: constraints.maxWidth,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                          top: Radius.circular(16.0),
+                                        ),
+                                        child: DataTable(
+                                          headingRowColor:
+                                              WidgetStateProperty.all(
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer,
+                                          ),
+                                          columnSpacing: 16,
+                                          horizontalMargin: 12,
+                                          dataRowMinHeight: 40,
+                                          columns: [
+                                            for (final col in _headers)
+                                              DataColumn(
+                                                label: ConstrainedBox(
+                                                  constraints:
+                                                      const BoxConstraints(
+                                                    minWidth: 72,
+                                                    maxWidth: 160,
+                                                  ),
+                                                  child: Text(
+                                                    col,
+                                                    softWrap: true,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                          rows: [
+                                            for (final row in currentPageData)
+                                              DataRow(
+                                                cells: [
+                                                  for (var index = 0;
+                                                      index < _headers.length;
+                                                      index++)
+                                                    DataCell(
+                                                      ConstrainedBox(
+                                                        constraints:
+                                                            const BoxConstraints(
+                                                          maxWidth: 200,
+                                                        ),
+                                                        child: Text(
+                                                          index < row.length
+                                                              ? row[index]
+                                                              : '',
+                                                          maxLines: 2,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Showing ${startIndex + 1}-$endIndex of ${_rows.length} records',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_left),
+                              onPressed: _currentPage > 0
+                                  ? () {
+                                      setState(() => _currentPage--);
+                                    }
+                                  : null,
+                            ),
+                            Text(
+                              'Page ${_currentPage + 1} of ${(_rows.isNotEmpty ? (_rows.length / _pageSize).ceil() : 1)}',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right),
+                              onPressed:
+                                  (_currentPage + 1) * _pageSize < _rows.length
+                                      ? () {
+                                          setState(() => _currentPage++);
+                                        }
+                                      : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+      ),
     );
   }
 }

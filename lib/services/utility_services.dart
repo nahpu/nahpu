@@ -23,6 +23,8 @@ class UtilityServices extends AppServices {
         return await SpecimenPartQuery(dbAccess).getDistinctTypes();
       case treatmentPrefKey:
         return await SpecimenPartQuery(dbAccess).getDistinctTreatments();
+      case conditionPrefKey:
+        return await SpecimenQuery(dbAccess).getDistinctConditions();
       default:
         return [];
     }
@@ -42,7 +44,10 @@ class UtilityServices extends AppServices {
   }
 
   Future<void> removeOption(
-      BuildContext context, String prefKey, String option) async {
+    BuildContext context,
+    String prefKey,
+    String option,
+  ) async {
     List<String> distinctOptions = await getDistinctOptions(prefKey);
     if (distinctOptions.contains(option)) {
       final tableField = _getTableField(prefKey);
@@ -51,9 +56,11 @@ class UtilityServices extends AppServices {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Cannot Delete Value'),
-            content: Text('The value "$option" is used in "$tableField". '
-                'You cannot delete it because it is already used in '
-                'the database.'),
+            content: Text(
+              'The value "$option" is used in "$tableField". '
+              'You cannot delete it because it is already used in '
+              'the database.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -93,6 +100,8 @@ class UtilityServices extends AppServices {
         return 'specimenPart::type';
       case treatmentPrefKey:
         return 'specimenPart::treatment';
+      case conditionPrefKey:
+        return 'specimen::condition';
       default:
         return 'unknown::field';
     }
@@ -218,13 +227,7 @@ bool isListContains(List<String> list, String value) {
   return list.any((e) => e.toLowerCase() == value.toLowerCase());
 }
 
-enum TextCaseFmt {
-  anyCase,
-  sentenceCase,
-  titleCase,
-  upperCase,
-  lowerCase,
-}
+enum TextCaseFmt { anyCase, sentenceCase, titleCase, upperCase, lowerCase }
 
 Map<TextCaseFmt, String> textCaseFmtMap = {
   TextCaseFmt.anyCase: 'Any Case',
@@ -329,8 +332,9 @@ extension DoubleExtension on double {
   String truncateZeroFixed(int fractionDigits) {
     if (toString().endsWith('.0')) {
       // Remove trailing .0
-      return toStringAsFixed(fractionDigits)
-          .substring(0, toString().length - 2);
+      return toStringAsFixed(
+        fractionDigits,
+      ).substring(0, toString().length - 2);
     } else {
       return toStringAsFixed(fractionDigits);
     }

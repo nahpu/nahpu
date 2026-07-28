@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -66,15 +67,14 @@ class PartDataFormState extends ConsumerState<PartDataForm>
         height: 502,
         tabs: [
           Tab(
-            icon:
-                Icon(matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true)),
+            icon: Icon(
+              matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true),
+            ),
           ),
           // Tab(
           //   icon: Icon(MdiIcons.bugOutline),
           // ),
-          Tab(
-            icon: Icon(Icons.storage_rounded),
-          )
+          Tab(icon: Icon(Icons.storage_rounded)),
         ],
         children: [
           SpecimenPartFields(
@@ -114,11 +114,8 @@ class SpecimenPartFields extends StatelessWidget {
         ),
         SizedBox(
           height: 450,
-          child: PartList(
-            specimenUuid: specimenUuid,
-            catalogFmt: catalogFmt,
-          ),
-        )
+          child: PartList(specimenUuid: specimenUuid, catalogFmt: catalogFmt),
+        ),
       ],
     );
   }
@@ -151,8 +148,9 @@ class PartListState extends ConsumerState<PartList> {
 
   @override
   Widget build(BuildContext context) {
-    final specimenPartList =
-        ref.watch(partBySpecimenProvider(widget.specimenUuid));
+    final specimenPartList = ref.watch(
+      partBySpecimenProvider(widget.specimenUuid),
+    );
     return specimenPartList.when(
       data: (data) {
         return data.isEmpty
@@ -160,29 +158,32 @@ class PartListState extends ConsumerState<PartList> {
             : Column(
                 children: [
                   SelectItemsInterface(
-                      isSelecting: _isSelecting,
-                      onClearPressed: _selectedparts.isEmpty
-                          ? null
-                          : () {
-                              setState(() {
-                                _selectedparts.clear();
-                              });
-                            },
-                      onSelectAllPressed: () {
-                        setState(() {
-                          _selectedparts.clear();
-                          _selectedparts.addAll(data
+                    isSelecting: _isSelecting,
+                    onClearPressed: _selectedparts.isEmpty
+                        ? null
+                        : () {
+                            setState(() {
+                              _selectedparts.clear();
+                            });
+                          },
+                    onSelectAllPressed: () {
+                      setState(() {
+                        _selectedparts.clear();
+                        _selectedparts.addAll(
+                          data
                               .where((e) => e.id != null)
                               .map((e) => e.id!)
-                              .toList());
-                        });
-                      },
-                      onSelectPressed: () {
-                        setState(() {
-                          _isSelecting = !_isSelecting;
-                          _selectedparts.clear();
-                        });
-                      }),
+                              .toList(),
+                        );
+                      });
+                    },
+                    onSelectPressed: () {
+                      setState(() {
+                        _isSelecting = !_isSelecting;
+                        _selectedparts.clear();
+                      });
+                    },
+                  ),
                   Flexible(
                     child: CommonScrollbar(
                       scrollController: _scrollController,
@@ -193,28 +194,31 @@ class PartListState extends ConsumerState<PartList> {
                         itemBuilder: (context, index) {
                           final part = data[index];
                           return ListTile(
-                            leading:
-                                Row(mainAxisSize: MainAxisSize.min, children: [
-                              !_isSelecting
-                                  ? PartIcon(
-                                      partType: part.type ?? 'unknown',
-                                      catalogFmt: widget.catalogFmt,
-                                    )
-                                  : ListCheckBox(
-                                      isDisabled: false,
-                                      value: _selectedparts.contains(part.id),
-                                      onChanged: (bool? value) {
-                                        if (part.id != null) {
-                                          setState(() {
-                                            if (value == true) {
-                                              _selectedparts.add(part.id!);
-                                            } else {
-                                              _selectedparts.remove(part.id);
-                                            }
-                                          });
-                                        }
-                                      }),
-                            ]),
+                            leading: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                !_isSelecting
+                                    ? PartIcon(
+                                        partType: part.type ?? 'unknown',
+                                        catalogFmt: widget.catalogFmt,
+                                      )
+                                    : ListCheckBox(
+                                        isDisabled: false,
+                                        value: _selectedparts.contains(part.id),
+                                        onChanged: (bool? value) {
+                                          if (part.id != null) {
+                                            setState(() {
+                                              if (value == true) {
+                                                _selectedparts.add(part.id!);
+                                              } else {
+                                                _selectedparts.remove(part.id);
+                                              }
+                                            });
+                                          }
+                                        },
+                                      ),
+                              ],
+                            ),
                             title: PartTitle(
                               partType: part.type,
                               partCount: part.count.toString(),
@@ -231,8 +235,9 @@ class PartListState extends ConsumerState<PartList> {
                                           builder: (context) => EditPart(
                                             specimenUuid: widget.specimenUuid,
                                             specimenPartId: part.id,
-                                            partCtr:
-                                                PartFormCtrModel.fromData(part),
+                                            partCtr: PartFormCtrModel.fromData(
+                                              part,
+                                            ),
                                           ),
                                         ),
                                       );
@@ -256,7 +261,8 @@ class PartListState extends ConsumerState<PartList> {
                             setState(() {
                               _selectedparts.clear();
                             });
-                          }),
+                          },
+                        ),
                 ],
               );
       },
@@ -267,8 +273,9 @@ class PartListState extends ConsumerState<PartList> {
 
   Future<void> _deleteParts() async {
     try {
-      await SpecimenServices(ref: ref)
-          .deleteSpecimenPartsFromList(_selectedparts);
+      await SpecimenServices(
+        ref: ref,
+      ).deleteSpecimenPartsFromList(_selectedparts);
       setState(() {
         _isSelecting = false;
       });
@@ -287,10 +294,9 @@ class PartListState extends ConsumerState<PartList> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-      duration: const Duration(seconds: 10),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
+    );
   }
 }
 
@@ -334,19 +340,13 @@ class EmptyPart extends StatelessWidget {
 }
 
 class PartIcon extends ConsumerWidget {
-  const PartIcon({
-    super.key,
-    required this.partType,
-    required this.catalogFmt,
-  });
+  const PartIcon({super.key, required this.partType, required this.catalogFmt});
 
   final String partType;
   final CatalogFmt catalogFmt;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return TileSvgIcon(
-      iconPath: _iconPath,
-    );
+    return TileSvgIcon(iconPath: _iconPath);
   }
 
   String get _iconPath {
@@ -379,16 +379,16 @@ class PartTitle extends ConsumerWidget {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     return TitlePartText(
-                      text: '$_partText'
+                      text:
+                          '$_partText'
                           '$listTileSeparator'
                           '${snapshot.data}',
                     );
                   } else {
-                    return TitlePartText(
-                      text: _partText,
-                    );
+                    return TitlePartText(text: _partText);
                   }
-                })
+                },
+              )
             : TitlePartText(text: _partText),
         barcodeID.isNotEmpty
             ? BarcodeText(barcodeID: barcodeID)
@@ -404,8 +404,9 @@ class PartTitle extends ConsumerWidget {
   }
 
   Future<String> _getPreparatorName(WidgetRef ref) async {
-    PersonnelData person =
-        await PersonnelServices(ref: ref).getPersonnelByUuid(preparator!);
+    PersonnelData person = await PersonnelServices(
+      ref: ref,
+    ).getPersonnelByUuid(preparator!);
     return person.name ?? '';
   }
 }
@@ -426,10 +427,7 @@ class TitlePartText extends StatelessWidget {
 }
 
 class BarcodeText extends StatelessWidget {
-  const BarcodeText({
-    super.key,
-    required this.barcodeID,
-  });
+  const BarcodeText({super.key, required this.barcodeID});
 
   final String? barcodeID;
 
@@ -437,16 +435,19 @@ class BarcodeText extends StatelessWidget {
   Widget build(BuildContext context) {
     return RichText(
       overflow: TextOverflow.ellipsis,
-      text: TextSpan(children: [
-        WidgetSpan(
+      text: TextSpan(
+        children: [
+          WidgetSpan(
             child: TileIcon(icon: Icons.abc),
-            alignment: PlaceholderAlignment.middle),
-        const TextSpan(text: ' '),
-        TextSpan(
-          text: barcodeIDText,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ]),
+            alignment: PlaceholderAlignment.middle,
+          ),
+          const TextSpan(text: ' '),
+          TextSpan(
+            text: barcodeIDText,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
     );
   }
 
@@ -533,10 +534,7 @@ class PartSubTitle extends StatelessWidget {
 }
 
 class NewPart extends StatelessWidget {
-  const NewPart({
-    super.key,
-    required this.specimenUuid,
-  });
+  const NewPart({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
@@ -627,9 +625,7 @@ class PartFormState extends ConsumerState<PartForm> {
             specimenUuid: widget.specimenUuid,
             partCtr: widget.partCtr,
           ),
-          SpecimenTypeField(
-            partCtr: widget.partCtr,
-          ),
+          SpecimenTypeField(partCtr: widget.partCtr),
           SpecimenCountField(partCtr: widget.partCtr),
           SpecimenTreatmentFields(
             partCtr: widget.partCtr,
@@ -645,15 +641,8 @@ class PartFormState extends ConsumerState<PartForm> {
             },
           ),
           const SizedBox(height: 16),
-          FormButtonWithDelete(
+          FormButton(
             isEditing: widget.isEditing,
-            onDeleted: () {
-              if (widget.specimenPartId != null) {
-                SpecimenServices(ref: ref)
-                    .deleteSpecimenPart(widget.specimenPartId!);
-                Navigator.pop(context);
-              }
-            },
             onSubmitted: () {
               widget.isEditing ? _updatePart() : _createPart();
               Navigator.of(context).pop();
@@ -673,8 +662,9 @@ class PartFormState extends ConsumerState<PartForm> {
   Future<void> _updatePart() async {
     SpecimenPartCompanion form = _getForm();
 
-    await SpecimenPartServices(ref: ref)
-        .updateSpecimenPart(widget.specimenPartId!, form);
+    await SpecimenPartServices(
+      ref: ref,
+    ).updateSpecimenPart(widget.specimenPartId!, form);
   }
 
   SpecimenPartCompanion _getForm() {
@@ -709,17 +699,25 @@ class SpecimenTreatmentFields extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(userDefinedFieldProvider(treatmentPrefKey)).when(
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(treatmentPrefKey))
+        .when(
           data: (data) {
+            final treatments = includeCurrentVocabularyValue(
+              data,
+              partCtr.treatmentCtr.text.trim().isEmpty
+                  ? null
+                  : partCtr.treatmentCtr.text.trim(),
+            );
             return Column(
               children: [
                 SpecimenTreatmentField(
                   partCtr: partCtr,
-                  treatmentList: data,
+                  treatmentList: treatments,
                 ),
                 AdditionalTreatmentField(
                   partCtr: partCtr,
-                  treatmentList: data,
+                  treatmentList: treatments,
                   isVisible: isVisible,
                 ),
               ],
@@ -732,10 +730,7 @@ class SpecimenTreatmentFields extends ConsumerWidget {
 }
 
 class SpecimenCountField extends StatelessWidget {
-  const SpecimenCountField({
-    super.key,
-    required this.partCtr,
-  });
+  const SpecimenCountField({super.key, required this.partCtr});
 
   final PartFormCtrModel partCtr;
 
@@ -751,24 +746,24 @@ class SpecimenCountField extends StatelessWidget {
 }
 
 class SpecimenTypeField extends ConsumerWidget {
-  const SpecimenTypeField({
-    super.key,
-    required this.partCtr,
-  });
+  const SpecimenTypeField({super.key, required this.partCtr});
 
   final PartFormCtrModel partCtr;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(userDefinedFieldProvider(specimenTypePrefKey)).when(
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(specimenTypePrefKey))
+        .when(
           data: (data) {
+            final options = includeCurrentVocabularyValue(data, _getValue());
             return DropdownButtonFormField(
               initialValue: _getValue(),
               decoration: const InputDecoration(
                 labelText: 'Preparation type',
                 hintText: 'Enter preparation type',
               ),
-              items: data.map((String value) {
+              items: options.map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: CommonDropdownText(text: value),
@@ -922,15 +917,21 @@ class AdditionalPartFields extends ConsumerWidget {
               labelText: 'Preparator',
               hintText: 'If different from voucher preparator',
             ),
-            items: ref.watch(projectPersonnelProvider).when(
+            items: ref
+                .watch(projectPersonnelProvider)
+                .when(
                   data: (data) => data
-                      .where((element) =>
-                          element.role == 'Cataloger' ||
-                          element.role == 'Preparator only')
-                      .map((e) => DropdownMenuItem(
-                            value: e.uuid,
-                            child: CommonDropdownText(text: e.name ?? ''),
-                          ))
+                      .where(
+                        (element) =>
+                            element.role == 'Cataloger' ||
+                            element.role == 'Preparator only',
+                      )
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e.uuid,
+                          child: CommonDropdownText(text: e.name ?? ''),
+                        ),
+                      )
                       .toList(),
                   loading: () => const [],
                   error: (e, s) => const [],
@@ -1009,17 +1010,18 @@ class PartIdForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 4, 16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(context).colorScheme.primary,
-              width: 2.0,
-            ),
-            borderRadius: BorderRadius.circular(16),
+      padding: const EdgeInsets.fromLTRB(0, 0, 4, 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2.0,
           ),
-          child: Column(children: [
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
             Text(
               'Additional Part ID',
               style: Theme.of(context).textTheme.titleLarge,
@@ -1028,19 +1030,16 @@ class PartIdForm extends ConsumerWidget {
               specimenUuid: specimenUuid,
               tissueIdCtr: partCtr.tissueIdCtr,
             ),
-            UniqueIDField(
-              barcodeIdCtr: partCtr.barcodeIdCtr,
-            ),
-          ]),
-        ));
+            UniqueIDField(barcodeIdCtr: partCtr.barcodeIdCtr),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class UniqueIDField extends StatefulWidget {
-  const UniqueIDField({
-    super.key,
-    required this.barcodeIdCtr,
-  });
+  const UniqueIDField({super.key, required this.barcodeIdCtr});
 
   final TextEditingController barcodeIdCtr;
 
@@ -1062,41 +1061,42 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
             isLastField: false,
           ),
         ),
-        PopupMenuButton<String>(itemBuilder: (context) {
-          return [
-            if (systemPlatform == PlatformType.mobile)
+        PopupMenuButton<String>(
+          itemBuilder: (context) {
+            return [
+              if (systemPlatform == PlatformType.mobile)
+                PopupMenuItem(
+                  child: const ListTile(
+                    leading: Icon(Icons.qr_code_scanner_outlined),
+                    title: Text('Scan QR/Barcode'),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ScannerScreen(
+                          onDetect: (barcode) {
+                            _onDetect(barcode);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              if (systemPlatform == PlatformType.mobile)
+                const PopupMenuDivider(),
               PopupMenuItem(
                 child: const ListTile(
-                  leading: Icon(Icons.qr_code_scanner_outlined),
-                  title: Text('Scan QR/Barcode'),
+                  leading: Icon(Icons.qr_code_2_outlined),
+                  title: Text('Generate UUID'),
                 ),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ScannerScreen(
-                        onDetect: (barcode) {
-                          _onDetect(barcode);
-                        },
-                      ),
-                    ),
-                  );
+                  _generateUuid();
                 },
               ),
-            if (systemPlatform == PlatformType.mobile) const PopupMenuDivider(),
-            PopupMenuItem(
-              child: const ListTile(
-                leading: Icon(
-                  Icons.qr_code_2_outlined,
-                ),
-                title: Text('Generate UUID'),
-              ),
-              onTap: () {
-                _generateUuid();
-              },
-            ),
-          ];
-        }),
+            ];
+          },
+        ),
       ],
     );
   }
@@ -1116,8 +1116,10 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
 
   void _generateUuid() {
     if (widget.barcodeIdCtr.text.isNotEmpty) {
-      _showError('QR/barcode ID already exists. '
-          'Clear the field to generate a new UUID');
+      _showError(
+        'QR/barcode ID already exists. '
+        'Clear the field to generate a new UUID',
+      );
       return;
     }
     setState(() {
@@ -1126,11 +1128,9 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -1193,11 +1193,9 @@ class TissueIDformState extends ConsumerState<TissueIDform> {
           onNewNumber: widget.tissueIdCtr.text.isNotEmpty
               ? null
               : () {
-                  setState(
-                    () {
-                      _hasId = true;
-                    },
-                  );
+                  setState(() {
+                    _hasId = true;
+                  });
                 },
         ),
       ],
@@ -1205,8 +1203,9 @@ class TissueIDformState extends ConsumerState<TissueIDform> {
   }
 
   Future<void> _repeatTissueNum() async {
-    String? tissueID =
-        await TissueIdServices(ref: ref).repeatNumber(widget.specimenUuid);
+    String? tissueID = await TissueIdServices(
+      ref: ref,
+    ).repeatNumber(widget.specimenUuid);
     if (tissueID == null || tissueID.isEmpty) {
       if (context.mounted) {
         _showError('Failed to repeat tissue number');
@@ -1217,11 +1216,9 @@ class TissueIDformState extends ConsumerState<TissueIDform> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -1242,41 +1239,42 @@ class TissueIDMenu extends ConsumerStatefulWidget {
 class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<int>(itemBuilder: (BuildContext context) {
-      return [
-        PopupMenuItem(
-          value: 1,
-          enabled: _hasNoId(),
-          child: const ListTile(
-            leading: Icon(Icons.add),
-            title: Text('New number'),
+    return PopupMenuButton<int>(
+      itemBuilder: (BuildContext context) {
+        return [
+          PopupMenuItem(
+            value: 1,
+            enabled: _hasNoId(),
+            child: const ListTile(
+              leading: Icon(Icons.add),
+              title: Text('New number'),
+            ),
+            onTap: () => {
+              if (widget.onNewNumber != null)
+                {
+                  widget.onNewNumber!(),
+                  setState(() {
+                    _getNewNumber();
+                  }),
+                },
+            },
           ),
-          onTap: () => {
-            if (widget.onNewNumber != null)
-              {
-                widget.onNewNumber!(),
-                setState(() {
-                  _getNewNumber();
-                }),
-              }
-          },
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
+          const PopupMenuDivider(),
+          PopupMenuItem(
             value: 2,
             child: const ListTile(
               leading: Icon(Icons.settings_outlined),
               title: Text('Settings'),
             ),
             onTap: () => {
-                  Future.delayed(
-                    const Duration(milliseconds: 0),
-                  ).then(
-                    (value) => _showTissueSettings(),
-                  ),
-                }),
-      ];
-    });
+              Future.delayed(
+                const Duration(milliseconds: 0),
+              ).then((value) => _showTissueSettings()),
+            },
+          ),
+        ];
+      },
+    );
   }
 
   void _showTissueSettings() {
@@ -1313,10 +1311,9 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
             ),
             PrimaryButton(
               onPressed: () async {
-                String tissueID = await TissueIdServices(ref: ref).setTissueID(
-                  prefixCtr.text,
-                  numberCtr.text,
-                );
+                String tissueID = await TissueIdServices(
+                  ref: ref,
+                ).setTissueID(prefixCtr.text, numberCtr.text);
                 widget.tissueIDct.text = tissueID;
                 if (mounted) {
                   _pop();
@@ -1351,13 +1348,16 @@ class SpecimenPartInfoContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const InfoContainer(content: [
-      InfoContent(
-        header: 'Overview',
-        content: 'List of specimen parts collected from the specimen, '
-            'such as skin, skull, liver, etc.'
-            ' You can edit the type and treatments list in the settings,',
-      ),
-    ]);
+    return const InfoContainer(
+      content: [
+        InfoContent(
+          header: 'Overview',
+          content:
+              'List of specimen parts collected from the specimen, '
+              'such as skin, skull, liver, etc.'
+              ' You can edit the type and treatments list in the settings,',
+        ),
+      ],
+    );
   }
 }

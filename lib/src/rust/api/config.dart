@@ -6,92 +6,132 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These functions are ignored because they are not marked as `pub`: `build_config_transfer_preview`, `config_label`, `display_json_value`, `is_controlled_vocabulary`, `read_config_export`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `eq`, `eq`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Initializes the configuration database at the specified path.
 Future<void> initConfigDb({required String path}) =>
     RustLib.instance.api.crateApiConfigInitConfigDb(path: path);
 
-/// Sets a user config list.
-Future<void> setUserConfigList(
-        {required String key, required List<String> value}) =>
-    RustLib.instance.api
-        .crateApiConfigSetUserConfigList(key: key, value: value);
+Future<void> setUserConfigList({
+  required String key,
+  required List<String> value,
+}) => RustLib.instance.api.crateApiConfigSetUserConfigList(
+  key: key,
+  value: value,
+);
 
-/// Retrieves a user config list.
 Future<List<String>?> getUserConfigList({required String key}) =>
     RustLib.instance.api.crateApiConfigGetUserConfigList(key: key);
 
-/// Sets a user config string.
-Future<void> setUserConfigString(
-        {required String key, required String value}) =>
-    RustLib.instance.api
-        .crateApiConfigSetUserConfigString(key: key, value: value);
+Future<void> setUserConfigString({
+  required String key,
+  required String value,
+}) => RustLib.instance.api.crateApiConfigSetUserConfigString(
+  key: key,
+  value: value,
+);
 
-/// Retrieves a user config string.
 Future<String?> getUserConfigString({required String key}) =>
     RustLib.instance.api.crateApiConfigGetUserConfigString(key: key);
 
-/// Deletes a user config key.
 Future<void> deleteUserConfig({required String key}) =>
     RustLib.instance.api.crateApiConfigDeleteUserConfig(key: key);
 
-/// Saves a record export preset.
-Future<void> setRecordExportPreset(
-        {required String name, required ConfigExportPreset preset}) =>
-    RustLib.instance.api
-        .crateApiConfigSetRecordExportPreset(name: name, preset: preset);
+Future<void> setTemplateTablePreviewColumns({required List<String> columns}) =>
+    RustLib.instance.api.crateApiConfigSetTemplateTablePreviewColumns(
+      columns: columns,
+    );
 
-/// Retrieves a record export preset.
+Future<List<String>?> getTemplateTablePreviewColumns() =>
+    RustLib.instance.api.crateApiConfigGetTemplateTablePreviewColumns();
+
+Future<void> setRecordExportPreset({
+  required String name,
+  required ConfigExportPreset preset,
+}) => RustLib.instance.api.crateApiConfigSetRecordExportPreset(
+  name: name,
+  preset: preset,
+);
+
 Future<ConfigExportPreset?> getRecordExportPreset({required String name}) =>
     RustLib.instance.api.crateApiConfigGetRecordExportPreset(name: name);
 
-/// Deletes a record export preset.
 Future<void> deleteRecordExportPreset({required String name}) =>
     RustLib.instance.api.crateApiConfigDeleteRecordExportPreset(name: name);
 
-/// Retrieves all record export presets.
 Future<List<ConfigPresetEntry>> getAllRecordExportPresets() =>
     RustLib.instance.api.crateApiConfigGetAllRecordExportPresets();
 
-/// Exports all user configs and document presets to a file in either JSON or JSON Lines format.
-Future<void> exportConfigToFile(
-        {required String filePath, required bool isJson}) =>
-    RustLib.instance.api
-        .crateApiConfigExportConfigToFile(filePath: filePath, isJson: isJson);
+Future<UserConfigTransferPreview> getConfigExportPreview() =>
+    RustLib.instance.api.crateApiConfigGetConfigExportPreview();
 
-/// Imports and replaces all user configs and document presets from a file.
-Future<void> importConfigFromFile({required String filePath}) =>
-    RustLib.instance.api.crateApiConfigImportConfigFromFile(filePath: filePath);
+Future<UserConfigTransferPreview> inspectConfigFile({
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigInspectConfigFile(filePath: filePath);
 
-/// Saves a template preset JSON string to the config database.
+Future<void> exportConfigToFile({
+  required String filePath,
+  required List<UserConfigSection> sections,
+}) => RustLib.instance.api.crateApiConfigExportConfigToFile(
+  filePath: filePath,
+  sections: sections,
+);
+
+Future<void> importConfigFromFile({
+  required String filePath,
+  required List<UserConfigSection> sections,
+}) => RustLib.instance.api.crateApiConfigImportConfigFromFile(
+  filePath: filePath,
+  sections: sections,
+);
+
 Future<void> setTemplatePreset({required String name, required String value}) =>
-    RustLib.instance.api
-        .crateApiConfigSetTemplatePreset(name: name, value: value);
+    RustLib.instance.api.crateApiConfigSetTemplatePreset(
+      name: name,
+      value: value,
+    );
 
-/// Retrieves a saved template preset as a JSON string.
 Future<String?> getTemplatePreset({required String name}) =>
     RustLib.instance.api.crateApiConfigGetTemplatePreset(name: name);
 
-/// Deletes a template preset.
 Future<void> deleteTemplatePreset({required String name}) =>
     RustLib.instance.api.crateApiConfigDeleteTemplatePreset(name: name);
 
-/// Lists all template preset names stored in the database.
+/// Lists every print layout block that references a template preset.
+Future<List<TemplatePresetUsage>> getTemplatePresetUsages({
+  required String name,
+}) => RustLib.instance.api.crateApiConfigGetTemplatePresetUsages(name: name);
+
+/// Replaces references to a template preset and deletes it atomically.
+Future<TemplatePresetDeletionResult> deleteTemplatePresetWithReplacement({
+  required String name,
+  String? replacementName,
+}) => RustLib.instance.api.crateApiConfigDeleteTemplatePresetWithReplacement(
+  name: name,
+  replacementName: replacementName,
+);
+
 Future<List<String>> listTemplatePresets() =>
     RustLib.instance.api.crateApiConfigListTemplatePresets();
 
 /// Exports a single template preset to a file at the specified path.
-Future<void> exportTemplatePresetToFile(
-        {required String name, required String filePath}) =>
-    RustLib.instance.api.crateApiConfigExportTemplatePresetToFile(
-        name: name, filePath: filePath);
+Future<void> exportTemplatePresetToFile({
+  required String name,
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigExportTemplatePresetToFile(
+  name: name,
+  filePath: filePath,
+);
 
 /// Saves a document layout.
-Future<void> setDocumentLayout(
-        {required String name, required DocumentLayoutPreset layout}) =>
-    RustLib.instance.api
-        .crateApiConfigSetDocumentLayout(name: name, layout: layout);
+Future<void> setDocumentLayout({
+  required String name,
+  required DocumentLayoutPreset layout,
+}) => RustLib.instance.api.crateApiConfigSetDocumentLayout(
+  name: name,
+  layout: layout,
+);
 
 /// Retrieves a document layout.
 Future<DocumentLayoutPreset?> getDocumentLayout({required String name}) =>
@@ -110,16 +150,20 @@ Future<List<DocumentLayoutStatus>> getDocumentLayoutStatuses() =>
     RustLib.instance.api.crateApiConfigGetDocumentLayoutStatuses();
 
 /// Exports a single document layout preset to a JSON file at the specified path.
-Future<void> exportDocumentLayoutToFile(
-        {required DocumentLayoutPreset layout, required String filePath}) =>
-    RustLib.instance.api.crateApiConfigExportDocumentLayoutToFile(
-        layout: layout, filePath: filePath);
+Future<void> exportDocumentLayoutToFile({
+  required DocumentLayoutPreset layout,
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigExportDocumentLayoutToFile(
+  layout: layout,
+  filePath: filePath,
+);
 
 /// Imports a single document layout preset from a JSON file.
-Future<DocumentLayoutPreset> importDocumentLayoutFromFile(
-        {required String filePath}) =>
-    RustLib.instance.api
-        .crateApiConfigImportDocumentLayoutFromFile(filePath: filePath);
+Future<DocumentLayoutPreset> importDocumentLayoutFromFile({
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigImportDocumentLayoutFromFile(
+  filePath: filePath,
+);
 
 /// Represents a combined export field configuration.
 class ConfigCombinedField {
@@ -129,10 +173,7 @@ class ConfigCombinedField {
   /// List of field names that are combined.
   final List<String> fields;
 
-  const ConfigCombinedField({
-    required this.fieldId,
-    required this.fields,
-  });
+  const ConfigCombinedField({required this.fieldId, required this.fields});
 
   @override
   int get hashCode => fieldId.hashCode ^ fields.hashCode;
@@ -179,10 +220,7 @@ class ConfigPresetEntry {
   /// Preset details.
   final ConfigExportPreset preset;
 
-  const ConfigPresetEntry({
-    required this.name,
-    required this.preset,
-  });
+  const ConfigPresetEntry({required this.name, required this.preset});
 
   @override
   int get hashCode => name.hashCode ^ preset.hashCode;
@@ -207,6 +245,8 @@ class DocumentLayoutBlock {
   final double templatePadRightMm;
   final double templatePadBottomMm;
   final bool pageBreakAfter;
+  final String? sortField;
+  final DocumentSortDirection sortDirection;
 
   const DocumentLayoutBlock({
     required this.templateName,
@@ -218,6 +258,8 @@ class DocumentLayoutBlock {
     required this.templatePadRightMm,
     required this.templatePadBottomMm,
     required this.pageBreakAfter,
+    this.sortField,
+    required this.sortDirection,
   });
 
   @override
@@ -230,7 +272,9 @@ class DocumentLayoutBlock {
       templatePadLeftMm.hashCode ^
       templatePadRightMm.hashCode ^
       templatePadBottomMm.hashCode ^
-      pageBreakAfter.hashCode;
+      pageBreakAfter.hashCode ^
+      sortField.hashCode ^
+      sortDirection.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -245,7 +289,9 @@ class DocumentLayoutBlock {
           templatePadLeftMm == other.templatePadLeftMm &&
           templatePadRightMm == other.templatePadRightMm &&
           templatePadBottomMm == other.templatePadBottomMm &&
-          pageBreakAfter == other.pageBreakAfter;
+          pageBreakAfter == other.pageBreakAfter &&
+          sortField == other.sortField &&
+          sortDirection == other.sortDirection;
 }
 
 /// Represents the overall configuration for document layouts.
@@ -316,6 +362,37 @@ class DocumentLayoutPreset {
           multiBlockMode == other.multiBlockMode;
 }
 
+class DocumentLayoutPreview {
+  final String name;
+  final String layoutType;
+  final String pageSizeKey;
+  final int blockCount;
+
+  const DocumentLayoutPreview({
+    required this.name,
+    required this.layoutType,
+    required this.pageSizeKey,
+    required this.blockCount,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^
+      layoutType.hashCode ^
+      pageSizeKey.hashCode ^
+      blockCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DocumentLayoutPreview &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          layoutType == other.layoutType &&
+          pageSizeKey == other.pageSizeKey &&
+          blockCount == other.blockCount;
+}
+
 /// Represents whether a stored document layout can be read by the current schema.
 class DocumentLayoutStatus {
   final String name;
@@ -339,4 +416,198 @@ class DocumentLayoutStatus {
           name == other.name &&
           isCompatible == other.isCompatible &&
           error == other.error;
+}
+
+enum DocumentSortDirection { ascending, descending }
+
+class RecordExportPresetPreview {
+  final String name;
+  final String recordType;
+  final int mappingCount;
+  final bool isCompatible;
+
+  const RecordExportPresetPreview({
+    required this.name,
+    required this.recordType,
+    required this.mappingCount,
+    required this.isCompatible,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^
+      recordType.hashCode ^
+      mappingCount.hashCode ^
+      isCompatible.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RecordExportPresetPreview &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          recordType == other.recordType &&
+          mappingCount == other.mappingCount &&
+          isCompatible == other.isCompatible;
+}
+
+/// Summarizes a template replacement and deletion operation.
+class TemplatePresetDeletionResult {
+  /// Number of print layouts updated before deletion.
+  final int updatedLayoutCount;
+
+  /// Number of template block references replaced.
+  final int updatedBlockCount;
+
+  const TemplatePresetDeletionResult({
+    required this.updatedLayoutCount,
+    required this.updatedBlockCount,
+  });
+
+  @override
+  int get hashCode => updatedLayoutCount.hashCode ^ updatedBlockCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TemplatePresetDeletionResult &&
+          runtimeType == other.runtimeType &&
+          updatedLayoutCount == other.updatedLayoutCount &&
+          updatedBlockCount == other.updatedBlockCount;
+}
+
+class TemplatePresetPreview {
+  final String name;
+  final String recordType;
+  final String description;
+
+  const TemplatePresetPreview({
+    required this.name,
+    required this.recordType,
+    required this.description,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^ recordType.hashCode ^ description.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TemplatePresetPreview &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          recordType == other.recordType &&
+          description == other.description;
+}
+
+/// Identifies layout blocks that reference a template preset.
+class TemplatePresetUsage {
+  /// Name of the print layout containing the references.
+  final String layoutName;
+
+  /// Zero-based indexes of blocks that reference the template.
+  final Int32List blockIndices;
+
+  const TemplatePresetUsage({
+    required this.layoutName,
+    required this.blockIndices,
+  });
+
+  @override
+  int get hashCode => layoutName.hashCode ^ blockIndices.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TemplatePresetUsage &&
+          runtimeType == other.runtimeType &&
+          layoutName == other.layoutName &&
+          blockIndices == other.blockIndices;
+}
+
+enum UserConfigSection {
+  userConfigs,
+  recordExportPresets,
+  templatePresets,
+  documentLayouts,
+  templateTablePreview,
+}
+
+class UserConfigTransferPreview {
+  final int schemaVersion;
+  final List<UserConfigSection> includedSections;
+  final List<UserConfigValuePreview> userConfigs;
+  final List<RecordExportPresetPreview> recordExportPresets;
+  final List<TemplatePresetPreview> templatePresets;
+  final List<DocumentLayoutPreview> documentLayouts;
+  final List<String> templateTablePreviewColumns;
+
+  const UserConfigTransferPreview({
+    required this.schemaVersion,
+    required this.includedSections,
+    required this.userConfigs,
+    required this.recordExportPresets,
+    required this.templatePresets,
+    required this.documentLayouts,
+    required this.templateTablePreviewColumns,
+  });
+
+  @override
+  int get hashCode =>
+      schemaVersion.hashCode ^
+      includedSections.hashCode ^
+      userConfigs.hashCode ^
+      recordExportPresets.hashCode ^
+      templatePresets.hashCode ^
+      documentLayouts.hashCode ^
+      templateTablePreviewColumns.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserConfigTransferPreview &&
+          runtimeType == other.runtimeType &&
+          schemaVersion == other.schemaVersion &&
+          includedSections == other.includedSections &&
+          userConfigs == other.userConfigs &&
+          recordExportPresets == other.recordExportPresets &&
+          templatePresets == other.templatePresets &&
+          documentLayouts == other.documentLayouts &&
+          templateTablePreviewColumns == other.templateTablePreviewColumns;
+}
+
+class UserConfigValuePreview {
+  final String key;
+  final String label;
+  final List<String> values;
+  final String? value;
+  final bool isControlledVocabulary;
+
+  const UserConfigValuePreview({
+    required this.key,
+    required this.label,
+    required this.values,
+    this.value,
+    required this.isControlledVocabulary,
+  });
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      label.hashCode ^
+      values.hashCode ^
+      value.hashCode ^
+      isControlledVocabulary.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserConfigValuePreview &&
+          runtimeType == other.runtimeType &&
+          key == other.key &&
+          label == other.label &&
+          values == other.values &&
+          value == other.value &&
+          isControlledVocabulary == other.isControlledVocabulary;
 }

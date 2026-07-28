@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/services/print_specimen_table_columns.dart';
 
 class ColumnSelectionList extends StatefulWidget {
   const ColumnSelectionList({
@@ -60,7 +61,7 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                     child: const Text('Clear All'),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
@@ -75,14 +76,13 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                 child: Material(
                   clipBehavior: Clip.hardEdge,
                   borderRadius: BorderRadius.circular(16.0),
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.4),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                   child: ExpansionTile(
                     shape: const Border(),
                     title: Text(
-                      table.toUpperCase(),
+                      databaseTableDisplayTitle(table),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     initiallyExpanded: true,
@@ -91,8 +91,9 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                       return CheckboxListTile(
                         title: Text(col.split('::').last),
                         value: _selected.contains(col),
-                        onChanged:
-                            isLocked ? null : (val) => _toggleColumn(col, val),
+                        onChanged: isLocked
+                            ? null
+                            : (val) => _toggleColumn(col, val),
                         controlAffinity: ListTileControlAffinity.leading,
                         subtitle: isLocked ? const Text('Required') : null,
                       );

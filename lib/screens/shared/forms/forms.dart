@@ -48,10 +48,8 @@ class FormCard extends StatelessWidget {
                   .surfaceContainerHighest
                   .withAlpha(80),
           border: Border.all(
-            color: isPrimary
-                ? Theme.of(context).colorScheme.secondary.withAlpha(50)
-                : Theme.of(context).dividerColor.withAlpha(50),
-            width: 1.5,
+            color: Theme.of(context).colorScheme.outlineVariant,
+            width: 1,
           ),
         ),
         child: Column(

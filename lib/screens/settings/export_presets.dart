@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/export_preset_edit.dart';
@@ -37,13 +38,187 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
     super.dispose();
   }
 
+  void _selectPreset(String? name, ExportPresetModel? preset) {
+    setState(() {
+      _selectedPresetName = name;
+      _selectedPresetMap = preset;
+    });
+  }
+
+  Future<void> _addNewPreset() async {
+    final currentPresets = await ref.read(exportPresetNotifierProvider.future);
+    if (currentPresets.length >= 20) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Maximum of 20 presets reached.')),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => const NewPresetDialog(),
+    );
+    if (newName != null) {
+      _selectPreset(newName, ExportPresetModel.empty());
+      _tabController.animateTo(1);
+    }
+  }
+
+  void _scanPresetQr() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScannerScreen(
+          onDetect: (barcode) {
+            final rawValue = barcode.barcodes.first.rawValue;
+            if (rawValue != null) {
+              _importPresetFromQr(rawValue);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _importPresetFromQr(String rawValue) async {
+    try {
+      final decoded = jsonDecode(rawValue) as Map<String, dynamic>;
+      if (!decoded.containsKey('nahpu_export_preset') ||
+          !decoded.containsKey('data')) {
+        throw const FormatException('Invalid QR code format for preset.');
+      }
+
+      final name = decoded['nahpu_export_preset'] as String;
+      final data = ExportPresetModel.fromJson(
+        Map<String, dynamic>.from(decoded['data'] as Map),
+      );
+      final currentPresets =
+          await ref.read(exportPresetNotifierProvider.future);
+      if (currentPresets.length >= 20) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Maximum of 20 presets reached. Cannot import.'),
+            ),
+          );
+        }
+        return;
+      }
+
+      var finalName = name;
+      var i = 1;
+      while (currentPresets.containsKey(finalName)) {
+        finalName = '${name}_$i';
+        i++;
+      }
+
+      await ref
+          .read(exportPresetNotifierProvider.notifier)
+          .savePreset(finalName, data);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Imported preset "$finalName"')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid or unrecognized QR code.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _importPresetsFile() async {
+    final file = await FilePickerServices().selectAnyFile();
+    if (file == null) return;
+
+    try {
+      final content = await File(file.path).readAsString();
+      final decoded = jsonDecode(content) as Map<String, dynamic>;
+      final notifier = ref.read(exportPresetNotifierProvider.notifier);
+
+      var importedCount = 0;
+      for (final entry in decoded.entries) {
+        final currentPresets =
+            await ref.read(exportPresetNotifierProvider.future);
+        if (currentPresets.length >= 20) break;
+
+        final data = ExportPresetModel.fromJson(
+          Map<String, dynamic>.from(entry.value as Map),
+        );
+        var finalName = entry.key;
+        var i = 1;
+        while (currentPresets.containsKey(finalName)) {
+          finalName = '${entry.key}_$i';
+          i++;
+        }
+        await notifier.savePreset(finalName, data);
+        importedCount++;
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Imported $importedCount presets')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to import presets: $error')),
+        );
+      }
+    }
+  }
+
+  Future<void> _exportPresetsFile() async {
+    try {
+      final currentPresets =
+          await ref.read(exportPresetNotifierProvider.future);
+      if (currentPresets.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No presets to export')),
+          );
+        }
+        return;
+      }
+      final dir = await FilePickerServices().selectDir();
+      if (dir == null) return;
+
+      final savePath = File(path.join(dir.path, 'nahpu_export_presets.json'));
+      await savePath.writeAsString(jsonEncode(currentPresets));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Exported presets to ${savePath.path}')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to export presets: $error')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Export Presets'),
+        title: const Text('Tabular Export Presets'),
+        actions: [
+          PresetAppBarActions(
+            onCreate: _addNewPreset,
+            onScanQr: _scanPresetQr,
+            onImport: _importPresetsFile,
+            onExport: _exportPresetsFile,
+          ),
+        ],
       ),
       body: isLargeScreen
           ? Padding(
@@ -54,12 +229,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                   Expanded(
                     child: PresetListColumn(
                       selectedPresetName: _selectedPresetName,
-                      onPresetSelected: (name, map) {
-                        setState(() {
-                          _selectedPresetName = name;
-                          _selectedPresetMap = map;
-                        });
-                      },
+                      onPresetSelected: _selectPreset,
                       tabController: _tabController,
                     ),
                   ),
@@ -101,12 +271,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                     children: [
                       PresetListColumn(
                         selectedPresetName: _selectedPresetName,
-                        onPresetSelected: (name, map) {
-                          setState(() {
-                            _selectedPresetName = name;
-                            _selectedPresetMap = map;
-                          });
-                        },
+                        onPresetSelected: _selectPreset,
                         tabController: _tabController,
                       ),
                       PresetEditColumn(
@@ -184,21 +349,11 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                   : const Icon(Icons.radio_button_unchecked),
                               title: Text(name),
                               subtitle: Text(
-                                  '${preset.fields.length + preset.combinedFields.length} fields selected'),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.qr_code),
-                                    tooltip: 'Show QR Code',
-                                    onPressed: () => _showQRCode(name, preset),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline),
-                                    tooltip: 'Delete',
-                                    onPressed: () => _deletePreset(name),
-                                  ),
-                                ],
+                                  '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}'),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Delete',
+                                onPressed: () => _deletePreset(name),
                               ),
                               onTap: () {
                                 widget.onPresetSelected(name, preset);
@@ -214,39 +369,9 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                   error: (e, s) => Center(child: Text('Error: $e')),
                 ),
           ),
-          const CommonLineDivider(),
-          PresetActionButtons(
-            onAddNewPreset: _addNewPreset,
-            onScanQR: _importPresetFromQR,
-            onImport: _importPresetsFile,
-            onExport: _exportPresetsFile,
-          ),
         ],
       ),
     );
-  }
-
-  void _addNewPreset() async {
-    final currentPresets = await ref.read(exportPresetNotifierProvider.future);
-    if (currentPresets.length >= 20) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Maximum of 20 presets reached.')),
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      final newName = await showDialog<String>(
-        context: context,
-        builder: (context) => const NewPresetDialog(),
-      );
-      if (newName != null) {
-        widget.onPresetSelected(newName, ExportPresetModel.empty());
-        widget.tabController.animateTo(1);
-      }
-    }
   }
 
   void _deletePreset(String name) async {
@@ -277,219 +402,6 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
         widget.onPresetSelected(null, null);
       }
     }
-  }
-
-  void _showQRCode(String name, ExportPresetModel preset) {
-    final payload =
-        jsonEncode({'nahpu_export_preset': name, 'data': preset.toJson()});
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(name),
-        content: SizedBox(
-          width: 300,
-          height: 300,
-          child: QrImageView(
-            data: payload,
-            backgroundColor: Colors.white,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _importPresetFromQR(String rawValue) async {
-    try {
-      final decoded = jsonDecode(rawValue) as Map<String, dynamic>;
-      if (decoded.containsKey('nahpu_export_preset') &&
-          decoded.containsKey('data')) {
-        String name = decoded['nahpu_export_preset'] as String;
-        final data = ExportPresetModel.fromJson(
-            Map<String, dynamic>.from(decoded['data'] as Map));
-
-        final currentPresets =
-            await ref.read(exportPresetNotifierProvider.future);
-        if (currentPresets.length >= 20) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content:
-                      Text('Maximum of 20 presets reached. Cannot import.')),
-            );
-          }
-          return;
-        }
-
-        String finalName = name;
-        int i = 1;
-        while (currentPresets.containsKey(finalName)) {
-          finalName = '${name}_$i';
-          i++;
-        }
-
-        await ref
-            .read(exportPresetNotifierProvider.notifier)
-            .savePreset(finalName, data);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Imported preset "$finalName"')),
-          );
-        }
-      } else {
-        throw const FormatException('Invalid QR code format for preset.');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid or unrecognized QR code.')),
-        );
-      }
-    }
-  }
-
-  void _importPresetsFile() async {
-    final file = await FilePickerServices().selectAnyFile();
-    if (file != null) {
-      try {
-        final content = await File(file.path).readAsString();
-        final decoded = jsonDecode(content) as Map<String, dynamic>;
-
-        final notifier = ref.read(exportPresetNotifierProvider.notifier);
-
-        int importedCount = 0;
-        for (final entry in decoded.entries) {
-          final currentPresetsLatest =
-              await ref.read(exportPresetNotifierProvider.future);
-          if (currentPresetsLatest.length >= 20) break;
-
-          final data = ExportPresetModel.fromJson(
-              Map<String, dynamic>.from(entry.value as Map));
-
-          String finalName = entry.key;
-          int i = 1;
-          while (currentPresetsLatest.containsKey(finalName)) {
-            finalName = '${entry.key}_$i';
-            i++;
-          }
-          await notifier.savePreset(finalName, data);
-          importedCount++;
-        }
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Imported $importedCount presets')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to import presets: $e')),
-          );
-        }
-      }
-    }
-  }
-
-  void _exportPresetsFile() async {
-    try {
-      final currentPresets =
-          await ref.read(exportPresetNotifierProvider.future);
-      if (currentPresets.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No presets to export')),
-          );
-        }
-        return;
-      }
-      final jsonString = jsonEncode(currentPresets);
-      final dir = await FilePickerServices().selectDir();
-      if (dir != null) {
-        final savePath = File(path.join(dir.path, 'nahpu_export_presets.json'));
-        await savePath.writeAsString(jsonString);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Exported presets to ${savePath.path}')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to export presets: $e')),
-        );
-      }
-    }
-  }
-}
-
-class PresetActionButtons extends StatelessWidget {
-  const PresetActionButtons({
-    super.key,
-    required this.onExport,
-    required this.onImport,
-    required this.onScanQR,
-    required this.onAddNewPreset,
-  });
-
-  final void Function() onExport;
-  final void Function() onImport;
-  final void Function(String) onScanQR;
-  final void Function() onAddNewPreset;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SecondaryButton(
-                text: 'Scan QR',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ScannerScreen(
-                        onDetect: (barcode) {
-                          final String? rawValue =
-                              barcode.barcodes.first.rawValue;
-                          if (rawValue != null) {
-                            onScanQR(rawValue);
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-              PrimaryButton(
-                label: 'Create',
-                icon: Icons.add,
-                onPressed: onAddNewPreset,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          TextButton(
-            onPressed: onImport,
-            child: Text('Import presets from file'),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: onExport,
-            child: Text('Export presets'),
-          ),
-        ],
-      ),
-    );
   }
 }
 

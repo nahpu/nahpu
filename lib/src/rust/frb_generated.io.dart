@@ -6,9 +6,12 @@
 import 'api/archive.dart';
 import 'api/common.dart';
 import 'api/config.dart';
+import 'api/document.dart';
+import 'api/dwc.dart';
 import 'api/export.dart';
 import 'api/gis.dart';
 import 'api/import.dart';
+import 'api/nahpu_dp.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;
@@ -37,16 +40,32 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DocumentLayoutPreset dco_decode_box_autoadd_document_layout_preset(
-      dynamic raw);
+    dynamic raw,
+  );
 
   @protected
   double dco_decode_box_autoadd_f_64(dynamic raw);
+
+  @protected
+  GeographicBoundsFfi dco_decode_box_autoadd_geographic_bounds_ffi(dynamic raw);
+
+  @protected
+  GzipExtractor dco_decode_box_autoadd_gzip_extractor(dynamic raw);
+
+  @protected
+  GzipWriter dco_decode_box_autoadd_gzip_writer(dynamic raw);
 
   @protected
   RecordReader dco_decode_box_autoadd_record_reader(dynamic raw);
 
   @protected
   RecordWriter dco_decode_box_autoadd_record_writer(dynamic raw);
+
+  @protected
+  TarGzipExtractor dco_decode_box_autoadd_tar_gzip_extractor(dynamic raw);
+
+  @protected
+  TarGzipWriter dco_decode_box_autoadd_tar_gzip_writer(dynamic raw);
 
   @protected
   ZipExtractor dco_decode_box_autoadd_zip_extractor(dynamic raw);
@@ -67,6 +86,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ConfigPresetEntry dco_decode_config_preset_entry(dynamic raw);
 
   @protected
+  CoordinateAxis dco_decode_coordinate_axis(dynamic raw);
+
+  @protected
+  CoordinateExportFormat dco_decode_coordinate_export_format(dynamic raw);
+
+  @protected
+  CoordinateFileImportResult dco_decode_coordinate_file_import_result(
+    dynamic raw,
+  );
+
+  @protected
+  CoordinateTransferRecord dco_decode_coordinate_transfer_record(dynamic raw);
+
+  @protected
   DdmCoordinateFfi dco_decode_ddm_coordinate_ffi(dynamic raw);
 
   @protected
@@ -79,13 +112,34 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DocumentLayoutPreset dco_decode_document_layout_preset(dynamic raw);
 
   @protected
+  DocumentLayoutPreview dco_decode_document_layout_preview(dynamic raw);
+
+  @protected
   DocumentLayoutStatus dco_decode_document_layout_status(dynamic raw);
+
+  @protected
+  DocumentSortDirection dco_decode_document_sort_direction(dynamic raw);
+
+  @protected
+  DwcHeader dco_decode_dwc_header(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
 
   @protected
+  GeographicBoundsFfi dco_decode_geographic_bounds_ffi(dynamic raw);
+
+  @protected
+  GzipExtractor dco_decode_gzip_extractor(dynamic raw);
+
+  @protected
+  GzipWriter dco_decode_gzip_writer(dynamic raw);
+
+  @protected
   int dco_decode_i_32(dynamic raw);
+
+  @protected
+  ImportedVectorLayer dco_decode_imported_vector_layer(dynamic raw);
 
   @protected
   List<String> dco_decode_list_String(dynamic raw);
@@ -97,15 +151,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<ConfigPresetEntry> dco_decode_list_config_preset_entry(dynamic raw);
 
   @protected
+  List<CoordinateTransferRecord> dco_decode_list_coordinate_transfer_record(
+    dynamic raw,
+  );
+
+  @protected
   List<DocumentLayoutBlock> dco_decode_list_document_layout_block(dynamic raw);
 
   @protected
   List<DocumentLayoutPreset> dco_decode_list_document_layout_preset(
-      dynamic raw);
+    dynamic raw,
+  );
+
+  @protected
+  List<DocumentLayoutPreview> dco_decode_list_document_layout_preview(
+    dynamic raw,
+  );
 
   @protected
   List<DocumentLayoutStatus> dco_decode_list_document_layout_status(
-      dynamic raw);
+    dynamic raw,
+  );
+
+  @protected
+  List<DwcHeader> dco_decode_list_dwc_header(dynamic raw);
 
   @protected
   List<List<String>> dco_decode_list_list_String(dynamic raw);
@@ -114,27 +183,63 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<Uint8List> dco_decode_list_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  Int32List dco_decode_list_prim_i_32_strict(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<RecordExportPresetPreview> dco_decode_list_record_export_preset_preview(
+    dynamic raw,
+  );
+
+  @protected
   List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
+  List<TemplatePresetPreview> dco_decode_list_template_preset_preview(
+    dynamic raw,
+  );
+
+  @protected
+  List<TemplatePresetUsage> dco_decode_list_template_preset_usage(dynamic raw);
+
+  @protected
+  List<UserConfigSection> dco_decode_list_user_config_section(dynamic raw);
+
+  @protected
+  List<UserConfigValuePreview> dco_decode_list_user_config_value_preview(
+    dynamic raw,
+  );
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
   ConfigExportPreset? dco_decode_opt_box_autoadd_config_export_preset(
-      dynamic raw);
+    dynamic raw,
+  );
 
   @protected
   DocumentLayoutPreset? dco_decode_opt_box_autoadd_document_layout_preset(
-      dynamic raw);
+    dynamic raw,
+  );
 
   @protected
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
 
   @protected
+  GeographicBoundsFfi? dco_decode_opt_box_autoadd_geographic_bounds_ffi(
+    dynamic raw,
+  );
+
+  @protected
   List<String>? dco_decode_opt_list_String(dynamic raw);
+
+  @protected
+  RecordExportPresetPreview dco_decode_record_export_preset_preview(
+    dynamic raw,
+  );
 
   @protected
   (double, double) dco_decode_record_f_64_f_64(dynamic raw);
@@ -149,13 +254,44 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RecordWriter dco_decode_record_writer(dynamic raw);
 
   @protected
+  TarGzipExtractor dco_decode_tar_gzip_extractor(dynamic raw);
+
+  @protected
+  TarGzipWriter dco_decode_tar_gzip_writer(dynamic raw);
+
+  @protected
+  TemplatePresetDeletionResult dco_decode_template_preset_deletion_result(
+    dynamic raw,
+  );
+
+  @protected
+  TemplatePresetPreview dco_decode_template_preset_preview(dynamic raw);
+
+  @protected
+  TemplatePresetUsage dco_decode_template_preset_usage(dynamic raw);
+
+  @protected
   int dco_decode_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
 
   @protected
   void dco_decode_unit(dynamic raw);
+
+  @protected
+  UserConfigSection dco_decode_user_config_section(dynamic raw);
+
+  @protected
+  UserConfigTransferPreview dco_decode_user_config_transfer_preview(
+    dynamic raw,
+  );
+
+  @protected
+  UserConfigValuePreview dco_decode_user_config_value_preview(dynamic raw);
 
   @protected
   UtmCoordinateFfi dco_decode_utm_coordinate_ffi(dynamic raw);
@@ -168,7 +304,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Map<String, String> sse_decode_Map_String_String_None(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
@@ -178,26 +315,54 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ConfigExportPreset sse_decode_box_autoadd_config_export_preset(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   DocumentLayoutPreset sse_decode_box_autoadd_document_layout_preset(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
+  GeographicBoundsFfi sse_decode_box_autoadd_geographic_bounds_ffi(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GzipExtractor sse_decode_box_autoadd_gzip_extractor(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GzipWriter sse_decode_box_autoadd_gzip_writer(SseDeserializer deserializer);
+
+  @protected
   RecordReader sse_decode_box_autoadd_record_reader(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   RecordWriter sse_decode_box_autoadd_record_writer(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TarGzipExtractor sse_decode_box_autoadd_tar_gzip_extractor(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TarGzipWriter sse_decode_box_autoadd_tar_gzip_writer(
+    SseDeserializer deserializer,
+  );
 
   @protected
   ZipExtractor sse_decode_box_autoadd_zip_extractor(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   ZipWriter sse_decode_box_autoadd_zip_writer(SseDeserializer deserializer);
@@ -207,15 +372,36 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ConfigCombinedField sse_decode_config_combined_field(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   ConfigExportPreset sse_decode_config_export_preset(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   ConfigPresetEntry sse_decode_config_preset_entry(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoordinateAxis sse_decode_coordinate_axis(SseDeserializer deserializer);
+
+  @protected
+  CoordinateExportFormat sse_decode_coordinate_export_format(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoordinateFileImportResult sse_decode_coordinate_file_import_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoordinateTransferRecord sse_decode_coordinate_transfer_record(
+    SseDeserializer deserializer,
+  );
 
   @protected
   DdmCoordinateFfi sse_decode_ddm_coordinate_ffi(SseDeserializer deserializer);
@@ -225,75 +411,167 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DocumentLayoutBlock sse_decode_document_layout_block(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   DocumentLayoutPreset sse_decode_document_layout_preset(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  DocumentLayoutPreview sse_decode_document_layout_preview(
+    SseDeserializer deserializer,
+  );
 
   @protected
   DocumentLayoutStatus sse_decode_document_layout_status(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  DocumentSortDirection sse_decode_document_sort_direction(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  DwcHeader sse_decode_dwc_header(SseDeserializer deserializer);
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
+  GeographicBoundsFfi sse_decode_geographic_bounds_ffi(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GzipExtractor sse_decode_gzip_extractor(SseDeserializer deserializer);
+
+  @protected
+  GzipWriter sse_decode_gzip_writer(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
+
+  @protected
+  ImportedVectorLayer sse_decode_imported_vector_layer(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
   List<ConfigCombinedField> sse_decode_list_config_combined_field(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<ConfigPresetEntry> sse_decode_list_config_preset_entry(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CoordinateTransferRecord> sse_decode_list_coordinate_transfer_record(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<DocumentLayoutBlock> sse_decode_list_document_layout_block(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<DocumentLayoutPreset> sse_decode_list_document_layout_preset(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<DocumentLayoutPreview> sse_decode_list_document_layout_preview(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<DocumentLayoutStatus> sse_decode_list_document_layout_status(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<DwcHeader> sse_decode_list_dwc_header(SseDeserializer deserializer);
 
   @protected
   List<List<String>> sse_decode_list_list_String(SseDeserializer deserializer);
 
   @protected
   List<Uint8List> sse_decode_list_list_prim_u_8_strict(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<RecordExportPresetPreview> sse_decode_list_record_export_preset_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<(String, String)> sse_decode_list_record_string_string(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<TemplatePresetPreview> sse_decode_list_template_preset_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<TemplatePresetUsage> sse_decode_list_template_preset_usage(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<UserConfigSection> sse_decode_list_user_config_section(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<UserConfigValuePreview> sse_decode_list_user_config_value_preview(
+    SseDeserializer deserializer,
+  );
 
   @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
   ConfigExportPreset? sse_decode_opt_box_autoadd_config_export_preset(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   DocumentLayoutPreset? sse_decode_opt_box_autoadd_document_layout_preset(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
+  GeographicBoundsFfi? sse_decode_opt_box_autoadd_geographic_bounds_ffi(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
+
+  @protected
+  RecordExportPresetPreview sse_decode_record_export_preset_preview(
+    SseDeserializer deserializer,
+  );
 
   @protected
   (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer);
@@ -303,19 +581,59 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   (String, String) sse_decode_record_string_string(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   RecordWriter sse_decode_record_writer(SseDeserializer deserializer);
 
   @protected
+  TarGzipExtractor sse_decode_tar_gzip_extractor(SseDeserializer deserializer);
+
+  @protected
+  TarGzipWriter sse_decode_tar_gzip_writer(SseDeserializer deserializer);
+
+  @protected
+  TemplatePresetDeletionResult sse_decode_template_preset_deletion_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TemplatePresetPreview sse_decode_template_preset_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TemplatePresetUsage sse_decode_template_preset_usage(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int sse_decode_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
+
+  @protected
+  UserConfigSection sse_decode_user_config_section(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  UserConfigTransferPreview sse_decode_user_config_transfer_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  UserConfigValuePreview sse_decode_user_config_value_preview(
+    SseDeserializer deserializer,
+  );
 
   @protected
   UtmCoordinateFfi sse_decode_utm_coordinate_ffi(SseDeserializer deserializer);
@@ -328,7 +646,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_Map_String_String_None(
-      Map<String, String> self, SseSerializer serializer);
+    Map<String, String> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
@@ -338,145 +658,384 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_config_export_preset(
-      ConfigExportPreset self, SseSerializer serializer);
+    ConfigExportPreset self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_document_layout_preset(
-      DocumentLayoutPreset self, SseSerializer serializer);
+    DocumentLayoutPreset self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_geographic_bounds_ffi(
+    GeographicBoundsFfi self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_gzip_extractor(
+    GzipExtractor self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_gzip_writer(
+    GzipWriter self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_record_reader(
-      RecordReader self, SseSerializer serializer);
+    RecordReader self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_record_writer(
-      RecordWriter self, SseSerializer serializer);
+    RecordWriter self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_tar_gzip_extractor(
+    TarGzipExtractor self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_tar_gzip_writer(
+    TarGzipWriter self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_zip_extractor(
-      ZipExtractor self, SseSerializer serializer);
+    ZipExtractor self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_zip_writer(
-      ZipWriter self, SseSerializer serializer);
+    ZipWriter self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_cardinal_direction(
-      CardinalDirection self, SseSerializer serializer);
+    CardinalDirection self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_config_combined_field(
-      ConfigCombinedField self, SseSerializer serializer);
+    ConfigCombinedField self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_config_export_preset(
-      ConfigExportPreset self, SseSerializer serializer);
+    ConfigExportPreset self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_config_preset_entry(
-      ConfigPresetEntry self, SseSerializer serializer);
+    ConfigPresetEntry self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_coordinate_axis(
+    CoordinateAxis self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_coordinate_export_format(
+    CoordinateExportFormat self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_coordinate_file_import_result(
+    CoordinateFileImportResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_coordinate_transfer_record(
+    CoordinateTransferRecord self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_ddm_coordinate_ffi(
-      DdmCoordinateFfi self, SseSerializer serializer);
+    DdmCoordinateFfi self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_dms_coordinate_ffi(
-      DmsCoordinateFfi self, SseSerializer serializer);
+    DmsCoordinateFfi self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_document_layout_block(
-      DocumentLayoutBlock self, SseSerializer serializer);
+    DocumentLayoutBlock self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_document_layout_preset(
-      DocumentLayoutPreset self, SseSerializer serializer);
+    DocumentLayoutPreset self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_document_layout_preview(
+    DocumentLayoutPreview self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_document_layout_status(
-      DocumentLayoutStatus self, SseSerializer serializer);
+    DocumentLayoutStatus self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_document_sort_direction(
+    DocumentSortDirection self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_dwc_header(DwcHeader self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
+  void sse_encode_geographic_bounds_ffi(
+    GeographicBoundsFfi self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_gzip_extractor(GzipExtractor self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_gzip_writer(GzipWriter self, SseSerializer serializer);
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_imported_vector_layer(
+    ImportedVectorLayer self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_config_combined_field(
-      List<ConfigCombinedField> self, SseSerializer serializer);
+    List<ConfigCombinedField> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_config_preset_entry(
-      List<ConfigPresetEntry> self, SseSerializer serializer);
+    List<ConfigPresetEntry> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_coordinate_transfer_record(
+    List<CoordinateTransferRecord> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_document_layout_block(
-      List<DocumentLayoutBlock> self, SseSerializer serializer);
+    List<DocumentLayoutBlock> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_document_layout_preset(
-      List<DocumentLayoutPreset> self, SseSerializer serializer);
+    List<DocumentLayoutPreset> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_document_layout_preview(
+    List<DocumentLayoutPreview> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_document_layout_status(
-      List<DocumentLayoutStatus> self, SseSerializer serializer);
+    List<DocumentLayoutStatus> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_dwc_header(
+    List<DwcHeader> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_list_String(
-      List<List<String>> self, SseSerializer serializer);
+    List<List<String>> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_list_prim_u_8_strict(
-      List<Uint8List> self, SseSerializer serializer);
+    List<Uint8List> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_prim_i_32_strict(
+    Int32List self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer);
+    Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_record_export_preset_preview(
+    List<RecordExportPresetPreview> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_record_string_string(
-      List<(String, String)> self, SseSerializer serializer);
+    List<(String, String)> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_template_preset_preview(
+    List<TemplatePresetPreview> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_template_preset_usage(
+    List<TemplatePresetUsage> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_user_config_section(
+    List<UserConfigSection> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_user_config_value_preview(
+    List<UserConfigValuePreview> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_config_export_preset(
-      ConfigExportPreset? self, SseSerializer serializer);
+    ConfigExportPreset? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_document_layout_preset(
-      DocumentLayoutPreset? self, SseSerializer serializer);
+    DocumentLayoutPreset? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_geographic_bounds_ffi(
+    GeographicBoundsFfi? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_record_export_preset_preview(
+    RecordExportPresetPreview self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_record_f_64_f_64(
-      (double, double) self, SseSerializer serializer);
+    (double, double) self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_record_reader(RecordReader self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_string_string(
-      (String, String) self, SseSerializer serializer);
+    (String, String) self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_record_writer(RecordWriter self, SseSerializer serializer);
 
   @protected
+  void sse_encode_tar_gzip_extractor(
+    TarGzipExtractor self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_tar_gzip_writer(TarGzipWriter self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_template_preset_deletion_result(
+    TemplatePresetDeletionResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_template_preset_preview(
+    TemplatePresetPreview self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_template_preset_usage(
+    TemplatePresetUsage self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
@@ -485,8 +1044,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_unit(void self, SseSerializer serializer);
 
   @protected
+  void sse_encode_user_config_section(
+    UserConfigSection self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_user_config_transfer_preview(
+    UserConfigTransferPreview self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_user_config_value_preview(
+    UserConfigValuePreview self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_utm_coordinate_ffi(
-      UtmCoordinateFfi self, SseSerializer serializer);
+    UtmCoordinateFfi self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_zip_extractor(ZipExtractor self, SseSerializer serializer);
@@ -503,9 +1082,9 @@ class RustLibWire implements BaseWire {
 
   /// Holds the symbol lookup function.
   final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-      _lookup;
+  _lookup;
 
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-      : _lookup = dynamicLibrary.lookup;
+    : _lookup = dynamicLibrary.lookup;
 }

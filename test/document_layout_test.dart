@@ -12,11 +12,9 @@ void main() {
       final String dylibPath = Platform.isMacOS
           ? 'rust/target/debug/librust_lib_nahpu.dylib'
           : Platform.isWindows
-              ? 'rust/target/debug/rust_lib_nahpu.dll'
-              : 'rust/target/debug/librust_lib_nahpu.so';
-      await RustLib.init(
-        externalLibrary: ExternalLibrary.open(dylibPath),
-      );
+          ? 'rust/target/debug/rust_lib_nahpu.dll'
+          : 'rust/target/debug/librust_lib_nahpu.so';
+      await RustLib.init(externalLibrary: ExternalLibrary.open(dylibPath));
     } else {
       await RustLib.init();
     }
@@ -34,6 +32,8 @@ void main() {
         templatePadRightMm: 1.5,
         templatePadBottomMm: 1.5,
         pageBreakAfter: true,
+        sortField: 'specimen::fieldNumber',
+        sortDirection: rust_config.DocumentSortDirection.descending,
       );
 
       final updatedBlock = block.copyWith(
@@ -48,6 +48,16 @@ void main() {
       expect(updatedBlock.cols, 3);
       expect(updatedBlock.templatePadTopMm, 1.5);
       expect(updatedBlock.pageBreakAfter, false);
+      expect(updatedBlock.sortField, 'specimen::fieldNumber');
+      expect(
+        updatedBlock.sortDirection,
+        rust_config.DocumentSortDirection.descending,
+      );
+
+      final autoFillBlock = block.copyWithAutoFill(true);
+      expect(autoFillBlock.autoFillPage, isTrue);
+      expect(autoFillBlock.fixedRows, 4);
+      expect(autoFillBlock.copyWithAutoFill(false).rows, 4);
 
       final layout = rust_config.DocumentLayoutPreset(
         name: 'LayoutA',
@@ -85,8 +95,9 @@ void main() {
     late Directory tempDir;
 
     setUp(() {
-      tempDir =
-          Directory.systemTemp.createTempSync('nahpu_document_layout_test_');
+      tempDir = Directory.systemTemp.createTempSync(
+        'nahpu_document_layout_test_',
+      );
     });
 
     tearDown(() {
@@ -106,6 +117,8 @@ void main() {
         templatePadRightMm: 1.0,
         templatePadBottomMm: 1.0,
         pageBreakAfter: false,
+        sortField: 'taxonomy::species',
+        sortDirection: rust_config.DocumentSortDirection.ascending,
       );
 
       final layout = rust_config.DocumentLayoutPreset(
@@ -126,9 +139,12 @@ void main() {
 
       final filePath = '${tempDir.path}/layout.json';
       await rust_config.exportDocumentLayoutToFile(
-          layout: layout, filePath: filePath);
-      final deserialized =
-          await rust_config.importDocumentLayoutFromFile(filePath: filePath);
+        layout: layout,
+        filePath: filePath,
+      );
+      final deserialized = await rust_config.importDocumentLayoutFromFile(
+        filePath: filePath,
+      );
 
       expect(deserialized.name, layout.name);
       expect(deserialized.layoutType, layout.layoutType);
@@ -153,6 +169,8 @@ void main() {
       expect(deserializedBlock.templatePadRightMm, block.templatePadRightMm);
       expect(deserializedBlock.templatePadBottomMm, block.templatePadBottomMm);
       expect(deserializedBlock.pageBreakAfter, block.pageBreakAfter);
+      expect(deserializedBlock.sortField, block.sortField);
+      expect(deserializedBlock.sortDirection, block.sortDirection);
     });
 
     test('backward compatibility for legacy camelCase JSON fields', () async {
@@ -186,8 +204,9 @@ void main() {
 
       final filePath = '${tempDir.path}/legacy_layout.json';
       await File(filePath).writeAsString(legacyJson);
-      final deserialized =
-          await rust_config.importDocumentLayoutFromFile(filePath: filePath);
+      final deserialized = await rust_config.importDocumentLayoutFromFile(
+        filePath: filePath,
+      );
 
       expect(deserialized.name, 'Legacy Layout');
       expect(deserialized.layoutType, 'WholePage');
@@ -212,6 +231,8 @@ void main() {
       expect(block.templatePadRightMm, 1.0);
       expect(block.templatePadBottomMm, 1.0);
       expect(block.pageBreakAfter, false);
+      expect(block.sortField, isNull);
+      expect(block.sortDirection, rust_config.DocumentSortDirection.ascending);
     });
   });
 }

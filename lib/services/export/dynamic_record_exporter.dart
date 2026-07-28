@@ -8,6 +8,7 @@ import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/export/common.dart';
 
+/// Builds template source maps using canonical database `table::field` keys.
 class DynamicRecordExporter {
   DynamicRecordExporter({
     required this.ref,
@@ -45,7 +46,7 @@ class DynamicRecordExporter {
     await _getProjectData(data.projectUuid, baseRecord);
     await _getCollEventData(data.collEventID, baseRecord);
     await _getCoordinateData(data.coordinateID, baseRecord);
-    await _getMeasurementData(data.uuid, baseRecord);
+    await _getAttributeData(data.uuid, baseRecord);
 
     final List<Map<String, dynamic>> parts = await _getPartData(data.uuid);
 
@@ -97,7 +98,8 @@ class DynamicRecordExporter {
       final tax = await TaxonomyServices(
         ref: ref,
       ).getTaxonById(data.speciesID!);
-      record['specimen::speciesID'] =
+      record['specimen::speciesID'] = tax.id.toString();
+      record['specimen::scientificName'] =
           '${tax.genus ?? ''} ${tax.specificEpithet ?? ''}'.trim();
       _addData(record, 'taxonomy', tax.toJson());
     }
@@ -224,33 +226,33 @@ class DynamicRecordExporter {
     }
   }
 
-  Future<void> _getMeasurementData(
+  Future<void> _getAttributeData(
     String specimenUuid,
     Map<String, String> record,
   ) async {
     final db = ref.read(databaseProvider);
     final mammal = await (db.select(
-      db.mammalMeasurement,
+      db.mammalAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .getSingleOrNull();
     if (mammal != null) {
-      _addData(record, 'mammalMeasurement', mammal.toJson());
+      _addData(record, 'mammalAttribute', mammal.toJson());
     }
 
-    final avian = await (db.select(
-      db.avianMeasurement,
+    final bird = await (db.select(
+      db.birdAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .getSingleOrNull();
-    if (avian != null) {
-      _addData(record, 'avianMeasurement', avian.toJson());
+    if (bird != null) {
+      _addData(record, 'birdAttribute', bird.toJson());
     }
 
     final herp = await (db.select(
-      db.herpMeasurement,
+      db.herpAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid)))
         .getSingleOrNull();
     if (herp != null) {
-      _addData(record, 'herpMeasurement', herp.toJson());
+      _addData(record, 'herpAttribute', herp.toJson());
     }
   }
 

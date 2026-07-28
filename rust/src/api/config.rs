@@ -5,6 +5,85 @@
 use nahpu_configs::ConfigDb;
 use std::collections::HashMap;
 
+const RECORD_EXPORT_PRESET_PAYLOAD_KEY: &str = "__nahpu_record_export_preset_v2__";
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum UserConfigSection {
+    UserConfigs,
+    RecordExportPresets,
+    TemplatePresets,
+    DocumentLayouts,
+    TemplateTablePreview,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum DocumentSortDirection {
+    Ascending,
+    Descending,
+}
+
+pub struct UserConfigValuePreview {
+    pub key: String,
+    pub label: String,
+    pub values: Vec<String>,
+    pub value: Option<String>,
+    pub is_controlled_vocabulary: bool,
+}
+
+pub struct RecordExportPresetPreview {
+    pub name: String,
+    pub record_type: String,
+    pub mapping_count: i32,
+    pub is_compatible: bool,
+}
+
+pub struct TemplatePresetPreview {
+    pub name: String,
+    pub record_type: String,
+    pub description: String,
+}
+
+pub struct DocumentLayoutPreview {
+    pub name: String,
+    pub layout_type: String,
+    pub page_size_key: String,
+    pub block_count: i32,
+}
+
+pub struct UserConfigTransferPreview {
+    pub schema_version: u32,
+    pub included_sections: Vec<UserConfigSection>,
+    pub user_configs: Vec<UserConfigValuePreview>,
+    pub record_export_presets: Vec<RecordExportPresetPreview>,
+    pub template_presets: Vec<TemplatePresetPreview>,
+    pub document_layouts: Vec<DocumentLayoutPreview>,
+    pub template_table_preview_columns: Vec<String>,
+}
+
+impl From<UserConfigSection> for nahpu_configs::UserConfigSection {
+    fn from(section: UserConfigSection) -> Self {
+        match section {
+            UserConfigSection::UserConfigs => Self::UserConfigs,
+            UserConfigSection::RecordExportPresets => Self::RecordExportPresets,
+            UserConfigSection::TemplatePresets => Self::TemplatePresets,
+            UserConfigSection::DocumentLayouts => Self::DocumentLayouts,
+            UserConfigSection::TemplateTablePreview => Self::TemplateTablePreview,
+        }
+    }
+}
+
+impl From<nahpu_configs::UserConfigSection> for UserConfigSection {
+    fn from(section: nahpu_configs::UserConfigSection) -> Self {
+        match section {
+            nahpu_configs::UserConfigSection::UserConfigs => Self::UserConfigs,
+            nahpu_configs::UserConfigSection::RecordExportPresets => Self::RecordExportPresets,
+            nahpu_configs::UserConfigSection::TemplatePresets => Self::TemplatePresets,
+            nahpu_configs::UserConfigSection::DocumentLayouts => Self::DocumentLayouts,
+            nahpu_configs::UserConfigSection::TemplateTablePreview => Self::TemplateTablePreview,
+        }
+    }
+}
+
 /// Represents a combined export field configuration.
 pub struct ConfigCombinedField {
     /// Unique identifier for the combined field.
@@ -40,6 +119,26 @@ pub struct DocumentLayoutBlock {
     pub template_pad_right_mm: f64,
     pub template_pad_bottom_mm: f64,
     pub page_break_after: bool,
+    pub sort_field: Option<String>,
+    pub sort_direction: DocumentSortDirection,
+}
+
+impl From<nahpu_configs::DocumentSortDirection> for DocumentSortDirection {
+    fn from(direction: nahpu_configs::DocumentSortDirection) -> Self {
+        match direction {
+            nahpu_configs::DocumentSortDirection::Ascending => Self::Ascending,
+            nahpu_configs::DocumentSortDirection::Descending => Self::Descending,
+        }
+    }
+}
+
+impl From<DocumentSortDirection> for nahpu_configs::DocumentSortDirection {
+    fn from(direction: DocumentSortDirection) -> Self {
+        match direction {
+            DocumentSortDirection::Ascending => Self::Ascending,
+            DocumentSortDirection::Descending => Self::Descending,
+        }
+    }
 }
 
 /// Represents the overall configuration for document layouts.
@@ -66,6 +165,22 @@ pub struct DocumentLayoutStatus {
     pub error: Option<String>,
 }
 
+/// Identifies layout blocks that reference a template preset.
+pub struct TemplatePresetUsage {
+    /// Name of the print layout containing the references.
+    pub layout_name: String,
+    /// Zero-based indexes of blocks that reference the template.
+    pub block_indices: Vec<i32>,
+}
+
+/// Summarizes a template replacement and deletion operation.
+pub struct TemplatePresetDeletionResult {
+    /// Number of print layouts updated before deletion.
+    pub updated_layout_count: i32,
+    /// Number of template block references replaced.
+    pub updated_block_count: i32,
+}
+
 impl From<nahpu_configs::DocumentLayoutBlock> for DocumentLayoutBlock {
     fn from(b: nahpu_configs::DocumentLayoutBlock) -> Self {
         Self {
@@ -78,6 +193,8 @@ impl From<nahpu_configs::DocumentLayoutBlock> for DocumentLayoutBlock {
             template_pad_right_mm: b.template_pad_right_mm,
             template_pad_bottom_mm: b.template_pad_bottom_mm,
             page_break_after: b.page_break_after,
+            sort_field: b.sort_field,
+            sort_direction: b.sort_direction.into(),
         }
     }
 }
@@ -94,6 +211,8 @@ impl From<DocumentLayoutBlock> for nahpu_configs::DocumentLayoutBlock {
             template_pad_right_mm: b.template_pad_right_mm,
             template_pad_bottom_mm: b.template_pad_bottom_mm,
             page_break_after: b.page_break_after,
+            sort_field: b.sort_field,
+            sort_direction: b.sort_direction.into(),
         }
     }
 }
@@ -193,109 +312,283 @@ impl From<nahpu_configs::DocumentLayoutStatus> for DocumentLayoutStatus {
     }
 }
 
+impl From<nahpu_configs::TemplatePresetUsage> for TemplatePresetUsage {
+    fn from(usage: nahpu_configs::TemplatePresetUsage) -> Self {
+        Self {
+            layout_name: usage.layout_name,
+            block_indices: usage.block_indices,
+        }
+    }
+}
+
+impl From<nahpu_configs::TemplatePresetDeletionResult> for TemplatePresetDeletionResult {
+    fn from(result: nahpu_configs::TemplatePresetDeletionResult) -> Self {
+        Self {
+            updated_layout_count: result.updated_layout_count,
+            updated_block_count: result.updated_block_count,
+        }
+    }
+}
+
 /// Initializes the configuration database at the specified path.
 pub fn init_config_db(path: String) -> Result<(), String> {
     ConfigDb::init(&path)
 }
 
-/// Sets a user config list.
 pub fn set_user_config_list(key: String, value: Vec<String>) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.set_user_config_list(&key, &value)
 }
 
-/// Retrieves a user config list.
 pub fn get_user_config_list(key: String) -> Result<Option<Vec<String>>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_user_config_list(&key)?;
     Ok(res)
 }
 
-/// Sets a user config string.
 pub fn set_user_config_string(key: String, value: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.set_user_config_string(&key, &value)
 }
 
-/// Retrieves a user config string.
 pub fn get_user_config_string(key: String) -> Result<Option<String>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_user_config_string(&key)?;
     Ok(res)
 }
 
-/// Deletes a user config key.
 pub fn delete_user_config(key: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.delete_user_config(&key)
 }
 
-/// Saves a record export preset.
+pub fn set_template_table_preview_columns(columns: Vec<String>) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    db.set_template_table_preview_columns(&columns)
+}
+
+pub fn get_template_table_preview_columns() -> Result<Option<Vec<String>>, String> {
+    let db = ConfigDb::get_instance()?;
+    db.get_template_table_preview_columns()
+}
+
 pub fn set_record_export_preset(name: String, preset: ConfigExportPreset) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.set_record_export_preset(&name, &preset.into())
 }
 
-/// Retrieves a record export preset.
 pub fn get_record_export_preset(name: String) -> Result<Option<ConfigExportPreset>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_record_export_preset(&name)?;
     Ok(res.map(Into::into))
 }
 
-/// Deletes a record export preset.
 pub fn delete_record_export_preset(name: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.delete_record_export_preset(&name)
 }
-
-/// Retrieves all record export presets.
 pub fn get_all_record_export_presets() -> Result<Vec<ConfigPresetEntry>, String> {
     let db = ConfigDb::get_instance()?;
     let res = db.get_all_record_export_presets()?;
     Ok(res.into_iter().map(Into::into).collect())
 }
 
-/// Exports all user configs and document presets to a file in either JSON or JSON Lines format.
-pub fn export_config_to_file(file_path: String, is_json: bool) -> Result<(), String> {
+pub fn get_config_export_preview() -> Result<UserConfigTransferPreview, String> {
     let db = ConfigDb::get_instance()?;
     let export = db.export_configs()?;
+    Ok(build_config_transfer_preview(&export))
+}
 
-    let content = if is_json {
-        serde_json::to_string_pretty(&export).map_err(|e| e.to_string())?
-    } else {
-        nahpu_configs::json_lines::export_to_json_lines(&export)
-    };
+pub fn inspect_config_file(file_path: String) -> Result<UserConfigTransferPreview, String> {
+    let export = read_config_export(&file_path)?;
+    Ok(build_config_transfer_preview(&export))
+}
 
+pub fn export_config_to_file(
+    file_path: String,
+    sections: Vec<UserConfigSection>,
+) -> Result<(), String> {
+    let db = ConfigDb::get_instance()?;
+    let sections = sections
+        .into_iter()
+        .map(Into::into)
+        .collect::<Vec<nahpu_configs::UserConfigSection>>();
+    let export = db.export_selected_configs(&sections)?;
+
+    let content = serde_json::to_string_pretty(&export).map_err(|e| e.to_string())?;
     std::fs::write(&file_path, content).map_err(|e| e.to_string())?;
     Ok(())
 }
 
-/// Imports and replaces all user configs and document presets from a file.
-pub fn import_config_from_file(file_path: String) -> Result<(), String> {
+pub fn import_config_from_file(
+    file_path: String,
+    sections: Vec<UserConfigSection>,
+) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
-    let content = std::fs::read_to_string(&file_path).map_err(|e| e.to_string())?;
-
-    let export = if let Ok(exp) =
-        serde_json::from_str::<nahpu_configs::models::UserConfigsExport>(&content)
-    {
-        exp
-    } else {
-        nahpu_configs::json_lines::parse_json_lines_to_export(&content)?
-    };
-
-    db.import_configs(export)?;
-    Ok(())
+    let export = read_config_export(&file_path)?;
+    let sections = sections
+        .into_iter()
+        .map(Into::into)
+        .collect::<Vec<nahpu_configs::UserConfigSection>>();
+    db.import_selected_configs(export, &sections)
 }
 
-/// Saves a template preset JSON string to the config database.
+fn read_config_export(file_path: &str) -> Result<nahpu_configs::UserConfigsExport, String> {
+    let content = std::fs::read_to_string(file_path).map_err(|e| e.to_string())?;
+    let export = serde_json::from_str::<nahpu_configs::UserConfigsExport>(&content)
+        .map_err(|e| format!("Invalid user configuration JSON: {e}"))?;
+    if export.schema_version > nahpu_configs::USER_CONFIG_SCHEMA_VERSION {
+        return Err(format!(
+            "User configuration schema version {} is newer than the supported version {}.",
+            export.schema_version,
+            nahpu_configs::USER_CONFIG_SCHEMA_VERSION
+        ));
+    }
+    if export.included_sections.is_empty() {
+        return Err("The user configuration transfer contains no sections".to_string());
+    }
+    Ok(export)
+}
+
+fn build_config_transfer_preview(
+    export: &nahpu_configs::UserConfigsExport,
+) -> UserConfigTransferPreview {
+    let mut user_configs = export
+        .configs
+        .iter()
+        .map(|(key, raw_value)| {
+            let values = raw_value
+                .as_array()
+                .map(|items| items.iter().map(display_json_value).collect::<Vec<_>>())
+                .unwrap_or_default();
+            UserConfigValuePreview {
+                key: key.clone(),
+                label: config_label(key).to_string(),
+                value: (!raw_value.is_array()).then(|| display_json_value(raw_value)),
+                values,
+                is_controlled_vocabulary: is_controlled_vocabulary(key),
+            }
+        })
+        .collect::<Vec<_>>();
+    user_configs.sort_by(|a, b| a.label.cmp(&b.label));
+
+    let mut record_export_presets = export
+        .record_export_presets
+        .iter()
+        .map(|entry| {
+            let payload = entry
+                .preset
+                .fields
+                .get(RECORD_EXPORT_PRESET_PAYLOAD_KEY)
+                .and_then(|value| serde_json::from_str::<serde_json::Value>(value).ok());
+            let record_type = payload
+                .as_ref()
+                .and_then(|value| value.get("recordType"))
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("Unknown")
+                .to_string();
+            let mapping_count = payload
+                .as_ref()
+                .and_then(|value| value.get("mappings"))
+                .and_then(serde_json::Value::as_array)
+                .map_or(0, |mappings| mappings.len() as i32);
+            RecordExportPresetPreview {
+                name: entry.name.clone(),
+                record_type,
+                mapping_count,
+                is_compatible: payload.is_some(),
+            }
+        })
+        .collect::<Vec<_>>();
+    record_export_presets.sort_by(|a, b| a.name.cmp(&b.name));
+
+    let mut template_presets = export
+        .template_presets
+        .iter()
+        .map(|entry| TemplatePresetPreview {
+            name: entry.name.clone(),
+            record_type: entry.record_type.clone(),
+            description: entry.description.clone(),
+        })
+        .collect::<Vec<_>>();
+    template_presets.sort_by(|a, b| a.name.cmp(&b.name));
+
+    let mut document_layouts = export
+        .document_layouts
+        .iter()
+        .map(|entry| DocumentLayoutPreview {
+            name: entry.name.clone(),
+            layout_type: entry.layout_type.clone(),
+            page_size_key: entry.page_size_key.clone(),
+            block_count: entry.blocks.len() as i32,
+        })
+        .collect::<Vec<_>>();
+    document_layouts.sort_by(|a, b| a.name.cmp(&b.name));
+
+    UserConfigTransferPreview {
+        schema_version: export.schema_version,
+        included_sections: export
+            .included_sections
+            .iter()
+            .copied()
+            .map(Into::into)
+            .collect(),
+        user_configs,
+        record_export_presets,
+        template_presets,
+        document_layouts,
+        template_table_preview_columns: export.template_table_preview_columns.clone(),
+    }
+}
+
+fn display_json_value(value: &serde_json::Value) -> String {
+    value
+        .as_str()
+        .map(ToString::to_string)
+        .unwrap_or_else(|| value.to_string())
+}
+
+fn is_controlled_vocabulary(key: &str) -> bool {
+    matches!(
+        key,
+        "siteTypes"
+            | "habitatTypes"
+            | "collEventMethods"
+            | "collPersonnelRoles"
+            | "specimenTypes"
+            | "specimenTreatment"
+            | "specimenConditions"
+    )
+}
+
+fn config_label(key: &str) -> &str {
+    match key {
+        "siteTypes" => "Site types",
+        "habitatTypes" => "Habitat types",
+        "collEventMethods" => "Collection methods",
+        "collPersonnelRoles" => "Personnel roles",
+        "specimenTypes" => "Specimen part types",
+        "specimenTreatment" => "Treatments",
+        "specimenConditions" => "Conditions",
+        "siteTypeFmt" => "Site type format",
+        "habitatTypeFmt" => "Habitat type format",
+        "collEventMethodFmt" => "Collection method format",
+        "collPersonnelRoleFmt" => "Personnel role format",
+        "specimenTypeFmt" => "Specimen part type format",
+        "treatmentFmt" => "Treatment format",
+        "conditionFmt" => "Condition format",
+        "fieldIdMode" => "Field ID mode",
+        "pdfExportFont" => "PDF export font",
+        _ => key,
+    }
+}
+
 pub fn set_template_preset(name: String, value: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     let val: serde_json::Value = serde_json::from_str(&value).map_err(|e| e.to_string())?;
     db.set_template_preset(&name, &val)
 }
 
-/// Retrieves a saved template preset as a JSON string.
 pub fn get_template_preset(name: String) -> Result<Option<String>, String> {
     let db = ConfigDb::get_instance()?;
     match db.get_template_preset(&name)? {
@@ -307,13 +600,28 @@ pub fn get_template_preset(name: String) -> Result<Option<String>, String> {
     }
 }
 
-/// Deletes a template preset.
 pub fn delete_template_preset(name: String) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     db.delete_template_preset(&name)
 }
 
-/// Lists all template preset names stored in the database.
+/// Lists every print layout block that references a template preset.
+pub fn get_template_preset_usages(name: String) -> Result<Vec<TemplatePresetUsage>, String> {
+    let db = ConfigDb::get_instance()?;
+    let usages = db.get_template_preset_usages(&name)?;
+    Ok(usages.into_iter().map(Into::into).collect())
+}
+
+/// Replaces references to a template preset and deletes it atomically.
+pub fn delete_template_preset_with_replacement(
+    name: String,
+    replacement_name: Option<String>,
+) -> Result<TemplatePresetDeletionResult, String> {
+    let db = ConfigDb::get_instance()?;
+    let result = db.delete_template_preset_with_replacement(&name, replacement_name.as_deref())?;
+    Ok(result.into())
+}
+
 pub fn list_template_presets() -> Result<Vec<String>, String> {
     let db = ConfigDb::get_instance()?;
     let presets = db.get_all_template_presets()?;
@@ -376,9 +684,7 @@ pub fn export_document_layout_to_file(
 }
 
 /// Imports a single document layout preset from a JSON file.
-pub fn import_document_layout_from_file(
-    file_path: String,
-) -> Result<DocumentLayoutPreset, String> {
+pub fn import_document_layout_from_file(file_path: String) -> Result<DocumentLayoutPreset, String> {
     let content = std::fs::read_to_string(&file_path).map_err(|e| e.to_string())?;
     let layout: nahpu_configs::models::DocumentLayoutPreset =
         serde_json::from_str(&content).map_err(|e| e.to_string())?;

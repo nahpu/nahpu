@@ -194,10 +194,10 @@ Future<({int? sharedMediaId, int? taxonomyId})> _seedProjectWithLinkedData(
   ));
 
   await AssociatedDataQuery(db).createSpecimenDataAssociation(
+    specimenUuid,
     AssociatedDataCompanion(
-      specimenUuid: Value(specimenUuid),
       name: const Value('Sound file'),
-      url: const Value('recording.wav'),
+      uri: const Value('recording.wav'),
     ),
   );
 

@@ -5,12 +5,15 @@ import 'package:nahpu/services/database/database.dart' as db;
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
+import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/project_queries.dart';
+import 'package:nahpu/services/project_exchange_service.dart';
 import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/services/utility_services.dart';
 
-enum MenuSelection { details, deleteProject }
+enum MenuSelection { editInfo, details, exportInfo, showQr, deleteProject }
 
 class HomeBody extends ConsumerStatefulWidget {
   const HomeBody({super.key});
@@ -29,24 +32,26 @@ class HomeBodyState extends ConsumerState<HomeBody> {
           constraints: const BoxConstraints(maxWidth: 800),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: ref.watch(projectListProvider).when(
-              data: (data) {
-                return _buildBody(data.reversed.toList());
-              },
-              loading: () {
-                return const CommonProgressIndicator();
-              },
-              error: (error, stackTrace) {
-                return Text(error.toString());
-              },
-            ),
+            child: ref
+                .watch(projectListProvider)
+                .when(
+                  data: (data) {
+                    return _buildBody(data.reversed.toList());
+                  },
+                  loading: () {
+                    return const CommonProgressIndicator();
+                  },
+                  error: (error, stackTrace) {
+                    return Text(error.toString());
+                  },
+                ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBody(List<ListProjectResult> projectList) {
+  Widget _buildBody(List<ProjectSummary> projectList) {
     if (projectList.isEmpty) {
       return const ProjectNotFound();
     } else {
@@ -58,7 +63,7 @@ class HomeBodyState extends ConsumerState<HomeBody> {
 class ToggleView extends StatefulWidget {
   const ToggleView({super.key, required this.projectList});
 
-  final List<ListProjectResult> projectList;
+  final List<ProjectSummary> projectList;
 
   @override
   State<ToggleView> createState() => _ToggleViewState();
@@ -75,18 +80,21 @@ class _ToggleViewState extends State<ToggleView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Existing projects',
-                style: Theme.of(context).textTheme.labelLarge),
+            Text(
+              'Existing projects',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
             IconButton(
-                onPressed: () {
-                  setState(() {
-                    isListSelected = !isListSelected;
-                  });
-                },
-                iconSize: 24,
-                icon: isListSelected
-                    ? const Icon(Icons.grid_view)
-                    : const Icon(Icons.list_alt)),
+              onPressed: () {
+                setState(() {
+                  isListSelected = !isListSelected;
+                });
+              },
+              iconSize: 24,
+              icon: isListSelected
+                  ? const Icon(Icons.grid_view)
+                  : const Icon(Icons.list_alt),
+            ),
           ],
         ),
         // Divider(
@@ -95,9 +103,7 @@ class _ToggleViewState extends State<ToggleView> {
         // ),
         isListSelected
             ? ProjectListView(projectList: widget.projectList)
-            : ProjectGridView(
-                projectList: widget.projectList,
-              ),
+            : ProjectGridView(projectList: widget.projectList),
       ],
     );
   }
@@ -113,19 +119,21 @@ class ProjectNotFound extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SvgPicture.asset('assets/icons/box.svg',
-              height: 64,
-              colorFilter: ColorFilter.mode(
-                Theme.of(context).colorScheme.tertiary,
-                BlendMode.srcIn,
-              )),
+          SvgPicture.asset(
+            'assets/icons/box.svg',
+            height: 64,
+            colorFilter: ColorFilter.mode(
+              Theme.of(context).colorScheme.tertiary,
+              BlendMode.srcIn,
+            ),
+          ),
           const SizedBox(height: 16),
           Text(
             'No projects found.',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           Text(
-            'Create a new project to get started.',
+            'Create or import a project to get started.',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],
@@ -136,7 +144,7 @@ class ProjectNotFound extends StatelessWidget {
 
 class ProjectListView extends StatelessWidget {
   const ProjectListView({super.key, required this.projectList});
-  final List<ListProjectResult> projectList;
+  final List<ProjectSummary> projectList;
 
   @override
   Widget build(BuildContext context) {
@@ -145,10 +153,7 @@ class ProjectListView extends StatelessWidget {
         itemCount: projectList.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          return ProjectView(
-            isList: true,
-            project: projectList[index],
-          );
+          return ProjectView(isList: true, project: projectList[index]);
         },
       ),
     );
@@ -156,12 +161,9 @@ class ProjectListView extends StatelessWidget {
 }
 
 class ProjectGridView extends StatelessWidget {
-  const ProjectGridView({
-    super.key,
-    required this.projectList,
-  });
+  const ProjectGridView({super.key, required this.projectList});
 
-  final List<ListProjectResult> projectList;
+  final List<ProjectSummary> projectList;
 
   @override
   Widget build(BuildContext context) {
@@ -185,14 +187,10 @@ class ProjectGridView extends StatelessWidget {
 }
 
 class ProjectView extends ConsumerStatefulWidget {
-  const ProjectView({
-    super.key,
-    required this.isList,
-    required this.project,
-  });
+  const ProjectView({super.key, required this.isList, required this.project});
 
   final bool isList;
-  final ListProjectResult project;
+  final ProjectSummary project;
 
   @override
   ProjectViewState createState() => ProjectViewState();
@@ -218,10 +216,13 @@ class ProjectViewState extends ConsumerState<ProjectView> {
 }
 
 class ListProjectCard extends StatelessWidget {
-  const ListProjectCard(
-      {super.key, required this.project, required this.onTap});
+  const ListProjectCard({
+    super.key,
+    required this.project,
+    required this.onTap,
+  });
 
-  final ListProjectResult project;
+  final ProjectSummary project;
   final VoidCallback onTap;
 
   @override
@@ -229,9 +230,7 @@ class ListProjectCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: ProjectIcon(
-          color: Theme.of(context).colorScheme.primary,
-        ),
+        leading: ProjectIcon(color: Theme.of(context).colorScheme.primary),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
@@ -239,8 +238,9 @@ class ListProjectCard extends StatelessWidget {
             width: 1.5,
           ),
         ),
-        tileColor:
-            Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+        tileColor: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withAlpha(80),
         dense: true,
         title: Text(
           project.name,
@@ -271,56 +271,58 @@ class ListProjectCard extends StatelessWidget {
 }
 
 class GridProjectCard extends StatelessWidget {
-  const GridProjectCard(
-      {super.key, required this.project, required this.onPressed});
+  const GridProjectCard({
+    super.key,
+    required this.project,
+    required this.onPressed,
+  });
 
-  final ListProjectResult project;
+  final ProjectSummary project;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return GridTile(
-        footer: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ListTile(
-            dense: true,
-            title: Text(
-              project.name,
-              style: Theme.of(context).textTheme.titleMedium,
+      footer: Padding(
+        padding: const EdgeInsets.all(8),
+        child: ListTile(
+          dense: true,
+          title: Text(
+            project.name,
+            style: Theme.of(context).textTheme.titleMedium,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            _lastAccessedDate,
+            style: const TextStyle(
+              fontSize: 12,
               overflow: TextOverflow.ellipsis,
             ),
-            subtitle: Text(
-              _lastAccessedDate,
-              style: const TextStyle(
-                fontSize: 12,
-                overflow: TextOverflow.ellipsis,
+          ),
+          trailing: ProjectPopUpMenu(project: project),
+          onTap: onPressed,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 68),
+        child: GestureDetector(
+          onTap: onPressed,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withAlpha(80),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withAlpha(40),
+                width: 1.5,
               ),
             ),
-            trailing: ProjectPopUpMenu(project: project),
-            onTap: onPressed,
+            padding: const EdgeInsets.all(32),
+            child: ProjectIcon(color: Theme.of(context).colorScheme.primary),
           ),
         ),
-        child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 68),
-            child: GestureDetector(
-              onTap: onPressed,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withAlpha(80),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor.withAlpha(40),
-                    width: 1.5,
-                  ),
-                ),
-                padding: const EdgeInsets.all(32),
-                child: ProjectIcon(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            )));
+      ),
+    );
   }
 
   String get _lastAccessedDate {
@@ -332,7 +334,7 @@ class GridProjectCard extends StatelessWidget {
 class ProjectPopUpMenu extends ConsumerStatefulWidget {
   const ProjectPopUpMenu({super.key, required this.project});
 
-  final ListProjectResult project;
+  final ProjectSummary project;
 
   @override
   ProjectPopUpMenuState createState() => ProjectPopUpMenuState();
@@ -344,6 +346,48 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
     return PopupMenuButton<MenuSelection>(
       icon: const Icon(Icons.more_vert),
       itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuSelection>>[
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.editInfo,
+          child: const ListTile(
+            leading: Icon(Icons.edit_outlined),
+            title: Text('Edit info'),
+          ),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => EditProject(
+                  projectUuid: widget.project.uuid,
+                  returnToHome: true,
+                ),
+              ),
+            );
+          },
+        ),
+        const PopupMenuDivider(height: 10),
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.showQr,
+          child: const ListTile(
+            leading: Icon(Icons.qr_code_outlined),
+            title: Text('Show QR'),
+          ),
+          onTap: () async {
+            final data = await _getProjectInfo(widget.project.uuid);
+            _showProjectQr(data);
+          },
+        ),
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.exportInfo,
+          child: const ListTile(
+            leading: Icon(Icons.file_upload_outlined),
+            title: Text('Export info'),
+          ),
+          onTap: () async {
+            final data = await _getProjectInfo(widget.project.uuid);
+            if (!context.mounted) return;
+            await showProjectExportDialog(context: context, projectData: data);
+          },
+        ),
+        const PopupMenuDivider(height: 10),
         PopupMenuItem<MenuSelection>(
           value: MenuSelection.details,
           child: const ListTile(
@@ -365,31 +409,67 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
     // and call the provider from the onTap function of the popup menu.
     // when we tested this, users have to tap twice to get the popup menu to work.
     // This solution works well.
-    db.ProjectData data =
-        await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
+    db.ProjectData data = await ProjectServices(
+      ref: ref,
+    ).getProjectByUuid(projectUuid);
     return data;
   }
 
   void _showProjectDialog(db.ProjectData? value) => {
-        showDialog<void>(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Project information'),
-              content:
-                  SingleChildScrollView(child: ProjectInfo(projectData: value)),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Project information'),
+          content: SingleChildScrollView(
+            child: ProjectInfo(projectData: value, showExport: false),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    ),
+  };
+
+  void _showProjectQr(db.ProjectData value) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Project QR code'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ProjectQrCodeViewer(
+                  data: ProjectExchangeService.encodeQr(value),
+                  isFullScreen: true,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Scan this code when creating a new project to transfer '
+                  'project information.',
+                  textAlign: TextAlign.center,
                 ),
               ],
-            );
-          },
-        ),
-      };
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class ProjectIcon extends StatelessWidget {
@@ -403,10 +483,7 @@ class ProjectIcon extends StatelessWidget {
     return SvgPicture.asset(
       'assets/icons/catalog.svg',
       height: size,
-      colorFilter: ColorFilter.mode(
-        color,
-        BlendMode.srcIn,
-      ),
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
 }

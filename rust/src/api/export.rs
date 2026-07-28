@@ -1,6 +1,4 @@
-//! Module for exporting database records
 use nahpu_db::io::export::RecordExporter;
-use nahpu_export::DocumentExport;
 use std::path::Path;
 
 pub struct RecordWriter {
@@ -14,6 +12,30 @@ pub struct RecordWriter {
     pub export_format: String,
     /// Whether to concatenate multi-entry records or expand them.
     pub concatenate_multi_entries: bool,
+}
+
+/// Writes positional tabular rows. This is used for Darwin Core generated
+/// headers, which may intentionally contain duplicate MeasurementOrFact terms.
+pub fn write_tabular_records(
+    headers: Vec<String>,
+    rows: Vec<Vec<String>>,
+    output_path: String,
+    export_format: String,
+) -> Result<(), String> {
+    if export_format == "json" {
+        return Err("Darwin Core generated headers support CSV, TSV, and Excel only".to_string());
+    }
+    let exporter = nahpu_db::io::export::TabularRecordExporter::new(headers, rows)?;
+    let path = Path::new(&output_path);
+    match export_format.as_str() {
+        "csv" => exporter.export_csv(path),
+        "tsv" => exporter.export_tsv(path),
+        "excel" => exporter.export_excel(path),
+        _ => Err(format!(
+            "Unsupported tabular export format: {}",
+            export_format
+        )),
+    }
 }
 
 impl RecordWriter {
@@ -58,62 +80,3 @@ impl RecordWriter {
         }
     }
 }
-
-pub fn export_coordinates(
-    json_content: String,
-    output_path: String,
-    export_format: String,
-) -> Result<(), String> {
-    let data: Vec<nahpu_gis::types::CoordinateData> = serde_json::from_str(&json_content)
-        .map_err(|e| format!("Failed to parse Coordinate JSON: {}", e))?;
-
-    let path = Path::new(&output_path);
-
-    match export_format.as_str() {
-        "kml" => {
-            let exporter = nahpu_gis::io::kml::KmlExporter::new(&data);
-            exporter.export_kml(path)
-        }
-        "geojson" => {
-            let exporter = nahpu_gis::io::geojson::GeoJsonExporter::new(&data);
-            exporter.export_geojson(path)
-        }
-        "topojson" => {
-            let exporter = nahpu_gis::io::topojson::TopoJsonExporter::new(&data);
-            exporter.export_topojson(path)
-        }
-        "shp" => {
-            let exporter = nahpu_gis::io::shp::ShapefileExporter::new(&data);
-            exporter.export_shp(path)
-        }
-        _ => Err(format!("Unsupported export format: {}", export_format)),
-    }
-}
-
-pub fn generate_document(
-    json_content: String,
-    export_format: String,
-    font_bytes: Vec<Vec<u8>>,
-) -> Result<Vec<u8>, String> {
-    let exporter = DocumentExport::new(&json_content)
-        .map_err(|e| format!("Failed to parse Document JSON: {}", e))?;
-
-    match export_format.as_str() {
-        "md" => Ok(exporter.to_markdown().into_bytes()),
-        "typ" => Ok(exporter.to_typst().into_bytes()),
-        "pdf" => exporter.to_pdf(font_bytes),
-        _ => Err(format!("Unsupported export format: {}", export_format)),
-    }
-}
-
-pub fn compile_typst_to_pdf(
-    typst_content: String,
-    font_bytes: Vec<Vec<u8>>,
-) -> Result<Vec<u8>, String> {
-    nahpu_export::typst_compiler::compile_to_pdf(&typst_content, font_bytes)
-}
-
-pub fn markdown_to_typst(md_content: String) -> String {
-    nahpu_export::document::markdown_to_typst(&md_content)
-}
-

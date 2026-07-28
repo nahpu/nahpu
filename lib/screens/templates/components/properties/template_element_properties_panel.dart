@@ -20,6 +20,9 @@ class TemplateElementPropertiesPanel extends StatelessWidget {
     required this.onUpdateCustomShape,
     required this.onDeleteCustomShape,
     required this.onDuplicateElement,
+    required this.onCopyElement,
+    required this.onPasteElement,
+    required this.canPasteElement,
     this.onDismiss,
   });
 
@@ -38,6 +41,9 @@ class TemplateElementPropertiesPanel extends StatelessWidget {
       onUpdateCustomShape;
   final void Function(bool page1, String id) onDeleteCustomShape;
   final ValueChanged<String> onDuplicateElement;
+  final ValueChanged<String> onCopyElement;
+  final VoidCallback onPasteElement;
+  final bool canPasteElement;
 
   @override
   Widget build(BuildContext context) {
@@ -285,9 +291,19 @@ class TemplateElementPropertiesPanel extends StatelessWidget {
           color: !isVisible ? scheme.error : null,
         ),
         IconButton(
-          icon: const Icon(Icons.copy_rounded, size: 20),
+          icon: const Icon(Icons.control_point_duplicate_outlined, size: 20),
           tooltip: 'Duplicate element',
           onPressed: () => onDuplicateElement(selectedElement),
+        ),
+        IconButton(
+          icon: const Icon(Icons.content_copy_outlined, size: 20),
+          tooltip: 'Copy element',
+          onPressed: () => onCopyElement(selectedElement),
+        ),
+        IconButton(
+          icon: const Icon(Icons.content_paste_outlined, size: 20),
+          tooltip: 'Paste element',
+          onPressed: canPasteElement ? onPasteElement : null,
         ),
       ],
     );

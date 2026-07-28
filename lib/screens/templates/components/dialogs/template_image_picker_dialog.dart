@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/template_image_service.dart';
+import 'package:nahpu/services/templates/image_service.dart';
 import 'package:path/path.dart' as path;
 
 class TemplateImagePickerDialog extends StatelessWidget {
@@ -62,7 +62,7 @@ class TemplateImagePickerDialog extends StatelessWidget {
 
                   return ListView.separated(
                     itemCount: paths.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (_, index) {
                       final imagePath = paths[index];
                       return ListTile(
@@ -107,7 +107,7 @@ class _TemplateImageThumb extends StatelessWidget {
               width: 44,
               height: 44,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const SizedBox(
+              errorBuilder: (_, _, _) => const SizedBox(
                 width: 44,
                 height: 44,
                 child: Icon(Icons.broken_image_outlined),

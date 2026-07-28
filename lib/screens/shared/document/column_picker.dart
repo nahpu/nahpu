@@ -5,10 +5,7 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 
 class SpecimenTableColumnSelector extends ConsumerStatefulWidget {
-  const SpecimenTableColumnSelector({
-    super.key,
-    required this.selectedColumns,
-  });
+  const SpecimenTableColumnSelector({super.key, required this.selectedColumns});
 
   final List<String> selectedColumns;
 
@@ -106,9 +103,11 @@ class _SpecimenTableColumnSelectorState
     for (var table in db.allTables) {
       final tableName = table.actualTableName;
       final cols = table.$columns.map((c) => '$tableName::${c.name}').toList();
-      cols.sort((a, b) => specimenColumnDisplayTitle(a)
-          .toLowerCase()
-          .compareTo(specimenColumnDisplayTitle(b).toLowerCase()));
+      cols.sort(
+        (a, b) => specimenColumnDisplayTitle(
+          a,
+        ).toLowerCase().compareTo(specimenColumnDisplayTitle(b).toLowerCase()),
+      );
       groups[tableName] = cols;
     }
     return groups;
@@ -130,19 +129,12 @@ class _ExpansionGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formattedTable = tableName
-        .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[1]}')
-        .trim()
-        .split(' ')
-        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
-        .join(' ');
-
     final int selectedCount = fields.where((f) => selected.contains(f)).length;
     final subtitleText = 'Selected $selectedCount of ${fields.length} columns';
 
     return ExpansionTile(
       title: Text(
-        formattedTable,
+        databaseTableDisplayTitle(tableName),
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       subtitle: Text(subtitleText),

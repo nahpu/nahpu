@@ -98,4 +98,43 @@ void main() {
       nav.dispose();
     });
   });
+
+  group('PageNavigation.jumpToPage', () {
+    testWidgets('clamps direct jumps to a 150-page viewport', (tester) async {
+      final nav = PageNavigation.init()..clampToCount(150);
+      final reportedPages = <int>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PageView.builder(
+            controller: nav.pageController,
+            itemCount: 150,
+            itemBuilder: (context, index) => Text('page $index'),
+            onPageChanged: reportedPages.add,
+          ),
+        ),
+      );
+
+      nav.jumpToPage(200);
+      await tester.pump();
+      expect(nav.pageController.page, 149);
+      expect(reportedPages, [149]);
+
+      reportedPages.clear();
+      nav.jumpToPage(-10);
+      await tester.pump();
+      expect(nav.pageController.page, 0);
+      expect(reportedPages, [0]);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      nav.dispose();
+    });
+
+    test('does nothing without an attached viewport', () {
+      final nav = PageNavigation.init()..clampToCount(150);
+
+      expect(() => nav.jumpToPage(149), returnsNormally);
+
+      nav.dispose();
+    });
+  });
 }

@@ -1,3 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M8 10h32a4 4 0 0 1 4 4v26a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" />
+  <path d="M4 21h40" />
+  <path d="M15 4v10" />
+  <path d="M33 4v10" />
+  <g stroke-width="2">
+    <path d="M4 32.5h40" />
+    <path d="M17.5 21v23" />
+    <path d="M30.5 21v23" />
+    <path d="M24 23.5a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4z" />
+  </g>
 </svg>

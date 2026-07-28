@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:nahpu/screens/templates/components/canvas/line_hit_test_region.dart';
+import 'package:nahpu/services/templates/canvas_snap_service.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 
@@ -31,6 +33,8 @@ class DraggableLineChip extends StatefulWidget {
     this.onDragStateChanged,
     this.isLocked = false,
     this.isVisible = true,
+    this.snapEnabled = true,
+    this.snapTargets = const [],
   });
 
   final Offset position;
@@ -58,6 +62,8 @@ class DraggableLineChip extends StatefulWidget {
   final ValueChanged<bool>? onDragStateChanged;
   final bool isLocked;
   final bool isVisible;
+  final bool snapEnabled;
+  final List<CanvasSnapTarget> snapTargets;
 
   @override
   State<DraggableLineChip> createState() => DraggableLineChipState();
@@ -66,13 +72,8 @@ class DraggableLineChip extends StatefulWidget {
 class DraggableLineChipState extends State<DraggableLineChip> {
   static const double _handleVisual = 16;
   static const double _handleHit = 36;
-
-  void _deferSetState(VoidCallback fn) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(fn);
-    });
-  }
+  static const double _snapTolerancePx = 4;
+  static const double _snapGuideWidthPx = 1.5;
 
   final GlobalKey _measureKey = GlobalKey();
 
@@ -92,8 +93,470 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   Offset? _imageMovePanLastGlobal;
   Offset? _resizePanLastGlobal;
 
+  Offset? _imagePanOriginMm;
+  Offset _imagePanAccumMm = Offset.zero;
   Offset? _imageDragLiveMm;
+  final CanvasSnapSession _snapSession = CanvasSnapSession();
+  CanvasSnapResult? _snapResult;
   int _imageMoveSession = 0;
+
+  @override
+  void didUpdateWidget(covariant DraggableLineChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isSelected && !widget.isSelected) {
+      _clearTransientInteractionState();
+    }
+    if (oldWidget.snapEnabled && !widget.snapEnabled) {
+      _snapSession.reset();
+      _snapResult = null;
+    }
+    final liveRect = _resizeLiveRect;
+    if (liveRect == null) return;
+
+    final currentRect = _widgetRect;
+    if (_isSameRect(liveRect, currentRect)) {
+      _resizeLiveRect = null;
+      return;
+    }
+
+    final oldRect = Rect.fromLTWH(
+      oldWidget.position.dx,
+      oldWidget.position.dy,
+      oldWidget.lengthMm,
+      math.max(2.0, oldWidget.thicknessPt * 0.3527),
+    );
+    if (!_isSameRect(oldRect, currentRect)) {
+      _resizeLiveRect = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final insetX = widget.canvasInsetXPx;
+    final insetY = widget.canvasInsetYPx;
+    final liveR = _resizeLiveRect;
+    final posMm = liveR != null
+        ? Offset(liveR.left, liveR.top)
+        : (_imageDragLiveMm ?? widget.position);
+    final effWmm = liveR?.width ?? widget.lengthMm;
+    final left = posMm.dx * widget.scale + insetX;
+    final top = posMm.dy * widget.scale + insetY;
+    final w = (effWmm * widget.scale).clamp(0.0, double.infinity);
+    final lineThicknessPx =
+        math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
+    final double gapPx = lineThicknessPx * 1.25;
+    final double h = widget.strokeStyle == 'double'
+        ? lineThicknessPx * 2.0 + gapPx
+        : lineThicknessPx;
+    final scheme = Theme.of(context).colorScheme;
+
+    final borderColor = _moving
+        ? scheme.primary
+        : widget.isSelected
+            ? scheme.primary
+            : scheme.outline;
+
+    // Padded outer stack so handles/rotate sit inside hit-test bounds (Flutter
+    // does not hit-test children outside a tight w×h Stack).
+    final padL = _handleHit / 2 + 6;
+    final padR = _handleHit / 2 + 6;
+    final controlsHeight =
+        (widget.onDelete != null ? 30.0 : 0.0) + 40.0 + 4.0 + 48.0;
+    final padT =
+        widget.isSelected && !widget.isLocked ? controlsHeight + 8.0 : 52.0;
+    final padB = _handleHit / 2 + 6;
+    final outerW = w + padL + padR;
+    final outerH = h + padT + padB;
+    final moveStripH = math.max(28.0, h + 24.0);
+    final moveStripTop = padT + h / 2 - moveStripH / 2;
+
+    final rad = degreesToRadians(_effectiveRotationDeg);
+    final pivotX = padL + w / 2;
+    final pivotY = padT + h / 2;
+    final rot = Matrix4.identity()
+      ..translateByDouble(pivotX, pivotY, 0, 1)
+      ..rotateZ(rad)
+      ..translateByDouble(-pivotX, -pivotY, 0, 1);
+
+    final chip = Positioned(
+      left: left - padL,
+      top: top - padT,
+      child: Transform(
+        transform: rot,
+        child: SizedBox(
+          width: outerW,
+          height: outerH,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: padL,
+                top: moveStripTop,
+                width: w,
+                height: moveStripH,
+                child: LineHitTestRegion(
+                  start: Offset(0, moveStripH / 2),
+                  end: Offset(w, moveStripH / 2),
+                  tolerancePx: math.max(8.0, lineThicknessPx / 2 + 4.0),
+                  child: GestureDetector(
+                    key: _measureKey,
+                    behavior: HitTestBehavior.translucent,
+                    onTapDown:
+                        widget.isLocked ? (_) => widget.onTap?.call() : null,
+                    onTap: widget.isLocked ? null : widget.onTap,
+                    onPanStart: widget.isLocked ? null : _onMovePanStart,
+                    onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
+                    onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
+                    onPanCancel: widget.isLocked ? null : _onMovePanEnd,
+                    child: Center(
+                      child: widget.isVisible
+                          ? AnimatedContainer(
+                              duration: (_resizeHandle != null ||
+                                      _rotateStartFingerRad != null ||
+                                      _moving)
+                                  ? Duration.zero
+                                  : const Duration(milliseconds: 100),
+                              width: w,
+                              height: h,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: borderColor,
+                                  width: (widget.isSelected || _moving)
+                                      ? 2.0
+                                      : 1.0,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                                color: scheme.surfaceContainerHighest,
+                                boxShadow: _moving
+                                    ? [
+                                        BoxShadow(
+                                          color: scheme.primary
+                                              .withValues(alpha: 0.25),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                fit: StackFit.expand,
+                                children: [
+                                  CustomPaint(
+                                    size: Size(w, h),
+                                    painter: LinePainter(
+                                      color: Color(widget.colorArgb),
+                                      thicknessPx: lineThicknessPx,
+                                      strokeStyle: widget.strokeStyle,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : Opacity(
+                              opacity: 0.35,
+                              child: AnimatedContainer(
+                                duration: (_resizeHandle != null ||
+                                        _rotateStartFingerRad != null ||
+                                        _moving)
+                                    ? Duration.zero
+                                    : const Duration(milliseconds: 100),
+                                width: w,
+                                height: h,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: borderColor,
+                                    width: (widget.isSelected || _moving)
+                                        ? 2.0
+                                        : 1.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: scheme.surfaceContainerHighest,
+                                  boxShadow: _moving
+                                      ? [
+                                          BoxShadow(
+                                            color: scheme.primary
+                                                .withValues(alpha: 0.25),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  fit: StackFit.expand,
+                                  children: [
+                                    CustomPaint(
+                                      size: Size(w, h),
+                                      painter: LinePainter(
+                                        color: Color(widget.colorArgb),
+                                        thicknessPx: lineThicknessPx,
+                                        strokeStyle: widget.strokeStyle,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+              if (widget.isSelected && !widget.isLocked) ...[
+                _lineHandle(_LineHandle.left, scheme,
+                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
+                _lineHandle(_LineHandle.right, scheme,
+                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
+                Positioned(
+                  left: padL + w / 2 - 24,
+                  top: math.max(0.0, padT - controlsHeight - 8.0),
+                  width: 48,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.onDelete != null) ...[
+                        IconButton.filled(
+                          tooltip: 'Remove line',
+                          onPressed: widget.onDelete,
+                          icon: const Icon(Icons.close, size: 13),
+                          style: IconButton.styleFrom(
+                            backgroundColor: scheme.error,
+                            foregroundColor: scheme.onError,
+                            fixedSize: const Size(26, 26),
+                            padding: EdgeInsets.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      _moveHandle(scheme),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onPanStart: _beginRotate,
+                          onPanUpdate: _onRotatePanUpdate,
+                          onPanEnd: (_) => _deferSetState(_endRotate),
+                          onPanCancel: () => _deferSetState(_endRotate),
+                          child: Tooltip(
+                            message: 'Drag to rotate',
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: scheme.primaryContainer,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: scheme.primary),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 3,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.rotate_right,
+                                size: 16,
+                                color: scheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+    final snapResult = _snapResult;
+    if (snapResult == null) return chip;
+    final guideColor = scheme.primary.withValues(alpha: 0.65);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (snapResult.verticalGuideMm != null)
+          Positioned(
+            left: snapResult.verticalGuideMm! * widget.scale +
+                widget.canvasInsetXPx -
+                _snapGuideWidthPx / 2,
+            top: widget.canvasInsetYPx,
+            width: _snapGuideWidthPx,
+            height: widget.templateHeightMm * widget.scale,
+            child: IgnorePointer(child: ColoredBox(color: guideColor)),
+          ),
+        if (snapResult.horizontalGuideMm != null)
+          Positioned(
+            left: widget.canvasInsetXPx,
+            top: widget.canvasInsetYPx +
+                snapResult.horizontalGuideMm! * widget.scale -
+                _snapGuideWidthPx / 2,
+            width: widget.templateWidthMm * widget.scale,
+            height: _snapGuideWidthPx,
+            child: IgnorePointer(child: ColoredBox(color: guideColor)),
+          ),
+        chip,
+      ],
+    );
+  }
+
+  /// [innerLeft]/[innerTop] = top-left of the image rect inside the padded stack.
+  Widget _lineHandle(
+    _LineHandle handle,
+    ColorScheme scheme, {
+    required double innerLeft,
+    required double innerTop,
+    required double innerW,
+    required double innerH,
+  }) {
+    final o = _handleHit / 2;
+    late final double left;
+    final double top = innerTop + innerH / 2 - o;
+    switch (handle) {
+      case _LineHandle.left:
+        left = innerLeft - o;
+        break;
+      case _LineHandle.right:
+        left = innerLeft + innerW - o;
+        break;
+    }
+    return Positioned(
+      left: left,
+      top: top,
+      width: _handleHit,
+      height: _handleHit,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanStart: (d) => _onResizePanStart(d, handle),
+        onPanUpdate: _onResizePanUpdate,
+        onPanEnd: (_) => setState(_endResize),
+        onPanCancel: () => setState(_endResize),
+        child: Center(
+          child: Container(
+            width: _handleVisual,
+            height: _handleVisual,
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _moveHandle(ColorScheme scheme) {
+    const handleSize = 32.0;
+    return SizedBox(
+      width: handleSize,
+      height: handleSize,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanStart: widget.isLocked ? null : _onMovePanStart,
+        onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
+        onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
+        onPanCancel: widget.isLocked ? null : _onMovePanEnd,
+        onTap: widget.onTap,
+        child: Tooltip(
+          message: 'Drag to move',
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 3,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.open_with,
+              size: 16,
+              color: scheme.onPrimaryContainer,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _deferSetState(VoidCallback fn) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(fn);
+    });
+  }
+
+  void _beginRotate(DragStartDetails d) {
+    widget.onDragStateChanged?.call(true);
+    _rotateStartElemDeg = widget.rotationDegrees;
+    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final c =
+        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
+    _rotateStartFingerRad =
+        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+  }
+
+  void _onRotatePanUpdate(DragUpdateDetails d) {
+    if (_rotateStartFingerRad == null || _rotateStartElemDeg == null) return;
+    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final c =
+        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
+    final cur =
+        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+    final delta = normalizeRadiansDelta(cur - _rotateStartFingerRad!);
+    final deg = CustomImageElement.normalizeImageRotationDegrees(
+      _rotateStartElemDeg! + radiansToDegrees(delta),
+    );
+    setState(() => _rotateLiveDeg = deg);
+  }
+
+  void _endRotate() {
+    widget.onDragStateChanged?.call(false);
+    if (_rotateLiveDeg != null) {
+      widget.onRotationChanged(_rotateLiveDeg!);
+    }
+    _rotateStartFingerRad = null;
+    _rotateStartElemDeg = null;
+    _rotateLiveDeg = null;
+  }
+
+  void _finishImageMoveGesture() {
+    final session = _imageMoveSession;
+    if (_imageDragLiveMm != null) {
+      widget.onMoved(_imageDragLiveMm!);
+    }
+    _imageMovePanLastGlobal = null;
+    _imagePanOriginMm = null;
+    _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || session != _imageMoveSession) return;
+      setState(() {
+        _imageDragLiveMm = null;
+        _snapResult = null;
+      });
+    });
+  }
 
   Offset _mmDeltaFromGlobalDrag(Offset globalPos, Offset globalDelta) {
     final fromStack = widget.templatePanToMmDelta(globalPos, globalDelta);
@@ -128,7 +591,11 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     widget.onDragStateChanged?.call(true);
     widget.onTap?.call();
     _imageMoveSession++;
-    _imageDragLiveMm = widget.position;
+    _imagePanOriginMm = widget.position;
+    _imagePanAccumMm = Offset.zero;
+    _imageDragLiveMm = null;
+    _snapSession.reset();
+    _snapResult = null;
     _deferSetState(() => _moving = true);
     _imageMovePanLastGlobal = d.globalPosition;
   }
@@ -149,8 +616,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final lr = _resizeLiveRect;
     final w = lr?.width ?? widget.lengthMm;
     final h = lr?.height ?? math.max(1.0, widget.thicknessPt * 0.3527);
-    final current = _imageDragLiveMm ?? widget.position;
-    final raw = current + dMm;
+    final origin = _imagePanOriginMm ?? widget.position;
+    _imagePanAccumMm += dMm;
+    final raw = origin + _imagePanAccumMm;
     final clamped = clampRotatedRectTopLeft(
       positionMm: raw,
       widthMm: w,
@@ -159,14 +627,54 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       canvasWidthMm: widget.templateWidthMm,
       canvasHeightMm: widget.templateHeightMm,
     );
-    setState(() => _imageDragLiveMm = clamped);
+    if (clamped != raw) {
+      _imagePanOriginMm = clamped;
+      _imagePanAccumMm = Offset.zero;
+    }
+    final snapResult = _snapSession.resolve(
+      position: clamped,
+      snapEnabled: widget.snapEnabled,
+      snapTargets: [
+        CanvasSnapTarget(
+          xMm: widget.templateWidthMm / 2,
+          yMm: widget.templateHeightMm / 2,
+        ),
+        ...widget.snapTargets,
+      ],
+      toleranceMm: _snapTolerancePx / widget.scale,
+    );
+    setState(() {
+      _imageDragLiveMm = snapResult.position;
+      _snapResult = snapResult.hasGuide ? snapResult : null;
+    });
   }
 
   void _onMovePanEnd() {
     if (widget.isLocked) return;
-    _deferSetState(() => _moving = false);
+    setState(() {
+      _moving = false;
+      _snapResult = null;
+    });
     _finishImageMoveGesture();
     widget.onDragStateChanged?.call(false);
+  }
+
+  void _clearTransientInteractionState() {
+    _moving = false;
+    _imageDragLiveMm = null;
+    _imageMovePanLastGlobal = null;
+    _imagePanOriginMm = null;
+    _imagePanAccumMm = Offset.zero;
+    _snapSession.reset();
+    _snapResult = null;
+    _resizeHandle = null;
+    _resizeStart = null;
+    _resizeAccum = Offset.zero;
+    _resizeLiveRect = null;
+    _resizePanLastGlobal = null;
+    _rotateStartFingerRad = null;
+    _rotateStartElemDeg = null;
+    _rotateLiveDeg = null;
   }
 
   void _onResizePanStart(DragStartDetails d, _LineHandle h) {
@@ -241,407 +749,6 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     _resizeStart = null;
     _resizeAccum = Offset.zero;
     _resizePanLastGlobal = null;
-  }
-
-  @override
-  void didUpdateWidget(covariant DraggableLineChip oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final liveRect = _resizeLiveRect;
-    if (liveRect == null) return;
-
-    final currentRect = _widgetRect;
-    if (_isSameRect(liveRect, currentRect)) {
-      _resizeLiveRect = null;
-      return;
-    }
-
-    final oldRect = Rect.fromLTWH(
-      oldWidget.position.dx,
-      oldWidget.position.dy,
-      oldWidget.lengthMm,
-      math.max(2.0, oldWidget.thicknessPt * 0.3527),
-    );
-    if (!_isSameRect(oldRect, currentRect)) {
-      _resizeLiveRect = null;
-    }
-  }
-
-  void _beginRotate(DragStartDetails d) {
-    widget.onDragStateChanged?.call(true);
-    _rotateStartElemDeg = widget.rotationDegrees;
-    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    _rotateStartFingerRad =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
-  }
-
-  void _onRotatePanUpdate(DragUpdateDetails d) {
-    if (_rotateStartFingerRad == null || _rotateStartElemDeg == null) return;
-    final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    final cur =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
-    final delta = normalizeRadiansDelta(cur - _rotateStartFingerRad!);
-    final deg = CustomImageElement.normalizeImageRotationDegrees(
-      _rotateStartElemDeg! + radiansToDegrees(delta),
-    );
-    setState(() => _rotateLiveDeg = deg);
-  }
-
-  void _endRotate() {
-    widget.onDragStateChanged?.call(false);
-    if (_rotateLiveDeg != null) {
-      widget.onRotationChanged(_rotateLiveDeg!);
-    }
-    _rotateStartFingerRad = null;
-    _rotateStartElemDeg = null;
-    _rotateLiveDeg = null;
-  }
-
-  /// [innerLeft]/[innerTop] = top-left of the image rect inside the padded stack.
-  Widget _lineHandle(
-    _LineHandle handle,
-    ColorScheme scheme, {
-    required double innerLeft,
-    required double innerTop,
-    required double innerW,
-    required double innerH,
-  }) {
-    final o = _handleHit / 2;
-    late final double left;
-    final double top = innerTop + innerH / 2 - o;
-    switch (handle) {
-      case _LineHandle.left:
-        left = innerLeft - o;
-        break;
-      case _LineHandle.right:
-        left = innerLeft + innerW - o;
-        break;
-    }
-    return Positioned(
-      left: left,
-      top: top,
-      width: _handleHit,
-      height: _handleHit,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanStart: (d) => _onResizePanStart(d, handle),
-        onPanUpdate: _onResizePanUpdate,
-        onPanEnd: (_) => setState(_endResize),
-        onPanCancel: () => setState(_endResize),
-        child: Center(
-          child: Container(
-            width: _handleVisual,
-            height: _handleVisual,
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.primary, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _moveHandle(ColorScheme scheme) {
-    const handleSize = 40.0;
-    return SizedBox(
-      width: handleSize,
-      height: handleSize,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanStart: widget.isLocked ? null : _onMovePanStart,
-        onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
-        onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
-        onPanCancel: widget.isLocked ? null : _onMovePanEnd,
-        onTap: widget.onTap,
-        child: Tooltip(
-          message: 'Drag to move',
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.primary),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 3,
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.open_with,
-              size: 22,
-              color: scheme.onPrimaryContainer,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _finishImageMoveGesture() {
-    final session = _imageMoveSession;
-    if (_imageDragLiveMm != null) {
-      widget.onMoved(_imageDragLiveMm!);
-    }
-    _imageMovePanLastGlobal = null;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || session != _imageMoveSession) return;
-      setState(() => _imageDragLiveMm = null);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final insetX = widget.canvasInsetXPx;
-    final insetY = widget.canvasInsetYPx;
-    final liveR = _resizeLiveRect;
-    final posMm = liveR != null
-        ? Offset(liveR.left, liveR.top)
-        : (_imageDragLiveMm ?? widget.position);
-    final effWmm = liveR?.width ?? widget.lengthMm;
-    final left = posMm.dx * widget.scale + insetX;
-    final top = posMm.dy * widget.scale + insetY;
-    final w = (effWmm * widget.scale).clamp(0.0, double.infinity);
-    final lineThicknessPx =
-        math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
-    final double gapPx = lineThicknessPx * 1.25;
-    final double h = widget.strokeStyle == 'double'
-        ? lineThicknessPx * 2.0 + gapPx
-        : lineThicknessPx;
-    final scheme = Theme.of(context).colorScheme;
-
-    final borderColor = _moving
-        ? scheme.primary
-        : widget.isSelected
-            ? scheme.primary
-            : scheme.outline;
-
-    // Padded outer stack so handles/rotate sit inside hit-test bounds (Flutter
-    // does not hit-test children outside a tight w×h Stack).
-    final padL = _handleHit / 2 + 6;
-    final padR = _handleHit / 2 + 6;
-    final controlsHeight =
-        (widget.onDelete != null ? 30.0 : 0.0) + 40.0 + 4.0 + 48.0;
-    final padT =
-        widget.isSelected && !widget.isLocked ? controlsHeight + 8.0 : 52.0;
-    final padB = _handleHit / 2 + 6;
-    final outerW = w + padL + padR;
-    final outerH = h + padT + padB;
-    final moveStripH = math.max(28.0, h + 24.0);
-    final moveStripTop = padT + h / 2 - moveStripH / 2;
-
-    final rad = degreesToRadians(_effectiveRotationDeg);
-    final pivotX = padL + w / 2;
-    final pivotY = padT + h / 2;
-    final rot = Matrix4.identity()
-      ..translateByDouble(pivotX, pivotY, 0, 1)
-      ..rotateZ(rad)
-      ..translateByDouble(-pivotX, -pivotY, 0, 1);
-
-    return Positioned(
-      left: left - padL,
-      top: top - padT,
-      child: Transform(
-        transform: rot,
-        child: SizedBox(
-          width: outerW,
-          height: outerH,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                left: padL,
-                top: moveStripTop,
-                width: w,
-                height: moveStripH,
-                child: GestureDetector(
-                  key: _measureKey,
-                  behavior: HitTestBehavior.translucent,
-                  onTap: widget.onTap,
-                  onPanStart: widget.isLocked ? null : _onMovePanStart,
-                  onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
-                  onPanEnd: widget.isLocked ? null : (_) => _onMovePanEnd(),
-                  onPanCancel: widget.isLocked ? null : _onMovePanEnd,
-                  child: Center(
-                    child: widget.isVisible
-                        ? AnimatedContainer(
-                            duration: (_resizeHandle != null ||
-                                    _rotateStartFingerRad != null ||
-                                    _moving)
-                                ? Duration.zero
-                                : const Duration(milliseconds: 100),
-                            width: w,
-                            height: h,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: borderColor,
-                                width:
-                                    (widget.isSelected || _moving) ? 2.0 : 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                              color: scheme.surfaceContainerHighest,
-                              boxShadow: _moving
-                                  ? [
-                                      BoxShadow(
-                                        color: scheme.primary
-                                            .withValues(alpha: 0.25),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              fit: StackFit.expand,
-                              children: [
-                                CustomPaint(
-                                  size: Size(w, h),
-                                  painter: LinePainter(
-                                    color: Color(widget.colorArgb),
-                                    thicknessPx: lineThicknessPx,
-                                    strokeStyle: widget.strokeStyle,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : Opacity(
-                            opacity: 0.35,
-                            child: AnimatedContainer(
-                              duration: (_resizeHandle != null ||
-                                      _rotateStartFingerRad != null ||
-                                      _moving)
-                                  ? Duration.zero
-                                  : const Duration(milliseconds: 100),
-                              width: w,
-                              height: h,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: borderColor,
-                                  width: (widget.isSelected || _moving)
-                                      ? 2.0
-                                      : 1.0,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                                color: scheme.surfaceContainerHighest,
-                                boxShadow: _moving
-                                    ? [
-                                        BoxShadow(
-                                          color: scheme.primary
-                                              .withValues(alpha: 0.25),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                fit: StackFit.expand,
-                                children: [
-                                  CustomPaint(
-                                    size: Size(w, h),
-                                    painter: LinePainter(
-                                      color: Color(widget.colorArgb),
-                                      thicknessPx: lineThicknessPx,
-                                      strokeStyle: widget.strokeStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-              if (widget.isSelected && !widget.isLocked) ...[
-                _lineHandle(_LineHandle.left, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _lineHandle(_LineHandle.right, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                Positioned(
-                  left: padL + w / 2 - 24,
-                  top: math.max(0.0, padT - controlsHeight - 8.0),
-                  width: 48,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (widget.onDelete != null) ...[
-                        IconButton.filled(
-                          tooltip: 'Remove line',
-                          onPressed: widget.onDelete,
-                          icon: const Icon(Icons.close, size: 13),
-                          style: IconButton.styleFrom(
-                            backgroundColor: scheme.error,
-                            foregroundColor: scheme.onError,
-                            fixedSize: const Size(26, 26),
-                            padding: EdgeInsets.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                      ],
-                      _moveHandle(scheme),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 48,
-                        height: 48,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onPanStart: _beginRotate,
-                          onPanUpdate: _onRotatePanUpdate,
-                          onPanEnd: (_) => _deferSetState(_endRotate),
-                          onPanCancel: () => _deferSetState(_endRotate),
-                          child: Tooltip(
-                            message: 'Drag to rotate',
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: scheme.primaryContainer,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: scheme.primary),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.15),
-                                    blurRadius: 3,
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.rotate_right,
-                                size: 22,
-                                color: scheme.onPrimaryContainer,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

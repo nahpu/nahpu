@@ -69,7 +69,7 @@ class CatalogSettings extends StatelessWidget {
         CommonSettingTile(
           title: 'Sites',
           icon: Icons.place_outlined,
-          label: 'Edit habitat types and site metadata',
+          label: 'Manage controlled vocabularies for site and habitat types',
           isNavigation: true,
           onTap: () => Navigator.push(
             context,
@@ -95,7 +95,7 @@ class DatabaseSettingSections extends StatelessWidget {
       children: [
         CommonSettingTile(
             title: 'Taxa',
-            label: 'Edit and remove taxa',
+            label: 'Manage taxonomy records',
             isNavigation: true,
             icon: Icons.emoji_nature_outlined,
             onTap: () {
@@ -109,7 +109,7 @@ class DatabaseSettingSections extends StatelessWidget {
         CommonSettingTile(
             title: 'Personnel',
             icon: Icons.group_outlined,
-            label: 'Edit and remove personnel',
+            label: 'Manage personnel records',
             isNavigation: true,
             onTap: (() {
               Navigator.push(
@@ -146,6 +146,7 @@ class CatalogFmtSection extends StatelessWidget {
         isNavigation: true,
         icon: Icons.archive_outlined,
         title: 'Format',
+        label: 'Set catalog format',
         value: matchCatFmtToTaxonGroup(selectedFmt),
         onTap: () {
           Navigator.push(
@@ -169,7 +170,8 @@ class SpecimenSection extends StatelessWidget {
         isNavigation: true,
         icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
         title: 'Specimens',
-        label: 'Tissue ID, specimen type, treatments, and more',
+        label:
+            'Manage field, tissue ID settings, and controlled vocabularies for specimen forms',
         onTap: () {
           Navigator.push(
             context,
@@ -190,7 +192,8 @@ class CollEventSection extends StatelessWidget {
       isNavigation: true,
       icon: Icons.calendar_month_outlined,
       title: 'Events',
-      label: 'Methods and event personnel roles',
+      label:
+          'Manage controlled vocabularies for collection methods and event personnel roles',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
@@ -211,8 +214,8 @@ class ExportSettingsSection extends StatelessWidget {
       isDivided: true,
       children: [
         CommonSettingTile(
-            title: 'Collection records',
-            label: 'Create and edit presets for exporting records',
+            title: 'Tabular Data',
+            label: 'Manage presets for exporting in tabular formats',
             isNavigation: true,
             icon: Icons.table_view_outlined,
             onTap: () {
@@ -225,7 +228,7 @@ class ExportSettingsSection extends StatelessWidget {
             }),
         CommonSettingTile(
           title: 'Documents',
-          label: 'Create and edit document export presets',
+          label: 'Manage presets for exporting documents',
           isNavigation: true,
           icon: Icons.picture_as_pdf_outlined,
           onTap: () {
@@ -241,7 +244,7 @@ class ExportSettingsSection extends StatelessWidget {
           isNavigation: true,
           icon: Icons.edit_note_outlined,
           title: 'Template Editor',
-          label: 'Edit and create document templates',
+          label: 'Create and edit document templates',
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute<void>(

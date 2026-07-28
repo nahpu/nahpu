@@ -9,48 +9,38 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/export/avian_records.dart';
-import 'package:nahpu/services/export/mammalian_records.dart';
-import 'package:nahpu/services/export/herpetofauna_records.dart';
+import 'package:nahpu/services/export/bird_attributes.dart';
+import 'package:nahpu/services/export/mammal_attributes.dart';
+import 'package:nahpu/services/export/herp_attributes.dart';
 import 'package:nahpu/src/rust/api/export.dart';
-import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 
 class SpecimenRecordWriter {
   SpecimenRecordWriter({
     required this.ref,
     required this.recordType,
-    required this.isInaccurateInBrackets,
     this.isAllFields = false,
     this.concatenateMultiEntry = true,
     this.useFieldNamesOnly = false,
     this.selectedColumns,
-    this.exportPreset,
   });
 
   final WidgetRef ref;
   final SpecimenRecordType recordType;
-  final bool isInaccurateInBrackets;
   final bool isAllFields;
   final bool concatenateMultiEntry;
   final bool useFieldNamesOnly;
   final List<String>? selectedColumns;
-  final ExportPresetModel? exportPreset;
 
   Future<void> writeRecordDelimited(File filePath, ExportFmt format) async {
     List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
-
-    // If we have a custom preset, use the dynamic exporter
-    if (exportPreset != null) {
-      return await _writeDynamicRecordDelimited(filePath, format, specimenList);
-    }
 
     List<String> header = [
       ...collectingRecordExportList,
       ...siteExportList,
       ...collEventExportList,
-      ..._getMeasurementHeader(),
+      ..._getAttributeHeader(),
       partExportSimple,
-      'media::media'
+      'media::media',
     ];
 
     List<Map<String, dynamic>> jsonList = [];
@@ -61,8 +51,9 @@ class SpecimenRecordWriter {
         Map<String, dynamic> row = {};
         for (int i = 0; i < header.length; i++) {
           if (selectedColumns == null || selectedColumns!.contains(header[i])) {
-            String key =
-                useFieldNamesOnly ? header[i].split('::').last : header[i];
+            String key = useFieldNamesOnly
+                ? header[i].split('::').last
+                : header[i];
             row[key] = content[i];
           }
         }
@@ -87,81 +78,30 @@ class SpecimenRecordWriter {
     await writer.write();
   }
 
-  Future<void> _writeDynamicRecordDelimited(
-      File filePath, ExportFmt format, List<SpecimenData> specimenList) async {
-    final exporter = DynamicRecordExporter(
-      ref: ref,
-      concatenateMultiEntry: concatenateMultiEntry,
-    );
-    List<Map<String, dynamic>> jsonList = [];
-
-    for (var specimen in specimenList) {
-      final dynamicRecords = await exporter.getRecord(specimen);
-      for (var dynamicRecord in dynamicRecords) {
-        Map<String, dynamic> row = {};
-
-        // Add simple fields
-        for (var col in exportPreset!.fields.keys) {
-          final customName = exportPreset!.fields[col] ?? col;
-          row[customName] = dynamicRecord[col] ?? '';
-        }
-
-        // Add combined fields
-        for (var combined in exportPreset!.combinedFields) {
-          String value = '';
-          for (var comp in combined.fields) {
-            if (comp.startsWith('SEP:')) {
-              value += comp.substring(4);
-            } else {
-              value += dynamicRecord[comp] ?? '';
-            }
-          }
-          row[combined.fieldId] = value;
-        }
-        jsonList.add(row);
-      }
-    }
-
-    String jsonContent = jsonEncode(jsonList);
-    List<String> columnNames = [
-      ...exportPreset!.fields.values,
-      ...exportPreset!.combinedFields.map((e) => e.fieldId),
-    ];
-
-    final writer = RecordWriter(
-      jsonContent: jsonContent,
-      outputPath: filePath.path,
-      columnNames: columnNames,
-      exportFormat: format.name,
-      concatenateMultiEntries: concatenateMultiEntry,
-    );
-    await writer.write();
-  }
-
   Future<List<List<String>>> _getSpecimenDetails(SpecimenData data) async {
     List<String> collectingRecord = await _getCollectingRecord(data);
     List<String> parts = await _getPartListStrings(data.uuid);
     List<String> collSiteDetails = await _getCollEventSiteDetails(
       data.collEventID,
     );
-    List<String> measurement = await _getMeasurement(data);
+    List<String> attributes = await _getAttributes(data);
     String media = await _getSpecimenMedia(data.uuid);
 
     List<String> baseContent = [
       ...collectingRecord,
       ...collSiteDetails,
-      ...measurement,
+      ...attributes,
     ];
 
     if (parts.isEmpty) {
       return [
-        [...baseContent, '', media]
+        [...baseContent, '', media],
       ];
     }
 
     if (concatenateMultiEntry) {
       return [
-        [...baseContent, parts.join('|'), media]
+        [...baseContent, parts.join('|'), media],
       ];
     } else {
       return parts.map((p) => [...baseContent, p, media]).toList();
@@ -173,25 +113,25 @@ class SpecimenRecordWriter {
     return await service.getRecord(data);
   }
 
-  List<String> _getMeasurementHeader() {
+  List<String> _getAttributeHeader() {
     switch (recordType) {
       case SpecimenRecordType.generalMammals:
-      case SpecimenRecordType.fossils: // TODO: Placeholder
-        return mammalMeasurementExportList;
+      case SpecimenRecordType.fossils: // TODO: Use dedicated fossil attributes.
+        return mammalAttributeExportList;
       case SpecimenRecordType.birds:
-        return avianMeasurementExportList;
+        return birdAttributeExportList;
       case SpecimenRecordType.bats:
-        return batMeasurementExportList;
+        return batAttributeExportList;
       case SpecimenRecordType.allMammals:
-        return batMeasurementExportList;
+        return batAttributeExportList;
       case SpecimenRecordType.herpetofauna:
-        return herpMeasurementExportList;
+        return herpAttributeExportList;
       case SpecimenRecordType.allTaxa:
         return <String>{
-          ...mammalMeasurementExportList,
-          ...avianMeasurementExportList,
-          ...batMeasurementExportList,
-          ...herpMeasurementExportList,
+          ...mammalAttributeExportList,
+          ...birdAttributeExportList,
+          ...batAttributeExportList,
+          ...herpAttributeExportList,
         }.toList();
     }
   }
@@ -210,19 +150,24 @@ class SpecimenRecordWriter {
   }
 
   Future<List<String>> _getCollEventSiteDetails(int? collEventId) async {
-    return await CollEventRecordWriter(ref: ref)
-        .getCOllEventSiteDetails(collEventId);
+    return await CollEventRecordWriter(
+      ref: ref,
+    ).getCOllEventSiteDetails(collEventId);
   }
 
   Future<List<String>> _getPartListStrings(String specimenUuid) async {
-    SpecimenPartWriterServices service =
-        SpecimenPartWriterServices(ref: ref, isWithLabel: true);
-    List<List<String>> partList =
-        await service.getPartList(specimenUuid, isWithEmpty: false);
+    SpecimenPartWriterServices service = SpecimenPartWriterServices(
+      ref: ref,
+      isWithLabel: true,
+    );
+    List<List<String>> partList = await service.getPartList(
+      specimenUuid,
+      isWithEmpty: false,
+    );
     return partList.map((e) => e.join(';')).toList();
   }
 
-  Future<List<String>> _getMeasurement(SpecimenData data) async {
+  Future<List<String>> _getAttributes(SpecimenData data) async {
     SpecimenRecordType currentType = recordType;
     if (recordType == SpecimenRecordType.allTaxa) {
       currentType = matchTaxonGroupToRecordType(data.taxonGroup ?? '');
@@ -234,21 +179,21 @@ class SpecimenRecordWriter {
     switch (currentType) {
       case SpecimenRecordType.generalMammals:
       case SpecimenRecordType.allMammals:
-      case SpecimenRecordType.fossils: // TODO: Placeholder
-        keys = mammalMeasurementExportList;
-        values = await _getMeasurementGeneralMammals(data.uuid, false);
+      case SpecimenRecordType.fossils: // TODO: Use dedicated fossil attributes.
+        keys = mammalAttributeExportList;
+        values = await _getMammalAttributes(data.uuid, false);
         break;
       case SpecimenRecordType.birds:
-        keys = avianMeasurementExportList;
-        values = await _getMeasurementBirds(data.uuid);
+        keys = birdAttributeExportList;
+        values = await _getBirdAttributes(data.uuid);
         break;
       case SpecimenRecordType.bats:
-        keys = batMeasurementExportList;
-        values = await _getMeasurementGeneralMammals(data.uuid, true);
+        keys = batAttributeExportList;
+        values = await _getMammalAttributes(data.uuid, true);
         break;
       case SpecimenRecordType.herpetofauna:
-        keys = herpMeasurementExportList;
-        values = await _getMeasurementHerps(data.uuid);
+        keys = herpAttributeExportList;
+        values = await _getHerpAttributes(data.uuid);
         break;
       case SpecimenRecordType.allTaxa:
         keys = [];
@@ -260,7 +205,7 @@ class SpecimenRecordWriter {
       return values;
     }
 
-    List<String> combinedHeader = _getMeasurementHeader();
+    List<String> combinedHeader = _getAttributeHeader();
     Map<String, String> map = {};
     for (int i = 0; i < keys.length; i++) {
       if (i < values.length) {
@@ -271,34 +216,32 @@ class SpecimenRecordWriter {
     return combinedHeader.map((k) => map[k] ?? '').toList();
   }
 
-  Future<List<String>> _getMeasurementGeneralMammals(
-      String specimenUuid, bool isBatRecord) async {
-    MammalianMeasurements mammals = MammalianMeasurements(
+  Future<List<String>> _getMammalAttributes(
+    String specimenUuid,
+    bool isBatRecord,
+  ) async {
+    MammalAttributes mammals = MammalAttributes(
       specimenUuid: specimenUuid,
       ref: ref,
       isBatRecord: isBatRecord,
-      isInaccurateInBrackets: isInaccurateInBrackets,
     );
-    return await mammals.getMeasurements();
+    return await mammals.getAttributes();
   }
 
-  Future<List<String>> _getMeasurementBirds(String specimenUuid) async {
-    AvianMeasurements birds =
-        AvianMeasurements(specimenUuid: specimenUuid, ref: ref);
-    return await birds.getMeasurements();
+  Future<List<String>> _getBirdAttributes(String specimenUuid) async {
+    BirdAttributes birds = BirdAttributes(specimenUuid: specimenUuid, ref: ref);
+    return await birds.getAttributes();
   }
 
-  Future<List<String>> _getMeasurementHerps(String specimenUuid) async {
-    HerpetofaunaMeasurements herps = HerpetofaunaMeasurements(
-      specimenUuid: specimenUuid,
-      ref: ref,
-    );
-    return await herps.getMeasurements();
+  Future<List<String>> _getHerpAttributes(String specimenUuid) async {
+    HerpAttributes herps = HerpAttributes(specimenUuid: specimenUuid, ref: ref);
+    return await herps.getAttributes();
   }
 
   Future<String> _getSpecimenMedia(String specimenUuid) async {
-    String specimenMedia =
-        await MediaWriterServices(ref: ref).getSpecimenMedias(specimenUuid);
+    String specimenMedia = await MediaWriterServices(
+      ref: ref,
+    ).getSpecimenMedias(specimenUuid);
     return specimenMedia;
   }
 }

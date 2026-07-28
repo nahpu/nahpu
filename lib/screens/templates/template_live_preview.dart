@@ -2,12 +2,15 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/templates/template_gender_icon.dart';
+import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_outline.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
+import 'package:nahpu/screens/templates/template_markdown.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/templates/nested_list_service.dart';
+import 'package:nahpu/services/text_replacements.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;
@@ -58,9 +61,7 @@ class TemplateLivePreview extends StatelessWidget {
             (true, template.page1, mirrorFront),
             (false, template.page2, mirrorBack),
           ]
-        : <(bool, TemplatePage, bool)>[
-            (true, template.page1, mirrorFront),
-          ];
+        : <(bool, TemplatePage, bool)>[(true, template.page1, mirrorFront)];
 
     const pad = 16.0;
     final maxW = (viewportSize.width - 2 * pad).clamp(80.0, double.infinity);
@@ -158,45 +159,50 @@ class _PreviewPage extends StatelessWidget {
                       ? Image.file(
                           File(im.imagePath),
                           fit: BoxFit.fill,
-                          errorBuilder: (_, __, ___) =>
+                          errorBuilder: (_, _, _) =>
                               const ColoredBox(color: Color(0xFFEEEEEE)),
                         )
                       : const ColoredBox(color: Color(0xFFEEEEEE)),
                 ),
               ),
             for (final ct in page.customTexts)
-              if (templateGenderIconFieldKeyFromBracketText(ct.text)
+              if (templateSpecimenSexIconFieldKeyFromBracketText(ct.text)
                   case final gKey?)
                 Positioned(
                   left: ct.xMm * scale,
                   top: ct.yMm * scale,
                   width: math.max(
                     1.0,
-                    (ct.iconWidthMm ?? kTemplateGenderIconDefaultWidthMm) *
+                    (ct.iconWidthMm ?? kTemplateSpecimenSexIconDefaultWidthMm) *
                         scale,
                   ),
                   height: math.max(
                     1.0,
-                    (ct.iconHeightMm ?? kTemplateGenderIconDefaultHeightMm) *
+                    (ct.iconHeightMm ??
+                            kTemplateSpecimenSexIconDefaultHeightMm) *
                         scale,
                   ),
                   child: Transform.rotate(
                     angle: degreesToRadians(ct.rotationDegrees),
                     child: IconTheme(
                       data: IconThemeData(
-                        size: math.min(
+                        size:
+                            math.min(
                               (ct.iconWidthMm ??
-                                      kTemplateGenderIconDefaultWidthMm) *
+                                      kTemplateSpecimenSexIconDefaultWidthMm) *
                                   scale,
                               (ct.iconHeightMm ??
-                                      kTemplateGenderIconDefaultHeightMm) *
+                                      kTemplateSpecimenSexIconDefaultHeightMm) *
                                   scale,
                             ) *
                             0.88,
                         color: Colors.black,
                       ),
                       child: Icon(
-                        templateGenderIconForFieldKey(placeholderValues, gKey),
+                        templateSpecimenSexIconForFieldKey(
+                          placeholderValues,
+                          gKey,
+                        ),
                       ),
                     ),
                   ),
@@ -209,47 +215,79 @@ class _PreviewPage extends StatelessWidget {
                     angle: degreesToRadians(ct.rotationDegrees),
                     child: Builder(
                       builder: (context) {
+                        final textFormatter = ct.isQrCode
+                            ? formatTemplateText
+                            : formatExportTemplateText;
                         final formattedText = ct.text.isEmpty
                             ? ' '
-                            : formatTemplateText(
-                                placeholderValues.isEmpty
-                                    ? ct.text
-                                    : substituteDocumentPlaceholders(
-                                        ct.text,
-                                        placeholderValues,
-                                      ),
-                                ct.textType,
-                                ct.formatOption,
-                                ct.caseFormat,
+                            : applyTextReplacementRules(
+                                textFormatter(
+                                  resolveDocumentTemplatePlaceholders(
+                                    text: ct.text,
+                                    data: placeholderValues,
+                                    textType: ct.textType,
+                                    formatOption: ct.formatOption,
+                                    caseFormat: ct.caseFormat,
+                                    nullFallbackOption: ct.nullFallbackOption,
+                                    customNullFallbackText:
+                                        ct.customNullFallbackText,
+                                  ),
+                                  ct.textType,
+                                  ct.formatOption,
+                                  ct.caseFormat,
+                                ),
+                                ct.replacementRules,
                               );
                         final hasNewlines = formattedText.contains('\n');
                         return SizedBox(
-                          width:
-                              ct.maxWidthMm != null ? ct.maxWidthMm! * scale : null,
+                          width: ct.maxWidthMm != null
+                              ? ct.maxWidthMm! * scale
+                              : null,
                           height: (!ct.isDynamic && ct.heightMm != null)
                               ? ct.heightMm! * scale
                               : null,
-                          child: Text(
-                            formattedText,
-                            style: customTemplateCanvasTextStyle(
-                              fontFamilyRaw: ct.fontFamily,
-                              fontSize: _previewFontSizePx(ct.fontSizePt, scale),
-                              fontWeight:
-                                  ct.bold ? FontWeight.bold : FontWeight.normal,
-                              fontStyle:
-                                  ct.italic ? FontStyle.italic : FontStyle.normal,
-                              underline: ct.underline,
-                              strikethrough: ct.strikethrough,
-                            ).copyWith(color: Colors.black),
-                            softWrap: ct.maxWidthMm != null || hasNewlines,
-                            maxLines: (ct.maxWidthMm != null || hasNewlines) ? null : 1,
-                            overflow: (ct.maxWidthMm != null || hasNewlines)
-                                ? TextOverflow.clip
-                                : TextOverflow.visible,
-                            textAlign: _parseTextAlign(ct.textAlign),
+                          child: Builder(
+                            builder: (context) {
+                              final textStyle = customTemplateCanvasTextStyle(
+                                fontFamilyRaw: ct.fontFamily,
+                                fontSize: _previewFontSizePx(
+                                  ct.fontSizePt,
+                                  scale,
+                                ),
+                                fontWeight: ct.bold
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                fontStyle: ct.italic
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
+                                underline: ct.underline,
+                                strikethrough: ct.strikethrough,
+                              ).copyWith(color: Colors.black);
+                              final textAlign = _parseTextAlign(ct.textAlign);
+                              if (isTemplateRichTextType(ct.textType)) {
+                                return TemplateMarkdownBody(
+                                  data: formattedText,
+                                  textStyle: textStyle,
+                                  textAlign: textAlign,
+                                  clipOverflow: !ct.isDynamic,
+                                );
+                              }
+                              return Text(
+                                formattedText,
+                                style: textStyle,
+                                softWrap: ct.maxWidthMm != null || hasNewlines,
+                                maxLines: (ct.maxWidthMm != null || hasNewlines)
+                                    ? null
+                                    : 1,
+                                overflow: (ct.maxWidthMm != null || hasNewlines)
+                                    ? TextOverflow.clip
+                                    : TextOverflow.visible,
+                                textAlign: textAlign,
+                              );
+                            },
                           ),
                         );
-                      }
+                      },
                     ),
                   ),
                 ),
