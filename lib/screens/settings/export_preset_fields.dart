@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/inline_grouped_field_picker.dart';
+import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
 import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
@@ -7,6 +9,7 @@ import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/text_replacements.dart';
 
 class ExportPresetFieldsScreen extends ConsumerStatefulWidget {
   const ExportPresetFieldsScreen({
@@ -995,7 +998,8 @@ class _ExportMappingCard extends StatelessWidget {
           ? 'Field: ${mapping.expression}'
           : 'Combined: ${mapping.expression}';
       subtitle =
-          'Format: ${mapping.textType} · Options: ${mapping.formatOption}';
+          'Format: ${_valueFormatLabel(mapping.textType)} · '
+          'Options: ${mapping.formatOption}';
       icon = Icons.grid_on_outlined;
     }
 
@@ -1054,6 +1058,13 @@ class _ExportMappingCard extends StatelessWidget {
     IndexedHeaderStyle.compact => 'field1',
     IndexedHeaderStyle.brackets => 'field[1]',
   };
+
+  String _valueFormatLabel(String textType) => switch (textType) {
+    kConditionalBracketExportTextType => 'conditional brackets',
+    kConditionalFieldExportTextType => 'conditional field',
+    kConditionalValueExportTextType => 'conditional value',
+    _ => textType,
+  };
 }
 
 class _MappingCustomizerForm extends ConsumerStatefulWidget {
@@ -1090,6 +1101,7 @@ class _MappingCustomizerFormState
   late TextEditingController _headerController;
   late TextEditingController _formatOptionController;
   late TextEditingController _customNullTextController;
+  late TextEditingController _conditionalTextController;
   late TextEditingController _nestedNamespaceController;
   late TextEditingController _fieldSepController;
   late TextEditingController _recordSepController;
@@ -1121,6 +1133,9 @@ class _MappingCustomizerFormState
     _customNullTextController = TextEditingController(
       text: _localMapping.customNullFallbackText,
     );
+    _conditionalTextController = TextEditingController(
+      text: _localMapping.conditionalText,
+    );
 
     _nestedNamespaceController = TextEditingController(
       text: _localMapping.nestedNamespace ?? '',
@@ -1140,6 +1155,7 @@ class _MappingCustomizerFormState
     _headerController.dispose();
     _formatOptionController.dispose();
     _customNullTextController.dispose();
+    _conditionalTextController.dispose();
     _nestedNamespaceController.dispose();
     _fieldSepController.dispose();
     _recordSepController.dispose();
@@ -1194,18 +1210,36 @@ class _MappingCustomizerFormState
         ),
         const SizedBox(height: 16),
         if (_mappingKind == 'scalar' || _mappingKind == 'list') ...[
-          _GroupedFieldPicker(
-            key: ValueKey('source-$selectedSource'),
-            value: selectedSource,
-            groups: sourceGroups,
-            decoration: const InputDecoration(
-              labelText: 'Source field',
-              helperText: 'Choose the NAHPU field that supplies this column.',
+          if (_mappingKind == 'scalar' &&
+              (_localMapping.textType == kConditionalBracketExportTextType ||
+                  isConditionalReplacementExportTextType(
+                    _localMapping.textType,
+                  )))
+            InlineGroupedFieldPicker(
+              key: ValueKey('inline-source-$selectedSource'),
+              value: selectedSource,
+              groups: sourceGroups,
+              decoration: const InputDecoration(
+                labelText: 'Source field',
+                helperText: 'Choose the NAHPU field that supplies this column.',
+              ),
+              onChanged: (value) {
+                setState(() => _expressionController.text = '[$value]');
+              },
+            )
+          else
+            _GroupedFieldPicker(
+              key: ValueKey('source-$selectedSource'),
+              value: selectedSource,
+              groups: sourceGroups,
+              decoration: const InputDecoration(
+                labelText: 'Source field',
+                helperText: 'Choose the NAHPU field that supplies this column.',
+              ),
+              onChanged: (value) {
+                setState(() => _expressionController.text = '[$value]');
+              },
             ),
-            onChanged: (value) {
-              setState(() => _expressionController.text = '[$value]');
-            },
-          ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _headerController,
@@ -1308,6 +1342,14 @@ class _MappingCustomizerFormState
                   value: kConditionalBracketExportTextType,
                   child: Text('Conditional brackets'),
                 ),
+                DropdownMenuItem(
+                  value: kConditionalFieldExportTextType,
+                  child: Text('Conditional field'),
+                ),
+                DropdownMenuItem(
+                  value: kConditionalValueExportTextType,
+                  child: Text('Conditional value'),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -1315,7 +1357,10 @@ class _MappingCustomizerFormState
                     _localMapping = _localMapping.copyWith(
                       textType: value,
                       bracketConditions:
-                          value == kConditionalBracketExportTextType &&
+                          (value == kConditionalBracketExportTextType ||
+                                  isConditionalReplacementExportTextType(
+                                    value,
+                                  )) &&
                               _localMapping.bracketConditions.isEmpty
                           ? const [
                               ConditionalBracketCondition(
@@ -1330,12 +1375,16 @@ class _MappingCustomizerFormState
                 }
               },
             ),
-            if (_localMapping.textType ==
-                kConditionalBracketExportTextType) ...[
+            if (_localMapping.textType == kConditionalBracketExportTextType ||
+                isConditionalReplacementExportTextType(
+                  _localMapping.textType,
+                )) ...[
               const SizedBox(height: 12),
               _ConditionalBracketControls(
                 fieldGroups: groups,
                 targetField: selectedSource,
+                compareTargetValue:
+                    _localMapping.textType == kConditionalValueExportTextType,
                 conditions: _localMapping.bracketConditions,
                 mode: _localMapping.bracketConditionMode,
                 onChanged: (conditions, mode) => setState(() {
@@ -1345,6 +1394,24 @@ class _MappingCustomizerFormState
                   );
                 }),
               ),
+              if (isConditionalReplacementExportTextType(
+                _localMapping.textType,
+              )) ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _conditionalTextController,
+                  onChanged: (value) => setState(() {
+                    _localMapping = _localMapping.copyWith(
+                      conditionalText: value,
+                    );
+                  }),
+                  decoration: const InputDecoration(
+                    labelText: 'Replacement text',
+                    helperText:
+                        'Written when the condition matches; otherwise the original value is kept.',
+                  ),
+                ),
+              ],
             ],
           ],
         ] else if (_mappingKind == 'combined') ...[
@@ -1532,6 +1599,15 @@ class _MappingCustomizerFormState
           ],
         ],
         const SizedBox(height: 16),
+        TextReplacementRulesEditor(
+          rules: _localMapping.replacementRules,
+          onChanged: (rules) {
+            setState(() {
+              _localMapping = _localMapping.copyWith(replacementRules: rules);
+            });
+          },
+        ),
+        const SizedBox(height: 8),
         _MappingOutputExample(
           mappingKind: _mappingKind,
           sourceExpression: _expressionController.text,
@@ -1557,8 +1633,10 @@ class _MappingCustomizerFormState
                 ),
               ),
               if (_mappingKind == 'scalar' &&
-                  _localMapping.textType !=
-                      kConditionalBracketExportTextType) ...[
+                  _localMapping.textType != kConditionalBracketExportTextType &&
+                  !isConditionalReplacementExportTextType(
+                    _localMapping.textType,
+                  )) ...[
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _formatOptionController,
@@ -1653,6 +1731,7 @@ class _MappingCustomizerFormState
         clearHeaderOverride: _headerController.text.trim().isEmpty,
         formatOption: _formatOptionController.text.trim(),
         customNullFallbackText: _customNullTextController.text.trim(),
+        conditionalText: _conditionalTextController.text,
       );
     }
     widget.onSave(finalMapping);
@@ -1724,6 +1803,16 @@ class _MappingCustomizerFormState
   bool _canSave() => _validationMessage().isEmpty;
 
   String _validationMessage() {
+    for (
+      var index = 0;
+      index < _localMapping.replacementRules.length;
+      index++
+    ) {
+      final error = validateTextReplacementRule(
+        _localMapping.replacementRules[index],
+      );
+      if (error != null) return 'Replacement ${index + 1}: $error';
+    }
     if (_mappingKind == 'nested') {
       if (_nestedNamespaceController.text.trim().isEmpty) {
         return 'Choose a related-record group.';
@@ -1770,24 +1859,31 @@ class _MappingCustomizerFormState
         _exactSourceField(_expressionController.text) == null) {
       return 'Indexed lists require exactly one source field.';
     }
-    if (_localMapping.textType == kConditionalBracketExportTextType) {
+    if (_localMapping.textType == kConditionalBracketExportTextType ||
+        isConditionalReplacementExportTextType(_localMapping.textType)) {
       final target = _exactSourceField(_expressionController.text);
       if (target == null) {
-        return 'Conditional brackets require exactly one source field.';
+        return 'Conditional output requires exactly one source field.';
       }
       if (_localMapping.bracketConditions.isEmpty) {
-        return 'Add at least one bracket condition.';
+        return 'Add at least one condition.';
+      }
+      if (isConditionalReplacementExportTextType(_localMapping.textType) &&
+          _conditionalTextController.text.isEmpty) {
+        return 'Enter replacement text.';
       }
       for (final condition in _localMapping.bracketConditions) {
-        if (condition.sourceField.trim().isEmpty) {
+        if (_localMapping.textType != kConditionalValueExportTextType &&
+            condition.sourceField.trim().isEmpty) {
           return 'Choose a controlling field for every bracket condition.';
         }
         if (condition.comparisonValue.trim().isEmpty) {
           return 'Enter a comparison value for every bracket condition.';
         }
-        if (condition.sourceField.trim().toLowerCase() ==
-            target.toLowerCase()) {
-          return 'A measurement cannot depend on itself.';
+        if (_localMapping.textType != kConditionalValueExportTextType &&
+            condition.sourceField.trim().toLowerCase() ==
+                target.toLowerCase()) {
+          return 'A conditional field cannot depend on itself.';
         }
       }
     }
@@ -1800,6 +1896,8 @@ class _MappingCustomizerFormState
         'encoded',
         'coordinates',
         kConditionalBracketExportTextType,
+        kConditionalFieldExportTextType,
+        kConditionalValueExportTextType,
       }.contains(value)
       ? value
       : 'normal';
@@ -2020,6 +2118,7 @@ class _ConditionalBracketControls extends StatelessWidget {
   const _ConditionalBracketControls({
     required this.fieldGroups,
     required this.targetField,
+    required this.compareTargetValue,
     required this.conditions,
     required this.mode,
     required this.onChanged,
@@ -2027,6 +2126,7 @@ class _ConditionalBracketControls extends StatelessWidget {
 
   final Map<String, List<String>> fieldGroups;
   final String? targetField;
+  final bool compareTargetValue;
   final List<ConditionalBracketCondition> conditions;
   final ConditionalMatchMode mode;
   final void Function(
@@ -2042,7 +2142,7 @@ class _ConditionalBracketControls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Bracket conditions',
+          compareTargetValue ? 'Value conditions' : 'Field conditions',
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 4),
@@ -2071,14 +2171,18 @@ class _ConditionalBracketControls extends StatelessWidget {
         for (var index = 0; index < conditions.length; index++)
           _ConditionRow(
             key: ValueKey('bracket-condition-$index'),
+            index: index,
             condition: conditions[index],
             fieldGroups: sourceGroups,
             targetField: targetField,
+            showSourceField: !compareTargetValue,
             onChanged: (next) {
               final updated = List<ConditionalBracketCondition>.from(
                 conditions,
               );
-              updated[index] = next;
+              updated[index] = compareTargetValue && targetField != null
+                  ? next.copyWith(sourceField: targetField)
+                  : next;
               onChanged(updated, mode);
             },
             onRemove: conditions.length <= 1
@@ -2110,24 +2214,63 @@ class _ConditionalBracketControls extends StatelessWidget {
   }
 }
 
-class _ConditionRow extends StatelessWidget {
+class _ConditionRow extends StatefulWidget {
   const _ConditionRow({
     super.key,
+    required this.index,
     required this.condition,
     required this.fieldGroups,
     required this.targetField,
+    required this.showSourceField,
     required this.onChanged,
     required this.onRemove,
   });
 
+  final int index;
   final ConditionalBracketCondition condition;
   final Map<String, List<String>> fieldGroups;
   final String? targetField;
+  final bool showSourceField;
   final ValueChanged<ConditionalBracketCondition> onChanged;
   final VoidCallback? onRemove;
 
   @override
+  State<_ConditionRow> createState() => _ConditionRowState();
+}
+
+class _ConditionRowState extends State<_ConditionRow> {
+  late final TextEditingController _valueController;
+
+  @override
+  void initState() {
+    super.initState();
+    _valueController = TextEditingController(
+      text: widget.condition.comparisonValue,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _ConditionRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_valueController.text != widget.condition.comparisonValue) {
+      _valueController.value = TextEditingValue(
+        text: widget.condition.comparisonValue,
+        selection: TextSelection.collapsed(
+          offset: widget.condition.comparisonValue.length,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _valueController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final condition = widget.condition;
     final selected = condition.sourceField.trim().isEmpty
         ? null
         : condition.sourceField;
@@ -2138,24 +2281,27 @@ class _ConditionRow extends StatelessWidget {
         runSpacing: 8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          SizedBox(
-            width: 240,
-            child: _GroupedFieldPicker(
-              key: ValueKey('condition-field-${condition.sourceField}'),
-              value: selected,
-              groups: _fieldGroupsWithValue(fieldGroups, selected),
-              decoration: const InputDecoration(labelText: 'Controlling field'),
-              onChanged: (value) {
-                onChanged(
-                  conditionalBracketConditionForSource(
-                    condition,
-                    sourceField: value,
-                    targetField: targetField,
-                  ),
-                );
-              },
+          if (widget.showSourceField)
+            SizedBox(
+              width: 240,
+              child: InlineGroupedFieldPicker(
+                key: ValueKey('condition-field-${condition.sourceField}'),
+                value: selected,
+                groups: _fieldGroupsWithValue(widget.fieldGroups, selected),
+                decoration: const InputDecoration(
+                  labelText: 'Controlling field',
+                ),
+                onChanged: (value) {
+                  widget.onChanged(
+                    conditionalBracketConditionForSource(
+                      condition,
+                      sourceField: value,
+                      targetField: widget.targetField,
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
           DropdownButton<ConditionalComparisonOperator>(
             value: condition.operator,
             items: const [
@@ -2173,22 +2319,24 @@ class _ConditionRow extends StatelessWidget {
               ),
             ],
             onChanged: (value) {
-              if (value != null) onChanged(condition.copyWith(operator: value));
+              if (value != null) {
+                widget.onChanged(condition.copyWith(operator: value));
+              }
             },
           ),
           SizedBox(
             width: 180,
             child: TextFormField(
-              key: ValueKey('condition-value-${condition.comparisonValue}'),
-              initialValue: condition.comparisonValue,
+              key: ValueKey('condition-value-${widget.index}'),
+              controller: _valueController,
               decoration: const InputDecoration(labelText: 'Value'),
               onChanged: (value) =>
-                  onChanged(condition.copyWith(comparisonValue: value)),
+                  widget.onChanged(condition.copyWith(comparisonValue: value)),
             ),
           ),
           IconButton(
             tooltip: 'Remove condition',
-            onPressed: onRemove,
+            onPressed: widget.onRemove,
             icon: const Icon(Icons.remove_circle_outline),
           ),
         ],

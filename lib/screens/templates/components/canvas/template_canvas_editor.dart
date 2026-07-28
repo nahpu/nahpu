@@ -15,6 +15,7 @@ import 'package:nahpu/services/templates/canvas_snap_service.dart';
 import 'package:nahpu/services/templates/nested_list_service.dart';
 import 'package:nahpu/services/templates/canvas_overflow_service.dart';
 import 'package:nahpu/services/templates/dynamic_layout_service.dart';
+import 'package:nahpu/services/text_replacements.dart';
 import 'package:nahpu/styles/themes.dart';
 
 import 'dart:math' as math;
@@ -92,15 +93,20 @@ class TemplateCanvasEditor extends StatefulWidget {
   final String fieldDisplayOption;
   final ValueChanged<bool>? onDragStateChanged;
 
-  final Offset? Function(GlobalKey stackKey, Offset globalPosition,
-      Offset globalDelta, double scale) templatePanGlobalDeltaToMm;
+  final Offset? Function(
+    GlobalKey stackKey,
+    Offset globalPosition,
+    Offset globalDelta,
+    double scale,
+  )
+  templatePanGlobalDeltaToMm;
   final VoidCallback onClearSelection;
   final void Function(String id) onSelectElement;
   final void Function(String id) onStartInlineEditing;
   final void Function(CustomImageElement element) onScheduleTemplateImageUpdate;
   final void Function(String id) onRemoveCustomImage;
   final void Function(CustomTextElement element)
-      onScheduleTemplateTextPositionUpdate;
+  onScheduleTemplateTextPositionUpdate;
   final void Function(CustomLineElement element) onScheduleTemplateLineUpdate;
   final void Function(String id) onRemoveCustomLine;
   final void Function(CustomShapeElement element) onScheduleTemplateShapeUpdate;
@@ -154,751 +160,868 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
 
     final page = page1 ? template.page1 : template.page2;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      const edgePadH = 16.0;
-      const edgePadCanvasEnd = 0.0;
-      final availW =
-          (constraints.maxWidth - edgePadCanvasEnd).clamp(0.0, double.infinity);
-      final availH =
-          (constraints.maxHeight - 2 * edgePadH).clamp(0.0, double.infinity);
-      final widthScale = templateWidthMm > 0 ? availW / templateWidthMm : 1.0;
-      final heightScale =
-          templateHeightMm > 0 ? availH / templateHeightMm : 1.0;
-      final fitScale = math.min(widthScale, heightScale);
-      final baseScale = fitScale.isFinite && fitScale > 0 ? fitScale : 1.0;
-      final scale = baseScale * zoom;
-      final canvasW = templateWidthMm * scale;
-      final canvasH = templateHeightMm * scale;
-      final overflowPadding = calculateTemplateCanvasOverflowPadding(
-        page: page,
-        templateWidthMm: templateWidthMm,
-        templateHeightMm: templateHeightMm,
-        scalePxPerMm: scale,
-        basePaddingPx: _kTemplateCanvasHitPadPx,
-        dynamicTextContentHeightMmById: _dynamicTextContentHeightMmById,
-      );
-      final canvasInsetX = overflowPadding.left;
-      final canvasInsetY = overflowPadding.top;
-      final stackW = canvasW + overflowPadding.left + overflowPadding.right;
-      final stackH = canvasH + overflowPadding.top + overflowPadding.bottom;
-
-      Offset? templatePanToMmDelta(Offset globalPosition, Offset globalDelta) {
-        return templatePanGlobalDeltaToMm(
-          templateStackKey,
-          globalPosition,
-          globalDelta,
-          scale,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const edgePadH = 16.0;
+        const edgePadCanvasEnd = 0.0;
+        final availW = (constraints.maxWidth - edgePadCanvasEnd).clamp(
+          0.0,
+          double.infinity,
         );
-      }
+        final availH = (constraints.maxHeight - 2 * edgePadH).clamp(
+          0.0,
+          double.infinity,
+        );
+        final widthScale = templateWidthMm > 0 ? availW / templateWidthMm : 1.0;
+        final heightScale = templateHeightMm > 0
+            ? availH / templateHeightMm
+            : 1.0;
+        final fitScale = math.min(widthScale, heightScale);
+        final baseScale = fitScale.isFinite && fitScale > 0 ? fitScale : 1.0;
+        final scale = baseScale * zoom;
+        final canvasW = templateWidthMm * scale;
+        final canvasH = templateHeightMm * scale;
+        final overflowPadding = calculateTemplateCanvasOverflowPadding(
+          page: page,
+          templateWidthMm: templateWidthMm,
+          templateHeightMm: templateHeightMm,
+          scalePxPerMm: scale,
+          basePaddingPx: _kTemplateCanvasHitPadPx,
+          dynamicTextContentHeightMmById: _dynamicTextContentHeightMmById,
+        );
+        final canvasInsetX = overflowPadding.left;
+        final canvasInsetY = overflowPadding.top;
+        final stackW = canvasW + overflowPadding.left + overflowPadding.right;
+        final stackH = canvasH + overflowPadding.top + overflowPadding.bottom;
 
-      void onDragStateChanged(bool dragging) {
-        setState(() {
-          _canvasPanEnabled = !dragging;
-        });
-        widget.onDragStateChanged?.call(dragging);
-      }
+        Offset? templatePanToMmDelta(
+          Offset globalPosition,
+          Offset globalDelta,
+        ) {
+          return templatePanGlobalDeltaToMm(
+            templateStackKey,
+            globalPosition,
+            globalDelta,
+            scale,
+          );
+        }
 
-      return ColoredBox(
-        key: const ValueKey('template-canvas-workspace'),
-        color: NahpuTheme.templateEditorWorkspaceSurface,
-        child: InteractiveViewer(
-          transformationController: _transformationController,
-          constrained: false,
-          scaleEnabled: !canvasMovementLocked && _canvasPanEnabled,
-          panEnabled: !canvasMovementLocked && _canvasPanEnabled,
-          minScale: 0.5,
-          maxScale: 4.0,
-          onInteractionStart: (_) {
-            _gestureStartZoom = widget.zoom;
-          },
-          onInteractionUpdate: (details) {
-            if (canvasMovementLocked || !_canvasPanEnabled) return;
-            if ((details.scale - 1.0).abs() < 0.01) return;
-            final startZoom = _gestureStartZoom ?? widget.zoom;
-            widget.onZoomChanged(
-              (startZoom * details.scale).clamp(0.5, 4.0).toDouble(),
-            );
-            _resetViewerScale();
-          },
-          onInteractionEnd: (_) {
-            _gestureStartZoom = null;
-            _resetViewerScale();
-          },
-          clipBehavior: Clip.hardEdge,
-          boundaryMargin: const EdgeInsets.all(double.infinity),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              0,
-              edgePadH,
-              edgePadCanvasEnd,
-              edgePadH,
-            ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: availW,
-                minHeight: availH,
+        void onDragStateChanged(bool dragging) {
+          setState(() {
+            _canvasPanEnabled = !dragging;
+          });
+          widget.onDragStateChanged?.call(dragging);
+        }
+
+        return ColoredBox(
+          key: const ValueKey('template-canvas-workspace'),
+          color: NahpuTheme.templateEditorWorkspaceSurface,
+          child: InteractiveViewer(
+            transformationController: _transformationController,
+            constrained: false,
+            scaleEnabled: !canvasMovementLocked && _canvasPanEnabled,
+            panEnabled: !canvasMovementLocked && _canvasPanEnabled,
+            minScale: 0.5,
+            maxScale: 4.0,
+            onInteractionStart: (_) {
+              _gestureStartZoom = widget.zoom;
+            },
+            onInteractionUpdate: (details) {
+              if (canvasMovementLocked || !_canvasPanEnabled) return;
+              if ((details.scale - 1.0).abs() < 0.01) return;
+              final startZoom = _gestureStartZoom ?? widget.zoom;
+              widget.onZoomChanged(
+                (startZoom * details.scale).clamp(0.5, 4.0).toDouble(),
+              );
+              _resetViewerScale();
+            },
+            onInteractionEnd: (_) {
+              _gestureStartZoom = null;
+              _resetViewerScale();
+            },
+            clipBehavior: Clip.hardEdge,
+            boundaryMargin: const EdgeInsets.all(double.infinity),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                0,
+                edgePadH,
+                edgePadCanvasEnd,
+                edgePadH,
               ),
-              child: Stack(
-                fit: StackFit.loose,
-                children: [
-                  Positioned.fill(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTapDown: (_) => onClearSelection(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: availW,
+                  minHeight: availH,
+                ),
+                child: Stack(
+                  fit: StackFit.loose,
+                  children: [
+                    Positioned.fill(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTapDown: (_) => onClearSelection(),
+                      ),
                     ),
-                  ),
-                  Container(
-                    width: math.max(availW, stackW),
-                    height: math.max(availH, stackH),
-                    alignment: Alignment.center,
-                    child: Transform.rotate(
-                      angle: (page1 ? mirrorFront : mirrorBack) ? math.pi : 0,
-                      child: CanvasSizedBox(
-                        width: stackW,
-                        height: stackH,
-                        child: TemplateCanvasStack(
-                          key: templateStackKey,
-                          clipBehavior: Clip.none,
-                          fit: StackFit.expand,
-                          children: [
-                            Positioned(
-                              left: canvasInsetX,
-                              top: canvasInsetY,
-                              width: canvasW,
-                              height: canvasH,
-                              child: IgnorePointer(
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    DecoratedBox(
-                                      decoration: templateAreaStackDecoration(),
-                                      child: showGrid
-                                          ? CustomPaint(
-                                              painter: GridPainter(
-                                                templateWidthMm:
-                                                    templateWidthMm,
-                                                templateHeightMm:
-                                                    templateHeightMm,
-                                                scale: scale,
-                                              ),
-                                              child: const SizedBox.expand(),
-                                            )
-                                          : const SizedBox.expand(),
-                                    ),
-                                    if (template.outline != null)
-                                      CustomPaint(
-                                        painter: TemplateOutlineOverlayPainter(
-                                          outline: template.outline!,
-                                          scaleMmToPx: scale,
-                                        ),
-                                        child: const SizedBox.expand(),
+                    Container(
+                      width: math.max(availW, stackW),
+                      height: math.max(availH, stackH),
+                      alignment: Alignment.center,
+                      child: Transform.rotate(
+                        angle: (page1 ? mirrorFront : mirrorBack) ? math.pi : 0,
+                        child: CanvasSizedBox(
+                          width: stackW,
+                          height: stackH,
+                          child: TemplateCanvasStack(
+                            key: templateStackKey,
+                            clipBehavior: Clip.none,
+                            fit: StackFit.expand,
+                            children: [
+                              Positioned(
+                                left: canvasInsetX,
+                                top: canvasInsetY,
+                                width: canvasW,
+                                height: canvasH,
+                                child: IgnorePointer(
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      DecoratedBox(
+                                        decoration:
+                                            templateAreaStackDecoration(),
+                                        child: showGrid
+                                            ? CustomPaint(
+                                                painter: GridPainter(
+                                                  templateWidthMm:
+                                                      templateWidthMm,
+                                                  templateHeightMm:
+                                                      templateHeightMm,
+                                                  scale: scale,
+                                                ),
+                                                child: const SizedBox.expand(),
+                                              )
+                                            : const SizedBox.expand(),
                                       ),
-                                  ],
+                                      if (template.outline != null)
+                                        CustomPaint(
+                                          painter:
+                                              TemplateOutlineOverlayPainter(
+                                                outline: template.outline!,
+                                                scaleMmToPx: scale,
+                                              ),
+                                          child: const SizedBox.expand(),
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            ...(() {
-                              final allElements = <dynamic>[
-                                ...page.customImages,
-                                ...page.customTexts,
-                                ...page.customLines,
-                                ...page.customShapes,
-                              ]
-                                // Lowest layer paints first; the canvas stack
-                                // hit-tests this order in reverse.
-                                ..sort((a, b) => (a.zIndex as int)
-                                    .compareTo(b.zIndex as int));
+                              ...(() {
+                                final allElements =
+                                    <dynamic>[
+                                        ...page.customImages,
+                                        ...page.customTexts,
+                                        ...page.customLines,
+                                        ...page.customShapes,
+                                      ]
+                                      // Lowest layer paints first; the canvas stack
+                                      // hit-tests this order in reverse.
+                                      ..sort(
+                                        (a, b) => (a.zIndex as int).compareTo(
+                                          b.zIndex as int,
+                                        ),
+                                      );
 
-                              Offset renderedPosition(dynamic element) {
-                                final savedX = (element.xMm as double)
-                                    .clamp(0.0, widget.templateWidthMm);
-                                final savedY = (element.yMm as double)
-                                    .clamp(0.0, widget.templateHeightMm);
-                                final shift = TemplateDynamicLayoutService
-                                    .verticalShiftMm(
-                                  texts: page.customTexts,
-                                  targetYmm: savedY,
-                                  excludeTextId: element is CustomTextElement
-                                      ? element.id
-                                      : null,
-                                  contentHeightMmByTextId:
-                                      _dynamicTextContentHeightMmById,
-                                );
-                                return Offset(savedX, savedY + shift);
-                              }
-
-                              Offset savedPosition(
-                                Offset rendered,
-                                dynamic element,
-                              ) {
-                                final savedY = TemplateDynamicLayoutService
-                                    .savedYmmForRenderedY(
-                                  texts: page.customTexts,
-                                  renderedYmm: rendered.dy,
-                                  excludeTextId: element is CustomTextElement
-                                      ? element.id
-                                      : null,
-                                  contentHeightMmByTextId:
-                                      _dynamicTextContentHeightMmById,
-                                );
-                                return Offset(
-                                  rendered.dx
-                                      .clamp(0.0, widget.templateWidthMm),
-                                  savedY.clamp(0.0, widget.templateHeightMm),
-                                );
-                              }
-
-                              void reportDynamicTextSize(
-                                CustomTextElement element,
-                                Size size,
-                              ) {
-                                if (!TemplateDynamicLayoutService
-                                    .isFlowingDynamicText(element)) {
-                                  return;
+                                Offset renderedPosition(dynamic element) {
+                                  final savedX = (element.xMm as double).clamp(
+                                    0.0,
+                                    widget.templateWidthMm,
+                                  );
+                                  final savedY = (element.yMm as double).clamp(
+                                    0.0,
+                                    widget.templateHeightMm,
+                                  );
+                                  final shift =
+                                      TemplateDynamicLayoutService.verticalShiftMm(
+                                        texts: page.customTexts,
+                                        targetYmm: savedY,
+                                        excludeTextId:
+                                            element is CustomTextElement
+                                            ? element.id
+                                            : null,
+                                        contentHeightMmByTextId:
+                                            _dynamicTextContentHeightMmById,
+                                      );
+                                  return Offset(savedX, savedY + shift);
                                 }
-                                final heightMm = size.height / scale;
-                                if (!heightMm.isFinite || heightMm < 0) return;
-                                final oldHeight =
-                                    _dynamicTextContentHeightMmById[element.id];
-                                if (oldHeight != null &&
-                                    (oldHeight - heightMm).abs() < 0.01) {
-                                  return;
-                                }
-                                if (!mounted) return;
-                                setState(() {
-                                  _dynamicTextContentHeightMmById[element.id] =
-                                      heightMm;
-                                });
-                              }
 
-                              List<CanvasSnapTarget> snapTargetsFor(
-                                dynamic active,
-                              ) {
-                                final targets = <CanvasSnapTarget>[];
-                                for (final other in allElements) {
-                                  if (identical(other, active)) continue;
-                                  final rendered = renderedPosition(other);
-                                  if (other is CustomImageElement) {
-                                    targets.addAll([
-                                      CanvasSnapTarget(
-                                        xMm: other.xMm,
-                                        yMm: rendered.dy,
-                                      ),
-                                      CanvasSnapTarget(
-                                        xMm: other.xMm + other.widthMm / 2,
-                                        yMm: rendered.dy + other.heightMm / 2,
-                                      ),
-                                    ]);
-                                  } else if (other is CustomTextElement) {
-                                    targets.add(
-                                      CanvasSnapTarget(
-                                        xMm: other.xMm,
-                                        yMm: rendered.dy,
-                                      ),
-                                    );
-                                    if (other.maxWidthMm != null ||
-                                        other.heightMm != null) {
-                                      final measuredHeightMm =
-                                          _dynamicTextContentHeightMmById[
-                                              other.id];
+                                Offset savedPosition(
+                                  Offset rendered,
+                                  dynamic element,
+                                ) {
+                                  final savedY =
+                                      TemplateDynamicLayoutService.savedYmmForRenderedY(
+                                        texts: page.customTexts,
+                                        renderedYmm: rendered.dy,
+                                        excludeTextId:
+                                            element is CustomTextElement
+                                            ? element.id
+                                            : null,
+                                        contentHeightMmByTextId:
+                                            _dynamicTextContentHeightMmById,
+                                      );
+                                  return Offset(
+                                    rendered.dx.clamp(
+                                      0.0,
+                                      widget.templateWidthMm,
+                                    ),
+                                    savedY.clamp(0.0, widget.templateHeightMm),
+                                  );
+                                }
+
+                                void reportDynamicTextSize(
+                                  CustomTextElement element,
+                                  Size size,
+                                ) {
+                                  if (!TemplateDynamicLayoutService.isFlowingDynamicText(
+                                    element,
+                                  )) {
+                                    return;
+                                  }
+                                  final heightMm = size.height / scale;
+                                  if (!heightMm.isFinite || heightMm < 0) {
+                                    return;
+                                  }
+                                  final oldHeight =
+                                      _dynamicTextContentHeightMmById[element
+                                          .id];
+                                  if (oldHeight != null &&
+                                      (oldHeight - heightMm).abs() < 0.01) {
+                                    return;
+                                  }
+                                  if (!mounted) return;
+                                  setState(() {
+                                    _dynamicTextContentHeightMmById[element
+                                            .id] =
+                                        heightMm;
+                                  });
+                                }
+
+                                List<CanvasSnapTarget> snapTargetsFor(
+                                  dynamic active,
+                                ) {
+                                  final targets = <CanvasSnapTarget>[];
+                                  for (final other in allElements) {
+                                    if (identical(other, active)) continue;
+                                    final rendered = renderedPosition(other);
+                                    if (other is CustomImageElement) {
+                                      targets.addAll([
+                                        CanvasSnapTarget(
+                                          xMm: other.xMm,
+                                          yMm: rendered.dy,
+                                        ),
+                                        CanvasSnapTarget(
+                                          xMm: other.xMm + other.widthMm / 2,
+                                          yMm: rendered.dy + other.heightMm / 2,
+                                        ),
+                                      ]);
+                                    } else if (other is CustomTextElement) {
                                       targets.add(
                                         CanvasSnapTarget(
-                                          xMm: other.maxWidthMm == null
-                                              ? null
-                                              : other.xMm +
-                                                  other.maxWidthMm! / 2,
-                                          yMm: other.heightMm == null &&
-                                                  measuredHeightMm == null
-                                              ? null
-                                              : rendered.dy +
-                                                  (measuredHeightMm ??
-                                                          other.heightMm!) /
-                                                      2,
+                                          xMm: other.xMm,
+                                          yMm: rendered.dy,
                                         ),
+                                      );
+                                      if (other.maxWidthMm != null ||
+                                          other.heightMm != null) {
+                                        final measuredHeightMm =
+                                            _dynamicTextContentHeightMmById[other
+                                                .id];
+                                        targets.add(
+                                          CanvasSnapTarget(
+                                            xMm: other.maxWidthMm == null
+                                                ? null
+                                                : other.xMm +
+                                                      other.maxWidthMm! / 2,
+                                            yMm:
+                                                other.heightMm == null &&
+                                                    measuredHeightMm == null
+                                                ? null
+                                                : rendered.dy +
+                                                      (measuredHeightMm ??
+                                                              other.heightMm!) /
+                                                          2,
+                                          ),
+                                        );
+                                      }
+                                    } else if (other is CustomLineElement) {
+                                      targets.addAll([
+                                        CanvasSnapTarget(
+                                          xMm: other.xMm,
+                                          yMm: rendered.dy,
+                                        ),
+                                        CanvasSnapTarget(
+                                          xMm: other.xMm + other.lengthMm / 2,
+                                          yMm: rendered.dy,
+                                        ),
+                                      ]);
+                                    } else if (other is CustomShapeElement) {
+                                      targets.addAll([
+                                        CanvasSnapTarget(
+                                          xMm: other.xMm,
+                                          yMm: rendered.dy,
+                                        ),
+                                        CanvasSnapTarget(
+                                          xMm: other.xMm + other.widthMm / 2,
+                                          yMm: rendered.dy + other.heightMm / 2,
+                                        ),
+                                      ]);
+                                    }
+                                  }
+                                  return targets;
+                                }
+
+                                return allElements.map<Widget>((element) {
+                                  if (element is CustomImageElement) {
+                                    return DraggableImageChip(
+                                      key: ValueKey(
+                                        'p${page1 ? '1' : '2'}_img_${element.id}',
+                                      ),
+                                      imagePath: element.imagePath,
+                                      position: renderedPosition(element),
+                                      widthMm: element.widthMm,
+                                      heightMm: element.heightMm,
+                                      rotationDegrees: element.rotationDegrees,
+                                      scale: scale,
+                                      templateWidthMm: templateWidthMm,
+                                      templateHeightMm: templateHeightMm,
+                                      canvasInsetXPx: canvasInsetX,
+                                      canvasInsetYPx: canvasInsetY,
+                                      templatePanToMmDelta:
+                                          templatePanToMmDelta,
+                                      isSelected:
+                                          selectedElement ==
+                                          'image:${page1 ? '1' : '2'}:${element.id}',
+                                      onTap: () => onSelectElement(
+                                        'image:${page1 ? '1' : '2'}:${element.id}',
+                                      ),
+                                      onDragStateChanged: onDragStateChanged,
+                                      isLocked: element.isLocked,
+                                      isVisible: element.isVisible,
+                                      snapEnabled: snapEnabled,
+                                      snapTargets: snapTargetsFor(element),
+                                      onMoved: (pos) {
+                                        final saved = savedPosition(
+                                          pos,
+                                          element,
+                                        );
+                                        onScheduleTemplateImageUpdate(
+                                          element.copyWith(
+                                            xMm: saved.dx,
+                                            yMm: saved.dy,
+                                          ),
+                                        );
+                                      },
+                                      onBoundsChanged: (x, y, w, h) {
+                                        final saved = savedPosition(
+                                          Offset(x, y),
+                                          element,
+                                        );
+                                        onScheduleTemplateImageUpdate(
+                                          element.copyWith(
+                                            xMm: saved.dx,
+                                            yMm: saved.dy,
+                                            widthMm: w,
+                                            heightMm: h,
+                                          ),
+                                        );
+                                      },
+                                      onRotationChanged: (deg) {
+                                        onScheduleTemplateImageUpdate(
+                                          element.copyWith(
+                                            rotationDegrees: deg,
+                                          ),
+                                        );
+                                      },
+                                      onDelete: () =>
+                                          onRemoveCustomImage(element.id),
+                                    );
+                                  } else if (element is CustomTextElement) {
+                                    if (element.isQrCode) {
+                                      final rawText = element.text;
+                                      final textVal = applyTextReplacementRules(
+                                        formatTemplateText(
+                                          isPreviewMode
+                                              ? resolveDocumentTemplatePlaceholders(
+                                                  text: rawText,
+                                                  data:
+                                                      editorTemplateFieldPreview,
+                                                  textType: element.textType,
+                                                  formatOption:
+                                                      element.formatOption,
+                                                  caseFormat:
+                                                      element.caseFormat,
+                                                  nullFallbackOption: element
+                                                      .nullFallbackOption,
+                                                  customNullFallbackText: element
+                                                      .customNullFallbackText,
+                                                )
+                                              : formatFieldPlaceholderText(
+                                                  rawText,
+                                                  widget.fieldDisplayOption ==
+                                                      'short',
+                                                ),
+                                          element.textType,
+                                          element.formatOption,
+                                          element.caseFormat,
+                                        ),
+                                        element.replacementRules,
+                                      );
+                                      return DraggableImageChip(
+                                        key: ValueKey(
+                                          'p${page1 ? '1' : '2'}_qr_${element.id}',
+                                        ),
+                                        imagePath: '',
+                                        vectorChild: QrImageView(
+                                          data: textVal.isEmpty ? ' ' : textVal,
+                                          size: element.qrSizeMm * scale,
+                                          color: Color(element.colorArgb),
+                                          backgroundColor: Color(
+                                            element.qrBgColorArgb,
+                                          ),
+                                          shape: element.qrShape,
+                                        ),
+                                        position: renderedPosition(element),
+                                        widthMm: element.qrSizeMm,
+                                        heightMm: element.qrSizeMm,
+                                        rotationDegrees:
+                                            element.rotationDegrees,
+                                        scale: scale,
+                                        templateWidthMm: templateWidthMm,
+                                        templateHeightMm: templateHeightMm,
+                                        canvasInsetXPx: canvasInsetX,
+                                        canvasInsetYPx: canvasInsetY,
+                                        templatePanToMmDelta:
+                                            templatePanToMmDelta,
+                                        isSelected:
+                                            selectedElement ==
+                                            'custom:${page1 ? '1' : '2'}:${element.id}',
+                                        onTap: () => onSelectElement(
+                                          'custom:${page1 ? '1' : '2'}:${element.id}',
+                                        ),
+                                        onDragStateChanged: onDragStateChanged,
+                                        isLocked: element.isLocked,
+                                        isVisible: element.isVisible,
+                                        snapEnabled: snapEnabled,
+                                        snapTargets: snapTargetsFor(element),
+                                        onMoved: (pos) {
+                                          final saved = savedPosition(
+                                            pos,
+                                            element,
+                                          );
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              xMm: saved.dx,
+                                              yMm: saved.dy,
+                                            ),
+                                          );
+                                        },
+                                        onBoundsChanged: (x, y, w, h) {
+                                          final saved = savedPosition(
+                                            Offset(x, y),
+                                            element,
+                                          );
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              xMm: saved.dx,
+                                              yMm: saved.dy,
+                                              qrSizeMm: w,
+                                            ),
+                                          );
+                                        },
+                                        onRotationChanged: (deg) {
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              rotationDegrees: deg,
+                                            ),
+                                          );
+                                        },
+                                        onDelete: null,
+                                      );
+                                    } else if (templateSpecimenSexIconFieldKeyFromBracketText(
+                                          element.text,
+                                        )
+                                        case final gKey?) {
+                                      return DraggableImageChip(
+                                        key: ValueKey(
+                                          'p${page1 ? '1' : '2'}_gct_${element.id}',
+                                        ),
+                                        imagePath: '',
+                                        vectorChild: Icon(
+                                          templateSpecimenSexIconForFieldKey(
+                                            editorTemplateFieldPreview,
+                                            gKey,
+                                          ),
+                                        ),
+                                        position: renderedPosition(element),
+                                        widthMm:
+                                            element.iconWidthMm ??
+                                            kTemplateSpecimenSexIconDefaultWidthMm,
+                                        heightMm:
+                                            element.iconHeightMm ??
+                                            kTemplateSpecimenSexIconDefaultHeightMm,
+                                        rotationDegrees:
+                                            element.rotationDegrees,
+                                        scale: scale,
+                                        templateWidthMm: templateWidthMm,
+                                        templateHeightMm: templateHeightMm,
+                                        canvasInsetXPx: canvasInsetX,
+                                        canvasInsetYPx: canvasInsetY,
+                                        templatePanToMmDelta:
+                                            templatePanToMmDelta,
+                                        isSelected:
+                                            selectedElement ==
+                                            'custom:${page1 ? '1' : '2'}:${element.id}',
+                                        onTap: () => onSelectElement(
+                                          'custom:${page1 ? '1' : '2'}:${element.id}',
+                                        ),
+                                        onDragStateChanged: onDragStateChanged,
+                                        isLocked: element.isLocked,
+                                        isVisible: element.isVisible,
+                                        snapEnabled: snapEnabled,
+                                        onMoved: (pos) {
+                                          final saved = savedPosition(
+                                            pos,
+                                            element,
+                                          );
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              xMm: saved.dx,
+                                              yMm: saved.dy,
+                                            ),
+                                          );
+                                        },
+                                        onBoundsChanged: (x, y, w, h) {
+                                          final saved = savedPosition(
+                                            Offset(x, y),
+                                            element,
+                                          );
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              xMm: saved.dx,
+                                              yMm: saved.dy,
+                                              iconWidthMm: w,
+                                              iconHeightMm: h,
+                                            ),
+                                          );
+                                        },
+                                        onRotationChanged: (deg) {
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              rotationDegrees: deg,
+                                            ),
+                                          );
+                                        },
+                                        onDelete: null,
+                                      );
+                                    } else {
+                                      return DraggableChip(
+                                        key: ValueKey(
+                                          'p${page1 ? '1' : '2'}_ct_${element.id}_${element.rotationDegrees}_${element.fontFamily}',
+                                        ),
+                                        label: element.text.isEmpty
+                                            ? '(empty)'
+                                            : applyTextReplacementRules(
+                                                isPreviewMode
+                                                    ? formatExportTemplateText(
+                                                        resolveDocumentTemplatePlaceholders(
+                                                          text: element.text,
+                                                          data:
+                                                              editorTemplateFieldPreview,
+                                                          textType:
+                                                              element.textType,
+                                                          formatOption: element
+                                                              .formatOption,
+                                                          caseFormat: element
+                                                              .caseFormat,
+                                                          nullFallbackOption:
+                                                              element
+                                                                  .nullFallbackOption,
+                                                          customNullFallbackText:
+                                                              element
+                                                                  .customNullFallbackText,
+                                                        ),
+                                                        element.textType,
+                                                        element.formatOption,
+                                                        element.caseFormat,
+                                                      )
+                                                    : formatTemplateText(
+                                                        formatFieldPlaceholderText(
+                                                          element.text,
+                                                          widget.fieldDisplayOption ==
+                                                              'short',
+                                                        ),
+                                                        element.textType,
+                                                        element.formatOption,
+                                                        element.caseFormat,
+                                                      ),
+                                                element.replacementRules,
+                                              ),
+                                        actualText: element.text,
+                                        position: renderedPosition(element),
+                                        fontSize: element.fontSizePt,
+                                        fontFamily: element.fontFamily,
+                                        bold: element.bold,
+                                        italic: element.italic,
+                                        underline: element.underline,
+                                        strikethrough: element.strikethrough,
+                                        textAlign: _parseTextAlign(
+                                          element.textAlign,
+                                        ),
+                                        rotationDegrees:
+                                            element.rotationDegrees,
+                                        scale: scale,
+                                        templateWidthMm: templateWidthMm,
+                                        templateHeightMm: templateHeightMm,
+                                        canvasInsetXPx: canvasInsetX,
+                                        canvasInsetYPx: canvasInsetY,
+                                        templatePanToMmDelta:
+                                            templatePanToMmDelta,
+                                        isCustom: true,
+                                        maxWidthMm: element.maxWidthMm,
+                                        heightMm: element.heightMm,
+                                        colorArgb: element.colorArgb,
+                                        backgroundColorArgb:
+                                            element.backgroundColorArgb,
+                                        borderColorArgb:
+                                            element.borderColorArgb,
+                                        borderWidthPt: element.borderWidthPt,
+                                        borderStrokeStyle:
+                                            element.borderStrokeStyle,
+                                        cornerRadiusPt: element.cornerRadiusPt,
+                                        paddingPt: element.paddingPt,
+                                        isDynamic: element.isDynamic,
+                                        isLocked: element.isLocked,
+                                        isVisible: element.isVisible,
+                                        isMarkdown: isTemplateRichTextType(
+                                          element.textType,
+                                        ),
+                                        onContentSizeChanged: (size) =>
+                                            reportDynamicTextSize(
+                                              element,
+                                              size,
+                                            ),
+                                        snapEnabled: snapEnabled,
+                                        snapTargets: snapTargetsFor(element),
+                                        onMaxWidthChanged: (w) {
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(maxWidthMm: w),
+                                          );
+                                        },
+                                        onHeightChanged: (h) {
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(heightMm: h),
+                                          );
+                                        },
+                                        onResizeChanged: (pos, w, h) {
+                                          final saved = savedPosition(
+                                            pos,
+                                            element,
+                                          );
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              xMm: saved.dx,
+                                              yMm: saved.dy,
+                                              maxWidthMm: w,
+                                              heightMm: element.isDynamic
+                                                  ? null
+                                                  : h,
+                                            ),
+                                          );
+                                        },
+                                        isSelected:
+                                            selectedElement ==
+                                            'custom:${page1 ? '1' : '2'}:${element.id}',
+                                        onTap: () {
+                                          onSelectElement(
+                                            'custom:${page1 ? '1' : '2'}:${element.id}',
+                                          );
+                                        },
+                                        onSelect: () {
+                                          onSelectElement(
+                                            'custom:${page1 ? '1' : '2'}:${element.id}',
+                                          );
+                                        },
+                                        onDoubleTap: () {
+                                          widget.onStartInlineEditing(
+                                            'custom:${page1 ? '1' : '2'}:${element.id}',
+                                          );
+                                        },
+                                        onDragStateChanged: onDragStateChanged,
+                                        onMoved: (pos) {
+                                          final saved = savedPosition(
+                                            pos,
+                                            element,
+                                          );
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              xMm: saved.dx,
+                                              yMm: saved.dy,
+                                            ),
+                                          );
+                                        },
                                       );
                                     }
-                                  } else if (other is CustomLineElement) {
-                                    targets.addAll([
-                                      CanvasSnapTarget(
-                                        xMm: other.xMm,
-                                        yMm: rendered.dy,
-                                      ),
-                                      CanvasSnapTarget(
-                                        xMm: other.xMm + other.lengthMm / 2,
-                                        yMm: rendered.dy,
-                                      ),
-                                    ]);
-                                  } else if (other is CustomShapeElement) {
-                                    targets.addAll([
-                                      CanvasSnapTarget(
-                                        xMm: other.xMm,
-                                        yMm: rendered.dy,
-                                      ),
-                                      CanvasSnapTarget(
-                                        xMm: other.xMm + other.widthMm / 2,
-                                        yMm: rendered.dy + other.heightMm / 2,
-                                      ),
-                                    ]);
-                                  }
-                                }
-                                return targets;
-                              }
-
-                              return allElements.map<Widget>((element) {
-                                if (element is CustomImageElement) {
-                                  return DraggableImageChip(
-                                    key: ValueKey(
-                                        'p${page1 ? '1' : '2'}_img_${element.id}'),
-                                    imagePath: element.imagePath,
-                                    position: renderedPosition(element),
-                                    widthMm: element.widthMm,
-                                    heightMm: element.heightMm,
-                                    rotationDegrees: element.rotationDegrees,
-                                    scale: scale,
-                                    templateWidthMm: templateWidthMm,
-                                    templateHeightMm: templateHeightMm,
-                                    canvasInsetXPx: canvasInsetX,
-                                    canvasInsetYPx: canvasInsetY,
-                                    templatePanToMmDelta: templatePanToMmDelta,
-                                    isSelected: selectedElement ==
-                                        'image:${page1 ? '1' : '2'}:${element.id}',
-                                    onTap: () => onSelectElement(
-                                        'image:${page1 ? '1' : '2'}:${element.id}'),
-                                    onDragStateChanged: onDragStateChanged,
-                                    isLocked: element.isLocked,
-                                    isVisible: element.isVisible,
-                                    snapEnabled: snapEnabled,
-                                    snapTargets: snapTargetsFor(element),
-                                    onMoved: (pos) {
-                                      final saved = savedPosition(pos, element);
-                                      onScheduleTemplateImageUpdate(
-                                        element.copyWith(
-                                          xMm: saved.dx,
-                                          yMm: saved.dy,
-                                        ),
-                                      );
-                                    },
-                                    onBoundsChanged: (x, y, w, h) {
-                                      final saved = savedPosition(
-                                        Offset(x, y),
-                                        element,
-                                      );
-                                      onScheduleTemplateImageUpdate(
-                                        element.copyWith(
-                                          xMm: saved.dx,
-                                          yMm: saved.dy,
-                                          widthMm: w,
-                                          heightMm: h,
-                                        ),
-                                      );
-                                    },
-                                    onRotationChanged: (deg) {
-                                      onScheduleTemplateImageUpdate(
-                                        element.copyWith(rotationDegrees: deg),
-                                      );
-                                    },
-                                    onDelete: () =>
-                                        onRemoveCustomImage(element.id),
-                                  );
-                                } else if (element is CustomTextElement) {
-                                  if (element.isQrCode) {
-                                    final rawText = element.text;
-                                    final textVal = formatTemplateText(
-                                      isPreviewMode
-                                          ? resolveDocumentTemplatePlaceholders(
-                                              text: rawText,
-                                              data: editorTemplateFieldPreview,
-                                              textType: element.textType,
-                                              formatOption: element.formatOption,
-                                              caseFormat: element.caseFormat,
-                                              nullFallbackOption:
-                                                  element.nullFallbackOption,
-                                              customNullFallbackText: element
-                                                  .customNullFallbackText,
-                                            )
-                                          : formatFieldPlaceholderText(
-                                              rawText,
-                                              widget.fieldDisplayOption ==
-                                                  'short',
-                                            ),
-                                      element.textType,
-                                      element.formatOption,
-                                      element.caseFormat,
-                                    );
-                                    return DraggableImageChip(
+                                  } else if (element is CustomLineElement) {
+                                    return DraggableLineChip(
                                       key: ValueKey(
-                                          'p${page1 ? '1' : '2'}_qr_${element.id}'),
-                                      imagePath: '',
-                                      vectorChild: QrImageView(
-                                        data: textVal.isEmpty ? ' ' : textVal,
-                                        size: element.qrSizeMm * scale,
-                                        color: Color(element.colorArgb),
-                                        backgroundColor:
-                                            Color(element.qrBgColorArgb),
-                                        shape: element.qrShape,
+                                        'p${page1 ? '1' : '2'}_line_${element.id}',
                                       ),
                                       position: renderedPosition(element),
-                                      widthMm: element.qrSizeMm,
-                                      heightMm: element.qrSizeMm,
-                                      rotationDegrees: element.rotationDegrees,
-                                      scale: scale,
-                                      templateWidthMm: templateWidthMm,
-                                      templateHeightMm: templateHeightMm,
-                                      canvasInsetXPx: canvasInsetX,
-                                      canvasInsetYPx: canvasInsetY,
-                                      templatePanToMmDelta:
-                                          templatePanToMmDelta,
-                                      isSelected: selectedElement ==
-                                          'custom:${page1 ? '1' : '2'}:${element.id}',
-                                      onTap: () => onSelectElement(
-                                          'custom:${page1 ? '1' : '2'}:${element.id}'),
-                                      onDragStateChanged: onDragStateChanged,
-                                      isLocked: element.isLocked,
-                                      isVisible: element.isVisible,
-                                      snapEnabled: snapEnabled,
-                                      snapTargets: snapTargetsFor(element),
-                                      onMoved: (pos) {
-                                        final saved =
-                                            savedPosition(pos, element);
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(
-                                            xMm: saved.dx,
-                                            yMm: saved.dy,
-                                          ),
-                                        );
-                                      },
-                                      onBoundsChanged: (x, y, w, h) {
-                                        final saved = savedPosition(
-                                          Offset(x, y),
-                                          element,
-                                        );
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(
-                                            xMm: saved.dx,
-                                            yMm: saved.dy,
-                                            qrSizeMm: w,
-                                          ),
-                                        );
-                                      },
-                                      onRotationChanged: (deg) {
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(
-                                              rotationDegrees: deg),
-                                        );
-                                      },
-                                      onDelete: null,
-                                    );
-                                  } else if (templateSpecimenSexIconFieldKeyFromBracketText(
-                                          element.text)
-                                      case final gKey?) {
-                                    return DraggableImageChip(
-                                      key: ValueKey(
-                                          'p${page1 ? '1' : '2'}_gct_${element.id}'),
-                                      imagePath: '',
-                                      vectorChild: Icon(
-                                          templateSpecimenSexIconForFieldKey(
-                                              editorTemplateFieldPreview,
-                                              gKey)),
-                                      position: renderedPosition(element),
-                                      widthMm: element.iconWidthMm ??
-                                          kTemplateSpecimenSexIconDefaultWidthMm,
-                                      heightMm: element.iconHeightMm ??
-                                          kTemplateSpecimenSexIconDefaultHeightMm,
-                                      rotationDegrees: element.rotationDegrees,
-                                      scale: scale,
-                                      templateWidthMm: templateWidthMm,
-                                      templateHeightMm: templateHeightMm,
-                                      canvasInsetXPx: canvasInsetX,
-                                      canvasInsetYPx: canvasInsetY,
-                                      templatePanToMmDelta:
-                                          templatePanToMmDelta,
-                                      isSelected: selectedElement ==
-                                          'custom:${page1 ? '1' : '2'}:${element.id}',
-                                      onTap: () => onSelectElement(
-                                          'custom:${page1 ? '1' : '2'}:${element.id}'),
-                                      onDragStateChanged: onDragStateChanged,
-                                      isLocked: element.isLocked,
-                                      isVisible: element.isVisible,
-                                      snapEnabled: snapEnabled,
-                                      onMoved: (pos) {
-                                        final saved =
-                                            savedPosition(pos, element);
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(
-                                            xMm: saved.dx,
-                                            yMm: saved.dy,
-                                          ),
-                                        );
-                                      },
-                                      onBoundsChanged: (x, y, w, h) {
-                                        final saved = savedPosition(
-                                          Offset(x, y),
-                                          element,
-                                        );
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(
-                                            xMm: saved.dx,
-                                            yMm: saved.dy,
-                                            iconWidthMm: w,
-                                            iconHeightMm: h,
-                                          ),
-                                        );
-                                      },
-                                      onRotationChanged: (deg) {
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(
-                                              rotationDegrees: deg),
-                                        );
-                                      },
-                                      onDelete: null,
-                                    );
-                                  } else {
-                                    return DraggableChip(
-                                      key: ValueKey(
-                                          'p${page1 ? '1' : '2'}_ct_${element.id}_${element.rotationDegrees}_${element.fontFamily}'),
-                                      label: element.text.isEmpty
-                                          ? '(empty)'
-                                          : isPreviewMode
-                                              ? formatExportTemplateText(
-                                                  resolveDocumentTemplatePlaceholders(
-                                                    text: element.text,
-                                                    data:
-                                                        editorTemplateFieldPreview,
-                                                    textType: element.textType,
-                                                    formatOption:
-                                                        element.formatOption,
-                                                    caseFormat:
-                                                        element.caseFormat,
-                                                    nullFallbackOption: element
-                                                        .nullFallbackOption,
-                                                    customNullFallbackText: element
-                                                        .customNullFallbackText,
-                                                  ),
-                                                  element.textType,
-                                                  element.formatOption,
-                                                  element.caseFormat,
-                                                )
-                                              : formatTemplateText(
-                                                  formatFieldPlaceholderText(
-                                                    element.text,
-                                                    widget.fieldDisplayOption ==
-                                                        'short',
-                                                  ),
-                                                  element.textType,
-                                                  element.formatOption,
-                                                  element.caseFormat,
-                                                ),
-                                      actualText: element.text,
-                                      position: renderedPosition(element),
-                                      fontSize: element.fontSizePt,
-                                      fontFamily: element.fontFamily,
-                                      bold: element.bold,
-                                      italic: element.italic,
-                                      underline: element.underline,
-                                      strikethrough: element.strikethrough,
-                                      textAlign:
-                                          _parseTextAlign(element.textAlign),
-                                      rotationDegrees: element.rotationDegrees,
-                                      scale: scale,
-                                      templateWidthMm: templateWidthMm,
-                                      templateHeightMm: templateHeightMm,
-                                      canvasInsetXPx: canvasInsetX,
-                                      canvasInsetYPx: canvasInsetY,
-                                      templatePanToMmDelta:
-                                          templatePanToMmDelta,
-                                      isCustom: true,
-                                      maxWidthMm: element.maxWidthMm,
-                                      heightMm: element.heightMm,
+                                      lengthMm: element.lengthMm,
+                                      thicknessPt: element.thicknessPt,
                                       colorArgb: element.colorArgb,
-                                      backgroundColorArgb:
-                                          element.backgroundColorArgb,
-                                      borderColorArgb: element.borderColorArgb,
-                                      borderWidthPt: element.borderWidthPt,
-                                      borderStrokeStyle:
-                                          element.borderStrokeStyle,
-                                      cornerRadiusPt: element.cornerRadiusPt,
-                                      paddingPt: element.paddingPt,
-                                      isDynamic: element.isDynamic,
+                                      strokeStyle: element.strokeStyle,
+                                      rotationDegrees: element.rotationDegrees,
+                                      scale: scale,
+                                      templateWidthMm: templateWidthMm,
+                                      templateHeightMm: templateHeightMm,
+                                      canvasInsetXPx: canvasInsetX,
+                                      canvasInsetYPx: canvasInsetY,
+                                      templatePanToMmDelta:
+                                          templatePanToMmDelta,
+                                      isSelected:
+                                          selectedElement ==
+                                          'line:${page1 ? '1' : '2'}:${element.id}',
+                                      onTap: () => onSelectElement(
+                                        'line:${page1 ? '1' : '2'}:${element.id}',
+                                      ),
+                                      onDragStateChanged: onDragStateChanged,
                                       isLocked: element.isLocked,
                                       isVisible: element.isVisible,
-                                      isMarkdown: isTemplateRichTextType(
-                                        element.textType,
-                                      ),
-                                      onContentSizeChanged: (size) =>
-                                          reportDynamicTextSize(element, size),
                                       snapEnabled: snapEnabled,
                                       snapTargets: snapTargetsFor(element),
-                                      onMaxWidthChanged: (w) {
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(maxWidthMm: w),
-                                        );
-                                      },
-                                      onHeightChanged: (h) {
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(heightMm: h),
-                                        );
-                                      },
-                                      onResizeChanged: (pos, w, h) {
-                                        final saved =
-                                            savedPosition(pos, element);
-                                        onScheduleTemplateTextPositionUpdate(
-                                          element.copyWith(
-                                            xMm: saved.dx,
-                                            yMm: saved.dy,
-                                            maxWidthMm: w,
-                                            heightMm:
-                                                element.isDynamic ? null : h,
-                                          ),
-                                        );
-                                      },
-                                      isSelected: selectedElement ==
-                                          'custom:${page1 ? '1' : '2'}:${element.id}',
-                                      onTap: () {
-                                        onSelectElement(
-                                            'custom:${page1 ? '1' : '2'}:${element.id}');
-                                      },
-                                      onSelect: () {
-                                        onSelectElement(
-                                            'custom:${page1 ? '1' : '2'}:${element.id}');
-                                      },
-                                      onDoubleTap: () {
-                                        widget.onStartInlineEditing(
-                                            'custom:${page1 ? '1' : '2'}:${element.id}');
-                                      },
-                                      onDragStateChanged: onDragStateChanged,
                                       onMoved: (pos) {
-                                        final saved =
-                                            savedPosition(pos, element);
-                                        onScheduleTemplateTextPositionUpdate(
+                                        final saved = savedPosition(
+                                          pos,
+                                          element,
+                                        );
+                                        onScheduleTemplateLineUpdate(
                                           element.copyWith(
                                             xMm: saved.dx,
                                             yMm: saved.dy,
                                           ),
                                         );
                                       },
+                                      onBoundsChanged: (x, y, w, h) {
+                                        final saved = savedPosition(
+                                          Offset(x, y),
+                                          element,
+                                        );
+                                        onScheduleTemplateLineUpdate(
+                                          element.copyWith(
+                                            xMm: saved.dx,
+                                            yMm: saved.dy,
+                                            lengthMm: w,
+                                          ),
+                                        );
+                                      },
+                                      onRotationChanged: (deg) {
+                                        onScheduleTemplateLineUpdate(
+                                          element.copyWith(
+                                            rotationDegrees: deg,
+                                          ),
+                                        );
+                                      },
+                                      onDelete: () =>
+                                          onRemoveCustomLine(element.id),
+                                    );
+                                  } else if (element is CustomShapeElement) {
+                                    return DraggableShapeChip(
+                                      key: ValueKey(
+                                        'p${page1 ? '1' : '2'}_shape_${element.id}',
+                                      ),
+                                      shapeType: element.shapeType,
+                                      polygonSides: element.polygonSides,
+                                      position: renderedPosition(element),
+                                      widthMm: element.widthMm,
+                                      heightMm: element.heightMm,
+                                      strokeThicknessPt:
+                                          element.strokeThicknessPt,
+                                      strokeColorArgb: element.strokeColorArgb,
+                                      fillColorArgb: element.fillColorArgb,
+                                      strokeStyle: element.strokeStyle,
+                                      rotationDegrees: element.rotationDegrees,
+                                      scale: scale,
+                                      templateWidthMm: templateWidthMm,
+                                      templateHeightMm: templateHeightMm,
+                                      canvasInsetXPx: canvasInsetX,
+                                      canvasInsetYPx: canvasInsetY,
+                                      templatePanToMmDelta:
+                                          templatePanToMmDelta,
+                                      isSelected:
+                                          selectedElement ==
+                                          'shape:${page1 ? '1' : '2'}:${element.id}',
+                                      onTap: () => onSelectElement(
+                                        'shape:${page1 ? '1' : '2'}:${element.id}',
+                                      ),
+                                      onDragStateChanged: onDragStateChanged,
+                                      isLocked: element.isLocked,
+                                      isVisible: element.isVisible,
+                                      snapEnabled: snapEnabled,
+                                      snapTargets: snapTargetsFor(element),
+                                      onMoved: (pos) {
+                                        final saved = savedPosition(
+                                          pos,
+                                          element,
+                                        );
+                                        onScheduleTemplateShapeUpdate(
+                                          element.copyWith(
+                                            xMm: saved.dx,
+                                            yMm: saved.dy,
+                                          ),
+                                        );
+                                      },
+                                      onBoundsChanged: (x, y, w, h) {
+                                        final saved = savedPosition(
+                                          Offset(x, y),
+                                          element,
+                                        );
+                                        onScheduleTemplateShapeUpdate(
+                                          element.copyWith(
+                                            xMm: saved.dx,
+                                            yMm: saved.dy,
+                                            widthMm: w,
+                                            heightMm: h,
+                                          ),
+                                        );
+                                      },
+                                      onRotationChanged: (deg) {
+                                        onScheduleTemplateShapeUpdate(
+                                          element.copyWith(
+                                            rotationDegrees: deg,
+                                          ),
+                                        );
+                                      },
+                                      onDelete: () =>
+                                          onRemoveCustomShape(element.id),
                                     );
                                   }
-                                } else if (element is CustomLineElement) {
-                                  return DraggableLineChip(
-                                    key: ValueKey(
-                                        'p${page1 ? '1' : '2'}_line_${element.id}'),
-                                    position: renderedPosition(element),
-                                    lengthMm: element.lengthMm,
-                                    thicknessPt: element.thicknessPt,
-                                    colorArgb: element.colorArgb,
-                                    strokeStyle: element.strokeStyle,
-                                    rotationDegrees: element.rotationDegrees,
-                                    scale: scale,
-                                    templateWidthMm: templateWidthMm,
-                                    templateHeightMm: templateHeightMm,
-                                    canvasInsetXPx: canvasInsetX,
-                                    canvasInsetYPx: canvasInsetY,
-                                    templatePanToMmDelta: templatePanToMmDelta,
-                                    isSelected: selectedElement ==
-                                        'line:${page1 ? '1' : '2'}:${element.id}',
-                                    onTap: () => onSelectElement(
-                                        'line:${page1 ? '1' : '2'}:${element.id}'),
-                                    onDragStateChanged: onDragStateChanged,
-                                    isLocked: element.isLocked,
-                                    isVisible: element.isVisible,
-                                    snapEnabled: snapEnabled,
-                                    snapTargets: snapTargetsFor(element),
-                                    onMoved: (pos) {
-                                      final saved = savedPosition(pos, element);
-                                      onScheduleTemplateLineUpdate(
-                                          element.copyWith(
-                                              xMm: saved.dx, yMm: saved.dy));
-                                    },
-                                    onBoundsChanged: (x, y, w, h) {
-                                      final saved = savedPosition(
-                                        Offset(x, y),
-                                        element,
-                                      );
-                                      onScheduleTemplateLineUpdate(
-                                          element.copyWith(
-                                              xMm: saved.dx,
-                                              yMm: saved.dy,
-                                              lengthMm: w));
-                                    },
-                                    onRotationChanged: (deg) {
-                                      onScheduleTemplateLineUpdate(element
-                                          .copyWith(rotationDegrees: deg));
-                                    },
-                                    onDelete: () =>
-                                        onRemoveCustomLine(element.id),
-                                  );
-                                } else if (element is CustomShapeElement) {
-                                  return DraggableShapeChip(
-                                    key: ValueKey(
-                                        'p${page1 ? '1' : '2'}_shape_${element.id}'),
-                                    shapeType: element.shapeType,
-                                    polygonSides: element.polygonSides,
-                                    position: renderedPosition(element),
-                                    widthMm: element.widthMm,
-                                    heightMm: element.heightMm,
-                                    strokeThicknessPt:
-                                        element.strokeThicknessPt,
-                                    strokeColorArgb: element.strokeColorArgb,
-                                    fillColorArgb: element.fillColorArgb,
-                                    strokeStyle: element.strokeStyle,
-                                    rotationDegrees: element.rotationDegrees,
-                                    scale: scale,
-                                    templateWidthMm: templateWidthMm,
-                                    templateHeightMm: templateHeightMm,
-                                    canvasInsetXPx: canvasInsetX,
-                                    canvasInsetYPx: canvasInsetY,
-                                    templatePanToMmDelta: templatePanToMmDelta,
-                                    isSelected: selectedElement ==
-                                        'shape:${page1 ? '1' : '2'}:${element.id}',
-                                    onTap: () => onSelectElement(
-                                        'shape:${page1 ? '1' : '2'}:${element.id}'),
-                                    onDragStateChanged: onDragStateChanged,
-                                    isLocked: element.isLocked,
-                                    isVisible: element.isVisible,
-                                    snapEnabled: snapEnabled,
-                                    snapTargets: snapTargetsFor(element),
-                                    onMoved: (pos) {
-                                      final saved = savedPosition(pos, element);
-                                      onScheduleTemplateShapeUpdate(
-                                          element.copyWith(
-                                              xMm: saved.dx, yMm: saved.dy));
-                                    },
-                                    onBoundsChanged: (x, y, w, h) {
-                                      final saved = savedPosition(
-                                        Offset(x, y),
-                                        element,
-                                      );
-                                      onScheduleTemplateShapeUpdate(
-                                          element.copyWith(
-                                              xMm: saved.dx,
-                                              yMm: saved.dy,
-                                              widthMm: w,
-                                              heightMm: h));
-                                    },
-                                    onRotationChanged: (deg) {
-                                      onScheduleTemplateShapeUpdate(element
-                                          .copyWith(rotationDegrees: deg));
-                                    },
-                                    onDelete: () =>
-                                        onRemoveCustomShape(element.id),
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              }).toList();
-                            })(),
-                          ],
+                                  return const SizedBox.shrink();
+                                }).toList();
+                              })(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   void _resetViewerScale() {

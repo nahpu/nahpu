@@ -132,7 +132,11 @@ String _resolveConditionalExpression(
     expression.matchMode,
     (field) => _lookupDocumentPlaceholderValue(field, data)?.value,
   );
-  return matches ? addConditionalBrackets(value) : value;
+  if (!matches) return value;
+  return switch (expression.outputAction) {
+    ConditionalOutputAction.brackets => addConditionalBrackets(value),
+    ConditionalOutputAction.replacement => expression.replacementText,
+  };
 }
 
 String _resolvePlaceholder(

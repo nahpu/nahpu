@@ -224,6 +224,18 @@ void main() {
       expect(expression.toTemplateSyntax(), text);
     });
 
+    test('parses and serializes literal replacement expressions', () {
+      const text =
+          '[[sex][specimen::type=="holotype"]=>'
+          '"TYPE [literal] \\"quoted\\""]]';
+      final expression = parseConditionalBracketExpression(text, 0);
+
+      expect(expression, isNotNull);
+      expect(expression!.outputAction, ConditionalOutputAction.replacement);
+      expect(expression.replacementText, 'TYPE [literal] "quoted"');
+      expect(expression.toTemplateSyntax(), text);
+    });
+
     test('rejects mixed AND and OR inline conditions', () {
       const text =
           '[[totalLength][accuracy=="Tail cropped"&&sex=="0"||age=="1"]]';
@@ -271,6 +283,34 @@ void main() {
       });
 
       expect(value, '123');
+    });
+
+    test('replaces a populated target with literal text when matched', () {
+      const text = '[[sex][specimen::type=="holotype"]=>"[catalogNumber]"]]';
+      final value = substituteDocumentPlaceholders(text, {
+        'sex': '0',
+        'specimen::type': 'holotype',
+        'catalogNumber': 'ABC-1',
+      });
+
+      expect(value, '[catalogNumber]');
+    });
+
+    test('keeps the original replacement target when unmatched', () {
+      const text = '[[sex][sex=="0"]=>"Male"]]';
+
+      expect(substituteDocumentPlaceholders(text, const {'sex': '1'}), '1');
+    });
+
+    test('keeps blank fallback behavior for matched replacements', () {
+      const text = '[[sex][specimen::type=="holotype"]=>"TYPE"]]';
+
+      expect(
+        substituteDocumentPlaceholders(text, const {
+          'specimen::type': 'holotype',
+        }, nullFallbackOption: kTemplateNullFallbackNa),
+        'N/A',
+      );
     });
 
     test('uses blank fallback when a conditional target is missing', () {

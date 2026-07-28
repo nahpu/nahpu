@@ -13,6 +13,7 @@ import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/text_replacements.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
@@ -476,20 +477,23 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         final projectUuid = ref.read(projectUuidProvider);
         if (projectUuid.isNotEmpty) {
           try {
-            final proj =
-                await ProjectServices(ref: ref).getProjectByUuid(projectUuid);
+            final proj = await ProjectServices(
+              ref: ref,
+            ).getProjectByUuid(projectUuid);
             for (var entry in proj.toJson().entries) {
               m['project::${entry.key}'] = entry.value?.toString() ?? '';
             }
           } catch (_) {}
 
           try {
-            final personnel = await PersonnelServices(ref: ref)
-                .getPersonnelByProjectUuid(projectUuid);
+            final personnel = await PersonnelServices(
+              ref: ref,
+            ).getPersonnelByProjectUuid(projectUuid);
             if (personnel.isNotEmpty) {
               final Set<String> keys = {};
-              final List<Map<String, dynamic>> jsonList =
-                  personnel.map((p) => p.toJson()).toList();
+              final List<Map<String, dynamic>> jsonList = personnel
+                  .map((p) => p.toJson())
+                  .toList();
               for (final json in jsonList) {
                 keys.addAll(json.keys);
               }
@@ -505,12 +509,17 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
         }
 
         // Apply fallback values for preview in the editor
+        // It won't be use for actual export
         m.putIfAbsent('project::name', () => 'Active Project');
         m.putIfAbsent('project::uuid', () => 'active-project-uuid');
         m.putIfAbsent(
-            'project::description', () => 'Active Project Description');
+          'project::description',
+          () => 'Active Project Description',
+        );
         m.putIfAbsent(
-            'project::principalInvestigator', () => 'Active Investigator');
+          'project::principalInvestigator',
+          () => 'Active Investigator',
+        );
         m.putIfAbsent('project::location', () => 'Active Project Location');
         m.putIfAbsent('project::timeZone', () => 'UTC');
         m.putIfAbsent('project::startDate', () => '2026-01-01');
@@ -554,10 +563,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   }
 
   TemplatePrintOptions get _currentPrintOptions => TemplatePrintOptions(
-        isDuplex: _isDuplex,
-        mirrorFront: _mirrorFront,
-        mirrorBack: _mirrorBack,
-      );
+    isDuplex: _isDuplex,
+    mirrorFront: _mirrorFront,
+    mirrorBack: _mirrorBack,
+  );
 
   /// Applies the current editor-only print settings before saving or exporting.
   Template _templateWithCurrentPrintOptions({String? name}) {
@@ -712,11 +721,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final sel = 'custom:${page1 ? '1' : '2'}:$id';
     setState(() {
       if (page1) {
-        _template =
-            _template.copyWith(page1: _template.page1.withCustomText(element));
+        _template = _template.copyWith(
+          page1: _template.page1.withCustomText(element),
+        );
       } else {
-        _template =
-            _template.copyWith(page2: _template.page2.withCustomText(element));
+        _template = _template.copyWith(
+          page2: _template.page2.withCustomText(element),
+        );
       }
       _selectedElement = sel;
       _templateBorderPanelOpen = false;
@@ -738,11 +749,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final sel = 'line:${page1 ? '1' : '2'}:$id';
     setState(() {
       if (page1) {
-        _template =
-            _template.copyWith(page1: _template.page1.withCustomLine(element));
+        _template = _template.copyWith(
+          page1: _template.page1.withCustomLine(element),
+        );
       } else {
-        _template =
-            _template.copyWith(page2: _template.page2.withCustomLine(element));
+        _template = _template.copyWith(
+          page2: _template.page2.withCustomLine(element),
+        );
       }
       _selectedElement = sel;
       _templateBorderPanelOpen = false;
@@ -755,10 +768,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _customIdCounter++;
     const widthMm = 10.0;
     const heightMm = 10.0;
-    final position = _newElementPosition(
-      widthMm: widthMm,
-      heightMm: heightMm,
-    );
+    final position = _newElementPosition(widthMm: widthMm, heightMm: heightMm);
     final element = CustomShapeElement(
       id: id,
       xMm: position.dx,
@@ -770,11 +780,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final sel = 'shape:${page1 ? '1' : '2'}:$id';
     setState(() {
       if (page1) {
-        _template =
-            _template.copyWith(page1: _template.page1.withCustomShape(element));
+        _template = _template.copyWith(
+          page1: _template.page1.withCustomShape(element),
+        );
       } else {
-        _template =
-            _template.copyWith(page2: _template.page2.withCustomShape(element));
+        _template = _template.copyWith(
+          page2: _template.page2.withCustomShape(element),
+        );
       }
       _selectedElement = sel;
       _templateBorderPanelOpen = false;
@@ -785,11 +797,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _pushToUndo();
     setState(() {
       if (page1) {
-        _template =
-            _template.copyWith(page1: _template.page1.withCustomText(element));
+        _template = _template.copyWith(
+          page1: _template.page1.withCustomText(element),
+        );
       } else {
-        _template =
-            _template.copyWith(page2: _template.page2.withCustomText(element));
+        _template = _template.copyWith(
+          page2: _template.page2.withCustomText(element),
+        );
       }
     });
   }
@@ -819,10 +833,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           initialText: ct.text,
           recordType: _template.recordType,
           onSave: (newText) {
-            _updateCustomText(
-              page1,
-              ct.copyWith(text: newText),
-            );
+            _updateCustomText(page1, ct.copyWith(text: newText));
           },
         ),
       );
@@ -834,10 +845,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           initialText: ct.text,
           recordType: _template.recordType,
           onSave: (newText) {
-            _updateCustomText(
-              page1,
-              ct.copyWith(text: newText),
-            );
+            _updateCustomText(page1, ct.copyWith(text: newText));
           },
         ),
       );
@@ -848,11 +856,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _pushToUndo();
     setState(() {
       if (page1) {
-        _template =
-            _template.copyWith(page1: _template.page1.withCustomLine(element));
+        _template = _template.copyWith(
+          page1: _template.page1.withCustomLine(element),
+        );
       } else {
-        _template =
-            _template.copyWith(page2: _template.page2.withCustomLine(element));
+        _template = _template.copyWith(
+          page2: _template.page2.withCustomLine(element),
+        );
       }
     });
   }
@@ -861,11 +871,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _pushToUndo();
     setState(() {
       if (page1) {
-        _template =
-            _template.copyWith(page1: _template.page1.withCustomShape(element));
+        _template = _template.copyWith(
+          page1: _template.page1.withCustomShape(element),
+        );
       } else {
-        _template =
-            _template.copyWith(page2: _template.page2.withCustomShape(element));
+        _template = _template.copyWith(
+          page2: _template.page2.withCustomShape(element),
+        );
       }
     });
   }
@@ -874,11 +886,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _pushToUndo();
     _deferSetState(() {
       if (page1) {
-        _template =
-            _template.copyWith(page1: _template.page1.withoutCustomText(id));
+        _template = _template.copyWith(
+          page1: _template.page1.withoutCustomText(id),
+        );
       } else {
-        _template =
-            _template.copyWith(page2: _template.page2.withoutCustomText(id));
+        _template = _template.copyWith(
+          page2: _template.page2.withoutCustomText(id),
+        );
       }
       if (_selectedElement == 'custom:${page1 ? '1' : '2'}:$id') {
         _selectedElement = null;
@@ -998,11 +1012,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     );
     setState(() {
       if (page1) {
-        _template =
-            _template.copyWith(page1: _template.page1.withCustomImage(element));
+        _template = _template.copyWith(
+          page1: _template.page1.withCustomImage(element),
+        );
       } else {
-        _template =
-            _template.copyWith(page2: _template.page2.withCustomImage(element));
+        _template = _template.copyWith(
+          page2: _template.page2.withCustomImage(element),
+        );
       }
       _selectedElement = 'image:${page1 ? '1' : '2'}:$id';
       _templateBorderPanelOpen = false;
@@ -1022,10 +1038,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final taken = _savedNames.toSet();
     return showDialog<_CreateTemplateResult>(
       context: context,
-      builder: (context) => _CreateTemplateDialog(
-        takenNames: taken,
-        initialIsDuplex: _isDuplex,
-      ),
+      builder: (context) =>
+          _CreateTemplateDialog(takenNames: taken, initialIsDuplex: _isDuplex),
     );
   }
 
@@ -1033,19 +1047,20 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final result = await _promptCreateNewTemplate();
     if (result == null || result.name.isEmpty) return;
 
-    final fresh = DefaultTemplate.defaultTemplate(
-      result.name,
-      result.recordType,
-      result.description,
-    ).copyWith(
-      printOptions: TemplatePrintOptions(
-        isDuplex: result.isDuplex,
-        mirrorFront: false,
-        mirrorBack: false,
-      ),
-      widthMm: _templateWidthMm,
-      heightMm: _templateHeightMm,
-    );
+    final fresh =
+        DefaultTemplate.defaultTemplate(
+          result.name,
+          result.recordType,
+          result.description,
+        ).copyWith(
+          printOptions: TemplatePrintOptions(
+            isDuplex: result.isDuplex,
+            mirrorFront: false,
+            mirrorBack: false,
+          ),
+          widthMm: _templateWidthMm,
+          heightMm: _templateHeightMm,
+        );
     await _templateService.saveTemplate(fresh);
     _savedNames = await _templateService.listTemplateNames();
 
@@ -1082,19 +1097,37 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   /// Persists the current canvas and editor print settings under [name].
   Future<void> _saveTemplateWithName(String name) async {
     final merged = _templateWithCurrentPrintOptions(name: name);
+    final replacementError = _replacementValidationMessage(merged);
+    if (replacementError != null) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(replacementError)));
+      }
+      return;
+    }
     await _templateService.saveTemplate(merged);
     _savedNames = await _templateService.listTemplateNames();
     if (mounted) {
       setState(() => _template = merged);
       _lastSavedJson = merged.toJsonString();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved template "$name"')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Saved template "$name"')));
     }
   }
 
   Future<void> _exportTemplate() async {
     final merged = _templateWithCurrentPrintOptions();
+    final replacementError = _replacementValidationMessage(merged);
+    if (replacementError != null) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(replacementError)));
+      }
+      return;
+    }
     try {
       final outputPath = await _editorService.exportTemplate(merged);
       if (outputPath == null || !mounted) return;
@@ -1103,10 +1136,28 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
     }
+  }
+
+  String? _replacementValidationMessage(Template template) {
+    final elements = [
+      ...template.page1.customTexts,
+      ...template.page2.customTexts,
+    ];
+    for (final element in elements) {
+      for (var index = 0; index < element.replacementRules.length; index++) {
+        final error = validateTextReplacementRule(
+          element.replacementRules[index],
+        );
+        if (error != null) {
+          return 'Text replacement ${index + 1} in "${element.text}" is invalid: $error';
+        }
+      }
+    }
+    return null;
   }
 
   /// Imports a template, synchronizes its size/settings, and makes it active.
@@ -1120,8 +1171,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final imported = await _templateService.importFromPath(filePath);
     if (imported != null && mounted) {
       final o = imported.printOptions;
-      var name =
-          imported.name.trim().isEmpty ? 'Imported' : imported.name.trim();
+      var name = imported.name.trim().isEmpty
+          ? 'Imported'
+          : imported.name.trim();
       var merged = imported.copyWith(
         name: name,
         printOptions: o ?? _currentPrintOptions,
@@ -1175,9 +1227,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       await _loadEditorTemplateFieldPreview();
       _lastSavedJson = _templateWithCurrentPrintOptions().toJsonString();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Imported and saved "$name"')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Imported and saved "$name"')));
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1331,8 +1383,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           });
         } else if (recordType == RecordType.site) {
           final list = await SiteServices(ref: ref).getAllSites();
-          final s =
-              list.firstWhere((element) => element.id.toString() == result);
+          final s = list.firstWhere(
+            (element) => element.id.toString() == result,
+          );
           final m = await documentFieldValuesForSite(db, s, ref);
           setState(() {
             _selectedSpecimenUuid = result;
@@ -1340,8 +1393,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           });
         } else if (recordType == RecordType.collEvent) {
           final list = await CollEventServices(ref: ref).getAllCollEvents();
-          final s =
-              list.firstWhere((element) => element.id.toString() == result);
+          final s = list.firstWhere(
+            (element) => element.id.toString() == result,
+          );
           final m = await documentFieldValuesForCollEvent(db, s, ref);
           setState(() {
             _selectedSpecimenUuid = result;
@@ -1349,8 +1403,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           });
         } else if (recordType == RecordType.narrative) {
           final list = await NarrativeServices(ref: ref).getAllNarrative();
-          final s =
-              list.firstWhere((element) => element.id.toString() == result);
+          final s = list.firstWhere(
+            (element) => element.id.toString() == result,
+          );
           final m = await documentFieldValuesForNarrative(db, s, ref);
           setState(() {
             _selectedSpecimenUuid = result;
@@ -1513,14 +1568,22 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     if (selection == null) return;
 
     final dynamic element = switch (selection.type) {
-      TemplateElementType.text =>
-        _findCustomText(selection.page1, selection.id),
-      TemplateElementType.image =>
-        _findCustomImage(selection.page1, selection.id),
-      TemplateElementType.line =>
-        _findCustomLine(selection.page1, selection.id),
-      TemplateElementType.shape =>
-        _findCustomShape(selection.page1, selection.id),
+      TemplateElementType.text => _findCustomText(
+        selection.page1,
+        selection.id,
+      ),
+      TemplateElementType.image => _findCustomImage(
+        selection.page1,
+        selection.id,
+      ),
+      TemplateElementType.line => _findCustomLine(
+        selection.page1,
+        selection.id,
+      ),
+      TemplateElementType.shape => _findCustomShape(
+        selection.page1,
+        selection.id,
+      ),
     };
     if (element == null) return;
 
@@ -1758,10 +1821,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                   value: RecordType.specimenParts,
                   child: Text('Specimen Part'),
                 ),
-                DropdownMenuItem(
-                  value: RecordType.site,
-                  child: Text('Site'),
-                ),
+                DropdownMenuItem(value: RecordType.site, child: Text('Site')),
                 DropdownMenuItem(
                   value: RecordType.collEvent,
                   child: Text('Collecting Event'),
@@ -1770,10 +1830,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                   value: RecordType.narrative,
                   child: Text('Narrative'),
                 ),
-                DropdownMenuItem(
-                  value: RecordType.none,
-                  child: Text('None'),
-                ),
+                DropdownMenuItem(value: RecordType.none, child: Text('None')),
               ],
               onChanged: (v) {
                 if (v != null) {
@@ -1829,10 +1886,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
 }
 
 class _CreateSidesSelector extends StatelessWidget {
-  const _CreateSidesSelector({
-    required this.isDuplex,
-    required this.onChanged,
-  });
+  const _CreateSidesSelector({required this.isDuplex, required this.onChanged});
 
   final bool isDuplex;
   final ValueChanged<bool> onChanged;

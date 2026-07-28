@@ -9,6 +9,9 @@ enum ConditionalComparisonOperator { equals, notEquals, contains }
 /// How a group of conditional bracket rules is combined.
 enum ConditionalMatchMode { any, all }
 
+/// The output produced when a conditional template expression matches.
+enum ConditionalOutputAction { brackets, replacement }
+
 /// A single field comparison used to decide whether a value is bracketed.
 ///
 /// Values are compared after trimming but remain case-sensitive. A blank
@@ -107,11 +110,17 @@ class ConditionalBracketExpression {
     required this.matchMode,
     required this.start,
     required this.end,
+    this.outputAction = ConditionalOutputAction.brackets,
+    this.replacementText = '',
   });
 
   final String targetField;
   final List<ConditionalBracketCondition> conditions;
   final ConditionalMatchMode matchMode;
+  final ConditionalOutputAction outputAction;
+
+  /// Literal text emitted by [ConditionalOutputAction.replacement].
+  final String replacementText;
 
   /// Inclusive start offset in the containing text.
   final int start;
@@ -132,6 +141,10 @@ class ConditionalBracketExpression {
           return '${condition.sourceField}$operator${jsonEncode(condition.comparisonValue)}';
         })
         .join(joiner);
+    if (outputAction == ConditionalOutputAction.replacement) {
+      return '[[$targetField][$conditionsText]=>'
+          '${jsonEncode(replacementText)}]]';
+    }
     return '[[$targetField][$conditionsText]]';
   }
 }
@@ -229,8 +242,10 @@ ConditionalBracketExpression? parseConditionalBracketExpression(
   }
   if (end < 0 || inString) return null;
 
-  final conditionText = text.substring(divider + 2, end - 2);
-  final parsed = _parseConditionGroup(conditionText);
+  final body = text.substring(divider + 2, end - 2);
+  final split = _splitConditionalBody(body);
+  if (split == null) return null;
+  final parsed = _parseConditionGroup(split.conditions);
   if (parsed == null) return null;
   return ConditionalBracketExpression(
     targetField: target,
@@ -238,6 +253,54 @@ ConditionalBracketExpression? parseConditionalBracketExpression(
     matchMode: parsed.mode,
     start: start,
     end: end,
+    outputAction: split.outputAction,
+    replacementText: split.replacementText,
+  );
+}
+
+({
+  String conditions,
+  ConditionalOutputAction outputAction,
+  String replacementText,
+})?
+_splitConditionalBody(String body) {
+  var inString = false;
+  var escaped = false;
+  for (var index = 0; index < body.length - 2; index++) {
+    final char = body[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char == r'\') {
+        escaped = true;
+      } else if (char == '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char == '"') {
+      inString = true;
+      continue;
+    }
+    if (!body.startsWith(']=>', index)) continue;
+    final conditions = body.substring(0, index);
+    final encodedReplacement = body.substring(index + 3).trim();
+    try {
+      final replacement = jsonDecode(encodedReplacement);
+      if (replacement is! String) return null;
+      return (
+        conditions: conditions,
+        outputAction: ConditionalOutputAction.replacement,
+        replacementText: replacement,
+      );
+    } on Object {
+      return null;
+    }
+  }
+  return (
+    conditions: body,
+    outputAction: ConditionalOutputAction.brackets,
+    replacementText: '',
   );
 }
 

@@ -6,6 +6,7 @@ import 'package:nahpu/services/types/birds.dart' as birds;
 import 'package:nahpu/services/types/specimens.dart' as specimens;
 import 'package:nahpu/services/types/herps.dart' as herps;
 import 'package:nahpu/services/specimen_attribute_names.dart';
+import 'package:nahpu/services/text_replacements.dart';
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
 bool isTemplateImagePathUsable(String path) {
@@ -649,6 +650,7 @@ class CustomTextElement {
     this.isDynamic = false,
     this.isLocked = false,
     this.isVisible = true,
+    this.replacementRules = const [],
   });
 
   final String id;
@@ -695,6 +697,7 @@ class CustomTextElement {
   final bool isDynamic;
   final bool isLocked;
   final bool isVisible;
+  final List<TextReplacementRule> replacementRules;
 
   CustomTextElement copyWith({
     String? id,
@@ -739,6 +742,7 @@ class CustomTextElement {
     bool? isDynamic,
     bool? isLocked,
     bool? isVisible,
+    List<TextReplacementRule>? replacementRules,
   }) {
     return CustomTextElement(
       id: id ?? this.id,
@@ -783,6 +787,7 @@ class CustomTextElement {
       isDynamic: isDynamic ?? this.isDynamic,
       isLocked: isLocked ?? this.isLocked,
       isVisible: isVisible ?? this.isVisible,
+      replacementRules: replacementRules ?? this.replacementRules,
     );
   }
 
@@ -824,6 +829,10 @@ class CustomTextElement {
     'isDynamic': isDynamic,
     'isLocked': isLocked,
     'isVisible': isVisible,
+    if (replacementRules.isNotEmpty)
+      'replacementRules': replacementRules
+          .map((rule) => rule.toJson())
+          .toList(),
   };
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
@@ -873,6 +882,13 @@ class CustomTextElement {
       isDynamic: json['isDynamic'] as bool? ?? false,
       isLocked: json['isLocked'] as bool? ?? false,
       isVisible: json['isVisible'] as bool? ?? true,
+      replacementRules: (json['replacementRules'] as List? ?? [])
+          .whereType<Map>()
+          .map(
+            (value) =>
+                TextReplacementRule.fromJson(Map<String, dynamic>.from(value)),
+          )
+          .toList(growable: false),
     );
   }
 }

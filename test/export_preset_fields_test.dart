@@ -8,6 +8,7 @@ import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/text_replacements.dart';
 
 void main() {
   late Database db;
@@ -224,7 +225,9 @@ void main() {
     },
   );
 
-  testWidgets('conditional brackets is the value-format label', (tester) async {
+  testWidgets('conditional output options use clear value-format labels', (
+    tester,
+  ) async {
     const preset = ExportPresetModel(
       recordType: RecordType.site,
       specimenRecordType: SpecimenRecordType.allTaxa,
@@ -248,7 +251,58 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Conditional brackets'), findsOneWidget);
+    expect(find.text('Conditional field'), findsOneWidget);
+    expect(find.text('Conditional value'), findsOneWidget);
     expect(find.text('Can be inaccurate measurement'), findsNothing);
+  });
+
+  testWidgets('conditional value compares the target without a field picker', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const preset = ExportPresetModel(
+      recordType: RecordType.specimenRecord,
+      specimenRecordType: SpecimenRecordType.generalMammals,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [
+        ExportFieldMapping(
+          expression: '[mammalAttribute::sex]',
+          textType: kConditionalValueExportTextType,
+          conditionalText: 'Male',
+          bracketConditions: [
+            ConditionalBracketCondition(
+              sourceField: 'mammalAttribute::sex',
+              operator: ConditionalComparisonOperator.equals,
+              comparisonValue: '0',
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Value conditions'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is InputDecorator &&
+            widget.decoration.labelText == 'Controlling field',
+      ),
+      findsNothing,
+    );
+    expect(find.widgetWithText(TextFormField, 'Male'), findsOneWidget);
   });
 
   testWidgets(
@@ -300,8 +354,10 @@ void main() {
         FloatingLabelBehavior.always,
       );
 
+      final dialogCount = find.byType(Dialog).evaluate().length;
       await tester.tap(find.byKey(const ValueKey('condition-field-')));
       await tester.pumpAndSettle();
+      expect(find.byType(Dialog), findsNWidgets(dialogCount));
       final searchField = find.byWidgetPredicate(
         (widget) =>
             widget is TextField &&
@@ -309,13 +365,12 @@ void main() {
       );
       await tester.enterText(searchField, 'accuracy');
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('accuracy').last);
       await tester.tap(find.text('accuracy').last);
       await tester.pumpAndSettle();
 
       expect(find.text('Contains'), findsOneWidget);
-      final valueField = find.byKey(
-        const ValueKey('condition-value-tailLength'),
-      );
+      final valueField = find.byKey(const ValueKey('condition-value-0'));
       expect(valueField, findsOneWidget);
       final editable = find.descendant(
         of: valueField,
@@ -327,4 +382,115 @@ void main() {
       );
     },
   );
+
+  testWidgets('condition value and replacement text edit independently', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const preset = ExportPresetModel(
+      recordType: RecordType.specimenRecord,
+      specimenRecordType: SpecimenRecordType.generalMammals,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [
+        ExportFieldMapping(
+          expression: '[mammalAttribute::sex]',
+          textType: kConditionalValueExportTextType,
+          conditionalText: 'Male',
+          bracketConditions: [
+            ConditionalBracketCondition(
+              sourceField: 'mammalAttribute::sex',
+              operator: ConditionalComparisonOperator.equals,
+              comparisonValue: '0',
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+
+    final condition = find.byKey(const ValueKey('condition-value-0'));
+    final replacement = find.widgetWithText(TextFormField, 'Male');
+    await tester.enterText(condition, 'female');
+    await tester.pump();
+    final conditionEditable = find.descendant(
+      of: condition,
+      matching: find.byType(EditableText),
+    );
+    expect(
+      tester.widget<EditableText>(conditionEditable).focusNode.hasFocus,
+      isTrue,
+    );
+    expect(tester.widget<TextFormField>(replacement).controller?.text, 'Male');
+
+    await tester.enterText(replacement, 'Female');
+    await tester.pump();
+    expect(
+      tester.widget<EditableText>(conditionEditable).controller.text,
+      'female',
+    );
+  });
+
+  testWidgets('replace text is available and validates regex mappings', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const preset = ExportPresetModel(
+      recordType: RecordType.site,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [
+        ExportFieldMapping(
+          expression: '[site::siteID]',
+          replacementRules: [
+            TextReplacementRule(pattern: 'A', replacement: 'B'),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Replace text'), findsOneWidget);
+    expect(find.text('Exact'), findsOneWidget);
+    await tester.tap(find.text('Exact'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Regex').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('replacement-find-0')),
+      '(',
+    );
+    await tester.pump();
+
+    expect(find.textContaining('Invalid regular expression'), findsWidgets);
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Done'))
+          .onPressed,
+      null,
+    );
+  });
 }

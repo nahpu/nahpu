@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
+import 'package:nahpu/services/text_replacements.dart';
 import 'package:nahpu/services/types/export.dart';
 
 void main() {
@@ -176,6 +177,98 @@ void main() {
       );
     });
 
+    test('round trips current conditional and text replacement mappings', () {
+      const preset = ExportPresetModel(
+        recordType: RecordType.specimenRecord,
+        specimenRecordType: SpecimenRecordType.generalMammals,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [
+          ExportFieldMapping(
+            expression: '[mammalAttribute::sex]',
+            textType: kConditionalValueExportTextType,
+            conditionalText: 'Male',
+            replacementRules: [
+              TextReplacementRule(
+                pattern: r'^(Male)$',
+                replacement: r'$1 specimen',
+                matchType: TextReplacementMatchType.regex,
+                caseSensitive: false,
+              ),
+            ],
+            bracketConditions: [
+              ConditionalBracketCondition(
+                sourceField: 'mammalAttribute::sex',
+                operator: ConditionalComparisonOperator.equals,
+                comparisonValue: '0',
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final json = preset.toJson();
+      final restored = ExportPresetModel.fromJson(json);
+
+      expect(json['schemaVersion'], recordExportPresetSchemaVersion);
+      expect(restored.mappings.single.conditionalText, 'Male');
+      expect(
+        restored.mappings.single.textType,
+        kConditionalValueExportTextType,
+      );
+      expect(restored.mappings.single.replacementRules, hasLength(1));
+      expect(
+        restored.mappings.single.replacementRules.single.matchType,
+        TextReplacementMatchType.regex,
+      );
+      expect(
+        restored.mappings.single.replacementRules.single.caseSensitive,
+        isFalse,
+      );
+    });
+
+    test('loads schema 9 mappings with no replacement rules', () {
+      final restored = ExportPresetModel.fromJson({
+        'schemaVersion': 9,
+        'recordType': 'site',
+        'specimenRecordType': 'allTaxa',
+        'headerFormat': 'fieldName',
+        'mappings': [
+          {'expression': '[site::siteID]'},
+        ],
+      });
+
+      expect(restored.schemaVersion, recordExportPresetSchemaVersion);
+      expect(restored.mappings.single.replacementRules, isEmpty);
+    });
+
+    test('loads schema 8 conditional brackets unchanged', () {
+      final restored = ExportPresetModel.fromJson({
+        'schemaVersion': 8,
+        'recordType': 'specimen',
+        'specimenRecordType': 'generalMammals',
+        'headerFormat': 'fieldName',
+        'mappings': [
+          {
+            'expression': '[mammalAttribute::tailLength]',
+            'textType': kConditionalBracketExportTextType,
+            'bracketConditions': [
+              {
+                'sourceField': 'mammalAttribute::accuracy',
+                'operator': 'contains',
+                'comparisonValue': 'tailLength',
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(
+        restored.mappings.single.textType,
+        kConditionalBracketExportTextType,
+      );
+      expect(restored.mappings.single.conditionalText, isEmpty);
+    });
+
     test('rejects the removed legacy schema', () {
       expect(
         () => ExportPresetModel.fromJson({'fields': {}}),
@@ -220,6 +313,102 @@ void main() {
       expect(
         validateExportPreset(preset),
         contains('Indexed list mappings require exactly one source field.'),
+      );
+    });
+
+    test('validates conditional field and conditional value mappings', () {
+      const fieldPreset = ExportPresetModel(
+        recordType: RecordType.specimenRecord,
+        specimenRecordType: SpecimenRecordType.generalMammals,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [
+          ExportFieldMapping(
+            expression: '[mammalAttribute::sex]',
+            textType: kConditionalFieldExportTextType,
+            conditionalText: 'Type specimen',
+            bracketConditions: [
+              ConditionalBracketCondition(
+                sourceField: 'mammalAttribute::sex',
+                operator: ConditionalComparisonOperator.equals,
+                comparisonValue: '0',
+              ),
+            ],
+          ),
+        ],
+      );
+      const valuePreset = ExportPresetModel(
+        recordType: RecordType.specimenRecord,
+        specimenRecordType: SpecimenRecordType.generalMammals,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [
+          ExportFieldMapping(
+            expression: '[mammalAttribute::sex]',
+            textType: kConditionalValueExportTextType,
+            conditionalText: '',
+            bracketConditions: [
+              ConditionalBracketCondition(
+                sourceField: '',
+                operator: ConditionalComparisonOperator.equals,
+                comparisonValue: '0',
+              ),
+            ],
+          ),
+        ],
+      );
+
+      expect(
+        validateExportPreset(fieldPreset),
+        contains('A conditional field cannot depend on itself.'),
+      );
+      expect(
+        validateExportPreset(valuePreset),
+        contains('Enter conditional replacement text.'),
+      );
+      expect(
+        validateExportPreset(
+          ExportPresetModel(
+            recordType: valuePreset.recordType,
+            specimenRecordType: valuePreset.specimenRecordType,
+            headerFormat: valuePreset.headerFormat,
+            mappings: [
+              valuePreset.mappings.single.copyWith(conditionalText: 'Male'),
+            ],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('validates replacement rules for every mapping shape', () {
+      const invalidRule = TextReplacementRule(
+        pattern: '(',
+        replacement: '',
+        matchType: TextReplacementMatchType.regex,
+      );
+      const preset = ExportPresetModel(
+        recordType: RecordType.site,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [
+          ExportFieldMapping(
+            expression: '[site::siteID]',
+            replacementRules: [invalidRule],
+          ),
+          ExportFieldMapping(
+            expression: '',
+            nestedNamespace: 'coordinate',
+            nestedFields: ['decimalLatitude'],
+            replacementRules: [invalidRule],
+          ),
+        ],
+      );
+
+      expect(
+        validateExportPreset(preset),
+        containsAll([
+          contains('Replacement rule 1: Invalid regular expression'),
+          contains('Replacement rule 1: Invalid regular expression'),
+        ]),
       );
     });
   });

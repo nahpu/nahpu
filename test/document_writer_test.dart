@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/text_replacements.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 rust_config.DocumentLayoutPreset _layout({
@@ -1591,6 +1592,34 @@ void main() {
         expect(deserialized.formatOption, 'dms');
       },
     );
+
+    test('CustomTextElement round trips ordered replacement rules', () {
+      const ct = CustomTextElement(
+        id: 'replacement-rules',
+        text: '[catalogNum]',
+        xMm: 10,
+        yMm: 20,
+        replacementRules: [
+          TextReplacementRule(pattern: 'ABC', replacement: 'XYZ'),
+          TextReplacementRule(
+            pattern: r'(\d+)',
+            replacement: r'[$1]',
+            matchType: TextReplacementMatchType.regex,
+            caseSensitive: false,
+          ),
+        ],
+      );
+
+      final restored = CustomTextElement.fromJson(ct.toJson());
+
+      expect(restored.replacementRules, hasLength(2));
+      expect(restored.replacementRules.first.pattern, 'ABC');
+      expect(
+        restored.replacementRules.last.matchType,
+        TextReplacementMatchType.regex,
+      );
+      expect(restored.replacementRules.last.caseSensitive, isFalse);
+    });
 
     test(
       'Coordinates formatting handles DMS and cardinal directions correctly',

@@ -44,6 +44,12 @@ void main() {
       textType: 'normal',
       formatOption: 'normal',
     );
+    final replacementText = resolveDocumentTemplatePlaceholders(
+      text: 'Sex: [[sex][sex=="0"]=>"Male"]]',
+      data: const {'mammalAttribute::sex': '0'},
+      textType: 'normal',
+      formatOption: 'normal',
+    );
     final markdownTypst = await rust_document.markdownToTypst(
       markdownContent: '''
 | Field | Value |
@@ -73,6 +79,12 @@ void main() {
           xMm: 2,
           yMm: 9,
         ),
+        CustomTextElement(
+          id: 'conditional-replacement-pdf',
+          text: replacementText,
+          xMm: 30,
+          yMm: 2,
+        ),
       ],
     );
     final cell = DocumentWriter.renderSingleDocumentCellTypstForTesting(
@@ -98,8 +110,10 @@ $cell
 
     expect(conditionalText, 'TTL: [123] mm');
     expect(scientificName, '[Aeromys tephromelas]');
+    expect(replacementText, 'Sex: Male');
     expect(cell, contains(r'\[123\]'));
     expect(cell, contains(r'\[Aeromys tephromelas\]'));
+    expect(cell, contains('Sex: Male'));
     expect(cell, contains(markdownTypst));
     expect(String.fromCharCodes(pdf.take(4)), '%PDF');
   });

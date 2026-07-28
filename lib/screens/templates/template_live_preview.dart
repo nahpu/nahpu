@@ -10,6 +10,7 @@ import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_markdown.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/templates/nested_list_service.dart';
+import 'package:nahpu/services/text_replacements.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;
@@ -60,9 +61,7 @@ class TemplateLivePreview extends StatelessWidget {
             (true, template.page1, mirrorFront),
             (false, template.page2, mirrorBack),
           ]
-        : <(bool, TemplatePage, bool)>[
-            (true, template.page1, mirrorFront),
-          ];
+        : <(bool, TemplatePage, bool)>[(true, template.page1, mirrorFront)];
 
     const pad = 16.0;
     final maxW = (viewportSize.width - 2 * pad).clamp(80.0, double.infinity);
@@ -187,7 +186,8 @@ class _PreviewPage extends StatelessWidget {
                     angle: degreesToRadians(ct.rotationDegrees),
                     child: IconTheme(
                       data: IconThemeData(
-                        size: math.min(
+                        size:
+                            math.min(
                               (ct.iconWidthMm ??
                                       kTemplateSpecimenSexIconDefaultWidthMm) *
                                   scale,
@@ -200,7 +200,9 @@ class _PreviewPage extends StatelessWidget {
                       ),
                       child: Icon(
                         templateSpecimenSexIconForFieldKey(
-                            placeholderValues, gKey),
+                          placeholderValues,
+                          gKey,
+                        ),
                       ),
                     ),
                   ),
@@ -218,20 +220,23 @@ class _PreviewPage extends StatelessWidget {
                             : formatExportTemplateText;
                         final formattedText = ct.text.isEmpty
                             ? ' '
-                            : textFormatter(
-                                resolveDocumentTemplatePlaceholders(
-                                  text: ct.text,
-                                  data: placeholderValues,
-                                  textType: ct.textType,
-                                  formatOption: ct.formatOption,
-                                  caseFormat: ct.caseFormat,
-                                  nullFallbackOption: ct.nullFallbackOption,
-                                  customNullFallbackText:
-                                      ct.customNullFallbackText,
+                            : applyTextReplacementRules(
+                                textFormatter(
+                                  resolveDocumentTemplatePlaceholders(
+                                    text: ct.text,
+                                    data: placeholderValues,
+                                    textType: ct.textType,
+                                    formatOption: ct.formatOption,
+                                    caseFormat: ct.caseFormat,
+                                    nullFallbackOption: ct.nullFallbackOption,
+                                    customNullFallbackText:
+                                        ct.customNullFallbackText,
+                                  ),
+                                  ct.textType,
+                                  ct.formatOption,
+                                  ct.caseFormat,
                                 ),
-                                ct.textType,
-                                ct.formatOption,
-                                ct.caseFormat,
+                                ct.replacementRules,
                               );
                         final hasNewlines = formattedText.contains('\n');
                         return SizedBox(
@@ -241,41 +246,46 @@ class _PreviewPage extends StatelessWidget {
                           height: (!ct.isDynamic && ct.heightMm != null)
                               ? ct.heightMm! * scale
                               : null,
-                          child: Builder(builder: (context) {
-                            final textStyle = customTemplateCanvasTextStyle(
-                              fontFamilyRaw: ct.fontFamily,
-                              fontSize:
-                                  _previewFontSizePx(ct.fontSizePt, scale),
-                              fontWeight:
-                                  ct.bold ? FontWeight.bold : FontWeight.normal,
-                              fontStyle: ct.italic
-                                  ? FontStyle.italic
-                                  : FontStyle.normal,
-                              underline: ct.underline,
-                              strikethrough: ct.strikethrough,
-                            ).copyWith(color: Colors.black);
-                            final textAlign = _parseTextAlign(ct.textAlign);
-                            if (isTemplateRichTextType(ct.textType)) {
-                              return TemplateMarkdownBody(
-                                data: formattedText,
-                                textStyle: textStyle,
+                          child: Builder(
+                            builder: (context) {
+                              final textStyle = customTemplateCanvasTextStyle(
+                                fontFamilyRaw: ct.fontFamily,
+                                fontSize: _previewFontSizePx(
+                                  ct.fontSizePt,
+                                  scale,
+                                ),
+                                fontWeight: ct.bold
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                fontStyle: ct.italic
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
+                                underline: ct.underline,
+                                strikethrough: ct.strikethrough,
+                              ).copyWith(color: Colors.black);
+                              final textAlign = _parseTextAlign(ct.textAlign);
+                              if (isTemplateRichTextType(ct.textType)) {
+                                return TemplateMarkdownBody(
+                                  data: formattedText,
+                                  textStyle: textStyle,
+                                  textAlign: textAlign,
+                                  clipOverflow: !ct.isDynamic,
+                                );
+                              }
+                              return Text(
+                                formattedText,
+                                style: textStyle,
+                                softWrap: ct.maxWidthMm != null || hasNewlines,
+                                maxLines: (ct.maxWidthMm != null || hasNewlines)
+                                    ? null
+                                    : 1,
+                                overflow: (ct.maxWidthMm != null || hasNewlines)
+                                    ? TextOverflow.clip
+                                    : TextOverflow.visible,
                                 textAlign: textAlign,
-                                clipOverflow: !ct.isDynamic,
                               );
-                            }
-                            return Text(
-                              formattedText,
-                              style: textStyle,
-                              softWrap: ct.maxWidthMm != null || hasNewlines,
-                              maxLines: (ct.maxWidthMm != null || hasNewlines)
-                                  ? null
-                                  : 1,
-                              overflow: (ct.maxWidthMm != null || hasNewlines)
-                                  ? TextOverflow.clip
-                                  : TextOverflow.visible,
-                              textAlign: textAlign,
-                            );
-                          }),
+                            },
+                          ),
                         );
                       },
                     ),

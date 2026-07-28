@@ -1,5 +1,6 @@
 import 'package:nahpu/services/conditional_brackets.dart';
 import 'package:nahpu/services/specimen_attribute_names.dart';
+import 'package:nahpu/services/text_replacements.dart';
 
 enum ExportFmt { csv, tsv, excel, json }
 
@@ -315,7 +316,7 @@ enum ListExportMode { concatenate, spreadColumns }
 /// How a one-based index is added to an exported column name.
 enum IndexedHeaderStyle { underscore, compact, brackets }
 
-const int recordExportPresetSchemaVersion = 8;
+const int recordExportPresetSchemaVersion = 10;
 const Set<int> _supportedRecordExportPresetSchemaVersions = {
   2,
   3,
@@ -324,10 +325,20 @@ const Set<int> _supportedRecordExportPresetSchemaVersions = {
   6,
   7,
   8,
+  9,
+  10,
 };
 
 /// Scalar export format that conditionally wraps a populated value in brackets.
 const String kConditionalBracketExportTextType = 'conditionalBrackets';
+
+/// Scalar export formats that replace a matching populated value with text.
+const String kConditionalFieldExportTextType = 'conditionalField';
+const String kConditionalValueExportTextType = 'conditionalValue';
+
+bool isConditionalReplacementExportTextType(String textType) =>
+    textType == kConditionalFieldExportTextType ||
+    textType == kConditionalValueExportTextType;
 
 /// One visual segment of a scalar export expression.
 ///
@@ -419,6 +430,8 @@ class ExportFieldMapping {
     this.recordSeparator = ';',
     this.bracketConditions = const [],
     this.bracketConditionMode = ConditionalMatchMode.any,
+    this.conditionalText = '',
+    this.replacementRules = const [],
   });
 
   final String expression;
@@ -436,11 +449,17 @@ class ExportFieldMapping {
   final String fieldSeparator;
   final String recordSeparator;
 
-  /// Conditions used when [textType] is [kConditionalBracketExportTextType].
+  /// Comparisons used by bracket and conditional replacement formats.
   final List<ConditionalBracketCondition> bracketConditions;
 
   /// Whether [bracketConditions] are combined with OR or AND semantics.
   final ConditionalMatchMode bracketConditionMode;
+
+  /// Literal replacement emitted by conditional field and value formats.
+  final String conditionalText;
+
+  /// Ordered text replacements applied after all mapping transformations.
+  final List<TextReplacementRule> replacementRules;
 
   bool get isNested => nestedNamespace != null;
 
@@ -463,6 +482,8 @@ class ExportFieldMapping {
     String? recordSeparator,
     List<ConditionalBracketCondition>? bracketConditions,
     ConditionalMatchMode? bracketConditionMode,
+    String? conditionalText,
+    List<TextReplacementRule>? replacementRules,
   }) {
     return ExportFieldMapping(
       expression: expression ?? this.expression,
@@ -486,6 +507,8 @@ class ExportFieldMapping {
       recordSeparator: recordSeparator ?? this.recordSeparator,
       bracketConditions: bracketConditions ?? this.bracketConditions,
       bracketConditionMode: bracketConditionMode ?? this.bracketConditionMode,
+      conditionalText: conditionalText ?? this.conditionalText,
+      replacementRules: replacementRules ?? this.replacementRules,
     );
   }
 
@@ -531,6 +554,14 @@ class ExportFieldMapping {
         json['bracketConditionMode'] as String? ??
             ConditionalMatchMode.any.name,
       ),
+      conditionalText: json['conditionalText'] as String? ?? '',
+      replacementRules: (json['replacementRules'] as List? ?? [])
+          .whereType<Map>()
+          .map(
+            (value) =>
+                TextReplacementRule.fromJson(Map<String, dynamic>.from(value)),
+          )
+          .toList(growable: false),
     );
   }
 
@@ -553,6 +584,11 @@ class ExportFieldMapping {
         .map((condition) => condition.toJson())
         .toList(),
     'bracketConditionMode': bracketConditionMode.name,
+    if (conditionalText.isNotEmpty) 'conditionalText': conditionalText,
+    if (replacementRules.isNotEmpty)
+      'replacementRules': replacementRules
+          .map((rule) => rule.toJson())
+          .toList(),
   };
 }
 

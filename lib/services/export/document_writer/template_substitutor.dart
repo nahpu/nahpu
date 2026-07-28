@@ -16,7 +16,7 @@ class _DocumentTemplateSubstitutor {
         texts.add(ct);
         continue;
       }
-      var subbedText = resolveDocumentTemplatePlaceholders(
+      final subbedText = resolveDocumentTemplatePlaceholders(
         text: ct.text,
         data: data,
         textType: ct.textType,
@@ -25,20 +25,15 @@ class _DocumentTemplateSubstitutor {
         nullFallbackOption: ct.nullFallbackOption,
         customNullFallbackText: ct.customNullFallbackText,
       );
-      var textType = ct.textType;
-      if (isTemplateRichTextType(ct.textType) ||
-          ct.text.toLowerCase().contains('narrative::narrative')) {
-        subbedText = await rust_document.markdownToTypst(
-          markdownContent: subbedText,
-        );
-        textType = 'markdown';
-      }
       if (ct.isQrCode) {
-        final formattedText = formatTemplateText(
-          subbedText,
-          textType,
-          ct.formatOption,
-          ct.caseFormat,
+        final formattedText = applyTextReplacementRules(
+          formatTemplateText(
+            subbedText,
+            ct.textType,
+            ct.formatOption,
+            ct.caseFormat,
+          ),
+          ct.replacementRules,
         );
         final fgColorHex = _colorToHex(ct.colorArgb);
         final bgColorHex = _colorToHex(ct.qrBgColorArgb);
@@ -59,16 +54,27 @@ class _DocumentTemplateSubstitutor {
           ct.copyWith(
             text: formattedText,
             tempPath: tempFile.path,
-            textType: textType,
+            textType: ct.textType,
           ),
         );
       } else {
-        final formattedText = formatExportTemplateText(
-          subbedText,
-          textType,
-          ct.formatOption,
-          ct.caseFormat,
+        var formattedText = applyTextReplacementRules(
+          formatExportTemplateText(
+            subbedText,
+            ct.textType,
+            ct.formatOption,
+            ct.caseFormat,
+          ),
+          ct.replacementRules,
         );
+        var textType = ct.textType;
+        if (isTemplateRichTextType(ct.textType) ||
+            ct.text.toLowerCase().contains('narrative::narrative')) {
+          formattedText = await rust_document.markdownToTypst(
+            markdownContent: formattedText,
+          );
+          textType = 'markdown';
+        }
         texts.add(ct.copyWith(text: formattedText, textType: textType));
       }
     }
