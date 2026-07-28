@@ -145,11 +145,13 @@ void main() {
         ),
       );
 
-      expect(find.text('Inaccurate: Tail length'), findsOneWidget);
-      expect(find.text('Remark: Tail cropped'), findsOneWidget);
+      expect(find.text('*Inaccurate: Tail length'), findsOneWidget);
+      expect(find.text('Remark:\nTail cropped'), findsOneWidget);
     });
 
-    testWidgets('numeric brackets are decoration only', (tester) async {
+    testWidgets('numeric brackets mark inaccurate fields in the label', (
+      tester,
+    ) async {
       final controller = TextEditingController(text: '12.5');
       addTearDown(controller.dispose);
 
@@ -169,8 +171,9 @@ void main() {
       );
 
       final field = tester.widget<TextField>(find.byType(TextField));
-      expect(field.decoration?.prefixText, '[');
-      expect(field.decoration?.suffixText, ']');
+      expect(field.decoration?.labelText, 'Length*');
+      expect(field.decoration?.prefixText, isNull);
+      expect(field.decoration?.suffixText, isNull);
       expect(controller.text, '12.5');
     });
 

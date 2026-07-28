@@ -206,18 +206,31 @@ extension DocumentLayoutBlockJson on rust_config.DocumentLayoutBlock {
 
   static rust_config.DocumentLayoutBlock fromJson(Map<String, dynamic> json) {
     return rust_config.DocumentLayoutBlock(
-      templateName: json['templateName'] as String,
-      templateCount: json['templateCount'] as int,
+      templateName: _jsonValue(json, 'templateName', 'template_name') as String,
+      templateCount: _jsonValue(json, 'templateCount', 'template_count') as int,
       rows: json['rows'] as int,
       cols: json['cols'] as int,
-      templatePadTopMm: (json['templatePadTopMm'] as num).toDouble(),
-      templatePadLeftMm: (json['templatePadLeftMm'] as num).toDouble(),
-      templatePadRightMm: (json['templatePadRightMm'] as num).toDouble(),
-      templatePadBottomMm: (json['templatePadBottomMm'] as num).toDouble(),
-      pageBreakAfter: json['pageBreakAfter'] as bool,
-      sortField: json['sortField'] as String?,
+      templatePadTopMm:
+          (_jsonValue(json, 'templatePadTopMm', 'template_pad_top_mm') as num)
+              .toDouble(),
+      templatePadLeftMm:
+          (_jsonValue(json, 'templatePadLeftMm', 'template_pad_left_mm') as num)
+              .toDouble(),
+      templatePadRightMm:
+          (_jsonValue(json, 'templatePadRightMm', 'template_pad_right_mm')
+                  as num)
+              .toDouble(),
+      templatePadBottomMm:
+          (_jsonValue(json, 'templatePadBottomMm', 'template_pad_bottom_mm')
+                  as num)
+              .toDouble(),
+      pageBreakAfter:
+          _jsonValue(json, 'pageBreakAfter', 'page_break_after') as bool,
+      sortField: _jsonValue(json, 'sortField', 'sort_field') as String?,
       sortDirection: rust_config.DocumentSortDirection.values.firstWhere(
-        (direction) => direction.name == json['sortDirection'],
+        (direction) =>
+            direction.name ==
+            _jsonValue(json, 'sortDirection', 'sort_direction'),
         orElse: () => rust_config.DocumentSortDirection.ascending,
       ),
     );
@@ -244,15 +257,29 @@ extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
   static rust_config.DocumentLayoutPreset fromJson(Map<String, dynamic> json) {
     return rust_config.DocumentLayoutPreset(
       name: json['name'] as String,
-      layoutType: json['layoutType'] as String,
-      pageSizeKey: json['pageSizeKey'] as String,
-      pageOrientation: json['pageOrientation'] as String,
-      customPageWidthMm: (json['customPageWidthMm'] as num?)?.toDouble(),
-      customPageHeightMm: (json['customPageHeightMm'] as num?)?.toDouble(),
-      pagePadTopMm: (json['pagePadTopMm'] as num).toDouble(),
-      pagePadLeftMm: (json['pagePadLeftMm'] as num).toDouble(),
-      pagePadRightMm: (json['pagePadRightMm'] as num).toDouble(),
-      pagePadBottomMm: (json['pagePadBottomMm'] as num).toDouble(),
+      layoutType: _jsonValue(json, 'layoutType', 'layout_type') as String,
+      pageSizeKey: _jsonValue(json, 'pageSizeKey', 'page_size_key') as String,
+      pageOrientation:
+          _jsonValue(json, 'pageOrientation', 'page_orientation') as String,
+      customPageWidthMm:
+          (_jsonValue(json, 'customPageWidthMm', 'custom_page_width_mm')
+                  as num?)
+              ?.toDouble(),
+      customPageHeightMm:
+          (_jsonValue(json, 'customPageHeightMm', 'custom_page_height_mm')
+                  as num?)
+              ?.toDouble(),
+      pagePadTopMm: (_jsonValue(json, 'pagePadTopMm', 'page_pad_top_mm') as num)
+          .toDouble(),
+      pagePadLeftMm:
+          (_jsonValue(json, 'pagePadLeftMm', 'page_pad_left_mm') as num)
+              .toDouble(),
+      pagePadRightMm:
+          (_jsonValue(json, 'pagePadRightMm', 'page_pad_right_mm') as num)
+              .toDouble(),
+      pagePadBottomMm:
+          (_jsonValue(json, 'pagePadBottomMm', 'page_pad_bottom_mm') as num)
+              .toDouble(),
       blocks: (json['blocks'] as List)
           .map(
             (b) => DocumentLayoutBlockJson.fromJson(
@@ -260,8 +287,18 @@ extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
             ),
           )
           .toList(),
-      fillPage: json['fillPage'] as bool? ?? false,
-      multiBlockMode: json['multiBlockMode'] as String? ?? 'Continuous',
+      fillPage: _jsonValue(json, 'fillPage', 'fill_page') as bool? ?? false,
+      multiBlockMode:
+          _jsonValue(json, 'multiBlockMode', 'multi_block_mode') as String? ??
+          'Continuous',
     );
   }
+}
+
+dynamic _jsonValue(
+  Map<String, dynamic> json,
+  String camelCaseKey,
+  String snakeCaseKey,
+) {
+  return json[camelCaseKey] ?? json[snakeCaseKey];
 }

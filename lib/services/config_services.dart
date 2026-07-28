@@ -141,9 +141,23 @@ class ConfigDbService {
       }
       final preset = Map<String, dynamic>.from(decoded);
 
-      for (final templateJson in preset['templates'] as List? ?? const []) {
+      final templateEntries =
+          preset['template_presets'] as List? ??
+          preset['templates'] as List? ??
+          const [];
+      for (final entryJson in templateEntries) {
+        final entry = Map<String, dynamic>.from(entryJson as Map);
+        final rawTemplate = entry['value'] ?? entry;
+        final templateJson = rawTemplate is String
+            ? jsonDecode(rawTemplate)
+            : rawTemplate;
+        if (templateJson is! Map) {
+          throw FormatException(
+            'Default template must be a JSON object: $assetPath',
+          );
+        }
         final template = Template.fromJson(
-          Map<String, dynamic>.from(templateJson as Map),
+          Map<String, dynamic>.from(templateJson),
         );
         if (suppressedTemplateNames.contains(template.name)) continue;
         if (existingTemplateNames.contains(template.name)) continue;
@@ -154,7 +168,11 @@ class ConfigDbService {
         existingTemplateNames.add(template.name);
       }
 
-      for (final layoutJson in preset['layouts'] as List? ?? const []) {
+      final layoutEntries =
+          preset['document_layouts'] as List? ??
+          preset['layouts'] as List? ??
+          const [];
+      for (final layoutJson in layoutEntries) {
         final layout = DocumentLayoutPresetJson.fromJson(
           Map<String, dynamic>.from(layoutJson as Map),
         );
