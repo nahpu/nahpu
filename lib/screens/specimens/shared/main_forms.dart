@@ -4,7 +4,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/screens/specimens/avian/attributes.dart';
+import 'package:nahpu/screens/specimens/birds/attributes.dart';
 import 'package:nahpu/screens/specimens/mammalian/attributes.dart';
 import 'package:nahpu/screens/specimens/herpetofauna/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/capture_records.dart';
@@ -85,9 +85,7 @@ class MainFormsState extends ConsumerState<MainForms> {
                 ),
               ],
             ),
-            SpecimenMediaForm(
-              specimenUuid: widget.specimenUuid,
-            ),
+            SpecimenMediaForm(specimenUuid: widget.specimenUuid),
             const BottomPadding(),
           ],
         );
@@ -99,8 +97,9 @@ class MainFormsState extends ConsumerState<MainForms> {
     switch (widget.catalogFmt) {
       case CatalogFmt.birds:
         return BirdAttributeForms(
-            useHorizontalLayout: useHorizontalLayout,
-            specimenUuid: widget.specimenUuid);
+          useHorizontalLayout: useHorizontalLayout,
+          specimenUuid: widget.specimenUuid,
+        );
       case CatalogFmt.mammals:
         return MammalAttributeForms(
           useHorizontalLayout: useHorizontalLayout,

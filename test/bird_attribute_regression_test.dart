@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
-import 'package:nahpu/screens/specimens/avian/attributes.dart';
+import 'package:nahpu/screens/specimens/birds/attributes.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/birds.dart';
