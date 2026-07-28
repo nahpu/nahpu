@@ -137,12 +137,7 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
             TextButton(
               onPressed: widget.pageNav.isFirstPage
                   ? null
-                  : () {
-                      if (widget.pageNav.pageController.hasClients) {
-                        widget.pageNav.pageController.animateToPage(0,
-                            duration: kTabScrollDuration, curve: _curve);
-                      }
-                    },
+                  : () => widget.pageNav.jumpToPage(0),
               child: const Icon(Icons.keyboard_double_arrow_left),
             ),
             TextButton(
@@ -162,7 +157,6 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
                   context: context,
                   builder: (context) => NavSheet(
                     pageNav: widget.pageNav,
-                    pageController: widget.pageNav.pageController,
                   ),
                   isScrollControlled: true,
                 );
@@ -183,14 +177,9 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
             TextButton(
               onPressed: widget.pageNav.isLastPage
                   ? null
-                  : () {
-                      if (widget.pageNav.pageController.hasClients) {
-                        widget.pageNav.pageController.animateToPage(
-                            widget.pageNav.pageCounts - 1,
-                            duration: kTabScrollDuration,
-                            curve: _curve);
-                      }
-                    },
+                  : () => widget.pageNav.jumpToPage(
+                        widget.pageNav.pageCounts - 1,
+                      ),
               child: const Icon(Icons.keyboard_double_arrow_right),
             )
           ],
@@ -306,11 +295,9 @@ class PageInfo extends StatelessWidget {
 class NavSheet extends ConsumerStatefulWidget {
   const NavSheet({
     super.key,
-    required this.pageController,
     required this.pageNav,
   });
 
-  final PageController pageController;
   final PageNavigation pageNav;
 
   @override
@@ -337,17 +324,13 @@ class NavSheetState extends ConsumerState<NavSheet> {
                 constraints: const BoxConstraints(maxHeight: 80, maxWidth: 160),
                 child: GoToPageField(
                   onSubmitted: (String value) {
-                    if (widget.pageController.hasClients) {
-                      int pageNum = int.parse(value);
-                      int targetPage = pageNum > widget.pageNav.pageCounts
-                          ? widget.pageNav.pageCounts - 1
-                          : pageNum - 1;
-                      widget.pageController.animateToPage(targetPage,
-                          duration: kTabScrollDuration,
-                          curve: Curves.easeInOut);
-
-                      Navigator.pop(context);
+                    final pageNumber = int.tryParse(value);
+                    if (pageNumber == null ||
+                        !widget.pageNav.pageController.hasClients) {
+                      return;
                     }
+                    widget.pageNav.jumpToPage(pageNumber - 1);
+                    Navigator.pop(context);
                   },
                 ),
               ),
