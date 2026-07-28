@@ -52,13 +52,34 @@ void main() {
 
   group('ProjectTransferPayload', () {
     test('round-trips the versioned project envelope', () {
-      final payload = _payload();
+      final payload = _payload(
+        records: {
+          'site': [
+            {'id': 1, 'siteID': 'Camp A', 'projectUuid': 'project-a'},
+          ],
+          'mammalAttribute': [
+            {
+              'specimenUuid': 'specimen-a',
+              'accuracy': 'inaccurate:earLength,weight',
+              'accuracySpecify': 'Ear damaged',
+            },
+          ],
+        },
+      );
 
       final decoded = ProjectTransferPayload.parse(payload.encoded);
 
       expect(decoded.sourceProjectUuid, 'project-a');
       expect(decoded.projectName, 'Project A');
       expect(decoded.rows('site'), hasLength(1));
+      expect(
+        decoded.rows('mammalAttribute').single['accuracy'],
+        'inaccurate:earLength,weight',
+      );
+      expect(
+        decoded.rows('mammalAttribute').single['accuracySpecify'],
+        'Ear damaged',
+      );
       expect(decoded.version, projectTransferVersion);
     });
 

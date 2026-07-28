@@ -36,11 +36,13 @@ class _ExportPresetFieldsScreenState
   Widget build(BuildContext context) {
     final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
     final scheme = Theme.of(context).colorScheme;
-    final canAddNested = _nestedFieldGroups(_availableFieldGroups(
-      ref.read(databaseProvider),
-      _preset.recordType,
-      _preset.specimenRecordType,
-    )).isNotEmpty;
+    final canAddNested = _nestedFieldGroups(
+      _availableFieldGroups(
+        ref.read(databaseProvider),
+        _preset.recordType,
+        _preset.specimenRecordType,
+      ),
+    ).isNotEmpty;
 
     final availableFieldsWidget = _AvailableFieldsSection(
       recordType: _preset.recordType,
@@ -54,9 +56,7 @@ class _ExportPresetFieldsScreenState
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(
-          color: scheme.outlineVariant,
-        ),
+        side: BorderSide(color: scheme.outlineVariant),
       ),
       child: Column(
         children: [
@@ -177,10 +177,9 @@ class _ExportPresetFieldsScreenState
   }
 
   String? _directSourceField(String expression) {
-    return RegExp(r'^\s*\[([^\]]+)\]\s*$')
-        .firstMatch(expression)
-        ?.group(1)
-        ?.trim();
+    return RegExp(
+      r'^\s*\[([^\]]+)\]\s*$',
+    ).firstMatch(expression)?.group(1)?.trim();
   }
 
   void _remove(int index) {
@@ -196,11 +195,13 @@ class _ExportPresetFieldsScreenState
       'collPersonnel',
       'specimenPart',
     ];
-    final groups = _nestedFieldGroups(_availableFieldGroups(
-      ref.read(databaseProvider),
-      _preset.recordType,
-      _preset.specimenRecordType,
-    ));
+    final groups = _nestedFieldGroups(
+      _availableFieldGroups(
+        ref.read(databaseProvider),
+        _preset.recordType,
+        _preset.specimenRecordType,
+      ),
+    );
     if (groups.isEmpty) return;
     final namespace = preferredNamespaces.firstWhere(
       groups.containsKey,
@@ -212,9 +213,11 @@ class _ExportPresetFieldsScreenState
         nestedNamespace: namespace,
         nestedMode: NestedExportMode.spreadColumns,
       ),
-      allowExpandRows: !_preset.mappings.any((mapping) =>
-          mapping.isNested &&
-          mapping.nestedMode == NestedExportMode.expandRows),
+      allowExpandRows: !_preset.mappings.any(
+        (mapping) =>
+            mapping.isNested &&
+            mapping.nestedMode == NestedExportMode.expandRows,
+      ),
       onSave: (mapping) => _update(mappings: [..._preset.mappings, mapping]),
     );
   }
@@ -241,9 +244,7 @@ class _ExportPresetFieldsScreenState
     _update(mappings: mappings);
   }
 
-  void _update({
-    List<ExportFieldMapping>? mappings,
-  }) {
+  void _update({List<ExportFieldMapping>? mappings}) {
     setState(() {
       _preset = ExportPresetModel(
         recordType: _preset.recordType,
@@ -257,10 +258,12 @@ class _ExportPresetFieldsScreenState
 
   void _customizeMapping(int index) {
     final mapping = _preset.mappings[index];
-    final allowExpandRows = !_preset.mappings.asMap().entries.any((entry) =>
-        entry.key != index &&
-        entry.value.isNested &&
-        entry.value.nestedMode == NestedExportMode.expandRows);
+    final allowExpandRows = !_preset.mappings.asMap().entries.any(
+      (entry) =>
+          entry.key != index &&
+          entry.value.isNested &&
+          entry.value.nestedMode == NestedExportMode.expandRows,
+    );
 
     _openMappingCustomizer(
       mapping,
@@ -400,10 +403,11 @@ class _AvailableFieldsSectionState
   Set<String> _selectedSourceFields(List<ExportFieldMapping> mappings) {
     return mappings
         .where((mapping) => !mapping.isNested)
-        .map((mapping) => RegExp(r'^\s*\[([^\]]+)\]\s*$')
-            .firstMatch(mapping.expression)
-            ?.group(1)
-            ?.trim())
+        .map(
+          (mapping) => RegExp(
+            r'^\s*\[([^\]]+)\]\s*$',
+          ).firstMatch(mapping.expression)?.group(1)?.trim(),
+        )
         .whereType<String>()
         .toSet();
   }
@@ -419,9 +423,7 @@ class _AvailableFieldsSectionState
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(
-          color: scheme.outlineVariant,
-        ),
+        side: BorderSide(color: scheme.outlineVariant),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -439,8 +441,8 @@ class _AvailableFieldsSectionState
                     child: Text(
                       'Insert Source Field',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Flexible(
@@ -601,16 +603,15 @@ Map<String, List<String>> _availableFieldGroups(
   for (var table in db.allTables) {
     final tableName = table.actualTableName;
     if (allowedTables.contains(tableName)) {
-      groups[tableName] =
-          table.$columns.map<String>((c) => '$tableName::${c.name}').toList();
+      groups[tableName] = table.$columns
+          .map<String>((c) => '$tableName::${c.name}')
+          .toList();
     }
   }
   return groups;
 }
 
-Map<String, List<String>> _nestedFieldGroups(
-  Map<String, List<String>> groups,
-) {
+Map<String, List<String>> _nestedFieldGroups(Map<String, List<String>> groups) {
   // Nested mappings retain the same table choices as the source-field picker.
   // Some sources are repeated in only certain record types, but preserving the
   // full set keeps existing and advanced mappings editable.
@@ -744,15 +745,13 @@ class _GroupedFieldPicker extends StatelessWidget {
         },
         child: InputDecorator(
           decoration: decoration.copyWith(
-              suffixIcon: const Icon(Icons.arrow_drop_down)),
+            hintText: displayValue == null ? 'Choose a field' : null,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            suffixIcon: const Icon(Icons.arrow_drop_down),
+          ),
           isEmpty: displayValue == null,
           child: displayValue == null
-              ? Text(
-                  'Choose a field',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                )
+              ? null
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -851,8 +850,9 @@ class _GroupedFieldPickerContentState
                   children: [
                     for (final entry in filteredGroups.entries) ...[
                       Container(
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerLow,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLow,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 8,
@@ -886,9 +886,11 @@ class _GroupedFieldPickerContentState
       final fields = tableMatches
           ? entry.value
           : entry.value
-              .where((field) =>
-                  _fieldDisplayName(field).toLowerCase().contains(query))
-              .toList(growable: false);
+                .where(
+                  (field) =>
+                      _fieldDisplayName(field).toLowerCase().contains(query),
+                )
+                .toList(growable: false);
       if (fields.isNotEmpty) matches[entry.key] = fields;
     }
     return matches;
@@ -914,9 +916,9 @@ class _SelectedMappingsHeader extends StatelessWidget {
         final compactActions = constraints.maxWidth < 440;
         final title = Text(
           'Selected Mappings',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         );
         if (compactActions) {
           return Row(
@@ -977,7 +979,8 @@ class _ExportMappingCard extends StatelessWidget {
 
     if (mapping.isNested) {
       title = 'Nested: ${mapping.nestedNamespace ?? 'Unnamed'}';
-      subtitle = '${_nestedModeLabel(mapping.nestedMode)} · '
+      subtitle =
+          '${_nestedModeLabel(mapping.nestedMode)} · '
           '${mapping.nestedFields.join(', ')}';
       icon = Icons.account_tree_outlined;
     } else if (mapping.textType == 'list') {
@@ -1040,16 +1043,16 @@ class _ExportMappingCard extends StatelessWidget {
   }
 
   String _nestedModeLabel(NestedExportMode mode) => switch (mode) {
-        NestedExportMode.concatenate => 'One column',
-        NestedExportMode.spreadColumns => 'Indexed columns',
-        NestedExportMode.expandRows => 'Repeated rows',
-      };
+    NestedExportMode.concatenate => 'One column',
+    NestedExportMode.spreadColumns => 'Indexed columns',
+    NestedExportMode.expandRows => 'Repeated rows',
+  };
 
   String _indexedStyleLabel(IndexedHeaderStyle style) => switch (style) {
-        IndexedHeaderStyle.underscore => 'field_1',
-        IndexedHeaderStyle.compact => 'field1',
-        IndexedHeaderStyle.brackets => 'field[1]',
-      };
+    IndexedHeaderStyle.underscore => 'field_1',
+    IndexedHeaderStyle.compact => 'field1',
+    IndexedHeaderStyle.brackets => 'field[1]',
+  };
 }
 
 class _MappingCustomizerForm extends ConsumerStatefulWidget {
@@ -1095,31 +1098,39 @@ class _MappingCustomizerFormState
   void initState() {
     super.initState();
     _localMapping = widget.mapping;
-    _mappingKind = widget.initialMappingKind ??
+    _mappingKind =
+        widget.initialMappingKind ??
         (_localMapping.isNested
             ? 'nested'
             : _localMapping.textType == 'list'
-                ? 'list'
-                : isDirectExportSourceExpression(_localMapping.expression)
-                    ? 'scalar'
-                    : 'combined');
+            ? 'list'
+            : isDirectExportSourceExpression(_localMapping.expression)
+            ? 'scalar'
+            : 'combined');
 
-    _expressionController =
-        TextEditingController(text: _localMapping.expression);
-    _headerController =
-        TextEditingController(text: _localMapping.headerOverride ?? '');
-    _formatOptionController =
-        TextEditingController(text: _localMapping.formatOption);
-    _customNullTextController =
-        TextEditingController(text: _localMapping.customNullFallbackText);
+    _expressionController = TextEditingController(
+      text: _localMapping.expression,
+    );
+    _headerController = TextEditingController(
+      text: _localMapping.headerOverride ?? '',
+    );
+    _formatOptionController = TextEditingController(
+      text: _localMapping.formatOption,
+    );
+    _customNullTextController = TextEditingController(
+      text: _localMapping.customNullFallbackText,
+    );
 
-    _nestedNamespaceController =
-        TextEditingController(text: _localMapping.nestedNamespace ?? '');
+    _nestedNamespaceController = TextEditingController(
+      text: _localMapping.nestedNamespace ?? '',
+    );
     _nestedFields = List<String>.from(_localMapping.nestedFields);
-    _fieldSepController =
-        TextEditingController(text: _localMapping.fieldSeparator);
-    _recordSepController =
-        TextEditingController(text: _localMapping.recordSeparator);
+    _fieldSepController = TextEditingController(
+      text: _localMapping.fieldSeparator,
+    );
+    _recordSepController = TextEditingController(
+      text: _localMapping.recordSeparator,
+    );
   }
 
   @override
@@ -1174,10 +1185,7 @@ class _MappingCustomizerFormState
           decoration: const InputDecoration(labelText: 'Mapping type'),
           items: const [
             DropdownMenuItem(value: 'scalar', child: Text('Single field')),
-            DropdownMenuItem(
-              value: 'combined',
-              child: Text('Combined fields'),
-            ),
+            DropdownMenuItem(value: 'combined', child: Text('Combined fields')),
             DropdownMenuItem(value: 'list', child: Text('List field')),
             DropdownMenuItem(value: 'nested', child: Text('Nested records')),
           ],
@@ -1242,7 +1250,9 @@ class _MappingCustomizerFormState
                     child: Text('Semicolon (A; B)'),
                   ),
                   DropdownMenuItem(
-                      value: 'slash', child: Text('Slash (A / B)')),
+                    value: 'slash',
+                    child: Text('Slash (A / B)'),
+                  ),
                   DropdownMenuItem(value: 'newline', child: Text('New line')),
                   DropdownMenuItem(value: 'bullet', child: Text('Bulleted')),
                   DropdownMenuItem(value: 'custom', child: Text('Custom')),
@@ -1251,8 +1261,9 @@ class _MappingCustomizerFormState
                   if (value == null) return;
                   setState(() {
                     final option = value == 'custom' ? 'custom:' : value;
-                    _localMapping =
-                        _localMapping.copyWith(formatOption: option);
+                    _localMapping = _localMapping.copyWith(
+                      formatOption: option,
+                    );
                     _formatOptionController.text = option;
                   });
                 },
@@ -1302,8 +1313,8 @@ class _MappingCustomizerFormState
                   setState(() {
                     _localMapping = _localMapping.copyWith(
                       textType: value,
-                      bracketConditions: value ==
-                                  kConditionalBracketExportTextType &&
+                      bracketConditions:
+                          value == kConditionalBracketExportTextType &&
                               _localMapping.bracketConditions.isEmpty
                           ? const [
                               ConditionalBracketCondition(
@@ -1364,10 +1375,9 @@ class _MappingCustomizerFormState
               helperText: 'Select the repeated record group to export.',
             ),
             items: namespaces
-                .map((value) => DropdownMenuItem(
-                      value: value,
-                      child: Text(value),
-                    ))
+                .map(
+                  (value) => DropdownMenuItem(value: value, child: Text(value)),
+                )
                 .toList(),
             onChanged: (value) {
               if (value == null) return;
@@ -1382,57 +1392,63 @@ class _MappingCustomizerFormState
             },
           ),
           const SizedBox(height: 12),
-          Text('Selected child fields',
-              style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            'Selected child fields',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           if (_nestedFields.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Text('Select at least one child field below.'),
             )
           else
-            ..._nestedFields.asMap().entries.map((entry) => ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    radius: 12,
-                    child: Text('${entry.key + 1}'),
-                  ),
-                  title: Text(entry.value),
-                  trailing: Wrap(
-                    children: [
-                      IconButton(
-                        tooltip: 'Move up',
-                        onPressed: entry.key == 0
-                            ? null
-                            : () => _moveNestedField(entry.key, -1),
-                        icon: const Icon(Icons.arrow_upward),
-                      ),
-                      IconButton(
-                        tooltip: 'Move down',
-                        onPressed: entry.key == _nestedFields.length - 1
-                            ? null
-                            : () => _moveNestedField(entry.key, 1),
-                        icon: const Icon(Icons.arrow_downward),
-                      ),
-                      IconButton(
-                        tooltip: 'Remove field',
-                        onPressed: () => _toggleNestedField(entry.value, false),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                )),
+            ..._nestedFields.asMap().entries.map(
+              (entry) => ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  radius: 12,
+                  child: Text('${entry.key + 1}'),
+                ),
+                title: Text(entry.value),
+                trailing: Wrap(
+                  children: [
+                    IconButton(
+                      tooltip: 'Move up',
+                      onPressed: entry.key == 0
+                          ? null
+                          : () => _moveNestedField(entry.key, -1),
+                      icon: const Icon(Icons.arrow_upward),
+                    ),
+                    IconButton(
+                      tooltip: 'Move down',
+                      onPressed: entry.key == _nestedFields.length - 1
+                          ? null
+                          : () => _moveNestedField(entry.key, 1),
+                      icon: const Icon(Icons.arrow_downward),
+                    ),
+                    IconButton(
+                      tooltip: 'Remove field',
+                      onPressed: () => _toggleNestedField(entry.value, false),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
             title: const Text('Choose child fields'),
             children: availableNestedFields
-                .map((field) => CheckboxListTile(
-                      dense: true,
-                      value: _nestedFields.contains(field),
-                      title: Text(field),
-                      onChanged: (selected) =>
-                          _toggleNestedField(field, selected ?? false),
-                    ))
+                .map(
+                  (field) => CheckboxListTile(
+                    dense: true,
+                    value: _nestedFields.contains(field),
+                    title: Text(field),
+                    onChanged: (selected) =>
+                        _toggleNestedField(field, selected ?? false),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 8),
@@ -1463,9 +1479,11 @@ class _MappingCustomizerFormState
                 RadioListTile<NestedExportMode>(
                   value: NestedExportMode.expandRows,
                   title: const Text('Repeated rows'),
-                  subtitle: Text(widget.allowExpandRows
-                      ? 'Create one export row per child record.'
-                      : 'Another mapping already expands export rows.'),
+                  subtitle: Text(
+                    widget.allowExpandRows
+                        ? 'Create one export row per child record.'
+                        : 'Another mapping already expands export rows.',
+                  ),
                   enabled: widget.allowExpandRows,
                 ),
               ],
@@ -1487,8 +1505,9 @@ class _MappingCustomizerFormState
                     child: TextFormField(
                       controller: _fieldSepController,
                       onChanged: (_) => setState(() {}),
-                      decoration:
-                          const InputDecoration(labelText: 'Field separator'),
+                      decoration: const InputDecoration(
+                        labelText: 'Field separator',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1496,8 +1515,9 @@ class _MappingCustomizerFormState
                     child: TextFormField(
                       controller: _recordSepController,
                       onChanged: (_) => setState(() {}),
-                      decoration:
-                          const InputDecoration(labelText: 'Record separator'),
+                      decoration: const InputDecoration(
+                        labelText: 'Record separator',
+                      ),
                     ),
                   ),
                 ],
@@ -1553,9 +1573,7 @@ class _MappingCustomizerFormState
                   'null-fallback-${_localMapping.nullFallbackOption}',
                 ),
                 initialValue: _localMapping.nullFallbackOption,
-                decoration: const InputDecoration(
-                  labelText: 'Empty value',
-                ),
+                decoration: const InputDecoration(labelText: 'Empty value'),
                 items: const [
                   DropdownMenuItem(value: 'blank', child: Text('Blank')),
                   DropdownMenuItem(value: 'custom', child: Text('Custom text')),
@@ -1563,8 +1581,9 @@ class _MappingCustomizerFormState
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
-                      _localMapping =
-                          _localMapping.copyWith(nullFallbackOption: value);
+                      _localMapping = _localMapping.copyWith(
+                        nullFallbackOption: value,
+                      );
                     });
                   }
                 },
@@ -1597,10 +1616,7 @@ class _MappingCustomizerFormState
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            TextButton(
-              onPressed: widget.onCancel,
-              child: const Text('Cancel'),
-            ),
+            TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
             const SizedBox(width: 8),
             FilledButton(
               onPressed: canSave ? _submit : null,
@@ -1738,8 +1754,9 @@ class _MappingCustomizerFormState
           : 'Choose a source field.';
     }
     if (_mappingKind == 'combined' &&
-        !parseExportExpression(_expressionController.text)
-            .any((segment) => segment.isField)) {
+        !parseExportExpression(
+          _expressionController.text,
+        ).any((segment) => segment.isField)) {
       return 'Combined values must include at least one source field.';
     }
     if (usesStandardizedExportHeaders(widget.headerFormat) &&
@@ -1776,14 +1793,15 @@ class _MappingCustomizerFormState
     return '';
   }
 
-  String _standardTextType(String value) => {
+  String _standardTextType(String value) =>
+      {
         'normal',
         'encoded',
         'coordinates',
         kConditionalBracketExportTextType,
       }.contains(value)
-          ? value
-          : 'normal';
+      ? value
+      : 'normal';
 
   String _listSeparatorOption(String value) {
     if (value.startsWith('custom:')) return 'custom';
@@ -1791,8 +1809,14 @@ class _MappingCustomizerFormState
   }
 
   bool _isListFormatOption(String value) =>
-      {'pipe', 'comma', 'semicolon', 'slash', 'newline', 'bullet'}
-          .contains(value) ||
+      {
+        'pipe',
+        'comma',
+        'semicolon',
+        'slash',
+        'newline',
+        'bullet',
+      }.contains(value) ||
       value.startsWith('custom:');
 
   String? _exactSourceField(String expression) {
@@ -1861,62 +1885,62 @@ class _ConcatenatedExpressionComposerState
           final segment = entry.value;
           final segmentId = _segmentIds[index];
           return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Material(
-                key: ValueKey('combined-segment-$segmentId'),
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                surfaceTintColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Material(
+              key: ValueKey('combined-segment-$segmentId'),
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
                 ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    children: [
-                      Icon(segment.isField
-                          ? Icons.data_object
-                          : Icons.text_fields),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: segment.isField
-                            ? Text(segment.value)
-                            : TextFormField(
-                                key: ValueKey('combined-text-$segmentId'),
-                                initialValue: segment.value,
-                                decoration: const InputDecoration(
-                                  labelText: 'Text or separator',
-                                  isDense: true,
-                                ),
-                                onChanged: (value) => _setText(index, value),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      segment.isField ? Icons.data_object : Icons.text_fields,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: segment.isField
+                          ? Text(segment.value)
+                          : TextFormField(
+                              key: ValueKey('combined-text-$segmentId'),
+                              initialValue: segment.value,
+                              decoration: const InputDecoration(
+                                labelText: 'Text or separator',
+                                isDense: true,
                               ),
-                      ),
-                      IconButton(
-                        tooltip: 'Move segment up',
-                        onPressed: index == 0 ? null : () => _move(index, -1),
-                        icon: const Icon(Icons.arrow_upward),
-                      ),
-                      IconButton(
-                        tooltip: 'Move segment down',
-                        onPressed: index == _segments.length - 1
-                            ? null
-                            : () => _move(index, 1),
-                        icon: const Icon(Icons.arrow_downward),
-                      ),
-                      IconButton(
-                        tooltip: 'Remove segment',
-                        onPressed: () => _remove(index),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
+                              onChanged: (value) => _setText(index, value),
+                            ),
+                    ),
+                    IconButton(
+                      tooltip: 'Move segment up',
+                      onPressed: index == 0 ? null : () => _move(index, -1),
+                      icon: const Icon(Icons.arrow_upward),
+                    ),
+                    IconButton(
+                      tooltip: 'Move segment down',
+                      onPressed: index == _segments.length - 1
+                          ? null
+                          : () => _move(index, 1),
+                      icon: const Icon(Icons.arrow_downward),
+                    ),
+                    IconButton(
+                      tooltip: 'Remove segment',
+                      onPressed: () => _remove(index),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
                 ),
-              ));
+              ),
+            ),
+          );
         }),
         const SizedBox(height: 8),
         Wrap(
@@ -2007,7 +2031,8 @@ class _ConditionalBracketControls extends StatelessWidget {
   final void Function(
     List<ConditionalBracketCondition> conditions,
     ConditionalMatchMode mode,
-  ) onChanged;
+  )
+  onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -2015,8 +2040,10 @@ class _ConditionalBracketControls extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Bracket conditions',
-            style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          'Bracket conditions',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 4),
         const Text(
           'Compare raw stored values. Blank controlling values never match.',
@@ -2045,35 +2072,34 @@ class _ConditionalBracketControls extends StatelessWidget {
             key: ValueKey('bracket-condition-$index'),
             condition: conditions[index],
             fieldGroups: sourceGroups,
+            targetField: targetField,
             onChanged: (next) {
-              final updated =
-                  List<ConditionalBracketCondition>.from(conditions);
+              final updated = List<ConditionalBracketCondition>.from(
+                conditions,
+              );
               updated[index] = next;
               onChanged(updated, mode);
             },
             onRemove: conditions.length <= 1
                 ? null
                 : () {
-                    final updated =
-                        List<ConditionalBracketCondition>.from(conditions)
-                          ..removeAt(index);
+                    final updated = List<ConditionalBracketCondition>.from(
+                      conditions,
+                    )..removeAt(index);
                     onChanged(updated, mode);
                   },
           ),
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton.icon(
-            onPressed: () => onChanged(
-              [
-                ...conditions,
-                const ConditionalBracketCondition(
-                  sourceField: '',
-                  operator: ConditionalComparisonOperator.equals,
-                  comparisonValue: '',
-                ),
-              ],
-              mode,
-            ),
+            onPressed: () => onChanged([
+              ...conditions,
+              const ConditionalBracketCondition(
+                sourceField: '',
+                operator: ConditionalComparisonOperator.equals,
+                comparisonValue: '',
+              ),
+            ], mode),
             icon: const Icon(Icons.add),
             label: const Text('Add condition'),
           ),
@@ -2088,19 +2114,22 @@ class _ConditionRow extends StatelessWidget {
     super.key,
     required this.condition,
     required this.fieldGroups,
+    required this.targetField,
     required this.onChanged,
     required this.onRemove,
   });
 
   final ConditionalBracketCondition condition;
   final Map<String, List<String>> fieldGroups;
+  final String? targetField;
   final ValueChanged<ConditionalBracketCondition> onChanged;
   final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
-    final selected =
-        condition.sourceField.trim().isEmpty ? null : condition.sourceField;
+    final selected = condition.sourceField.trim().isEmpty
+        ? null
+        : condition.sourceField;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Wrap(
@@ -2116,7 +2145,13 @@ class _ConditionRow extends StatelessWidget {
               groups: _fieldGroupsWithValue(fieldGroups, selected),
               decoration: const InputDecoration(labelText: 'Controlling field'),
               onChanged: (value) {
-                onChanged(condition.copyWith(sourceField: value));
+                onChanged(
+                  conditionalBracketConditionForSource(
+                    condition,
+                    sourceField: value,
+                    targetField: targetField,
+                  ),
+                );
               },
             ),
           ),
@@ -2131,6 +2166,10 @@ class _ConditionRow extends StatelessWidget {
                 value: ConditionalComparisonOperator.notEquals,
                 child: Text('Does not equal'),
               ),
+              DropdownMenuItem(
+                value: ConditionalComparisonOperator.contains,
+                child: Text('Contains'),
+              ),
             ],
             onChanged: (value) {
               if (value != null) onChanged(condition.copyWith(operator: value));
@@ -2139,6 +2178,7 @@ class _ConditionRow extends StatelessWidget {
           SizedBox(
             width: 180,
             child: TextFormField(
+              key: ValueKey('condition-value-${condition.comparisonValue}'),
               initialValue: condition.comparisonValue,
               decoration: const InputDecoration(labelText: 'Value'),
               onChanged: (value) =>
@@ -2221,8 +2261,10 @@ class _MappingOutputExample extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Output example',
-                style: Theme.of(context).textTheme.labelLarge),
+            Text(
+              'Output example',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
             const SizedBox(height: 8),
             if (headers.isEmpty)
               const Text('Complete the mapping to see its output shape.')
@@ -2230,8 +2272,9 @@ class _MappingOutputExample extends StatelessWidget {
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children:
-                    headers.map((header) => Chip(label: Text(header))).toList(),
+                children: headers
+                    .map((header) => Chip(label: Text(header)))
+                    .toList(),
               ),
             if (mappingKind == 'nested' &&
                 nestedMode == NestedExportMode.expandRows)
@@ -2246,16 +2289,17 @@ class _MappingOutputExample extends StatelessWidget {
   }
 
   List<String> _headers() {
-    final sourceKey =
-        RegExp(r'^\s*\[([^\]]+)\]\s*$').firstMatch(sourceExpression)?.group(1);
+    final sourceKey = RegExp(
+      r'^\s*\[([^\]]+)\]\s*$',
+    ).firstMatch(sourceExpression)?.group(1);
     final source = headerFormat == ExportHeaderFormat.fieldName
         ? sourceKey?.split('::').last
         : sourceKey;
     final base = headerOverride.trim().isNotEmpty
         ? headerOverride.trim()
         : mappingKind == 'nested'
-            ? namespace.trim()
-            : source ?? '';
+        ? namespace.trim()
+        : source ?? '';
     if (base.isEmpty) return const [];
     if (mappingKind == 'scalar' || mappingKind == 'combined') return [base];
     if (mappingKind == 'list') {
@@ -2278,14 +2322,14 @@ class _MappingOutputExample extends StatelessWidget {
 
   String _nestedFieldName(String field) =>
       headerFormat == ExportHeaderFormat.fieldName
-          ? field
-          : '${namespace.trim()}::$field';
+      ? field
+      : '${namespace.trim()}::$field';
 
   String _indexed(String base, int index) => switch (indexedHeaderStyle) {
-        IndexedHeaderStyle.underscore => '${base}_$index',
-        IndexedHeaderStyle.compact => '$base$index',
-        IndexedHeaderStyle.brackets => '$base[$index]',
-      };
+    IndexedHeaderStyle.underscore => '${base}_$index',
+    IndexedHeaderStyle.compact => '$base$index',
+    IndexedHeaderStyle.brackets => '$base[$index]',
+  };
 }
 
 class _MappingCustomizerDialog extends StatelessWidget {
@@ -2310,9 +2354,11 @@ class _MappingCustomizerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(mapping.isNested
-          ? 'Customize Nested Mapping'
-          : 'Customize Field Mapping'),
+      title: Text(
+        mapping.isNested
+            ? 'Customize Nested Mapping'
+            : 'Customize Field Mapping',
+      ),
       content: SizedBox(
         width: 500,
         child: SingleChildScrollView(
@@ -2358,8 +2404,12 @@ class _MappingCustomizerBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     return Padding(
-      padding:
-          EdgeInsets.fromLTRB(16, 16, 16, mediaQuery.viewInsets.bottom + 16),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        mediaQuery.viewInsets.bottom + 16,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2380,9 +2430,9 @@ class _MappingCustomizerBottomSheet extends StatelessWidget {
               mapping.isNested
                   ? 'Customize Nested Mapping'
                   : 'Customize Field Mapping',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             _MappingCustomizerForm(
@@ -2479,23 +2529,26 @@ class _PreviewTableDialogState extends State<PreviewTableDialog> {
                     theme.colorScheme.surfaceContainerHigh,
                   ),
                   columns: widget.headers
-                      .map((header) => DataColumn(
-                            label: Text(
-                              header,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ))
+                      .map(
+                        (header) => DataColumn(
+                          label: Text(
+                            header,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      )
                       .toList(),
                   rows: previewRows
-                      .map((row) => DataRow(
-                            cells: List.generate(
-                              widget.headers.length,
-                              (index) => DataCell(
-                                Text(index < row.length ? row[index] : ''),
-                              ),
+                      .map(
+                        (row) => DataRow(
+                          cells: List.generate(
+                            widget.headers.length,
+                            (index) => DataCell(
+                              Text(index < row.length ? row[index] : ''),
                             ),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
               ),

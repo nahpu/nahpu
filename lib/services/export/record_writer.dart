@@ -18,7 +18,6 @@ class SpecimenRecordWriter {
   SpecimenRecordWriter({
     required this.ref,
     required this.recordType,
-    required this.isInaccurateInBrackets,
     this.isAllFields = false,
     this.concatenateMultiEntry = true,
     this.useFieldNamesOnly = false,
@@ -27,7 +26,6 @@ class SpecimenRecordWriter {
 
   final WidgetRef ref;
   final SpecimenRecordType recordType;
-  final bool isInaccurateInBrackets;
   final bool isAllFields;
   final bool concatenateMultiEntry;
   final bool useFieldNamesOnly;
@@ -216,7 +214,6 @@ class SpecimenRecordWriter {
       specimenUuid: specimenUuid,
       ref: ref,
       isBatRecord: isBatRecord,
-      isInaccurateInBrackets: isInaccurateInBrackets,
     );
     return await mammals.getAttributes();
   }

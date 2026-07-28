@@ -43,6 +43,10 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
   bool _isShowingOutlierWarning = false;
   bool _showOutlierWarnings = true;
   bool _showBatFields = false;
+  bool _hasStoredBatData = false;
+  int _accuracyDropdownVersion = 0;
+  String? _storedAccuracy;
+  String? _storedAccuracySpecify;
 
   @override
   void initState() {
@@ -123,6 +127,9 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             CommonNumField(
               controller: ctr.totalLengthCtr,
               focusNode: _totalLengthFocusNode,
+              isBracketed:
+                  _isMeasurementInaccurate('totalLength') &&
+                  ctr.totalLengthCtr.text.isNotEmpty,
               labelText: 'Total length (mm)',
               hintText: 'Enter TTL',
               isLastField: false,
@@ -148,6 +155,9 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             CommonNumField(
               controller: ctr.tailLengthCtr,
               focusNode: _tailLengthFocusNode,
+              isBracketed:
+                  _isMeasurementInaccurate('tailLength') &&
+                  ctr.tailLengthCtr.text.isNotEmpty,
               labelText: 'Tail length (mm)',
               hintText: 'Enter TL',
               isDouble: true,
@@ -207,6 +217,9 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             CommonNumField(
               controller: ctr.hindFootCtr,
               focusNode: _hindFootFocusNode,
+              isBracketed:
+                  _isMeasurementInaccurate('hindFootLength') &&
+                  ctr.hindFootCtr.text.isNotEmpty,
               labelText: 'Hind foot length (mm)',
               hintText: 'Enter HF length',
               isDouble: true,
@@ -231,6 +244,9 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             CommonNumField(
               controller: ctr.earCtr,
               focusNode: _earFocusNode,
+              isBracketed:
+                  _isMeasurementInaccurate('earLength') &&
+                  ctr.earCtr.text.isNotEmpty,
               labelText: 'Ear length (mm)',
               hintText: 'Enter ER length',
               isLastField: false,
@@ -260,6 +276,9 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             CommonNumField(
               controller: ctr.weightCtr,
               focusNode: _weightFocusNode,
+              isBracketed:
+                  _isMeasurementInaccurate('weight') &&
+                  ctr.weightCtr.text.isNotEmpty,
               labelText: 'Weight (grams)',
               hintText: 'Enter specimen weight',
               isDouble: true,
@@ -289,12 +308,15 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             SwitchField(
               label: 'Show bat fields',
               value: _showBatFields,
-              // Disable the button when bat fields are
-              // always shown based on app-wide setting
-              disabled: isBatFieldsAlwaysShown,
+              disabled: _isBatSectionForced,
               onPressed: (value) {
                 setState(() {
                   _showBatFields = value;
+                  ctr.accuracyCtr = parseMammalAccuracy(
+                    _storedAccuracy,
+                    accuracySpecify: _storedAccuracySpecify,
+                    includeBatFields: value,
+                  );
                   SpecimenServices(ref: ref).updateMammalAttribute(
                     widget.specimenUuid,
                     MammalAttributeCompanion(
@@ -312,32 +334,17 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             useHorizontalLayout: widget.useHorizontalLayout,
             ctr: ctr,
             specimenUuid: widget.specimenUuid,
+            inaccurateFields: ctr.accuracyCtr.inaccurateFields,
+            onBatDataEntered: _markBatDataStored,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(5),
-          child: DropdownButtonFormField(
-            initialValue: ctr.accuracyCtr,
-            decoration: const InputDecoration(
-              labelText: 'Accuracy',
-              hintText: 'Select measurement accuracy',
-            ),
-            items: accuracyList
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: CommonDropdownText(text: e),
-                  ),
-                )
-                .toList(),
-            onChanged: (String? newValue) {
-              ctr.accuracyCtr = newValue;
-              SpecimenServices(ref: ref).updateMammalAttribute(
-                widget.specimenUuid,
-                MammalAttributeCompanion(accuracy: db.Value(newValue)),
-              );
-            },
+        MammalAccuracyField(
+          key: ValueKey(
+            '${_accuracyDropdownVersion}_${ctr.accuracyCtr.status.name}',
           ),
+          details: ctr.accuracyCtr,
+          onStatusChanged: _onAccuracyStatusChanged,
+          onEditPressed: _editAccuracy,
         ),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -419,7 +426,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           ctr: ctr,
         ),
         Padding(
-          padding: const EdgeInsets.all(5),
+          padding: const EdgeInsets.all(4),
           child: CommonTextField(
             controller: ctr.remarksCtr,
             maxLines: 5,
@@ -444,17 +451,118 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
     ).getSpecimenSettingField(batFieldsKey);
   }
 
+  bool get _isBatSectionForced => isBatFieldsAlwaysShown || _hasStoredBatData;
+
   Future<void> _updateCtr(String specimenUuid) async {
     MammalAttributeData data = await SpecimenServices(
       ref: ref,
     ).getMammalAttributeData(specimenUuid);
+    if (!mounted) return;
+
+    final hasStoredBatData = _hasBatData(data);
+    final showBatFields =
+        isBatFieldsAlwaysShown || hasStoredBatData || data.showBatFields == 1;
+    final previousCtr = ctr;
 
     setState(() {
-      ctr = MammalAttributeCtrModel.fromData(data);
+      ctr = MammalAttributeCtrModel.fromData(
+        data,
+        includeBatFields: showBatFields,
+      );
+      _storedAccuracy = data.accuracy;
+      _storedAccuracySpecify = data.accuracySpecify;
+      _hasStoredBatData = hasStoredBatData;
       _getHBTailPercent();
-      _showBatFields =
-          isBatFieldsAlwaysShown || (ctr.showBatFieldsCtr ?? false);
+      _showBatFields = showBatFields;
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => previousCtr.dispose());
+  }
+
+  bool _isMeasurementInaccurate(String field) {
+    return ctr.accuracyCtr.isInaccurate &&
+        ctr.accuracyCtr.inaccurateFields.contains(field);
+  }
+
+  bool _hasBatData(MammalAttributeData data) {
+    return data.forearm != null ||
+        data.tibia != null ||
+        data.showEchoFields == 1 ||
+        data.echolocation != null ||
+        data.frequencyMax != null ||
+        data.frequencyMin != null ||
+        data.frequencyAtMaxEnergy != null ||
+        data.duration != null;
+  }
+
+  void _markBatDataStored() {
+    if (_hasStoredBatData) return;
+    setState(() {
+      _hasStoredBatData = true;
+      _showBatFields = true;
+      ctr.accuracyCtr = parseMammalAccuracy(
+        _storedAccuracy,
+        accuracySpecify: _storedAccuracySpecify,
+        includeBatFields: true,
+      );
+    });
+  }
+
+  Future<void> _onAccuracyStatusChanged(MammalAccuracyStatus? status) async {
+    if (status == null || status == ctr.accuracyCtr.status) return;
+    if (status == MammalAccuracyStatus.inaccurate) {
+      await _editAccuracy();
+      return;
+    }
+
+    final details = MammalAccuracyDetails(
+      status: MammalAccuracyStatus.accurate,
+    );
+    setState(() {
+      ctr.accuracyCtr = details;
+      _storedAccuracy = 'accurate';
+      _storedAccuracySpecify = null;
+      _accuracyDropdownVersion++;
+    });
+    SpecimenServices(ref: ref).updateMammalAttribute(
+      widget.specimenUuid,
+      const MammalAttributeCompanion(
+        accuracy: db.Value('accurate'),
+        accuracySpecify: db.Value(null),
+      ),
+    );
+  }
+
+  Future<void> _editAccuracy() async {
+    final details = await showDialog<MammalAccuracyDetails>(
+      context: context,
+      builder: (context) => MammalAccuracyDialog(
+        initialDetails: ctr.accuracyCtr.copyWith(
+          status: MammalAccuracyStatus.inaccurate,
+        ),
+        includeBatFields: _showBatFields,
+      ),
+    );
+    if (!mounted) return;
+    if (details == null) {
+      setState(() => _accuracyDropdownVersion++);
+      return;
+    }
+
+    final storedAccuracy = serializeMammalAccuracy(details);
+    final storedRemark = details.remark.trim();
+    setState(() {
+      ctr.accuracyCtr = details.copyWith(remark: storedRemark);
+      _storedAccuracy = storedAccuracy;
+      _storedAccuracySpecify = storedRemark.isEmpty ? null : storedRemark;
+      _accuracyDropdownVersion++;
+    });
+    SpecimenServices(ref: ref).updateMammalAttribute(
+      widget.specimenUuid,
+      MammalAttributeCompanion(
+        accuracy: db.Value(storedAccuracy),
+        accuracySpecify: db.Value(storedRemark.isEmpty ? null : storedRemark),
+      ),
+    );
   }
 
   void _getHBTailPercent() {
@@ -529,6 +637,186 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
       ),
     );
     _isShowingOutlierWarning = false;
+  }
+}
+
+class MammalAccuracyField extends StatelessWidget {
+  const MammalAccuracyField({
+    super.key,
+    required this.details,
+    required this.onStatusChanged,
+    required this.onEditPressed,
+  });
+
+  final MammalAccuracyDetails details;
+  final ValueChanged<MammalAccuracyStatus?> onStatusChanged;
+  final VoidCallback onEditPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedLabels = mammalAccuracyFieldOrder
+        .where(details.inaccurateFields.contains)
+        .map((field) => mammalAccuracyFieldLabels[field]!)
+        .join(', ');
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(5, 8, 5, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DropdownButtonFormField<MammalAccuracyStatus>(
+            initialValue: details.status,
+            decoration: const InputDecoration(
+              labelText: 'Accuracy',
+              hintText: 'Select measurement accuracy',
+            ),
+            items: MammalAccuracyStatus.values
+                .map(
+                  (status) => DropdownMenuItem(
+                    value: status,
+                    child: CommonDropdownText(text: accuracyList[status.index]),
+                  ),
+                )
+                .toList(),
+            onChanged: onStatusChanged,
+          ),
+          if (details.isInaccurate) ...[
+            const SizedBox(height: 8),
+            Text(
+              selectedLabels.isEmpty
+                  ? 'No inaccurate measurements selected'
+                  : 'Inaccurate: $selectedLabels',
+            ),
+            if (details.remark.trim().isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text('Remark: ${details.remark.trim()}'),
+            ],
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: onEditPressed,
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Select inaccurate measurements'),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class MammalAccuracyDialog extends StatefulWidget {
+  const MammalAccuracyDialog({
+    super.key,
+    required this.initialDetails,
+    required this.includeBatFields,
+  });
+
+  final MammalAccuracyDetails initialDetails;
+  final bool includeBatFields;
+
+  @override
+  State<MammalAccuracyDialog> createState() => _MammalAccuracyDialogState();
+}
+
+class _MammalAccuracyDialogState extends State<MammalAccuracyDialog> {
+  late final Set<String> _selectedFields;
+  late final TextEditingController _remarkController;
+  bool _showSelectionError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedFields = {...widget.initialDetails.inaccurateFields};
+    _remarkController = TextEditingController(
+      text: widget.initialDetails.remark,
+    );
+  }
+
+  @override
+  void dispose() {
+    _remarkController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final availableFields = availableMammalAccuracyFields(
+      includeBatFields: widget.includeBatFields,
+    );
+
+    return AlertDialog(
+      title: const Text('Inaccurate measurements'),
+      content: SizedBox(
+        width: 480,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Select every measurement that is inaccurate.'),
+              const SizedBox(height: 8),
+              for (final field in availableFields)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(mammalAccuracyFieldLabels[field]!),
+                  value: _selectedFields.contains(field),
+                  onChanged: (selected) {
+                    setState(() {
+                      if (selected ?? false) {
+                        _selectedFields.add(field);
+                      } else {
+                        _selectedFields.remove(field);
+                      }
+                      _showSelectionError = false;
+                    });
+                  },
+                ),
+              if (_showSelectionError)
+                Text(
+                  'Select at least one inaccurate measurement.',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _remarkController,
+                decoration: const InputDecoration(
+                  labelText: 'Accuracy remark',
+                  hintText: 'Describe why the measurements are inaccurate',
+                ),
+                maxLines: 3,
+                textInputAction: TextInputAction.newline,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _save, child: const Text('Save')),
+      ],
+    );
+  }
+
+  void _save() {
+    if (_selectedFields.isEmpty) {
+      setState(() => _showSelectionError = true);
+      return;
+    }
+    Navigator.pop(
+      context,
+      MammalAccuracyDetails(
+        status: MammalAccuracyStatus.inaccurate,
+        inaccurateFields: _selectedFields,
+        remark: _remarkController.text.trim(),
+      ),
+    );
   }
 }
 
@@ -666,7 +954,7 @@ class ScrotalMaleFormState extends ConsumerState<ScrotalMaleForm> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<EpididymisAppearance>(
               initialValue: _getEpididymisAppearance(),
               decoration: const InputDecoration(
@@ -831,7 +1119,7 @@ class FemaleGonadForm extends ConsumerWidget {
         children: [
           const CommonDivider(),
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<ReproductiveStage>(
               initialValue: _getReproductiveStage(),
               decoration: const InputDecoration(
@@ -870,7 +1158,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ctr: ctr,
           ),
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<MammaeCondition>(
               initialValue: _getMammaeCondition(),
               decoration: const InputDecoration(
@@ -906,7 +1194,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ctr: ctr,
           ),
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(4),
             child: CommonNumField(
               controller: ctr.embryoCRCtr,
               labelText: 'CR length (mm)',
@@ -1138,11 +1426,15 @@ class BatForm extends ConsumerStatefulWidget {
     required this.useHorizontalLayout,
     required this.ctr,
     required this.specimenUuid,
+    required this.inaccurateFields,
+    required this.onBatDataEntered,
   });
 
   final bool useHorizontalLayout;
   final String specimenUuid;
   final MammalAttributeCtrModel ctr;
+  final Set<String> inaccurateFields;
+  final VoidCallback onBatDataEntered;
 
   @override
   BatFormState createState() => BatFormState();
@@ -1150,11 +1442,14 @@ class BatForm extends ConsumerStatefulWidget {
 
 class BatFormState extends ConsumerState<BatForm> {
   bool _echolocate = false;
+  bool _hasStoredEcholocationData = false;
 
   @override
   void initState() {
     super.initState();
-    _echolocate = widget.ctr.showEchoFieldsCtr ?? false;
+    _hasStoredEcholocationData = _hasEcholocationData;
+    _echolocate =
+        (widget.ctr.showEchoFieldsCtr ?? false) || _hasStoredEcholocationData;
   }
 
   @override
@@ -1166,6 +1461,9 @@ class BatFormState extends ConsumerState<BatForm> {
           children: [
             CommonNumField(
               controller: widget.ctr.forearmCtr,
+              isBracketed:
+                  widget.inaccurateFields.contains('forearm') &&
+                  widget.ctr.forearmCtr.text.isNotEmpty,
               labelText: 'Forearm Length (mm)',
               hintText: 'Enter FL length',
               isLastField: false,
@@ -1178,11 +1476,15 @@ class BatFormState extends ConsumerState<BatForm> {
                       forearm: db.Value(double.tryParse(value)),
                     ),
                   );
+                  widget.onBatDataEntered();
                 }
               },
             ),
             CommonNumField(
               controller: widget.ctr.tibiaCtr,
+              isBracketed:
+                  widget.inaccurateFields.contains('tibia') &&
+                  widget.ctr.tibiaCtr.text.isNotEmpty,
               labelText: 'Tibia Length (mm)',
               hintText: 'Enter tibia length',
               isLastField: false,
@@ -1195,6 +1497,7 @@ class BatFormState extends ConsumerState<BatForm> {
                       tibia: db.Value(double.tryParse(value)),
                     ),
                   );
+                  widget.onBatDataEntered();
                 }
               },
             ),
@@ -1206,6 +1509,7 @@ class BatFormState extends ConsumerState<BatForm> {
             SwitchField(
               label: 'Echolocate?',
               value: _echolocate,
+              disabled: _hasStoredEcholocationData,
               onPressed: (value) {
                 setState(() {
                   _echolocate = value;
@@ -1216,6 +1520,7 @@ class BatFormState extends ConsumerState<BatForm> {
                     ),
                   );
                 });
+                if (value) widget.onBatDataEntered();
               },
             ),
           ],
@@ -1226,10 +1531,25 @@ class BatFormState extends ConsumerState<BatForm> {
             useHorizontalLayout: widget.useHorizontalLayout,
             ctr: widget.ctr,
             specimenUuid: widget.specimenUuid,
+            onBatDataEntered: _markEcholocationDataStored,
           ),
         ),
       ],
     );
+  }
+
+  bool get _hasEcholocationData =>
+      widget.ctr.echolocationCtr != null ||
+      widget.ctr.frequencyMaxCtr.text.isNotEmpty ||
+      widget.ctr.frequencyMinCtr.text.isNotEmpty ||
+      widget.ctr.frequencyAtMaxEnergyCtr.text.isNotEmpty ||
+      widget.ctr.durationCtr.text.isNotEmpty;
+
+  void _markEcholocationDataStored() {
+    if (!_hasStoredEcholocationData) {
+      setState(() => _hasStoredEcholocationData = true);
+    }
+    widget.onBatDataEntered();
   }
 }
 
@@ -1239,11 +1559,13 @@ class EcholocateForm extends ConsumerWidget {
     required this.useHorizontalLayout,
     required this.ctr,
     required this.specimenUuid,
+    required this.onBatDataEntered,
   });
 
   final bool useHorizontalLayout;
   final String specimenUuid;
   final MammalAttributeCtrModel ctr;
+  final VoidCallback onBatDataEntered;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1276,6 +1598,7 @@ class EcholocateForm extends ConsumerWidget {
                       echolocation: db.Value(newValue.index),
                     ),
                   );
+                  onBatDataEntered();
                 }
               },
             ),
@@ -1298,6 +1621,7 @@ class EcholocateForm extends ConsumerWidget {
                       frequencyMax: db.Value(double.tryParse(value)),
                     ),
                   );
+                  onBatDataEntered();
                 }
               },
             ),
@@ -1315,6 +1639,7 @@ class EcholocateForm extends ConsumerWidget {
                       frequencyMin: db.Value(double.tryParse(value)),
                     ),
                   );
+                  onBatDataEntered();
                 }
               },
             ),
@@ -1337,6 +1662,7 @@ class EcholocateForm extends ConsumerWidget {
                       frequencyAtMaxEnergy: db.Value(double.tryParse(value)),
                     ),
                   );
+                  onBatDataEntered();
                 }
               },
             ),
@@ -1354,6 +1680,7 @@ class EcholocateForm extends ConsumerWidget {
                       duration: db.Value(double.tryParse(value)),
                     ),
                   );
+                  onBatDataEntered();
                 }
               },
             ),

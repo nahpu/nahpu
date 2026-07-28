@@ -264,6 +264,7 @@ class CommonNumField extends ConsumerWidget {
     this.errorText,
     this.focusNode,
     this.helperText,
+    this.isBracketed = false,
   });
 
   final String labelText;
@@ -277,6 +278,7 @@ class CommonNumField extends ConsumerWidget {
   final bool isSigned;
   final String? errorText;
   final String? helperText;
+  final bool isBracketed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -289,6 +291,8 @@ class CommonNumField extends ConsumerWidget {
         hintText: hintText,
         errorText: errorText,
         helperText: helperText,
+        prefixText: isBracketed ? '[' : null,
+        suffixText: isBracketed ? ']' : null,
         errorMaxLines: 3,
       ),
       inputFormatters: [

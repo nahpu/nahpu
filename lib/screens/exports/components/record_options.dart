@@ -8,23 +8,19 @@ class RecordOptionsCard extends StatelessWidget {
     required this.recordType,
     required this.taxonRecordType,
     required this.mammalRecordType,
-    required this.inaccurateInBrackets,
     required this.isMammalSpecimenRecord,
     required this.onRecordTypeChanged,
     required this.onTaxonRecordTypeChanged,
     required this.onMammalRecordTypeChanged,
-    required this.onInaccurateInBracketsChanged,
   });
 
   final RecordType? recordType;
   final TaxonRecordType? taxonRecordType;
   final MammalRecordType mammalRecordType;
-  final bool inaccurateInBrackets;
   final bool isMammalSpecimenRecord;
   final void Function(RecordType?) onRecordTypeChanged;
   final void Function(TaxonRecordType?) onTaxonRecordTypeChanged;
   final void Function(MammalRecordType?) onMammalRecordTypeChanged;
-  final void Function(bool) onInaccurateInBracketsChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -89,14 +85,6 @@ class RecordOptionsCard extends StatelessWidget {
                         ))
                     .toList(),
                 onChanged: onMammalRecordTypeChanged,
-              ),
-            ),
-            Visibility(
-              visible: isMammalSpecimenRecord,
-              child: SwitchField(
-                value: inaccurateInBrackets,
-                label: 'Inaccurate in brackets',
-                onPressed: onInaccurateInBracketsChanged,
               ),
             ),
           ],

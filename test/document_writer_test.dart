@@ -83,14 +83,14 @@ void main() {
       expect(result, 'Sex: Male - Locality: Forest edge');
     });
 
-    test('substituteDocumentPlaceholders handles missing keys gracefully', () {
+    test('substituteDocumentPlaceholders blanks missing keys by default', () {
       final text = 'Age: [age] - Weight: [weight]';
       final data = {
         'age': 'Adult',
       };
 
       final result = substituteDocumentPlaceholders(text, data);
-      expect(result, 'Age: Adult - Weight: [weight]');
+      expect(result, 'Age: Adult - Weight: ');
     });
 
     test('substituteDocumentPlaceholders uses fallback for missing keys', () {
@@ -1332,6 +1332,62 @@ void main() {
   });
 
   group('Document text formatting tests', () {
+    test('Typst renders already-resolved conditional brackets', () {
+      final resolved = resolveDocumentTemplatePlaceholders(
+        text: 'TTL: [[totalLength][accuracy=="Tail cropped"]] mm',
+        data: const {
+          'mammalAttribute::totalLength': '123',
+          'mammalAttribute::accuracy': 'Tail cropped',
+        },
+        textType: 'normal',
+        formatOption: 'normal',
+      );
+      final page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'conditional-pdf',
+            text: resolved,
+            xMm: 0,
+            yMm: 0,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+        data: const {},
+      );
+
+      expect(typst, contains(r'\[123\]'));
+      expect(typst, isNot(contains('[[totalLength]')));
+    });
+
+    test('Typst does not reinterpret generated markup as placeholders', () {
+      final page = TemplatePage(
+        customTexts: [
+          const CustomTextElement(
+            id: 'generated-markup-pdf',
+            text: '#table(columns: 2, [Field], [Value])',
+            xMm: 0,
+            yMm: 0,
+            textType: 'markdown',
+            nullFallbackOption: kTemplateNullFallbackField,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 180,
+        hPt: 90,
+        data: const {},
+      );
+
+      expect(typst, contains('#table(columns: 2, [Field], [Value])'));
+    });
+
     test('formatTextWithCase applies correct capitalization styles', () {
       const text = 'hello world test';
       expect(formatTextWithCase(text, 'uppercase'), 'HELLO WORLD TEST');

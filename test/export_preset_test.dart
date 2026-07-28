@@ -5,23 +5,27 @@ import 'package:nahpu/services/types/export.dart';
 
 void main() {
   group('ExportPresetModel', () {
-    test('parses and serializes unlimited combined-field expression segments',
-        () {
-      final expression = serializeExportExpression([
-        const ExportExpressionSegment.field('personnel::initial'),
-        const ExportExpressionSegment.text('-'),
-        const ExportExpressionSegment.field('specimen::fieldNumber'),
-        for (var index = 0; index < 40; index++)
-          ExportExpressionSegment.field('specimen::note$index'),
-      ]);
+    test(
+      'parses and serializes unlimited combined-field expression segments',
+      () {
+        final expression = serializeExportExpression([
+          const ExportExpressionSegment.field('personnel::initial'),
+          const ExportExpressionSegment.text('-'),
+          const ExportExpressionSegment.field('specimen::fieldNumber'),
+          for (var index = 0; index < 40; index++)
+            ExportExpressionSegment.field('specimen::note$index'),
+        ]);
 
-      final restored = parseExportExpression(expression);
-      expect(expression,
-          startsWith('[personnel::initial]-[specimen::fieldNumber]'));
-      expect(restored.where((segment) => segment.isField), hasLength(42));
-      expect(serializeExportExpression(restored), expression);
-      expect(isDirectExportSourceExpression(expression), isFalse);
-    });
+        final restored = parseExportExpression(expression);
+        expect(
+          expression,
+          startsWith('[personnel::initial]-[specimen::fieldNumber]'),
+        );
+        expect(restored.where((segment) => segment.isField), hasLength(42));
+        expect(serializeExportExpression(restored), expression);
+        expect(isDirectExportSourceExpression(expression), isFalse);
+      },
+    );
 
     test('round trips the versioned preset mapping schema', () {
       const preset = ExportPresetModel(
@@ -38,8 +42,8 @@ void main() {
             bracketConditions: [
               ConditionalBracketCondition(
                 sourceField: 'specimen::catalogNum',
-                operator: ConditionalComparisonOperator.notEquals,
-                comparisonValue: '',
+                operator: ConditionalComparisonOperator.contains,
+                comparisonValue: 'ABC',
               ),
             ],
           ),
@@ -58,9 +62,15 @@ void main() {
       expect(restored.specimenRecordType, SpecimenRecordType.birds);
       expect(restored.mappings, hasLength(2));
       expect(restored.mappings.first.listMode, ListExportMode.spreadColumns);
-      expect(restored.mappings.first.indexedHeaderStyle,
-          IndexedHeaderStyle.brackets);
+      expect(
+        restored.mappings.first.indexedHeaderStyle,
+        IndexedHeaderStyle.brackets,
+      );
       expect(restored.mappings.first.bracketConditions, hasLength(1));
+      expect(
+        restored.mappings.first.bracketConditions.single.operator,
+        ConditionalComparisonOperator.contains,
+      );
       expect(restored.mappings.last.nestedMode, NestedExportMode.spreadColumns);
     });
 
@@ -81,26 +91,30 @@ void main() {
 
       expect(restored.schemaVersion, recordExportPresetSchemaVersion);
       expect(restored.mappings.single.listMode, ListExportMode.concatenate);
-      expect(restored.mappings.single.indexedHeaderStyle,
-          IndexedHeaderStyle.underscore);
-    });
-
-    test('serializes the Darwin Core header format using the current schema',
-        () {
-      const preset = ExportPresetModel(
-        recordType: RecordType.site,
-        specimenRecordType: SpecimenRecordType.allTaxa,
-        headerFormat: ExportHeaderFormat.darwinCore,
-        mappings: [ExportFieldMapping(expression: '[site::siteID]')],
+      expect(
+        restored.mappings.single.indexedHeaderStyle,
+        IndexedHeaderStyle.underscore,
       );
-
-      final serialized = preset.toJson();
-      final restored = ExportPresetModel.fromJson(serialized);
-
-      expect(serialized['schemaVersion'], recordExportPresetSchemaVersion);
-      expect(serialized['headerFormat'], 'darwinCore');
-      expect(restored.headerFormat, ExportHeaderFormat.darwinCore);
     });
+
+    test(
+      'serializes the Darwin Core header format using the current schema',
+      () {
+        const preset = ExportPresetModel(
+          recordType: RecordType.site,
+          specimenRecordType: SpecimenRecordType.allTaxa,
+          headerFormat: ExportHeaderFormat.darwinCore,
+          mappings: [ExportFieldMapping(expression: '[site::siteID]')],
+        );
+
+        final serialized = preset.toJson();
+        final restored = ExportPresetModel.fromJson(serialized);
+
+        expect(serialized['schemaVersion'], recordExportPresetSchemaVersion);
+        expect(serialized['headerFormat'], 'darwinCore');
+        expect(restored.headerFormat, ExportHeaderFormat.darwinCore);
+      },
+    );
 
     test('canonicalizes legacy attribute sources from schema version 6', () {
       final restored = ExportPresetModel.fromJson({
@@ -134,6 +148,34 @@ void main() {
       );
     });
 
+    test('loads schema version 7 presets', () {
+      final restored = ExportPresetModel.fromJson({
+        'schemaVersion': 7,
+        'recordType': 'specimen',
+        'specimenRecordType': 'generalMammals',
+        'headerFormat': 'fieldName',
+        'mappings': [
+          {
+            'expression': '[mammalAttribute::tailLength]',
+            'textType': 'conditionalBrackets',
+            'bracketConditions': [
+              {
+                'sourceField': 'mammalAttribute::accuracy',
+                'operator': 'equals',
+                'comparisonValue': 'Tail cropped',
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(restored.schemaVersion, recordExportPresetSchemaVersion);
+      expect(
+        restored.mappings.single.bracketConditions.single.operator,
+        ConditionalComparisonOperator.equals,
+      );
+    });
+
     test('rejects the removed legacy schema', () {
       expect(
         () => ExportPresetModel.fromJson({'fields': {}}),
@@ -155,8 +197,10 @@ void main() {
         mappings: [nested, nested],
       );
 
-      expect(validateExportPreset(preset),
-          contains('Only one nested mapping can expand export rows.'));
+      expect(
+        validateExportPreset(preset),
+        contains('Only one nested mapping can expand export rows.'),
+      );
     });
 
     test('indexed lists require one source placeholder', () {
@@ -173,8 +217,10 @@ void main() {
         ],
       );
 
-      expect(validateExportPreset(preset),
-          contains('Indexed list mappings require exactly one source field.'));
+      expect(
+        validateExportPreset(preset),
+        contains('Indexed list mappings require exactly one source field.'),
+      );
     });
   });
 

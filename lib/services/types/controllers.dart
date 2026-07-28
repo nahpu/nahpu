@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/utility_services.dart';
 
@@ -457,7 +458,7 @@ class MammalAttributeCtrModel {
   TextEditingController frequencyAtMaxEnergyCtr;
   TextEditingController durationCtr;
   TextEditingController weightCtr;
-  String? accuracyCtr;
+  MammalAccuracyDetails accuracyCtr;
   int? sexCtr;
   int? ageCtr;
   int? testisPosCtr;
@@ -493,7 +494,7 @@ class MammalAttributeCtrModel {
     frequencyAtMaxEnergyCtr: TextEditingController(),
     durationCtr: TextEditingController(),
     weightCtr: TextEditingController(),
-    accuracyCtr: null,
+    accuracyCtr: MammalAccuracyDetails(status: MammalAccuracyStatus.accurate),
     sexCtr: null,
     ageCtr: null,
     testisPosCtr: null,
@@ -516,8 +517,9 @@ class MammalAttributeCtrModel {
   );
 
   factory MammalAttributeCtrModel.fromData(
-    MammalAttributeData data,
-  ) => MammalAttributeCtrModel(
+    MammalAttributeData data, {
+    required bool includeBatFields,
+  }) => MammalAttributeCtrModel(
     showBatFieldsCtr: data.showBatFields == 1,
     totalLengthCtr: TextEditingController(
       text: data.totalLength?.truncateZero() ?? '',
@@ -546,7 +548,11 @@ class MammalAttributeCtrModel {
       text: data.duration?.truncateZero() ?? '',
     ),
     weightCtr: TextEditingController(text: data.weight?.truncateZero() ?? ''),
-    accuracyCtr: data.accuracy?.toString(),
+    accuracyCtr: parseMammalAccuracy(
+      data.accuracy,
+      accuracySpecify: data.accuracySpecify,
+      includeBatFields: includeBatFields,
+    ),
     sexCtr: data.sex,
     ageCtr: data.age,
     testisPosCtr: data.testisPosition,
@@ -592,6 +598,11 @@ class MammalAttributeCtrModel {
     hindFootCtr.dispose();
     earCtr.dispose();
     forearmCtr.dispose();
+    tibiaCtr.dispose();
+    frequencyMaxCtr.dispose();
+    frequencyMinCtr.dispose();
+    frequencyAtMaxEnergyCtr.dispose();
+    durationCtr.dispose();
     weightCtr.dispose();
     testisLengthCtr.dispose();
     testisWidthCtr.dispose();

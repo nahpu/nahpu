@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/conditional_brackets.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_font_size_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
@@ -172,6 +176,7 @@ class TextPropertiesPanel extends StatelessWidget {
       key: ValueKey(ct.id),
       ct: ct,
       page1: page1,
+      recordType: template.recordType,
       inToolbar: inToolbar,
       onUpdateCustomText: onUpdateCustomText,
       actionControls: actionControls,
@@ -183,11 +188,12 @@ class TextPropertiesPanel extends StatelessWidget {
   }
 }
 
-class _CustomTextToolbar extends StatefulWidget {
+class _CustomTextToolbar extends ConsumerStatefulWidget {
   const _CustomTextToolbar({
     super.key,
     required this.ct,
     required this.page1,
+    required this.recordType,
     required this.inToolbar,
     required this.onUpdateCustomText,
     required this.actionControls,
@@ -197,6 +203,7 @@ class _CustomTextToolbar extends StatefulWidget {
 
   final CustomTextElement ct;
   final bool page1;
+  final RecordType recordType;
   final bool inToolbar;
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
   final Widget actionControls;
@@ -213,10 +220,10 @@ class _CustomTextToolbar extends StatefulWidget {
   buildOptionSlider;
 
   @override
-  State<_CustomTextToolbar> createState() => _CustomTextToolbarState();
+  ConsumerState<_CustomTextToolbar> createState() => _CustomTextToolbarState();
 }
 
-class _CustomTextToolbarState extends State<_CustomTextToolbar> {
+class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
   bool _showFormattingRow = false;
   bool _showStylingRow = false;
   late TextEditingController _separatorController;
@@ -728,6 +735,11 @@ class _CustomTextToolbarState extends State<_CustomTextToolbar> {
                                     builder: (context) =>
                                         _ConditionalBracketTextDialog(
                                           text: ct.text,
+                                          fieldGroups:
+                                              availableTemplateFieldGroups(
+                                                ref.read(databaseProvider),
+                                                widget.recordType,
+                                              ),
                                         ),
                                   );
                                   if (updated != null) {
@@ -1551,9 +1563,13 @@ class _StylePreviewPainter extends CustomPainter {
 }
 
 class _ConditionalBracketTextDialog extends StatefulWidget {
-  const _ConditionalBracketTextDialog({required this.text});
+  const _ConditionalBracketTextDialog({
+    required this.text,
+    required this.fieldGroups,
+  });
 
   final String text;
+  final Map<String, List<String>> fieldGroups;
 
   @override
   State<_ConditionalBracketTextDialog> createState() =>
@@ -1622,13 +1638,18 @@ class _ConditionalBracketTextDialogState
             const SizedBox(height: 12),
             TextField(
               controller: _targetController,
-              onChanged: (_) => setState(() {}),
+              onChanged: _onTargetChanged,
               decoration: const InputDecoration(labelText: 'Target field'),
             ),
             const SizedBox(height: 8),
             for (var index = 0; index < _conditions.length; index++)
               _TemplateConditionRow(
                 draft: _conditions[index],
+                targetField: _targetController.text,
+                fieldGroups: _templateFieldGroupsWithoutTarget(
+                  widget.fieldGroups,
+                  _targetController.text,
+                ),
                 onChanged: () => setState(() {}),
                 onRemove: _conditions.length == 1
                     ? null
@@ -1714,6 +1735,19 @@ class _ConditionalBracketTextDialogState
           : '${widget.text}$syntax',
     );
   }
+
+  void _onTargetChanged(String targetField) {
+    for (final condition in _conditions) {
+      condition.apply(
+        conditionalBracketConditionForSource(
+          condition.toCondition(),
+          sourceField: condition.fieldController.text.trim(),
+          targetField: targetField,
+        ),
+      );
+    }
+    setState(() {});
+  }
 }
 
 class _TemplateConditionDraft {
@@ -1752,6 +1786,12 @@ class _TemplateConditionDraft {
     comparisonValue: valueController.text.trim(),
   );
 
+  void apply(ConditionalBracketCondition condition) {
+    fieldController.text = condition.sourceField;
+    operator = condition.operator;
+    valueController.text = condition.comparisonValue;
+  }
+
   void dispose() {
     fieldController.dispose();
     valueController.dispose();
@@ -1761,11 +1801,15 @@ class _TemplateConditionDraft {
 class _TemplateConditionRow extends StatelessWidget {
   const _TemplateConditionRow({
     required this.draft,
+    required this.targetField,
+    required this.fieldGroups,
     required this.onChanged,
     required this.onRemove,
   });
 
   final _TemplateConditionDraft draft;
+  final String targetField;
+  final Map<String, List<String>> fieldGroups;
   final VoidCallback onChanged;
   final VoidCallback? onRemove;
 
@@ -1775,10 +1819,25 @@ class _TemplateConditionRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         children: [
-          TextField(
-            controller: draft.fieldController,
-            onChanged: (_) => onChanged(),
+          _TemplateGroupedFieldPicker(
+            value: draft.fieldController.text.trim().isEmpty
+                ? null
+                : draft.fieldController.text.trim(),
+            groups: _templateFieldGroupsWithValue(
+              fieldGroups,
+              draft.fieldController.text,
+            ),
             decoration: const InputDecoration(labelText: 'Controlling field'),
+            onChanged: (sourceField) {
+              draft.apply(
+                conditionalBracketConditionForSource(
+                  draft.toCondition(),
+                  sourceField: sourceField,
+                  targetField: targetField,
+                ),
+              );
+              onChanged();
+            },
           ),
           const SizedBox(height: 4),
           Row(
@@ -1793,6 +1852,10 @@ class _TemplateConditionRow extends StatelessWidget {
                   DropdownMenuItem(
                     value: ConditionalComparisonOperator.notEquals,
                     child: Text('Does not equal'),
+                  ),
+                  DropdownMenuItem(
+                    value: ConditionalComparisonOperator.contains,
+                    child: Text('Contains'),
                   ),
                 ],
                 onChanged: (value) {
@@ -1820,6 +1883,253 @@ class _TemplateConditionRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+Map<String, List<String>> _templateFieldGroupsWithValue(
+  Map<String, List<String>> groups,
+  String? value,
+) {
+  final result = {
+    for (final entry in groups.entries)
+      entry.key: List<String>.from(entry.value),
+  };
+  final normalized = value?.trim() ?? '';
+  if (normalized.isEmpty ||
+      result.values.any((fields) => fields.contains(normalized))) {
+    return result;
+  }
+  final table = _templateFieldTableName(normalized);
+  result.putIfAbsent(table, () => <String>[]).add(normalized);
+  return result;
+}
+
+Map<String, List<String>> _templateFieldGroupsWithoutTarget(
+  Map<String, List<String>> groups,
+  String targetField,
+) {
+  final normalized = targetField.trim().toLowerCase();
+  if (normalized.isEmpty || !normalized.contains('::')) return groups;
+  return {
+    for (final entry in groups.entries)
+      if (entry.value.any((field) => field.toLowerCase() != normalized))
+        entry.key: entry.value
+            .where((field) => field.toLowerCase() != normalized)
+            .toList(growable: false),
+  };
+}
+
+String _templateFieldTableName(String value) {
+  final separator = value.indexOf('::');
+  return separator == -1 ? 'Other fields' : value.substring(0, separator);
+}
+
+String _templateFieldDisplayName(String value) {
+  final separator = value.lastIndexOf('::');
+  return separator == -1 ? value : value.substring(separator + 2);
+}
+
+class _TemplateGroupedFieldPicker extends StatelessWidget {
+  const _TemplateGroupedFieldPicker({
+    required this.value,
+    required this.groups,
+    required this.decoration,
+    required this.onChanged,
+  });
+
+  final String? value;
+  final Map<String, List<String>> groups;
+  final InputDecoration decoration;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayValue = value == null
+        ? null
+        : _templateFieldDisplayName(value!);
+    final tableName = value == null ? null : _templateFieldTableName(value!);
+    return Semantics(
+      button: true,
+      label: decoration.labelText,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: () async {
+          final selected = await showDialog<String>(
+            context: context,
+            builder: (context) => Dialog(
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+              ),
+              child: SizedBox(
+                width: 520,
+                height: 560,
+                child: _TemplateGroupedFieldPickerContent(
+                  title: decoration.labelText ?? 'Select field',
+                  groups: groups,
+                  selectedValue: value,
+                ),
+              ),
+            ),
+          );
+          if (selected != null) onChanged(selected);
+        },
+        child: InputDecorator(
+          decoration: decoration.copyWith(
+            hintText: displayValue == null ? 'Choose a field' : null,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            suffixIcon: const Icon(Icons.arrow_drop_down),
+          ),
+          isEmpty: displayValue == null,
+          child: displayValue == null
+              ? null
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(displayValue, overflow: TextOverflow.ellipsis),
+                    Text(
+                      tableName!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TemplateGroupedFieldPickerContent extends StatefulWidget {
+  const _TemplateGroupedFieldPickerContent({
+    required this.title,
+    required this.groups,
+    required this.selectedValue,
+  });
+
+  final String title;
+  final Map<String, List<String>> groups;
+  final String? selectedValue;
+
+  @override
+  State<_TemplateGroupedFieldPickerContent> createState() =>
+      _TemplateGroupedFieldPickerContentState();
+}
+
+class _TemplateGroupedFieldPickerContentState
+    extends State<_TemplateGroupedFieldPickerContent> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController()..addListener(_onQueryChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController
+      ..removeListener(_onQueryChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onQueryChanged() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredGroups = _filteredGroups();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Close field picker',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+          child: TextField(
+            controller: _searchController,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Search fields or tables',
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: filteredGroups.isEmpty
+              ? const Center(child: Text('No matching fields.'))
+              : ListView(
+                  children: [
+                    for (final entry in filteredGroups.entries) ...[
+                      Container(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLow,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          entry.key,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                      ),
+                      for (final field in entry.value)
+                        ListTile(
+                          title: Text(_templateFieldDisplayName(field)),
+                          subtitle: Text(entry.key),
+                          selected: field == widget.selectedValue,
+                          onTap: () => Navigator.pop(context, field),
+                        ),
+                    ],
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+
+  Map<String, List<String>> _filteredGroups() {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return widget.groups;
+    final matches = <String, List<String>>{};
+    for (final entry in widget.groups.entries) {
+      final tableMatches = entry.key.toLowerCase().contains(query);
+      final fields = tableMatches
+          ? entry.value
+          : entry.value
+                .where(
+                  (field) => _templateFieldDisplayName(
+                    field,
+                  ).toLowerCase().contains(query),
+                )
+                .toList(growable: false);
+      if (fields.isNotEmpty) matches[entry.key] = fields;
+    }
+    return matches;
   }
 }
 

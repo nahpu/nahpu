@@ -16,19 +16,14 @@ class _DocumentTemplateSubstitutor {
         texts.add(ct);
         continue;
       }
-      var subbedText = substituteDocumentPlaceholders(
-        expandNestedListTextIfEnabled(
-          text: ct.text,
-          textType: ct.textType,
-          fieldValues: data,
-          formatOption: ct.formatOption,
-          caseFormat: ct.caseFormat,
-        ),
-        data,
-        nullFallbackOption: ct.nullFallbackOption,
-        customNullFallbackText: ct.customNullFallbackText,
+      var subbedText = resolveDocumentTemplatePlaceholders(
+        text: ct.text,
+        data: data,
         textType: ct.textType,
         formatOption: ct.formatOption,
+        caseFormat: ct.caseFormat,
+        nullFallbackOption: ct.nullFallbackOption,
+        customNullFallbackText: ct.customNullFallbackText,
       );
       var textType = ct.textType;
       if (isTemplateRichTextType(ct.textType) ||

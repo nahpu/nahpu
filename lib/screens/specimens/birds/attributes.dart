@@ -269,7 +269,7 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
           ],
         ),
         Padding(
-          padding: const EdgeInsets.all(5),
+          padding: const EdgeInsets.all(4),
           child: CommonTextField(
             controller: ctr.stomachContentCtr,
             maxLines: 3,
@@ -498,7 +498,7 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
             ),
           // Remarks
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(4),
             child: CommonTextField(
               controller: widget.ctr.testisRemarkCtr,
               maxLines: 3,
@@ -612,7 +612,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<int?>(
               initialValue: widget.ctr.ovaryAppearanceCtr,
               decoration: const InputDecoration(labelText: 'Appearance'),
@@ -645,7 +645,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
             useHorizontalLayout: widget.useHorizontalLayout,
           ),
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(4),
             child: CommonTextField(
               controller: widget.ctr.ovaryRemarkCtr,
               maxLines: 3,
@@ -962,7 +962,7 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(4),
       child: Column(
         children: [
           const CommonDivider(),
@@ -1158,7 +1158,7 @@ class Notes extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(4),
       child: Column(
         children: [
           Text('Notes', style: Theme.of(context).textTheme.titleMedium),

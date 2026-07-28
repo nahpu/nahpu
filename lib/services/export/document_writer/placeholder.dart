@@ -3,10 +3,39 @@ part of '../document_writer.dart';
 /// Converts a measurement in millimeters to its equivalent in typographical points.
 double documentPdfMmToPt(double mm) => mm * 72.0 / 25.4;
 
+/// Expands nested values and resolves ordinary and conditional placeholders
+/// using the same record data used by template and PDF rendering.
+String resolveDocumentTemplatePlaceholders({
+  required String text,
+  required Map<String, String> data,
+  required String textType,
+  required String formatOption,
+  String? caseFormat,
+  String nullFallbackOption = kTemplateNullFallbackBlank,
+  String customNullFallbackText = '',
+}) {
+  final expanded = expandNestedListTextIfEnabled(
+    text: text,
+    textType: textType,
+    fieldValues: data,
+    formatOption: formatOption,
+    caseFormat: caseFormat,
+  );
+  return substituteDocumentPlaceholders(
+    expanded,
+    data,
+    nullFallbackOption: nullFallbackOption,
+    customNullFallbackText: customNullFallbackText,
+    textType: textType,
+    formatOption: formatOption,
+  );
+}
+
 /// Replaces ordinary and conditional bracket placeholders with record values.
 ///
-/// Conditional template placeholders use `[[target][field=="value"]]` and
-/// are evaluated against the same raw values as ordinary placeholders.
+/// Conditional template placeholders use comparisons such as
+/// `[[target][field=="value"]]` and `[[target][field~="value"]]`. They are
+/// evaluated against the same raw values as ordinary placeholders.
 String substituteDocumentPlaceholders(
   String input,
   Map<String, String> data, {
@@ -145,11 +174,12 @@ String? _nullFallbackForPlaceholder(
 ) {
   if (key.endsWith('-img')) return null;
   return switch (option) {
+    kTemplateNullFallbackBlank => '',
     kTemplateNullFallbackField => key,
     kTemplateNullFallbackNa => 'N/A',
     kTemplateNullFallbackNone => 'None',
     kTemplateNullFallbackCustom =>
-      customText.trim().isEmpty ? null : customText.trim(),
+      customText.trim().isEmpty ? '' : customText.trim(),
     _ => null,
   };
 }

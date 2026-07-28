@@ -219,24 +219,16 @@ class _PreviewPage extends StatelessWidget {
                         final formattedText = ct.text.isEmpty
                             ? ' '
                             : textFormatter(
-                                placeholderValues.isEmpty
-                                    ? ct.text
-                                    : substituteDocumentPlaceholders(
-                                        expandNestedListTextIfEnabled(
-                                          text: ct.text,
-                                          textType: ct.textType,
-                                          fieldValues: placeholderValues,
-                                          formatOption: ct.formatOption,
-                                          caseFormat: ct.caseFormat,
-                                        ),
-                                        placeholderValues,
-                                        nullFallbackOption:
-                                            ct.nullFallbackOption,
-                                        customNullFallbackText:
-                                            ct.customNullFallbackText,
-                                        textType: ct.textType,
-                                        formatOption: ct.formatOption,
-                                      ),
+                                resolveDocumentTemplatePlaceholders(
+                                  text: ct.text,
+                                  data: placeholderValues,
+                                  textType: ct.textType,
+                                  formatOption: ct.formatOption,
+                                  caseFormat: ct.caseFormat,
+                                  nullFallbackOption: ct.nullFallbackOption,
+                                  customNullFallbackText:
+                                      ct.customNullFallbackText,
+                                ),
                                 ct.textType,
                                 ct.formatOption,
                                 ct.caseFormat,

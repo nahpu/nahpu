@@ -540,9 +540,10 @@ class PresetRecordExporter {
         mapping.textType == kConditionalBracketExportTextType
             ? 'normal'
             : mapping.textType;
-    final substituted = substituteDocumentPlaceholders(
-      mapping.expression,
-      source,
+    final substituted = resolveDocumentTemplatePlaceholders(
+      text: mapping.expression,
+      data: source,
+      caseFormat: mapping.caseFormat,
       nullFallbackOption: mapping.nullFallbackOption,
       customNullFallbackText: mapping.customNullFallbackText,
       textType: effectiveTextType,

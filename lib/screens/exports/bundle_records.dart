@@ -414,12 +414,10 @@ class _NahpuPackageScopeCard extends StatelessWidget {
               Text('Complete NAHPU data'),
               SizedBox(height: 8),
               Text(
-                'Includes all NAHPU database tables, a restorable SQLite snapshot, user configurations, available media, and custom fonts.',
+                'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.',
               ),
               SizedBox(height: 8),
-              Text(
-                'Review the package before sharing because it can contain personal and project-sensitive information.',
-              ),
+              Text('Export is in Frictionless Data Format.'),
             ],
           ),
         ),

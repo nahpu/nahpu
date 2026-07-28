@@ -11,44 +11,40 @@ class MammalAttributes extends AppServices {
     required super.ref,
     required this.specimenUuid,
     required this.isBatRecord,
-    required this.isInaccurateInBrackets,
   });
 
   final String specimenUuid;
   final bool isBatRecord;
   late MammalAttributeData data;
-  final bool isInaccurateInBrackets;
 
   Future<List<String>> getAttributes() async {
     data = await SpecimenServices(
       ref: ref,
     ).getMammalAttributeData(specimenUuid);
 
-    MeasurementAccuracy accuracyEnum = matchAccuracy(data.accuracy);
-
     List<String> coreMeasurements = [
-      _getTotalLength(data.totalLength, accuracyEnum),
-      _getTailLength(data.tailLength, accuracyEnum),
-      _getHindFootLength(data.hindFootLength, accuracyEnum),
-      _getEarLength(data.earLength, accuracyEnum),
+      data.totalLength?.truncateZero() ?? '',
+      data.tailLength?.truncateZero() ?? '',
+      data.hindFootLength?.truncateZero() ?? '',
+      data.earLength?.truncateZero() ?? '',
     ];
 
     List<String> batMeasurements = isBatRecord
         ? [
-            data.forearm?.toString() ?? '',
-            data.tibia?.toString() ?? '',
+            data.forearm?.truncateZero() ?? '',
+            data.tibia?.truncateZero() ?? '',
             data.echolocation != null
                 ? echolocationList[data.echolocation!]
                 : '',
-            data.frequencyMax?.toString() ?? '',
-            data.frequencyMin?.toString() ?? '',
-            data.frequencyAtMaxEnergy?.toString() ?? '',
-            data.duration?.toString() ?? '',
+            data.frequencyMax?.truncateZero() ?? '',
+            data.frequencyMin?.truncateZero() ?? '',
+            data.frequencyAtMaxEnergy?.truncateZero() ?? '',
+            data.duration?.truncateZero() ?? '',
           ]
         : [];
 
     List<String> remainingMeasurements = [
-      _getWeight(data.weight, accuracyEnum),
+      data.weight?.truncateZero() ?? '',
       data.accuracy ?? '',
       data.accuracySpecify ?? '',
       data.sex != null ? specimenSexList[data.sex!] : '',
@@ -58,109 +54,6 @@ class MammalAttributes extends AppServices {
     ];
 
     return [...coreMeasurements, ...batMeasurements, ...remainingMeasurements];
-  }
-
-  String _getTotalLength(double? length, MeasurementAccuracy accuracy) {
-    if (length == null) return '';
-
-    String lengthStr = length.truncateZero();
-
-    if (!isInaccurateInBrackets) {
-      return lengthStr;
-    }
-
-    switch (accuracy) {
-      case MeasurementAccuracy.partiallyEaten:
-        return '[$lengthStr]';
-      case MeasurementAccuracy.tailCropped:
-        return '[$lengthStr]';
-      case MeasurementAccuracy.allMeasurementsInaccurate:
-        return '[$lengthStr]';
-      default:
-        return lengthStr;
-    }
-  }
-
-  String _getTailLength(double? length, MeasurementAccuracy accuracy) {
-    if (length == null) return '';
-
-    String lengthStr = length.truncateZero();
-
-    if (!isInaccurateInBrackets) {
-      return lengthStr;
-    }
-
-    switch (accuracy) {
-      case MeasurementAccuracy.partiallyEaten:
-        return '[$lengthStr]';
-      case MeasurementAccuracy.tailCropped:
-        return '[$lengthStr]';
-      case MeasurementAccuracy.allMeasurementsInaccurate:
-        return '[$lengthStr]';
-      default:
-        return lengthStr;
-    }
-  }
-
-  String _getHindFootLength(double? length, MeasurementAccuracy accuracy) {
-    if (length == null) return '';
-
-    String lengthStr = length.truncateZero();
-
-    if (!isInaccurateInBrackets) {
-      return lengthStr;
-    }
-
-    switch (accuracy) {
-      case MeasurementAccuracy.partiallyEaten:
-        return '[$lengthStr]';
-      case MeasurementAccuracy.hindLengthInaccurate:
-        return '[$lengthStr]';
-      case MeasurementAccuracy.allMeasurementsInaccurate:
-        return '[$lengthStr]';
-      default:
-        return lengthStr;
-    }
-  }
-
-  String _getEarLength(double? length, MeasurementAccuracy accuracy) {
-    if (length == null) return '';
-
-    String lengthStr = length.truncateZero();
-
-    if (!isInaccurateInBrackets) {
-      return lengthStr;
-    }
-
-    switch (accuracy) {
-      case MeasurementAccuracy.partiallyEaten:
-        return '[$lengthStr]';
-      case MeasurementAccuracy.earLengthInaccurate:
-        return '[$lengthStr]';
-      case MeasurementAccuracy.allMeasurementsInaccurate:
-        return '[$lengthStr]';
-      default:
-        return lengthStr;
-    }
-  }
-
-  String _getWeight(double? weight, MeasurementAccuracy accuracy) {
-    if (weight == null) return '';
-
-    String weightStr = weight.truncateZero();
-
-    if (!isInaccurateInBrackets) {
-      return weightStr;
-    }
-
-    switch (accuracy) {
-      case MeasurementAccuracy.partiallyEaten:
-        return '[$weightStr]';
-      case MeasurementAccuracy.allMeasurementsInaccurate:
-        return '[$weightStr]';
-      default:
-        return weightStr;
-    }
   }
 
   /// Sex data contains 16 items:

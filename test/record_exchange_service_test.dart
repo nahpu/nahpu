@@ -359,6 +359,8 @@ void main() {
             MammalAttributeCompanion.insert(
               specimenUuid: specimenUuid,
               weight: Value(2.5),
+              accuracy: Value('inaccurate:tailLength,weight'),
+              accuracySpecify: Value('Tail cropped'),
             ),
           );
       await database
@@ -405,13 +407,13 @@ void main() {
       expect(imported.collEventID, event);
       expect(imported.speciesID, taxon);
       expect(imported.coordinateID, isNot(coordinate));
-      expect(
-        await (database.select(database.mammalAttribute)
-              ..where((row) => row.specimenUuid.equals(result.recordUuid!)))
-            .getSingle()
-            .then((value) => value.weight),
-        2.5,
-      );
+      final importedMammalAttribute =
+          await (database.select(database.mammalAttribute)
+                ..where((row) => row.specimenUuid.equals(result.recordUuid!)))
+              .getSingle();
+      expect(importedMammalAttribute.weight, 2.5);
+      expect(importedMammalAttribute.accuracy, 'inaccurate:tailLength,weight');
+      expect(importedMammalAttribute.accuracySpecify, 'Tail cropped');
       expect(
         await (database.select(
           database.specimenPart,

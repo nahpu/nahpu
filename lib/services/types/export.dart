@@ -315,8 +315,16 @@ enum ListExportMode { concatenate, spreadColumns }
 /// How a one-based index is added to an exported column name.
 enum IndexedHeaderStyle { underscore, compact, brackets }
 
-const int recordExportPresetSchemaVersion = 7;
-const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4, 5, 6, 7};
+const int recordExportPresetSchemaVersion = 8;
+const Set<int> _supportedRecordExportPresetSchemaVersions = {
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+};
 
 /// Scalar export format that conditionally wraps a populated value in brackets.
 const String kConditionalBracketExportTextType = 'conditionalBrackets';

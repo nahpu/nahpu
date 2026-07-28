@@ -4,7 +4,7 @@ import 'package:nahpu/screens/templates/template_outline.dart'
 import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart'
     show templateSpecimenSexIconForFieldKey;
 import 'package:nahpu/services/export/document_writer.dart'
-    show substituteDocumentPlaceholders;
+    show resolveDocumentTemplatePlaceholders;
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_image_chip.dart';
@@ -506,24 +506,16 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                     final rawText = element.text;
                                     final textVal = formatTemplateText(
                                       isPreviewMode
-                                          ? substituteDocumentPlaceholders(
-                                              expandNestedListTextIfEnabled(
-                                                text: rawText,
-                                                textType: element.textType,
-                                                fieldValues:
-                                                    editorTemplateFieldPreview,
-                                                formatOption:
-                                                    element.formatOption,
-                                                caseFormat: element.caseFormat,
-                                              ),
-                                              editorTemplateFieldPreview,
+                                          ? resolveDocumentTemplatePlaceholders(
+                                              text: rawText,
+                                              data: editorTemplateFieldPreview,
+                                              textType: element.textType,
+                                              formatOption: element.formatOption,
+                                              caseFormat: element.caseFormat,
                                               nullFallbackOption:
                                                   element.nullFallbackOption,
                                               customNullFallbackText: element
                                                   .customNullFallbackText,
-                                              textType: element.textType,
-                                              formatOption:
-                                                  element.formatOption,
                                             )
                                           : formatFieldPlaceholderText(
                                               rawText,
@@ -669,26 +661,19 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                           ? '(empty)'
                                           : isPreviewMode
                                               ? formatExportTemplateText(
-                                                  substituteDocumentPlaceholders(
-                                                    expandNestedListTextIfEnabled(
-                                                      text: element.text,
-                                                      textType:
-                                                          element.textType,
-                                                      fieldValues:
-                                                          editorTemplateFieldPreview,
-                                                      formatOption:
-                                                          element.formatOption,
-                                                      caseFormat:
-                                                          element.caseFormat,
-                                                    ),
-                                                    editorTemplateFieldPreview,
+                                                  resolveDocumentTemplatePlaceholders(
+                                                    text: element.text,
+                                                    data:
+                                                        editorTemplateFieldPreview,
+                                                    textType: element.textType,
+                                                    formatOption:
+                                                        element.formatOption,
+                                                    caseFormat:
+                                                        element.caseFormat,
                                                     nullFallbackOption: element
                                                         .nullFallbackOption,
                                                     customNullFallbackText: element
                                                         .customNullFallbackText,
-                                                    textType: element.textType,
-                                                    formatOption:
-                                                        element.formatOption,
                                                   ),
                                                   element.textType,
                                                   element.formatOption,
