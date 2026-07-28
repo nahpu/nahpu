@@ -660,7 +660,7 @@ class MammalAccuracyField extends StatelessWidget {
         .join(', ');
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(5, 8, 5, 8),
+      padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -685,11 +685,11 @@ class MammalAccuracyField extends StatelessWidget {
             Text(
               selectedLabels.isEmpty
                   ? 'No inaccurate measurements selected'
-                  : 'Inaccurate: $selectedLabels',
+                  : '*Inaccurate: $selectedLabels',
             ),
             if (details.remark.trim().isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text('Remark: ${details.remark.trim()}'),
+              Text('Remark:\n${details.remark.trim()}'),
             ],
             const SizedBox(height: 8),
             Align(
@@ -848,7 +848,7 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
           const CommonDivider(),
           Text('Testes', style: Theme.of(context).textTheme.titleLarge),
           Padding(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<TestisPosition>(
               initialValue: getTestisPosition(widget.ctr.testisPosCtr),
               decoration: const InputDecoration(

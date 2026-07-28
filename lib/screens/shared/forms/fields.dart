@@ -282,17 +282,16 @@ class CommonNumField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final String suffixLabelText = '$labelText${isBracketed ? "*" : ""}';
     return TextField(
       controller: controller,
       focusNode: focusNode,
       enabled: enabled,
       decoration: InputDecoration(
-        labelText: labelText,
+        labelText: suffixLabelText,
         hintText: hintText,
         errorText: errorText,
         helperText: helperText,
-        prefixText: isBracketed ? '[' : null,
-        suffixText: isBracketed ? ']' : null,
         errorMaxLines: 3,
       ),
       inputFormatters: [
