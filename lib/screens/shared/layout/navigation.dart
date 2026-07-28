@@ -26,31 +26,28 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
       labelBehavior: isPhone
           ? NavigationDestinationLabelBehavior.onlyShowSelected
           : NavigationDestinationLabelBehavior.alwaysShow,
-      backgroundColor: Color.lerp(Theme.of(context).colorScheme.surface,
-          Theme.of(context).colorScheme.secondary, 0.1),
+      backgroundColor: Color.lerp(
+        Theme.of(context).colorScheme.surface,
+        Theme.of(context).colorScheme.secondary,
+        0.1,
+      ),
       indicatorColor: Theme.of(context).colorScheme.secondaryContainer,
       elevation: 10,
       selectedIndex: selectedIndex,
       destinations: const [
         NavigationDestination(
           selectedIcon: Icon(Icons.dashboard_rounded),
-          icon: Icon(
-            Icons.dashboard_outlined,
-          ),
+          icon: Icon(Icons.dashboard_outlined),
           label: 'Dashboard',
         ),
         NavigationDestination(
           selectedIcon: Icon(Icons.place_rounded),
-          icon: Icon(
-            Icons.place_outlined,
-          ),
+          icon: Icon(Icons.place_outlined),
           label: 'Sites',
         ),
         NavigationDestination(
           selectedIcon: Icon(Icons.calendar_month_rounded),
-          icon: Icon(
-            Icons.calendar_month_outlined,
-          ),
+          icon: Icon(Icons.calendar_month_outlined),
           label: 'Events',
           tooltip: 'Events',
         ),
@@ -61,9 +58,7 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
         ),
         NavigationDestination(
           selectedIcon: Icon(Icons.book_rounded),
-          icon: Icon(
-            Icons.book_outlined,
-          ),
+          icon: Icon(Icons.book_outlined),
           label: 'Narrative',
         ),
       ],
@@ -110,10 +105,7 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
 }
 
 class PageNavButton extends ConsumerStatefulWidget {
-  const PageNavButton({
-    super.key,
-    required this.pageNav,
-  });
+  const PageNavButton({super.key, required this.pageNav});
 
   final PageNavigation pageNav;
 
@@ -127,63 +119,65 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.1,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton(
-              onPressed: widget.pageNav.isFirstPage
-                  ? null
-                  : () => widget.pageNav.jumpToPage(0),
-              child: const Icon(Icons.keyboard_double_arrow_left),
-            ),
-            TextButton(
-              onPressed: widget.pageNav.isFirstPage
-                  ? null
-                  : () {
-                      if (widget.pageNav.pageController.hasClients) {
-                        widget.pageNav.pageController.previousPage(
-                            duration: kTabScrollDuration, curve: _curve);
-                      }
-                    },
-              child: const Icon(Icons.navigate_before),
-            ),
-            TextButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => NavSheet(
-                    pageNav: widget.pageNav,
-                  ),
-                  isScrollControlled: true,
-                );
-              },
-              child: const Icon(Icons.circle_outlined),
-            ),
-            TextButton(
-              onPressed: widget.pageNav.isLastPage
-                  ? null
-                  : () {
-                      if (widget.pageNav.pageController.hasClients) {
-                        widget.pageNav.pageController.nextPage(
-                            duration: kTabScrollDuration, curve: _curve);
-                      }
-                    },
-              child: const Icon(Icons.navigate_next),
-            ),
-            TextButton(
-              onPressed: widget.pageNav.isLastPage
-                  ? null
-                  : () => widget.pageNav.jumpToPage(
-                        widget.pageNav.pageCounts - 1,
-                      ),
-              child: const Icon(Icons.keyboard_double_arrow_right),
-            )
-          ],
-        ));
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.1,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextButton(
+            onPressed: widget.pageNav.isFirstPage
+                ? null
+                : () => widget.pageNav.jumpToPage(0),
+            child: const Icon(Icons.keyboard_double_arrow_left),
+          ),
+          TextButton(
+            onPressed: widget.pageNav.isFirstPage
+                ? null
+                : () {
+                    if (widget.pageNav.pageController.hasClients) {
+                      widget.pageNav.pageController.previousPage(
+                        duration: kTabScrollDuration,
+                        curve: _curve,
+                      );
+                    }
+                  },
+            child: const Icon(Icons.navigate_before),
+          ),
+          TextButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => NavSheet(pageNav: widget.pageNav),
+                isScrollControlled: true,
+              );
+            },
+            child: const Icon(Icons.circle_outlined),
+          ),
+          TextButton(
+            onPressed: widget.pageNav.isLastPage
+                ? null
+                : () {
+                    if (widget.pageNav.pageController.hasClients) {
+                      widget.pageNav.pageController.nextPage(
+                        duration: kTabScrollDuration,
+                        curve: _curve,
+                      );
+                    }
+                  },
+            child: const Icon(Icons.navigate_next),
+          ),
+          TextButton(
+            onPressed: widget.pageNav.isLastPage
+                ? null
+                : () =>
+                      widget.pageNav.jumpToPage(widget.pageNav.pageCounts - 1),
+            child: const Icon(Icons.keyboard_double_arrow_right),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -230,7 +224,7 @@ class _PageViewerState extends State<PageViewer> {
             pageNav: widget.pageNav,
             isNavButtonVisible: widget.isNavButtonVisible,
           ),
-        )
+        ),
       ],
     );
   }
@@ -255,11 +249,12 @@ class PageNumberViewer extends StatelessWidget {
       child: Center(
         child: Container(
           decoration: BoxDecoration(
-            color: Color.lerp(Theme.of(context).colorScheme.secondaryContainer,
-                Theme.of(context).colorScheme.surface, 0.5),
-            borderRadius: const BorderRadius.all(
-              Radius.circular(10),
+            color: Color.lerp(
+              Theme.of(context).colorScheme.secondaryContainer,
+              Theme.of(context).colorScheme.surface,
+              0.5,
             ),
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
           ),
           height: 40,
           width: 120,
@@ -293,10 +288,7 @@ class PageInfo extends StatelessWidget {
 }
 
 class NavSheet extends ConsumerStatefulWidget {
-  const NavSheet({
-    super.key,
-    required this.pageNav,
-  });
+  const NavSheet({super.key, required this.pageNav});
 
   final PageNavigation pageNav;
 
@@ -358,44 +350,36 @@ class GoToPageField extends StatelessWidget {
       textAlign: TextAlign.center,
       decoration: const InputDecoration(
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(16),
-          ),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
-        label: Center(
-            child: Text(
-          'Go to page',
-          textAlign: TextAlign.center,
-        )),
+        label: Center(child: Text('Go to page', textAlign: TextAlign.center)),
         hintText: 'Page number',
         isDense: true,
         floatingLabelAlignment: FloatingLabelAlignment.center,
       ),
-      keyboardType: const TextInputType.numberWithOptions(
-        signed: true,
-      ),
+      keyboardType: const TextInputType.numberWithOptions(signed: true),
       onSubmitted: onSubmitted,
     );
   }
 }
 
 class SpecimenIcons extends ConsumerWidget {
-  const SpecimenIcons({
-    super.key,
-    required this.isSelected,
-  });
+  const SpecimenIcons({super.key, required this.isSelected});
 
   final bool isSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Icon(
-      ref.watch(catalogFmtNotifierProvider).when(
-          data: (catalogFmt) {
-            return matchCatFmtToIcon(catalogFmt, isFilledIcon: isSelected);
-          },
-          loading: () => Icons.circle_outlined,
-          error: (e, s) => Icons.error_outline),
+      ref
+          .watch(catalogFmtNotifierProvider)
+          .when(
+            data: (catalogFmt) {
+              return matchCatFmtToIcon(catalogFmt, isFilledIcon: isSelected);
+            },
+            loading: () => Icons.circle_outlined,
+            error: (e, s) => Icons.error_outline,
+          ),
     );
   }
 }
