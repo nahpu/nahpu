@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-    <path d="M8 2v20"></path>
-    <path d="M12 2v8l2-1.5 2 1.5V2"></path>
-    <line x1="12" y1="14" x2="16" y2="14"></line>
-    <line x1="12" y1="18" x2="16" y2="18"></line>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 4h24a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4z" />
+  <path d="M16 4v40" />
+  <path d="M24 4v16l4-3 4 3V4" />
+  <g stroke-width="2">
+    <path d="M24 30h9" />
+    <path d="M24 37h9" />
+    <path d="M36.5 9v30" />
+  </g>
 </svg>

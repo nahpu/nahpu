@@ -2196,9 +2196,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_configs"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ad8499ff1191e85e767d49703500caedec8f7ba52f253b523af1ba786f93cab"
+checksum = "0eecf60be3f1220d9a7a781191598754b0f66de70f36dbb1b68f62d6536c80e0"
 dependencies = [
  "redb",
  "serde",
@@ -2223,9 +2223,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_dp"
-version = "0.1.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35f93e3e4253f305ff1b5c1946d4e62a9ecb2926a8185e197d6b90944f888deb"
+checksum = "a0a06233c35abd654faebcc8ea3176db1a7b4444e2d74b26abe10935979b3a7d"
 dependencies = [
  "chrono",
  "csv",
@@ -2236,9 +2236,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_dwc"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fef2702001f617ddeffc69d18b404717a662585d3bf5a4b1767a05cb6a904d95"
+checksum = "22bb86da64138923c00482fe26660b92967fb6772c77f15fc45b781d7ef9b4fe"
 dependencies = [
  "csv",
  "nahpu_archive",

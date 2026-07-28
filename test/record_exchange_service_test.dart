@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
@@ -80,8 +81,17 @@ void main() {
             decimalLongitude: const Value(-45.6),
           ),
         );
+    final sourceData = await AssociatedDataQuery(database)
+        .createProjectAssociatedData(
+          const AssociatedDataCompanion(
+            projectUuid: Value('project-a'),
+            name: Value('Site recording'),
+          ),
+        );
+    await AssociatedDataQuery(database).linkToSite(sourceData, sourceSite);
 
     final payload = await service.exportSite(sourceSite);
+    expect(payload.associatedDataCount, 1);
     final parsed = RecordExchangePayload.parse(
       payload.compactEncoded,
       expectedType: 'site',
@@ -101,6 +111,12 @@ void main() {
     )..where((row) => row.siteID.equals(result.recordId))).get();
     expect(coordinates, hasLength(1));
     expect(coordinates.single.decimalLatitude, 12.3);
+    expect(
+      await AssociatedDataQuery(
+        database,
+      ).getAssociatedDataForSite(result.recordId),
+      hasLength(1),
+    );
     expect(
       await (database.select(
         database.personnel,
@@ -338,11 +354,13 @@ void main() {
             ),
           );
       await database
-          .into(database.mammalMeasurement)
+          .into(database.mammalAttribute)
           .insert(
-            MammalMeasurementCompanion.insert(
+            MammalAttributeCompanion.insert(
               specimenUuid: specimenUuid,
               weight: Value(2.5),
+              accuracy: Value('inaccurate:tailLength,weight'),
+              accuracySpecify: Value('Tail cropped'),
             ),
           );
       await database
@@ -354,20 +372,24 @@ void main() {
               type: Value('Tissue'),
             ),
           );
-      await database
-          .into(database.associatedData)
-          .insert(
-            AssociatedDataCompanion.insert(
-              specimenUuid: Value(specimenUuid),
-              name: Value('Field note'),
-              description: Value('Collected beside stream'),
-            ),
-          );
+      await AssociatedDataQuery(database).createSpecimenDataAssociation(
+        specimenUuid,
+        const AssociatedDataCompanion(
+          name: Value('Field note'),
+          description: Value('Collected beside stream'),
+          uri: Value('https://example.org/field-note'),
+        ),
+      );
 
       final payload = await service.exportSpecimen(specimenUuid);
       expect(payload.type, RecordExchangeType.specimen);
       expect(payload.partCount, 1);
       expect(payload.associatedDataCount, 1);
+      final exportedAssociatedData = RecordExchangePayload.mapList(
+        payload.data['associatedData'],
+      ).single;
+      expect(exportedAssociatedData['url'], 'https://example.org/field-note');
+      expect(exportedAssociatedData, isNot(contains('uri')));
       expect(payload.data['taxonomy'], isNotNull);
       expect(payload.data['event'], isNotNull);
 
@@ -385,24 +407,26 @@ void main() {
       expect(imported.collEventID, event);
       expect(imported.speciesID, taxon);
       expect(imported.coordinateID, isNot(coordinate));
-      expect(
-        await (database.select(database.mammalMeasurement)
-              ..where((row) => row.specimenUuid.equals(result.recordUuid!)))
-            .getSingle()
-            .then((value) => value.weight),
-        2.5,
-      );
+      final importedMammalAttribute =
+          await (database.select(database.mammalAttribute)
+                ..where((row) => row.specimenUuid.equals(result.recordUuid!)))
+              .getSingle();
+      expect(importedMammalAttribute.weight, 2.5);
+      expect(importedMammalAttribute.accuracy, 'inaccurate:tailLength,weight');
+      expect(importedMammalAttribute.accuracySpecify, 'Tail cropped');
       expect(
         await (database.select(
           database.specimenPart,
         )..where((row) => row.specimenUuid.equals(result.recordUuid!))).get(),
         hasLength(1),
       );
+      final importedAssociatedData = await AssociatedDataQuery(
+        database,
+      ).getAllAssociatedData(result.recordUuid!);
+      expect(importedAssociatedData, hasLength(1));
       expect(
-        await (database.select(
-          database.associatedData,
-        )..where((row) => row.specimenUuid.equals(result.recordUuid!))).get(),
-        hasLength(1),
+        importedAssociatedData.single.uri,
+        'https://example.org/field-note',
       );
     },
   );

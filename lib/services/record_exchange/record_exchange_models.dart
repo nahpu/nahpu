@@ -130,7 +130,10 @@ class RecordExchangePayload {
     }
     mapList(data['personnel']);
     mapList(data['coordinates']);
-    if (type == RecordExchangeType.site) return;
+    if (type == RecordExchangeType.site) {
+      mapList(data['associatedData']);
+      return;
+    }
 
     if (type == RecordExchangeType.event) {
       mapList(data['effort']);

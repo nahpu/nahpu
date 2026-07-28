@@ -21,23 +21,19 @@ enum SpecimenSearchOption {
   prepDate,
   prepTime,
   taxa,
-  prepType
+  prepType,
 }
 
 enum FieldIdMode { personnel, project }
 
-const List<String> specimenSexList = [
-  'Male',
-  'Female',
-  'Unknown',
-];
+const List<String> specimenSexList = ['Male', 'Female', 'Unknown'];
 
-String normalizeCondition(String? value) {
+String? canonicalizeCondition(String? value) {
   if (value == 'Freshly Euthanized') return 'Freshly euthanized';
-  return value ?? conditionList.first;
+  return value;
 }
 
-const List<String> conditionList = [
+const List<String> defaultCondition = [
   'Freshly euthanized',
   'Good',
   'Fair',
@@ -97,17 +93,9 @@ const List<String> relativeTimeList = [
   'Night',
 ];
 
-const List<String> idConfidenceList = [
-  'Low',
-  'Medium',
-  'High',
-];
+const List<String> idConfidenceList = ['Low', 'Medium', 'High'];
 
-const List<String> taxonGroupList = [
-  'Birds',
-  'Mammals',
-  'Herpetofauna',
-];
+const List<String> taxonGroupList = ['Birds', 'Mammals', 'Herpetofauna'];
 
 CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
   switch (taxonGroup) {
@@ -224,8 +212,30 @@ const List<String> specimenPartList = [
   'skeleton',
   'alcohol',
   'formalin',
-  'whole-specimen'
+  'whole-specimen',
 ];
+
+/// Whole-specimen preparations that have their own icon per catalog format.
+///
+/// Checked before [specimenPartList], which otherwise collapses every
+/// preparation onto the single whole-animal icon from
+/// [matchCatalogFmtToIconPath]. A format missing an entry falls back to that
+/// whole-animal icon rather than throwing, so partial coverage is safe.
+const Map<CatalogFmt, Map<String, String>> preparationIconPath = {
+  CatalogFmt.mammals: {
+    'skin': 'assets/icons/mammal_skin.svg',
+    'skull': 'assets/icons/mammal_skull.svg',
+    'skeleton': 'assets/icons/mammal_skeleton.svg',
+  },
+  CatalogFmt.birds: {
+    'skull': 'assets/icons/bird_skull.svg',
+    'skeleton': 'assets/icons/bird_skeleton.svg',
+  },
+  CatalogFmt.herpetofauna: {
+    'skull': 'assets/icons/herp_skull.svg',
+    'skeleton': 'assets/icons/herp_skeleton.svg',
+  },
+};
 
 class SpecimenPartIcon {
   const SpecimenPartIcon({required this.catalogFmt, required this.part});
@@ -236,6 +246,10 @@ class SpecimenPartIcon {
   String match() {
     final lowercased = _cleanPart();
     if (kDebugMode) print('Part: $part, Lowercased: $lowercased');
+    final preparation = preparationIconPath[catalogFmt]?[lowercased];
+    if (preparation != null) {
+      return preparation;
+    }
     bool isSpecimen = specimenPartList.contains(lowercased);
     if (isSpecimen) {
       return matchCatalogFmtToIconPath(catalogFmt);
@@ -252,8 +266,9 @@ class SpecimenPartIcon {
     List<String> availableKeys = partIconPath.keys.toList();
     List<String> words = lowercased.split(' ');
 
-    List<String> matches =
-        availableKeys.where((element) => words.contains(element)).toList();
+    List<String> matches = availableKeys
+        .where((element) => words.contains(element))
+        .toList();
 
     if (matches.isNotEmpty) {
       return partIconPath[matches.first] ?? partIconPath['unknown']!;
@@ -268,7 +283,7 @@ class SpecimenPartIcon {
       return 'testis';
     }
     if (lowercased.endsWith('s') || lowercased.endsWith('es')) {
-      return lowercased.substring(0, part.length - 1).toLowerCase();
+      return lowercased.substring(0, lowercased.length - 1);
     }
     return lowercased;
   }

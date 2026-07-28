@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 
 class SiteInfo extends ConsumerWidget {
   const SiteInfo({
@@ -28,9 +29,7 @@ class SiteInfo extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     List<PersonnelData> personnelList = [];
     final personnelEntry = ref.watch(projectPersonnelProvider);
-    personnelEntry.whenData(
-      (personnelEntry) => personnelList = personnelEntry,
-    );
+    personnelEntry.whenData((personnelEntry) => personnelList = personnelEntry);
 
     return FormCard(
       isPrimary: true,
@@ -45,7 +44,7 @@ class SiteInfo extends ConsumerWidget {
             controller: siteFormCtr.siteIDCtr,
             inputFormatters: [
               LengthLimitingTextInputFormatter(40),
-              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9-_]+'))
+              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9-_]+')),
             ],
             decoration: const InputDecoration(
               labelText: 'Site ID',
@@ -79,20 +78,20 @@ class SiteInfo extends ConsumerWidget {
                 )
                 .toList(),
             onChanged: (String? uuid) {
-              SiteServices(ref: ref).updateSite(
-                id,
-                SiteCompanion(leadStaffId: db.Value(uuid)),
-              );
+              SiteServices(
+                ref: ref,
+              ).updateSite(id, SiteCompanion(leadStaffId: db.Value(uuid)));
             },
           ),
-          ref.watch(userDefinedFieldProvider(siteTypePrefKey)).when(
+          ref
+              .watch(effectiveUserDefinedFieldProvider(siteTypePrefKey))
+              .when(
                 data: (data) {
-                  if (siteFormCtr.siteTypeCtr != null &&
-                      !data.contains(siteFormCtr.siteTypeCtr)) {
-                    data.add(siteFormCtr.siteTypeCtr!);
-                  }
-
-                  final items = data
+                  final options = includeCurrentVocabularyValue(
+                    data,
+                    siteFormCtr.siteTypeCtr,
+                  );
+                  final items = options
                       .map(
                         (e) => DropdownMenuItem(
                           value: e,
@@ -102,25 +101,26 @@ class SiteInfo extends ConsumerWidget {
                       .toList();
 
                   return DropdownButtonFormField<String?>(
-                      initialValue: siteFormCtr.siteTypeCtr,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Site Type',
-                        hintText: 'Choose a site type',
-                      ),
-                      items: items,
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          SiteServices(ref: ref).updateSite(
-                            id,
-                            SiteCompanion(siteType: db.Value(value)),
-                          );
-                        }
-                      });
+                    initialValue: siteFormCtr.siteTypeCtr,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Site Type',
+                      hintText: 'Choose a site type',
+                    ),
+                    items: items,
+                    onChanged: (String? value) {
+                      if (value != null) {
+                        SiteServices(ref: ref).updateSite(
+                          id,
+                          SiteCompanion(siteType: db.Value(value)),
+                        );
+                      }
+                    },
+                  );
                 },
                 loading: () => const CommonProgressIndicator(),
                 error: (e, _) => Text(e.toString()),
-              )
+              ),
         ],
       ),
     );
@@ -136,18 +136,20 @@ class SiteInfoContent extends StatelessWidget {
       content: [
         InfoContent(
           header: 'Overview',
-          content: 'Basic information about the site.'
+          content:
+              'Basic information about the site.'
               ' We recommend developing a naming convention for your sites.'
               ' For example, "CAMP-01" for the first campsite, '
               '"L1" for the first line. You could prefix the site ID with the'
               ' project ID or location ID to make it unique.',
         ),
         InfoContent(
-            content:
-                'To avoid inputting the same information when creating a new site,'
-                ' you can duplicate a site using the menu button in the top right corner.'
-                ' It will create a new site with the same information as the current site,'
-                ' except that the site ID and coordinates will be empty.'),
+          content:
+              'To avoid inputting the same information when creating a new site,'
+              ' you can duplicate a site using the menu button in the top right corner.'
+              ' It will create a new site with the same information as the current site,'
+              ' except that the site ID and coordinates will be empty.',
+        ),
       ],
     );
   }

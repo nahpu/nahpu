@@ -1,10 +1,16 @@
 import 'dart:convert';
 
+import 'package:nahpu/services/specimen_attribute_names.dart';
+import 'package:nahpu/services/types/mammals.dart';
+
 /// The comparison used by a conditional bracket rule.
-enum ConditionalComparisonOperator { equals, notEquals }
+enum ConditionalComparisonOperator { equals, notEquals, contains }
 
 /// How a group of conditional bracket rules is combined.
 enum ConditionalMatchMode { any, all }
+
+/// The output produced when a conditional template expression matches.
+enum ConditionalOutputAction { brackets, replacement }
 
 /// A single field comparison used to decide whether a value is bracketed.
 ///
@@ -37,7 +43,9 @@ class ConditionalBracketCondition {
   /// Restores a condition persisted in an export preset.
   factory ConditionalBracketCondition.fromJson(Map<String, dynamic> json) {
     return ConditionalBracketCondition(
-      sourceField: json['sourceField'] as String? ?? '',
+      sourceField: canonicalizeSpecimenAttributeSourceKey(
+        json['sourceField'] as String? ?? '',
+      ),
       operator: ConditionalComparisonOperator.values.byName(
         json['operator'] as String? ??
             ConditionalComparisonOperator.equals.name,
@@ -48,15 +56,52 @@ class ConditionalBracketCondition {
 
   /// Serializes this condition for an export preset payload.
   Map<String, dynamic> toJson() => {
-        'sourceField': sourceField,
-        'operator': operator.name,
-        'comparisonValue': comparisonValue,
-      };
+    'sourceField': sourceField,
+    'operator': operator.name,
+    'comparisonValue': comparisonValue,
+  };
+}
+
+/// Updates a condition's source and applies known source-specific defaults.
+///
+/// Mammal accuracy conditions use `Contains` with the target measurement's
+/// stored field label. Both export presets and templates use this helper so
+/// their automatic configuration remains identical.
+ConditionalBracketCondition conditionalBracketConditionForSource(
+  ConditionalBracketCondition condition, {
+  required String sourceField,
+  required String? targetField,
+}) {
+  final measurementField = _mammalAccuracyFieldForTarget(targetField);
+  if (canonicalizeSpecimenAttributeSourceKey(sourceField) ==
+          'mammalAttribute::accuracy' &&
+      measurementField != null) {
+    return condition.copyWith(
+      sourceField: sourceField,
+      operator: ConditionalComparisonOperator.contains,
+      comparisonValue: measurementField,
+    );
+  }
+  return condition.copyWith(sourceField: sourceField);
+}
+
+String? _mammalAccuracyFieldForTarget(String? targetField) {
+  final normalized = targetField?.trim() ?? '';
+  if (normalized.isEmpty) return null;
+  if (!normalized.contains('::')) {
+    return mammalAccuracyFieldOrder.contains(normalized) ? normalized : null;
+  }
+  final canonical = canonicalizeSpecimenAttributeSourceKey(normalized);
+  const prefix = 'mammalAttribute::';
+  if (!canonical.startsWith(prefix)) return null;
+  final field = canonical.substring(prefix.length);
+  return mammalAccuracyFieldOrder.contains(field) ? field : null;
 }
 
 /// A parsed inline template bracket expression.
 ///
-/// Templates store expressions as `[[target][field=="value"]]`. The target
+/// Templates store expressions such as `[[target][field=="value"]]` and
+/// `[[target][field~="value"]]`. The target
 /// is bracketed only when [conditions] match using [matchMode].
 class ConditionalBracketExpression {
   const ConditionalBracketExpression({
@@ -65,11 +110,17 @@ class ConditionalBracketExpression {
     required this.matchMode,
     required this.start,
     required this.end,
+    this.outputAction = ConditionalOutputAction.brackets,
+    this.replacementText = '',
   });
 
   final String targetField;
   final List<ConditionalBracketCondition> conditions;
   final ConditionalMatchMode matchMode;
+  final ConditionalOutputAction outputAction;
+
+  /// Literal text emitted by [ConditionalOutputAction.replacement].
+  final String replacementText;
 
   /// Inclusive start offset in the containing text.
   final int start;
@@ -80,13 +131,20 @@ class ConditionalBracketExpression {
   /// Serializes this expression using the canonical inline template syntax.
   String toTemplateSyntax() {
     final joiner = matchMode == ConditionalMatchMode.any ? '||' : '&&';
-    final conditionsText = conditions.map((condition) {
-      final operator =
-          condition.operator == ConditionalComparisonOperator.equals
-              ? '=='
-              : '!=';
-      return '${condition.sourceField}$operator${jsonEncode(condition.comparisonValue)}';
-    }).join(joiner);
+    final conditionsText = conditions
+        .map((condition) {
+          final operator = switch (condition.operator) {
+            ConditionalComparisonOperator.equals => '==',
+            ConditionalComparisonOperator.notEquals => '!=',
+            ConditionalComparisonOperator.contains => '~=',
+          };
+          return '${condition.sourceField}$operator${jsonEncode(condition.comparisonValue)}';
+        })
+        .join(joiner);
+    if (outputAction == ConditionalOutputAction.replacement) {
+      return '[[$targetField][$conditionsText]=>'
+          '${jsonEncode(replacementText)}]]';
+    }
     return '[[$targetField][$conditionsText]]';
   }
 }
@@ -108,11 +166,32 @@ bool conditionalBracketConditionsMatch(
     return switch (condition.operator) {
       ConditionalComparisonOperator.equals => actual == expected,
       ConditionalComparisonOperator.notEquals => actual != expected,
+      ConditionalComparisonOperator.contains => _containsComparisonMatches(
+        condition.sourceField,
+        actual,
+        expected,
+      ),
     };
   });
   return mode == ConditionalMatchMode.any
       ? results.any((value) => value)
       : results.every((value) => value);
+}
+
+bool _containsComparisonMatches(
+  String sourceField,
+  String actual,
+  String expected,
+) {
+  if (canonicalizeSpecimenAttributeSourceKey(sourceField) ==
+          'mammalAttribute::accuracy' &&
+      mammalAccuracyFieldOrder.contains(expected)) {
+    return parseMammalAccuracy(
+      actual,
+      includeBatFields: true,
+    ).inaccurateFields.contains(expected);
+  }
+  return actual.contains(expected);
 }
 
 /// Wraps [value] in square brackets unless it is empty or already bracketed.
@@ -163,8 +242,10 @@ ConditionalBracketExpression? parseConditionalBracketExpression(
   }
   if (end < 0 || inString) return null;
 
-  final conditionText = text.substring(divider + 2, end - 2);
-  final parsed = _parseConditionGroup(conditionText);
+  final body = text.substring(divider + 2, end - 2);
+  final split = _splitConditionalBody(body);
+  if (split == null) return null;
+  final parsed = _parseConditionGroup(split.conditions);
   if (parsed == null) return null;
   return ConditionalBracketExpression(
     targetField: target,
@@ -172,6 +253,54 @@ ConditionalBracketExpression? parseConditionalBracketExpression(
     matchMode: parsed.mode,
     start: start,
     end: end,
+    outputAction: split.outputAction,
+    replacementText: split.replacementText,
+  );
+}
+
+({
+  String conditions,
+  ConditionalOutputAction outputAction,
+  String replacementText,
+})?
+_splitConditionalBody(String body) {
+  var inString = false;
+  var escaped = false;
+  for (var index = 0; index < body.length - 2; index++) {
+    final char = body[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char == r'\') {
+        escaped = true;
+      } else if (char == '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char == '"') {
+      inString = true;
+      continue;
+    }
+    if (!body.startsWith(']=>', index)) continue;
+    final conditions = body.substring(0, index);
+    final encodedReplacement = body.substring(index + 3).trim();
+    try {
+      final replacement = jsonDecode(encodedReplacement);
+      if (replacement is! String) return null;
+      return (
+        conditions: conditions,
+        outputAction: ConditionalOutputAction.replacement,
+        replacementText: replacement,
+      );
+    } on Object {
+      return null;
+    }
+  }
+  return (
+    conditions: body,
+    outputAction: ConditionalOutputAction.brackets,
+    replacementText: '',
   );
 }
 
@@ -199,7 +328,7 @@ List<ConditionalBracketExpression> conditionalBracketExpressionsInText(
 }
 
 ({List<ConditionalBracketCondition> conditions, ConditionalMatchMode mode})?
-    _parseConditionGroup(String input) {
+_parseConditionGroup(String input) {
   var index = 0;
   final conditions = <ConditionalBracketCondition>[];
   ConditionalMatchMode? mode;
@@ -215,7 +344,8 @@ List<ConditionalBracketExpression> conditionalBracketExpressionsInText(
     final fieldStart = index;
     while (index < input.length &&
         !input.startsWith('==', index) &&
-        !input.startsWith('!=', index)) {
+        !input.startsWith('!=', index) &&
+        !input.startsWith('~=', index)) {
       if (input.startsWith('&&', index) || input.startsWith('||', index)) {
         return null;
       }
@@ -252,13 +382,18 @@ List<ConditionalBracketExpression> conditionalBracketExpressionsInText(
       return null;
     }
     if (value.trim().isEmpty) return null;
-    conditions.add(ConditionalBracketCondition(
-      sourceField: field,
-      operator: operatorText == '=='
-          ? ConditionalComparisonOperator.equals
-          : ConditionalComparisonOperator.notEquals,
-      comparisonValue: value,
-    ));
+    conditions.add(
+      ConditionalBracketCondition(
+        sourceField: field,
+        operator: switch (operatorText) {
+          '==' => ConditionalComparisonOperator.equals,
+          '!=' => ConditionalComparisonOperator.notEquals,
+          '~=' => ConditionalComparisonOperator.contains,
+          _ => throw StateError('Unsupported conditional operator.'),
+        },
+        comparisonValue: value,
+      ),
+    );
 
     skipWhitespace();
     if (index == input.length) break;

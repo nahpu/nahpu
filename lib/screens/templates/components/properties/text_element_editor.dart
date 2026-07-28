@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/templates/template_field_catalog.dart';
 import 'package:nahpu/services/types/export.dart';
 
 String _fieldIdFromBracketLabel(String label) {
@@ -11,35 +13,22 @@ String _placeholderForDisplayOption(String label, String displayOption) {
   final fieldId = _fieldIdFromBracketLabel(label);
   if (displayOption == 'full') return '[$fieldId]';
   final isImageField = fieldId.endsWith('-img');
-  final baseField =
-      isImageField ? fieldId.substring(0, fieldId.length - 4) : fieldId;
+  final baseField = isImageField
+      ? fieldId.substring(0, fieldId.length - 4)
+      : fieldId;
   final parts = baseField.split('::');
   final shortField = parts.length > 1 ? parts.last : baseField;
   return isImageField ? '[$shortField-img]' : '[$shortField]';
 }
 
 class AvailableSymbolsWrap extends StatelessWidget {
-  const AvailableSymbolsWrap({
-    super.key,
-    required this.onSelectSymbol,
-  });
+  const AvailableSymbolsWrap({super.key, required this.onSelectSymbol});
 
   final ValueChanged<String> onSelectSymbol;
 
   @override
   Widget build(BuildContext context) {
-    const symbols = [
-      '♂',
-      '♀',
-      '±',
-      '×',
-      '≈',
-      '≡',
-      '°',
-      'µ',
-      '≥',
-      '≤',
-    ];
+    const symbols = ['♂', '♀', '±', '×', '≈', '≡', '°', 'µ', '≥', '≤'];
     return Wrap(
       spacing: 8.0,
       runSpacing: 8.0,
@@ -117,9 +106,7 @@ class _AvailableFieldsSectionState
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(
-          color: scheme.outlineVariant,
-        ),
+        side: BorderSide(color: scheme.outlineVariant),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -239,7 +226,7 @@ class _AvailableFieldsSectionState
                 final rowLabels = _fieldPanelRowLabels(fields);
                 return ExpansionTile(
                   title: Text(
-                    table.toUpperCase(),
+                    databaseTableDisplayTitle(table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13.0,
@@ -276,67 +263,11 @@ class _AvailableFieldsSectionState
   }
 
   Map<String, List<String>> _getAllGroups() {
-    final db = ref.read(databaseProvider);
-    final Map<String, List<String>> groups = {};
-
-    final Set<String> allowedTables;
-    switch (widget.recordType) {
-      case RecordType.none:
-        allowedTables = {'personnel', 'project'};
-        break;
-      case RecordType.narrative:
-        allowedTables = {'narrative', 'site', 'personnel'};
-        break;
-      case RecordType.site:
-        allowedTables = {'site', 'personnel', 'coordinate'};
-        break;
-      case RecordType.collEvent:
-        allowedTables = {
-          'collEvent',
-          'site',
-          'weather',
-          'coordinate',
-          'collEffort',
-          'collPersonnel',
-        };
-        break;
-      case RecordType.specimenRecord:
-      case RecordType.specimenParts:
-        allowedTables = {
-          'specimen',
-          'taxonomy',
-          'personnel',
-          'project',
-          'collEvent',
-          'site',
-          'coordinate',
-          'weather',
-          'mammalMeasurement',
-          'avianMeasurement',
-          'herpMeasurement',
-          'specimenPart',
-        };
-        if (_selectedTaxon == 'Mammals') {
-          allowedTables.remove('avianMeasurement');
-          allowedTables.remove('herpMeasurement');
-        } else if (_selectedTaxon == 'Birds') {
-          allowedTables.remove('mammalMeasurement');
-          allowedTables.remove('herpMeasurement');
-        } else if (_selectedTaxon == 'Herpetofauna') {
-          allowedTables.remove('mammalMeasurement');
-          allowedTables.remove('avianMeasurement');
-        }
-        break;
-    }
-
-    for (var table in db.allTables) {
-      final tableName = table.actualTableName;
-      if (allowedTables.contains(tableName)) {
-        groups[tableName] =
-            table.$columns.map((c) => '$tableName::${c.name}').toList();
-      }
-    }
-    return groups;
+    return availableTemplateFieldGroups(
+      ref.read(databaseProvider),
+      widget.recordType,
+      selectedTaxon: _selectedTaxon,
+    );
   }
 
   List<String> _fieldPanelRowLabels(List<String> fieldIds) {
@@ -448,9 +379,7 @@ class _TextElementEditorDialogState
                       ),
                     ),
                     const SizedBox(height: 8.0),
-                    AvailableSymbolsWrap(
-                      onSelectSymbol: _handleInsert,
-                    ),
+                    AvailableSymbolsWrap(onSelectSymbol: _handleInsert),
                     const SizedBox(height: 16.0),
                     AvailableFieldsSection(
                       recordType: widget.recordType,
@@ -543,9 +472,7 @@ class _TextElementEditorBottomSheetState
         16.0,
         media.viewInsets.bottom + 16.0,
       ),
-      constraints: BoxConstraints(
-        maxHeight: media.size.height * 0.85,
-      ),
+      constraints: BoxConstraints(maxHeight: media.size.height * 0.85),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -620,9 +547,7 @@ class _TextElementEditorBottomSheetState
                     ),
                   ),
                   const SizedBox(height: 8.0),
-                  AvailableSymbolsWrap(
-                    onSelectSymbol: _handleInsert,
-                  ),
+                  AvailableSymbolsWrap(onSelectSymbol: _handleInsert),
                   const SizedBox(height: 16.0),
                   AvailableFieldsSection(
                     recordType: widget.recordType,

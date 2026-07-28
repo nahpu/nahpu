@@ -8,3 +8,8 @@ final databaseProvider = Provider<Database>((ref) {
   });
   return db;
 });
+
+final databaseReadyProvider = FutureProvider<void>((ref) async {
+  final db = ref.watch(databaseProvider);
+  await db.customSelect('SELECT 1', readsFrom: const {}).getSingle();
+});

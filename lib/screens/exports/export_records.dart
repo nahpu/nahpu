@@ -206,7 +206,7 @@ class ExportFormState extends ConsumerState<ExportForm>
   String _matchFileIconPath() => switch (exportCtr.exportFmtCtr) {
         ExportFmt.csv => 'assets/icons/csv.svg',
         ExportFmt.tsv => 'assets/icons/tsv.svg',
-        ExportFmt.excel => 'assets/icons/csv.svg',
+        ExportFmt.excel => 'assets/icons/xlsx.svg',
         ExportFmt.json => 'assets/icons/json.svg',
       };
 

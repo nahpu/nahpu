@@ -92,123 +92,6 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
     super.dispose();
   }
 
-  Future<void> _loadMedia() async {
-    final token = ++_loadToken;
-    final oldController = _videoController;
-    setState(() {
-      _isLoading = true;
-      _canDisplay = false;
-      _videoController = null;
-    });
-    await oldController?.dispose();
-
-    final media = _currentMedia;
-    final fileName = media.fileName ?? '';
-    final kind = matchMediaKindFromPath(fileName);
-    File? file;
-    bool exists = false;
-    try {
-      final category = matchMediaCategoryString(media.category ?? '');
-      file = await ImageServices(
-        ref: ref,
-        category: category,
-      ).getMediaPath(fileName);
-      exists = await file.exists();
-    } catch (e) {
-      exists = false;
-    }
-
-    VideoPlayerController? controller;
-    bool canDisplay = exists && kind != MediaKind.other && fileName.isNotEmpty;
-    if (canDisplay &&
-        (kind == MediaKind.video || kind == MediaKind.audio) &&
-        file != null) {
-      controller = VideoPlayerController.file(file);
-      try {
-        await controller.initialize();
-        // Carry the volume and playback speed chosen for a previous item
-        // over to the newly loaded one.
-        await controller.setVolume(_volume);
-        await controller.setPlaybackSpeed(_playbackSpeed);
-      } catch (e) {
-        // Do not await: if initialization failed before the platform player
-        // was created, dispose() never completes.
-        unawaited(controller.dispose().catchError((_) {}));
-        controller = null;
-        canDisplay = false;
-      }
-    }
-
-    if (!mounted || token != _loadToken) {
-      await controller?.dispose();
-      return;
-    }
-    final bool hasPlaybackControls = canDisplay &&
-        controller != null &&
-        (kind == MediaKind.video || kind == MediaKind.audio);
-    setState(() {
-      _isLoading = false;
-      _mediaFile = file;
-      _mediaKind = kind;
-      _canDisplay = canDisplay;
-      _videoController = controller;
-      if (_isFullscreen && !hasPlaybackControls) {
-        // Never trap the user in fullscreen with no visible exit button:
-        // media without playback controls has no fullscreen toggle.
-        _isFullscreen = false;
-      }
-    });
-  }
-
-  void _goTo(int index) {
-    if (index < 0 || index >= widget.mediaList.length) {
-      return;
-    }
-    setState(() {
-      _currentIndex = index;
-    });
-    _loadMedia();
-  }
-
-  void _togglePlayback() {
-    final controller = _videoController;
-    if (controller == null) {
-      return;
-    }
-    if (controller.value.isPlaying) {
-      controller.pause();
-    } else {
-      controller.play();
-    }
-  }
-
-  void _setVolume(double volume) {
-    setState(() {
-      _volume = volume;
-      if (volume > 0) {
-        _lastNonZeroVolume = volume;
-      }
-    });
-    _videoController?.setVolume(volume);
-  }
-
-  void _toggleMute() {
-    _setVolume(_volume > 0 ? 0 : _lastNonZeroVolume);
-  }
-
-  void _setPlaybackSpeed(double speed) {
-    setState(() {
-      _playbackSpeed = speed;
-    });
-    _videoController?.setPlaybackSpeed(speed);
-  }
-
-  void _toggleFullscreen() {
-    setState(() {
-      _isFullscreen = !_isFullscreen;
-    });
-  }
-
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent || event is KeyRepeatEvent) {
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
@@ -325,28 +208,39 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
 
   Widget _buildMediaArea(BuildContext context) {
     final controller = _videoController;
-    final bool showPlaybackControls = !_isLoading &&
+    final bool showPlaybackControls =
+        !_isLoading &&
         _canDisplay &&
         controller != null &&
         (_mediaKind == MediaKind.video || _mediaKind == MediaKind.audio);
-    return ColoredBox(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Column(
-        children: [
-          Expanded(child: _buildMediaOverlay(context)),
-          if (showPlaybackControls)
-            _PlaybackControls(
-              controller: controller,
-              volume: _volume,
-              playbackSpeed: _playbackSpeed,
-              isFullscreen: _isFullscreen,
-              onToggle: _togglePlayback,
-              onToggleMute: _toggleMute,
-              onVolumeChanged: _setVolume,
-              onSpeedChanged: _setPlaybackSpeed,
-              onToggleFullscreen: _toggleFullscreen,
-            ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Expanded(child: _buildMediaOverlay(context)),
+            if (showPlaybackControls)
+              _PlaybackControls(
+                controller: controller,
+                volume: _volume,
+                playbackSpeed: _playbackSpeed,
+                isFullscreen: _isFullscreen,
+                onToggle: _togglePlayback,
+                onToggleMute: _toggleMute,
+                onVolumeChanged: _setVolume,
+                onSpeedChanged: _setPlaybackSpeed,
+                onToggleFullscreen: _toggleFullscreen,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -355,9 +249,7 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Positioned.fill(
-          child: _buildMediaContent(context),
-        ),
+        Positioned.fill(child: _buildMediaContent(context)),
         if (_hasPrevious)
           Positioned(
             left: 8,
@@ -440,6 +332,124 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
       case MediaKind.other:
         return _MediaViewerFallback(kind: _mediaKind);
     }
+  }
+
+  Future<void> _loadMedia() async {
+    final token = ++_loadToken;
+    final oldController = _videoController;
+    setState(() {
+      _isLoading = true;
+      _canDisplay = false;
+      _videoController = null;
+    });
+    await oldController?.dispose();
+
+    final media = _currentMedia;
+    final fileName = media.fileName ?? '';
+    final kind = matchMediaKindFromPath(fileName);
+    File? file;
+    bool exists = false;
+    try {
+      final category = matchMediaCategoryString(media.category ?? '');
+      file = await ImageServices(
+        ref: ref,
+        category: category,
+      ).getMediaPath(fileName);
+      exists = await file.exists();
+    } catch (e) {
+      exists = false;
+    }
+
+    VideoPlayerController? controller;
+    bool canDisplay = exists && kind != MediaKind.other && fileName.isNotEmpty;
+    if (canDisplay &&
+        (kind == MediaKind.video || kind == MediaKind.audio) &&
+        file != null) {
+      controller = VideoPlayerController.file(file);
+      try {
+        await controller.initialize();
+        // Carry the volume and playback speed chosen for a previous item
+        // over to the newly loaded one.
+        await controller.setVolume(_volume);
+        await controller.setPlaybackSpeed(_playbackSpeed);
+      } catch (e) {
+        // Do not await: if initialization failed before the platform player
+        // was created, dispose() never completes.
+        unawaited(controller.dispose().catchError((_) {}));
+        controller = null;
+        canDisplay = false;
+      }
+    }
+
+    if (!mounted || token != _loadToken) {
+      await controller?.dispose();
+      return;
+    }
+    final bool hasPlaybackControls =
+        canDisplay &&
+        controller != null &&
+        (kind == MediaKind.video || kind == MediaKind.audio);
+    setState(() {
+      _isLoading = false;
+      _mediaFile = file;
+      _mediaKind = kind;
+      _canDisplay = canDisplay;
+      _videoController = controller;
+      if (_isFullscreen && !hasPlaybackControls) {
+        // Never trap the user in fullscreen with no visible exit button:
+        // media without playback controls has no fullscreen toggle.
+        _isFullscreen = false;
+      }
+    });
+  }
+
+  void _goTo(int index) {
+    if (index < 0 || index >= widget.mediaList.length) {
+      return;
+    }
+    setState(() {
+      _currentIndex = index;
+    });
+    _loadMedia();
+  }
+
+  void _togglePlayback() {
+    final controller = _videoController;
+    if (controller == null) {
+      return;
+    }
+    if (controller.value.isPlaying) {
+      controller.pause();
+    } else {
+      controller.play();
+    }
+  }
+
+  void _setVolume(double volume) {
+    setState(() {
+      _volume = volume;
+      if (volume > 0) {
+        _lastNonZeroVolume = volume;
+      }
+    });
+    _videoController?.setVolume(volume);
+  }
+
+  void _toggleMute() {
+    _setVolume(_volume > 0 ? 0 : _lastNonZeroVolume);
+  }
+
+  void _setPlaybackSpeed(double speed) {
+    setState(() {
+      _playbackSpeed = speed;
+    });
+    _videoController?.setPlaybackSpeed(speed);
+  }
+
+  void _toggleFullscreen() {
+    setState(() {
+      _isFullscreen = !_isFullscreen;
+    });
   }
 }
 
@@ -532,8 +542,9 @@ class _PlaybackControls extends StatelessWidget {
                 children: [
                   IconButton(
                     tooltip: value.isPlaying ? 'Pause' : 'Play',
-                    icon:
-                        Icon(value.isPlaying ? Icons.pause : Icons.play_arrow),
+                    icon: Icon(
+                      value.isPlaying ? Icons.pause : Icons.play_arrow,
+                    ),
                     onPressed: onToggle,
                   ),
                   Expanded(
@@ -556,9 +567,7 @@ class _PlaybackControls extends StatelessWidget {
                 children: [
                   IconButton(
                     tooltip: volume > 0 ? 'Mute' : 'Unmute',
-                    icon: Icon(
-                      volume > 0 ? Icons.volume_up : Icons.volume_off,
-                    ),
+                    icon: Icon(volume > 0 ? Icons.volume_up : Icons.volume_off),
                     onPressed: onToggleMute,
                   ),
                   SizedBox(
@@ -576,10 +585,7 @@ class _PlaybackControls extends StatelessWidget {
                     itemBuilder: (context) {
                       return [
                         for (final speed in _playbackSpeeds)
-                          PopupMenuItem(
-                            value: speed,
-                            child: Text('${speed}x'),
-                          ),
+                          PopupMenuItem(value: speed, child: Text('${speed}x')),
                       ];
                     },
                     child: Padding(
@@ -600,12 +606,9 @@ class _PlaybackControls extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip:
-                        isFullscreen ? 'Exit fullscreen' : 'Fullscreen',
+                    tooltip: isFullscreen ? 'Exit fullscreen' : 'Fullscreen',
                     icon: Icon(
-                      isFullscreen
-                          ? Icons.fullscreen_exit
-                          : Icons.fullscreen,
+                      isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
                     ),
                     onPressed: onToggleFullscreen,
                   ),
@@ -673,34 +676,44 @@ class _MediaMetadataPanel extends StatelessWidget {
       MapEntry('Additional info', media.additionalExif ?? ''),
     ].where((entry) => entry.value.trim().isNotEmpty).toList();
 
-    return Container(
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Details', style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 8),
-          if (entries.isEmpty) const Text('No details available'),
-          for (final entry in entries)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    entry.key,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 8, 8),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text('Details', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            if (entries.isEmpty) const Text('No details available'),
+            for (final entry in entries)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.key,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                  Text(
-                    entry.value,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
+                    Text(
+                      entry.value,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

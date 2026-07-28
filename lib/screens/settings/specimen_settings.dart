@@ -21,8 +21,9 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
 
   @override
   void initState() {
-    _isAlwaysShownCollectorField = SpecimenSettingServices(ref: ref)
-        .getSpecimenSettingField(collectorFieldKey);
+    _isAlwaysShownCollectorField = SpecimenSettingServices(
+      ref: ref,
+    ).getSpecimenSettingField(collectorFieldKey);
 
     super.initState();
   }
@@ -32,63 +33,62 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
     final services = SpecimenSettingServices(ref: ref);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Specimen Settings'),
-      ),
-      body: SafeArea(child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          bool isMobile = constraints.maxWidth < 600;
-          return CommonSettingList(
-            sections: [
-              CommonSettingSection(
-                title: 'Capture records',
-                children: [
-                  SwitchSettings(
-                    value: _isAlwaysShownCollectorField,
-                    onChanged: (bool value) async {
-                      try {
-                        await services.setSpecimenSettingField(
-                            collectorFieldKey, value);
-                        setState(() {
-                          _isAlwaysShownCollectorField = value;
-                        });
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                            ),
+      appBar: AppBar(title: const Text('Specimen Settings')),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            bool isMobile = constraints.maxWidth < 600;
+            return CommonSettingList(
+              sections: [
+                CommonSettingSection(
+                  title: 'Capture records',
+                  children: [
+                    SwitchSettings(
+                      value: _isAlwaysShownCollectorField,
+                      onChanged: (bool value) async {
+                        try {
+                          await services.setSpecimenSettingField(
+                            collectorFieldKey,
+                            value,
                           );
+                          setState(() {
+                            _isAlwaysShownCollectorField = value;
+                          });
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          }
                         }
-                      }
-                    },
-                    label: 'Always show collector field',
-                  )
-                ],
-              ),
-              FieldIDFields(
-                isMobile: isMobile,
-              ),
-              TissueIDFields(
-                isMobile: isMobile,
-              ),
-              SpecimenFormats(
-                isMobile: isMobile,
-              ),
-              UserDefinedSettingField(
-                typePrefKey: specimenTypePrefKey,
-                fmtPrefKey: specimenTypeFmtPrefKey,
-                typeName: 'Specimen Type',
-              ),
-              UserDefinedSettingField(
-                typePrefKey: treatmentPrefKey,
-                fmtPrefKey: treatmentFmtPrefKey,
-                typeName: 'Treatment',
-              ),
-            ],
-          );
-        },
-      )),
+                      },
+                      label: 'Always show collector field',
+                    ),
+                  ],
+                ),
+                FieldIDFields(isMobile: isMobile),
+                TissueIDFields(isMobile: isMobile),
+                SpecimenFormats(isMobile: isMobile),
+                UserDefinedSettingField(
+                  typePrefKey: specimenTypePrefKey,
+                  fmtPrefKey: specimenTypeFmtPrefKey,
+                  typeName: 'Specimen Type',
+                ),
+                UserDefinedSettingField(
+                  typePrefKey: treatmentPrefKey,
+                  fmtPrefKey: treatmentFmtPrefKey,
+                  typeName: 'Treatment',
+                ),
+                UserDefinedSettingField(
+                  typePrefKey: conditionPrefKey,
+                  fmtPrefKey: conditionFmtPrefKey,
+                  typeName: 'Condition',
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -100,23 +100,34 @@ class SpecimenFormats extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CommonSettingSection(title: 'Formats', children: [
-      Padding(
+    return CommonSettingSection(
+      title: 'Formats',
+      children: [
+        Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
           child: AdaptiveLayout(
             useHorizontalLayout: !isMobile,
             children: [
               TextCaseFmtDropDown(
-                  ref: ref,
-                  label: 'Specimen part types',
-                  textCasePrefString: specimenTypeFmtPrefKey),
+                ref: ref,
+                label: 'Specimen part types',
+                textCasePrefString: specimenTypeFmtPrefKey,
+              ),
               TextCaseFmtDropDown(
-                  ref: ref,
-                  label: 'Treatment types',
-                  textCasePrefString: treatmentFmtPrefKey),
+                ref: ref,
+                label: 'Treatment types',
+                textCasePrefString: treatmentFmtPrefKey,
+              ),
+              TextCaseFmtDropDown(
+                ref: ref,
+                label: 'Conditions',
+                textCasePrefString: conditionFmtPrefKey,
+              ),
             ],
-          ))
-    ]);
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -133,53 +144,56 @@ class FieldIDFields extends ConsumerWidget {
       title: 'Field ID',
       children: [
         Padding(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-            child: AdaptiveLayout(
-              useHorizontalLayout: !isMobile,
-              children: [
-                FieldIdModeDropDown(ref: ref),
-                fieldIdModeNotifier.when(
-                  data: (mode) => Visibility(
-                      visible: mode == FieldIdMode.project,
-                      child: ProjectFieldId()),
-                  loading: () => const SizedBox.shrink(),
-                  error: (e, s) => const Text('Error'),
-                )
-              ],
-            )),
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+          child: AdaptiveLayout(
+            useHorizontalLayout: !isMobile,
+            children: [
+              FieldIdModeDropDown(ref: ref),
+              fieldIdModeNotifier.when(
+                data: (mode) => Visibility(
+                  visible: mode == FieldIdMode.project,
+                  child: ProjectFieldId(),
+                ),
+                loading: () => const SizedBox.shrink(),
+                error: (e, s) => const Text('Error'),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 }
 
 class FieldIdModeDropDown extends StatelessWidget {
-  const FieldIdModeDropDown({
-    super.key,
-    required this.ref,
-  });
+  const FieldIdModeDropDown({super.key, required this.ref});
 
   final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
-    return ref.watch(fieldIdModeNotifierProvider).when(
+    return ref
+        .watch(fieldIdModeNotifierProvider)
+        .when(
           data: (mode) => DropdownButtonFormField<FieldIdMode>(
-              initialValue: mode,
-              decoration: InputDecoration(
-                labelText: 'ID mode',
-              ),
-              items: FieldIdMode.values
-                  .map((e) => DropdownMenuItem<FieldIdMode>(
-                      value: e,
-                      child: CommonDropdownText(text: e.name.toTitleCase())))
-                  .toList(),
-              onChanged: (FieldIdMode? selectedMode) {
-                if (selectedMode != null) {
-                  ref
-                      .read(fieldIdModeNotifierProvider.notifier)
-                      .set(selectedMode);
-                }
-              }),
+            initialValue: mode,
+            decoration: InputDecoration(labelText: 'ID mode'),
+            items: FieldIdMode.values
+                .map(
+                  (e) => DropdownMenuItem<FieldIdMode>(
+                    value: e,
+                    child: CommonDropdownText(text: e.name.toTitleCase()),
+                  ),
+                )
+                .toList(),
+            onChanged: (FieldIdMode? selectedMode) {
+              if (selectedMode != null) {
+                ref
+                    .read(fieldIdModeNotifierProvider.notifier)
+                    .set(selectedMode);
+              }
+            },
+          ),
           loading: () => const CommonProgressIndicator(),
           error: (e, s) => const Text('Error'),
         );
@@ -187,9 +201,7 @@ class FieldIdModeDropDown extends StatelessWidget {
 }
 
 class ProjectFieldId extends ConsumerStatefulWidget {
-  const ProjectFieldId({
-    super.key,
-  });
+  const ProjectFieldId({super.key});
 
   @override
   ProjectFieldIdState createState() => ProjectFieldIdState();
@@ -239,23 +251,19 @@ class TissueIDFields extends ConsumerWidget {
       title: 'Tissue ID',
       children: [
         Padding(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-            child: AdaptiveLayout(
-              useHorizontalLayout: !isMobile,
-              children: const [
-                TissuePrefixField(),
-                TissueNumField(),
-              ],
-            )),
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+          child: AdaptiveLayout(
+            useHorizontalLayout: !isMobile,
+            children: const [TissuePrefixField(), TissueNumField()],
+          ),
+        ),
       ],
     );
   }
 }
 
 class TissuePrefixField extends ConsumerStatefulWidget {
-  const TissuePrefixField({
-    super.key,
-  });
+  const TissuePrefixField({super.key});
 
   @override
   TissuePrefixFieldState createState() => TissuePrefixFieldState();
@@ -275,16 +283,17 @@ class TissuePrefixFieldState extends ConsumerState<TissuePrefixField> {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 480),
       child: TextField(
-          controller: prefixCtr,
-          decoration: const InputDecoration(
-            labelText: 'Prefix',
-            hintText: 'Enter tissue ID prefix, e.g. M',
-          ),
-          onChanged: (String? value) async {
-            if (value != null && value.trim().isNotEmpty) {
-              await TissueIdServices(ref: ref).setPrefix(value.trim());
-            }
-          }),
+        controller: prefixCtr,
+        decoration: const InputDecoration(
+          labelText: 'Prefix',
+          hintText: 'Enter tissue ID prefix, e.g. M',
+        ),
+        onChanged: (String? value) async {
+          if (value != null && value.trim().isNotEmpty) {
+            await TissueIdServices(ref: ref).setPrefix(value.trim());
+          }
+        },
+      ),
     );
   }
 
@@ -294,9 +303,7 @@ class TissuePrefixFieldState extends ConsumerState<TissuePrefixField> {
 }
 
 class TissueNumField extends ConsumerStatefulWidget {
-  const TissueNumField({
-    super.key,
-  });
+  const TissueNumField({super.key});
 
   @override
   TissueNumFieldState createState() => TissueNumFieldState();

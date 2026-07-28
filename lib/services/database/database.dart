@@ -8,6 +8,7 @@ import 'package:nahpu/services/database/migration_utilities.dart';
 import 'package:path/path.dart' as p;
 
 part 'database.g.dart';
+part 'migration_coordinator.dart';
 
 /// The database schema version.
 /// Steps to update the schema:
@@ -23,11 +24,9 @@ part 'database.g.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 9;
+const int kSchemaVersion = 14;
 
-@DriftDatabase(
-  include: {'tables.drift'},
-)
+@DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {
   Database() : super(_openConnection());
 
@@ -40,46 +39,93 @@ class Database extends _$Database {
 
   @override
   MigrationStrategy get migration {
-    return MigrationStrategy(onCreate: (m) async {
-      await m.createAll();
-    }, onUpgrade: (Migrator m, int from, int to) async {
-      await customStatement('PRAGMA foreign_keys = OFF');
-      if (from < 2) {
-        await m.addColumn(specimen, specimen.taxonGroup);
-      }
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        try {
+          await _MigrationCoordinator(this).upgrade(m, from, to);
+        } catch (error, stackTrace) {
+          if (kDebugMode) {
+            debugPrint('Database migration from v$from to v$to failed: $error');
+            debugPrintStack(stackTrace: stackTrace);
+          }
+          rethrow;
+        }
+      },
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
+  }
 
-      if (from < 3) {
-        await _migrateFromVersion2(m);
-      }
+  Future<void> _renameSpecimenAttributeTables(int from) async {
+    await _renameTableIfPresent('mammalMeasurement', 'mammalAttribute');
+    await _renameTableIfPresent('avianMeasurement', 'birdAttribute');
+    await _renameTableIfPresent('herpMeasurement', 'herpAttribute');
 
-      if (from == 3) {
-        await _migrateV3only(m);
-      }
+    if (from >= 7) {
+      await _requireTable('herpAttribute');
+    }
+  }
 
-      if (from < 4) {
-        await _migrateFromVersion3(m);
-      }
+  Future<void> _renameTableIfPresent(String legacyName, String name) async {
+    final legacyExists = await _tableExists(legacyName);
+    final canonicalExists = await _tableExists(name);
+    if (legacyExists && canonicalExists) {
+      throw StateError(
+        'Cannot migrate both $legacyName and $name because both tables exist.',
+      );
+    }
+    if (legacyExists) {
+      await customStatement('ALTER TABLE "$legacyName" RENAME TO "$name"');
+    }
+  }
 
-      if (from < 5) {
-        await _migrateFromVersion4(m);
-      }
+  Future<bool> _tableExists(String name) async {
+    final result = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+      variables: [Variable.withString(name)],
+      readsFrom: const {},
+    ).getSingleOrNull();
+    return result != null;
+  }
 
-      if (from < 6) {
-        await _migrateFromVersion5(m);
-      }
+  Future<void> _requireTable(String name) async {
+    if (!await _tableExists(name)) {
+      throw StateError('Database migration is missing the $name table.');
+    }
+  }
 
-      if (from < 7) {
-        await _migrateFromVersion6(m);
+  Future<void> _validateSpecimenAttributeTables() async {
+    for (final name in const [
+      'mammalAttribute',
+      'birdAttribute',
+      'herpAttribute',
+    ]) {
+      await _requireTable(name);
+    }
+    for (final name in const [
+      'mammalMeasurement',
+      'avianMeasurement',
+      'herpMeasurement',
+    ]) {
+      if (await _tableExists(name)) {
+        throw StateError('Database migration retained the legacy $name table.');
       }
-      if (from < 8) {
-        await _migrateFromVersion7(m);
-      }
-      if (from < 9) {
-        await _migrateFromVersion8(m);
-      }
-    }, beforeOpen: (details) async {
-      await customStatement('PRAGMA foreign_keys = ON');
-    });
+    }
+
+    final violations = await customSelect(
+      'PRAGMA foreign_key_check',
+      readsFrom: const {},
+    ).get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
   }
 
   Future<void> _migrateFromVersion7(Migrator m) async {
@@ -91,15 +137,56 @@ class Database extends _$Database {
 
   Future<void> _migrateFromVersion8(Migrator m) async {
     await customStatement(
-      'CREATE INDEX site_project_idx ON site(projectUuid)',
+      'CREATE INDEX IF NOT EXISTS site_project_idx ON site(projectUuid)',
     );
     await customStatement(
-      'CREATE INDEX coordinate_site_idx ON coordinate(siteID)',
+      'CREATE INDEX IF NOT EXISTS coordinate_site_idx ON coordinate(siteID)',
     );
     await customStatement(
-      'CREATE INDEX specimen_project_coordinate_idx '
+      'CREATE INDEX IF NOT EXISTS specimen_project_coordinate_idx '
       'ON specimen(projectUuid, coordinateID)',
     );
+  }
+
+  Future<void> _migrateFromVersion9(Migrator m) async {
+    await _recreateIndex(
+      'specimen_project_species_idx',
+      'CREATE INDEX specimen_project_species_idx '
+          'ON specimen(projectUuid, speciesID)',
+    );
+    await _recreateIndex(
+      'specimen_project_event_idx',
+      'CREATE INDEX specimen_project_event_idx '
+          'ON specimen(projectUuid, collEventID)',
+    );
+    await _recreateIndex(
+      'site_project_idx',
+      'CREATE INDEX site_project_idx ON site(projectUuid)',
+    );
+    await _recreateIndex(
+      'coordinate_site_idx',
+      'CREATE INDEX coordinate_site_idx ON coordinate(siteID)',
+    );
+    await _recreateIndex(
+      'specimen_project_coordinate_idx',
+      'CREATE INDEX specimen_project_coordinate_idx '
+          'ON specimen(projectUuid, coordinateID)',
+    );
+    await _recreateIndex(
+      'coll_event_project_site_idx',
+      'CREATE INDEX coll_event_project_site_idx '
+          'ON collEvent(projectUuid, siteID)',
+    );
+    await _recreateIndex(
+      'specimen_part_specimen_idx',
+      'CREATE INDEX specimen_part_specimen_idx '
+          'ON specimenPart(specimenUuid)',
+    );
+  }
+
+  Future<void> _recreateIndex(String name, String createStatement) async {
+    await customStatement('DROP INDEX IF EXISTS $name');
+    await customStatement(createStatement);
   }
 
   Future<void> _migrateFromVersion6(Migrator m) async {
@@ -125,21 +212,20 @@ class Database extends _$Database {
     await m.addColumn(project, project.timeZone);
 
     // Herpetofauna measurements
-    await m.createTable(herpMeasurement);
+    await m.createTable(herpAttribute);
 
     // Boolean for showing bat-specific measurements
-    await m.addColumn(mammalMeasurement, mammalMeasurement.showBatFields);
+    await m.addColumn(mammalAttribute, mammalAttribute.showBatFields);
     await setShowBatFieldsBoolean(m);
 
     // New bat measurements
-    await m.addColumn(mammalMeasurement, mammalMeasurement.tibia);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.showEchoFields);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.echolocation);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMax);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMin);
-    await m.addColumn(
-        mammalMeasurement, mammalMeasurement.frequencyAtMaxEnergy);
-    await m.addColumn(mammalMeasurement, mammalMeasurement.duration);
+    await m.addColumn(mammalAttribute, mammalAttribute.tibia);
+    await m.addColumn(mammalAttribute, mammalAttribute.showEchoFields);
+    await m.addColumn(mammalAttribute, mammalAttribute.echolocation);
+    await m.addColumn(mammalAttribute, mammalAttribute.frequencyMax);
+    await m.addColumn(mammalAttribute, mammalAttribute.frequencyMin);
+    await m.addColumn(mammalAttribute, mammalAttribute.frequencyAtMaxEnergy);
+    await m.addColumn(mammalAttribute, mammalAttribute.duration);
 
     // Enhanced specimen ID options
     await m.addColumn(personnel, personnel.isRegisterField);
@@ -178,14 +264,35 @@ class Database extends _$Database {
     await m.addColumn(taxonomy, taxonomy.countryStatus);
     await m.addColumn(taxonomy, taxonomy.sortingOrder);
 
-    // Associated data
-    await m.addColumn(associatedData, associatedData.date);
-    await m.addColumn(associatedData, associatedData.specimenUuid);
-    await m.renameColumn(associatedData, 'secondaryId', associatedData.name);
-    await m.renameColumn(associatedData, 'fileId', associatedData.url);
-
-    // Remove secondaryIdRef
-    await alterTableHelper(m, associatedData);
+    // Associated data. Keep the historical v5 layout so later migrations can
+    // be applied sequentially even though the generated table is now v13.
+    await customStatement(
+      'ALTER TABLE associatedData RENAME TO tmp_associatedData_v4',
+    );
+    await customStatement('''
+      CREATE TABLE associatedData (
+        primaryId INTEGER PRIMARY KEY AUTOINCREMENT,
+        specimenUuid TEXT,
+        name TEXT,
+        type TEXT,
+        date TEXT,
+        description TEXT,
+        url TEXT,
+        FOREIGN KEY(specimenUuid) REFERENCES specimen(uuid)
+      )
+    ''');
+    await customStatement('''
+      INSERT INTO associatedData (
+        primaryId,
+        name,
+        type,
+        description,
+        url
+      )
+      SELECT primaryId, secondaryId, type, description, fileId
+      FROM tmp_associatedData_v4
+    ''');
+    await customStatement('DROP TABLE tmp_associatedData_v4');
 
     // Sites
     await alterTableHelper(m, coordinate);
@@ -236,7 +343,7 @@ class Database extends _$Database {
 
     // We switch bird table to revised version
     await m.deleteTable('bird_measurement');
-    await m.createTable(avianMeasurement);
+    await m.createTable(birdAttribute);
 
     await castMammalType(m);
   }

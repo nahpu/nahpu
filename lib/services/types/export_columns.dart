@@ -22,28 +22,28 @@ List<String> getAvailableExportColumns({
         ...partExportListDelimited,
       ];
     case RecordType.specimenRecord:
-      List<String> measurementList = [];
+      List<String> attributeList = [];
       if (specimenRecordType != null) {
         switch (specimenRecordType) {
           case SpecimenRecordType.generalMammals:
-            measurementList = mammalMeasurementExportList;
+            attributeList = mammalAttributeExportList;
             break;
           case SpecimenRecordType.birds:
-            measurementList = avianMeasurementExportList;
+            attributeList = birdAttributeExportList;
             break;
           case SpecimenRecordType.bats:
           case SpecimenRecordType.allMammals:
-            measurementList = batMeasurementExportList;
+            attributeList = batAttributeExportList;
             break;
           case SpecimenRecordType.herpetofauna:
-            measurementList = herpMeasurementExportList;
+            attributeList = herpAttributeExportList;
             break;
           case SpecimenRecordType.allTaxa:
-            measurementList = <String>{
-              ...mammalMeasurementExportList,
-              ...avianMeasurementExportList,
-              ...batMeasurementExportList,
-              ...herpMeasurementExportList,
+            attributeList = <String>{
+              ...mammalAttributeExportList,
+              ...birdAttributeExportList,
+              ...batAttributeExportList,
+              ...herpAttributeExportList,
             }.toSet().toList();
             break;
         }
@@ -52,7 +52,7 @@ List<String> getAvailableExportColumns({
         ...collectingRecordExportList,
         ...siteExportList,
         ...collEventExportList,
-        ...measurementList,
+        ...attributeList,
         partExportSimple,
         'media::media',
       ];

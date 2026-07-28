@@ -1,9 +1,38 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart' show DatabaseConnection, Value;
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/exports/bundle_project.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:nahpu/screens/exports/bundle_records.dart';
+import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/src/rust/frb_generated.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+    if (isTest) {
+      final dylibPath = Platform.isMacOS
+          ? 'rust/target/debug/librust_lib_nahpu.dylib'
+          : Platform.isWindows
+          ? 'rust/target/debug/rust_lib_nahpu.dll'
+          : 'rust/target/debug/librust_lib_nahpu.so';
+      await RustLib.init(externalLibrary: ExternalLibrary.open(dylibPath));
+    } else {
+      await RustLib.init();
+    }
+  });
+
   test('normalizes current and legacy bundle taxon labels', () {
     expect(normalizeBundleTaxonGroup('Avians'), 'Birds');
     expect(normalizeBundleTaxonGroup('General Mammals'), 'Mammals');
@@ -13,18 +42,14 @@ void main() {
   });
 
   test('bundle types expose valid archive choices and extensions', () {
-    expect(
-      DwcBundleFormat.darwinCoreArchive.allowedArchives,
-      {BundleArchiveFormat.zip},
-    );
+    expect(DwcBundleFormat.darwinCoreArchive.allowedArchives, {
+      BundleArchiveFormat.zip,
+    });
     expect(
       DwcBundleFormat.darwinCoreDataPackage.defaultArchive,
       BundleArchiveFormat.tarGzip,
     );
-    expect(
-      DwcBundleFormat.nahpuDataPackage.usesTaxonSelection,
-      isFalse,
-    );
+    expect(DwcBundleFormat.nahpuDataPackage.usesTaxonSelection, isFalse);
     expect(
       DwcBundleFormat.darwinCoreDataPackage.outputExtension(
         BundleArchiveFormat.tarGzip,
@@ -32,9 +57,7 @@ void main() {
       'dwc-dp.tar.gz',
     );
     expect(
-      DwcBundleFormat.nahpuDataPackage.outputExtension(
-        BundleArchiveFormat.zip,
-      ),
+      DwcBundleFormat.nahpuDataPackage.outputExtension(BundleArchiveFormat.zip),
       'nahpu-dp.zip',
     );
   });
@@ -52,7 +75,7 @@ void main() {
     expect(keys, hasLength(mappings.length));
     final qcf = mappings.singleWhere(
       (mapping) =>
-          mapping['table'] == 'mammalMeasurement' &&
+          mapping['table'] == 'mammalAttribute' &&
           mapping['column'] == 'echolocation' &&
           mapping['sqlite_index'] == 2,
     );
@@ -71,25 +94,28 @@ void main() {
     expect(highConfidence['display_name'], 'High');
   });
 
-  testWidgets('users can switch to selected taxa and change the selection',
-      (tester) async {
+  testWidgets('users can switch to selected taxa and change the selection', (
+    tester,
+  ) async {
     var mode = BundleTaxonSelectionMode.all;
     var selected = <String>{'Birds', 'Mammals', 'Bats'};
 
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: StatefulBuilder(
-          builder: (context, setState) => BundleTaxonSelectionCard(
-            availableTaxonGroups: const {'Birds', 'Mammals', 'Bats'},
-            selectedTaxonGroups: selected,
-            selectionMode: mode,
-            isLoading: false,
-            onModeChanged: (value) => setState(() => mode = value),
-            onChanged: (value) => setState(() => selected = value),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) => BundleTaxonSelectionCard(
+              availableTaxonGroups: const {'Birds', 'Mammals', 'Bats'},
+              selectedTaxonGroups: selected,
+              selectionMode: mode,
+              isLoading: false,
+              onModeChanged: (value) => setState(() => mode = value),
+              onChanged: (value) => setState(() => selected = value),
+            ),
           ),
         ),
       ),
-    ));
+    );
 
     await tester.tap(find.text('Selected taxa'));
     await tester.pump();
@@ -106,8 +132,9 @@ void main() {
     expect(batsTile.onChanged, isNull);
   });
 
-  testWidgets('only files with fields show an expansion control',
-      (tester) async {
+  testWidgets('only files with fields show an expansion control', (
+    tester,
+  ) async {
     const manifest = DwcBundleManifest(
       files: [
         DwcBundleFile(
@@ -126,40 +153,45 @@ void main() {
       warnings: [],
     );
 
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: BundleContentsPane(
-          manifest: manifest,
-          isLoading: false,
-          error: null,
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BundleContentsPane(
+            manifest: manifest,
+            isLoading: false,
+            error: null,
+          ),
         ),
       ),
-    ));
+    );
 
     expect(find.byType(ExpansionTile), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'datapackage.json'), findsOneWidget);
   });
 
-  testWidgets('all taxa selection keeps the taxa card at the panel width',
-      (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 500),
-            child: BundleTaxonSelectionCard(
-              availableTaxonGroups: {'Birds', 'Herpetofauna', 'Mammals'},
-              selectedTaxonGroups: {'Birds', 'Herpetofauna', 'Mammals'},
-              selectionMode: BundleTaxonSelectionMode.all,
-              isLoading: false,
-              onChanged: _ignoreTaxonGroups,
-              onModeChanged: _ignoreSelectionMode,
+  testWidgets('all taxa selection keeps the taxa card at the panel width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 500),
+              child: BundleTaxonSelectionCard(
+                availableTaxonGroups: {'Birds', 'Herpetofauna', 'Mammals'},
+                selectedTaxonGroups: {'Birds', 'Herpetofauna', 'Mammals'},
+                selectionMode: BundleTaxonSelectionMode.all,
+                isLoading: false,
+                onChanged: _ignoreTaxonGroups,
+                onModeChanged: _ignoreSelectionMode,
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
 
     final card = find.byType(Card);
     expect(tester.getSize(card).width, 500);
@@ -196,15 +228,17 @@ void main() {
       warnings: [],
     );
 
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: BundleContentsPane(
-          manifest: manifest,
-          isLoading: false,
-          error: null,
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BundleContentsPane(
+            manifest: manifest,
+            isLoading: false,
+            error: null,
+          ),
         ),
       ),
-    ));
+    );
 
     final icons = tester
         .widgetList<Icon>(find.byType(Icon))
@@ -213,6 +247,76 @@ void main() {
     expect(icons, contains(Icons.image_outlined));
     expect(icons, contains(Icons.audio_file_outlined));
     expect(icons, contains(Icons.video_file_outlined));
+  });
+
+  testWidgets('NAHPU package planning uses project JSON without SQLite', (
+    tester,
+  ) async {
+    final tempDir = Directory.systemTemp.createTempSync('nahpu-dp-test-');
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            null,
+          );
+      if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+    });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async => tempDir.path,
+        );
+    PackageInfo.setMockInitialValues(
+      appName: 'NAHPU',
+      packageName: 'org.nahpu.app',
+      version: '1.0.0',
+      buildNumber: '1',
+      buildSignature: '',
+    );
+    await tester.runAsync(
+      () => rust_config.initConfigDb(path: '${tempDir.path}/configs.db'),
+    );
+    await database
+        .into(database.project)
+        .insert(
+          const ProjectCompanion(
+            uuid: Value('project-a'),
+            name: Value('Project A'),
+          ),
+        );
+    WidgetRef? widgetRef;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, child) {
+              widgetRef = ref;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ),
+    );
+    widgetRef!
+        .read(projectUuidProvider.notifier)
+        .updateProjectUuid('project-a');
+
+    final manifest = (await tester.runAsync(
+      () => DwcBundleWriter(ref: widgetRef!).plan(
+        format: DwcBundleFormat.nahpuDataPackage,
+        archiveFormat: BundleArchiveFormat.zip,
+        selectedTaxonGroups: const {},
+      ),
+    ))!;
+    final paths = manifest.files.map((file) => file.path).toSet();
+
+    expect(paths, contains('nahpu-project.json'));
+    expect(paths, isNot(contains('database/nahpu.sqlite3')));
   });
 }
 

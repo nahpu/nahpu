@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DocumentSettingsServices {
@@ -10,7 +7,6 @@ class DocumentSettingsServices {
   static const _kWidthMm = 'document_width_mm';
   static const _kHeightMm = 'document_height_mm';
   static const _kTemplateName = 'document_template_name';
-  static const _kPrintTableColumns = 'document_print_table_columns';
   static const _kPrintPageSizeKey = 'document_print_page_size_key';
   static const _kPrintRowsPerPage = 'document_print_rows_per_page';
   static const _kPrintColsPerPage = 'document_print_cols_per_page';
@@ -100,29 +96,6 @@ class DocumentSettingsServices {
     } else {
       await p.setString(_kTemplateName, name);
     }
-  }
-
-  Future<List<String>> getPrintSpecimenTableColumnIds() async {
-    final p = await _p;
-    final raw = p.getString(_kPrintTableColumns) ??
-        p.getString('${_legacyPrefix}_print_table_columns');
-    if (raw == null || raw.isEmpty) {
-      return List<String>.from(kDefaultPrintSpecimenTableColumnIds);
-    }
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! List) {
-        return List<String>.from(kDefaultPrintSpecimenTableColumnIds);
-      }
-      return decoded.map((e) => e.toString()).toList();
-    } catch (_) {
-      return List<String>.from(kDefaultPrintSpecimenTableColumnIds);
-    }
-  }
-
-  Future<void> setPrintSpecimenTableColumnIds(List<String> ids) async {
-    final p = await _p;
-    await p.setString(_kPrintTableColumns, jsonEncode(ids));
   }
 
   Future<String> getPrintPageSizeKey() async {

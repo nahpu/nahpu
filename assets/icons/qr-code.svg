@@ -1,3 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 6h13v13H6z" />
+  <path d="M29 6h13v13H29z" />
+  <path d="M6 29h13v13H6z" />
+  <g fill="currentColor" stroke="none">
+    <path d="M10 10h5v5h-5z" />
+    <path d="M33 10h5v5h-5z" />
+    <path d="M10 33h5v5h-5z" />
+  </g>
+  <g stroke-width="2">
+    <path d="M29 29h6v6h-6z" />
+    <path d="M40 29h2" />
+    <path d="M40 36h2" />
+    <path d="M29 41h6" />
+    <path d="M40 41h2" />
+    <path d="M24 6v6" />
+    <path d="M24 18v6" />
+    <path d="M6 24h6" />
+    <path d="M18 24h6" />
+  </g>
 </svg>

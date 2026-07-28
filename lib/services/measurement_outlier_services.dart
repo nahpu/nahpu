@@ -41,7 +41,7 @@ extension MammalMeasurementOutlierFieldInfo on MammalMeasurementOutlierField {
     }
   }
 
-  double? readValue(MammalMeasurementData data) {
+  double? readValue(MammalAttributeData data) {
     switch (this) {
       case MammalMeasurementOutlierField.totalLength:
         return data.totalLength;
@@ -160,6 +160,7 @@ class IqrOutlierRange {
   }
 }
 
+/// Detects unusual numeric mammal measurements from mammal attribute records.
 class MammalMeasurementOutlierServices extends AppServices {
   const MammalMeasurementOutlierServices({required super.ref});
 
@@ -178,7 +179,7 @@ class MammalMeasurementOutlierServices extends AppServices {
         await SpecimenQuery(dbAccess).getAllSpecimens(currentProjectUuid);
     final specimenUuids = specimens.map((specimen) => specimen.uuid).toList();
     final measurements = await MammalSpecimenQuery(dbAccess)
-        .getMammalMeasurementsBySpecimenUuids(specimenUuids);
+        .getMammalAttributesBySpecimenUuids(specimenUuids);
     final measurementByUuid = {
       for (final measurement in measurements)
         measurement.specimenUuid: measurement
@@ -229,7 +230,7 @@ class MammalMeasurementOutlierServices extends AppServices {
 
   List<double> _valuesForSpecimens(
     Iterable<SpecimenData> specimens,
-    Map<String, MammalMeasurementData> measurementByUuid,
+    Map<String, MammalAttributeData> measurementByUuid,
     MammalMeasurementOutlierField field,
   ) {
     final values = <double>[];

@@ -22,6 +22,7 @@ void main() {
 
     expect(find.text('Show QR'), findsOneWidget);
     expect(find.text('Export site'), findsOneWidget);
+    expect(find.text('Copy from project ...'), findsOneWidget);
     expect(find.text('Scan QR'), findsOneWidget);
     expect(find.text('Import site'), findsOneWidget);
   });

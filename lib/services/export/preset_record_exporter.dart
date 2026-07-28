@@ -11,6 +11,7 @@ import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/text_replacements.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/templates/template_model.dart'
@@ -58,7 +59,7 @@ class PresetRecordExporter {
       headers: headers,
       rows: [
         for (final row in rows)
-          [for (final header in headers) row[header] ?? '']
+          [for (final header in headers) row[header] ?? ''],
       ],
     );
   }
@@ -105,30 +106,39 @@ class PresetRecordExporter {
     switch (preset.recordType) {
       case RecordType.specimenRecord:
         final specimens = await _specimens();
-        return Future.wait(specimens.map(
-          (specimen) => documentFieldValuesForSpecimen(db, specimen, ref),
-        ));
+        return Future.wait(
+          specimens.map(
+            (specimen) => documentFieldValuesForSpecimen(db, specimen, ref),
+          ),
+        );
       case RecordType.site:
         final sites = await SiteServices(ref: ref).getAllSites();
-        return Future.wait(sites.map(
-          (site) => documentFieldValuesForSite(db, site, ref),
-        ));
+        return Future.wait(
+          sites.map((site) => documentFieldValuesForSite(db, site, ref)),
+        );
       case RecordType.collEvent:
         final events = await CollEventServices(ref: ref).getAllCollEvents();
-        return Future.wait(events.map(
-          (event) => documentFieldValuesForCollEvent(db, event, ref),
-        ));
+        return Future.wait(
+          events.map(
+            (event) => documentFieldValuesForCollEvent(db, event, ref),
+          ),
+        );
       case RecordType.narrative:
         final narratives = await NarrativeServices(ref: ref).getAllNarrative();
-        return Future.wait(narratives.map(
-          (narrative) => documentFieldValuesForNarrative(db, narrative, ref),
-        ));
+        return Future.wait(
+          narratives.map(
+            (narrative) => documentFieldValuesForNarrative(db, narrative, ref),
+          ),
+        );
       case RecordType.specimenParts:
-        final parts =
-            await SpecimenPartServices(ref: ref).getProjectSpecimenParts();
-        return Future.wait(parts.map(
-          (part) => documentFieldValuesForSpecimenPart(db, part, ref),
-        ));
+        final parts = await SpecimenPartServices(
+          ref: ref,
+        ).getProjectSpecimenParts();
+        return Future.wait(
+          parts.map(
+            (part) => documentFieldValuesForSpecimenPart(db, part, ref),
+          ),
+        );
       case RecordType.none:
         return const [];
     }
@@ -178,11 +188,13 @@ class PresetRecordExporter {
           });
           final base = headerResolver.headerFor(mapping);
           for (var index = 1; index <= count; index++) {
-            headers.add(formatIndexedExportHeader(
-              base,
-              index,
-              mapping.indexedHeaderStyle,
-            ));
+            headers.add(
+              formatIndexedExportHeader(
+                base,
+                index,
+                mapping.indexedHeaderStyle,
+              ),
+            );
           }
         } else if (source != null) {
           headers.addAll(headerResolver.headersForSource(source));
@@ -195,19 +207,23 @@ class PresetRecordExporter {
       if (mapping.nestedMode == NestedExportMode.concatenate) {
         headers.add(headerResolver.headerFor(mapping));
       } else if (mapping.nestedMode == NestedExportMode.expandRows) {
-        headers.addAll(mapping.nestedFields.map(
-          (field) => headerResolver.nestedHeader(mapping, field),
-        ));
+        headers.addAll(
+          mapping.nestedFields.map(
+            (field) => headerResolver.nestedHeader(mapping, field),
+          ),
+        );
       } else {
         final count = sourceRecords.fold<int>(0, (maxCount, record) {
           final current = _nestedRows(record, mapping).length;
           return current > maxCount ? current : maxCount;
         });
         for (var index = 1; index <= count; index++) {
-          headers.addAll(mapping.nestedFields.map(
-            (field) =>
-                headerResolver.nestedHeader(mapping, field, index: index),
-          ));
+          headers.addAll(
+            mapping.nestedFields.map(
+              (field) =>
+                  headerResolver.nestedHeader(mapping, field, index: index),
+            ),
+          );
         }
       }
     }
@@ -233,12 +249,15 @@ class PresetRecordExporter {
         [...base, for (final _ in mapping.nestedFields) ''],
       ];
     }
-    return nestedRows.map((nested) {
-      return [
-        ...base,
-        for (final field in mapping.nestedFields) nested[field] ?? '',
-      ];
-    }).toList(growable: false);
+    return nestedRows
+        .map((nested) {
+          return [
+            ...base,
+            for (final field in mapping.nestedFields)
+              _applyReplacements(mapping, nested[field] ?? ''),
+          ];
+        })
+        .toList(growable: false);
   }
 
   List<String> _darwinCoreBaseValues(
@@ -263,15 +282,21 @@ class PresetRecordExporter {
           });
           final items = _listValues(source, mapping);
           for (var index = 0; index < maxCount; index++) {
-            values.add(index < items.length ? items[index] : '');
+            values.add(
+              index < items.length
+                  ? _applyReplacements(mapping, items[index])
+                  : '',
+            );
           }
         } else if (directSource != null) {
           final value = _formatDarwinCoreScalar(source, mapping);
           final dwc = headerResolver.dwcMappingForSource(directSource);
           if (dwc?.isMeasurement == true) {
-            values.addAll(value.trim().isEmpty
-                ? const ['', '', '']
-                : [dwc!.measurementType!, value, dwc.measurementUnit ?? '']);
+            values.addAll(
+              value.trim().isEmpty
+                  ? const ['', '', '']
+                  : [dwc!.measurementType!, value, dwc.measurementUnit ?? ''],
+            );
           } else {
             final count = headerResolver.headersForSource(directSource).length;
             values.addAll(List<String>.filled(count, value));
@@ -286,15 +311,29 @@ class PresetRecordExporter {
       switch (mapping.nestedMode) {
         case NestedExportMode.concatenate:
           if (mapping.nestedFields.length == 1) {
-            values.add(formatDarwinCoreList(
-              nestedRows.map((row) => row[mapping.nestedFields.single] ?? ''),
-            ));
+            values.add(
+              _applyReplacements(
+                mapping,
+                formatDarwinCoreList(
+                  nestedRows.map(
+                    (row) => row[mapping.nestedFields.single] ?? '',
+                  ),
+                ),
+              ),
+            );
           } else {
-            values.add(nestedRows
-                .map((row) => mapping.nestedFields
-                    .map((field) => row[field] ?? '')
-                    .join(mapping.fieldSeparator))
-                .join(mapping.recordSeparator));
+            values.add(
+              _applyReplacements(
+                mapping,
+                nestedRows
+                    .map(
+                      (row) => mapping.nestedFields
+                          .map((field) => row[field] ?? '')
+                          .join(mapping.fieldSeparator),
+                    )
+                    .join(mapping.recordSeparator),
+              ),
+            );
           }
         case NestedExportMode.spreadColumns:
           final maxCount = sourceRecords.fold<int>(0, (max, record) {
@@ -303,9 +342,14 @@ class PresetRecordExporter {
           });
           for (var index = 0; index < maxCount; index++) {
             for (final field in mapping.nestedFields) {
-              values.add(index < nestedRows.length
-                  ? nestedRows[index][field] ?? ''
-                  : '');
+              values.add(
+                index < nestedRows.length
+                    ? _applyReplacements(
+                        mapping,
+                        nestedRows[index][field] ?? '',
+                      )
+                    : '',
+              );
             }
           }
         case NestedExportMode.expandRows:
@@ -374,9 +418,9 @@ class PresetRecordExporter {
       final start = _sourceValue(source, directSource)?.trim() ?? '';
       final end = _sourceValue(source, endSource)?.trim() ?? '';
       if (start.isNotEmpty && end.isNotEmpty && start != end) {
-        return '$start/$end';
+        return _applyReplacements(mapping, '$start/$end');
       }
-      return start.isNotEmpty ? start : end;
+      return _applyReplacements(mapping, start.isNotEmpty ? start : end);
     }
 
     if (_darwinCoreAgentSources.contains(directSource)) {
@@ -386,16 +430,18 @@ class PresetRecordExporter {
           .toList(growable: false);
       final names = <String>[];
       for (final agentSource in selectedAgents) {
-        for (final rawValue
-            in splitExportListValue(_sourceValue(source, agentSource) ?? '')) {
-          final name = (agentSource == 'collEvent::personnel' ||
+        for (final rawValue in splitExportListValue(
+          _sourceValue(source, agentSource) ?? '',
+        )) {
+          final name =
+              (agentSource == 'collEvent::personnel' ||
                   agentSource == 'event::personnel')
               ? rawValue.split(';').first.trim()
               : rawValue.trim();
           if (name.isNotEmpty && !names.contains(name)) names.add(name);
         }
       }
-      return formatDarwinCoreList(names);
+      return _applyReplacements(mapping, formatDarwinCoreList(names));
     }
     return _formatScalar(source, mapping);
   }
@@ -414,11 +460,13 @@ class PresetRecordExporter {
             return current > maxCount ? current : maxCount;
           });
           for (var index = 1; index <= count; index++) {
-            headers.add(formatIndexedExportHeader(
-              headerResolver.headerFor(mapping),
-              index,
-              mapping.indexedHeaderStyle,
-            ));
+            headers.add(
+              formatIndexedExportHeader(
+                headerResolver.headerFor(mapping),
+                index,
+                mapping.indexedHeaderStyle,
+              ),
+            );
           }
         } else {
           headers.add(headerResolver.headerFor(mapping));
@@ -439,10 +487,12 @@ class PresetRecordExporter {
           return current > maxCount ? current : maxCount;
         });
         for (var index = 1; index <= count; index++) {
-          headers.addAll(fields.map(
-            (field) =>
-                headerResolver.nestedHeader(mapping, field, index: index),
-          ));
+          headers.addAll(
+            fields.map(
+              (field) =>
+                  headerResolver.nestedHeader(mapping, field, index: index),
+            ),
+          );
         }
       }
     }
@@ -464,11 +514,16 @@ class PresetRecordExporter {
             headerResolver.headerFor(mapping),
             index + 1,
             mapping.indexedHeaderStyle,
-          )] = values[index];
+          )] = _applyReplacements(
+            mapping,
+            values[index],
+          );
         }
       } else {
-        base[headerResolver.headerFor(mapping)] =
-            _formatScalar(source, mapping);
+        base[headerResolver.headerFor(mapping)] = _formatScalar(
+          source,
+          mapping,
+        );
       }
     }
 
@@ -481,21 +536,33 @@ class PresetRecordExporter {
           if (preset.headerFormat == ExportHeaderFormat.darwinCore &&
               mapping.nestedFields.length == 1) {
             final field = mapping.nestedFields.single;
-            base[header] = formatDarwinCoreList(
-              nestedRows.map((row) => row[field] ?? ''),
+            base[header] = _applyReplacements(
+              mapping,
+              formatDarwinCoreList(nestedRows.map((row) => row[field] ?? '')),
             );
           } else {
-            base[header] = nestedRows
-                .map((row) => mapping.nestedFields
-                    .map((field) => row[field] ?? '')
-                    .join(mapping.fieldSeparator))
-                .join(mapping.recordSeparator);
+            base[header] = _applyReplacements(
+              mapping,
+              nestedRows
+                  .map(
+                    (row) => mapping.nestedFields
+                        .map((field) => row[field] ?? '')
+                        .join(mapping.fieldSeparator),
+                  )
+                  .join(mapping.recordSeparator),
+            );
           }
         case NestedExportMode.spreadColumns:
           for (var index = 0; index < nestedRows.length; index++) {
             for (final field in mapping.nestedFields) {
-              base[headerResolver.nestedHeader(mapping, field,
-                  index: index + 1)] = nestedRows[index][field] ?? '';
+              base[headerResolver.nestedHeader(
+                mapping,
+                field,
+                index: index + 1,
+              )] = _applyReplacements(
+                mapping,
+                nestedRows[index][field] ?? '',
+              );
             }
           }
         case NestedExportMode.expandRows:
@@ -507,26 +574,28 @@ class PresetRecordExporter {
     final expansionMapping = rowMapping;
     final nestedRows = _nestedRows(source, expansionMapping);
     if (nestedRows.isEmpty) return [_fillHeaders(base, headers)];
-    return nestedRows.map((nested) {
-      final row = Map<String, String>.from(base);
-      for (final field in expansionMapping.nestedFields) {
-        row[headerResolver.nestedHeader(expansionMapping, field)] =
-            nested[field] ?? '';
-      }
-      return _fillHeaders(row, headers);
-    }).toList(growable: false);
+    return nestedRows
+        .map((nested) {
+          final row = Map<String, String>.from(base);
+          for (final field in expansionMapping.nestedFields) {
+            row[headerResolver.nestedHeader(expansionMapping, field)] =
+                _applyReplacements(expansionMapping, nested[field] ?? '');
+          }
+          return _fillHeaders(row, headers);
+        })
+        .toList(growable: false);
   }
 
   Map<String, String> _fillHeaders(
-      Map<String, String> row, List<String> headers) {
+    Map<String, String> row,
+    List<String> headers,
+  ) {
     for (final header in headers) {
       row.putIfAbsent(header, () => '');
     }
     return row.map(
-      (header, value) => MapEntry(
-        header,
-        truncateTrailingDecimalZeroText(value),
-      ),
+      (header, value) =>
+          MapEntry(header, truncateTrailingDecimalZeroText(value)),
     );
   }
 
@@ -534,15 +603,19 @@ class PresetRecordExporter {
     if (preset.headerFormat == ExportHeaderFormat.darwinCore &&
         mapping.textType == 'list' &&
         mapping.listMode == ListExportMode.concatenate) {
-      return formatDarwinCoreList(_listValues(source, mapping));
+      return _applyReplacements(
+        mapping,
+        formatDarwinCoreList(_listValues(source, mapping)),
+      );
     }
-    final effectiveTextType =
-        mapping.textType == kConditionalBracketExportTextType
-            ? 'normal'
-            : mapping.textType;
-    final substituted = substituteDocumentPlaceholders(
-      mapping.expression,
-      source,
+    final isConditional =
+        mapping.textType == kConditionalBracketExportTextType ||
+        isConditionalReplacementExportTextType(mapping.textType);
+    final effectiveTextType = isConditional ? 'normal' : mapping.textType;
+    final substituted = resolveDocumentTemplatePlaceholders(
+      text: mapping.expression,
+      data: source,
+      caseFormat: mapping.caseFormat,
       nullFallbackOption: mapping.nullFallbackOption,
       customNullFallbackText: mapping.customNullFallbackText,
       textType: effectiveTextType,
@@ -554,27 +627,42 @@ class PresetRecordExporter {
       mapping.formatOption,
       mapping.caseFormat,
     );
-    if (mapping.textType != kConditionalBracketExportTextType) {
-      return formatted;
+    if (!isConditional) {
+      return _applyReplacements(mapping, formatted);
     }
     final target = _directSourceField(mapping.expression);
     if (target == null ||
         (_sourceValue(source, target)?.trim().isEmpty ?? true)) {
-      return formatted;
+      return _applyReplacements(mapping, formatted);
     }
+    final conditions = mapping.textType == kConditionalValueExportTextType
+        ? mapping.bracketConditions
+              .map((condition) => condition.copyWith(sourceField: target))
+              .toList(growable: false)
+        : mapping.bracketConditions;
     final matches = conditionalBracketConditionsMatch(
-      mapping.bracketConditions,
+      conditions,
       mapping.bracketConditionMode,
       (field) => _sourceValue(source, field),
     );
-    return matches ? addConditionalBrackets(formatted) : formatted;
+    if (!matches) return _applyReplacements(mapping, formatted);
+    if (mapping.textType == kConditionalBracketExportTextType) {
+      return _applyReplacements(mapping, addConditionalBrackets(formatted));
+    }
+    return _applyReplacements(mapping, mapping.conditionalText);
+  }
+
+  String _applyReplacements(ExportFieldMapping mapping, String value) {
+    return applyTextReplacementRules(
+      truncateTrailingDecimalZeroText(value),
+      mapping.replacementRules,
+    );
   }
 
   String? _directSourceField(String expression) {
-    return RegExp(r'^\s*\[([^\]]+)\]\s*$')
-        .firstMatch(expression)
-        ?.group(1)
-        ?.trim();
+    return RegExp(
+      r'^\s*\[([^\]]+)\]\s*$',
+    ).firstMatch(expression)?.group(1)?.trim();
   }
 
   String? _sourceValue(Map<String, String> source, String field) {
@@ -610,12 +698,16 @@ class PresetRecordExporter {
     Map<String, String> source,
     ExportFieldMapping mapping,
   ) {
-    final values = mapping.nestedFields.map((field) {
-      final key = '${mapping.nestedNamespace}::$field';
-      return splitExportListValue(source[key] ?? '');
-    }).toList(growable: false);
+    final values = mapping.nestedFields
+        .map((field) {
+          final key = '${mapping.nestedNamespace}::$field';
+          return splitExportListValue(source[key] ?? '');
+        })
+        .toList(growable: false);
     final count = values.fold<int>(
-        0, (max, value) => value.length > max ? value.length : max);
+      0,
+      (max, value) => value.length > max ? value.length : max,
+    );
     if (count == 0 ||
         values.every((value) => value.every((item) => item.isEmpty))) {
       return const [];
@@ -623,9 +715,11 @@ class PresetRecordExporter {
     return List.generate(
       count,
       (index) => {
-        for (var fieldIndex = 0;
-            fieldIndex < mapping.nestedFields.length;
-            fieldIndex++)
+        for (
+          var fieldIndex = 0;
+          fieldIndex < mapping.nestedFields.length;
+          fieldIndex++
+        )
           mapping.nestedFields[fieldIndex]: index < values[fieldIndex].length
               ? values[fieldIndex][index]
               : '',
@@ -661,36 +755,51 @@ List<String> validateExportPreset(ExportPresetModel preset) {
       }
     } else if (mapping.expression.trim().isEmpty) {
       errors.add('Scalar mappings require a source expression.');
-    } else if (mapping.textType == kConditionalBracketExportTextType) {
-      final directSource =
-          RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(mapping.expression);
+    } else if (mapping.textType == kConditionalBracketExportTextType ||
+        isConditionalReplacementExportTextType(mapping.textType)) {
+      final directSource = RegExp(
+        r'^\s*\[[^\]]+\]\s*$',
+      ).hasMatch(mapping.expression);
       if (!directSource) {
-        errors.add('Conditional brackets require exactly one source field.');
+        errors.add('Conditional output requires exactly one source field.');
       }
       if (mapping.bracketConditions.isEmpty) {
-        errors.add('Add at least one bracket condition.');
+        errors.add('Add at least one condition.');
+      }
+      if (isConditionalReplacementExportTextType(mapping.textType) &&
+          mapping.conditionalText.isEmpty) {
+        errors.add('Enter conditional replacement text.');
       }
       for (final condition in mapping.bracketConditions) {
-        if (condition.sourceField.trim().isEmpty) {
+        if (mapping.textType != kConditionalValueExportTextType &&
+            condition.sourceField.trim().isEmpty) {
           errors.add('Choose a controlling field for every bracket condition.');
         }
         if (condition.comparisonValue.trim().isEmpty) {
           errors.add('Enter a comparison value for every bracket condition.');
         }
-        final target = RegExp(r'^\s*\[([^\]]+)\]\s*$')
-            .firstMatch(mapping.expression)
-            ?.group(1)
-            ?.trim();
-        if (target != null &&
+        final target = RegExp(
+          r'^\s*\[([^\]]+)\]\s*$',
+        ).firstMatch(mapping.expression)?.group(1)?.trim();
+        if (mapping.textType != kConditionalValueExportTextType &&
+            target != null &&
             condition.sourceField.trim().toLowerCase() ==
                 target.toLowerCase()) {
-          errors.add('A measurement cannot depend on itself.');
+          errors.add('A conditional field cannot depend on itself.');
         }
       }
     } else if (mapping.textType == 'list' &&
         mapping.listMode == ListExportMode.spreadColumns &&
         !RegExp(r'^\s*\[[^\]]+\]\s*$').hasMatch(mapping.expression)) {
       errors.add('Indexed list mappings require exactly one source field.');
+    }
+    for (var index = 0; index < mapping.replacementRules.length; index++) {
+      final error = validateTextReplacementRule(
+        mapping.replacementRules[index],
+      );
+      if (error != null) {
+        errors.add('Replacement rule ${index + 1}: $error');
+      }
     }
     if (mappingRequiresHeaderOverride(preset.headerFormat, mapping)) {
       errors.add(
@@ -705,9 +814,11 @@ List<String> validateExportPreset(ExportPresetModel preset) {
     }
   }
   if (preset.mappings
-          .where((mapping) =>
-              mapping.isNested &&
-              mapping.nestedMode == NestedExportMode.expandRows)
+          .where(
+            (mapping) =>
+                mapping.isNested &&
+                mapping.nestedMode == NestedExportMode.expandRows,
+          )
           .length >
       1) {
     errors.add('Only one nested mapping can expand export rows.');

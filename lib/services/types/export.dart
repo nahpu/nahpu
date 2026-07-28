@@ -1,4 +1,6 @@
 import 'package:nahpu/services/conditional_brackets.dart';
+import 'package:nahpu/services/specimen_attribute_names.dart';
+import 'package:nahpu/services/text_replacements.dart';
 
 enum ExportFmt { csv, tsv, excel, json }
 
@@ -22,18 +24,19 @@ const List<String> exportFormats = [
   'JSON (.json)',
 ];
 
-enum DbExportFmt { sqlite3 }
+enum DbArchiveFormat { zip, tarGzip }
 
-const Map<DbExportFmt, String> dbExportFmt = {
-  DbExportFmt.sqlite3: 'Database (.sqlite3)',
-};
+extension DbArchiveFormatLabel on DbArchiveFormat {
+  String get label => switch (this) {
+    DbArchiveFormat.zip => 'ZIP (.zip)',
+    DbArchiveFormat.tarGzip => 'TAR.GZ (.tar.gz)',
+  };
 
-enum ConfigExportFmt { json, jsonl }
-
-const Map<ConfigExportFmt, String> configExportFmt = {
-  ConfigExportFmt.json: 'JSON (.json)',
-  ConfigExportFmt.jsonl: 'JSON Lines (.json.nl)',
-};
+  String get extension => switch (this) {
+    DbArchiveFormat.zip => 'zip',
+    DbArchiveFormat.tarGzip => 'tar.gz',
+  };
+}
 
 enum ArchiveFmt { zip }
 
@@ -64,11 +67,7 @@ enum SpecimenRecordType {
   allTaxa,
 }
 
-enum SpecimenExportFmt {
-  standard,
-  allFields,
-  selectFields,
-}
+enum SpecimenExportFmt { standard, allFields, selectFields }
 
 const List<String> specimenExportFmtList = [
   'Standard',
@@ -76,23 +75,11 @@ const List<String> specimenExportFmtList = [
   'Custom fields',
 ];
 
-enum TaxonRecordType {
-  birds,
-  mammals,
-  herps,
-}
+enum TaxonRecordType { birds, mammals, herps }
 
-const List<String> taxonRecordTypeList = [
-  'Birds',
-  'Mammals',
-  'Herpetofauna',
-];
+const List<String> taxonRecordTypeList = ['Birds', 'Mammals', 'Herpetofauna'];
 
-enum MammalRecordType {
-  excludeBats,
-  onlyBats,
-  allMammals,
-}
+enum MammalRecordType { excludeBats, onlyBats, allMammals }
 
 const List<String> mammalGroupList = [
   'Exclude bats',
@@ -106,7 +93,7 @@ enum RecordType {
   collEvent,
   specimenRecord,
   specimenParts,
-  none
+  none,
 }
 
 const List<String> recordTypeList = [
@@ -163,7 +150,7 @@ const siteExportList = [
   'site::coordinates',
 ];
 
-const mammalMeasurementExportList = [
+const mammalAttributeExportList = [
   'measurement::totalLength',
   'measurement::tailLength',
   'measurement::hindFootLength',
@@ -192,7 +179,7 @@ const mammalMeasurementExportList = [
   'measurement::remark',
 ];
 
-const batMeasurementExportList = [
+const batAttributeExportList = [
   'measurement::totalLength',
   'measurement::tailLength',
   'measurement::hindFootLength',
@@ -228,15 +215,19 @@ const batMeasurementExportList = [
   'measurement::remark',
 ];
 
-const avianMeasurementExportList = [
+const birdAttributeExportList = [
   'measurement::weight',
   'measurement::wingspan',
   'measurement::irisColor',
   'measurement::irisHex',
   'measurement::billColor',
   'measurement::billHex',
-  'measurement::footColor',
-  'measurement::footHex',
+  'measurement::maxillaColor',
+  'measurement::maxillaHex',
+  'measurement::mandibleColor',
+  'measurement::mandibleHex',
+  'measurement::toeColor',
+  'measurement::toeHex',
   'measurement::tarsusColor',
   'measurement::tarsusHex',
   'measurement::sex',
@@ -269,7 +260,7 @@ const avianMeasurementExportList = [
   'measurement::habitatRemark',
 ];
 
-const herpMeasurementExportList = [
+const herpAttributeExportList = [
   'measurement::sex',
   'measurement::age',
   'measurement::weight',
@@ -325,11 +316,29 @@ enum ListExportMode { concatenate, spreadColumns }
 /// How a one-based index is added to an exported column name.
 enum IndexedHeaderStyle { underscore, compact, brackets }
 
-const int recordExportPresetSchemaVersion = 6;
-const Set<int> _supportedRecordExportPresetSchemaVersions = {2, 3, 4, 5, 6};
+const int recordExportPresetSchemaVersion = 10;
+const Set<int> _supportedRecordExportPresetSchemaVersions = {
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+};
 
 /// Scalar export format that conditionally wraps a populated value in brackets.
 const String kConditionalBracketExportTextType = 'conditionalBrackets';
+
+/// Scalar export formats that replace a matching populated value with text.
+const String kConditionalFieldExportTextType = 'conditionalField';
+const String kConditionalValueExportTextType = 'conditionalValue';
+
+bool isConditionalReplacementExportTextType(String textType) =>
+    textType == kConditionalFieldExportTextType ||
+    textType == kConditionalValueExportTextType;
 
 /// One visual segment of a scalar export expression.
 ///
@@ -355,14 +364,16 @@ List<ExportExpressionSegment> parseExportExpression(String expression) {
     final start = expression.indexOf('[', cursor);
     if (start == -1) {
       if (cursor < expression.length) {
-        segments
-            .add(ExportExpressionSegment.text(expression.substring(cursor)));
+        segments.add(
+          ExportExpressionSegment.text(expression.substring(cursor)),
+        );
       }
       break;
     }
     if (start > cursor) {
       segments.add(
-          ExportExpressionSegment.text(expression.substring(cursor, start)));
+        ExportExpressionSegment.text(expression.substring(cursor, start)),
+      );
     }
     final end = expression.indexOf(']', start + 1);
     if (end == -1) {
@@ -372,7 +383,8 @@ List<ExportExpressionSegment> parseExportExpression(String expression) {
     final field = expression.substring(start + 1, end).trim();
     if (field.isEmpty) {
       segments.add(
-          ExportExpressionSegment.text(expression.substring(start, end + 1)));
+        ExportExpressionSegment.text(expression.substring(start, end + 1)),
+      );
     } else {
       segments.add(ExportExpressionSegment.field(field));
     }
@@ -386,7 +398,8 @@ List<ExportExpressionSegment> parseExportExpression(String expression) {
 String serializeExportExpression(Iterable<ExportExpressionSegment> segments) =>
     segments
         .map(
-            (segment) => segment.isField ? '[${segment.value}]' : segment.value)
+          (segment) => segment.isField ? '[${segment.value}]' : segment.value,
+        )
         .join();
 
 bool isDirectExportSourceExpression(String expression) {
@@ -417,6 +430,8 @@ class ExportFieldMapping {
     this.recordSeparator = ';',
     this.bracketConditions = const [],
     this.bracketConditionMode = ConditionalMatchMode.any,
+    this.conditionalText = '',
+    this.replacementRules = const [],
   });
 
   final String expression;
@@ -434,11 +449,17 @@ class ExportFieldMapping {
   final String fieldSeparator;
   final String recordSeparator;
 
-  /// Conditions used when [textType] is [kConditionalBracketExportTextType].
+  /// Comparisons used by bracket and conditional replacement formats.
   final List<ConditionalBracketCondition> bracketConditions;
 
   /// Whether [bracketConditions] are combined with OR or AND semantics.
   final ConditionalMatchMode bracketConditionMode;
+
+  /// Literal replacement emitted by conditional field and value formats.
+  final String conditionalText;
+
+  /// Ordered text replacements applied after all mapping transformations.
+  final List<TextReplacementRule> replacementRules;
 
   bool get isNested => nestedNamespace != null;
 
@@ -461,11 +482,14 @@ class ExportFieldMapping {
     String? recordSeparator,
     List<ConditionalBracketCondition>? bracketConditions,
     ConditionalMatchMode? bracketConditionMode,
+    String? conditionalText,
+    List<TextReplacementRule>? replacementRules,
   }) {
     return ExportFieldMapping(
       expression: expression ?? this.expression,
-      headerOverride:
-          clearHeaderOverride ? null : (headerOverride ?? this.headerOverride),
+      headerOverride: clearHeaderOverride
+          ? null
+          : (headerOverride ?? this.headerOverride),
       textType: textType ?? this.textType,
       formatOption: formatOption ?? this.formatOption,
       caseFormat: caseFormat ?? this.caseFormat,
@@ -483,20 +507,29 @@ class ExportFieldMapping {
       recordSeparator: recordSeparator ?? this.recordSeparator,
       bracketConditions: bracketConditions ?? this.bracketConditions,
       bracketConditionMode: bracketConditionMode ?? this.bracketConditionMode,
+      conditionalText: conditionalText ?? this.conditionalText,
+      replacementRules: replacementRules ?? this.replacementRules,
     );
   }
 
   factory ExportFieldMapping.fromJson(Map<String, dynamic> json) {
     return ExportFieldMapping(
-      expression: json['expression'] as String? ?? '',
+      expression: canonicalizeSpecimenAttributeExpression(
+        json['expression'] as String? ?? '',
+      ),
       headerOverride: json['headerOverride'] as String?,
       textType: json['textType'] as String? ?? 'normal',
       formatOption: json['formatOption'] as String? ?? 'normal',
       caseFormat: json['caseFormat'] as String? ?? 'normal',
       nullFallbackOption: json['nullFallbackOption'] as String? ?? 'blank',
       customNullFallbackText: json['customNullFallbackText'] as String? ?? '',
-      nestedNamespace: json['nestedNamespace'] as String?,
-      nestedFields: List<String>.from(json['nestedFields'] as List? ?? []),
+      nestedNamespace: switch (json['nestedNamespace']) {
+        final String value => canonicalizeSpecimenAttributeTableName(value),
+        _ => null,
+      },
+      nestedFields: List<String>.from(
+        json['nestedFields'] as List? ?? [],
+      ).map(canonicalizeSpecimenAttributeSourceKey).toList(growable: false),
       nestedMode: NestedExportMode.values.byName(
         json['nestedMode'] as String? ?? NestedExportMode.concatenate.name,
       ),
@@ -511,35 +544,52 @@ class ExportFieldMapping {
       recordSeparator: json['recordSeparator'] as String? ?? ';',
       bracketConditions: (json['bracketConditions'] as List? ?? [])
           .whereType<Map>()
-          .map((value) => ConditionalBracketCondition.fromJson(
-              Map<String, dynamic>.from(value)))
+          .map(
+            (value) => ConditionalBracketCondition.fromJson(
+              Map<String, dynamic>.from(value),
+            ),
+          )
           .toList(growable: false),
       bracketConditionMode: ConditionalMatchMode.values.byName(
         json['bracketConditionMode'] as String? ??
             ConditionalMatchMode.any.name,
       ),
+      conditionalText: json['conditionalText'] as String? ?? '',
+      replacementRules: (json['replacementRules'] as List? ?? [])
+          .whereType<Map>()
+          .map(
+            (value) =>
+                TextReplacementRule.fromJson(Map<String, dynamic>.from(value)),
+          )
+          .toList(growable: false),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'expression': expression,
-        if (headerOverride != null) 'headerOverride': headerOverride,
-        'textType': textType,
-        'formatOption': formatOption,
-        'caseFormat': caseFormat,
-        'nullFallbackOption': nullFallbackOption,
-        'customNullFallbackText': customNullFallbackText,
-        if (nestedNamespace != null) 'nestedNamespace': nestedNamespace,
-        'nestedFields': nestedFields,
-        'nestedMode': nestedMode.name,
-        'listMode': listMode.name,
-        'indexedHeaderStyle': indexedHeaderStyle.name,
-        'fieldSeparator': fieldSeparator,
-        'recordSeparator': recordSeparator,
-        'bracketConditions':
-            bracketConditions.map((condition) => condition.toJson()).toList(),
-        'bracketConditionMode': bracketConditionMode.name,
-      };
+    'expression': expression,
+    if (headerOverride != null) 'headerOverride': headerOverride,
+    'textType': textType,
+    'formatOption': formatOption,
+    'caseFormat': caseFormat,
+    'nullFallbackOption': nullFallbackOption,
+    'customNullFallbackText': customNullFallbackText,
+    if (nestedNamespace != null) 'nestedNamespace': nestedNamespace,
+    'nestedFields': nestedFields,
+    'nestedMode': nestedMode.name,
+    'listMode': listMode.name,
+    'indexedHeaderStyle': indexedHeaderStyle.name,
+    'fieldSeparator': fieldSeparator,
+    'recordSeparator': recordSeparator,
+    'bracketConditions': bracketConditions
+        .map((condition) => condition.toJson())
+        .toList(),
+    'bracketConditionMode': bracketConditionMode.name,
+    if (conditionalText.isNotEmpty) 'conditionalText': conditionalText,
+    if (replacementRules.isNotEmpty)
+      'replacementRules': replacementRules
+          .map((rule) => rule.toJson())
+          .toList(),
+  };
 }
 
 /// A complete, versioned configuration for one record export.
@@ -559,11 +609,11 @@ class ExportPresetModel {
   final List<ExportFieldMapping> mappings;
 
   factory ExportPresetModel.empty() => const ExportPresetModel(
-        recordType: RecordType.specimenRecord,
-        specimenRecordType: SpecimenRecordType.allTaxa,
-        headerFormat: ExportHeaderFormat.tableFieldName,
-        mappings: [],
-      );
+    recordType: RecordType.specimenRecord,
+    specimenRecordType: SpecimenRecordType.allTaxa,
+    headerFormat: ExportHeaderFormat.tableFieldName,
+    mappings: [],
+  );
 
   factory ExportPresetModel.fromJson(Map<String, dynamic> json) {
     final schemaVersion = json['schemaVersion'] as int?;
@@ -582,19 +632,22 @@ class ExportPresetModel {
             ExportHeaderFormat.tableFieldName.name,
       ),
       mappings: (json['mappings'] as List? ?? [])
-          .map((value) => ExportFieldMapping.fromJson(
-              Map<String, dynamic>.from(value as Map)))
+          .map(
+            (value) => ExportFieldMapping.fromJson(
+              Map<String, dynamic>.from(value as Map),
+            ),
+          )
           .toList(growable: false),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'schemaVersion': schemaVersion,
-        'recordType': recordTypeToString(recordType),
-        'specimenRecordType': specimenRecordType.name,
-        'headerFormat': headerFormat.name,
-        'mappings': mappings.map((mapping) => mapping.toJson()).toList(),
-      };
+    'schemaVersion': schemaVersion,
+    'recordType': recordTypeToString(recordType),
+    'specimenRecordType': specimenRecordType.name,
+    'headerFormat': headerFormat.name,
+    'mappings': mappings.map((mapping) => mapping.toJson()).toList(),
+  };
 }
 
 RecordType parseRecordType(String? value) {

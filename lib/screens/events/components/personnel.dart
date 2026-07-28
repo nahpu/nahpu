@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -356,13 +357,13 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
   @override
   Widget build(BuildContext context) {
     return ref
-        .watch(userDefinedFieldProvider(collRolePrefKey))
+        .watch(effectiveUserDefinedFieldProvider(collRolePrefKey))
         .when(
           data: (data) {
-            final roles = {
-              ...data,
-              if (widget.controller.roleCtr != null) widget.controller.roleCtr!,
-            }.toList();
+            final roles = includeCurrentVocabularyValue(
+              data,
+              widget.controller.roleCtr,
+            );
             return DropdownButtonFormField<String>(
               isExpanded: true,
               initialValue: widget.controller.roleCtr,

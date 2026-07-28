@@ -11,8 +11,15 @@ import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_site_event.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:uuid/uuid.dart';
 
+/// Exchanges a specimen and its related attributes using the portable v1 wire
+/// format.
+///
+/// The wire key remains `measurements` for compatibility even though records
+/// are persisted in the mammal, bird, and herpetofauna attribute tables.
 class RecordExchangeSpecimen extends AppServices {
   const RecordExchangeSpecimen({required super.ref});
 
@@ -43,7 +50,7 @@ class RecordExchangeSpecimen extends AppServices {
             'sourceCollEventID': specimen.collEventID,
             'sourceSpeciesID': specimen.speciesID,
           }),
-      'measurements': await _exportMeasurements(specimenUuid),
+      'measurements': await _exportAttributes(specimenUuid),
       'parts':
           (await SpecimenPartQuery(dbAccess).getSpecimenParts(specimenUuid))
               .map(
@@ -54,16 +61,9 @@ class RecordExchangeSpecimen extends AppServices {
               )
               .toList(growable: false),
       'associatedData':
-          (await AssociatedDataQuery(
-                dbAccess,
-              ).getAllAssociatedData(specimenUuid))
-              .map(
-                (value) => RecordExchangeDatabase.without(value.toJson(), {
-                  'primaryId',
-                  'specimenUuid',
-                }),
-              )
-              .toList(growable: false),
+          (await AssociatedDataQuery(dbAccess).getAllAssociatedData(
+            specimenUuid,
+          )).map(support.portableAssociatedData).toList(growable: false),
       'coordinates': await _exportCoordinate(specimen.coordinateID),
       'taxonomy': await _exportTaxonomy(specimen.speciesID),
       'event': await _exportEvent(specimen.collEventID),
@@ -145,29 +145,31 @@ class RecordExchangeSpecimen extends AppServices {
           );
     }
 
-    await _importMeasurements(payload, newUuid);
+    await _importAttributes(payload, newUuid);
     await _importParts(payload, newUuid, personnelIds);
     await _importAssociatedData(payload, newUuid);
     if (payload.hasMedia) {
       await _importMedia(payload, newUuid, extractedMediaDirectory);
     }
 
+    invalidateEffectiveControlledVocabularies(ref);
+
     return RecordExchangeResult(recordUuid: newUuid);
   }
 
-  Future<Map<String, dynamic>> _exportMeasurements(String uuid) async {
+  Future<Map<String, dynamic>> _exportAttributes(String uuid) async {
     final mammal = await (dbAccess.select(
-      dbAccess.mammalMeasurement,
+      dbAccess.mammalAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
-    final avian = await (dbAccess.select(
-      dbAccess.avianMeasurement,
+    final bird = await (dbAccess.select(
+      dbAccess.birdAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
     final herp = await (dbAccess.select(
-      dbAccess.herpMeasurement,
+      dbAccess.herpAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
     return {
       'mammal': mammal?.toJson(),
-      'avian': avian?.toJson(),
+      'avian': bird?.toJson(),
       'herp': herp?.toJson(),
     };
   }
@@ -355,6 +357,7 @@ class RecordExchangeSpecimen extends AppServices {
   ) {
     final source = SpecimenData.fromJson({
       ...json,
+      'condition': canonicalizeCondition(json['condition'] as String?),
       'uuid': uuid,
       'projectUuid': currentProjectUuid,
       'speciesID': taxonomyId,
@@ -370,52 +373,57 @@ class RecordExchangeSpecimen extends AppServices {
     await AssociatedDataQuery(dbAccess).deleteAllAssociatedData(uuid);
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(uuid);
     await (dbAccess.delete(
-      dbAccess.mammalMeasurement,
+      dbAccess.mammalAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
     await (dbAccess.delete(
-      dbAccess.avianMeasurement,
+      dbAccess.birdAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
     await (dbAccess.delete(
-      dbAccess.herpMeasurement,
+      dbAccess.herpAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
   }
 
-  Future<void> _importMeasurements(
+  Future<void> _importAttributes(
     RecordExchangePayload payload,
     String uuid,
   ) async {
-    final measurements = Map<String, dynamic>.from(
+    final attributes = Map<String, dynamic>.from(
       (payload.data['measurements'] as Map?)?.cast<String, dynamic>() ??
           const {},
     );
-    final mammal = measurements['mammal'];
+    final mammal = attributes['mammal'];
     if (mammal is Map) {
       await dbAccess
-          .into(dbAccess.mammalMeasurement)
+          .into(dbAccess.mammalAttribute)
           .insert(
-            MammalMeasurementData.fromJson({
+            MammalAttributeData.fromJson({
               ...Map<String, dynamic>.from(mammal),
               'specimenUuid': uuid,
             }).toCompanion(true),
           );
     }
-    final avian = measurements['avian'];
-    if (avian is Map) {
+    final bird = attributes['avian'];
+    if (bird is Map) {
+      final birdJson = Map<String, dynamic>.from(bird);
+      birdJson['toeColor'] ??= birdJson['footColor'];
+      birdJson['toeHex'] ??= birdJson['footHex'];
+      birdJson.remove('footColor');
+      birdJson.remove('footHex');
       await dbAccess
-          .into(dbAccess.avianMeasurement)
+          .into(dbAccess.birdAttribute)
           .insert(
-            AvianMeasurementData.fromJson({
-              ...Map<String, dynamic>.from(avian),
+            BirdAttributeData.fromJson({
+              ...birdJson,
               'specimenUuid': uuid,
             }).toCompanion(true),
           );
     }
-    final herp = measurements['herp'];
+    final herp = attributes['herp'];
     if (herp is Map) {
       await dbAccess
-          .into(dbAccess.herpMeasurement)
+          .into(dbAccess.herpAttribute)
           .insert(
-            HerpMeasurementData.fromJson({
+            HerpAttributeData.fromJson({
               ...Map<String, dynamic>.from(herp),
               'specimenUuid': uuid,
             }).toCompanion(true),
@@ -452,15 +460,12 @@ class RecordExchangeSpecimen extends AppServices {
     for (final json in RecordExchangePayload.mapList(
       payload.data['associatedData'],
     )) {
-      await dbAccess
-          .into(dbAccess.associatedData)
-          .insert(
-            AssociatedDataData.fromJson({
-              ...json,
-              'primaryId': null,
-              'specimenUuid': uuid,
-            }).toCompanion(true),
-          );
+      await AssociatedDataQuery(dbAccess).createSpecimenDataAssociation(
+        uuid,
+        AssociatedDataData.fromJson(
+          support.associatedDataJson(json),
+        ).toCompanion(true),
+      );
     }
   }
 
@@ -518,6 +523,7 @@ class RecordExchangeSpecimen extends AppServices {
               additionalExif: db.Value(media.additionalExif),
               personnelId: db.Value(media.personnelId),
               fileName: db.Value(path.basename(target.path)),
+              uri: db.Value(media.uri),
               caption: db.Value(media.caption),
             ),
           );

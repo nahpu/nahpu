@@ -8,6 +8,7 @@ mixin _$TaxonomyQueryMixin on DatabaseAccessor<Database> {
   Personnel get personnel => attachedDatabase.personnel;
   Media get media => attachedDatabase.media;
   Site get site => attachedDatabase.site;
+  FossilSite get fossilSite => attachedDatabase.fossilSite;
   Coordinate get coordinate => attachedDatabase.coordinate;
   CollEvent get collEvent => attachedDatabase.collEvent;
   Weather get weather => attachedDatabase.weather;
@@ -20,11 +21,23 @@ mixin _$TaxonomyQueryMixin on DatabaseAccessor<Database> {
   Specimen get specimen => attachedDatabase.specimen;
   SpecimenMedia get specimenMedia => attachedDatabase.specimenMedia;
   AssociatedData get associatedData => attachedDatabase.associatedData;
+  SpecimenAssociatedData get specimenAssociatedData =>
+      attachedDatabase.specimenAssociatedData;
+  SiteAssociatedData get siteAssociatedData =>
+      attachedDatabase.siteAssociatedData;
   PersonnelList get personnelList => attachedDatabase.personnelList;
-  MammalMeasurement get mammalMeasurement => attachedDatabase.mammalMeasurement;
-  AvianMeasurement get avianMeasurement => attachedDatabase.avianMeasurement;
-  HerpMeasurement get herpMeasurement => attachedDatabase.herpMeasurement;
+  MammalAttribute get mammalAttribute => attachedDatabase.mammalAttribute;
+  BirdAttribute get birdAttribute => attachedDatabase.birdAttribute;
+  HerpAttribute get herpAttribute => attachedDatabase.herpAttribute;
+  ArthropodAttribute get arthropodAttribute =>
+      attachedDatabase.arthropodAttribute;
+  FossilAttribute get fossilAttribute => attachedDatabase.fossilAttribute;
+  ParasiteDetection get parasiteDetection => attachedDatabase.parasiteDetection;
+  Parasite get parasite => attachedDatabase.parasite;
   SpecimenPart get specimenPart => attachedDatabase.specimenPart;
+  CustomFieldDefinition get customFieldDefinition =>
+      attachedDatabase.customFieldDefinition;
+  CustomFieldValue get customFieldValue => attachedDatabase.customFieldValue;
   TaxonomyQueryManager get managers => TaxonomyQueryManager(this);
 }
 
@@ -39,6 +52,8 @@ class TaxonomyQueryManager {
       $MediaTableManager(_db.attachedDatabase, _db.media);
   $SiteTableManager get site =>
       $SiteTableManager(_db.attachedDatabase, _db.site);
+  $FossilSiteTableManager get fossilSite =>
+      $FossilSiteTableManager(_db.attachedDatabase, _db.fossilSite);
   $CoordinateTableManager get coordinate =>
       $CoordinateTableManager(_db.attachedDatabase, _db.coordinate);
   $CollEventTableManager get collEvent =>
@@ -63,15 +78,45 @@ class TaxonomyQueryManager {
       $SpecimenMediaTableManager(_db.attachedDatabase, _db.specimenMedia);
   $AssociatedDataTableManager get associatedData =>
       $AssociatedDataTableManager(_db.attachedDatabase, _db.associatedData);
+  $SpecimenAssociatedDataTableManager get specimenAssociatedData =>
+      $SpecimenAssociatedDataTableManager(
+        _db.attachedDatabase,
+        _db.specimenAssociatedData,
+      );
+  $SiteAssociatedDataTableManager get siteAssociatedData =>
+      $SiteAssociatedDataTableManager(
+        _db.attachedDatabase,
+        _db.siteAssociatedData,
+      );
   $PersonnelListTableManager get personnelList =>
       $PersonnelListTableManager(_db.attachedDatabase, _db.personnelList);
-  $MammalMeasurementTableManager get mammalMeasurement =>
-      $MammalMeasurementTableManager(
-          _db.attachedDatabase, _db.mammalMeasurement);
-  $AvianMeasurementTableManager get avianMeasurement =>
-      $AvianMeasurementTableManager(_db.attachedDatabase, _db.avianMeasurement);
-  $HerpMeasurementTableManager get herpMeasurement =>
-      $HerpMeasurementTableManager(_db.attachedDatabase, _db.herpMeasurement);
+  $MammalAttributeTableManager get mammalAttribute =>
+      $MammalAttributeTableManager(_db.attachedDatabase, _db.mammalAttribute);
+  $BirdAttributeTableManager get birdAttribute =>
+      $BirdAttributeTableManager(_db.attachedDatabase, _db.birdAttribute);
+  $HerpAttributeTableManager get herpAttribute =>
+      $HerpAttributeTableManager(_db.attachedDatabase, _db.herpAttribute);
+  $ArthropodAttributeTableManager get arthropodAttribute =>
+      $ArthropodAttributeTableManager(
+        _db.attachedDatabase,
+        _db.arthropodAttribute,
+      );
+  $FossilAttributeTableManager get fossilAttribute =>
+      $FossilAttributeTableManager(_db.attachedDatabase, _db.fossilAttribute);
+  $ParasiteDetectionTableManager get parasiteDetection =>
+      $ParasiteDetectionTableManager(
+        _db.attachedDatabase,
+        _db.parasiteDetection,
+      );
+  $ParasiteTableManager get parasite =>
+      $ParasiteTableManager(_db.attachedDatabase, _db.parasite);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db.attachedDatabase, _db.specimenPart);
+  $CustomFieldDefinitionTableManager get customFieldDefinition =>
+      $CustomFieldDefinitionTableManager(
+        _db.attachedDatabase,
+        _db.customFieldDefinition,
+      );
+  $CustomFieldValueTableManager get customFieldValue =>
+      $CustomFieldValueTableManager(_db.attachedDatabase, _db.customFieldValue);
 }

@@ -255,6 +255,14 @@ class DocumentWriter {
   }
 
   @visibleForTesting
+  static List<Map<String, String>> sortRecordDataForTesting({
+    required List<Map<String, String>> records,
+    required rust_config.DocumentLayoutBlock block,
+  }) {
+    return _DocumentRecordSorter.sort(records, block);
+  }
+
+  @visibleForTesting
   static String renderSingleDocumentCellTypstForTesting({
     required TemplatePage page,
     required double wPt,

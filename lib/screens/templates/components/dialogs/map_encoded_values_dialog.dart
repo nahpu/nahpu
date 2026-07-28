@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/services/types/birds.dart';
 
 class _EncodedMapping {
   _EncodedMapping({required this.key, required this.controller});
@@ -85,15 +86,17 @@ class _MapEncodedValuesDialogState extends State<MapEncodedValuesDialog> {
 
     if (cleanKey.endsWith('::sex')) {
       return {'0': 'Male', '1': 'Female', '2': 'Unknown'};
-    } else if (cleanKey == 'mammalmeasurement::age') {
+    } else if (cleanKey == 'mammalattribute::age' ||
+        cleanKey == 'mammalmeasurement::age') {
       return {'0': 'Adult', '1': 'Subadult', '2': 'Juvenile', '3': 'Unknown'};
-    } else if (cleanKey == 'herpmeasurement::age') {
+    } else if (cleanKey == 'herpattribute::age' ||
+        cleanKey == 'herpmeasurement::age') {
       return {
         '0': 'Adult',
         '1': 'Juvenile',
         '2': 'Neonate',
         '3': 'Metamorph',
-        '4': 'Unknown'
+        '4': 'Unknown',
       };
     } else if (cleanKey.endsWith('::testisposition')) {
       return {'0': 'Scrotal', '1': 'Abdominal'};
@@ -108,26 +111,13 @@ class _MapEncodedValuesDialogState extends State<MapEncodedValuesDialog> {
     } else if (cleanKey.endsWith('::mammaecondition')) {
       return {'0': 'Small', '1': 'Large', '2': 'Lactating'};
     } else if (cleanKey.endsWith('::ovaryappearance')) {
-      return {'0': 'Smooth', '1': 'Small', '2': 'At least one ovum >1 mm'};
+      return birdLabelsByIndex(ovaryAppearanceList);
     } else if (cleanKey.endsWith('::oviductappearance')) {
-      return {'0': 'Straight', '1': 'Convoluted'};
+      return birdLabelsByIndex(oviductAppearanceList);
     } else if (cleanKey.endsWith('::fat')) {
-      return {
-        '0': 'No Fat',
-        '1': 'Trace',
-        '2': 'Light',
-        '3': 'Moderate',
-        '4': 'Heavy',
-        '5': 'Extremely Heavy'
-      };
+      return birdLabelsByIndex(fatCategoryList);
     } else if (cleanKey.endsWith('::bodymolt')) {
-      return {
-        '0': 'None',
-        '1': 'Trace',
-        '2': 'Light',
-        '3': 'Moderate',
-        '4': 'Heavy'
-      };
+      return birdLabelsByIndex(bodyMoltList);
     } else if (cleanKey.endsWith('::echolocation')) {
       return {'0': 'FM', '1': 'CF', '2': 'QCF', '3': 'None'};
     } else if (cleanKey.endsWith('::broodpatch') ||
@@ -142,8 +132,9 @@ class _MapEncodedValuesDialogState extends State<MapEncodedValuesDialog> {
   }
 
   void _onSave() {
-    final pairs =
-        _mappings.map((e) => '${e.key}=${e.controller.text.trim()}').join(',');
+    final pairs = _mappings
+        .map((e) => '${e.key}=${e.controller.text.trim()}')
+        .join(',');
     Navigator.pop(context, 'custom_map:$pairs');
   }
 
@@ -200,10 +191,7 @@ class _MapEncodedValuesDialogState extends State<MapEncodedValuesDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        FilledButton(
-          onPressed: _onSave,
-          child: const Text('Save'),
-        ),
+        FilledButton(onPressed: _onSave, child: const Text('Save')),
       ],
     );
   }

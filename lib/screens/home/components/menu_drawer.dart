@@ -3,6 +3,7 @@ import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/home/components/learning_resources.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
+import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/app_settings_import.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -42,6 +43,18 @@ class HomeMenuDrawer extends StatelessWidget {
               context,
               MaterialPageRoute(
                   builder: (context) => const CreateProjectForm()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.download_rounded),
+          title: const Text('Import project'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ImportProjectScreen.newProject(),
+              ),
             );
           },
         ),
