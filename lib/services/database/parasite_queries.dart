@@ -39,6 +39,30 @@ class ParasiteQuery extends DatabaseAccessor<Database>
         .get();
   }
 
+  Future<List<String>> getDistinctCategories() {
+    return _getDistinctValues(parasite.category);
+  }
+
+  Future<List<String>> getDistinctDetectionMethods() {
+    return _getDistinctValues(parasite.detectionMethod);
+  }
+
+  Future<List<String>> getDistinctPreparationMethods() {
+    return _getDistinctValues(parasite.preparationMethod);
+  }
+
+  Future<List<String>> getDistinctAnatomicalLocations() {
+    return _getDistinctValues(parasite.anatomicalLocation);
+  }
+
+  Future<List<String>> getDistinctStorageValues() {
+    return _getDistinctValues(parasite.storage);
+  }
+
+  Future<List<String>> getDistinctTreatments() {
+    return _getDistinctValues(parasite.treatment);
+  }
+
   Future<int> createParasite(ParasiteCompanion form) {
     return into(parasite).insert(form);
   }
@@ -58,5 +82,16 @@ class ParasiteQuery extends DatabaseAccessor<Database>
     await (delete(
       parasiteDetection,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).go();
+  }
+
+  Future<List<String>> _getDistinctValues(
+    GeneratedColumn<String> column,
+  ) async {
+    final query = selectOnly(parasite, distinct: true)
+      ..addColumns([column])
+      ..where(column.isNotNull() & column.isNotValue(''))
+      ..orderBy([OrderingTerm.asc(column)]);
+    final rows = await query.get();
+    return rows.map((row) => row.read(column)).whereType<String>().toList();
   }
 }

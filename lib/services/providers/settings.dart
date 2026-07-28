@@ -39,6 +39,22 @@ const String treatmentFmtPrefKey = 'treatmentFmt';
 const String conditionPrefKey = 'specimenConditions';
 const String conditionFmtPrefKey = 'conditionFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
+const String parasiteIdPrefixPrefKey = 'parasiteIdPrefix';
+const String parasiteIdNumberPrefKey = 'parasiteIdNumber';
+const String parasiteCategoryPrefKey = 'parasiteCategories';
+const String parasiteCategoryFmtPrefKey = 'parasiteCategoryFmt';
+const String parasiteDetectionMethodPrefKey = 'parasiteDetectionMethods';
+const String parasiteDetectionMethodFmtPrefKey = 'parasiteDetectionMethodFmt';
+const String parasitePreparationMethodPrefKey = 'parasitePreparationMethods';
+const String parasitePreparationMethodFmtPrefKey =
+    'parasitePreparationMethodFmt';
+const String parasiteAnatomicalLocationPrefKey = 'parasiteAnatomicalLocations';
+const String parasiteAnatomicalLocationFmtPrefKey =
+    'parasiteAnatomicalLocationFmt';
+const String parasiteStoragePrefKey = 'parasiteStorage';
+const String parasiteStorageFmtPrefKey = 'parasiteStorageFmt';
+const String parasiteTreatmentPrefKey = 'parasiteTreatments';
+const String parasiteTreatmentFmtPrefKey = 'parasiteTreatmentFmt';
 
 // Document Export settings
 // User-configurable export presets and PDF document settings.
@@ -238,7 +254,6 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
   }
 
   Future<void> replaceAll(List<String> newOptions) async {
-    if (newOptions.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await rust_config.setUserConfigList(key: prefKey, value: newOptions);

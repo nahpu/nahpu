@@ -1074,6 +1074,36 @@ const _nahpuControlledVocabularyDefinitions = [
     configKey: conditionPrefKey,
     name: 'Specimen condition',
   ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteCategoryPrefKey,
+    name: 'Parasite category',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteDetectionMethodPrefKey,
+    name: 'Parasite detection method',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasitePreparationMethodPrefKey,
+    name: 'Parasite preparation method',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteAnatomicalLocationPrefKey,
+    name: 'Parasite anatomical location',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteStoragePrefKey,
+    name: 'Parasite storage',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteTreatmentPrefKey,
+    name: 'Parasite treatment',
+  ),
 ];
 
 class _MeasurementDefinition {

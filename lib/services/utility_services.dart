@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/site_queries.dart';
+import 'package:nahpu/services/database/parasite_queries.dart';
 
 class UtilityServices extends AppServices {
   const UtilityServices({required super.ref});
@@ -25,6 +26,18 @@ class UtilityServices extends AppServices {
         return await SpecimenPartQuery(dbAccess).getDistinctTreatments();
       case conditionPrefKey:
         return await SpecimenQuery(dbAccess).getDistinctConditions();
+      case parasiteCategoryPrefKey:
+        return await ParasiteQuery(dbAccess).getDistinctCategories();
+      case parasiteDetectionMethodPrefKey:
+        return await ParasiteQuery(dbAccess).getDistinctDetectionMethods();
+      case parasitePreparationMethodPrefKey:
+        return await ParasiteQuery(dbAccess).getDistinctPreparationMethods();
+      case parasiteAnatomicalLocationPrefKey:
+        return await ParasiteQuery(dbAccess).getDistinctAnatomicalLocations();
+      case parasiteStoragePrefKey:
+        return await ParasiteQuery(dbAccess).getDistinctStorageValues();
+      case parasiteTreatmentPrefKey:
+        return await ParasiteQuery(dbAccess).getDistinctTreatments();
       default:
         return [];
     }
@@ -102,6 +115,18 @@ class UtilityServices extends AppServices {
         return 'specimenPart::treatment';
       case conditionPrefKey:
         return 'specimen::condition';
+      case parasiteCategoryPrefKey:
+        return 'parasite::category';
+      case parasiteDetectionMethodPrefKey:
+        return 'parasite::detectionMethod';
+      case parasitePreparationMethodPrefKey:
+        return 'parasite::preparationMethod';
+      case parasiteAnatomicalLocationPrefKey:
+        return 'parasite::anatomicalLocation';
+      case parasiteStoragePrefKey:
+        return 'parasite::storage';
+      case parasiteTreatmentPrefKey:
+        return 'parasite::treatment';
       default:
         return 'unknown::field';
     }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/project_services.dart';
@@ -331,11 +332,8 @@ class DynamicRecordExporter {
     return Future.wait(
       records.map((record) async {
         final json = record.toJson()..remove('id');
-        json['associationStatus'] = switch (record.associationStatus) {
-          1 => 'Yes',
-          0 => 'No',
-          _ => '',
-        };
+        json['associationStatus'] =
+            parasiteAssociationStatuses[record.associationStatus] ?? '';
         if (record.speciesID != null) {
           final taxon = await TaxonomyServices(
             ref: ref,

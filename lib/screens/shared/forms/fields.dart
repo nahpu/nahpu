@@ -526,17 +526,20 @@ class UserDefinedSettingField extends ConsumerWidget {
     required this.typePrefKey,
     required this.fmtPrefKey,
     required this.typeName,
+    this.pluralName,
   });
 
   final String typePrefKey;
   final String fmtPrefKey;
   final String typeName;
+  final String? pluralName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     TextEditingController controller = TextEditingController();
+    final plural = pluralName ?? '${typeName.toTitleCase()}s';
     return SettingChips(
-      title: '${typeName.toTitleCase()}s',
+      title: plural,
       controller: controller,
       ref: ref,
       textCasePrefString: fmtPrefKey,
@@ -567,16 +570,16 @@ class UserDefinedSettingField extends ConsumerWidget {
         ).addOption(typePrefKey, controller.text.trim());
         controller.clear();
       },
-      resetLabel: 'Match database ${typeName.toLowerCase()}s',
+      resetLabel: 'Match database ${plural.toLowerCase()}',
       onReset: () {
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return CommonAlertDialog(
-              titleText: 'Match database ${typeName.toLowerCase()}s?',
+              titleText: 'Match database ${plural.toLowerCase()}?',
               descText:
                   'Matching database types will'
-                  ' delete all unused ${typeName.toLowerCase()}s',
+                  ' delete all unused ${plural.toLowerCase()}',
               confirmFunction: () {
                 UtilityServices(ref: ref).getAllOptions(typePrefKey);
               },

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
@@ -13,6 +14,12 @@ const controlledVocabularyPrefKeys = [
   specimenTypePrefKey,
   treatmentPrefKey,
   conditionPrefKey,
+  parasiteCategoryPrefKey,
+  parasiteDetectionMethodPrefKey,
+  parasitePreparationMethodPrefKey,
+  parasiteAnatomicalLocationPrefKey,
+  parasiteStoragePrefKey,
+  parasiteTreatmentPrefKey,
 ];
 
 final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
@@ -42,6 +49,24 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
         conditionPrefKey => await SpecimenQuery(
           database,
         ).getDistinctConditions(),
+        parasiteCategoryPrefKey => await ParasiteQuery(
+          database,
+        ).getDistinctCategories(),
+        parasiteDetectionMethodPrefKey => await ParasiteQuery(
+          database,
+        ).getDistinctDetectionMethods(),
+        parasitePreparationMethodPrefKey => await ParasiteQuery(
+          database,
+        ).getDistinctPreparationMethods(),
+        parasiteAnatomicalLocationPrefKey => await ParasiteQuery(
+          database,
+        ).getDistinctAnatomicalLocations(),
+        parasiteStoragePrefKey => await ParasiteQuery(
+          database,
+        ).getDistinctStorageValues(),
+        parasiteTreatmentPrefKey => await ParasiteQuery(
+          database,
+        ).getDistinctTreatments(),
         _ => const <String>[],
       };
 

@@ -4,6 +4,8 @@ import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class ParasiteServices extends AppServices {
   const ParasiteServices({required super.ref});
@@ -54,5 +56,52 @@ class ParasiteServices extends AppServices {
 
   void _invalidate(String specimenUuid) {
     ref.invalidate(parasiteBySpecimenProvider(specimenUuid));
+  }
+}
+
+class ParasiteIdServices {
+  const ParasiteIdServices();
+
+  Future<String> getNewNumber() async {
+    final prefix = await getPrefix();
+    final number = await getNumber();
+    await setNumber((number + 1).toString());
+    return '$prefix$number';
+  }
+
+  Future<String> getPrefix() async {
+    return await rust_config.getUserConfigString(
+          key: parasiteIdPrefixPrefKey,
+        ) ??
+        '';
+  }
+
+  Future<int> getNumber() async {
+    final value = await rust_config.getUserConfigString(
+      key: parasiteIdNumberPrefKey,
+    );
+    return int.tryParse(value ?? '') ?? 0;
+  }
+
+  Future<String> getNumberString() async {
+    final value = await rust_config.getUserConfigString(
+      key: parasiteIdNumberPrefKey,
+    );
+    return value ?? '';
+  }
+
+  Future<void> setPrefix(String prefix) {
+    return rust_config.setUserConfigString(
+      key: parasiteIdPrefixPrefKey,
+      value: prefix.trim(),
+    );
+  }
+
+  Future<void> setNumber(String number) {
+    final parsed = int.tryParse(number.trim()) ?? 0;
+    return rust_config.setUserConfigString(
+      key: parasiteIdNumberPrefKey,
+      value: parsed.toString(),
+    );
   }
 }

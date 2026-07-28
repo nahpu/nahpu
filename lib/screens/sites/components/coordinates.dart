@@ -10,7 +10,7 @@ import 'package:nahpu/screens/shared/maps/coordinate_location_map.dart';
 import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
 import 'package:nahpu/screens/settings/map_settings.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
-import 'package:nahpu/services/coordinate_exchange_service.dart';
+import 'package:nahpu/services/record_exchange/coordinate_exchange_service.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/maps/coordinate_map_point.dart';

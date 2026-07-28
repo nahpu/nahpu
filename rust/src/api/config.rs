@@ -558,6 +558,12 @@ fn is_controlled_vocabulary(key: &str) -> bool {
             | "specimenTypes"
             | "specimenTreatment"
             | "specimenConditions"
+            | "parasiteCategories"
+            | "parasiteDetectionMethods"
+            | "parasitePreparationMethods"
+            | "parasiteAnatomicalLocations"
+            | "parasiteStorage"
+            | "parasiteTreatments"
     )
 }
 
@@ -570,6 +576,12 @@ fn config_label(key: &str) -> &str {
         "specimenTypes" => "Specimen part types",
         "specimenTreatment" => "Treatments",
         "specimenConditions" => "Conditions",
+        "parasiteCategories" => "Parasite categories",
+        "parasiteDetectionMethods" => "Parasite detection methods",
+        "parasitePreparationMethods" => "Parasite preparation methods",
+        "parasiteAnatomicalLocations" => "Parasite anatomical locations",
+        "parasiteStorage" => "Parasite storage",
+        "parasiteTreatments" => "Parasite treatments",
         "siteTypeFmt" => "Site type format",
         "habitatTypeFmt" => "Habitat type format",
         "collEventMethodFmt" => "Collection method format",
@@ -577,6 +589,14 @@ fn config_label(key: &str) -> &str {
         "specimenTypeFmt" => "Specimen part type format",
         "treatmentFmt" => "Treatment format",
         "conditionFmt" => "Condition format",
+        "parasiteIdPrefix" => "Parasite ID prefix",
+        "parasiteIdNumber" => "Parasite ID number",
+        "parasiteCategoryFmt" => "Parasite category format",
+        "parasiteDetectionMethodFmt" => "Parasite detection method format",
+        "parasitePreparationMethodFmt" => "Parasite preparation method format",
+        "parasiteAnatomicalLocationFmt" => "Parasite anatomical location format",
+        "parasiteStorageFmt" => "Parasite storage format",
+        "parasiteTreatmentFmt" => "Parasite treatment format",
         "fieldIdMode" => "Field ID mode",
         "pdfExportFont" => "PDF export font",
         _ => key,

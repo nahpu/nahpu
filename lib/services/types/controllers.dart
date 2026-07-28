@@ -3,6 +3,7 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:uuid/uuid.dart';
 
 class DateEditingController extends TextEditingController {
   DateTime? _dateTime;
@@ -1111,6 +1112,7 @@ class TaxonRegistryCtrModel {
 
 class ParasiteFormCtrModel {
   ParasiteFormCtrModel({
+    required this.parasiteUuid,
     required this.parasiteIdCtr,
     required this.speciesId,
     required this.identifierId,
@@ -1132,6 +1134,7 @@ class ParasiteFormCtrModel {
     required this.remarkCtr,
   });
 
+  final String parasiteUuid;
   TextEditingController parasiteIdCtr;
   int? speciesId;
   String? identifierId;
@@ -1153,6 +1156,7 @@ class ParasiteFormCtrModel {
   TextEditingController remarkCtr;
 
   factory ParasiteFormCtrModel.empty() => ParasiteFormCtrModel(
+    parasiteUuid: const Uuid().v4(),
     parasiteIdCtr: TextEditingController(),
     speciesId: null,
     identifierId: null,
@@ -1177,6 +1181,7 @@ class ParasiteFormCtrModel {
   factory ParasiteFormCtrModel.fromData(
     ParasiteData data,
   ) => ParasiteFormCtrModel(
+    parasiteUuid: data.parasiteUuid,
     parasiteIdCtr: TextEditingController(text: data.parasiteID ?? ''),
     speciesId: data.speciesID,
     identifierId: data.identifierID,

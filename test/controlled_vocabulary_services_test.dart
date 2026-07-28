@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
@@ -71,6 +72,46 @@ void main() {
       'Good',
       'Custom condition',
     });
+  });
+
+  test('parasite vocabulary queries return distinct nonblank values', () async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    for (final (id, category, detection) in [
+      ('one', 'Ectoparasite', 'Visual inspection'),
+      ('two', 'Endoparasite', 'Microscopy'),
+      ('three', 'Ectoparasite', ''),
+    ]) {
+      await database
+          .into(database.parasite)
+          .insert(
+            ParasiteCompanion(
+              parasiteUuid: Value(id),
+              category: Value(category),
+              detectionMethod: Value(detection),
+              preparationMethod: const Value('Slide'),
+              anatomicalLocation: const Value('Intestine'),
+              storage: const Value('Ethanol'),
+              treatment: const Value('Cleared'),
+            ),
+          );
+    }
+
+    final query = ParasiteQuery(database);
+    expect(await query.getDistinctCategories(), [
+      'Ectoparasite',
+      'Endoparasite',
+    ]);
+    expect(await query.getDistinctDetectionMethods(), [
+      'Microscopy',
+      'Visual inspection',
+    ]);
+    expect(await query.getDistinctPreparationMethods(), ['Slide']);
+    expect(await query.getDistinctAnatomicalLocations(), ['Intestine']);
+    expect(await query.getDistinctStorageValues(), ['Ethanol']);
+    expect(await query.getDistinctTreatments(), ['Cleared']);
   });
 
   test(

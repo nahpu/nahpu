@@ -103,8 +103,12 @@ void main() {
             speciesID: Value(taxonId),
             identifierID: const Value('identifier'),
             parasiteID: Value(parasiteId),
+            parasiteUuid: parasiteId == 'P-1'
+                ? const Value('uuid-P-1')
+                : const Value.absent(),
             count: const Value(1),
             category: const Value('Ectoparasite'),
+            associationStatus: const Value(1),
           ),
         );
       }
@@ -119,13 +123,12 @@ void main() {
         parasites.map((row) => row.identifierID),
         everyElement('identifier'),
       );
+      expect(parasites.first.parasiteUuid, 'uuid-P-1');
       expect(
-        parasites.map((row) => row.parasiteUuid),
-        everyElement(
-          matches(
-            RegExp(
-              r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
-            ),
+        parasites.last.parasiteUuid,
+        matches(
+          RegExp(
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
           ),
         ),
       );
@@ -142,6 +145,10 @@ void main() {
         'A. Identifier|A. Identifier',
       );
       expect(concatenated.single['parasiteDetection::parasiteDetected'], 'Yes');
+      expect(
+        concatenated.single['parasite::associationStatus'],
+        'Confirmed|Confirmed',
+      );
 
       final expanded = await DynamicRecordExporter(
         ref: widgetRef!,

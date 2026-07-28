@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/coordinate_exchange_service.dart';
+import 'package:nahpu/services/record_exchange/coordinate_exchange_service.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 

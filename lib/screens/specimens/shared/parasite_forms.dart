@@ -9,23 +9,18 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/parasite_services.dart';
 import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/utility_services.dart';
-
-const parasiteCategories = [
-  'Ectoparasite',
-  'Endoparasite',
-  'Mesoparasite',
-  'Parasitoid',
-];
 
 class ParasiteForms extends StatelessWidget {
   const ParasiteForms({super.key, required this.specimenUuid});
@@ -232,10 +227,23 @@ class _AddParasiteButton extends StatelessWidget {
   }
 }
 
-class NewParasite extends StatelessWidget {
+class NewParasite extends StatefulWidget {
   const NewParasite({super.key, required this.specimenUuid});
 
   final String specimenUuid;
+
+  @override
+  State<NewParasite> createState() => _NewParasiteState();
+}
+
+class _NewParasiteState extends State<NewParasite> {
+  late final ParasiteFormCtrModel _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ParasiteFormCtrModel.empty();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -246,9 +254,9 @@ class NewParasite extends StatelessWidget {
       ),
       body: Center(
         child: ParasiteRecordForm(
-          specimenUuid: specimenUuid,
+          specimenUuid: widget.specimenUuid,
           parasite: null,
-          controller: ParasiteFormCtrModel.empty(),
+          controller: _controller,
         ),
       ),
     );
@@ -311,7 +319,10 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _ParasiteIdField(controller: widget.controller.parasiteIdCtr),
+          _ParasiteIds(
+            parasiteUuid: widget.controller.parasiteUuid,
+            parasiteIdController: widget.controller.parasiteIdCtr,
+          ),
           _TaxonField(
             selectedId: widget.controller.speciesId,
             onChanged: (value) {
@@ -324,29 +335,15 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             hintText: 'Enter parasite count',
             isLastField: false,
           ),
-          DropdownButtonFormField<String>(
-            initialValue: _category,
-            decoration: const InputDecoration(
-              labelText: 'Category',
-              hintText: 'Select parasite category',
-            ),
-            items: parasiteCategories
-                .map(
-                  (category) => DropdownMenuItem(
-                    value: category,
-                    child: CommonDropdownText(text: category),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              widget.controller.categoryCtr.text = value ?? '';
-            },
+          _ParasiteVocabularyField(
+            controller: widget.controller.categoryCtr,
+            prefKey: parasiteCategoryPrefKey,
+            labelText: 'Category',
           ),
-          CommonTextField(
+          _ParasiteVocabularyField(
             controller: widget.controller.anatomicalLocationCtr,
+            prefKey: parasiteAnatomicalLocationPrefKey,
             labelText: 'Anatomical location',
-            hintText: 'Enter where the parasite was found',
-            isLastField: false,
           ),
           const CommonDivider(),
           Text(
@@ -354,11 +351,10 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           _IdentifierField(controller: widget.controller),
-          CommonTextField(
+          _ParasiteVocabularyField(
             controller: widget.controller.detectionMethodCtr,
+            prefKey: parasiteDetectionMethodPrefKey,
             labelText: 'Detection method',
-            hintText: 'Enter detection method',
-            isLastField: false,
           ),
           CommonDateField(
             controller: widget.controller.dateCollectedCtr,
@@ -392,11 +388,6 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
     );
   }
 
-  String? get _category {
-    final value = widget.controller.categoryCtr.text.trim();
-    return parasiteCategories.contains(value) ? value : null;
-  }
-
   Future<void> _submit() async {
     final form = _form();
     try {
@@ -425,7 +416,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
       speciesID: db.Value(controller.speciesId),
       identifierID: db.Value(controller.identifierId),
       parasiteID: db.Value(_text(controller.parasiteIdCtr)),
-      parasiteUuid: const db.Value.absent(),
+      parasiteUuid: db.Value(controller.parasiteUuid),
       count: db.Value(int.tryParse(controller.countCtr.text)),
       preparationMethod: db.Value(_text(controller.preparationMethodCtr)),
       storage: db.Value(_text(controller.storageCtr)),
@@ -544,43 +535,67 @@ class _IdentifierField extends ConsumerWidget {
   }
 }
 
-class _AdvancedParasiteFields extends StatelessWidget {
+class _AdvancedParasiteFields extends ConsumerWidget {
   const _AdvancedParasiteFields({required this.controller});
 
   final ParasiteFormCtrModel controller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        CommonTextField(
+        _ParasiteVocabularyField(
           controller: controller.preparationMethodCtr,
+          prefKey: parasitePreparationMethodPrefKey,
           labelText: 'Preparation method',
-          hintText: 'Enter preparation method',
-          isLastField: false,
         ),
-        CommonTextField(
+        _ParasiteVocabularyField(
           controller: controller.storageCtr,
+          prefKey: parasiteStoragePrefKey,
           labelText: 'Storage',
-          hintText: 'Enter storage location or medium',
-          isLastField: false,
         ),
-        CommonTextField(
+        _ParasiteVocabularyField(
           controller: controller.treatmentCtr,
+          prefKey: parasiteTreatmentPrefKey,
           labelText: 'Treatment',
-          hintText: 'Enter treatment',
-          isLastField: false,
         ),
-        CommonTextField(
-          controller: controller.lifeStageCtr,
-          labelText: 'Life stage',
-          hintText: 'Enter life stage',
-          isLastField: false,
+        DropdownButtonFormField<String>(
+          isExpanded: true,
+          initialValue: _currentLifeStage,
+          decoration: const InputDecoration(
+            labelText: 'Life stage',
+            hintText: 'Select parasite life stage',
+          ),
+          items:
+              includeCurrentVocabularyValue(
+                    parasiteLifeStages,
+                    _currentLifeStage,
+                  )
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: CommonDropdownText(text: value),
+                    ),
+                  )
+                  .toList(),
+          onChanged: (value) => controller.lifeStageCtr.text = value ?? '',
         ),
         DropdownButtonFormField<int?>(
+          isExpanded: true,
           initialValue: controller.associationStatus,
-          decoration: const InputDecoration(labelText: 'Association status'),
-          items: DropDownMenuItems.booleanDropDownItems(),
+          decoration: const InputDecoration(
+            labelText: 'Association status',
+            hintText: 'Select association status',
+          ),
+          items: [
+            DropDownMenuItems.chooseOneListItem,
+            ...parasiteAssociationStatuses.entries.map(
+              (entry) => DropdownMenuItem<int?>(
+                value: entry.key,
+                child: CommonDropdownText(text: entry.value),
+              ),
+            ),
+          ],
           onChanged: (value) => controller.associationStatus = value,
         ),
         CommonDateField(
@@ -622,18 +637,109 @@ class _AdvancedParasiteFields extends StatelessWidget {
       ],
     );
   }
+
+  String? get _currentLifeStage {
+    final value = controller.lifeStageCtr.text.trim();
+    return value.isEmpty ? null : value;
+  }
 }
 
-class _ParasiteIdField extends StatefulWidget {
+class _ParasiteVocabularyField extends ConsumerWidget {
+  const _ParasiteVocabularyField({
+    required this.controller,
+    required this.prefKey,
+    required this.labelText,
+  });
+
+  final TextEditingController controller;
+  final String prefKey;
+  final String labelText;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(prefKey))
+        .when(
+          data: (configured) {
+            final current = controller.text.trim();
+            final options = includeCurrentVocabularyValue(
+              configured,
+              current.isEmpty ? null : current,
+            );
+            return DropdownButtonFormField<String>(
+              isExpanded: true,
+              initialValue: current.isEmpty ? null : current,
+              decoration: InputDecoration(
+                labelText: labelText,
+                hintText: options.isEmpty
+                    ? 'Set options in Specimen settings'
+                    : 'Select ${labelText.toLowerCase()}',
+              ),
+              items: options
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: CommonDropdownText(text: value),
+                    ),
+                  )
+                  .toList(),
+              onChanged: options.isEmpty
+                  ? null
+                  : (value) => controller.text = value ?? '',
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Unable to load $labelText: $error'),
+        );
+  }
+}
+
+class _ParasiteIds extends StatelessWidget {
+  const _ParasiteIds({
+    required this.parasiteUuid,
+    required this.parasiteIdController,
+  });
+
+  final String parasiteUuid;
+  final TextEditingController parasiteIdController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 4, 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('IDs', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            SelectableText('UUID: $parasiteUuid'),
+            _ParasiteIdField(controller: parasiteIdController),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ParasiteIdField extends ConsumerStatefulWidget {
   const _ParasiteIdField({required this.controller});
 
   final TextEditingController controller;
 
   @override
-  State<_ParasiteIdField> createState() => _ParasiteIdFieldState();
+  ConsumerState<_ParasiteIdField> createState() => _ParasiteIdFieldState();
 }
 
-class _ParasiteIdFieldState extends State<_ParasiteIdField> {
+class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -646,21 +752,31 @@ class _ParasiteIdFieldState extends State<_ParasiteIdField> {
             isLastField: false,
           ),
         ),
-        PopupMenuButton<String>(
+        PopupMenuButton<_ParasiteIdAction>(
+          onSelected: _handleAction,
           itemBuilder: (_) => [
             if (systemPlatform == PlatformType.mobile)
-              PopupMenuItem(
-                onTap: _scan,
-                child: const ListTile(
+              const PopupMenuItem(
+                value: _ParasiteIdAction.scan,
+                child: ListTile(
                   leading: Icon(Icons.qr_code_scanner_outlined),
                   title: Text('Scan QR/Barcode'),
                 ),
               ),
             PopupMenuItem(
-              onTap: _generate,
+              value: _ParasiteIdAction.newNumber,
+              enabled: widget.controller.text.isEmpty,
               child: const ListTile(
-                leading: Icon(Icons.qr_code_2_outlined),
-                title: Text('Generate UUID'),
+                leading: Icon(Icons.add),
+                title: Text('New number'),
+              ),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem(
+              value: _ParasiteIdAction.settings,
+              child: ListTile(
+                leading: Icon(Icons.settings_outlined),
+                title: Text('Settings'),
               ),
             ),
           ],
@@ -683,12 +799,76 @@ class _ParasiteIdFieldState extends State<_ParasiteIdField> {
     );
   }
 
-  void _generate() {
-    if (widget.controller.text.isEmpty) {
-      widget.controller.text = uuid;
+  Future<void> _handleAction(_ParasiteIdAction action) async {
+    switch (action) {
+      case _ParasiteIdAction.scan:
+        _scan();
+      case _ParasiteIdAction.newNumber:
+        widget.controller.text = await const ParasiteIdServices()
+            .getNewNumber();
+        if (mounted) setState(() {});
+      case _ParasiteIdAction.settings:
+        await _showSettings();
     }
   }
+
+  Future<void> _showSettings() async {
+    const services = ParasiteIdServices();
+    final prefixController = TextEditingController(
+      text: await services.getPrefix(),
+    );
+    final numberController = TextEditingController(
+      text: await services.getNumberString(),
+    );
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Parasite ID settings'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonTextField(
+              controller: prefixController,
+              labelText: 'Prefix',
+              hintText: 'Enter parasite ID prefix',
+              isLastField: false,
+            ),
+            CommonNumField(
+              controller: numberController,
+              labelText: 'Number',
+              hintText: 'Enter the next parasite ID number',
+              isLastField: true,
+            ),
+          ],
+        ),
+        actions: [
+          SecondaryButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            text: 'Cancel',
+          ),
+          PrimaryButton(
+            onPressed: () async {
+              await services.setPrefix(prefixController.text);
+              await services.setNumber(numberController.text);
+              if (widget.controller.text.isEmpty) {
+                widget.controller.text = await services.getNewNumber();
+              }
+              if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+              if (mounted) setState(() {});
+            },
+            label: 'Save',
+            icon: Icons.save_alt_outlined,
+          ),
+        ],
+      ),
+    );
+    prefixController.dispose();
+    numberController.dispose();
+  }
 }
+
+enum _ParasiteIdAction { scan, newNumber, settings }
 
 class ParasiteRecordInfoContent extends StatelessWidget {
   const ParasiteRecordInfoContent({super.key});

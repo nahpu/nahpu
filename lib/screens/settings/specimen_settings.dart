@@ -8,6 +8,8 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/parasite_services.dart';
+import 'package:nahpu/services/types/parasites.dart';
 
 class SpecimenSelection extends ConsumerStatefulWidget {
   const SpecimenSelection({super.key});
@@ -38,6 +40,7 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
             bool isMobile = constraints.maxWidth < 600;
+            final catalogFmt = ref.watch(catalogFmtNotifierProvider);
             return CommonSettingList(
               sections: [
                 CommonSettingSection(
@@ -84,11 +87,197 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                   fmtPrefKey: conditionFmtPrefKey,
                   typeName: 'Condition',
                 ),
+                ...catalogFmt.when(
+                  data: (format) => supportsParasites(format)
+                      ? [ParasiteSettings(isMobile: isMobile)]
+                      : const <Widget>[],
+                  loading: () => const <Widget>[],
+                  error: (_, _) => const <Widget>[],
+                ),
               ],
             );
           },
         ),
       ),
+    );
+  }
+}
+
+class ParasiteSettings extends StatelessWidget {
+  const ParasiteSettings({super.key, required this.isMobile});
+
+  final bool isMobile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CommonSettingSection(
+          title: 'Parasite',
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+              child: _ParasiteIdSettingsFields(isMobile: isMobile),
+            ),
+          ],
+        ),
+        UserDefinedSettingField(
+          typePrefKey: parasiteCategoryPrefKey,
+          fmtPrefKey: parasiteCategoryFmtPrefKey,
+          typeName: 'Category',
+          pluralName: 'Parasite categories',
+        ),
+        UserDefinedSettingField(
+          typePrefKey: parasiteDetectionMethodPrefKey,
+          fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
+          typeName: 'Detection method',
+          pluralName: 'Parasite detection methods',
+        ),
+        UserDefinedSettingField(
+          typePrefKey: parasitePreparationMethodPrefKey,
+          fmtPrefKey: parasitePreparationMethodFmtPrefKey,
+          typeName: 'Preparation method',
+          pluralName: 'Parasite preparation methods',
+        ),
+        UserDefinedSettingField(
+          typePrefKey: parasiteAnatomicalLocationPrefKey,
+          fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
+          typeName: 'Anatomical location',
+          pluralName: 'Parasite anatomical locations',
+        ),
+        UserDefinedSettingField(
+          typePrefKey: parasiteStoragePrefKey,
+          fmtPrefKey: parasiteStorageFmtPrefKey,
+          typeName: 'Storage value',
+          pluralName: 'Parasite storage',
+        ),
+        UserDefinedSettingField(
+          typePrefKey: parasiteTreatmentPrefKey,
+          fmtPrefKey: parasiteTreatmentFmtPrefKey,
+          typeName: 'Treatment',
+          pluralName: 'Parasite treatments',
+        ),
+        CommonSettingSection(
+          title: 'Parasite formats',
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+              child: _ParasiteFormats(isMobile: isMobile),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ParasiteIdSettingsFields extends StatefulWidget {
+  const _ParasiteIdSettingsFields({required this.isMobile});
+
+  final bool isMobile;
+
+  @override
+  State<_ParasiteIdSettingsFields> createState() =>
+      _ParasiteIdSettingsFieldsState();
+}
+
+class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
+  final _prefixController = TextEditingController();
+  final _numberController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _prefixController.dispose();
+    _numberController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const services = ParasiteIdServices();
+    return AdaptiveLayout(
+      useHorizontalLayout: !widget.isMobile,
+      children: [
+        TextField(
+          controller: _prefixController,
+          decoration: const InputDecoration(
+            labelText: 'Parasite ID prefix',
+            hintText: 'Enter a prefix, e.g. P',
+          ),
+          onChanged: services.setPrefix,
+        ),
+        TextField(
+          controller: _numberController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Parasite ID number',
+            hintText: 'Enter the next number',
+          ),
+          onChanged: services.setNumber,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _load() async {
+    const services = ParasiteIdServices();
+    final values = await Future.wait([
+      services.getPrefix(),
+      services.getNumberString(),
+    ]);
+    if (!mounted) return;
+    _prefixController.text = values[0];
+    _numberController.text = values[1];
+  }
+}
+
+class _ParasiteFormats extends ConsumerWidget {
+  const _ParasiteFormats({required this.isMobile});
+
+  final bool isMobile;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AdaptiveLayout(
+      useHorizontalLayout: !isMobile,
+      children: [
+        TextCaseFmtDropDown(
+          ref: ref,
+          label: 'Categories',
+          textCasePrefString: parasiteCategoryFmtPrefKey,
+        ),
+        TextCaseFmtDropDown(
+          ref: ref,
+          label: 'Detection methods',
+          textCasePrefString: parasiteDetectionMethodFmtPrefKey,
+        ),
+        TextCaseFmtDropDown(
+          ref: ref,
+          label: 'Preparation methods',
+          textCasePrefString: parasitePreparationMethodFmtPrefKey,
+        ),
+        TextCaseFmtDropDown(
+          ref: ref,
+          label: 'Anatomical locations',
+          textCasePrefString: parasiteAnatomicalLocationFmtPrefKey,
+        ),
+        TextCaseFmtDropDown(
+          ref: ref,
+          label: 'Storage',
+          textCasePrefString: parasiteStorageFmtPrefKey,
+        ),
+        TextCaseFmtDropDown(
+          ref: ref,
+          label: 'Treatments',
+          textCasePrefString: parasiteTreatmentFmtPrefKey,
+        ),
+      ],
     );
   }
 }
