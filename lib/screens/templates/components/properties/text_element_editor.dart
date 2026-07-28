@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/templates/template_field_catalog.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -225,7 +226,7 @@ class _AvailableFieldsSectionState
                 final rowLabels = _fieldPanelRowLabels(fields);
                 return ExpansionTile(
                   title: Text(
-                    table.toUpperCase(),
+                    databaseTableDisplayTitle(table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13.0,

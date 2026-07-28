@@ -21,6 +21,11 @@ String specimenColumnDisplayTitle(String columnId) {
   return _formatCamelCase(columnId);
 }
 
+/// Human-readable title for a database table name used in grouped field lists.
+String databaseTableDisplayTitle(String tableName) {
+  return _formatCamelCase(tableName);
+}
+
 String _formatCamelCase(String text) {
   text = text.replaceAll('iD', 'Id');
   return text
@@ -28,10 +33,11 @@ String _formatCamelCase(String text) {
       .trim()
       .split(' ')
       .map((w) {
-    if (w.isEmpty) return w;
-    if (w.toLowerCase() == 'id') return 'ID';
-    return '${w[0].toUpperCase()}${w.substring(1)}';
-  }).join(' ');
+        if (w.isEmpty) return w;
+        if (w.toLowerCase() == 'id') return 'ID';
+        return '${w[0].toUpperCase()}${w.substring(1)}';
+      })
+      .join(' ');
 }
 
 /// All `[id]` values offered in the template editor sidebar and table selector.
@@ -52,7 +58,8 @@ List<String> normalizePrintSpecimenTableColumnIds(
   List<String> ids,
   Database db,
 ) {
-  final allowed =
-      labelTemplateAvailableFieldIds(db).map((e) => e.toLowerCase()).toSet();
+  final allowed = labelTemplateAvailableFieldIds(
+    db,
+  ).map((e) => e.toLowerCase()).toSet();
   return ids.where((id) => allowed.contains(id.toLowerCase())).toList();
 }

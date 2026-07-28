@@ -5,6 +5,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/export.dart';
 
 class ExportPresetFieldsScreen extends ConsumerStatefulWidget {
@@ -490,7 +491,7 @@ class _AvailableFieldsSectionState
                 final fields = groups[table]!;
                 return ExpansionTile(
                   title: Text(
-                    table.toUpperCase(),
+                    databaseTableDisplayTitle(table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13.0,

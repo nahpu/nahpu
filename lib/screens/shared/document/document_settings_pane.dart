@@ -1050,16 +1050,7 @@ class _BlockOrderControls extends ConsumerWidget {
           ref.watch(databaseProvider),
           recordType,
         );
-        final fields = groups.values.expand((values) => values).toList()
-          ..sort(
-            (left, right) => _sortFieldLabel(
-              left,
-            ).toLowerCase().compareTo(_sortFieldLabel(right).toLowerCase()),
-          );
         final selectedField = block.sortField?.trim() ?? '';
-        if (selectedField.isNotEmpty && !fields.contains(selectedField)) {
-          fields.insert(0, selectedField);
-        }
         return Wrap(
           spacing: 10,
           runSpacing: 10,
@@ -1067,39 +1058,13 @@ class _BlockOrderControls extends ConsumerWidget {
           children: [
             _ResponsiveFieldBox(
               width: 260,
-              child: DropdownButtonFormField<String>(
+              child: _OrderFieldPicker(
                 key: ValueKey(
                   'block-order-field-$blockIndex-${block.templateName}-$selectedField',
                 ),
-                initialValue: selectedField,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Order by',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                items: [
-                  const DropdownMenuItem(
-                    value: '',
-                    child: Text('Original order'),
-                  ),
-                  for (final field in fields)
-                    DropdownMenuItem(
-                      value: field,
-                      child: Text(
-                        fields.contains(field) &&
-                                field == selectedField &&
-                                !groups.values.any(
-                                  (values) => values.contains(field),
-                                )
-                            ? 'Missing: ${_sortFieldLabel(field)}'
-                            : _sortFieldLabel(field),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
+                value: selectedField,
+                groups: groups,
                 onChanged: (field) {
-                  if (field == null) return;
                   onChanged(
                     field.isEmpty
                         ? block.copyWith(clearSortField: true)
@@ -1151,11 +1116,341 @@ class _BlockOrderControls extends ConsumerWidget {
       error: (_, _) => const Text('Unable to load ordering fields'),
     );
   }
+}
 
-  static String _sortFieldLabel(String field) {
-    final table = field.contains('::') ? field.split('::').first : 'Other';
-    return '${specimenColumnDisplayTitle(field)} ($table)';
+class _OrderFieldPicker extends StatelessWidget {
+  const _OrderFieldPicker({
+    super.key,
+    required this.value,
+    required this.groups,
+    required this.onChanged,
+  });
+
+  final String value;
+  final Map<String, List<String>> groups;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSelection = value.isNotEmpty;
+    final isMissing =
+        hasSelection && !groups.values.any((fields) => fields.contains(value));
+    final fieldTitle = hasSelection
+        ? specimenColumnDisplayTitle(value)
+        : 'Original order';
+    final tableTitle = hasSelection
+        ? databaseTableDisplayTitle(_orderFieldTableName(value))
+        : null;
+
+    return Semantics(
+      button: true,
+      label: 'Order by',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: () async {
+          final selected = await _showOrderFieldPicker(
+            context,
+            groups: groups,
+            selectedValue: value,
+          );
+          if (selected == null || !context.mounted) return;
+          onChanged(selected);
+        },
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'Order by',
+            border: OutlineInputBorder(),
+            isDense: true,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            suffixIcon: Icon(Icons.arrow_drop_down),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isMissing ? 'Missing: $fieldTitle' : fieldTitle,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (tableTitle != null)
+                Text(
+                  tableTitle,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+}
+
+Future<String?> _showOrderFieldPicker(
+  BuildContext context, {
+  required Map<String, List<String>> groups,
+  required String selectedValue,
+}) {
+  final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+  final content = _OrderFieldPickerContent(
+    groups: groups,
+    selectedValue: selectedValue,
+    autofocusSearch: isLargeScreen,
+  );
+  if (isLargeScreen) {
+    final availableHeight = MediaQuery.sizeOf(context).height * .85;
+    return showDialog<String>(
+      context: context,
+      builder: (context) => Dialog(
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        child: SizedBox(
+          width: 520,
+          height: availableHeight < 560 ? availableHeight : 560,
+          child: content,
+        ),
+      ),
+    );
+  }
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => SafeArea(
+      child: Material(
+        color: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * .8,
+          child: content,
+        ),
+      ),
+    ),
+  );
+}
+
+class _OrderFieldPickerContent extends StatefulWidget {
+  const _OrderFieldPickerContent({
+    required this.groups,
+    required this.selectedValue,
+    required this.autofocusSearch,
+  });
+
+  final Map<String, List<String>> groups;
+  final String selectedValue;
+  final bool autofocusSearch;
+
+  @override
+  State<_OrderFieldPickerContent> createState() =>
+      _OrderFieldPickerContentState();
+}
+
+class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController()..addListener(_onQueryChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController
+      ..removeListener(_onQueryChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _searchController.text.trim().toLowerCase();
+    final groups = _filteredAndSortedGroups(query);
+    final selectedTable = widget.selectedValue.isEmpty
+        ? null
+        : _orderFieldTableName(widget.selectedValue);
+    final selectedIsMissing =
+        widget.selectedValue.isNotEmpty &&
+        !widget.groups.values.any(
+          (fields) => fields.contains(widget.selectedValue),
+        );
+    final showMissingField = selectedIsMissing && _missingFieldMatches(query);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Order records by',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Close order field picker',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+          child: TextField(
+            controller: _searchController,
+            autofocus: widget.autofocusSearch,
+            decoration: const InputDecoration(
+              labelText: 'Search fields or tables',
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.format_line_spacing),
+                title: const Text('Original order'),
+                selected: widget.selectedValue.isEmpty,
+                trailing: widget.selectedValue.isEmpty
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () => Navigator.pop(context, ''),
+              ),
+              if (showMissingField)
+                ListTile(
+                  leading: Icon(
+                    Icons.warning_amber_rounded,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  title: Text(
+                    'Missing: ${specimenColumnDisplayTitle(widget.selectedValue)}',
+                  ),
+                  subtitle: Text(
+                    '${databaseTableDisplayTitle(_orderFieldTableName(widget.selectedValue))} · Not available for this template',
+                  ),
+                  selected: true,
+                  trailing: const Icon(Icons.check),
+                  onTap: () => Navigator.pop(context, widget.selectedValue),
+                ),
+              if (groups.isEmpty && !showMissingField)
+                const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: Text('No matching fields.')),
+                )
+              else
+                for (final entry in groups.entries)
+                  ExpansionTile(
+                    key: ValueKey('order-field-${entry.key}-$query'),
+                    initiallyExpanded:
+                        query.isNotEmpty || entry.key == selectedTable,
+                    title: Text(
+                      databaseTableDisplayTitle(entry.key),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '${entry.value.length} ${entry.value.length == 1 ? 'field' : 'fields'}',
+                    ),
+                    children: [
+                      for (final field in entry.value)
+                        ListTile(
+                          title: Text(specimenColumnDisplayTitle(field)),
+                          selected: field == widget.selectedValue,
+                          trailing: field == widget.selectedValue
+                              ? const Icon(Icons.check)
+                              : null,
+                          onTap: () => Navigator.pop(context, field),
+                        ),
+                    ],
+                  ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _onQueryChanged() => setState(() {});
+
+  Map<String, List<String>> _filteredAndSortedGroups(String query) {
+    final entries = widget.groups.entries.toList()
+      ..sort((left, right) {
+        final leftTitle = databaseTableDisplayTitle(left.key).toLowerCase();
+        final rightTitle = databaseTableDisplayTitle(right.key).toLowerCase();
+        final labelComparison = leftTitle.compareTo(rightTitle);
+        return labelComparison != 0
+            ? labelComparison
+            : left.key.toLowerCase().compareTo(right.key.toLowerCase());
+      });
+    final filtered = <String, List<String>>{};
+    for (final entry in entries) {
+      final fields = _matchingFields(entry.key, entry.value, query);
+      if (fields.isNotEmpty) filtered[entry.key] = fields;
+    }
+    return filtered;
+  }
+
+  List<String> _matchingFields(
+    String table,
+    List<String> fields,
+    String query,
+  ) {
+    final tableMatches =
+        query.isEmpty ||
+        table.toLowerCase().contains(query) ||
+        databaseTableDisplayTitle(table).toLowerCase().contains(query);
+    final matches = tableMatches
+        ? List<String>.from(fields)
+        : fields
+              .where(
+                (field) =>
+                    field.toLowerCase().contains(query) ||
+                    specimenColumnDisplayTitle(
+                      field,
+                    ).toLowerCase().contains(query),
+              )
+              .toList();
+    matches.sort((left, right) {
+      final leftTitle = specimenColumnDisplayTitle(left).toLowerCase();
+      final rightTitle = specimenColumnDisplayTitle(right).toLowerCase();
+      final labelComparison = leftTitle.compareTo(rightTitle);
+      return labelComparison != 0
+          ? labelComparison
+          : left.toLowerCase().compareTo(right.toLowerCase());
+    });
+    return matches;
+  }
+
+  bool _missingFieldMatches(String query) {
+    if (query.isEmpty) return true;
+    return widget.selectedValue.toLowerCase().contains(query) ||
+        specimenColumnDisplayTitle(
+          widget.selectedValue,
+        ).toLowerCase().contains(query) ||
+        databaseTableDisplayTitle(
+          _orderFieldTableName(widget.selectedValue),
+        ).toLowerCase().contains(query);
+  }
+}
+
+String _orderFieldTableName(String field) {
+  final separator = field.indexOf('::');
+  return separator == -1 ? 'Other' : field.substring(0, separator);
 }
 
 class _LayoutProfileControls extends StatelessWidget {

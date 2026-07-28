@@ -171,6 +171,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      final siteHeader = find.descendant(
+        of: find.byType(ExpansionTile),
+        matching: find.text('Site'),
+      );
+      expect(siteHeader, findsOneWidget);
+      expect(
+        tester.widget<Text>(siteHeader).style?.fontWeight,
+        FontWeight.bold,
+      );
+      expect(find.text('SITE'), findsNothing);
       expect(find.text('Add combined'), findsOneWidget);
       expect(find.text('Add nested'), findsOneWidget);
       expect(
