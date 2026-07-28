@@ -7,6 +7,7 @@ import 'package:nahpu/services/project_transfer/project_transfer_archive.dart';
 import 'package:nahpu/services/project_transfer/project_transfer_models.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -27,7 +28,18 @@ export 'project_transfer_models.dart';
 /// Archives are normalized while parsing so legacy attribute names and the
 /// v1-v3 associated-data URL field remain importable.
 class ProjectTransferService extends AppServices {
-  const ProjectTransferService({required super.ref});
+  ProjectTransferService({required super.ref})
+    : _database = ref.read(databaseProvider),
+      _projectUuid = ref.read(projectUuidProvider);
+
+  final Database _database;
+  final String _projectUuid;
+
+  @override
+  Database get dbAccess => _database;
+
+  @override
+  String get currentProjectUuid => _projectUuid;
 
   ProjectTransferArchiveService get archive =>
       ProjectTransferArchiveService(ref: ref);

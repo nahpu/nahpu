@@ -143,7 +143,7 @@ class ProjectTransferArchiveService extends AppServices {
       if (!manifest.existsSync()) {
         throw const FormatException(
           'The archive does not contain nahpu-project.json. '
-          'Bundle records files are not project transfers.',
+          'Choose a project export or NAHPU Data Package.',
         );
       }
       final payload = ProjectTransferPayload.parse(

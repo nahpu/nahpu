@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
-import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/media_services.dart';
 import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/project_transfer/project_transfer_service.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/site_services.dart';
@@ -329,6 +329,15 @@ class DwcBundleWriter extends AppServices {
     BundleArchiveFormat archiveFormat,
     Future<T> Function(Map<String, dynamic> request) action,
   ) async {
+    final database = dbAccess;
+    final transferService = ProjectTransferService(ref: ref);
+    final vocabularyFutures = _nahpuControlledVocabularyDefinitions
+        .map(
+          (definition) => ref.read(
+            effectiveUserDefinedFieldProvider(definition.configKey).future,
+          ),
+        )
+        .toList(growable: false);
     final root = await tempDirectory;
     final snapshotDir = await Directory(
       path.join(
@@ -337,8 +346,6 @@ class DwcBundleWriter extends AppServices {
       ),
     ).create(recursive: true);
     try {
-      final databaseFile = File(path.join(snapshotDir.path, 'nahpu.sqlite3'));
-      await dbAccess.exportInto(databaseFile);
       final configsFile = File(
         path.join(snapshotDir.path, 'user_configs.json'),
       );
@@ -346,25 +353,27 @@ class DwcBundleWriter extends AppServices {
         filePath: configsFile.path,
         sections: rust_config.UserConfigSection.values,
       );
-      final project = await ProjectServices(
-        ref: ref,
-      ).getProjectByUuid(currentProjectUuid);
+      final payload = await transferService.buildExport();
       final packageInfo = await PackageInfo.fromPlatform();
-      final controlledVocabularies = await _readNahpuControlledVocabularies();
+      final controlledVocabularies = await _readNahpuControlledVocabularies(
+        vocabularyFutures,
+      );
+      final userConfigs =
+          jsonDecode(await configsFile.readAsString()) as Map<String, dynamic>;
       final request = <String, dynamic>{
         'archive_format': archiveFormat.wireValue,
-        'name': '${project.name} NAHPU data',
+        'name': '${payload.projectName} NAHPU data',
         'app_name': 'NAHPU',
         'app_version': packageInfo.version,
         'app_build': packageInfo.buildNumber,
-        'database_schema_version': kSchemaVersion,
-        'user_config_schema_version': 1,
-        'database_path': databaseFile.path,
-        'user_configs': jsonDecode(await configsFile.readAsString()),
-        'tables': _readNahpuTables(databaseFile),
+        'database_schema_version': payload.databaseVersion,
+        'user_config_schema_version': userConfigs['schema_version'] as int,
+        'project_json': payload.encoded,
+        'user_configs': userConfigs,
+        'tables': await _buildNahpuTables(database, payload),
         'enum_mappings': buildNahpuSqliteEnumMappings(),
         'controlled_vocabularies': controlledVocabularies,
-        'files': await _collectNahpuPackageFiles(),
+        'files': await _collectNahpuPackageFiles(payload),
       };
       return await action(request);
     } finally {
@@ -374,57 +383,58 @@ class DwcBundleWriter extends AppServices {
     }
   }
 
-  List<Map<String, dynamic>> _readNahpuTables(File databaseFile) {
-    final database = sqlite.sqlite3.open(
-      databaseFile.path,
-      mode: sqlite.OpenMode.readOnly,
-    );
-    try {
-      return _nahpuTableNames
-          .map((tableName) {
-            final columns = database.select('PRAGMA table_info("$tableName")');
-            final foreignKeys = database.select(
-              'PRAGMA foreign_key_list("$tableName")',
-            );
-            final rows = database.select('SELECT * FROM "$tableName"');
-            return <String, dynamic>{
-              'name': tableName,
-              'columns': columns
-                  .map(
-                    (column) => <String, dynamic>{
-                      'name': column['name'].toString(),
-                      'data_type': column['type'].toString(),
-                      'required': column['notnull'] == 1,
-                      'primary_key': column['pk'] != 0,
-                    },
-                  )
-                  .toList(growable: false),
-              'foreign_keys': foreignKeys
-                  .map(
-                    (foreignKey) => <String, dynamic>{
-                      'fields': foreignKey['from'].toString(),
-                      'resource': foreignKey['table'].toString(),
-                      'reference_fields': foreignKey['to'].toString(),
-                    },
-                  )
-                  .toList(growable: false),
-              'rows': rows
-                  .map((row) => Map<String, dynamic>.from(row))
-                  .toList(growable: false),
-            };
-          })
-          .toList(growable: false);
-    } finally {
-      database.close();
+  Future<List<Map<String, dynamic>>> _buildNahpuTables(
+    Database database,
+    ProjectTransferPayload payload,
+  ) async {
+    final tables = <Map<String, dynamic>>[];
+    for (final tableName in _nahpuTableNames) {
+      final columns = await database
+          .customSelect('PRAGMA table_info("$tableName")')
+          .get();
+      final foreignKeys = await database
+          .customSelect('PRAGMA foreign_key_list("$tableName")')
+          .get();
+      tables.add({
+        'name': tableName,
+        'columns': columns
+            .map(
+              (column) => <String, dynamic>{
+                'name': column.data['name'].toString(),
+                'data_type': column.data['type'].toString(),
+                'required': column.data['notnull'] == 1,
+                'primary_key': column.data['pk'] != 0,
+              },
+            )
+            .toList(growable: false),
+        'foreign_keys': foreignKeys
+            .map(
+              (foreignKey) => <String, dynamic>{
+                'fields': foreignKey.data['from'].toString(),
+                'resource': foreignKey.data['table'].toString(),
+                'reference_fields': foreignKey.data['to'].toString(),
+              },
+            )
+            .toList(growable: false),
+        'rows': tableName == 'project'
+            ? [payload.project]
+            : payload.rows(tableName),
+      });
     }
+    return tables;
   }
 
-  Future<List<Map<String, dynamic>>> _readNahpuControlledVocabularies() async {
+  Future<List<Map<String, dynamic>>> _readNahpuControlledVocabularies(
+    List<Future<List<String>>> futures,
+  ) async {
     final output = <Map<String, dynamic>>[];
-    for (final definition in _nahpuControlledVocabularyDefinitions) {
-      final configured = await ref.read(
-        effectiveUserDefinedFieldProvider(definition.configKey).future,
-      );
+    for (
+      var index = 0;
+      index < _nahpuControlledVocabularyDefinitions.length;
+      index++
+    ) {
+      final definition = _nahpuControlledVocabularyDefinitions[index];
+      final configured = await futures[index];
       output.add({
         'section': definition.section,
         'config_key': definition.configKey,
@@ -435,22 +445,35 @@ class DwcBundleWriter extends AppServices {
     return output;
   }
 
-  Future<List<Map<String, String>>> _collectNahpuPackageFiles() async {
+  Future<List<Map<String, String>>> _collectNahpuPackageFiles(
+    ProjectTransferPayload payload,
+  ) async {
     final root = await nahpuDocumentDir;
-    final output = <Map<String, String>>[];
-    await for (final entity in root.list(recursive: true, followLinks: false)) {
-      if (entity is! File) continue;
-      final relative = path.relative(entity.path, from: root.path);
-      final normalized = relative.replaceAll('\\', '/');
-      final include =
-          normalized.startsWith('appMedia/') ||
-          normalized.startsWith('UserConfigs/fonts/') ||
-          normalized.split('/').contains('media');
-      if (!include) continue;
-      output.add({
-        'source_path': entity.path,
-        'package_path': 'files/$normalized',
-      });
+    final output = payload.mediaFiles
+        .where((media) => media.sourcePath != null)
+        .map(
+          (media) => <String, String>{
+            'source_path': media.sourcePath!,
+            'package_path': media.archivePath,
+          },
+        )
+        .toList();
+    final fonts = Directory(
+      path.join(root.path, userConfigDirName, userFontDirName),
+    );
+    if (fonts.existsSync()) {
+      await for (final entity in fonts.list(
+        recursive: true,
+        followLinks: false,
+      )) {
+        if (entity is! File) continue;
+        final relative = path.relative(entity.path, from: root.path);
+        final normalized = relative.replaceAll('\\', '/');
+        output.add({
+          'source_path': entity.path,
+          'package_path': 'files/$normalized',
+        });
+      }
     }
     output.sort(
       (left, right) => left['package_path']!.compareTo(right['package_path']!),
@@ -1129,6 +1152,8 @@ const List<String> _nahpuTableNames = [
   'siteMedia',
   'specimenMedia',
   'associatedData',
+  'specimenAssociatedData',
+  'siteAssociatedData',
   'personnelList',
   'personnel',
   'taxonomy',

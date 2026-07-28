@@ -17,10 +17,11 @@ const controlledVocabularyPrefKeys = [
 
 final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
     .family<List<String>, String>((ref, prefKey) async {
-      final configured = await ref.watch(
+      final configuredFuture = ref.watch(
         userDefinedFieldProvider(prefKey).future,
       );
       final database = ref.watch(databaseProvider);
+      final configured = await configuredFuture;
       final stored = switch (prefKey) {
         siteTypePrefKey => await SiteQuery(database).getDistinctSiteTypes(),
         habitatTypePrefKey => await SiteQuery(

@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/settings.dart';
 
 void main() {
   test(
@@ -67,4 +72,42 @@ void main() {
       'Custom condition',
     });
   });
+
+  test(
+    'effective vocabulary completes after its provider is disposed',
+    () async {
+      final database = Database.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      final configured = Completer<List<String>>();
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          userDefinedFieldProvider.overrideWith2(
+            (prefKey) => _DelayedUserDefinedField(prefKey, configured.future),
+          ),
+        ],
+      );
+      addTearDown(database.close);
+      addTearDown(container.dispose);
+
+      final result = container.read(
+        effectiveUserDefinedFieldProvider(siteTypePrefKey).future,
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      configured.complete(const ['Configured site']);
+
+      expect(await result, const ['Configured site']);
+    },
+  );
+}
+
+class _DelayedUserDefinedField extends UserDefinedField {
+  _DelayedUserDefinedField(super.prefKey, this.result);
+
+  final Future<List<String>> result;
+
+  @override
+  Future<List<String>> build() => result;
 }

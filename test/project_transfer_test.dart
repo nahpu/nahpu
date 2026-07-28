@@ -347,6 +347,20 @@ void main() {
       expect(payload.rows('specimen'), hasLength(1));
     });
 
+    testWidgets('export survives disposal of its originating widget', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+
+      final payload = await tester.runAsync(service.buildExport);
+
+      expect(payload!.sourceProjectUuid, 'project-a');
+      expect(payload.projectName, 'Project A');
+    });
+
     testWidgets('exports shared specimen and site associated-data links', (
       tester,
     ) async {

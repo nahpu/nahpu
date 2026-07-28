@@ -197,8 +197,7 @@ class ProjectTransferPayload {
       final json = Map<String, dynamic>.from(decoded);
       if (json['nahpu_project'] != projectTransferMarker) {
         throw const FormatException(
-          'This is not a NAHPU project transfer archive. '
-          'Bundle records files cannot be imported here.',
+          'This is not a NAHPU project transfer payload.',
         );
       }
       if (!supportedProjectTransferVersions.contains(json['version'])) {

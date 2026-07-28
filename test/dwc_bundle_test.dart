@@ -1,9 +1,38 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart' show DatabaseConnection, Value;
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:nahpu/screens/exports/bundle_records.dart';
+import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/src/rust/frb_generated.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+    if (isTest) {
+      final dylibPath = Platform.isMacOS
+          ? 'rust/target/debug/librust_lib_nahpu.dylib'
+          : Platform.isWindows
+          ? 'rust/target/debug/rust_lib_nahpu.dll'
+          : 'rust/target/debug/librust_lib_nahpu.so';
+      await RustLib.init(externalLibrary: ExternalLibrary.open(dylibPath));
+    } else {
+      await RustLib.init();
+    }
+  });
+
   test('normalizes current and legacy bundle taxon labels', () {
     expect(normalizeBundleTaxonGroup('Avians'), 'Birds');
     expect(normalizeBundleTaxonGroup('General Mammals'), 'Mammals');
@@ -218,6 +247,76 @@ void main() {
     expect(icons, contains(Icons.image_outlined));
     expect(icons, contains(Icons.audio_file_outlined));
     expect(icons, contains(Icons.video_file_outlined));
+  });
+
+  testWidgets('NAHPU package planning uses project JSON without SQLite', (
+    tester,
+  ) async {
+    final tempDir = Directory.systemTemp.createTempSync('nahpu-dp-test-');
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            null,
+          );
+      if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+    });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async => tempDir.path,
+        );
+    PackageInfo.setMockInitialValues(
+      appName: 'NAHPU',
+      packageName: 'org.nahpu.app',
+      version: '1.0.0',
+      buildNumber: '1',
+      buildSignature: '',
+    );
+    await tester.runAsync(
+      () => rust_config.initConfigDb(path: '${tempDir.path}/configs.db'),
+    );
+    await database
+        .into(database.project)
+        .insert(
+          const ProjectCompanion(
+            uuid: Value('project-a'),
+            name: Value('Project A'),
+          ),
+        );
+    WidgetRef? widgetRef;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, child) {
+              widgetRef = ref;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ),
+    );
+    widgetRef!
+        .read(projectUuidProvider.notifier)
+        .updateProjectUuid('project-a');
+
+    final manifest = (await tester.runAsync(
+      () => DwcBundleWriter(ref: widgetRef!).plan(
+        format: DwcBundleFormat.nahpuDataPackage,
+        archiveFormat: BundleArchiveFormat.zip,
+        selectedTaxonGroups: const {},
+      ),
+    ))!;
+    final paths = manifest.files.map((file) => file.path).toSet();
+
+    expect(paths, contains('nahpu-project.json'));
+    expect(paths, isNot(contains('database/nahpu.sqlite3')));
   });
 }
 
