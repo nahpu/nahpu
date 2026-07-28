@@ -19,10 +19,7 @@ const List<String> fatCategoryList = [
 
 enum OviductAppearance { straight, convoluted }
 
-const List<String> oviductAppearanceList = [
-  'Straight',
-  'Convoluted',
-];
+const List<String> oviductAppearanceList = ['Straight', 'Convoluted'];
 
 enum BodyMolt { none, trace, light, moderate, heavy }
 
@@ -37,3 +34,10 @@ const List<String> bodyMoltList = [
 // This number is not in consistent order.
 // We just hardcode it here.
 const List<int> skullOssificationList = [100, 95, 90, 75, 50, 25, 10, 5, 0];
+
+const List<String> defaultStomachContents = [
+  'Arthropod parts',
+  'Fruit',
+  'Insect parts',
+  'Seeds',
+];

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/types/birds.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/utility_services.dart';
@@ -37,6 +38,8 @@ const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
+const String stomachContPrefKey = 'stomachContents';
+const String stomachContFmtPrefKey = 'stomachContentsFmt';
 
 // Document Export settings
 // User-configurable export presets and PDF document settings.
@@ -150,6 +153,8 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultSpecimenType;
     case treatmentPrefKey:
       return defaultTreatment;
+    case stomachContPrefKey:
+      return defaultStomachContents;
     default:
       return [];
   }

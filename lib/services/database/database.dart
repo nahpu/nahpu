@@ -25,9 +25,7 @@ part 'database.g.dart';
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
 const int kSchemaVersion = 9;
 
-@DriftDatabase(
-  include: {'tables.drift'},
-)
+@DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {
   Database() : super(_openConnection());
 
@@ -40,46 +38,50 @@ class Database extends _$Database {
 
   @override
   MigrationStrategy get migration {
-    return MigrationStrategy(onCreate: (m) async {
-      await m.createAll();
-    }, onUpgrade: (Migrator m, int from, int to) async {
-      await customStatement('PRAGMA foreign_keys = OFF');
-      if (from < 2) {
-        await m.addColumn(specimen, specimen.taxonGroup);
-      }
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        await customStatement('PRAGMA foreign_keys = OFF');
+        if (from < 2) {
+          await m.addColumn(specimen, specimen.taxonGroup);
+        }
 
-      if (from < 3) {
-        await _migrateFromVersion2(m);
-      }
+        if (from < 3) {
+          await _migrateFromVersion2(m);
+        }
 
-      if (from == 3) {
-        await _migrateV3only(m);
-      }
+        if (from == 3) {
+          await _migrateV3only(m);
+        }
 
-      if (from < 4) {
-        await _migrateFromVersion3(m);
-      }
+        if (from < 4) {
+          await _migrateFromVersion3(m);
+        }
 
-      if (from < 5) {
-        await _migrateFromVersion4(m);
-      }
+        if (from < 5) {
+          await _migrateFromVersion4(m);
+        }
 
-      if (from < 6) {
-        await _migrateFromVersion5(m);
-      }
+        if (from < 6) {
+          await _migrateFromVersion5(m);
+        }
 
-      if (from < 7) {
-        await _migrateFromVersion6(m);
-      }
-      if (from < 8) {
-        await _migrateFromVersion7(m);
-      }
-      if (from < 9) {
-        await _migrateFromVersion8(m);
-      }
-    }, beforeOpen: (details) async {
-      await customStatement('PRAGMA foreign_keys = ON');
-    });
+        if (from < 7) {
+          await _migrateFromVersion6(m);
+        }
+        if (from < 8) {
+          await _migrateFromVersion7(m);
+        }
+        if (from < 9) {
+          await _migrateFromVersion8(m);
+        }
+      },
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
   }
 
   Future<void> _migrateFromVersion7(Migrator m) async {
@@ -90,9 +92,7 @@ class Database extends _$Database {
   }
 
   Future<void> _migrateFromVersion8(Migrator m) async {
-    await customStatement(
-      'CREATE INDEX site_project_idx ON site(projectUuid)',
-    );
+    await customStatement('CREATE INDEX site_project_idx ON site(projectUuid)');
     await customStatement(
       'CREATE INDEX coordinate_site_idx ON coordinate(siteID)',
     );
@@ -100,6 +100,11 @@ class Database extends _$Database {
       'CREATE INDEX specimen_project_coordinate_idx '
       'ON specimen(projectUuid, coordinateID)',
     );
+    await customStatement(
+      'ALTER TABLE avianMeasurement '
+      'RENAME COLUMN stomachContent TO stomachContentRemark',
+    );
+    await m.addColumn(avianMeasurement, avianMeasurement.stomachContent);
   }
 
   Future<void> _migrateFromVersion6(Migrator m) async {
@@ -138,7 +143,9 @@ class Database extends _$Database {
     await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMax);
     await m.addColumn(mammalMeasurement, mammalMeasurement.frequencyMin);
     await m.addColumn(
-        mammalMeasurement, mammalMeasurement.frequencyAtMaxEnergy);
+      mammalMeasurement,
+      mammalMeasurement.frequencyAtMaxEnergy,
+    );
     await m.addColumn(mammalMeasurement, mammalMeasurement.duration);
 
     // Enhanced specimen ID options

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/birds.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -13,10 +14,11 @@ import 'package:nahpu/services/specimen_services.dart';
 import 'package:drift/drift.dart' as db;
 
 class BirdMeasurementForms extends ConsumerStatefulWidget {
-  const BirdMeasurementForms(
-      {super.key,
-      required this.useHorizontalLayout,
-      required this.specimenUuid});
+  const BirdMeasurementForms({
+    super.key,
+    required this.useHorizontalLayout,
+    required this.specimenUuid,
+  });
 
   final bool useHorizontalLayout;
   final String specimenUuid;
@@ -45,254 +47,243 @@ class BirdMeasurementFormsState extends ConsumerState<BirdMeasurementForms> {
 
   @override
   Widget build(BuildContext context) {
-    return MeasurementForm(children: [
-      AdaptiveLayout(
-        useHorizontalLayout: widget.useHorizontalLayout,
-        children: [
-          CommonNumField(
-            controller: ctr.weightCtr,
-            labelText: 'Weight (grams)',
-            hintText: 'Enter weight',
-            isDouble: true,
-            isLastField: false,
-            onChanged: (String? value) {
-              if (value != null && value.isNotEmpty) {
-                final double weight = double.tryParse(value) ?? 0.0;
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                  widget.specimenUuid,
-                  AvianMeasurementCompanion(
-                    weight: db.Value(weight),
-                  ),
-                );
-              }
-            },
-          ),
-          CommonNumField(
-            controller: ctr.wingspanCtr,
-            labelText: 'Wingspan (mm)',
-            hintText: 'Enter wingspan length',
-            isDouble: true,
-            isLastField: false,
-            onChanged: (String? value) {
-              if (value != null && value.isNotEmpty) {
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                  widget.specimenUuid,
-                  AvianMeasurementCompanion(
-                    wingspan: db.Value(double.tryParse(value) ?? 0),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      CommonPadding(
-        child: CommonTextField(
-          controller: ctr.billCtr,
-          labelText: 'Bill color',
-          hintText: 'Enter bill color',
-          isLastField: false,
-          onChanged: (String? value) {
-            if (value != null && value.isNotEmpty) {
-              SpecimenServices(ref: ref).updateAvianMeasurement(
-                widget.specimenUuid,
-                AvianMeasurementCompanion(
-                  billColor: db.Value(value),
-                ),
-              );
-            }
-          },
-        ),
-      ),
-      AdaptiveLayout(
-        useHorizontalLayout: widget.useHorizontalLayout,
-        children: [
-          CommonTextField(
-            controller: ctr.irisCtr,
-            labelText: 'Iris color',
-            hintText: 'Enter iris color',
-            isLastField: false,
-            onChanged: (String? value) {
-              if (value != null && value.isNotEmpty) {
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                  widget.specimenUuid,
-                  AvianMeasurementCompanion(
-                    irisColor: db.Value(value),
-                  ),
-                );
-              }
-            },
-          ),
-          CommonTextField(
-            controller: ctr.tarsusCtr,
-            labelText: 'Tarsus color',
-            hintText: 'Enter foot color',
-            isLastField: true,
-            onChanged: (String? value) {
-              if (value != null && value.isNotEmpty) {
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                  widget.specimenUuid,
-                  AvianMeasurementCompanion(
-                    tarsusColor: db.Value(value),
-                  ),
-                );
-              }
-            },
-          ),
-          CommonTextField(
-            controller: ctr.footCtr,
-            labelText: 'Toe color',
-            hintText: 'Enter toe color',
-            isLastField: false,
-            onChanged: (String? value) {
-              if (value != null && value.isNotEmpty) {
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                  widget.specimenUuid,
-                  AvianMeasurementCompanion(
-                    footColor: db.Value(value),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      AdaptiveLayout(
-        useHorizontalLayout: widget.useHorizontalLayout,
-        children: [
-          DropdownButtonFormField<SpecimenSex>(
-            initialValue: getSpecimenSex(ctr.sexCtr),
-            decoration: const InputDecoration(
-              labelText: 'Sex',
-              hintText: 'Choose one',
+    return MeasurementForm(
+      children: [
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            CommonNumField(
+              controller: ctr.weightCtr,
+              labelText: 'Weight (grams)',
+              hintText: 'Enter weight',
+              isDouble: true,
+              isLastField: false,
+              onChanged: (String? value) {
+                if (value != null && value.isNotEmpty) {
+                  final double weight = double.tryParse(value) ?? 0.0;
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(weight: db.Value(weight)),
+                  );
+                }
+              },
             ),
-            items: specimenSexList
-                .map((e) => DropdownMenuItem(
+            CommonNumField(
+              controller: ctr.wingspanCtr,
+              labelText: 'Wingspan (mm)',
+              hintText: 'Enter wingspan length',
+              isDouble: true,
+              isLastField: false,
+              onChanged: (String? value) {
+                if (value != null && value.isNotEmpty) {
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      wingspan: db.Value(double.tryParse(value) ?? 0),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+        CommonPadding(
+          child: CommonTextField(
+            controller: ctr.billCtr,
+            labelText: 'Bill color',
+            hintText: 'Enter bill color',
+            isLastField: false,
+            onChanged: (String? value) {
+              if (value != null && value.isNotEmpty) {
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                  widget.specimenUuid,
+                  AvianMeasurementCompanion(billColor: db.Value(value)),
+                );
+              }
+            },
+          ),
+        ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            CommonTextField(
+              controller: ctr.irisCtr,
+              labelText: 'Iris color',
+              hintText: 'Enter iris color',
+              isLastField: false,
+              onChanged: (String? value) {
+                if (value != null && value.isNotEmpty) {
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(irisColor: db.Value(value)),
+                  );
+                }
+              },
+            ),
+            CommonTextField(
+              controller: ctr.tarsusCtr,
+              labelText: 'Tarsus color',
+              hintText: 'Enter foot color',
+              isLastField: true,
+              onChanged: (String? value) {
+                if (value != null && value.isNotEmpty) {
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(tarsusColor: db.Value(value)),
+                  );
+                }
+              },
+            ),
+            CommonTextField(
+              controller: ctr.footCtr,
+              labelText: 'Toe color',
+              hintText: 'Enter toe color',
+              isLastField: false,
+              onChanged: (String? value) {
+                if (value != null && value.isNotEmpty) {
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(footColor: db.Value(value)),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            DropdownButtonFormField<SpecimenSex>(
+              initialValue: getSpecimenSex(ctr.sexCtr),
+              decoration: const InputDecoration(
+                labelText: 'Sex',
+                hintText: 'Choose one',
+              ),
+              items: specimenSexList
+                  .map(
+                    (e) => DropdownMenuItem(
                       value: SpecimenSex.values[specimenSexList.indexOf(e)],
                       child: CommonDropdownText(text: e),
-                    ))
-                .toList(),
-            onChanged: (SpecimenSex? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  ctr.sexCtr = newValue.index;
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    ),
+                  )
+                  .toList(),
+              onChanged: (SpecimenSex? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    ctr.sexCtr = newValue.index;
+                    SpecimenServices(ref: ref).updateAvianMeasurement(
                       widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        sex: db.Value(newValue.index),
-                      ));
+                      AvianMeasurementCompanion(sex: db.Value(newValue.index)),
+                    );
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            DropdownButtonFormField<int?>(
+              initialValue: ctr.broodPatchCtr,
+              decoration: const InputDecoration(
+                labelText: 'Brood patch',
+                hintText: 'Choose one',
+              ),
+              items: DropDownMenuItems.booleanDropDownItems(),
+              onChanged: (int? newValue) {
+                setState(() {
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(broodPatch: db.Value(newValue)),
+                  );
                 });
+              },
+            ),
+            DropdownButtonFormField<int?>(
+              initialValue: ctr.hasBursaCtr,
+              decoration: const InputDecoration(
+                labelText: 'Bursa present',
+                hintText: 'Choose one',
+              ),
+              items: DropDownMenuItems.booleanDropDownItems(),
+              onChanged: (int? newValue) {
+                setState(() {
+                  _hasBursa = newValue == 1;
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(hasBursa: db.Value(newValue)),
+                  );
+                });
+              },
+            ),
+          ],
+        ),
+        BursaField(
+          specimenUuid: widget.specimenUuid,
+          useHorizontalLayout: widget.useHorizontalLayout,
+          hasBursa: _hasBursa,
+          ctr: ctr,
+        ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            SkullOssField(specimenUuid: widget.specimenUuid, ctr: ctr),
+            FatField(specimenUuid: widget.specimenUuid, ctr: ctr),
+          ],
+        ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            StomachContentsField(specimenUuid: widget.specimenUuid, ctr: ctr),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: CommonTextField(
+            controller: ctr.stomachContRemarkCtr,
+            maxLines: 3,
+            labelText: 'Stomach content remarks',
+            hintText: 'Enter stomach content details',
+            isLastField: false,
+            onChanged: (String? value) {
+              if (value != null && value.isNotEmpty) {
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                  widget.specimenUuid,
+                  AvianMeasurementCompanion(
+                    stomachContentRemark: db.Value(value),
+                  ),
+                );
               }
             },
           ),
-        ],
-      ),
-      AdaptiveLayout(
-        useHorizontalLayout: widget.useHorizontalLayout,
-        children: [
-          DropdownButtonFormField<int?>(
-            initialValue: ctr.broodPatchCtr,
-            decoration: const InputDecoration(
-              labelText: 'Brood patch',
-              hintText: 'Choose one',
-            ),
-            items: DropDownMenuItems.booleanDropDownItems(),
-            onChanged: (int? newValue) {
-              setState(() {
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                    widget.specimenUuid,
-                    AvianMeasurementCompanion(
-                      broodPatch: db.Value(newValue),
-                    ));
-              });
-            },
-          ),
-          DropdownButtonFormField<int?>(
-            initialValue: ctr.hasBursaCtr,
-            decoration: const InputDecoration(
-              labelText: 'Bursa present',
-              hintText: 'Choose one',
-            ),
-            items: DropDownMenuItems.booleanDropDownItems(),
-            onChanged: (int? newValue) {
-              setState(() {
-                _hasBursa = newValue == 1;
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                    widget.specimenUuid,
-                    AvianMeasurementCompanion(
-                      hasBursa: db.Value(newValue),
-                    ));
-              });
-            },
-          ),
-        ],
-      ),
-      BursaField(
-        specimenUuid: widget.specimenUuid,
-        useHorizontalLayout: widget.useHorizontalLayout,
-        hasBursa: _hasBursa,
-        ctr: ctr,
-      ),
-      AdaptiveLayout(
-        useHorizontalLayout: widget.useHorizontalLayout,
-        children: [
-          SkullOssField(
-            specimenUuid: widget.specimenUuid,
-            ctr: ctr,
-          ),
-          FatField(
-            specimenUuid: widget.specimenUuid,
-            ctr: ctr,
-          ),
-        ],
-      ),
-      Padding(
-        padding: const EdgeInsets.all(5),
-        child: CommonTextField(
-          controller: ctr.stomachContentCtr,
-          maxLines: 3,
-          labelText: 'Stomach contents',
-          hintText: 'Enter stomach contents',
-          isLastField: false,
-          onChanged: (String? value) {
-            if (value != null && value.isNotEmpty) {
-              SpecimenServices(ref: ref).updateAvianMeasurement(
-                widget.specimenUuid,
-                AvianMeasurementCompanion(
-                  stomachContent: db.Value(value),
-                ),
-              );
-            }
-          },
         ),
-      ),
-      MaleGonadForm(
-        specimenUuid: widget.specimenUuid,
-        ctr: ctr,
-        useHorizontalLayout: widget.useHorizontalLayout,
-        sex: getSpecimenSex(ctr.sexCtr),
-      ),
-      FemaleGonadForm(
-        specimenUuid: widget.specimenUuid,
-        ctr: ctr,
-        useHorizontalLayout: widget.useHorizontalLayout,
-        sex: getSpecimenSex(ctr.sexCtr),
-      ),
-      MoltingForm(
-        specimenUuid: widget.specimenUuid,
-        ctr: ctr,
-        useHorizontalLayout: widget.useHorizontalLayout,
-      ),
-      Notes(
-        specimenUuid: widget.specimenUuid,
-        ctr: ctr,
-      )
-    ]);
+        MaleGonadForm(
+          specimenUuid: widget.specimenUuid,
+          ctr: ctr,
+          useHorizontalLayout: widget.useHorizontalLayout,
+          sex: getSpecimenSex(ctr.sexCtr),
+        ),
+        FemaleGonadForm(
+          specimenUuid: widget.specimenUuid,
+          ctr: ctr,
+          useHorizontalLayout: widget.useHorizontalLayout,
+          sex: getSpecimenSex(ctr.sexCtr),
+        ),
+        MoltingForm(
+          specimenUuid: widget.specimenUuid,
+          ctr: ctr,
+          useHorizontalLayout: widget.useHorizontalLayout,
+        ),
+        Notes(specimenUuid: widget.specimenUuid, ctr: ctr),
+      ],
+    );
   }
 
   Future<void> _updateCtr(String specimenUuid) async {
-    AvianMeasurementData data =
-        await SpecimenServices(ref: ref).getAvianMeasurementData(specimenUuid);
+    AvianMeasurementData data = await SpecimenServices(
+      ref: ref,
+    ).getAvianMeasurementData(specimenUuid);
     setState(() {
       ctr = AvianMeasurementCtrModel.fromData(data);
     });
@@ -365,6 +356,63 @@ class BursaFieldState extends ConsumerState<BursaField> {
   }
 }
 
+class StomachContentsField extends ConsumerWidget {
+  const StomachContentsField({
+    super.key,
+    required this.specimenUuid,
+    required this.ctr,
+  });
+
+  final String specimenUuid;
+  final AvianMeasurementCtrModel ctr;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(userDefinedFieldProvider(stomachContPrefKey))
+        .when(
+          data: (data) {
+            final current = ctr.stomachContentCtr.text;
+            final initialValue = (current.isNotEmpty && data.contains(current))
+                ? current
+                : null;
+
+            return DropdownButtonFormField(
+              initialValue: initialValue,
+              decoration: const InputDecoration(
+                labelText: 'Stomach contents',
+                hintText: 'Select stomach contents',
+              ),
+              items: data.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: CommonDropdownText(text: value),
+                );
+              }).toList(),
+              onChanged: (String? value) {
+                if (value != null) {
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    specimenUuid,
+                    AvianMeasurementCompanion(stomachContent: db.Value(value)),
+                  );
+                }
+              },
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (e, _) => Text(e.toString()),
+        );
+  }
+
+  // String? _getValue() {
+  //   if (partCtr.treatmentCtr.text.trim().isNotEmpty) {
+  //     return partCtr.treatmentCtr.text.trim();
+  //   } else {
+  //     return null;
+  //   }
+  // }
+}
+
 class MaleGonadForm extends ConsumerStatefulWidget {
   const MaleGonadForm({
     super.key,
@@ -378,10 +426,11 @@ class MaleGonadForm extends ConsumerStatefulWidget {
   final bool useHorizontalLayout;
   final AvianMeasurementCtrModel ctr;
   final SpecimenSex? sex;
-  
+
   @override
   ConsumerState<MaleGonadForm> createState() => _MaleGonadFormState();
 }
+
 class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
   bool _showTestisSize = false;
 
@@ -397,54 +446,53 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
   @override
   Widget build(BuildContext context) {
     return Visibility(
-        visible: widget.sex == SpecimenSex.male,
-        child: Column(
-          children: [
-            const CommonDivider(),
-            Text('Male Gonads', style: Theme.of(context).textTheme.titleLarge),
-            Text('Left testis size (mm)',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+      visible: widget.sex == SpecimenSex.male,
+      child: Column(
+        children: [
+          const CommonDivider(),
+          Text('Male Gonads', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'Left testis size (mm)',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
 
-            DropdownButtonFormField<bool>(
-              initialValue: _showTestisSize,
-              decoration: const InputDecoration(
-                labelText: 'Size',
+          DropdownButtonFormField<bool>(
+            initialValue: _showTestisSize,
+            decoration: const InputDecoration(labelText: 'Size'),
+            items: const [
+              DropdownMenuItem(
+                value: false,
+                child: CommonDropdownText(text: 'minute'),
               ),
-              items: const [
-                DropdownMenuItem(
-                  value: false,
-                  child: CommonDropdownText(text: 'minute'),
-                ),
-                DropdownMenuItem(
-                  value: true,
-                  child: CommonDropdownText(text: '1 × 1 mm or greater'),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _showTestisSize = value ?? false;
-                });
+              DropdownMenuItem(
+                value: true,
+                child: CommonDropdownText(text: '1 × 1 mm or greater'),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _showTestisSize = value ?? false;
+              });
 
-                if (!_showTestisSize) {
-                  widget.ctr.testisLengthCtr.clear();
-                  widget.ctr.testisWidthCtr.clear();
+              if (!_showTestisSize) {
+                widget.ctr.testisLengthCtr.clear();
+                widget.ctr.testisWidthCtr.clear();
 
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                    widget.specimenUuid,
-                    const AvianMeasurementCompanion(
-                      testisLength: db.Value(null),
-                      testisWidth: db.Value(null),
-                    ),
-                  );
-                }
-              },
-            ),
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                  widget.specimenUuid,
+                  const AvianMeasurementCompanion(
+                    testisLength: db.Value(null),
+                    testisWidth: db.Value(null),
+                  ),
+                );
+              }
+            },
+          ),
 
-            if (_showTestisSize)
-              AdaptiveLayout(
-                useHorizontalLayout: widget.useHorizontalLayout,
-                children: [
+          if (_showTestisSize)
+            AdaptiveLayout(
+              useHorizontalLayout: widget.useHorizontalLayout,
+              children: [
                 CommonNumField(
                   controller: widget.ctr.testisLengthCtr,
                   labelText: 'Length',
@@ -481,29 +529,28 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
                 ),
               ],
             ),
-            // Remarks
-            Padding(
-              padding: const EdgeInsets.all(5),
-              child: CommonTextField(
-                controller: widget.ctr.testisRemarkCtr,
-                maxLines: 3,
-                labelText: 'Remarks',
-                hintText: 'Enter remarks, e.g. right testis size',
-                isLastField: false,
-                onChanged: (String? value) {
-                  if (value != null && value.isNotEmpty) {
-                    SpecimenServices(ref: ref).updateAvianMeasurement(
-                      widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        testisRemark: db.Value(value),
-                      ),
-                    );
-                  }
-                },
-              ),
+          // Remarks
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: CommonTextField(
+              controller: widget.ctr.testisRemarkCtr,
+              maxLines: 3,
+              labelText: 'Remarks',
+              hintText: 'Enter remarks, e.g. right testis size',
+              isLastField: false,
+              onChanged: (String? value) {
+                if (value != null && value.isNotEmpty) {
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(testisRemark: db.Value(value)),
+                  );
+                }
+              },
             ),
-          ],
-        ));
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -530,10 +577,12 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
   @override
   Widget build(BuildContext context) {
     final List<DropdownMenuItem<int?>> ovaryApperanceItems = ovaryAppearanceList
-        .map((e) => DropdownMenuItem<int?>(
-              value: ovaryAppearanceList.indexOf(e),
-              child: CommonDropdownText(text: e),
-            ))
+        .map(
+          (e) => DropdownMenuItem<int?>(
+            value: ovaryAppearanceList.indexOf(e),
+            child: CommonDropdownText(text: e),
+          ),
+        )
         .toList();
 
     return Visibility(
@@ -542,10 +591,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
         children: [
           const CommonDivider(),
           Text('Female Gonads', style: Theme.of(context).textTheme.titleLarge),
-          Text(
-            'Ovary size',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('Ovary size', style: Theme.of(context).textTheme.titleMedium),
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
@@ -588,24 +634,22 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
           Padding(
             padding: const EdgeInsets.all(5),
             child: DropdownButtonFormField<int?>(
-                initialValue: widget.ctr.ovaryAppearanceCtr,
-                decoration: const InputDecoration(
-                  labelText: 'Appearance',
-                ),
-                items:
-                    DropDownMenuItems.addChooseOneToList(ovaryApperanceItems),
-                onChanged: (int? newValue) {
-                  setState(() {
-                    if (kDebugMode) print(OvaryAppearance.large.index);
-                    _isLargeOvum = (newValue == OvaryAppearance.large.index);
-                    SpecimenServices(ref: ref).updateAvianMeasurement(
-                      widget.specimenUuid,
-                      AvianMeasurementCompanion(
-                        ovaryAppearance: db.Value(newValue),
-                      ),
-                    );
-                  });
-                }),
+              initialValue: widget.ctr.ovaryAppearanceCtr,
+              decoration: const InputDecoration(labelText: 'Appearance'),
+              items: DropDownMenuItems.addChooseOneToList(ovaryApperanceItems),
+              onChanged: (int? newValue) {
+                setState(() {
+                  if (kDebugMode) print(OvaryAppearance.large.index);
+                  _isLargeOvum = (newValue == OvaryAppearance.large.index);
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      ovaryAppearance: db.Value(newValue),
+                    ),
+                  );
+                });
+              },
+            ),
           ),
           Visibility(
             visible: _isLargeOvum,
@@ -615,10 +659,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
               useHorizontalLayout: widget.useHorizontalLayout,
             ),
           ),
-          Text(
-            'Oviduct',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('Oviduct', style: Theme.of(context).textTheme.titleMedium),
           OviductForm(
             specimenUuid: widget.specimenUuid,
             ctr: widget.ctr,
@@ -636,14 +677,12 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
                 if (value != null) {
                   SpecimenServices(ref: ref).updateAvianMeasurement(
                     widget.specimenUuid,
-                    AvianMeasurementCompanion(
-                      ovaryRemark: db.Value(value),
-                    ),
+                    AvianMeasurementCompanion(ovaryRemark: db.Value(value)),
                   );
                 }
               },
             ),
-          )
+          ),
         ],
       ),
     );
@@ -663,37 +702,34 @@ class SkullOssField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<DropdownMenuItem<int?>> skullOssItems = skullOssificationList
-        .map((e) => DropdownMenuItem<int?>(
-              value: e,
-              child: CommonDropdownText(text: '$e %'),
-            ))
+        .map(
+          (e) => DropdownMenuItem<int?>(
+            value: e,
+            child: CommonDropdownText(text: '$e %'),
+          ),
+        )
         .toList();
 
     return DropdownButtonFormField<int?>(
-        initialValue: ctr.skullOssCtr,
-        decoration: const InputDecoration(
-          labelText: 'Skull ossification (%)',
-          hintText: 'Enter percentage',
-        ),
-        items: DropDownMenuItems.addChooseOneToList(skullOssItems),
-        onChanged: (int? newValue) {
-          ctr.skullOssCtr = newValue;
-          SpecimenServices(ref: ref).updateAvianMeasurement(
-            specimenUuid,
-            AvianMeasurementCompanion(
-              skullOssification: db.Value(newValue),
-            ),
-          );
-        });
+      initialValue: ctr.skullOssCtr,
+      decoration: const InputDecoration(
+        labelText: 'Skull ossification (%)',
+        hintText: 'Enter percentage',
+      ),
+      items: DropDownMenuItems.addChooseOneToList(skullOssItems),
+      onChanged: (int? newValue) {
+        ctr.skullOssCtr = newValue;
+        SpecimenServices(ref: ref).updateAvianMeasurement(
+          specimenUuid,
+          AvianMeasurementCompanion(skullOssification: db.Value(newValue)),
+        );
+      },
+    );
   }
 }
 
 class FatField extends ConsumerWidget {
-  const FatField({
-    super.key,
-    required this.specimenUuid,
-    required this.ctr,
-  });
+  const FatField({super.key, required this.specimenUuid, required this.ctr});
 
   final String specimenUuid;
   final AvianMeasurementCtrModel ctr;
@@ -701,26 +737,25 @@ class FatField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<DropdownMenuItem<int?>> fatCategoryItems = fatCategoryList
-        .map((e) => DropdownMenuItem<int?>(
-              value: fatCategoryList.indexOf(e),
-              child: CommonDropdownText(text: e),
-            ))
+        .map(
+          (e) => DropdownMenuItem<int?>(
+            value: fatCategoryList.indexOf(e),
+            child: CommonDropdownText(text: e),
+          ),
+        )
         .toList();
 
     return DropdownButtonFormField<int?>(
-        initialValue: ctr.fatCtr,
-        decoration: const InputDecoration(
-          labelText: 'Fat',
-        ),
-        items: DropDownMenuItems.addChooseOneToList(fatCategoryItems),
-        onChanged: (int? newValue) {
-          SpecimenServices(ref: ref).updateAvianMeasurement(
-            specimenUuid,
-            AvianMeasurementCompanion(
-              fat: db.Value(newValue),
-            ),
-          );
-        });
+      initialValue: ctr.fatCtr,
+      decoration: const InputDecoration(labelText: 'Fat'),
+      items: DropDownMenuItems.addChooseOneToList(fatCategoryItems),
+      onChanged: (int? newValue) {
+        SpecimenServices(ref: ref).updateAvianMeasurement(
+          specimenUuid,
+          AvianMeasurementCompanion(fat: db.Value(newValue)),
+        );
+      },
+    );
   }
 }
 
@@ -799,7 +834,7 @@ class OvumSizeForm extends ConsumerWidget {
               },
             ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -834,87 +869,92 @@ class _OviductFormState extends ConsumerState<OviductForm> {
   Widget build(BuildContext context) {
     final List<DropdownMenuItem<int?>> oviductAppearanceItems =
         oviductAppearanceList
-            .map((e) => DropdownMenuItem<int?>(
-                  value: oviductAppearanceList.indexOf(e),
-                  child: CommonDropdownText(text: e),
-                ))
+            .map(
+              (e) => DropdownMenuItem<int?>(
+                value: oviductAppearanceList.indexOf(e),
+                child: CommonDropdownText(text: e),
+              ),
+            )
             .toList();
 
     return Column(
       children: [
-        AdaptiveLayout(useHorizontalLayout: widget.useHorizontalLayout, children: [
-        DropdownButtonFormField<bool>(
-            initialValue: _showWidthField,
-            decoration: const InputDecoration(
-              labelText: 'Width',
-            ),
-            items: const [
-              DropdownMenuItem(
-                value: false,
-                child: CommonDropdownText(text: 'minute'),
-              ),
-              DropdownMenuItem(
-                value: true,
-                child: CommonDropdownText(text: '1 mm or greater'),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _showWidthField = value ?? false;
-              });
-
-              if (!_showWidthField) {
-                widget.ctr.oviductWidthCtr.clear();
-
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                  widget.specimenUuid,
-                  AvianMeasurementCompanion(
-                    oviductWidth: const db.Value(null),
-                  ),
-                );
-              }
-            },
-          ),
-
-        if (_showWidthField)
-          CommonNumField(
-            controller: widget.ctr.oviductWidthCtr,
-            labelText: 'Width (mm)',
-            hintText: 'Enter width',
-            isDouble: true,
-            isLastField: false,
-            onChanged: (String? value) {
-              if (value != null && value.isNotEmpty) {
-                SpecimenServices(ref: ref).updateAvianMeasurement(
-                  widget.specimenUuid,
-                  AvianMeasurementCompanion(
-                    oviductWidth: db.Value(double.parse(value)),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      AdaptiveLayout(
-        useHorizontalLayout: widget.useHorizontalLayout,
-        children: [
-          DropdownButtonFormField<int?>(
-            initialValue: widget.ctr.oviductAppearanceCtr,
-            decoration: const InputDecoration(
-              labelText: 'Appearance',
-            ),
-            items: DropDownMenuItems.addChooseOneToList(oviductAppearanceItems),
-            onChanged: (int? newValue) {
-              SpecimenServices(ref: ref).updateAvianMeasurement(
-                widget.specimenUuid,
-                AvianMeasurementCompanion(
-                  oviductAppearance: db.Value(newValue),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            DropdownButtonFormField<bool>(
+              initialValue: _showWidthField,
+              decoration: const InputDecoration(labelText: 'Width'),
+              items: const [
+                DropdownMenuItem(
+                  value: false,
+                  child: CommonDropdownText(text: 'minute'),
                 ),
-              );
-            }),
-        ]),
-    ]);
+                DropdownMenuItem(
+                  value: true,
+                  child: CommonDropdownText(text: '1 mm or greater'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _showWidthField = value ?? false;
+                });
+
+                if (!_showWidthField) {
+                  widget.ctr.oviductWidthCtr.clear();
+
+                  SpecimenServices(ref: ref).updateAvianMeasurement(
+                    widget.specimenUuid,
+                    AvianMeasurementCompanion(
+                      oviductWidth: const db.Value(null),
+                    ),
+                  );
+                }
+              },
+            ),
+
+            if (_showWidthField)
+              CommonNumField(
+                controller: widget.ctr.oviductWidthCtr,
+                labelText: 'Width (mm)',
+                hintText: 'Enter width',
+                isDouble: true,
+                isLastField: false,
+                onChanged: (String? value) {
+                  if (value != null && value.isNotEmpty) {
+                    SpecimenServices(ref: ref).updateAvianMeasurement(
+                      widget.specimenUuid,
+                      AvianMeasurementCompanion(
+                        oviductWidth: db.Value(double.parse(value)),
+                      ),
+                    );
+                  }
+                },
+              ),
+          ],
+        ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            DropdownButtonFormField<int?>(
+              initialValue: widget.ctr.oviductAppearanceCtr,
+              decoration: const InputDecoration(labelText: 'Appearance'),
+              items: DropDownMenuItems.addChooseOneToList(
+                oviductAppearanceItems,
+              ),
+              onChanged: (int? newValue) {
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                  widget.specimenUuid,
+                  AvianMeasurementCompanion(
+                    oviductAppearance: db.Value(newValue),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
 
@@ -945,28 +985,19 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          Text(
-            'Molt',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          BodyMoltForm(
-            specimenUuid: widget.specimenUuid,
-            ctr: widget.ctr,
-          ),
+          Text('Molt', style: Theme.of(context).textTheme.titleMedium),
+          BodyMoltForm(specimenUuid: widget.specimenUuid, ctr: widget.ctr),
           DropdownButtonFormField<int?>(
             initialValue: widget.ctr.wingIsMoltCtr,
-            decoration: const InputDecoration(
-              labelText: 'Wing molt',
-            ),
+            decoration: const InputDecoration(labelText: 'Wing molt'),
             items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
               setState(() {
                 _wingMolting = newValue == 1;
                 SpecimenServices(ref: ref).updateAvianMeasurement(
-                    widget.specimenUuid,
-                    AvianMeasurementCompanion(
-                      wingIsMolt: db.Value(newValue),
-                    ));
+                  widget.specimenUuid,
+                  AvianMeasurementCompanion(wingIsMolt: db.Value(newValue)),
+                );
               });
             },
           ),
@@ -986,10 +1017,9 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
               setState(() {
                 _tailMolting = newValue == 1;
                 SpecimenServices(ref: ref).updateAvianMeasurement(
-                    widget.specimenUuid,
-                    AvianMeasurementCompanion(
-                      tailIsMolt: db.Value(newValue),
-                    ));
+                  widget.specimenUuid,
+                  AvianMeasurementCompanion(tailIsMolt: db.Value(newValue)),
+                );
               });
             },
           ),
@@ -1011,9 +1041,7 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
               if (value != null) {
                 SpecimenServices(ref: ref).updateAvianMeasurement(
                   widget.specimenUuid,
-                  AvianMeasurementCompanion(
-                    moltRemark: db.Value(value),
-                  ),
+                  AvianMeasurementCompanion(moltRemark: db.Value(value)),
                 );
               }
             },
@@ -1048,9 +1076,7 @@ class WingMoltForm extends ConsumerWidget {
         if (value != null) {
           SpecimenServices(ref: ref).updateAvianMeasurement(
             specimenUuid,
-            AvianMeasurementCompanion(
-              wingMolt: db.Value(value),
-            ),
+            AvianMeasurementCompanion(wingMolt: db.Value(value)),
           );
         }
       },
@@ -1082,9 +1108,7 @@ class TailMoltForm extends ConsumerWidget {
         if (value != null) {
           SpecimenServices(ref: ref).updateAvianMeasurement(
             specimenUuid,
-            AvianMeasurementCompanion(
-              tailMolt: db.Value(value),
-            ),
+            AvianMeasurementCompanion(tailMolt: db.Value(value)),
           );
         }
       },
@@ -1105,35 +1129,30 @@ class BodyMoltForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<DropdownMenuItem<int?>> bodyMoltItems = bodyMoltList
-        .map((e) => DropdownMenuItem<int?>(
-              value: bodyMoltList.indexOf(e),
-              child: CommonDropdownText(text: e),
-            ))
+        .map(
+          (e) => DropdownMenuItem<int?>(
+            value: bodyMoltList.indexOf(e),
+            child: CommonDropdownText(text: e),
+          ),
+        )
         .toList();
 
     return DropdownButtonFormField<int?>(
-        initialValue: ctr.bodyMoltCtr,
-        decoration: const InputDecoration(
-          labelText: 'Body molt',
-        ),
-        items: DropDownMenuItems.addChooseOneToList(bodyMoltItems),
-        onChanged: (int? newValue) {
-          SpecimenServices(ref: ref).updateAvianMeasurement(
-            specimenUuid,
-            AvianMeasurementCompanion(
-              bodyMolt: db.Value(newValue),
-            ),
-          );
-        });
+      initialValue: ctr.bodyMoltCtr,
+      decoration: const InputDecoration(labelText: 'Body molt'),
+      items: DropDownMenuItems.addChooseOneToList(bodyMoltItems),
+      onChanged: (int? newValue) {
+        SpecimenServices(ref: ref).updateAvianMeasurement(
+          specimenUuid,
+          AvianMeasurementCompanion(bodyMolt: db.Value(newValue)),
+        );
+      },
+    );
   }
 }
 
 class Notes extends ConsumerWidget {
-  const Notes({
-    super.key,
-    required this.specimenUuid,
-    required this.ctr,
-  });
+  const Notes({super.key, required this.specimenUuid, required this.ctr});
 
   final String specimenUuid;
   final AvianMeasurementCtrModel ctr;
@@ -1141,48 +1160,42 @@ class Notes extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-        padding: const EdgeInsets.all(5),
-        child: Column(
-          children: [
-            Text(
-              'Notes',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            CommonTextField(
-              controller: ctr.habitatRemarkCtr,
-              maxLines: 3,
-              labelText: 'Habitat',
-              hintText: 'Add additional information about the habitat',
-              isLastField: true,
-              onChanged: (String? value) {
-                if (value != null) {
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                    specimenUuid,
-                    AvianMeasurementCompanion(
-                      habitatRemark: db.Value(value),
-                    ),
-                  );
-                }
-              },
-            ),
-            CommonTextField(
-              controller: ctr.specimenRemarkCtr,
-              maxLines: 3,
-              labelText: 'Specimen',
-              hintText: 'Add additional information about the specimen',
-              isLastField: true,
-              onChanged: (String? value) {
-                if (value != null) {
-                  SpecimenServices(ref: ref).updateAvianMeasurement(
-                    specimenUuid,
-                    AvianMeasurementCompanion(
-                      specimenRemark: db.Value(value),
-                    ),
-                  );
-                }
-              },
-            )
-          ],
-        ));
+      padding: const EdgeInsets.all(5),
+      child: Column(
+        children: [
+          Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+          CommonTextField(
+            controller: ctr.habitatRemarkCtr,
+            maxLines: 3,
+            labelText: 'Habitat',
+            hintText: 'Add additional information about the habitat',
+            isLastField: true,
+            onChanged: (String? value) {
+              if (value != null) {
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                  specimenUuid,
+                  AvianMeasurementCompanion(habitatRemark: db.Value(value)),
+                );
+              }
+            },
+          ),
+          CommonTextField(
+            controller: ctr.specimenRemarkCtr,
+            maxLines: 3,
+            labelText: 'Specimen',
+            hintText: 'Add additional information about the specimen',
+            isLastField: true,
+            onChanged: (String? value) {
+              if (value != null) {
+                SpecimenServices(ref: ref).updateAvianMeasurement(
+                  specimenUuid,
+                  AvianMeasurementCompanion(specimenRemark: db.Value(value)),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

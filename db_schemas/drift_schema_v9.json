@@ -2527,6 +2527,16 @@
             "dsl_features": []
           },
           {
+            "name": "stomachContentRemark",
+            "getter_name": "stomachContentRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
             "name": "testisLength",
             "getter_name": "testisLength",
             "moor_type": "double",
@@ -2994,7 +3004,7 @@
       "data": {
         "on": 13,
         "name": "specimen_project_species_idx",
-        "sql": "CREATE INDEX specimen_project_species_idx\nON specimen(projectUuid, speciesID);",
+        "sql": "CREATE INDEX specimen_project_species_idx\r\nON specimen(projectUuid, speciesID);",
         "unique": false,
         "columns": []
       }
@@ -3008,7 +3018,7 @@
       "data": {
         "on": 13,
         "name": "specimen_project_event_idx",
-        "sql": "CREATE INDEX specimen_project_event_idx\nON specimen(projectUuid, collEventID);",
+        "sql": "CREATE INDEX specimen_project_event_idx\r\nON specimen(projectUuid, collEventID);",
         "unique": false,
         "columns": []
       }
@@ -3022,7 +3032,7 @@
       "data": {
         "on": 3,
         "name": "site_project_idx",
-        "sql": "CREATE INDEX site_project_idx\nON site(projectUuid);",
+        "sql": "CREATE INDEX site_project_idx\r\nON site(projectUuid);",
         "unique": false,
         "columns": []
       }
@@ -3036,7 +3046,7 @@
       "data": {
         "on": 4,
         "name": "coordinate_site_idx",
-        "sql": "CREATE INDEX coordinate_site_idx\nON coordinate(siteID);",
+        "sql": "CREATE INDEX coordinate_site_idx\r\nON coordinate(siteID);",
         "unique": false,
         "columns": []
       }
@@ -3050,7 +3060,7 @@
       "data": {
         "on": 13,
         "name": "specimen_project_coordinate_idx",
-        "sql": "CREATE INDEX specimen_project_coordinate_idx\nON specimen(projectUuid, coordinateID);",
+        "sql": "CREATE INDEX specimen_project_coordinate_idx\r\nON specimen(projectUuid, coordinateID);",
         "unique": false,
         "columns": []
       }
@@ -3064,7 +3074,7 @@
       "data": {
         "on": 5,
         "name": "coll_event_project_site_idx",
-        "sql": "CREATE INDEX coll_event_project_site_idx\nON collEvent(projectUuid, siteID);",
+        "sql": "CREATE INDEX coll_event_project_site_idx\r\nON collEvent(projectUuid, siteID);",
         "unique": false,
         "columns": []
       }
@@ -3078,7 +3088,7 @@
       "data": {
         "on": 20,
         "name": "specimen_part_specimen_idx",
-        "sql": "CREATE INDEX specimen_part_specimen_idx\nON specimenPart(specimenUuid);",
+        "sql": "CREATE INDEX specimen_part_specimen_idx\r\nON specimenPart(specimenUuid);",
         "unique": false,
         "columns": []
       }
@@ -3252,7 +3262,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"avianMeasurement\" (\"specimenUuid\" TEXT NOT NULL, \"weight\" REAL, \"wingspan\" REAL, \"irisColor\" TEXT, \"irisHex\" TEXT, \"billColor\" TEXT, \"billHex\" TEXT, \"footColor\" TEXT, \"footHex\" TEXT, \"tarsusColor\" TEXT, \"tarsusHex\" TEXT, \"sex\" INTEGER, \"broodPatch\" INTEGER, \"skullOssification\" INTEGER, \"hasBursa\" INTEGER, \"bursaWidth\" REAL, \"bursaLength\" REAL, \"fat\" INTEGER, \"stomachContent\" TEXT, \"testisLength\" REAL, \"testisWidth\" REAL, \"testisRemark\" TEXT, \"ovaryLength\" REAL, \"ovaryWidth\" REAL, \"oviductWidth\" REAL, \"ovaryAppearance\" INTEGER, \"firstOvaSize\" REAL, \"secondOvaSize\" REAL, \"thirdOvaSize\" REAL, \"oviductAppearance\" INTEGER, \"ovaryRemark\" TEXT, \"wingIsMolt\" INTEGER, \"wingMolt\" TEXT, \"tailIsMolt\" INTEGER, \"tailMolt\" TEXT, \"bodyMolt\" INTEGER, \"moltRemark\" TEXT, \"specimenRemark\" TEXT, \"habitatRemark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"avianMeasurement\" (\"specimenUuid\" TEXT NOT NULL, \"weight\" REAL, \"wingspan\" REAL, \"irisColor\" TEXT, \"irisHex\" TEXT, \"billColor\" TEXT, \"billHex\" TEXT, \"footColor\" TEXT, \"footHex\" TEXT, \"tarsusColor\" TEXT, \"tarsusHex\" TEXT, \"sex\" INTEGER, \"broodPatch\" INTEGER, \"skullOssification\" INTEGER, \"hasBursa\" INTEGER, \"bursaWidth\" REAL, \"bursaLength\" REAL, \"fat\" INTEGER, \"stomachContent\" TEXT, \"stomachContentRemark\" TEXT, \"testisLength\" REAL, \"testisWidth\" REAL, \"testisRemark\" TEXT, \"ovaryLength\" REAL, \"ovaryWidth\" REAL, \"oviductWidth\" REAL, \"ovaryAppearance\" INTEGER, \"firstOvaSize\" REAL, \"secondOvaSize\" REAL, \"thirdOvaSize\" REAL, \"oviductAppearance\" INTEGER, \"ovaryRemark\" TEXT, \"wingIsMolt\" INTEGER, \"wingMolt\" TEXT, \"tailIsMolt\" INTEGER, \"tailMolt\" TEXT, \"bodyMolt\" INTEGER, \"moltRemark\" TEXT, \"specimenRemark\" TEXT, \"habitatRemark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid));"
         }
       ]
     },

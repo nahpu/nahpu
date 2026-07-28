@@ -67,7 +67,9 @@ class MediaDbQueryManager {
       $PersonnelListTableManager(_db.attachedDatabase, _db.personnelList);
   $MammalMeasurementTableManager get mammalMeasurement =>
       $MammalMeasurementTableManager(
-          _db.attachedDatabase, _db.mammalMeasurement);
+        _db.attachedDatabase,
+        _db.mammalMeasurement,
+      );
   $AvianMeasurementTableManager get avianMeasurement =>
       $AvianMeasurementTableManager(_db.attachedDatabase, _db.avianMeasurement);
   $HerpMeasurementTableManager get herpMeasurement =>
