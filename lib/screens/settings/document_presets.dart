@@ -210,8 +210,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                           side: BorderSide(
                                             color: Theme.of(
                                               context,
-                                            ).dividerColor.withAlpha(50),
-                                            width: 1.5,
+                                            ).colorScheme.outlineVariant,
                                           ),
                                         ),
                                         color: Theme.of(context)

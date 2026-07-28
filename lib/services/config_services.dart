@@ -16,8 +16,7 @@ class ConfigDbService {
       'defaultDocumentPresetsLoaded';
 
   static const List<String> _defaultDocumentPresetAssets = [
-    'assets/configs/classic.json',
-    'assets/configs/modern.json',
+    'assets/configs/basic.json',
   ];
 
   Future<void> initDb() async {
