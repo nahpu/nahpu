@@ -114,6 +114,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DocumentLayoutPreset dco_decode_document_layout_preset(dynamic raw);
 
   @protected
+  DocumentLayoutPreview dco_decode_document_layout_preview(dynamic raw);
+
+  @protected
   DocumentLayoutStatus dco_decode_document_layout_status(dynamic raw);
 
   @protected
@@ -160,6 +163,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<DocumentLayoutPreview> dco_decode_list_document_layout_preview(
+    dynamic raw,
+  );
+
+  @protected
   List<DocumentLayoutStatus> dco_decode_list_document_layout_status(
     dynamic raw,
   );
@@ -180,10 +188,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<RecordExportPresetPreview> dco_decode_list_record_export_preset_preview(
+    dynamic raw,
+  );
+
+  @protected
   List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
 
   @protected
+  List<TemplatePresetPreview> dco_decode_list_template_preset_preview(
+    dynamic raw,
+  );
+
+  @protected
   List<TemplatePresetUsage> dco_decode_list_template_preset_usage(dynamic raw);
+
+  @protected
+  List<UserConfigSection> dco_decode_list_user_config_section(dynamic raw);
+
+  @protected
+  List<UserConfigValuePreview> dco_decode_list_user_config_value_preview(
+    dynamic raw,
+  );
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
@@ -210,6 +236,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String>? dco_decode_opt_list_String(dynamic raw);
 
   @protected
+  RecordExportPresetPreview dco_decode_record_export_preset_preview(
+    dynamic raw,
+  );
+
+  @protected
   (double, double) dco_decode_record_f_64_f_64(dynamic raw);
 
   @protected
@@ -233,6 +264,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  TemplatePresetPreview dco_decode_template_preset_preview(dynamic raw);
+
+  @protected
   TemplatePresetUsage dco_decode_template_preset_usage(dynamic raw);
 
   @protected
@@ -246,6 +280,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void dco_decode_unit(dynamic raw);
+
+  @protected
+  UserConfigSection dco_decode_user_config_section(dynamic raw);
+
+  @protected
+  UserConfigTransferPreview dco_decode_user_config_transfer_preview(
+    dynamic raw,
+  );
+
+  @protected
+  UserConfigValuePreview dco_decode_user_config_value_preview(dynamic raw);
 
   @protected
   UtmCoordinateFfi dco_decode_utm_coordinate_ffi(dynamic raw);
@@ -374,6 +419,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  DocumentLayoutPreview sse_decode_document_layout_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   DocumentLayoutStatus sse_decode_document_layout_status(
     SseDeserializer deserializer,
   );
@@ -432,6 +482,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<DocumentLayoutPreview> sse_decode_list_document_layout_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<DocumentLayoutStatus> sse_decode_list_document_layout_status(
     SseDeserializer deserializer,
   );
@@ -454,12 +509,32 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<RecordExportPresetPreview> sse_decode_list_record_export_preset_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<(String, String)> sse_decode_list_record_string_string(
     SseDeserializer deserializer,
   );
 
   @protected
+  List<TemplatePresetPreview> sse_decode_list_template_preset_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<TemplatePresetUsage> sse_decode_list_template_preset_usage(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<UserConfigSection> sse_decode_list_user_config_section(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<UserConfigValuePreview> sse_decode_list_user_config_value_preview(
     SseDeserializer deserializer,
   );
 
@@ -488,6 +563,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
 
   @protected
+  RecordExportPresetPreview sse_decode_record_export_preset_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer);
 
   @protected
@@ -513,6 +593,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  TemplatePresetPreview sse_decode_template_preset_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   TemplatePresetUsage sse_decode_template_preset_usage(
     SseDeserializer deserializer,
   );
@@ -528,6 +613,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
+
+  @protected
+  UserConfigSection sse_decode_user_config_section(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  UserConfigTransferPreview sse_decode_user_config_transfer_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  UserConfigValuePreview sse_decode_user_config_value_preview(
+    SseDeserializer deserializer,
+  );
 
   @protected
   UtmCoordinateFfi sse_decode_utm_coordinate_ffi(SseDeserializer deserializer);
@@ -692,6 +792,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_document_layout_preview(
+    DocumentLayoutPreview self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_document_layout_status(
     DocumentLayoutStatus self,
     SseSerializer serializer,
@@ -758,6 +864,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_document_layout_preview(
+    List<DocumentLayoutPreview> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_document_layout_status(
     List<DocumentLayoutStatus> self,
     SseSerializer serializer,
@@ -794,14 +906,38 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_record_export_preset_preview(
+    List<RecordExportPresetPreview> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_record_string_string(
     List<(String, String)> self,
     SseSerializer serializer,
   );
 
   @protected
+  void sse_encode_list_template_preset_preview(
+    List<TemplatePresetPreview> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_template_preset_usage(
     List<TemplatePresetUsage> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_user_config_section(
+    List<UserConfigSection> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_user_config_value_preview(
+    List<UserConfigValuePreview> self,
     SseSerializer serializer,
   );
 
@@ -831,6 +967,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_export_preset_preview(
+    RecordExportPresetPreview self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_record_f_64_f_64(
@@ -866,6 +1008,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_template_preset_preview(
+    TemplatePresetPreview self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_template_preset_usage(
     TemplatePresetUsage self,
     SseSerializer serializer,
@@ -882,6 +1030,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_user_config_section(
+    UserConfigSection self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_user_config_transfer_preview(
+    UserConfigTransferPreview self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_user_config_value_preview(
+    UserConfigValuePreview self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_utm_coordinate_ffi(

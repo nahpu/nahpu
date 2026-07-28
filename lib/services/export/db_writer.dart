@@ -64,7 +64,6 @@ bool isAssociatedBackupArchivePath(String relative) {
   final normalized = relative.replaceAll('\\', '/');
   final lower = normalized.toLowerCase();
   if (lower == 'user_configs.json' || lower == 'settings.json') return false;
-  if (lower.endsWith('.json.nl') || lower.endsWith('.jsonl')) return false;
   if (lower.endsWith('.sqlite3') || lower.endsWith('.db')) return false;
   final segments = lower.split('/');
   return lower.startsWith('appmedia/') ||
@@ -113,7 +112,7 @@ class DbExport extends AppServices {
       final settingsFile = File(p.join(staging.path, 'user_configs.json'));
       await rust_config.exportConfigToFile(
         filePath: settingsFile.path,
-        isJson: true,
+        sections: rust_config.UserConfigSection.values,
       );
 
       await _copyAssociatedFiles(staging);
@@ -327,13 +326,13 @@ class DbWriter extends AppServices {
   Future<void> _importSettings(List<FileSystemEntity> files) async {
     final settings = files.whereType<File>().where((file) {
       final name = p.basename(file.path).toLowerCase();
-      return name == 'user_configs.json' ||
-          name == 'settings.json' ||
-          name.endsWith('.json.nl') ||
-          name.endsWith('.jsonl');
+      return name == 'user_configs.json' || name == 'settings.json';
     }).toList();
     if (settings.isEmpty) return;
-    await rust_config.importConfigFromFile(filePath: settings.first.path);
+    await rust_config.importConfigFromFile(
+      filePath: settings.first.path,
+      sections: rust_config.UserConfigSection.values,
+    );
   }
 
   String _relativeArchivePath(String filePath, String rootPath) {

@@ -2196,9 +2196,7 @@ dependencies = [
 
 [[package]]
 name = "nahpu_configs"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ad8499ff1191e85e767d49703500caedec8f7ba52f253b523af1ba786f93cab"
+version = "0.7.0"
 dependencies = [
  "redb",
  "serde",

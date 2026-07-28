@@ -6,7 +6,8 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These functions are ignored because they are not marked as `pub`: `build_config_transfer_preview`, `config_label`, `display_json_value`, `is_controlled_vocabulary`, `read_config_export`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `eq`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Initializes the configuration database at the specified path.
 Future<void> initConfigDb({required String path}) =>
@@ -54,16 +55,28 @@ Future<void> deleteRecordExportPreset({required String name}) =>
 Future<List<ConfigPresetEntry>> getAllRecordExportPresets() =>
     RustLib.instance.api.crateApiConfigGetAllRecordExportPresets();
 
+Future<UserConfigTransferPreview> getConfigExportPreview() =>
+    RustLib.instance.api.crateApiConfigGetConfigExportPreview();
+
+Future<UserConfigTransferPreview> inspectConfigFile({
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigInspectConfigFile(filePath: filePath);
+
 Future<void> exportConfigToFile({
   required String filePath,
-  required bool isJson,
+  required List<UserConfigSection> sections,
 }) => RustLib.instance.api.crateApiConfigExportConfigToFile(
   filePath: filePath,
-  isJson: isJson,
+  sections: sections,
 );
 
-Future<void> importConfigFromFile({required String filePath}) =>
-    RustLib.instance.api.crateApiConfigImportConfigFromFile(filePath: filePath);
+Future<void> importConfigFromFile({
+  required String filePath,
+  required List<UserConfigSection> sections,
+}) => RustLib.instance.api.crateApiConfigImportConfigFromFile(
+  filePath: filePath,
+  sections: sections,
+);
 
 Future<void> setTemplatePreset({required String name, required String value}) =>
     RustLib.instance.api.crateApiConfigSetTemplatePreset(
@@ -333,6 +346,37 @@ class DocumentLayoutPreset {
           multiBlockMode == other.multiBlockMode;
 }
 
+class DocumentLayoutPreview {
+  final String name;
+  final String layoutType;
+  final String pageSizeKey;
+  final int blockCount;
+
+  const DocumentLayoutPreview({
+    required this.name,
+    required this.layoutType,
+    required this.pageSizeKey,
+    required this.blockCount,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^
+      layoutType.hashCode ^
+      pageSizeKey.hashCode ^
+      blockCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DocumentLayoutPreview &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          layoutType == other.layoutType &&
+          pageSizeKey == other.pageSizeKey &&
+          blockCount == other.blockCount;
+}
+
 /// Represents whether a stored document layout can be read by the current schema.
 class DocumentLayoutStatus {
   final String name;
@@ -356,6 +400,37 @@ class DocumentLayoutStatus {
           name == other.name &&
           isCompatible == other.isCompatible &&
           error == other.error;
+}
+
+class RecordExportPresetPreview {
+  final String name;
+  final String recordType;
+  final int mappingCount;
+  final bool isCompatible;
+
+  const RecordExportPresetPreview({
+    required this.name,
+    required this.recordType,
+    required this.mappingCount,
+    required this.isCompatible,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^
+      recordType.hashCode ^
+      mappingCount.hashCode ^
+      isCompatible.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RecordExportPresetPreview &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          recordType == other.recordType &&
+          mappingCount == other.mappingCount &&
+          isCompatible == other.isCompatible;
 }
 
 /// Summarizes a template replacement and deletion operation.
@@ -383,6 +458,31 @@ class TemplatePresetDeletionResult {
           updatedBlockCount == other.updatedBlockCount;
 }
 
+class TemplatePresetPreview {
+  final String name;
+  final String recordType;
+  final String description;
+
+  const TemplatePresetPreview({
+    required this.name,
+    required this.recordType,
+    required this.description,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^ recordType.hashCode ^ description.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TemplatePresetPreview &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          recordType == other.recordType &&
+          description == other.description;
+}
+
 /// Identifies layout blocks that reference a template preset.
 class TemplatePresetUsage {
   /// Name of the print layout containing the references.
@@ -406,4 +506,85 @@ class TemplatePresetUsage {
           runtimeType == other.runtimeType &&
           layoutName == other.layoutName &&
           blockIndices == other.blockIndices;
+}
+
+enum UserConfigSection {
+  userConfigs,
+  recordExportPresets,
+  templatePresets,
+  documentLayouts,
+}
+
+class UserConfigTransferPreview {
+  final int schemaVersion;
+  final List<UserConfigSection> includedSections;
+  final List<UserConfigValuePreview> userConfigs;
+  final List<RecordExportPresetPreview> recordExportPresets;
+  final List<TemplatePresetPreview> templatePresets;
+  final List<DocumentLayoutPreview> documentLayouts;
+
+  const UserConfigTransferPreview({
+    required this.schemaVersion,
+    required this.includedSections,
+    required this.userConfigs,
+    required this.recordExportPresets,
+    required this.templatePresets,
+    required this.documentLayouts,
+  });
+
+  @override
+  int get hashCode =>
+      schemaVersion.hashCode ^
+      includedSections.hashCode ^
+      userConfigs.hashCode ^
+      recordExportPresets.hashCode ^
+      templatePresets.hashCode ^
+      documentLayouts.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserConfigTransferPreview &&
+          runtimeType == other.runtimeType &&
+          schemaVersion == other.schemaVersion &&
+          includedSections == other.includedSections &&
+          userConfigs == other.userConfigs &&
+          recordExportPresets == other.recordExportPresets &&
+          templatePresets == other.templatePresets &&
+          documentLayouts == other.documentLayouts;
+}
+
+class UserConfigValuePreview {
+  final String key;
+  final String label;
+  final List<String> values;
+  final String? value;
+  final bool isControlledVocabulary;
+
+  const UserConfigValuePreview({
+    required this.key,
+    required this.label,
+    required this.values,
+    this.value,
+    required this.isControlledVocabulary,
+  });
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      label.hashCode ^
+      values.hashCode ^
+      value.hashCode ^
+      isControlledVocabulary.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserConfigValuePreview &&
+          runtimeType == other.runtimeType &&
+          key == other.key &&
+          label == other.label &&
+          values == other.values &&
+          value == other.value &&
+          isControlledVocabulary == other.isControlledVocabulary;
 }

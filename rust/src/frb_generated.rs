@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -2043023590;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1347270615;
 
 // Section: executor
 
@@ -523,12 +523,13 @@ fn wire__crate__api__config__export_config_to_file_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_file_path = <String>::sse_decode(&mut deserializer);
-            let api_is_json = <bool>::sse_decode(&mut deserializer);
+            let api_sections =
+                <Vec<crate::api::config::UserConfigSection>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
                     let output_ok =
-                        crate::api::config::export_config_to_file(api_file_path, api_is_json)?;
+                        crate::api::config::export_config_to_file(api_file_path, api_sections)?;
                     Ok(output_ok)
                 })())
             }
@@ -709,6 +710,38 @@ fn wire__crate__api__config__get_all_record_export_presets_impl(
             move |context| {
                 transform_result_sse::<_, String>((move || {
                     let output_ok = crate::api::config::get_all_record_export_presets()?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__get_config_export_preview_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_config_export_preview",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::get_config_export_preview()?;
                     Ok(output_ok)
                 })())
             }
@@ -1146,10 +1179,13 @@ fn wire__crate__api__config__import_config_from_file_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_file_path = <String>::sse_decode(&mut deserializer);
+            let api_sections =
+                <Vec<crate::api::config::UserConfigSection>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::api::config::import_config_from_file(api_file_path)?;
+                    let output_ok =
+                        crate::api::config::import_config_from_file(api_file_path, api_sections)?;
                     Ok(output_ok)
                 })())
             }
@@ -1284,6 +1320,39 @@ fn wire__crate__api__config__init_config_db_impl(
             move |context| {
                 transform_result_sse::<_, String>((move || {
                     let output_ok = crate::api::config::init_config_db(api_path)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__inspect_config_file_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "inspect_config_file",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_file_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::inspect_config_file(api_file_path)?;
                     Ok(output_ok)
                 })())
             }
@@ -2587,6 +2656,22 @@ impl SseDecode for crate::api::config::DocumentLayoutPreset {
     }
 }
 
+impl SseDecode for crate::api::config::DocumentLayoutPreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_layoutType = <String>::sse_decode(deserializer);
+        let mut var_pageSizeKey = <String>::sse_decode(deserializer);
+        let mut var_blockCount = <i32>::sse_decode(deserializer);
+        return crate::api::config::DocumentLayoutPreview {
+            name: var_name,
+            layout_type: var_layoutType,
+            page_size_key: var_pageSizeKey,
+            block_count: var_blockCount,
+        };
+    }
+}
+
 impl SseDecode for crate::api::config::DocumentLayoutStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2770,6 +2855,20 @@ impl SseDecode for Vec<crate::api::config::DocumentLayoutPreset> {
     }
 }
 
+impl SseDecode for Vec<crate::api::config::DocumentLayoutPreview> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::config::DocumentLayoutPreview>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::config::DocumentLayoutStatus> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2844,6 +2943,20 @@ impl SseDecode for Vec<u8> {
     }
 }
 
+impl SseDecode for Vec<crate::api::config::RecordExportPresetPreview> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::config::RecordExportPresetPreview>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<(String, String)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2856,6 +2969,20 @@ impl SseDecode for Vec<(String, String)> {
     }
 }
 
+impl SseDecode for Vec<crate::api::config::TemplatePresetPreview> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::config::TemplatePresetPreview>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::config::TemplatePresetUsage> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2863,6 +2990,34 @@ impl SseDecode for Vec<crate::api::config::TemplatePresetUsage> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::config::TemplatePresetUsage>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::config::UserConfigSection> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::config::UserConfigSection>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::config::UserConfigValuePreview> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::config::UserConfigValuePreview>::sse_decode(
                 deserializer,
             ));
         }
@@ -2939,6 +3094,22 @@ impl SseDecode for Option<Vec<String>> {
         } else {
             return None;
         }
+    }
+}
+
+impl SseDecode for crate::api::config::RecordExportPresetPreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_recordType = <String>::sse_decode(deserializer);
+        let mut var_mappingCount = <i32>::sse_decode(deserializer);
+        let mut var_isCompatible = <bool>::sse_decode(deserializer);
+        return crate::api::config::RecordExportPresetPreview {
+            name: var_name,
+            record_type: var_recordType,
+            mapping_count: var_mappingCount,
+            is_compatible: var_isCompatible,
+        };
     }
 }
 
@@ -3026,6 +3197,20 @@ impl SseDecode for crate::api::config::TemplatePresetDeletionResult {
     }
 }
 
+impl SseDecode for crate::api::config::TemplatePresetPreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_recordType = <String>::sse_decode(deserializer);
+        let mut var_description = <String>::sse_decode(deserializer);
+        return crate::api::config::TemplatePresetPreview {
+            name: var_name,
+            record_type: var_recordType,
+            description: var_description,
+        };
+    }
+}
+
 impl SseDecode for crate::api::config::TemplatePresetUsage {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3062,6 +3247,63 @@ impl SseDecode for u8 {
 impl SseDecode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
+}
+
+impl SseDecode for crate::api::config::UserConfigSection {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::config::UserConfigSection::UserConfigs,
+            1 => crate::api::config::UserConfigSection::RecordExportPresets,
+            2 => crate::api::config::UserConfigSection::TemplatePresets,
+            3 => crate::api::config::UserConfigSection::DocumentLayouts,
+            _ => unreachable!("Invalid variant for UserConfigSection: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::config::UserConfigTransferPreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_schemaVersion = <u32>::sse_decode(deserializer);
+        let mut var_includedSections =
+            <Vec<crate::api::config::UserConfigSection>>::sse_decode(deserializer);
+        let mut var_userConfigs =
+            <Vec<crate::api::config::UserConfigValuePreview>>::sse_decode(deserializer);
+        let mut var_recordExportPresets =
+            <Vec<crate::api::config::RecordExportPresetPreview>>::sse_decode(deserializer);
+        let mut var_templatePresets =
+            <Vec<crate::api::config::TemplatePresetPreview>>::sse_decode(deserializer);
+        let mut var_documentLayouts =
+            <Vec<crate::api::config::DocumentLayoutPreview>>::sse_decode(deserializer);
+        return crate::api::config::UserConfigTransferPreview {
+            schema_version: var_schemaVersion,
+            included_sections: var_includedSections,
+            user_configs: var_userConfigs,
+            record_export_presets: var_recordExportPresets,
+            template_presets: var_templatePresets,
+            document_layouts: var_documentLayouts,
+        };
+    }
+}
+
+impl SseDecode for crate::api::config::UserConfigValuePreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_key = <String>::sse_decode(deserializer);
+        let mut var_label = <String>::sse_decode(deserializer);
+        let mut var_values = <Vec<String>>::sse_decode(deserializer);
+        let mut var_value = <Option<String>>::sse_decode(deserializer);
+        let mut var_isControlledVocabulary = <bool>::sse_decode(deserializer);
+        return crate::api::config::UserConfigValuePreview {
+            key: var_key,
+            label: var_label,
+            values: var_values,
+            value: var_value,
+            is_controlled_vocabulary: var_isControlledVocabulary,
+        };
+    }
 }
 
 impl SseDecode for crate::api::gis::UtmCoordinateFfi {
@@ -3179,142 +3421,149 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        20 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__config__get_document_layout_statuses_impl(
+        20 => wire__crate__api__config__get_config_export_preview_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__dwc__get_dwc_headers_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__config__get_record_export_preset_impl(
+        21 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__config__get_document_layout_statuses_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        24 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__config__get_template_preset_usages_impl(
+        23 => wire__crate__api__dwc__get_dwc_headers_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__config__get_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => {
+        25 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__config__get_template_preset_usages_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        27 => {
             wire__crate__api__config__get_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        27 => {
+        28 => {
             wire__crate__api__config__get_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        28 => wire__crate__api__archive__gzip_extractor_extract_impl(
+        29 => wire__crate__api__archive__gzip_extractor_extract_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__api__archive__gzip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__archive__gzip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__archive__gzip_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__config__import_config_from_file_impl(
+        30 => wire__crate__api__archive__gzip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__archive__gzip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__archive__gzip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__config__import_config_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        33 => wire__crate__api__gis__import_coordinates_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__config__import_document_layout_from_file_impl(
+        34 => wire__crate__api__gis__import_coordinates_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__config__import_document_layout_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        35 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        37 => {
+        36 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__config__inspect_config_file_impl(port, ptr, rust_vec_len, data_len),
+        39 => {
             wire__crate__api__config__list_template_presets_impl(port, ptr, rust_vec_len, data_len)
         }
-        38 => wire__crate__api__document__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
-        39 => {
+        40 => wire__crate__api__document__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
+        41 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        40 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        41 => {
+        42 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        43 => {
             wire__crate__api__nahpu_dp__plan_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        42 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        44 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        43 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        45 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        44 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        46 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        47 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        48 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__config__set_record_export_preset_impl(
+        47 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        50 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        51 => wire__crate__api__config__set_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        50 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        51 => {
+        52 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        53 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        52 => {
+        54 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        53 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
+        55 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
+        56 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        55 => {
+        57 => {
             wire__crate__api__archive__tar_gzip_writer_new_impl(port, ptr, rust_vec_len, data_len)
         }
-        56 => {
+        58 => {
             wire__crate__api__archive__tar_gzip_writer_write_impl(port, ptr, rust_vec_len, data_len)
         }
-        57 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        58 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        59 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
+        59 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        60 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        61 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        60 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        61 => {
+        62 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        63 => {
             wire__crate__api__nahpu_dp__write_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        62 => {
+        64 => {
             wire__crate__api__export__write_tabular_records_impl(port, ptr, rust_vec_len, data_len)
         }
-        63 => {
+        65 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        64 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        65 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        66 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        66 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        67 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        68 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -3614,6 +3863,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::config::DocumentLayoutPreset>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::DocumentLayoutPreview {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.layout_type.into_into_dart().into_dart(),
+            self.page_size_key.into_into_dart().into_dart(),
+            self.block_count.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::DocumentLayoutPreview
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::DocumentLayoutPreview>
+    for crate::api::config::DocumentLayoutPreview
+{
+    fn into_into_dart(self) -> crate::api::config::DocumentLayoutPreview {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::config::DocumentLayoutStatus {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -3742,6 +4014,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::gis::ImportedVectorLayer>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::RecordExportPresetPreview {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.record_type.into_into_dart().into_dart(),
+            self.mapping_count.into_into_dart().into_dart(),
+            self.is_compatible.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::RecordExportPresetPreview
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::RecordExportPresetPreview>
+    for crate::api::config::RecordExportPresetPreview
+{
+    fn into_into_dart(self) -> crate::api::config::RecordExportPresetPreview {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::import::RecordReader {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [self.file_path.into_into_dart().into_dart()].into_dart()
@@ -3847,6 +4142,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::config::TemplatePresetDeletio
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::TemplatePresetPreview {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.record_type.into_into_dart().into_dart(),
+            self.description.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::TemplatePresetPreview
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::TemplatePresetPreview>
+    for crate::api::config::TemplatePresetPreview
+{
+    fn into_into_dart(self) -> crate::api::config::TemplatePresetPreview {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::config::TemplatePresetUsage {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -3864,6 +4181,78 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::config::TemplatePresetUsage>
     for crate::api::config::TemplatePresetUsage
 {
     fn into_into_dart(self) -> crate::api::config::TemplatePresetUsage {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::UserConfigSection {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::UserConfigs => 0.into_dart(),
+            Self::RecordExportPresets => 1.into_dart(),
+            Self::TemplatePresets => 2.into_dart(),
+            Self::DocumentLayouts => 3.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::UserConfigSection
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::UserConfigSection>
+    for crate::api::config::UserConfigSection
+{
+    fn into_into_dart(self) -> crate::api::config::UserConfigSection {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::UserConfigTransferPreview {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.schema_version.into_into_dart().into_dart(),
+            self.included_sections.into_into_dart().into_dart(),
+            self.user_configs.into_into_dart().into_dart(),
+            self.record_export_presets.into_into_dart().into_dart(),
+            self.template_presets.into_into_dart().into_dart(),
+            self.document_layouts.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::UserConfigTransferPreview
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::UserConfigTransferPreview>
+    for crate::api::config::UserConfigTransferPreview
+{
+    fn into_into_dart(self) -> crate::api::config::UserConfigTransferPreview {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::UserConfigValuePreview {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.key.into_into_dart().into_dart(),
+            self.label.into_into_dart().into_dart(),
+            self.values.into_into_dart().into_dart(),
+            self.value.into_into_dart().into_dart(),
+            self.is_controlled_vocabulary.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::UserConfigValuePreview
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::UserConfigValuePreview>
+    for crate::api::config::UserConfigValuePreview
+{
+    fn into_into_dart(self) -> crate::api::config::UserConfigValuePreview {
         self
     }
 }
@@ -4107,6 +4496,16 @@ impl SseEncode for crate::api::config::DocumentLayoutPreset {
     }
 }
 
+impl SseEncode for crate::api::config::DocumentLayoutPreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.layout_type, serializer);
+        <String>::sse_encode(self.page_size_key, serializer);
+        <i32>::sse_encode(self.block_count, serializer);
+    }
+}
+
 impl SseEncode for crate::api::config::DocumentLayoutStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4236,6 +4635,16 @@ impl SseEncode for Vec<crate::api::config::DocumentLayoutPreset> {
     }
 }
 
+impl SseEncode for Vec<crate::api::config::DocumentLayoutPreview> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::config::DocumentLayoutPreview>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::config::DocumentLayoutStatus> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4296,6 +4705,16 @@ impl SseEncode for Vec<u8> {
     }
 }
 
+impl SseEncode for Vec<crate::api::config::RecordExportPresetPreview> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::config::RecordExportPresetPreview>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<(String, String)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4306,12 +4725,42 @@ impl SseEncode for Vec<(String, String)> {
     }
 }
 
+impl SseEncode for Vec<crate::api::config::TemplatePresetPreview> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::config::TemplatePresetPreview>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::config::TemplatePresetUsage> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::config::TemplatePresetUsage>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::config::UserConfigSection> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::config::UserConfigSection>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::config::UserConfigValuePreview> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::config::UserConfigValuePreview>::sse_encode(item, serializer);
         }
     }
 }
@@ -4376,6 +4825,16 @@ impl SseEncode for Option<Vec<String>> {
     }
 }
 
+impl SseEncode for crate::api::config::RecordExportPresetPreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.record_type, serializer);
+        <i32>::sse_encode(self.mapping_count, serializer);
+        <bool>::sse_encode(self.is_compatible, serializer);
+    }
+}
+
 impl SseEncode for (f64, f64) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4435,6 +4894,15 @@ impl SseEncode for crate::api::config::TemplatePresetDeletionResult {
     }
 }
 
+impl SseEncode for crate::api::config::TemplatePresetPreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.record_type, serializer);
+        <String>::sse_encode(self.description, serializer);
+    }
+}
+
 impl SseEncode for crate::api::config::TemplatePresetUsage {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4467,6 +4935,62 @@ impl SseEncode for u8 {
 impl SseEncode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
+}
+
+impl SseEncode for crate::api::config::UserConfigSection {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::config::UserConfigSection::UserConfigs => 0,
+                crate::api::config::UserConfigSection::RecordExportPresets => 1,
+                crate::api::config::UserConfigSection::TemplatePresets => 2,
+                crate::api::config::UserConfigSection::DocumentLayouts => 3,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::config::UserConfigTransferPreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.schema_version, serializer);
+        <Vec<crate::api::config::UserConfigSection>>::sse_encode(
+            self.included_sections,
+            serializer,
+        );
+        <Vec<crate::api::config::UserConfigValuePreview>>::sse_encode(
+            self.user_configs,
+            serializer,
+        );
+        <Vec<crate::api::config::RecordExportPresetPreview>>::sse_encode(
+            self.record_export_presets,
+            serializer,
+        );
+        <Vec<crate::api::config::TemplatePresetPreview>>::sse_encode(
+            self.template_presets,
+            serializer,
+        );
+        <Vec<crate::api::config::DocumentLayoutPreview>>::sse_encode(
+            self.document_layouts,
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::config::UserConfigValuePreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.key, serializer);
+        <String>::sse_encode(self.label, serializer);
+        <Vec<String>>::sse_encode(self.values, serializer);
+        <Option<String>>::sse_encode(self.value, serializer);
+        <bool>::sse_encode(self.is_controlled_vocabulary, serializer);
+    }
 }
 
 impl SseEncode for crate::api::gis::UtmCoordinateFfi {

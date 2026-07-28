@@ -344,7 +344,7 @@ class DwcBundleWriter extends AppServices {
       );
       await rust_config.exportConfigToFile(
         filePath: configsFile.path,
-        isJson: true,
+        sections: rust_config.UserConfigSection.values,
       );
       final project = await ProjectServices(
         ref: ref,

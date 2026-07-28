@@ -37,13 +37,6 @@ extension DbArchiveFormatLabel on DbArchiveFormat {
   };
 }
 
-enum ConfigExportFmt { json, jsonl }
-
-const Map<ConfigExportFmt, String> configExportFmt = {
-  ConfigExportFmt.json: 'JSON (.json)',
-  ConfigExportFmt.jsonl: 'JSON Lines (.json.nl)',
-};
-
 enum ArchiveFmt { zip }
 
 enum PdfPageFormat { a3, a4, a5, a6, letter, legal }
