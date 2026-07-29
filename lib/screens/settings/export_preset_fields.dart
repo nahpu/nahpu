@@ -1197,6 +1197,7 @@ class _MappingCustomizerFormState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButtonFormField<String>(
+          isExpanded: true,
           key: ValueKey('mapping-kind-$_mappingKind'),
           initialValue: _mappingKind,
           decoration: const InputDecoration(labelText: 'Mapping type'),
@@ -1272,6 +1273,7 @@ class _MappingCustomizerFormState
             ),
             if (_localMapping.listMode == ListExportMode.concatenate) ...[
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 key: ValueKey(
                   'separator-${_listSeparatorOption(_localMapping.formatOption)}',
                 ),
@@ -1328,6 +1330,7 @@ class _MappingCustomizerFormState
           ] else ...[
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               key: ValueKey('format-${_localMapping.textType}'),
               initialValue: _standardTextType(_localMapping.textType),
               decoration: const InputDecoration(labelText: 'Value format'),
@@ -1648,6 +1651,7 @@ class _MappingCustomizerFormState
               ],
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 key: ValueKey(
                   'null-fallback-${_localMapping.nullFallbackOption}',
                 ),
@@ -2150,6 +2154,7 @@ class _ConditionalBracketControls extends StatelessWidget {
           'Compare raw stored values. Blank controlling values never match.',
         ),
         DropdownButtonFormField<ConditionalMatchMode>(
+          isExpanded: true,
           key: ValueKey('bracket-mode-$mode'),
           initialValue: mode,
           decoration: const InputDecoration(labelText: 'Match logic'),
@@ -2304,6 +2309,7 @@ class _ConditionRowState extends State<_ConditionRow> {
             ),
           DropdownButton<ConditionalComparisonOperator>(
             value: condition.operator,
+            isExpanded: true,
             items: const [
               DropdownMenuItem(
                 value: ConditionalComparisonOperator.equals,
@@ -2354,6 +2360,7 @@ class _IndexedStyleField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<IndexedHeaderStyle>(
+      isExpanded: true,
       key: ValueKey('indexed-style-$value'),
       initialValue: value,
       decoration: const InputDecoration(labelText: 'Indexed column names'),

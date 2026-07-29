@@ -5,6 +5,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
@@ -71,21 +72,23 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                 ),
                 FieldIDFields(isMobile: isMobile),
                 TissueIDFields(isMobile: isMobile),
-                SpecimenFormats(isMobile: isMobile),
-                UserDefinedSettingField(
+                const ControlledVocabularySetting(
+                  title: 'Specimen types',
                   typePrefKey: specimenTypePrefKey,
                   fmtPrefKey: specimenTypeFmtPrefKey,
-                  typeName: 'Specimen Type',
+                  typeName: 'specimen type',
                 ),
-                UserDefinedSettingField(
+                const ControlledVocabularySetting(
+                  title: 'Treatments',
                   typePrefKey: treatmentPrefKey,
                   fmtPrefKey: treatmentFmtPrefKey,
-                  typeName: 'Treatment',
+                  typeName: 'treatment',
                 ),
-                UserDefinedSettingField(
+                const ControlledVocabularySetting(
+                  title: 'Conditions',
                   typePrefKey: conditionPrefKey,
                   fmtPrefKey: conditionFmtPrefKey,
-                  typeName: 'Condition',
+                  typeName: 'condition',
                 ),
                 ...catalogFmt.when(
                   data: (format) => supportsParasites(format)
@@ -111,9 +114,11 @@ class ParasiteSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text('Parasite', style: Theme.of(context).textTheme.titleMedium),
         CommonSettingSection(
-          title: 'Parasite',
+          title: 'Identification',
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
@@ -121,50 +126,41 @@ class ParasiteSettings extends StatelessWidget {
             ),
           ],
         ),
-        UserDefinedSettingField(
+        const ControlledVocabularySetting(
+          title: 'Categories',
           typePrefKey: parasiteCategoryPrefKey,
           fmtPrefKey: parasiteCategoryFmtPrefKey,
-          typeName: 'Category',
-          pluralName: 'Parasite categories',
+          typeName: 'category',
         ),
-        UserDefinedSettingField(
+        const ControlledVocabularySetting(
+          title: 'Detection methods',
           typePrefKey: parasiteDetectionMethodPrefKey,
           fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
-          typeName: 'Detection method',
-          pluralName: 'Parasite detection methods',
+          typeName: 'detection method',
         ),
-        UserDefinedSettingField(
+        const ControlledVocabularySetting(
+          title: 'Preparation methods',
           typePrefKey: parasitePreparationMethodPrefKey,
           fmtPrefKey: parasitePreparationMethodFmtPrefKey,
-          typeName: 'Preparation method',
-          pluralName: 'Parasite preparation methods',
+          typeName: 'preparation method',
         ),
-        UserDefinedSettingField(
+        const ControlledVocabularySetting(
+          title: 'Anatomical locations',
           typePrefKey: parasiteAnatomicalLocationPrefKey,
           fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
-          typeName: 'Anatomical location',
-          pluralName: 'Parasite anatomical locations',
+          typeName: 'anatomical location',
         ),
-        UserDefinedSettingField(
+        const ControlledVocabularySetting(
+          title: 'Storage',
           typePrefKey: parasiteStoragePrefKey,
           fmtPrefKey: parasiteStorageFmtPrefKey,
-          typeName: 'Storage value',
-          pluralName: 'Parasite storage',
+          typeName: 'storage value',
         ),
-        UserDefinedSettingField(
+        const ControlledVocabularySetting(
+          title: 'Treatments',
           typePrefKey: parasiteTreatmentPrefKey,
           fmtPrefKey: parasiteTreatmentFmtPrefKey,
-          typeName: 'Treatment',
-          pluralName: 'Parasite treatments',
-        ),
-        CommonSettingSection(
-          title: 'Parasite formats',
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-              child: _ParasiteFormats(isMobile: isMobile),
-            ),
-          ],
+          typeName: 'treatment',
         ),
       ],
     );
@@ -237,89 +233,6 @@ class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
   }
 }
 
-class _ParasiteFormats extends ConsumerWidget {
-  const _ParasiteFormats({required this.isMobile});
-
-  final bool isMobile;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return AdaptiveLayout(
-      useHorizontalLayout: !isMobile,
-      children: [
-        TextCaseFmtDropDown(
-          ref: ref,
-          label: 'Categories',
-          textCasePrefString: parasiteCategoryFmtPrefKey,
-        ),
-        TextCaseFmtDropDown(
-          ref: ref,
-          label: 'Detection methods',
-          textCasePrefString: parasiteDetectionMethodFmtPrefKey,
-        ),
-        TextCaseFmtDropDown(
-          ref: ref,
-          label: 'Preparation methods',
-          textCasePrefString: parasitePreparationMethodFmtPrefKey,
-        ),
-        TextCaseFmtDropDown(
-          ref: ref,
-          label: 'Anatomical locations',
-          textCasePrefString: parasiteAnatomicalLocationFmtPrefKey,
-        ),
-        TextCaseFmtDropDown(
-          ref: ref,
-          label: 'Storage',
-          textCasePrefString: parasiteStorageFmtPrefKey,
-        ),
-        TextCaseFmtDropDown(
-          ref: ref,
-          label: 'Treatments',
-          textCasePrefString: parasiteTreatmentFmtPrefKey,
-        ),
-      ],
-    );
-  }
-}
-
-class SpecimenFormats extends ConsumerWidget {
-  const SpecimenFormats({super.key, required this.isMobile});
-
-  final bool isMobile;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return CommonSettingSection(
-      title: 'Formats',
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-          child: AdaptiveLayout(
-            useHorizontalLayout: !isMobile,
-            children: [
-              TextCaseFmtDropDown(
-                ref: ref,
-                label: 'Specimen part types',
-                textCasePrefString: specimenTypeFmtPrefKey,
-              ),
-              TextCaseFmtDropDown(
-                ref: ref,
-                label: 'Treatment types',
-                textCasePrefString: treatmentFmtPrefKey,
-              ),
-              TextCaseFmtDropDown(
-                ref: ref,
-                label: 'Conditions',
-                textCasePrefString: conditionFmtPrefKey,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class FieldIDFields extends ConsumerWidget {
   const FieldIDFields({super.key, required this.isMobile});
 
@@ -365,6 +278,7 @@ class FieldIdModeDropDown extends StatelessWidget {
         .watch(fieldIdModeNotifierProvider)
         .when(
           data: (mode) => DropdownButtonFormField<FieldIdMode>(
+            isExpanded: true,
             initialValue: mode,
             decoration: InputDecoration(labelText: 'ID mode'),
             items: FieldIdMode.values

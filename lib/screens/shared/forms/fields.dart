@@ -526,12 +526,16 @@ class UserDefinedSettingField extends ConsumerWidget {
     required this.typePrefKey,
     required this.fmtPrefKey,
     required this.typeName,
+    this.onCaseFormatPressed,
+    this.sectionTitle,
     this.pluralName,
   });
 
   final String typePrefKey;
   final String fmtPrefKey;
   final String typeName;
+  final VoidCallback? onCaseFormatPressed;
+  final String? sectionTitle;
   final String? pluralName;
 
   @override
@@ -539,7 +543,7 @@ class UserDefinedSettingField extends ConsumerWidget {
     TextEditingController controller = TextEditingController();
     final plural = pluralName ?? '${typeName.toTitleCase()}s';
     return SettingChips(
-      title: plural,
+      title: sectionTitle,
       controller: controller,
       ref: ref,
       textCasePrefString: fmtPrefKey,
@@ -570,7 +574,8 @@ class UserDefinedSettingField extends ConsumerWidget {
         ).addOption(typePrefKey, controller.text.trim());
         controller.clear();
       },
-      resetLabel: 'Match database ${plural.toLowerCase()}',
+      onCaseFormatPressed: onCaseFormatPressed,
+      resetLabel: 'Match database',
       onReset: () {
         showDialog(
           context: context,

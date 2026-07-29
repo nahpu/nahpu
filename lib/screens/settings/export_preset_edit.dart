@@ -361,6 +361,7 @@ class _PresetSettingsCard extends StatelessWidget {
           child: Column(
             children: [
               DropdownButtonFormField<RecordType>(
+                isExpanded: true,
                 initialValue: preset.recordType,
                 decoration: const InputDecoration(labelText: 'Record type'),
                 items: RecordType.values
@@ -379,6 +380,7 @@ class _PresetSettingsCard extends StatelessWidget {
               if (preset.recordType == RecordType.specimenRecord) ...[
                 const SizedBox(height: 8),
                 DropdownButtonFormField<SpecimenRecordType>(
+                  isExpanded: true,
                   initialValue: preset.specimenRecordType,
                   decoration:
                       const InputDecoration(labelText: 'Specimen taxon group'),
@@ -397,6 +399,7 @@ class _PresetSettingsCard extends StatelessWidget {
               ],
               const SizedBox(height: 8),
               DropdownButtonFormField<ExportHeaderFormat>(
+                isExpanded: true,
                 initialValue: preset.headerFormat,
                 decoration:
                     const InputDecoration(labelText: 'Generated header format'),
