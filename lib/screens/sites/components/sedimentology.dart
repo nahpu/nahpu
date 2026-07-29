@@ -111,15 +111,29 @@ class SedimentologyState extends ConsumerState<Sedimentology> {
 
   @override
   Widget build(BuildContext context) {
+    final content = Padding(
+      padding: const EdgeInsets.all(6),
+      child: _buildFields(),
+    );
+
     return FormCard(
       title: 'Sedimentology',
       infoContent: const SedimentologyInfoContent(),
       mainAxisAlignment: MainAxisAlignment.start,
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Column(
-          children: [
-            TextFormField(
+      // In the horizontal layout the card is height-capped, so its content
+      // must scroll within an Expanded region. In the vertical layout the
+      // whole form already scrolls, so keep the content unconstrained.
+      isExpanded: widget.useHorizontalLayout,
+      child: widget.useHorizontalLayout
+          ? SingleChildScrollView(child: content)
+          : content,
+    );
+  }
+
+  Widget _buildFields() {
+    return Column(
+      children: [
+        TextFormField(
               controller: _rockTypeCtr,
               decoration: const InputDecoration(
                 labelText: 'Rock Type(s)',
@@ -192,7 +206,7 @@ class SedimentologyState extends ConsumerState<Sedimentology> {
               onChanged: (String? newValue) {},
             ),
             TextFormField(
-              maxLines: 6,
+              maxLines: 4,
               controller: _commentsCtr,
               decoration: const InputDecoration(
                 labelText: 'Comments on sedimentology and paleoenvironment',
@@ -201,9 +215,7 @@ class SedimentologyState extends ConsumerState<Sedimentology> {
               ),
             ),
           ],
-        ),
-      ),
-    );
+        );
   }
 }
 
