@@ -208,12 +208,25 @@ class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
   String _projectFmtKey(String projectUuid) =>
       '${catalogFmtPrefKey}_$projectUuid';
 
+  /// Persists [fmt] as the active catalog format and updates state if this
+  /// notifier is still mounted. Writing the pref directly (rather than via
+  /// [set]) keeps the change correct even when this autoDispose provider is
+  /// torn down mid-call: the next widget to watch it rebuilds and re-reads
+  /// the pref. Touching `state` after disposal would throw, so it is guarded.
+  Future<void> _applyActive(CatalogFmt fmt) async {
+    final prefs = ref.read(settingProvider);
+    await prefs.setString(catalogFmtPrefKey, matchCatFmtToTaxonGroup(fmt));
+    if (ref.mounted) {
+      state = AsyncData(fmt);
+    }
+  }
+
   /// Persists [fmt] for [projectUuid] and makes it the active format.
   Future<void> setForProject(String projectUuid, CatalogFmt fmt) async {
     final prefs = ref.read(settingProvider);
     await prefs.setString(
         _projectFmtKey(projectUuid), matchCatFmtToTaxonGroup(fmt));
-    await set(fmt);
+    await _applyActive(fmt);
   }
 
   /// Restores the active format from [projectUuid]'s stored value, if any.
@@ -222,7 +235,7 @@ class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
     final prefs = ref.read(settingProvider);
     final stored = prefs.getString(_projectFmtKey(projectUuid));
     if (stored != null) {
-      await set(matchTaxonGroupToCatFmt(stored));
+      await _applyActive(matchTaxonGroupToCatFmt(stored));
     }
   }
 }
