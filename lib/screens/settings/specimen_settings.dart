@@ -116,7 +116,16 @@ class ParasiteSettings extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Parasite', style: Theme.of(context).textTheme.titleMedium),
+        Padding(
+          padding: const EdgeInsets.only(top: 16, bottom: 4),
+          child: Center(
+            child: Text(
+              'Parasites',
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
         CommonSettingSection(
           title: 'Identification',
           children: [

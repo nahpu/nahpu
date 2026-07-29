@@ -238,47 +238,51 @@ class SettingChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = [
       Padding(
-        padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+        padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
         child: Wrap(
-          spacing: 10,
-          runSpacing: 10,
+          spacing: 8,
+          runSpacing: 12,
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: chipList,
         ),
       ),
-      const SizedBox(height: 10),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 270),
-            child: AsyncTextField(
-              controller: controller,
-              labelText: labelText,
-              hintText: hintText,
-              onPressed: onPressed,
-              ref: ref,
-              textCasePrefString: textCasePrefString,
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Flexible(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: AsyncTextField(
+                  controller: controller,
+                  labelText: labelText,
+                  hintText: hintText,
+                  onPressed: onPressed,
+                  ref: ref,
+                  textCasePrefString: textCasePrefString,
+                ),
+              ),
             ),
-          ),
-          IconButton(
-            iconSize: 25,
-            color: Theme.of(context).colorScheme.onSurface,
-            icon: const Icon(Icons.add),
-            onPressed: onPressed,
-          ),
-          if (onCaseFormatPressed != null)
             IconButton(
-              tooltip: 'Set case format',
-              icon: const Icon(Icons.text_format_outlined),
-              onPressed: onCaseFormatPressed,
+              iconSize: 25,
+              color: Theme.of(context).colorScheme.onSurface,
+              icon: const Icon(Icons.add),
+              onPressed: onPressed,
             ),
-        ],
+            if (onCaseFormatPressed != null)
+              IconButton(
+                tooltip: 'Set case format',
+                icon: const Icon(Icons.text_format_outlined),
+                onPressed: onCaseFormatPressed,
+              ),
+          ],
+        ),
       ),
       Padding(
-        padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
         child: TextButton(
           onPressed: onReset,
           child: Text(resetLabel, style: const TextStyle(fontSize: 14)),
