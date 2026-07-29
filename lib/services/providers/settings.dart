@@ -1,15 +1,29 @@
-import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/services/types/collecting.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
+// App settings keys (UI/Device states)
+// Used for keeping track of user preferences and app states
+// Not required for research reproducibility. Cannot be exported/imported.
+// Internally, we call it `App Settings`
 const String themeModePrefKey = 'themeMode';
+const String catalogFmtPrefKey = 'catalogFmt';
+const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
+
+// User Configs keys (Project-level settings)
+// User defined fields, formats, presets, and other user-configured fields.
+// Required for research reproducibility. Can be exported/imported.
+// Internally, we call it `User Configs`
 const String siteTypePrefKey = 'siteTypes';
 const String siteTypeFmtPrefKey = 'siteTypeFmt';
 const String habitatTypePrefKey = 'habitatTypes';
@@ -22,16 +36,21 @@ const String specimenTypePrefKey = 'specimenTypes';
 const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
+const String conditionPrefKey = 'specimenConditions';
+const String conditionFmtPrefKey = 'conditionFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
+
+// Document Export settings
+// User-configurable export presets and PDF document settings.
 const String exportPresetPrefKey = 'exportPresets';
-const String pdfExportFontPrefKey = 'pdfExportFont';
 
 final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
 });
 
-final themeSettingProvider =
-    AsyncNotifierProvider<ThemeSetting, ThemeMode>(ThemeSetting.new);
+final themeSettingProvider = AsyncNotifierProvider<ThemeSetting, ThemeMode>(
+  ThemeSetting.new,
+);
 
 class ThemeSetting extends AsyncNotifier<ThemeMode> {
   Future<ThemeMode> _fetchSetting() async {
@@ -42,7 +61,9 @@ class ThemeSetting extends AsyncNotifier<ThemeMode> {
     final ThemeMode currentTheme = _matchThemeMode(savedTheme);
     if (savedTheme == null) {
       await prefs.setString(
-          themeModePrefKey, _matchThemeModeToString(currentTheme));
+        themeModePrefKey,
+        _matchThemeModeToString(currentTheme),
+      );
     }
 
     return currentTheme;
@@ -90,17 +111,39 @@ class ThemeSetting extends AsyncNotifier<ThemeMode> {
   }
 }
 
-Future<List<String>> getDefaultOptionsList(String prefKey) async {
+final spatialBasemapStyleProvider =
+    AsyncNotifierProvider<SpatialBasemapStyleSetting, SpatialBasemapStyle>(
+      SpatialBasemapStyleSetting.new,
+    );
+
+class SpatialBasemapStyleSetting extends AsyncNotifier<SpatialBasemapStyle> {
+  @override
+  Future<SpatialBasemapStyle> build() async {
+    final prefs = ref.watch(settingProvider);
+    final saved = prefs.getString(spatialBasemapStylePrefKey);
+    final style = SpatialBasemapStyle.values
+        .where((candidate) => candidate.name == saved)
+        .firstOrNull;
+    final resolved = style ?? SpatialBasemapStyle.automatic;
+    if (style == null) {
+      await prefs.setString(spatialBasemapStylePrefKey, resolved.name);
+    }
+    return resolved;
+  }
+
+  Future<void> setStyle(SpatialBasemapStyle style) async {
+    final prefs = ref.read(settingProvider);
+    await prefs.setString(spatialBasemapStylePrefKey, style.name);
+    state = AsyncValue.data(style);
+  }
+}
+
+List<String> getDefaultOptionsList(String prefKey) {
   switch (prefKey) {
     case habitatTypePrefKey:
       return defaultHabitatTypes;
     case siteTypePrefKey:
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final CatalogFmt catalogFmt =
-          matchTaxonGroupToCatFmt(prefs.getString(catalogFmtPrefKey));
-      return (catalogFmt == CatalogFmt.fossils)
-          ? defaultFossilSiteTypes
-          : defaultSiteTypes;
+      return defaultSiteTypes;
     case collMethodPrefKey:
       return defaultCollMethods;
     case collRolePrefKey:
@@ -109,8 +152,78 @@ Future<List<String>> getDefaultOptionsList(String prefKey) async {
       return defaultSpecimenType;
     case treatmentPrefKey:
       return defaultTreatment;
+    case conditionPrefKey:
+      return defaultCondition;
     default:
       return [];
+  }
+}
+
+final catalogFmtNotifierProvider =
+    AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(
+      CatalogFmtNotifier.new,
+    );
+
+class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
+  Future<CatalogFmt> _fetchSetting() async {
+    final prefs = ref.watch(settingProvider);
+    final savedFmt = prefs.getString(catalogFmtPrefKey);
+
+    // Set to default general mammals if no setting is found
+    final CatalogFmt currentFmt = matchTaxonGroupToCatFmt(savedFmt);
+    if (savedFmt == null) {
+      await prefs.setString(
+        catalogFmtPrefKey,
+        matchCatFmtToTaxonGroup(currentFmt),
+      );
+    }
+
+    return currentFmt;
+  }
+
+  @override
+  FutureOr<CatalogFmt> build() async {
+    return await _fetchSetting();
+  }
+
+  Future<void> set(CatalogFmt fmt) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final prefs = ref.watch(settingProvider);
+      final value = prefs.getString(catalogFmtPrefKey);
+      final setFmt = matchTaxonGroupToCatFmt(value);
+      if (setFmt == fmt) return fmt;
+      await prefs.setString(catalogFmtPrefKey, matchCatFmtToTaxonGroup(fmt));
+      return fmt;
+    });
+  }
+
+  // TODO: Placeholder per-project catalog-format persistence.
+  //
+  // The project table does not yet store a catalog format, so a project's type
+  // is remembered here via SharedPreferences keyed by its UUID. This lets the
+  // active format follow whichever project is opened (e.g. so paleontology
+  // sites show the Sedimentology section). Replace with a real column on the
+  // project table once the schema is updated.
+  String _projectFmtKey(String projectUuid) =>
+      '${catalogFmtPrefKey}_$projectUuid';
+
+  /// Persists [fmt] for [projectUuid] and makes it the active format.
+  Future<void> setForProject(String projectUuid, CatalogFmt fmt) async {
+    final prefs = ref.read(settingProvider);
+    await prefs.setString(
+        _projectFmtKey(projectUuid), matchCatFmtToTaxonGroup(fmt));
+    await set(fmt);
+  }
+
+  /// Restores the active format from [projectUuid]'s stored value, if any.
+  /// Called when a project is opened so each project keeps its own type.
+  Future<void> loadForProject(String projectUuid) async {
+    final prefs = ref.read(settingProvider);
+    final stored = prefs.getString(_projectFmtKey(projectUuid));
+    if (stored != null) {
+      await set(matchTaxonGroupToCatFmt(stored));
+    }
   }
 }
 
@@ -122,14 +235,11 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
   final String prefKey;
 
   Future<List<String>> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final optionList = prefs.getStringList(prefKey);
-
-    List<String> currentOptions =
-        optionList ?? await getDefaultOptionsList(prefKey);
+    final optionList = await rust_config.getUserConfigList(key: prefKey);
+    List<String> currentOptions = optionList ?? getDefaultOptionsList(prefKey);
 
     if (optionList == null) {
-      await prefs.setStringList(prefKey, currentOptions);
+      await rust_config.setUserConfigList(key: prefKey, value: currentOptions);
     }
 
     return currentOptions;
@@ -144,16 +254,13 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     if (newOption.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final optionList = prefs.getStringList(prefKey);
+      final optionList = await rust_config.getUserConfigList(key: prefKey);
       if (optionList != null && isListContains(optionList, newOption)) {
         return optionList;
       }
 
-      // Add new type to list or create new list if null
-      // and then add a new type to the list
       List<String> newList = [...optionList ?? [], newOption];
-      await prefs.setStringList(prefKey, newList);
+      await rust_config.setUserConfigList(key: prefKey, value: newList);
       return newList;
     });
   }
@@ -162,8 +269,7 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     if (newOptions.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.setStringList(prefKey, newOptions);
+      await rust_config.setUserConfigList(key: prefKey, value: newOptions);
       return newOptions;
     });
   }
@@ -172,15 +278,13 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     if (option.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final optionsList = prefs.getStringList(prefKey);
+      final optionsList = await rust_config.getUserConfigList(key: prefKey);
       if (optionsList == null || optionsList.isEmpty) return [];
 
-      // Remove type from list
       if (!optionsList.contains(option)) return optionsList;
 
       List<String> newOptions = [...optionsList]..remove(option);
-      await prefs.setStringList(prefKey, newOptions);
+      await rust_config.setUserConfigList(key: prefKey, value: newOptions);
       return newOptions;
     });
   }
@@ -188,8 +292,7 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
   Future<void> clear() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.remove(prefKey);
+      await rust_config.deleteUserConfig(key: prefKey);
       return [];
     });
   }
@@ -197,21 +300,25 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
 
 final textCaseFmtNotifierProvider = AsyncNotifierProvider.family
     .autoDispose<TextCaseFmtNotifier, TextCaseFmt, String>(
-        TextCaseFmtNotifier.new);
+      TextCaseFmtNotifier.new,
+    );
 
 class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   TextCaseFmtNotifier(this.prefKey);
   final String prefKey;
 
   Future<TextCaseFmt> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final fmtString = prefs.getString(prefKey);
+    final fmtString = await rust_config.getUserConfigString(key: prefKey);
 
-    TextCaseFmt fmt =
-        TextCaseFmt.values.byName(fmtString ?? TextCaseFmt.anyCase.name);
+    final defaultFormat = prefKey == conditionFmtPrefKey
+        ? TextCaseFmt.sentenceCase
+        : TextCaseFmt.anyCase;
+    TextCaseFmt fmt = TextCaseFmt.values.byName(
+      fmtString ?? defaultFormat.name,
+    );
 
     if (fmtString == null) {
-      await prefs.setString(prefKey, fmt.name);
+      await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
     }
 
     return fmt;
@@ -225,59 +332,40 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
   Future<void> set(String prefKey, TextCaseFmt fmt) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final fmtString = prefs.getString(prefKey);
-      final setFmt =
-          TextCaseFmt.values.byName(fmtString ?? TextCaseFmt.anyCase.name);
+      final fmtString = await rust_config.getUserConfigString(key: prefKey);
+      final defaultFormat = prefKey == conditionFmtPrefKey
+          ? TextCaseFmt.sentenceCase
+          : TextCaseFmt.anyCase;
+      final setFmt = TextCaseFmt.values.byName(fmtString ?? defaultFormat.name);
 
       if (setFmt == fmt) return fmt;
 
-      await prefs.setString(prefKey, fmt.name);
+      await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
       return fmt;
-    });
-  }
-}
-
-final pdfExportFontNotifierProvider =
-    AsyncNotifierProvider.autoDispose<PdfExportFontNotifier, String>(
-        PdfExportFontNotifier.new);
-
-class PdfExportFontNotifier extends AsyncNotifier<String> {
-  Future<String> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final font = prefs.getString(pdfExportFontPrefKey);
-    return font ?? 'Merriweather';
-  }
-
-  @override
-  Future<String> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> set(String font) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.setString(pdfExportFontPrefKey, font);
-      return font;
     });
   }
 }
 
 final fieldIdModeNotifierProvider =
     AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(
-        FieldIdModeNotifier.new);
+      FieldIdModeNotifier.new,
+    );
 
 class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   Future<FieldIdMode> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final fieldIdModeString = prefs.getString(fieldIdModePrefKey);
+    final fieldIdModeString = await rust_config.getUserConfigString(
+      key: fieldIdModePrefKey,
+    );
 
-    FieldIdMode fieldIdMode = FieldIdMode.values
-        .byName(fieldIdModeString ?? FieldIdMode.personnel.name);
+    FieldIdMode fieldIdMode = FieldIdMode.values.byName(
+      fieldIdModeString ?? FieldIdMode.personnel.name,
+    );
 
     if (fieldIdModeString == null) {
-      await prefs.setString(fieldIdModePrefKey, fieldIdMode.name);
+      await rust_config.setUserConfigString(
+        key: fieldIdModePrefKey,
+        value: fieldIdMode.name,
+      );
     }
 
     return fieldIdMode;
@@ -291,52 +379,53 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   Future<void> set(FieldIdMode mode) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final fieldIdModeString = prefs.getString(fieldIdModePrefKey);
-      final setFieldIdMode = FieldIdMode.values
-          .byName(fieldIdModeString ?? FieldIdMode.personnel.name);
+      final fieldIdModeString = await rust_config.getUserConfigString(
+        key: fieldIdModePrefKey,
+      );
+      final setFieldIdMode = FieldIdMode.values.byName(
+        fieldIdModeString ?? FieldIdMode.personnel.name,
+      );
 
       if (setFieldIdMode == mode) return mode;
 
-      await prefs.setString(fieldIdModePrefKey, mode.name);
+      await rust_config.setUserConfigString(
+        key: fieldIdModePrefKey,
+        value: mode.name,
+      );
       return mode;
     });
   }
 }
 
-final exportPresetNotifierProvider = AsyncNotifierProvider.autoDispose<
-    ExportPresetNotifier,
-    Map<String, ExportPresetModel>>(ExportPresetNotifier.new);
+final exportPresetNotifierProvider =
+    AsyncNotifierProvider.autoDispose<
+      ExportPresetNotifier,
+      Map<String, ExportPresetModel>
+    >(ExportPresetNotifier.new);
 
 class ExportPresetNotifier
     extends AsyncNotifier<Map<String, ExportPresetModel>> {
+  static const _presetPayloadKey = '__nahpu_record_export_preset_v2__';
+
   Future<Map<String, ExportPresetModel>> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final presetString = prefs.getString(exportPresetPrefKey);
-    if (presetString == null) {
-      return {};
-    }
-    try {
-      final decoded = jsonDecode(presetString) as Map<String, dynamic>;
-      final Map<String, ExportPresetModel> mapped = {};
-      for (var entry in decoded.entries) {
-        if (entry.value is Map<String, dynamic> &&
-            (entry.value as Map<String, dynamic>).containsKey('fields')) {
-          // Version 2 format
-          mapped[entry.key] =
-              ExportPresetModel.fromJson(entry.value as Map<String, dynamic>);
-        } else {
-          // Version 1 format (legacy)
-          mapped[entry.key] = ExportPresetModel(
-            fields: Map<String, String>.from(entry.value as Map),
-            combinedFields: [],
-          );
-        }
+    final presets = await rust_config.getAllRecordExportPresets();
+    final Map<String, ExportPresetModel> mapped = {};
+    final legacyPresetNames = <String>[];
+    for (var entry in presets) {
+      final preset = _mapConfigToModel(entry.preset);
+      if (preset == null) {
+        legacyPresetNames.add(entry.name);
+      } else {
+        mapped[entry.name] = preset;
       }
-      return mapped;
-    } catch (e) {
-      return {};
     }
+    // v1 presets do not have the required record type and mapping metadata.
+    // Remove them deliberately rather than silently treating them as specimen
+    // presets with guessed behavior.
+    for (final name in legacyPresetNames) {
+      await rust_config.deleteRecordExportPreset(name: name);
+    }
+    return mapped;
   }
 
   @override
@@ -345,24 +434,81 @@ class ExportPresetNotifier
   }
 
   Future<void> savePreset(String name, ExportPresetModel preset) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final current = await _fetchSettings();
-      current[name] = preset;
-      final prefs = ref.watch(settingProvider);
-      await prefs.setString(exportPresetPrefKey, jsonEncode(current));
-      return current;
-    });
+    try {
+      await rust_config.setRecordExportPreset(
+        name: name,
+        preset: _mapModelToConfig(preset),
+      );
+      final current = state.asData?.value ?? await _fetchSettings();
+      state = AsyncValue.data({...current, name: preset});
+    } on Object catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
   }
 
   Future<void> deletePreset(String name) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final current = await _fetchSettings();
-      current.remove(name);
-      final prefs = ref.watch(settingProvider);
-      await prefs.setString(exportPresetPrefKey, jsonEncode(current));
-      return current;
+      await rust_config.deleteRecordExportPreset(name: name);
+      return await _fetchSettings();
     });
+  }
+
+  /// Renames a preset without risking deletion before its replacement exists.
+  ///
+  /// redb does not currently expose a transactional rename operation, so write
+  /// the replacement first and delete the old key only after that succeeds.
+  Future<void> renamePreset(
+    String previousName,
+    String nextName,
+    ExportPresetModel preset,
+  ) async {
+    if (previousName == nextName) {
+      await savePreset(nextName, preset);
+      return;
+    }
+
+    final current = state.asData?.value ?? await _fetchSettings();
+    if (current.containsKey(nextName)) {
+      throw StateError('A preset named "$nextName" already exists.');
+    }
+
+    try {
+      await rust_config.setRecordExportPreset(
+        name: nextName,
+        preset: _mapModelToConfig(preset),
+      );
+      await rust_config.deleteRecordExportPreset(name: previousName);
+      state = AsyncValue.data(
+        {...current}
+          ..remove(previousName)
+          ..[nextName] = preset,
+      );
+    } on Object catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
+  }
+
+  ExportPresetModel? _mapConfigToModel(rust_config.ConfigExportPreset config) {
+    final payload = config.fields[_presetPayloadKey];
+    if (payload == null) return null;
+    try {
+      return ExportPresetModel.fromJson(
+        Map<String, dynamic>.from(jsonDecode(payload) as Map),
+      );
+    } on FormatException {
+      return null;
+    } on Object {
+      return null;
+    }
+  }
+
+  rust_config.ConfigExportPreset _mapModelToConfig(ExportPresetModel model) {
+    return rust_config.ConfigExportPreset(
+      fields: {_presetPayloadKey: jsonEncode(model.toJson())},
+      combinedFields: const [],
+    );
   }
 }

@@ -1,41 +1,37 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/utility_services.dart';
-import 'package:nahpu/screens/shared/qr.dart';
+import 'package:nahpu/screens/shared/media/qr.dart';
 
-class ProjectInfo extends ConsumerWidget {
-  const ProjectInfo({super.key, required this.projectData});
+class ProjectInfo extends StatelessWidget {
+  const ProjectInfo({
+    super.key,
+    required this.projectData,
+    this.onEdit,
+    this.showExport = true,
+  });
 
   final ProjectData? projectData;
+  final VoidCallback? onEdit;
+  final bool showExport;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Column(
       children: [
-        ProjectQrIcon(data: _getProjectJson(projectData)),
-        const SizedBox(height: 4),
-        ProjectInfoText(
-          title: 'Project name: ',
-          text: projectData?.name,
-        ),
+        ProjectInfoText(title: 'Project name: ', text: projectData?.name),
         ProjectInfoText(title: 'UUID: ', text: projectData?.uuid),
         ProjectInfoText(
-            title: 'Project description: ', text: projectData?.description),
+          title: 'Project description: ',
+          text: projectData?.description,
+        ),
         ProjectInfoText(
           title: 'Principal investigator: ',
           text: projectData?.principalInvestigator,
         ),
-        ProjectInfoText(
-          title: 'Location: ',
-          text: projectData?.location,
-        ),
-        ProjectInfoText(
-          title: 'Time zone: ',
-          text: projectData?.timeZone,
-        ),
+        ProjectInfoText(title: 'Location: ', text: projectData?.location),
+        ProjectInfoText(title: 'Time zone: ', text: projectData?.timeZone),
         ProjectInfoText(
           title: 'Start date: ',
           text: dateStdToDateDisplay(projectData?.startDate),
@@ -55,6 +51,26 @@ class ProjectInfo extends ConsumerWidget {
           text: _parseDate(projectData?.lastAccessed),
           isSmall: true,
         ),
+        if (projectData != null && (onEdit != null || showExport)) ...[
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (onEdit != null) ...[
+                TextButton(onPressed: onEdit, child: const Text('Edit')),
+                const SizedBox(width: 16),
+              ],
+              if (showExport)
+                TextButton(
+                  onPressed: () => showProjectExportDialog(
+                    context: context,
+                    projectData: projectData!,
+                  ),
+                  child: const Text('Export info'),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -62,11 +78,6 @@ class ProjectInfo extends ConsumerWidget {
   String _parseDate(String? date) {
     final value = parseDate(date);
     return '${value.date} ${value.time}';
-  }
-
-  String _getProjectJson(ProjectData? projectData) {
-    final data = projectData?.toJson();
-    return data != null ? jsonEncode(data) : '';
   }
 }
 
@@ -98,7 +109,7 @@ class ProjectInfoText extends StatelessWidget {
             style: isSmall
                 ? Theme.of(context).textTheme.labelMedium
                 : Theme.of(context).textTheme.bodyLarge,
-          )
+          ),
         ],
       ),
     );
@@ -118,20 +129,14 @@ class ProjectQrIcon extends StatelessWidget {
         child: SizedBox(
           width: 96,
           height: 96,
-          child: ProjectQrCodeViewer(
-            data: data,
-            isFullScreen: false,
-          ),
+          child: ProjectQrCodeViewer(data: data, isFullScreen: false),
         ),
         onTap: () {
           showDialog(
             context: context,
             builder: (context) {
               return AlertDialog(
-                content: ProjectQrCodeViewer(
-                  data: data,
-                  isFullScreen: true,
-                ),
+                content: ProjectQrCodeViewer(data: data, isFullScreen: true),
                 actions: [
                   TextButton(
                     onPressed: () {
@@ -161,17 +166,13 @@ class ProjectQrCodeViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: isFullScreen ? 400 : 80,
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      height: isFullScreen ? 400 : 80,
       child: ProjectQrCode(
         data: data,
         color: Colors.black,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
       ),
     );
   }
@@ -191,10 +192,14 @@ class ProjectQrCode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QrImageView(
-      data: data,
-      backgroundColor: backgroundColor ?? Colors.transparent,
-      color: color,
+    final background = backgroundColor ?? Colors.transparent;
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: QrImageView(data: data, backgroundColor: background, color: color),
     );
   }
 }

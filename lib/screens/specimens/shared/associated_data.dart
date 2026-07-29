@@ -4,11 +4,11 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
@@ -335,16 +335,16 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
           Visibility(
             visible: widget.ctr.typeCtr == 'Link',
             child: CommonTextField(
-              labelText: 'URL',
+              labelText: 'URI',
               hintText: 'e.g., https://www.ncbi.nlm.nih.gov/genbank/',
-              controller: widget.ctr.urlCtr,
+              controller: widget.ctr.uriCtr,
               isLastField: false,
             ),
           ),
           const SizedBox(height: 12),
           Visibility(
               visible: widget.ctr.typeCtr == 'File',
-              child: widget.ctr.urlCtr.text.isNotEmpty
+              child: widget.ctr.uriCtr.text.isNotEmpty
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -354,7 +354,7 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          path.basename(widget.ctr.urlCtr.text),
+                          path.basename(widget.ctr.uriCtr.text),
                           style: Theme.of(context).textTheme.bodyMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -363,7 +363,7 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                           icon: const Icon(Icons.clear_rounded),
                           onPressed: () {
                             setState(() {
-                              widget.ctr.urlCtr.text = '';
+                              widget.ctr.uriCtr.text = '';
                             });
                           },
                         )
@@ -384,15 +384,8 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                       },
                     )),
           const SizedBox(height: 16),
-          FormButtonWithDelete(
+          FormButton(
             isEditing: widget.isEditing,
-            onDeleted: () async {
-              if (widget.associatedDataId != null) {
-                await AssociatedDataServices(ref: ref)
-                    .deleteAssociatedData(widget.associatedDataId!);
-                if (context.mounted) Navigator.pop(context);
-              }
-            },
             onSubmitted: () async {
               if (widget.isEditing) {
                 try {
@@ -430,7 +423,8 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
 
   Future<void> _createData() async {
     final data = _getForm();
-    await AssociatedDataServices(ref: ref).createAssociatedData(data);
+    await AssociatedDataServices(ref: ref)
+        .createAssociatedData(widget.specimenUuid, data);
   }
 
   Future<void> _updateData() async {
@@ -469,17 +463,16 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
   }
 
   AssociatedDataCompanion _getForm() {
-    widget.ctr.urlCtr.text = _filePath != null
+    widget.ctr.uriCtr.text = _filePath != null
         ? path.basename(_filePath!.path)
-        : widget.ctr.urlCtr.text;
+        : widget.ctr.uriCtr.text;
 
     return AssociatedDataCompanion(
-      specimenUuid: db.Value(widget.specimenUuid),
       name: db.Value(widget.ctr.nameCtr.text),
       type: db.Value(widget.ctr.typeCtr),
       date: db.Value(widget.ctr.dateCtr.date),
       description: db.Value(widget.ctr.descriptionCtr.text),
-      url: db.Value(widget.ctr.urlCtr.text),
+      uri: db.Value(widget.ctr.uriCtr.text),
     );
   }
 

@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -28,75 +28,100 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   bool _isArchived = false;
   bool _isLoading = false;
   bool _isSelectingFile = false;
+  String? _databaseRelativePath;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Replace Database'),
-        ),
-        body: SafeArea(
-          child: CommonSettingList(
-            sections: [
-              DbFileInputField(
-                dbPath: _dbPath,
-                isSelectingFile: _isSelectingFile,
-                onPressed: () async {
-                  try {
-                    await _getDbPath();
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Failed to select file!',
-                          ),
-                        ),
-                      );
-                    }
+      appBar: AppBar(title: const Text('Replace Database')),
+      body: SafeArea(
+        child: CommonSettingList(
+          sections: [
+            DbFileInputField(
+              dbPath: _dbPath,
+              isSelectingFile: _isSelectingFile,
+              onPressed: () async {
+                try {
+                  await _getDbPath();
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to select file!')),
+                    );
                   }
-                },
-                onCleared: () {
-                  setState(() {
-                    _dbPath = null;
-                    _hasSelected = false;
-                    _isArchived = false;
-                  });
-                },
-                isBackup: _isBackup,
-                onBackupChosen: (bool value) async {
-                  _isBackup = value;
+                }
+              },
+              onCleared: () {
+                setState(() {
+                  _dbPath = null;
+                  _hasSelected = false;
+                  _isArchived = false;
+                  _databaseRelativePath = null;
+                });
+              },
+              isBackup: _isBackup,
+              onBackupChosen: (bool value) async {
+                _isBackup = value;
 
-                  setState(() {});
-                },
-                hasSelected: _hasSelected,
-                isLoading: _isLoading,
-                onReplaceDb: () => _replaceDb(),
-              ),
-            ],
-          ),
-        ));
+                setState(() {});
+              },
+              hasSelected: _hasSelected,
+              isLoading: _isLoading,
+              onReplaceDb: () => _replaceDb(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _getDbPath() async {
     setState(() {
       _isSelectingFile = true;
     });
-    final dbPath = await FilePickerServices().selectAnyFile();
-    if (dbPath != null) {
-      final ext = p.extension(dbPath.path);
-      setState(() {
-        _dbPath = dbPath;
-        _hasSelected = true;
-        if (ext == '.zip') {
-          _isArchived = true;
+    try {
+      final dbPath = await FilePickerServices().selectAnyFile();
+      if (dbPath != null) {
+        final lowerPath = dbPath.path.toLowerCase();
+        final isArchived =
+            lowerPath.endsWith('.zip') || lowerPath.endsWith('.tar.gz');
+        String? databaseRelativePath;
+        if (isArchived) {
+          final inspection = await DbWriter(
+            ref: ref,
+            filePath: File(dbPath.path),
+          ).inspectArchive();
+          if (inspection.databaseCandidates.isEmpty) {
+            throw const FormatException(
+              'The backup archive does not contain a database at its root.',
+            );
+          }
+          if (inspection.databaseCandidates.length == 1) {
+            databaseRelativePath =
+                inspection.databaseCandidates.single.archivePath;
+          } else if (mounted) {
+            databaseRelativePath = await showDialog<String>(
+              context: context,
+              builder: (context) => DatabaseCandidateDialog(
+                candidates: inspection.databaseCandidates,
+              ),
+            );
+            if (databaseRelativePath == null) return;
+          }
         }
-        _isSelectingFile = false;
-      });
-    } else {
-      setState(() {
-        _isSelectingFile = false;
-      });
+        setState(() {
+          _dbPath = dbPath;
+          _hasSelected = true;
+          _isArchived = isArchived;
+          _databaseRelativePath = databaseRelativePath;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSelectingFile = false;
+        });
+      }
     }
   }
 
@@ -108,11 +133,15 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
         _isLoading = true;
       });
 
-      final backupPath =
-          _isBackup ? await AppServices(ref: ref).backupDir : null;
+      final backupPath = _isBackup
+          ? await AppServices(ref: ref).backupDir
+          : null;
 
-      await DbWriter(ref: ref, filePath: File(_dbPath!.path))
-          .replace(_isBackup, _isArchived);
+      await DbWriter(ref: ref, filePath: File(_dbPath!.path)).replace(
+        _isBackup,
+        _isArchived,
+        databaseRelativePath: _databaseRelativePath,
+      );
       setState(() {
         _isLoading = false;
       });
@@ -134,9 +163,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
     ref.invalidate(projectListProvider);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => DBReplacedPage(
-          dbBackupPath: backupPath,
-        ),
+        builder: (context) => DBReplacedPage(dbBackupPath: backupPath),
       ),
     );
   }
@@ -144,9 +171,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   void _showError(String errors) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'Failed to replace database!: $errors',
-        ),
+        content: Text('Failed to replace database!: $errors'),
         duration: const Duration(seconds: 10),
       ),
     );
@@ -189,7 +214,7 @@ class DbFileInputField extends StatelessWidget {
             onPressed: onPressed,
             isLoading: isSelectingFile,
             onCleared: onCleared,
-            supportedFormat: '.sqlite3, nahpu archive (.zip)',
+            supportedFormat: '.sqlite3, NAHPU archive (.zip/.tar.gz)',
             maxWidth: 460,
           ),
         ),
@@ -197,12 +222,22 @@ class DbFileInputField extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
           child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: SwitchField(
-                label: 'Backup current database',
-                value: isBackup,
-                onPressed: onBackupChosen,
-              )),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: SwitchField(
+              label: 'Backup current database',
+              value: isBackup,
+              onPressed: onBackupChosen,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'Database backup restores the entire NAHPU application. '
+            'For a project-only backup, use Project export.',
+            textAlign: TextAlign.center,
+          ),
         ),
         const SizedBox(height: 16),
         DbReplaceButtons(
@@ -211,6 +246,34 @@ class DbFileInputField extends StatelessWidget {
           onPressed: onReplaceDb,
         ),
         const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+class DatabaseCandidateDialog extends StatelessWidget {
+  const DatabaseCandidateDialog({super.key, required this.candidates});
+
+  final List<DbArchiveDatabaseCandidate> candidates;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Choose database'),
+      content: const Text(
+        'This archive contains multiple database files at its root. '
+        'Choose the database to restore.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        for (final candidate in candidates)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(candidate.archivePath),
+            child: Text(candidate.displayName),
+          ),
       ],
     );
   }
@@ -254,7 +317,8 @@ class DbReplaceButtons extends StatelessWidget {
                       child: Text(
                         'Replace',
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.error),
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
                     ),
                   ],
@@ -286,57 +350,62 @@ class DBReplacedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Database Settings'),
-          automaticallyImplyLeading: false,
-        ),
-        body: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FileFormatIcon(path: 'assets/icons/database.svg'),
-                Text(
-                  'Success 🎉',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                Text(
-                  'Database has been replaced!',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                dbBackupPath == null
-                    ? const SizedBox.shrink()
-                    : Text('Backup file path:',
-                        style: Theme.of(context).textTheme.bodyMedium),
-                dbBackupPath == null
-                    ? const SizedBox.shrink()
-                    : ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 600),
-                        child: Text(
-                          Platform.isIOS ? _iOSPath : dbBackupPath!.path,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          textAlign: TextAlign.center,
-                        ),
+      appBar: AppBar(
+        title: const Text('Database Settings'),
+        automaticallyImplyLeading: false,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FileFormatIcon(path: 'assets/icons/database.svg'),
+              Text(
+                'Success 🎉',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              Text(
+                'Database has been replaced!',
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              dbBackupPath == null
+                  ? const SizedBox.shrink()
+                  : Text(
+                      'Backup file path:',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+              dbBackupPath == null
+                  ? const SizedBox.shrink()
+                  : ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 600),
+                      child: Text(
+                        Platform.isIOS ? _iOSPath : dbBackupPath!.path,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        textAlign: TextAlign.center,
                       ),
-                const SizedBox(height: 18),
-                PrimaryButton(
-                  label: 'Back to Home',
-                  icon: Icons.arrow_back,
-                  onPressed: () {
-                    Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => Home()));
-                  },
-                ),
-              ],
-            ),
+                    ),
+              const SizedBox(height: 18),
+              PrimaryButton(
+                label: 'Back to Home',
+                icon: Icons.arrow_back,
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => Home()),
+                  );
+                },
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   String get _iOSPath {
-    return 'Files app/On my Devices/$nahpuBackupDir/'
+    return 'Files app/On my Devices/$nahpuAppDir/$nahpuBackupDir/'
         '${p.basename(dbBackupPath != null ? dbBackupPath!.path : '')}';
   }
 }

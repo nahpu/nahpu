@@ -1,12 +1,11 @@
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/screens/settings/app_settings_import.dart';
 
 class ApplicationSettings extends ConsumerWidget {
   const ApplicationSettings({super.key});
@@ -36,17 +35,6 @@ class ApplicationSettings extends ConsumerWidget {
           error: (error, stackTrace) => const Text('Error'),
         ),
         const DataUsage(),
-        CommonSettingTile(
-          isNavigation: true,
-          icon: Icons.sync,
-          title: 'Replace app settings',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AppSettingsImport(),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -64,14 +52,12 @@ class ThemeSettingState extends ConsumerState<ThemeSettings> {
   final List<IconData> icons = [
     Icons.brightness_3_rounded,
     Icons.wb_sunny_rounded,
-    systemIcon
+    systemIcon,
   ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Theme'),
-      ),
+      appBar: AppBar(title: const Text('Theme')),
       body: CommonSettingList(
         sections: [
           CommonSettingSection(
@@ -82,15 +68,16 @@ class ThemeSettingState extends ConsumerState<ThemeSettings> {
               return CommonSettingTile(
                 title: e,
                 icon: icons[index],
-                trailing:
-                    widget.isSelected == e ? const Icon(Icons.check) : null,
+                trailing: widget.isSelected == e
+                    ? const Icon(Icons.check)
+                    : null,
                 onTap: () {
                   ref.read(themeSettingProvider.notifier).setTheme(e);
                   Navigator.pop(context);
                 },
               );
             }).toList(),
-          )
+          ),
         ],
       ),
     );
@@ -103,27 +90,29 @@ class DataUsage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder(
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return CommonSettingTile(
-                icon: Icons.data_usage_outlined,
-                isNavigation: true,
-                title: 'Data usage',
-                label: 'Total data usage of the application',
-                value: snapshot.data,
-                onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const DataUsageSettings(),
-                      ),
-                    ));
-          } else if (snapshot.hasError) {
-            return const Text('Error');
-          } else {
-            return const CommonProgressIndicator();
-          }
-        },
-        future: _calculateDataUsage(ref));
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return CommonSettingTile(
+            icon: Icons.data_usage_outlined,
+            isNavigation: true,
+            title: 'Data usage',
+            label: 'Total data usage of the application',
+            value: snapshot.data,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DataUsageSettings(),
+              ),
+            ),
+          );
+        } else if (snapshot.hasError) {
+          return const Text('Error');
+        } else {
+          return const CommonProgressIndicator();
+        }
+      },
+      future: _calculateDataUsage(ref),
+    );
   }
 
   Future<String> _calculateDataUsage(WidgetRef ref) async {
@@ -142,64 +131,65 @@ class DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Data usage'),
-      ),
+      appBar: AppBar(title: const Text('Data usage')),
       body: CommonSettingList(
         sections: [
           CommonSettingSection(
             isDivided: true,
             children: [
               FutureBuilder(
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return CommonSettingTile(
-                        icon: Icons.data_usage_outlined,
-                        title: 'Total usage',
-                        value: snapshot.data,
-                        onTap: null,
-                      );
-                    } else if (snapshot.hasError) {
-                      return const Text('Error');
-                    } else {
-                      return const CommonProgressIndicator();
-                    }
-                  },
-                  future: _calculateDataUsage(ref)),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return CommonSettingTile(
+                      icon: Icons.data_usage_outlined,
+                      title: 'Total usage',
+                      value: snapshot.data,
+                      onTap: null,
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Text('Error');
+                  } else {
+                    return const CommonProgressIndicator();
+                  }
+                },
+                future: _calculateDataUsage(ref),
+              ),
               FutureBuilder(
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return CommonSettingTile(
-                        icon: Icons.file_copy_outlined,
-                        title: 'Files',
-                        label: 'Include images and other files',
-                        value: snapshot.data,
-                        onTap: null,
-                      );
-                    } else if (snapshot.hasError) {
-                      return const Text('Error');
-                    } else {
-                      return const CommonProgressIndicator();
-                    }
-                  },
-                  future: _calculateFileCount(ref)),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return CommonSettingTile(
+                      icon: Icons.file_copy_outlined,
+                      title: 'Files',
+                      label: 'Include images and other files',
+                      value: snapshot.data,
+                      onTap: null,
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Text('Error');
+                  } else {
+                    return const CommonProgressIndicator();
+                  }
+                },
+                future: _calculateFileCount(ref),
+              ),
               FutureBuilder(
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return CommonSettingTile(
-                        icon: Icons.photo_library_outlined,
-                        title: 'Media files',
-                        label: 'Images, audio, video',
-                        value: snapshot.data,
-                        onTap: null,
-                      );
-                    } else if (snapshot.hasError) {
-                      return const Text('Error');
-                    } else {
-                      return const CommonProgressIndicator();
-                    }
-                  },
-                  future: _calculateMediaCount(ref)),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return CommonSettingTile(
+                      icon: Icons.photo_library_outlined,
+                      title: 'Media files',
+                      label: 'Images, audio, video',
+                      value: snapshot.data,
+                      onTap: null,
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Text('Error');
+                  } else {
+                    return const CommonProgressIndicator();
+                  }
+                },
+                future: _calculateMediaCount(ref),
+              ),
             ],
           ),
         ],

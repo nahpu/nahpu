@@ -3,16 +3,16 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
 import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/screens/shared/file_operation.dart';
+import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/utility_services.dart';
-import 'package:nahpu/screens/shared/project_shell.dart';
+import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 

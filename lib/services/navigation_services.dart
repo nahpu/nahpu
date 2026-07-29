@@ -74,15 +74,26 @@ class PageNavigation {
   /// Jumps the live [PageController] to [index] if it isn't already there.
   /// Never jumps past the laid-out extent — that clamps to the old last page
   /// and corrupts the bookkeeping via a spurious onPageChanged. Skipped while
-  /// the viewport is scrolling: a jump would cut short a multi-page animation
-  /// (the first/last-page buttons), and the settling onPageChanged reconciles
-  /// again anyway.
+  /// the viewport is scrolling: a jump would cut short an animation or user
+  /// drag, and the settling onPageChanged reconciles again anyway.
   void clampController(int index) {
     if (pageController.hasClients &&
         !pageController.position.isScrollingNotifier.value &&
         _canReach(index) &&
         (pageController.page?.round() ?? 0) != index) {
       pageController.jumpToPage(index);
+    }
+  }
+
+  /// Jumps directly to [index], clamped to the current page range.
+  ///
+  /// Direct navigation must not animate through intermediate pages: record
+  /// viewers may rebuild and refresh data for every reported page change.
+  void jumpToPage(int index) {
+    if (pageCounts == 0 || !pageController.hasClients) return;
+    final target = index.clamp(0, pageCounts - 1).toInt();
+    if ((pageController.page?.round() ?? 0) != target) {
+      pageController.jumpToPage(target);
     }
   }
 

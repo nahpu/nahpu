@@ -8,7 +8,7 @@ import 'package:nahpu/screens/projects/components/overview.dart';
 import 'package:nahpu/screens/projects/personnel/personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
 class Dashboard extends ConsumerStatefulWidget {
@@ -32,9 +32,7 @@ class DashboardState extends ConsumerState<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Project Dashboard"),
-      ),
+      appBar: AppBar(title: const Text("Project Dashboard")),
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       floatingActionButton: const ActionButtons(),
       drawer: const ProjectMenuDrawer(),
@@ -46,7 +44,7 @@ class DashboardState extends ConsumerState<Dashboard> {
               child: Column(
                 children: [
                   TopPanel(useHorizontalLayout: useHorizontalLayout),
-                  BottomPanel(useHorizontalLayout: useHorizontalLayout)
+                  BottomPanel(useHorizontalLayout: useHorizontalLayout),
                 ],
               ),
             ),
@@ -69,32 +67,15 @@ class TopPanel extends ConsumerWidget {
       useHorizontalLayout: useHorizontalLayout,
       height: topDashboardHeight,
       children: [
-        Stack(
-          alignment: Alignment.bottomRight,
-          children: [
-            ProjectOverview(
-              projectUuid: projectUuid,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Tooltip(
-                message: 'Edit project',
-                child: IconButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              EditProject(projectUuid: projectUuid)),
-                    );
-                  },
-                  icon: Icon(
-                    Icons.edit_outlined,
-                    color: Theme.of(context).disabledColor,
-                  ),
-                ),
+        ProjectOverview(
+          projectUuid: projectUuid,
+          onEdit: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => EditProject(projectUuid: projectUuid),
               ),
-            ),
-          ],
+            );
+          },
         ),
         const PersonnelViewer(),
       ],

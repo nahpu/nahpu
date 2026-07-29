@@ -18,8 +18,8 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+36
 
 environment:
-  sdk: ">=3.4.0 <=4.1.0"
-  flutter: ">=3.0.0"
+  sdk: ">=3.10.0 <=4.1.0"
+  flutter: ">=3.38.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,18 +33,18 @@ dependencies:
 
   cupertino_icons: ^1.0.5
   flutter_speed_dial: ^7.0.0
-  drift: ^2.34.0
+  drift: 2.34.0
   path_provider: ^2.0.15
   path: ^1.8.2
   uuid: ^4.1.0
-  dynamic_color: ^1.6.5
   url_launcher: ^6.1.5
   intl: ^0.20.0
+  http: ^1.2.0
+  crypto: ^3.0.6
   freezed_annotation: ^3.0.0
   flutter_riverpod: ^3.3.2
   shared_preferences: ^2.1.1
   fl_chart: ^1.0.0
-  flex_color_scheme: ^8.2.0
   image_picker: ^1.0.0
   share_plus: ^13.1.0
   exif: ^3.1.4
@@ -54,17 +54,26 @@ dependencies:
   file_selector: ^1.0.0
   file_picker: ^12.0.0-beta.7
   geolocator: ^14.0.0
-  xml: ^7.0.0
   flutter_rust_bridge: 2.12.0
   mobile_scanner: ^7.0.0
   sqlite3: ^3.1.5
   rust_lib_nahpu:
     path: rust_builder
   timezone: ^0.11.0
-  kdl: ^2.0.2
   material_ui: ^0.0.1
-  qr: ^3.0.0
+  qr: ^4.0.0
   flutter_markdown_plus: ^1.0.7
+  flex_color_picker: ^3.8.0
+  google_fonts: ^8.1.0
+  pdfrx: ^2.4.4
+  flutter_map: ^8.3.1
+  flutter_map_pmtiles: ^1.0.5
+  pmtiles: ^1.2.0
+  latlong2: ^0.9.1
+  maplibre: ^0.3.5
+  maplibre_webview: ^0.3.5
+  video_player: ^2.13.0
+  fvp: ^0.37.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -78,7 +87,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  freezed: ^3.0.0
   integration_test:
     sdk: flutter
 
@@ -115,6 +123,8 @@ flutter:
     - assets/logo/
     - assets/avatars/
     - assets/icons/
+    - assets/configs/
+    - assets/maps/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -131,24 +141,59 @@ flutter:
     - family: "Merriweather"
       fonts:
         - asset: assets/fonts/Merriweather-Regular.ttf
+        - asset: assets/fonts/Merriweather-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Merriweather-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Merriweather-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Merriweather-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Merriweather-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Merriweather-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Merriweather-BlackItalic.ttf
+          weight: 900
+          style: italic
     - family: "NahpuIcons"
       fonts:
         - asset: assets/fonts/nahpu_font.ttf
     - family: "DejaVuSans"
       fonts:
         - asset: assets/fonts/DejaVuSans.ttf
+        - asset: assets/fonts/DejaVuSans-Bold.ttf
+          weight: 700
     - family: "DejaVuSerif"
       fonts:
         - asset: assets/fonts/DejaVuSerif.ttf
+        - asset: assets/fonts/DejaVuSerif-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/DejaVuSerif-Italic.ttf
+          style: italic
     - family: "LibertinusSans"
       fonts:
         - asset: assets/fonts/LibertinusSans-Regular.ttf
+        - asset: assets/fonts/LibertinusSans-Italic.ttf
+          style: italic
+        - asset: assets/fonts/LibertinusSans-Bold.ttf
+          weight: 700
     - family: "LibertinusSerif"
       fonts:
         - asset: assets/fonts/LibertinusSerif-Regular.ttf
+        - asset: assets/fonts/LibertinusSerif-Italic.ttf
+          style: italic
+        - asset: assets/fonts/LibertinusSerif-Bold.ttf
+          weight: 700
     - family: "PlusJakartaSans"
       fonts:
         - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Italic.ttf
+          style: italic
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

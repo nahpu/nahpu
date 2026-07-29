@@ -104,6 +104,10 @@ class ProjectServices extends AppServices {
         await _runDeletionPhase('site records',
             () => SiteServices(ref: ref).deleteAllSites(projectUuid));
         await _runDeletionPhase(
+            'associated data',
+            () => AssociatedDataQuery(dbAccess)
+                .deleteAllAssociatedDataForProject(projectUuid));
+        await _runDeletionPhase(
             'project personnel links',
             () => PersonnelQuery(dbAccess)
                 .deleteAllProjectPersonnel(projectUuid: projectUuid));

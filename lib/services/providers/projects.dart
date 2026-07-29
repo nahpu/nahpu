@@ -7,28 +7,35 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart' as db;
 import 'package:nahpu/services/database/project_queries.dart';
 
-final projectListProvider =
-    FutureProvider.autoDispose<List<ListProjectResult>>((ref) {
+final projectListProvider = FutureProvider.autoDispose<List<ProjectSummary>>((
+  ref,
+) {
   return ProjectQuery(ref.read(databaseProvider)).getProjectList();
 });
 
-final projectInfoProvider =
-    FutureProvider.family<db.ProjectData?, String>((ref, uuid) async {
-  final projectInfo =
-      ProjectQuery(ref.read(databaseProvider)).getProjectByUuid(uuid);
+final projectInfoProvider = FutureProvider.family<db.ProjectData?, String>((
+  ref,
+  uuid,
+) async {
+  final projectInfo = ProjectQuery(
+    ref.read(databaseProvider),
+  ).getProjectByUuid(uuid);
   return await projectInfo;
 });
 
-final currProjInfoProvider =
-    FutureProvider.autoDispose<db.ProjectData>((ref) async {
+final currProjInfoProvider = FutureProvider.autoDispose<db.ProjectData>((
+  ref,
+) async {
   final projectUuid = ref.read(projectUuidProvider);
-  final currProjectInfo =
-      ProjectQuery(ref.read(databaseProvider)).getProjectByUuid(projectUuid);
+  final currProjectInfo = ProjectQuery(
+    ref.read(databaseProvider),
+  ).getProjectByUuid(projectUuid);
   return await currProjectInfo;
 });
 
-final projectUuidProvider =
-    NotifierProvider<ProjectUuid, String>(ProjectUuid.new);
+final projectUuidProvider = NotifierProvider<ProjectUuid, String>(
+  ProjectUuid.new,
+);
 
 class ProjectUuid extends Notifier<String> {
   @override
@@ -43,7 +50,8 @@ class ProjectUuid extends Notifier<String> {
 
 final projectNavbarIndexProvider =
     NotifierProvider.autoDispose<ProjectNavbarIndex, int>(
-        ProjectNavbarIndex.new);
+  ProjectNavbarIndex.new,
+);
 
 class ProjectNavbarIndex extends Notifier<int> {
   @override

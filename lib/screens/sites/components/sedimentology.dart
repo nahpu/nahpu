@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
 
 /// Top-level depositional environment categories.
 const List<String> _depositionalEnvironmentTypes = [

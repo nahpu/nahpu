@@ -23,6 +23,8 @@ class UtilityServices extends AppServices {
         return await SpecimenPartQuery(dbAccess).getDistinctTypes();
       case treatmentPrefKey:
         return await SpecimenPartQuery(dbAccess).getDistinctTreatments();
+      case conditionPrefKey:
+        return await SpecimenQuery(dbAccess).getDistinctConditions();
       default:
         return [];
     }
@@ -31,29 +33,78 @@ class UtilityServices extends AppServices {
   Future<void> getAllOptions(String prefKey) async {
     List<String> data = await getDistinctOptions(prefKey);
     final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
-    List<String> options =
-        data.isEmpty ? await getDefaultOptionsList(prefKey) : data;
+    List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
     await notifier.replaceAll(options);
     _invalidateOptions(prefKey);
   }
 
   Future<void> addOption(String prefKey, String option) async {
-    // await ref.read(userDefinedFieldProvider(prefKey).notifier).add(option);
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).add(option);
     _invalidateOptions(prefKey);
   }
 
-  Future<void> removeOption(String prefKey, String option) async {
-    // await ref.read(userDefinedFieldProvider(prefKey).notifier).remove(option);
+  Future<void> removeOption(
+    BuildContext context,
+    String prefKey,
+    String option,
+  ) async {
+    List<String> distinctOptions = await getDistinctOptions(prefKey);
+    if (distinctOptions.contains(option)) {
+      final tableField = _getTableField(prefKey);
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Cannot Delete Value'),
+            content: Text(
+              'The value "$option" is used in "$tableField". '
+              'You cannot delete it because it is already used in '
+              'the database.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).remove(option);
     _invalidateOptions(prefKey);
   }
 
   Future<void> removeAllOptions(String prefKey) async {
-    // await ref.read(userDefinedFieldProvider(prefKey).notifier).clear();
+    await ref.read(userDefinedFieldProvider(prefKey).notifier).clear();
     _invalidateOptions(prefKey);
   }
 
   void _invalidateOptions(String prefKey) {
-    // ref.invalidate(userDefinedFieldProvider(prefKey));
+    ref.invalidate(userDefinedFieldProvider(prefKey));
+  }
+
+  String _getTableField(String prefKey) {
+    switch (prefKey) {
+      case siteTypePrefKey:
+        return 'site::type';
+      case habitatTypePrefKey:
+        return 'site::habitat';
+      case collMethodPrefKey:
+        return 'collEffort::method';
+      case collRolePrefKey:
+        return 'collPersonnel::role';
+      case specimenTypePrefKey:
+        return 'specimenPart::type';
+      case treatmentPrefKey:
+        return 'specimenPart::treatment';
+      case conditionPrefKey:
+        return 'specimen::condition';
+      default:
+        return 'unknown::field';
+    }
   }
 }
 
@@ -176,13 +227,7 @@ bool isListContains(List<String> list, String value) {
   return list.any((e) => e.toLowerCase() == value.toLowerCase());
 }
 
-enum TextCaseFmt {
-  anyCase,
-  sentenceCase,
-  titleCase,
-  upperCase,
-  lowerCase,
-}
+enum TextCaseFmt { anyCase, sentenceCase, titleCase, upperCase, lowerCase }
 
 Map<TextCaseFmt, String> textCaseFmtMap = {
   TextCaseFmt.anyCase: 'Any Case',
@@ -199,6 +244,15 @@ extension StringExtension on String {
     } catch (e) {
       return '';
     }
+  }
+
+  /// Replace any "|", ";", "/", "," with middot "·"
+  String toCommonName() {
+    final spacedMiddot = ' · ';
+    return replaceAll('|', spacedMiddot)
+        .replaceAll(';', spacedMiddot)
+        .replaceAll('/', spacedMiddot)
+        .replaceAll(',', spacedMiddot);
   }
 
   String toTitleCase() {
@@ -278,8 +332,9 @@ extension DoubleExtension on double {
   String truncateZeroFixed(int fractionDigits) {
     if (toString().endsWith('.0')) {
       // Remove trailing .0
-      return toStringAsFixed(fractionDigits)
-          .substring(0, toString().length - 2);
+      return toStringAsFixed(
+        fractionDigits,
+      ).substring(0, toString().length - 2);
     } else {
       return toStringAsFixed(fractionDigits);
     }

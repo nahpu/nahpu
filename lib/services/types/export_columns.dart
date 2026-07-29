@@ -1,48 +1,51 @@
 import 'package:nahpu/services/types/export.dart';
 
 List<String> getAvailableExportColumns({
-  required ExportRecordType recordType,
+  required RecordType recordType,
   SpecimenRecordType? specimenRecordType,
   SpecimenExportFmt? specimenExportFmt,
 }) {
   switch (recordType) {
-    case ExportRecordType.narrative:
+    case RecordType.none:
+      return [];
+    case RecordType.narrative:
       return narrativeExportList;
-    case ExportRecordType.site:
+    case RecordType.site:
       return siteExportList;
-    case ExportRecordType.collEvent:
+    case RecordType.collEvent:
       return collEventExportList;
-    case ExportRecordType.specimenParts:
+    case RecordType.specimenParts:
       return [
         ...collectingRecordExportList,
         ...siteExportList,
         ...collEventExportList,
         ...partExportListDelimited,
       ];
-    case ExportRecordType.specimenRecord:
-      List<String> measurementList = [];
+    case RecordType.specimenRecord:
+      List<String> attributeList = [];
       if (specimenRecordType != null) {
         switch (specimenRecordType) {
           case SpecimenRecordType.generalMammals:
-          case SpecimenRecordType.fossils: // TODO: Placeholder
-            measurementList = mammalMeasurementExportList;
+          case SpecimenRecordType
+              .fossils: // TODO: Use dedicated fossil attributes.
+            attributeList = mammalAttributeExportList;
             break;
           case SpecimenRecordType.birds:
-            measurementList = avianMeasurementExportList;
+            attributeList = birdAttributeExportList;
             break;
           case SpecimenRecordType.bats:
           case SpecimenRecordType.allMammals:
-            measurementList = batMeasurementExportList;
+            attributeList = batAttributeExportList;
             break;
           case SpecimenRecordType.herpetofauna:
-            measurementList = herpMeasurementExportList;
+            attributeList = herpAttributeExportList;
             break;
           case SpecimenRecordType.allTaxa:
-            measurementList = <String>{
-              ...mammalMeasurementExportList,
-              ...avianMeasurementExportList,
-              ...batMeasurementExportList,
-              ...herpMeasurementExportList,
+            attributeList = <String>{
+              ...mammalAttributeExportList,
+              ...birdAttributeExportList,
+              ...batAttributeExportList,
+              ...herpAttributeExportList,
             }.toSet().toList();
             break;
         }
@@ -51,7 +54,7 @@ List<String> getAvailableExportColumns({
         ...collectingRecordExportList,
         ...siteExportList,
         ...collEventExportList,
-        ...measurementList,
+        ...attributeList,
         partExportSimple,
         'media::media',
       ];

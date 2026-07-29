@@ -3,9 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 
 part 'project_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class ProjectQuery extends DatabaseAccessor<Database> with _$ProjectQueryMixin {
   ProjectQuery(super.db);
 
@@ -18,13 +16,17 @@ class ProjectQuery extends DatabaseAccessor<Database> with _$ProjectQueryMixin {
       select(project).map((e) => e.name).get();
 
   Future<ProjectData> getProjectByUuid(String uuid) async {
-    return await (select(project)..where((t) => t.uuid.equals(uuid)))
+    return await (select(
+      project,
+    )..where((t) => t.uuid.equals(uuid)))
         .getSingle();
   }
 
   Future<ProjectData?> getProjectByName(String name) async {
     try {
-      return await (select(project)..where((t) => t.name.equals(name)))
+      return await (select(
+        project,
+      )..where((t) => t.name.equals(name)))
           .getSingle();
     } catch (e) {
       return null;
@@ -35,7 +37,27 @@ class ProjectQuery extends DatabaseAccessor<Database> with _$ProjectQueryMixin {
     return (update(project)..where((t) => t.uuid.equals(uuid))).write(entry);
   }
 
-  Future<List<ListProjectResult>> getProjectList() => listProject().get();
+  Future<List<ProjectSummary>> getProjectList() async {
+    final query = selectOnly(project)
+      ..addColumns([
+        project.uuid,
+        project.name,
+        project.created,
+        project.lastAccessed,
+      ]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => ProjectSummary(
+            uuid: row.read(project.uuid)!,
+            name: row.read(project.name)!,
+            created: row.read(project.created),
+            lastAccessed: row.read(project.lastAccessed),
+          ),
+        )
+        .toList(growable: false);
+  }
 
   Future<int> deleteProject(String id) async {
     return await (delete(project)..where((t) => t.uuid.equals(id))).go();
@@ -44,4 +66,18 @@ class ProjectQuery extends DatabaseAccessor<Database> with _$ProjectQueryMixin {
   Future<void> deleteAllProjects() {
     return (delete(project)).go();
   }
+}
+
+class ProjectSummary {
+  const ProjectSummary({
+    required this.uuid,
+    required this.name,
+    required this.created,
+    required this.lastAccessed,
+  });
+
+  final String uuid;
+  final String name;
+  final String? created;
+  final String? lastAccessed;
 }

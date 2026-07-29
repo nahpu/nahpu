@@ -45,7 +45,7 @@ Future<void> alterTableHelper(Migrator m, dynamic table) async {
 }
 
 Future<void> castMammalType(Migrator m) async {
-  final mammalMeasurement = (m.database as Database).mammalMeasurement;
+  final mammalAttribute = (m.database as Database).mammalAttribute;
   final columnsToUpdate = [
     'totalLength',
     'tailLength',
@@ -56,7 +56,7 @@ Future<void> castMammalType(Migrator m) async {
     'testisWidth'
   ];
 
-  await castColumnsIntToReal(m, mammalMeasurement, columnsToUpdate);
+  await castColumnsIntToReal(m, mammalAttribute, columnsToUpdate);
 }
 
 String convertDateString(String inputDateString) {
@@ -192,20 +192,22 @@ Future<void> migrateSpecimenDateTimeFormat(Migrator m) async {
       }
 
       // Associated data update
-      final associatedDataList =
-          await AssociatedDataQuery(db).getAllAssociatedData(specimenData.uuid);
+      final associatedDataList = await db.customSelect(
+        'SELECT primaryId, date FROM associatedData WHERE specimenUuid = ?',
+        variables: [Variable.withString(specimenData.uuid)],
+        readsFrom: const {},
+      ).get();
 
       for (final associatedDatum in associatedDataList) {
-        final associatedDatumJson = associatedDatum.toJson();
-        final dateString = associatedDatumJson['date'];
+        final dateString = associatedDatum.readNullable<String>('date');
 
         if (dateString != null && dateString.isNotEmpty) {
           final updatedDateString = convertDateString(dateString);
 
           if (updatedDateString != dateString) {
             db.customStatement('''UPDATE associatedData 
-              SET date = '${associatedDatumJson['date']}'
-              WHERE primaryId = '${associatedDatumJson['primaryId']}'
+              SET date = '$updatedDateString'
+              WHERE primaryId = '${associatedDatum.read<int>('primaryId')}'
               ''');
           }
         }
@@ -306,7 +308,7 @@ Future<void> moveRelativeCaptureTimes(Migrator m) async {
 Future<void> setShowBatFieldsBoolean(Migrator m) async {
   final db = m.database as Database;
   return db.customStatement('''
-      UPDATE mammalMeasurement AS mm
+      UPDATE mammalAttribute AS mm
       SET showBatFields = 
         CASE
           WHEN s.taxonGroup = 'Bats' THEN 1 

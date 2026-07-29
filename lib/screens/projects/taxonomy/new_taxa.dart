@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/providers/taxa.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -339,26 +339,8 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
             child: Text(_isShowMore ? 'Show less' : 'Show more'),
           ),
           const SizedBox(height: 16),
-          FormButtonWithDelete(
+          FormButton(
             isEditing: widget.isEditing,
-            onDeleted: () async {
-              try {
-                await _deleteTaxon();
-                ref.invalidate(taxonRegistryProvider);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Cannot delete taxon.'
-                          ' It is in use in the specimen records.'),
-                    ),
-                  );
-                }
-              }
-            },
             onSubmitted: () async {
               widget.isEditing ? await _updateTaxon() : await _createTaxon();
               ref.invalidate(taxonRegistryProvider);
@@ -397,9 +379,5 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
       sortingOrder: db.Value(int.tryParse(widget.ctr.sortingOrderCtr.text)),
       notes: db.Value(widget.ctr.noteCtr.text),
     );
-  }
-
-  Future<void> _deleteTaxon() async {
-    await TaxonomyServices(ref: ref).deleteTaxon(widget.taxonId!);
   }
 }

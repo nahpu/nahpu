@@ -2,13 +2,14 @@ import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/common.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 
 class ProjectOverview extends ConsumerWidget {
-  const ProjectOverview({super.key, required this.projectUuid});
+  const ProjectOverview({super.key, required this.projectUuid, this.onEdit});
 
   final String projectUuid;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,13 +18,13 @@ class ProjectOverview extends ConsumerWidget {
       infoContent: const ProjectInfoContent(),
       isPrimary: true,
       mainAxisAlignment: MainAxisAlignment.start,
-      child: ref.watch(projectInfoProvider(projectUuid)).when(
+      child: ref
+          .watch(projectInfoProvider(projectUuid))
+          .when(
             data: (data) {
               return Padding(
                 padding: const EdgeInsets.all(10),
-                child: ProjectInfo(
-                  projectData: data,
-                ),
+                child: ProjectInfo(projectData: data, onEdit: onEdit),
               );
             },
             loading: () => const CommonProgressIndicator(),
@@ -38,7 +39,8 @@ class ProjectOverview extends ConsumerWidget {
       content: Column(
         children: [
           Text(
-              'Failed fetching data from the database. Check if the project name exists. $error')
+            'Failed fetching data from the database. Check if the project name exists. $error',
+          ),
         ],
       ),
     );
@@ -54,32 +56,32 @@ class ProjectInfoContent extends StatelessWidget {
       content: [
         InfoContent(
           header: 'Overview',
-          content: 'Basic information about the project.'
-              ' You can edit the project information'
-              ' by clicking the edit button in the bottom right corner.'
-              ' To share the project details with others,'
-              ' use the QR code.',
+          content:
+              'Basic information about the project.'
+              ' You can edit or export the project information'
+              ' using the actions at the bottom of this panel.'
+              ' QR sharing is available from the project menu.',
         ),
         InfoContent(
           header: 'UUID',
-          content: 'UUID is a universal unique identifier.'
+          content:
+              'UUID is a universal unique identifier.'
               ' It is automatically generated when you create a new project.'
               ' It standardizes the project identification process,'
               ' making it easy to find, manage, and share project data.',
         ),
         InfoContent(
           header: 'Sharing project details',
-          content: 'Current version only supports sharing project details '
-              'via QR code and only available to import using mobile devices. Tap the QR code to view it in full. '
-              'On other devices, create a new project and use the '
-              '"Scan QR" button to scan the QR code from this project. '
-              'The QR code contains essential project information, '
-              'making it convenient to consolidate data when working '
-              'with multiple devices on the same project.',
+          content:
+              'Export project information as JSON to transfer it '
+              'between desktop devices. You can also use the "Show QR" '
+              'action from the project menu, then scan it when creating a '
+              'new project on another device.',
         ),
         InfoContent(
           header: 'Tips',
-          content: 'Keep the description short and concise.'
+          content:
+              'Keep the description short and concise.'
               ' Provide only general information about the location,'
               ' e.g. Mt. Gede, Java, Indonesia.'
               ' We recommend using the narrative to provide'

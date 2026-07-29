@@ -1,79 +1,10 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/types/specimens.dart';
-
-const String catalogFmtPrefKey = 'catalogFmt';
-
-final catalogFmtNotifierProvider =
-    AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(
-        CatalogFmtNotifier.new);
-
-class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
-  Future<CatalogFmt> _fetchSetting() async {
-    final prefs = ref.watch(settingProvider);
-    final savedFmt = prefs.getString(catalogFmtPrefKey);
-
-    // Set to default general mammals if no setting is found
-    final CatalogFmt currentFmt = matchTaxonGroupToCatFmt(savedFmt);
-    if (savedFmt == null) {
-      await prefs.setString(
-          catalogFmtPrefKey, matchCatFmtToTaxonGroup(currentFmt));
-    }
-
-    return currentFmt;
-  }
-
-  @override
-  FutureOr<CatalogFmt> build() async {
-    return await _fetchSetting();
-  }
-
-  Future<void> set(CatalogFmt fmt) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final value = prefs.getString(catalogFmtPrefKey);
-      final setFmt = matchTaxonGroupToCatFmt(value);
-      if (setFmt == fmt) return fmt;
-      await prefs.setString(catalogFmtPrefKey, matchCatFmtToTaxonGroup(fmt));
-      return fmt;
-    });
-  }
-
-  // TODO: Placeholder per-project catalog-format persistence.
-  //
-  // The project table does not yet store a catalog format, so a project's type
-  // is remembered here via SharedPreferences keyed by its UUID. This lets the
-  // active format follow whichever project is opened (e.g. so paleontology
-  // sites show the Sedimentology section). Replace with a real column on the
-  // project table once the schema is updated.
-  String _projectFmtKey(String projectUuid) =>
-      '${catalogFmtPrefKey}_$projectUuid';
-
-  /// Persists [fmt] for [projectUuid] and makes it the active format.
-  Future<void> setForProject(String projectUuid, CatalogFmt fmt) async {
-    final prefs = ref.read(settingProvider);
-    await prefs.setString(
-        _projectFmtKey(projectUuid), matchCatFmtToTaxonGroup(fmt));
-    await set(fmt);
-  }
-
-  /// Restores the active format from [projectUuid]'s stored value, if any.
-  /// Called when a project is opened so each project keeps its own type.
-  Future<void> loadForProject(String projectUuid) async {
-    final prefs = ref.read(settingProvider);
-    final stored = prefs.getString(_projectFmtKey(projectUuid));
-    if (stored != null) {
-      await set(matchTaxonGroupToCatFmt(stored));
-    }
-  }
-}
 
 final specimenEntryProvider =
     AsyncNotifierProvider.autoDispose<SpecimenEntry, List<SpecimenData>>(
@@ -100,6 +31,15 @@ final partBySpecimenProvider = FutureProvider.family
     .autoDispose<List<SpecimenPartData>, String>((ref, specimenUuid) =>
         SpecimenPartQuery(ref.read(databaseProvider))
             .getSpecimenParts(specimenUuid));
+
+/// All printable parts in the active project, paired with their parent
+/// specimen. A part, not a specimen, is the document-record unit.
+final specimenPartEntryProvider =
+    FutureProvider.autoDispose<List<SpecimenPartProjectRecord>>((ref) async {
+  final projectUuid = ref.watch(projectUuidProvider);
+  return SpecimenPartQuery(ref.read(databaseProvider))
+      .getSpecimenPartsForProject(projectUuid);
+});
 
 final associatedDataProvider = FutureProvider.family
     .autoDispose<List<AssociatedDataData>, String>((ref, specimenUuid) async {

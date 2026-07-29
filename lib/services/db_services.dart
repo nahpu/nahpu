@@ -1,7 +1,7 @@
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String newDbPref = 'isNewDb';
@@ -16,13 +16,10 @@ class DbServices extends AppServices {
   }
 
   Future<void> syncSettingWithDb() async {
-    UtilityServices utilityServices = UtilityServices(ref: ref);
-    await utilityServices.getAllOptions(siteTypePrefKey);
-    await utilityServices.getAllOptions(habitatTypePrefKey);
-    await utilityServices.getAllOptions(collMethodPrefKey);
-    await utilityServices.getAllOptions(collRolePrefKey);
-    await utilityServices.getAllOptions(specimenTypePrefKey);
-    await utilityServices.getAllOptions(treatmentPrefKey);
+    for (final prefKey in controlledVocabularyPrefKeys) {
+      ref.invalidate(userDefinedFieldProvider(prefKey));
+    }
+    invalidateEffectiveControlledVocabularies(ref);
     await _inValidateSettings();
   }
 

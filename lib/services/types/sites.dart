@@ -1,5 +1,39 @@
 import 'package:flutter/foundation.dart';
 
+enum SiteCopyField {
+  siteId,
+  leadStaff,
+  siteType,
+  country,
+  stateProvince,
+  county,
+  municipality,
+  locality,
+  remark,
+  habitatType,
+  habitatCondition,
+  habitatDescription,
+  coordinates,
+}
+
+extension SiteCopyFieldLabel on SiteCopyField {
+  String get label => switch (this) {
+    SiteCopyField.siteId => 'Site ID',
+    SiteCopyField.leadStaff => 'Site leader',
+    SiteCopyField.siteType => 'Site type',
+    SiteCopyField.country => 'Country',
+    SiteCopyField.stateProvince => 'State/Province',
+    SiteCopyField.county => 'County/Parish/District',
+    SiteCopyField.municipality => 'Municipality/City/Town',
+    SiteCopyField.locality => 'Precise locality',
+    SiteCopyField.remark => 'Remarks',
+    SiteCopyField.habitatType => 'Habitat type',
+    SiteCopyField.habitatCondition => 'Habitat condition',
+    SiteCopyField.habitatDescription => 'Habitat description',
+    SiteCopyField.coordinates => 'Coordinates',
+  };
+}
+
 const List<String> defaultSiteTypes = [
   'City',
   'Town',
@@ -33,7 +67,7 @@ const List<String> defaultHabitatTypes = [
   'Riverbank',
   'Desert',
   'Grassland',
-  'Montane Forest'
+  'Montane Forest',
 ];
 
 class CoordinateIcon {
