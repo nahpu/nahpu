@@ -8,6 +8,7 @@ import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/shared/common.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
 
 enum MenuSelection { details, deleteProject }
@@ -211,6 +212,13 @@ class ProjectViewState extends ConsumerState<ProjectView> {
       ProjectServices(ref: ref).updateProjectUuid(widget.project.uuid);
       // Always open a project on the Dashboard tab.
       ref.read(projectNavbarIndexProvider.notifier).updateState(0);
+
+      // Restore this project's catalog format so its type (e.g. paleontology)
+      // is reflected. Fire-and-forget: screens watch the provider and rebuild
+      // when it resolves, so navigation must not block on it.
+      ref
+          .read(catalogFmtNotifierProvider.notifier)
+          .loadForProject(widget.project.uuid);
 
       Navigator.push(context, ProjectShell.route());
     };

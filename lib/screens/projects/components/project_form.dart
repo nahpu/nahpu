@@ -276,7 +276,9 @@ class ProjectFormState extends ConsumerState<ProjectForm> {
     ProjectServices(ref: ref).createProject(projectData);
 
     if (_catalogFmt != null) {
-      ref.read(catalogFmtNotifierProvider.notifier).set(_catalogFmt!);
+      ref
+          .read(catalogFmtNotifierProvider.notifier)
+          .setForProject(widget.projectUuid, _catalogFmt!);
     }
   }
 

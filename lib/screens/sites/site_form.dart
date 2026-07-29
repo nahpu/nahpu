@@ -72,31 +72,30 @@ class SiteFormState extends ConsumerState<SiteForm> {
 
   /// Paleontology (fossil) projects record stratigraphic and sedimentological
   /// information instead of the extant habitat of a site.
+  ///
+  /// Detection currently rides on the global catalog-format setting, which is
+  /// written when a project is created. This is a placeholder: it does not yet
+  /// track a project's type when an existing project is reopened, because the
+  /// catalog format is not persisted per project. Once the project's catalog
+  /// format is stored in the database (and restored on open), swap the source
+  /// below for that per-project value so switching projects re-detects.
   Widget _buildSiteContext(bool useHorizontalLayout) {
+    final habitat = Habitat(
+      id: widget.id,
+      useHorizontalLayout: useHorizontalLayout,
+      siteFormCtr: widget.siteFormCtr,
+    );
+
     return ref.watch(catalogFmtNotifierProvider).when(
-          data: (catalogFmt) {
-            return catalogFmt == CatalogFmt.fossils
-                ? Sedimentology(
-                    id: widget.id,
-                    useHorizontalLayout: useHorizontalLayout,
-                    siteFormCtr: widget.siteFormCtr,
-                  )
-                : Habitat(
-                    id: widget.id,
-                    useHorizontalLayout: useHorizontalLayout,
-                    siteFormCtr: widget.siteFormCtr,
-                  );
-          },
-          loading: () => Habitat(
-            id: widget.id,
-            useHorizontalLayout: useHorizontalLayout,
-            siteFormCtr: widget.siteFormCtr,
-          ),
-          error: (e, s) => Habitat(
-            id: widget.id,
-            useHorizontalLayout: useHorizontalLayout,
-            siteFormCtr: widget.siteFormCtr,
-          ),
+          data: (catalogFmt) => catalogFmt == CatalogFmt.fossils
+              ? Sedimentology(
+                  id: widget.id,
+                  useHorizontalLayout: useHorizontalLayout,
+                  siteFormCtr: widget.siteFormCtr,
+                )
+              : habitat,
+          loading: () => habitat,
+          error: (e, s) => habitat,
         );
   }
 }
