@@ -43,10 +43,11 @@ class CommonDateFieldState extends ConsumerState<CommonDateField> {
       controller: widget.controller,
       onTap: () async {
         final result = await showCustomDatePicker(
-            context: context,
-            initialDate: widget.controller.dateTime ?? widget.initialDate,
-            firstDate: DateTime(2000),
-            lastDate: widget.lastDate);
+          context: context,
+          initialDate: widget.controller.dateTime ?? widget.initialDate,
+          firstDate: DateTime(2000),
+          lastDate: widget.lastDate,
+        );
 
         final returnType = result?.$2 ?? DialogReturnType.cancel;
         final selectedDate = result?.$1;
@@ -168,14 +169,15 @@ class ExpandedSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: CommonSearchBar(
-            controller: controller,
-            focusNode: focusNode,
-            hintText: hintText,
-            trailing: trailing,
-            onChanged: onChanged,
-          )),
+        padding: const EdgeInsets.all(4),
+        child: CommonSearchBar(
+          controller: controller,
+          focusNode: focusNode,
+          hintText: hintText,
+          trailing: trailing,
+          onChanged: onChanged,
+        ),
+      ),
     );
   }
 }
@@ -203,7 +205,8 @@ class CommonSearchBar extends StatelessWidget {
       focusNode: focusNode,
       leading: const Icon(Icons.search),
       padding: const WidgetStatePropertyAll<EdgeInsets>(
-          EdgeInsets.symmetric(horizontal: 8.0)),
+        EdgeInsets.symmetric(horizontal: 8.0),
+      ),
       elevation: WidgetStateProperty.all(0),
       hintText: hintText,
       backgroundColor: WidgetStateProperty.all(Colors.grey.withAlpha(48)),
@@ -236,21 +239,14 @@ class HintDropdownText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // attempts to copy the default hint text styling
-    final hintStyle = Theme.of(context)
-        .inputDecorationTheme
-        .hintStyle
+    final hintStyle = Theme.of(context).inputDecorationTheme.hintStyle
         ?.copyWith(
-            color: Theme.of(context)
-                .inputDecorationTheme
-                .hintStyle
-                ?.color
-                ?.withValues(alpha: 0.6));
+          color: Theme.of(
+            context,
+          ).inputDecorationTheme.hintStyle?.color?.withValues(alpha: 0.6),
+        );
 
-    return Text(
-      text,
-      style: hintStyle,
-      overflow: TextOverflow.ellipsis,
-    );
+    return Text(text, style: hintStyle, overflow: TextOverflow.ellipsis);
   }
 }
 
@@ -296,14 +292,20 @@ class CommonNumField extends ConsumerWidget {
         errorMaxLines: 3,
       ),
       inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(
-            '${isSigned ? r'^-?' : ''}${r'\d*'}${isDouble ? r'\.?\d*' : ''}'))
+        FilteringTextInputFormatter.allow(
+          RegExp(
+            '${isSigned ? r'^-?' : ''}${r'\d*'}${isDouble ? r'\.?\d*' : ''}',
+          ),
+        ),
       ],
-      keyboardType:
-          TextInputType.numberWithOptions(decimal: isDouble, signed: isSigned),
+      keyboardType: TextInputType.numberWithOptions(
+        decimal: isDouble,
+        signed: isSigned,
+      ),
       onChanged: onChanged,
-      textInputAction:
-          isLastField ? TextInputAction.done : TextInputAction.next,
+      textInputAction: isLastField
+          ? TextInputAction.done
+          : TextInputAction.next,
     );
   }
 }
@@ -336,28 +338,26 @@ class CommonTextField extends StatelessWidget {
       enabled: enabled,
       maxLines: maxLines,
       controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-      ),
+      decoration: InputDecoration(labelText: labelText, hintText: hintText),
       keyboardType: keyboardType,
       onChanged: onChanged,
       textInputAction: keyboardType == TextInputType.multiline
           ? TextInputAction.newline
           : isLastField
-              ? TextInputAction.done
-              : TextInputAction.next,
+          ? TextInputAction.done
+          : TextInputAction.next,
     );
   }
 }
 
 class SwitchField extends StatelessWidget {
-  const SwitchField(
-      {super.key,
-      required this.label,
-      required this.value,
-      required this.onPressed,
-      this.disabled});
+  const SwitchField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onPressed,
+    this.disabled,
+  });
 
   final String label;
   final bool value;
@@ -370,10 +370,7 @@ class SwitchField extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-        Switch(
-          value: value,
-          onChanged: (disabled ?? false) ? null : onPressed,
-        ),
+        Switch(value: value, onChanged: (disabled ?? false) ? null : onPressed),
       ],
     );
   }
@@ -407,58 +404,61 @@ class AutoCompleteField extends StatelessWidget {
           return const Iterable<String>.empty();
         }
         return options.where((String option) {
-          return option
-              .toLowerCase()
-              .contains(textEditingValue.text.toLowerCase());
+          return option.toLowerCase().contains(
+            textEditingValue.text.toLowerCase(),
+          );
         });
       },
       onSelected: onSelected,
-      fieldViewBuilder: (
-        BuildContext context,
-        TextEditingController controller,
-        FocusNode focusNode,
-        VoidCallback onFieldSubmitted,
-      ) {
-        return AutoCompleteText(
-          controller: controller,
-          enable: true,
-          focusNode: focusNode,
-          labelText: labelText,
-          hintText: hintText,
-          onFieldSubmitted: (String value) {
-            onFieldSubmitted();
+      fieldViewBuilder:
+          (
+            BuildContext context,
+            TextEditingController controller,
+            FocusNode focusNode,
+            VoidCallback onFieldSubmitted,
+          ) {
+            return AutoCompleteText(
+              controller: controller,
+              enable: true,
+              focusNode: focusNode,
+              labelText: labelText,
+              hintText: hintText,
+              onFieldSubmitted: (String value) {
+                onFieldSubmitted();
+              },
+            );
           },
-        );
-      },
-      optionsViewBuilder: (BuildContext context,
-          AutocompleteOnSelected<String> onSelected, Iterable<String> options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4.0,
-            child: Container(
-              width: 300,
-              constraints: const BoxConstraints(maxHeight: 350),
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(8.0),
-                itemCount: options.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final String option = options.elementAt(index);
-                  return GestureDetector(
-                    onTap: () {
-                      onSelected(option);
+      optionsViewBuilder:
+          (
+            BuildContext context,
+            AutocompleteOnSelected<String> onSelected,
+            Iterable<String> options,
+          ) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: 300,
+                  constraints: const BoxConstraints(maxHeight: 350),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final String option = options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(title: Text(option)),
+                      );
                     },
-                    child: ListTile(
-                      title: Text(option),
-                    ),
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      },
+            );
+          },
     );
   }
 }
@@ -486,10 +486,7 @@ class AutoCompleteText extends StatelessWidget {
     return TextFormField(
       enabled: enable,
       controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-      ),
+      decoration: InputDecoration(labelText: labelText, hintText: hintText),
       focusNode: focusNode,
       onFieldSubmitted: onFieldSubmitted,
       keyboardType: TextInputType.text,
@@ -500,29 +497,33 @@ class AutoCompleteText extends StatelessWidget {
 
 class DropDownMenuItems {
   static DropdownMenuItem<int?> chooseOneListItem = DropdownMenuItem(
-      value: null, child: HintDropdownText(text: 'Choose one'));
+    value: null,
+    child: HintDropdownText(text: 'Choose one'),
+  );
 
   static List<DropdownMenuItem<int?>> booleanDropDownItems() {
     return [
       chooseOneListItem,
       DropdownMenuItem(value: 1, child: CommonDropdownText(text: 'Yes')),
-      DropdownMenuItem(value: 0, child: CommonDropdownText(text: 'No'))
+      DropdownMenuItem(value: 0, child: CommonDropdownText(text: 'No')),
     ];
   }
 
   static List<DropdownMenuItem<int?>> addChooseOneToList(
-      List<DropdownMenuItem<int?>> list) {
+    List<DropdownMenuItem<int?>> list,
+  ) {
     list.insert(0, chooseOneListItem);
     return list;
   }
 }
 
 class UserDefinedSettingField extends ConsumerWidget {
-  const UserDefinedSettingField(
-      {super.key,
-      required this.typePrefKey,
-      required this.fmtPrefKey,
-      required this.typeName});
+  const UserDefinedSettingField({
+    super.key,
+    required this.typePrefKey,
+    required this.fmtPrefKey,
+    required this.typeName,
+  });
 
   final String typePrefKey;
   final String fmtPrefKey;
@@ -536,15 +537,18 @@ class UserDefinedSettingField extends ConsumerWidget {
       controller: controller,
       ref: ref,
       textCasePrefString: fmtPrefKey,
-      chipList: ref.watch(userDefinedFieldProvider(typePrefKey)).when(
+      chipList: ref
+          .watch(userDefinedFieldProvider(typePrefKey))
+          .when(
             data: (data) {
               return data.map((e) {
                 return CommonSettingChip(
                   text: e,
                   primaryColor: Theme.of(context).colorScheme.tertiary,
                   onDeleted: () {
-                    UtilityServices(ref: ref)
-                        .removeOption(context, typePrefKey, e);
+                    UtilityServices(
+                      ref: ref,
+                    ).removeOption(context, typePrefKey, e);
                   },
                 );
               }).toList();
@@ -555,24 +559,28 @@ class UserDefinedSettingField extends ConsumerWidget {
       labelText: 'Add ${typeName.toLowerCase()}',
       hintText: 'Enter ${typeName.toLowerCase()}',
       onPressed: () {
-        UtilityServices(ref: ref)
-            .addOption(typePrefKey, controller.text.trim());
+        UtilityServices(
+          ref: ref,
+        ).addOption(typePrefKey, controller.text.trim());
         controller.clear();
       },
       resetLabel: 'Match database ${typeName.toLowerCase()}s',
       onReset: () {
         showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return CommonAlertDialog(
-                titleText: 'Match database ${typeName.toLowerCase()}s?',
-                descText: 'Matching database types will'
-                    ' delete all unused ${typeName.toLowerCase()}s',
-                confirmFunction: () {
-                  UtilityServices(ref: ref).getAllOptions(typePrefKey);
-                },
-              );
-            });
+          context: context,
+          builder: (BuildContext context) {
+            return CommonAlertDialog(
+              titleText: 'Match database ${typeName.toLowerCase()}s?',
+              descText:
+                  'Matching database types will'
+                  ' delete all unused ${typeName.toLowerCase()}s',
+              confirmFunction: () {
+                UtilityServices(ref: ref).getAllOptions(typePrefKey);
+              },
+              cancelFunction: () {},
+            );
+          },
+        );
       },
     );
   }
