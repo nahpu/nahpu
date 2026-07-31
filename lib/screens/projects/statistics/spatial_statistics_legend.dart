@@ -155,7 +155,7 @@ class _LegendSample extends StatelessWidget {
                     color: colorScheme.primary.withValues(alpha: 0.32),
                     border: Border.all(
                       color: colorScheme.primary.withValues(alpha: 0.86),
-                      width: 1.5,
+                      width: 2,
                     ),
                   ),
                 ),

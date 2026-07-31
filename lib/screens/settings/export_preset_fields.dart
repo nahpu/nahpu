@@ -76,7 +76,7 @@ class _ExportPresetFieldsScreenState
               ),
             ),
           ),
-          const Divider(height: 1.0),
+          const Divider(height: 2),
           Expanded(
             child: ReorderableListView.builder(
               padding: const EdgeInsets.all(8),
@@ -90,7 +90,7 @@ class _ExportPresetFieldsScreenState
               ),
             ),
           ),
-          const Divider(height: 1.0),
+          const Divider(height: 2),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Align(
@@ -484,7 +484,7 @@ class _AvailableFieldsSectionState
               ),
             ),
           ),
-          const Divider(height: 1.0),
+          const Divider(height: 2),
           Expanded(
             child: ListView.builder(
               shrinkWrap: true,
@@ -497,7 +497,7 @@ class _AvailableFieldsSectionState
                     databaseTableDisplayTitle(table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13.0,
+                      fontSize: 14,
                     ),
                   ),
                   dense: true,
@@ -516,7 +516,7 @@ class _AvailableFieldsSectionState
                         displayLabel,
                         style: const TextStyle(
                           fontFamily: 'monospace',
-                          fontSize: 13.0,
+                          fontSize: 14,
                         ),
                       ),
                       onChanged: (bool? val) {
@@ -846,7 +846,7 @@ class _GroupedFieldPickerContentState
             ),
           ),
         ),
-        const Divider(height: 1),
+        const Divider(height: 2),
         Expanded(
           child: filteredGroups.isEmpty
               ? const Center(child: Text('No matching fields.'))
@@ -1011,7 +1011,7 @@ class _ExportMappingCard extends StatelessWidget {
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: colorScheme.outlineVariant),
         ),
         child: ListTile(

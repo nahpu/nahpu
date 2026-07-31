@@ -33,7 +33,7 @@ class TemplateImagePickerDialog extends StatelessWidget {
               ),
               onTap: onUpload,
             ),
-            const Divider(height: 1),
+            const Divider(height: 2),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
               child: Text(
@@ -62,7 +62,7 @@ class TemplateImagePickerDialog extends StatelessWidget {
 
                   return ListView.separated(
                     itemCount: paths.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    separatorBuilder: (_, _) => const Divider(height: 2),
                     itemBuilder: (_, index) {
                       final imagePath = paths[index];
                       return ListTile(

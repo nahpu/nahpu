@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/styles/decoration.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class FormCard extends StatelessWidget {
   const FormCard({
@@ -36,10 +37,10 @@ class FormCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(NahpuSpacing.xs),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(NahpuRadius.large),
           color: isPrimary
               ? Color.lerp(Theme.of(context).colorScheme.secondaryContainer,
                   Theme.of(context).colorScheme.surface, 0.2)
@@ -49,7 +50,7 @@ class FormCard extends StatelessWidget {
                   .withAlpha(80),
           border: Border.all(
             color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
+            width: NahpuStroke.regular,
           ),
         ),
         child: Column(
@@ -65,7 +66,7 @@ class FormCard extends StatelessWidget {
                   : const SizedBox.shrink(),
               isWithTitle && !isPrimary
                   ? Divider(
-                      thickness: 0.6,
+                      thickness: NahpuStroke.regular,
                       color: Theme.of(context).tabBarTheme.dividerColor)
                   : const SizedBox.shrink(),
               isExpanded
@@ -105,13 +106,13 @@ class CommonIDForm extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 4),
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(NahpuSpacing.md),
         decoration: BoxDecoration(
           border: Border.all(
             color: Theme.of(context).disabledColor,
-            width: 2,
+            width: NahpuStroke.regular,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(NahpuRadius.large),
         ),
         child: child,
       ),
@@ -132,26 +133,26 @@ class FormSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(NahpuSpacing.xl),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(NahpuRadius.large),
           color: Theme.of(context)
               .colorScheme
               .surfaceContainerHighest
               .withAlpha(80),
           border: Border.all(
             color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
+            width: NahpuStroke.regular,
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: NahpuSpacing.md),
             child,
           ],
         ),
@@ -177,7 +178,7 @@ class TitleForm extends StatelessWidget {
     return Padding(
       padding: isCentered
           ? const EdgeInsets.fromLTRB(46, 0, 0, 4)
-          : const EdgeInsets.only(right: 10),
+          : const EdgeInsets.only(right: NahpuSpacing.md),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.values[1],
@@ -267,7 +268,7 @@ class _InfoButtonState extends State<InfoButton> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Divider(
-                  thickness: 1.2,
+                  thickness: NahpuStroke.regular,
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
                 ),
                 Padding(

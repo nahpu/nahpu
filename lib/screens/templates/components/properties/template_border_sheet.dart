@@ -95,7 +95,7 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
       child: Padding(
         padding: widget.inToolbar
             ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            : const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

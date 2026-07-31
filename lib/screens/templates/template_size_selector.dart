@@ -358,7 +358,7 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
               color: isSelected
                   ? theme.colorScheme.primary
                   : theme.colorScheme.outlineVariant,
-              width: isSelected ? 2 : 1,
+              width: isSelected ? 4 : 2,
             ),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -412,7 +412,7 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: SizedBox(
         width: 500,
         height: 520,

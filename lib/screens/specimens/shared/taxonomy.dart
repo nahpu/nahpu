@@ -150,7 +150,7 @@ class TaxonInfoTitle extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyMedium,
             overflow: TextOverflow.visible,
           ),
-        Divider(color: Theme.of(context).dividerColor, thickness: 1)
+        Divider(color: Theme.of(context).dividerColor, thickness: 2)
       ],
     );
   }
@@ -236,7 +236,7 @@ class RedListCategoryPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Text(
         category,

@@ -13,6 +13,7 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/parasite_services.dart';
 import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class SpecimenSelection extends ConsumerStatefulWidget {
   const SpecimenSelection({super.key});
@@ -42,7 +43,7 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            bool isMobile = constraints.maxWidth < 600;
+            bool isMobile = constraints.maxWidth < NahpuBreakpoints.compact;
             final catalogFmt = ref.watch(catalogFmtNotifierProvider);
             return CommonSettingList(
               sections: [

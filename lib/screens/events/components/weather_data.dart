@@ -156,7 +156,7 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text('Humidity (%)', style: Theme.of(context).textTheme.titleMedium),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -193,7 +193,7 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text('Astronomy', style: Theme.of(context).textTheme.titleMedium),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -243,7 +243,7 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
           ],
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 5, right: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           child: DropdownButtonFormField(
             initialValue: widget.weatherCtr.moonPhaseCtr,
             decoration: const InputDecoration(
@@ -271,7 +271,7 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 5, right: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           child: CommonTextField(
             controller: widget.weatherCtr.noteCtr,
             labelText: 'Notes',

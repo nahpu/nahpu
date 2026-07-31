@@ -315,7 +315,7 @@ class DraggableChipState extends State<DraggableChip> {
                                   border: Border.all(
                                     color:
                                         scheme.secondary.withValues(alpha: 0.5),
-                                    width: 1.5,
+                                    width: 2,
                                   ),
                                   borderRadius: BorderRadius.circular(2),
                                 )
@@ -419,7 +419,7 @@ class DraggableChipState extends State<DraggableChip> {
 
     final chip = AnimatedContainer(
       duration: const Duration(milliseconds: 100),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(6),

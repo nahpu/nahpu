@@ -667,7 +667,7 @@ class IdTile extends ConsumerWidget {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Visibility(
                     visible:
                         showMore || specimenCtr.museumIDCtr.text.isNotEmpty,

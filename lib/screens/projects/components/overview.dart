@@ -30,7 +30,7 @@ class ProjectOverview extends ConsumerWidget {
           .when(
             data: (data) {
               final projectInfo = Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 child: ProjectInfo(
                   projectData: data,
                   onEdit: onEdit,

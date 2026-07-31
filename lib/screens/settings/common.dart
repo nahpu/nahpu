@@ -4,6 +4,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class CommonSettingList extends StatelessWidget {
   const CommonSettingList({super.key, required this.sections});
@@ -14,9 +15,9 @@ class CommonSettingList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
+        constraints: const BoxConstraints(maxWidth: NahpuContentWidth.settings),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(NahpuSpacing.md),
           child: ListView(children: sections),
         ),
       ),
@@ -56,10 +57,10 @@ class CommonSettingSection extends StatelessWidget {
             context,
           ).colorScheme.surfaceContainerHighest.withAlpha(120),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(NahpuRadius.large),
             side: BorderSide(
               color: Theme.of(context).colorScheme.outlineVariant,
-              width: 1.2,
+              width: NahpuStroke.regular,
             ),
           ),
           child: Column(
@@ -74,7 +75,7 @@ class CommonSettingSection extends StatelessWidget {
                 : children,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: NahpuSpacing.xl),
       ],
     );
   }
@@ -199,7 +200,7 @@ class SettingDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Divider(
       height: 0,
-      thickness: 1.2,
+      thickness: NahpuStroke.regular,
       indent: 60,
       color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
     );
@@ -267,7 +268,7 @@ class SettingChips extends StatelessWidget {
               ),
             ),
             IconButton(
-              iconSize: 25,
+              iconSize: NahpuControlSize.icon,
               color: Theme.of(context).colorScheme.onSurface,
               icon: const Icon(Icons.add),
               onPressed: onPressed,

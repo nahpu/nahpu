@@ -15,6 +15,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:timezone/timezone.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ProjectForm extends ConsumerStatefulWidget {
   const ProjectForm({
@@ -61,7 +62,9 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
+            constraints: const BoxConstraints(
+              maxWidth: NahpuContentWidth.projectForm,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

@@ -208,7 +208,7 @@ class _FileSettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('File settings', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           FileNameField(controller: exportCtr, onChanged: onFileNameChanged),
           if (!Platform.isIOS && !Platform.isAndroid) ...[
             const SizedBox(height: 16),
@@ -1319,7 +1319,7 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
             ),
           ),
         ),
-        const Divider(height: 1),
+        const Divider(height: 2),
         Expanded(
           child: ListView(
             children: [
@@ -1474,7 +1474,7 @@ class _LayoutProfileControls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Document Layout', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
           child: DropdownButtonFormField<String>(
@@ -1571,7 +1571,7 @@ class _PageSetupControls extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 10,
           runSpacing: 10,

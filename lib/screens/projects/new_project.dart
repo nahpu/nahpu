@@ -21,6 +21,7 @@ import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 enum _CreateProjectStep {
   welcome('Welcome'),
@@ -109,7 +110,8 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    if (constraints.maxWidth >= 840) {
+                    if (constraints.maxWidth >=
+                        NahpuBreakpoints.projectWizardRail) {
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -125,7 +127,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                     return Column(
                       children: [
                         SizedBox(height: 64, child: _stepChips()),
-                        const Divider(height: 1),
+                        const Divider(height: NahpuStroke.regular),
                         Expanded(child: _stepBody()),
                       ],
                     );
@@ -146,7 +148,10 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
       key: const ValueKey('create-project-step-rail'),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHighest.withAlpha(80),
-        border: Border.all(color: colors.outlineVariant),
+        border: Border.all(
+          color: colors.outlineVariant,
+          width: NahpuStroke.regular,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListView.builder(
@@ -160,7 +165,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
             child: Material(
               color: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(NahpuRadius.medium),
               ),
               clipBehavior: Clip.antiAlias,
               child: ListTile(
@@ -168,7 +173,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                 selectedTileColor: colors.primaryContainer,
                 selectedColor: colors.onPrimaryContainer,
                 leading: CircleAvatar(
-                  radius: 14,
+                  radius: NahpuRadius.medium,
                   backgroundColor: selected
                       ? colors.primary
                       : colors.surfaceContainerHighest,
@@ -195,7 +200,10 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
     return ListView.separated(
       controller: _stepScrollController,
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: NahpuSpacing.lg,
+        vertical: NahpuSpacing.md,
+      ),
       itemCount: _steps.length,
       separatorBuilder: (_, _) => const SizedBox(width: 8),
       itemBuilder: (context, index) {
@@ -214,7 +222,9 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
       padding: const EdgeInsets.fromLTRB(8, 12, 8, 24),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
+          constraints: const BoxConstraints(
+            maxWidth: NahpuContentWidth.projectWizard,
+          ),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 180),
             child: KeyedSubtree(

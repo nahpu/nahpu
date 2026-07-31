@@ -67,8 +67,8 @@ class TextPropertiesPanel extends StatelessWidget {
           SizedBox(
             height: 32,
             child: VerticalDivider(
-              width: 1,
-              thickness: 1,
+              width: 2,
+              thickness: 2,
               color: scheme.outlineVariant,
             ),
           ),
@@ -161,7 +161,7 @@ class TextPropertiesPanel extends StatelessWidget {
       final content = Padding(
         padding: inToolbar
             ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            : const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -544,7 +544,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
     return Padding(
       padding: widget.inToolbar
           ? const EdgeInsets.all(8)
-          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          : const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

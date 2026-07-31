@@ -400,8 +400,8 @@ class _MapLibreAttribution extends StatelessWidget {
     color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
     borderRadius: BorderRadius.circular(4),
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      child: Text(label, style: const TextStyle(fontSize: 10)),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: Text(label, style: const TextStyle(fontSize: 12)),
     ),
   );
 }

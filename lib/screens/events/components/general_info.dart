@@ -59,7 +59,7 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 5, right: 5, top: 10),
+            padding: const EdgeInsets.only(left: 4, right: 4, top: 8),
             child: CollEventIdTile(
               collEventId: widget.collEventId,
               collEventCtr: widget.collEventCtr,
@@ -67,7 +67,7 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
           ),
           Padding(
             // Match adaptive layout padding
-            padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             child: SiteIdField(
               value: widget.collEventCtr.siteIDCtr,
               siteData: data,

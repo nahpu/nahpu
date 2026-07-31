@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 enum PlatformType { mobile, desktop, unknown }
 
@@ -33,9 +34,9 @@ PlatformType get systemPlatform {
 
 ScreenType getScreenType(BuildContext context) {
   final double deviceWidth = MediaQuery.of(context).size.width;
-  if (deviceWidth < 600) {
+  if (deviceWidth < NahpuBreakpoints.compact) {
     return ScreenType.phone;
-  } else if (deviceWidth < 900) {
+  } else if (deviceWidth < NahpuBreakpoints.desktop) {
     return ScreenType.tablet;
   } else {
     return ScreenType.desktop;

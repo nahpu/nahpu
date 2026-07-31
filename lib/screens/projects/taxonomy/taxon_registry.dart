@@ -37,7 +37,7 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
               padding: const EdgeInsets.all(8),
               child: const RegistryInfo(),
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 24),
             Wrap(
               spacing: 8,
               children: [
@@ -317,15 +317,15 @@ class TaxonDataContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(8),
         child: Container(
           height: 220,
           width: 200,
-          padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             border: Border.all(
               color: Theme.of(context).dividerColor.withAlpha(50),
-              width: 1.2,
+              width: 2,
             ),
             borderRadius: BorderRadius.circular(
               20,

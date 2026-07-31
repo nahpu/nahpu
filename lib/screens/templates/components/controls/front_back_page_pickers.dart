@@ -23,7 +23,7 @@ class TemplateSideSwitcher extends StatelessWidget {
       return DecoratedBox(
         decoration: _decoration(scheme),
         child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text('1 sided'),
         ),
       );
@@ -53,7 +53,7 @@ class TemplateSideSwitcher extends StatelessWidget {
 
   BoxDecoration _decoration(ColorScheme scheme) => BoxDecoration(
         color: scheme.surfaceContainerHigh.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: scheme.outlineVariant),
       );
 }
@@ -80,12 +80,12 @@ class _SideButton extends StatelessWidget {
       label: 'Edit $label side',
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: active ? scheme.primaryContainer : Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

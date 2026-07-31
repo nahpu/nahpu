@@ -64,7 +64,7 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
                 label: const Text('View map'),
               ),
             )
-            else
+          else
             SizedBox(
               height: 480,
               child: _fullScreenMapOpen
@@ -395,7 +395,7 @@ class _NaturalEarthMap extends StatelessWidget {
               color: colorScheme.primary.withValues(alpha: 0.32),
               border: Border.all(
                 color: colorScheme.primary.withValues(alpha: 0.86),
-                width: 1.5,
+                width: 2,
               ),
             ),
           ),
@@ -415,8 +415,8 @@ class _MapAttribution extends StatelessWidget {
     color: colorScheme.surface.withValues(alpha: 0.9),
     borderRadius: BorderRadius.circular(4),
     child: const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      child: Text('Natural Earth', style: TextStyle(fontSize: 10)),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: Text('Natural Earth', style: TextStyle(fontSize: 12)),
     ),
   );
 }

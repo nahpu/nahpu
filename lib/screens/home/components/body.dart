@@ -12,6 +12,7 @@ import 'package:nahpu/services/project_exchange_service.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 enum MenuSelection { editInfo, details, exportInfo, showQr, deleteProject }
 
@@ -29,9 +30,9 @@ class HomeBodyState extends ConsumerState<HomeBody> {
     return SafeArea(
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
+          constraints: const BoxConstraints(maxWidth: NahpuContentWidth.home),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(NahpuSpacing.xxl),
             child: ref
                 .watch(projectListProvider)
                 .when(
@@ -97,10 +98,6 @@ class _ToggleViewState extends State<ToggleView> {
             ),
           ],
         ),
-        // Divider(
-        //   color: Theme.of(context).colorScheme.onSurface,
-        //   thickness: 1.5,
-        // ),
         isListSelected
             ? ProjectListView(projectList: widget.projectList)
             : ProjectGridView(projectList: widget.projectList),
@@ -235,7 +232,7 @@ class ListProjectCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
             color: Theme.of(context).dividerColor.withAlpha(40),
-            width: 1.5,
+            width: NahpuStroke.regular,
           ),
         ),
         tileColor: Theme.of(
@@ -314,7 +311,7 @@ class GridProjectCard extends StatelessWidget {
               ).colorScheme.surfaceContainerHighest.withAlpha(80),
               border: Border.all(
                 color: Theme.of(context).dividerColor.withAlpha(40),
-                width: 1.5,
+                width: NahpuStroke.regular,
               ),
             ),
             padding: const EdgeInsets.all(32),
@@ -363,7 +360,7 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
             );
           },
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: NahpuSpacing.md),
         PopupMenuItem<MenuSelection>(
           value: MenuSelection.showQr,
           child: const ListTile(
@@ -387,7 +384,7 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
             await showProjectExportDialog(context: context, projectData: data);
           },
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: NahpuSpacing.md),
         PopupMenuItem<MenuSelection>(
           value: MenuSelection.details,
           child: const ListTile(

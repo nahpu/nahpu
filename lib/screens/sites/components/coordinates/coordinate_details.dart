@@ -144,7 +144,7 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
                     ),
                   ),
                 ),
-                const Divider(height: 1),
+                const Divider(height: 2),
                 Expanded(
                   child: CoordinateDetails(coordinate: widget.coordinate),
                 ),

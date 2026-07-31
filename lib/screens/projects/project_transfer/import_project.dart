@@ -133,14 +133,14 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         SizedBox(width: 248, child: _buildStepRail()),
-                        const VerticalDivider(width: 1),
+                        const VerticalDivider(width: 2),
                         Expanded(child: _buildStepBody()),
                       ],
                     )
                   : Column(
                       children: [
                         SizedBox(height: 64, child: _buildStepChips()),
-                        const Divider(height: 1),
+                        const Divider(height: 2),
                         Expanded(child: _buildStepBody()),
                       ],
                     ),
@@ -177,7 +177,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           padding: const EdgeInsets.only(bottom: 6),
           child: ListTile(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
             ),
             selected: selected,
             enabled: enabled,
@@ -198,7 +198,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return ListView.separated(
       controller: _stepChipScrollController,
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: _steps.length,
       separatorBuilder: (_, _) => const SizedBox(width: 8),
       itemBuilder: (context, index) {
@@ -337,7 +337,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               Row(
                 children: [
                   const Icon(Icons.health_and_safety_outlined),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _isNewProject
@@ -1133,7 +1133,7 @@ class _ConflictCard extends StatelessWidget {
             },
           ),
           if (conflict.warning != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               conflict.warning!,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -1184,7 +1184,7 @@ class _ProjectFieldChoice extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           RadioGroup<bool>(
             groupValue: useImported,
             onChanged: (value) {
@@ -1321,7 +1321,7 @@ class _StatusChip extends StatelessWidget {
         backgroundColor: color,
         child: Text(
           '$count',
-          style: const TextStyle(color: Colors.white, fontSize: 11),
+          style: const TextStyle(color: Colors.white, fontSize: 12),
         ),
       ),
       label: Text(label),

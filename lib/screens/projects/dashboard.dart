@@ -10,6 +10,7 @@ import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class Dashboard extends ConsumerStatefulWidget {
   const Dashboard({super.key});
@@ -38,7 +39,7 @@ class DashboardState extends ConsumerState<Dashboard> {
       drawer: const ProjectMenuDrawer(),
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints c) {
-          bool useHorizontalLayout = c.maxWidth > 600;
+          bool useHorizontalLayout = c.maxWidth > NahpuBreakpoints.compact;
           return SafeArea(
             child: SingleChildScrollView(
               child: Column(

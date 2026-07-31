@@ -310,7 +310,7 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
               },
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: PersonnelRole(
               eventID: widget.eventID,

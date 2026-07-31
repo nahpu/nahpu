@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/styles/decoration.dart';
 
@@ -25,8 +26,8 @@ class CommonProgressIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
       child: SizedBox(
-        height: 30,
-        width: 30,
+        height: NahpuControlSize.iconLarge,
+        width: NahpuControlSize.iconLarge,
         child: CircularProgressIndicator(
           strokeWidth: 2,
         ),
@@ -57,7 +58,7 @@ class CommonDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SizedBox(
-      height: 5,
+      height: NahpuSpacing.xs,
     );
   }
 }

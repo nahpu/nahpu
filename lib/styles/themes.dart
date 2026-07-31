@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class NahpuTheme {
   static const _canopyTeal = Color(0xFF1B9E77);
@@ -48,19 +49,22 @@ class NahpuTheme {
 
   static CardThemeData _cardTheme(ColorScheme colorScheme) {
     return CardThemeData(
-      elevation: 0,
+      elevation: NahpuElevation.none,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-        side: BorderSide(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.medium)),
+        side: BorderSide(
+          color: colorScheme.outlineVariant,
+          width: NahpuStroke.regular,
+        ),
       ),
     );
   }
 
   static AppBarTheme get appBarLightTheme {
     return const AppBarTheme(
-      elevation: 0,
+      elevation: NahpuElevation.none,
       titleTextStyle: TextStyle(
         fontFamily: 'Merriweather',
         color: Colors.black,
@@ -71,7 +75,7 @@ class NahpuTheme {
 
   static AppBarTheme get appBarDarkTheme {
     return const AppBarTheme(
-      elevation: 0,
+      elevation: NahpuElevation.none,
       titleTextStyle: TextStyle(
         fontFamily: 'Merriweather',
         color: Colors.white,

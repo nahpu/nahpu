@@ -229,7 +229,7 @@ class _AvailableFieldsSectionState
                     databaseTableDisplayTitle(table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13.0,
+                      fontSize: 14,
                     ),
                   ),
                   dense: true,
@@ -248,7 +248,7 @@ class _AvailableFieldsSectionState
                         _getDisplayLabel(label),
                         style: const TextStyle(
                           fontFamily: 'monospace',
-                          fontSize: 13.0,
+                          fontSize: 14,
                         ),
                       ),
                     );

@@ -478,7 +478,7 @@ class PresetColumnChips extends StatelessWidget {
           ),
           side: BorderSide(
             color: Theme.of(context).colorScheme.secondary.withAlpha(24),
-            width: 1.5,
+            width: 2,
           ),
         );
       }).toList(),

@@ -106,7 +106,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             title: Text('Copy from project ...'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           enabled: widget.siteId != null,
           onTap: widget.siteId == null
@@ -133,7 +133,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             title: Text('Export site'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           onTap: () => RecordExchangeActions(
             context: context,
@@ -154,7 +154,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             title: Text('Import site'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           enabled: widget.siteId != null,
           onTap: () => _deleteSite(),

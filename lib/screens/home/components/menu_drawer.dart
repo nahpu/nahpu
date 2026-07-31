@@ -158,7 +158,7 @@ class AppAbout extends StatelessWidget {
               'Rethinking species inventory in the digital age',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             const Text(
               'Nahpu is a field cataloging app for natural history projects.'
               ' Developed by museum scientists '

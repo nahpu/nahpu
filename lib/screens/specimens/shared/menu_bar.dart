@@ -104,7 +104,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
                 },
           child: const DuplicateMenuButton(text: 'Duplicate part'),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           enabled: widget.specimenUuid != null,
           onTap: widget.specimenUuid == null
@@ -128,7 +128,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
             title: Text('Import specimen'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           child: const DeleteMenuButton(deleteAll: false),
           onTap: () => _deleteSpecimen(),

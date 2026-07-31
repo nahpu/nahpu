@@ -104,7 +104,7 @@ class StatisticBarChart extends StatelessWidget {
         drawVerticalLine: false,
         getDrawingHorizontalLine: (value) => FlLine(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          strokeWidth: 1,
+          strokeWidth: 2,
         ),
       ),
       titlesData: FlTitlesData(
@@ -169,7 +169,7 @@ class StatisticBarChart extends StatelessWidget {
         enabled: true,
         touchTooltipData: BarTouchTooltipData(
           tooltipPadding:
-              const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           tooltipMargin: 5,
           tooltipBorderRadius: BorderRadius.circular(8),
           fitInsideHorizontally: true,

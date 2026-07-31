@@ -9,6 +9,7 @@ import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ProjectBottomNavbar extends ConsumerStatefulWidget {
   const ProjectBottomNavbar({super.key});
@@ -32,7 +33,7 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
         0.1,
       ),
       indicatorColor: Theme.of(context).colorScheme.secondaryContainer,
-      elevation: 10,
+      elevation: NahpuElevation.high,
       selectedIndex: selectedIndex,
       destinations: const [
         NavigationDestination(
@@ -254,7 +255,9 @@ class PageNumberViewer extends StatelessWidget {
               Theme.of(context).colorScheme.surface,
               0.5,
             ),
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
+            borderRadius: const BorderRadius.all(
+              Radius.circular(NahpuRadius.medium),
+            ),
           ),
           height: 40,
           width: 120,
@@ -326,7 +329,7 @@ class NavSheetState extends ConsumerState<NavSheet> {
                   },
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: NahpuSpacing.md),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: PageInfo(pageNav: widget.pageNav),

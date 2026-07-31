@@ -111,7 +111,7 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
                 _parseDetails != null
                     ? const SizedBox(height: 8)
                     : const SizedBox.shrink(),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 _hasData ? const ColumnRowTitle() : const SizedBox.shrink(),
                 _hasData
                     ? ConstrainedBox(
@@ -156,7 +156,7 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
                               color: Theme.of(context).colorScheme.error,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Text(
                             _problems.join(', '),
                             textAlign: TextAlign.center,
@@ -490,7 +490,7 @@ class _DelimiterOverrideSection extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(
           color: Theme.of(context).colorScheme.secondary.withAlpha(40),
-          width: 1.5,
+          width: 2,
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -719,7 +719,7 @@ class RecordStatistics extends StatelessWidget {
           importData.skippedSpecies.isEmpty
               ? const SuccessImport()
               : const WarningImport(),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Text(
             'Imported',
             style: Theme.of(context).textTheme.titleLarge,
@@ -733,7 +733,7 @@ class RecordStatistics extends StatelessWidget {
             'Family: ${importData.importedFamilyCount}',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Text(
             'Skipped',
             style: Theme.of(context).textTheme.titleLarge,
@@ -774,7 +774,7 @@ class SkippedImport extends StatelessWidget {
                   .colorScheme
                   .secondary
                   .withAlpha((0.1 * 255).toInt()),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(record),
           )

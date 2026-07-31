@@ -533,10 +533,7 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
       screenPosition: (point) => mapLibreViewportScreenLocation(
         camera: camera,
         viewportSize: details.viewportSize,
-        point: maplibre.Geographic(
-          lon: point.longitude!,
-          lat: point.latitude!,
-        ),
+        point: maplibre.Geographic(lon: point.longitude!, lat: point.latitude!),
       ),
       hitRadius: (_) => mapMarkerHitRadius(7),
     );
@@ -676,8 +673,8 @@ class _NaturalEarthAttribution extends StatelessWidget {
     color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
     borderRadius: BorderRadius.circular(4),
     child: const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      child: Text('Natural Earth', style: TextStyle(fontSize: 10)),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: Text('Natural Earth', style: TextStyle(fontSize: 12)),
     ),
   );
 }
@@ -692,8 +689,8 @@ class _BaseLayerAttribution extends StatelessWidget {
     color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
     borderRadius: BorderRadius.circular(4),
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      child: Text(label, style: const TextStyle(fontSize: 10)),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: Text(label, style: const TextStyle(fontSize: 12)),
     ),
   );
 }

@@ -95,7 +95,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
               : () async => await _duplicateEvent(),
           child: const DuplicateMenuButton(text: 'Duplicate event'),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           enabled: widget.collEventId != null,
           onTap: widget.collEventId == null
@@ -122,7 +122,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
             title: Text('Export event'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           onTap: () => RecordExchangeActions(
             context: context,
@@ -143,7 +143,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
             title: Text('Import event'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           child: const DeleteMenuButton(deleteAll: false),
           onTap: () => _deleteEvent(),

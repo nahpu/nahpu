@@ -48,7 +48,7 @@ class _MediaViewerState extends State<MediaViewer> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(10, 18, 10, 0),
+          padding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -289,7 +289,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
             child: ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(24)),
               child: Container(
-                padding: const EdgeInsets.fromLTRB(18, 0, 8, 0),
+                padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
                 color: Theme.of(context)
                     .scaffoldBackgroundColor
                     .withAlpha((0.9 * 255).toInt()),
