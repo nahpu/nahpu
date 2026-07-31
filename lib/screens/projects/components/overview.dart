@@ -6,9 +6,15 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 
 class ProjectOverview extends ConsumerWidget {
-  const ProjectOverview({super.key, required this.projectUuid, this.onEdit});
+  const ProjectOverview({
+    super.key,
+    required this.projectUuid,
+    required this.useHorizontalLayout,
+    this.onEdit,
+  });
 
   final String projectUuid;
+  final bool useHorizontalLayout;
   final VoidCallback? onEdit;
 
   @override
@@ -17,15 +23,27 @@ class ProjectOverview extends ConsumerWidget {
       title: 'Project Overview',
       infoContent: const ProjectInfoContent(),
       isPrimary: true,
+      isExpanded: useHorizontalLayout,
       mainAxisAlignment: MainAxisAlignment.start,
       child: ref
           .watch(projectInfoProvider(projectUuid))
           .when(
             data: (data) {
-              return Padding(
+              final projectInfo = Padding(
                 padding: const EdgeInsets.all(10),
-                child: ProjectInfo(projectData: data, onEdit: onEdit),
+                child: ProjectInfo(
+                  projectData: data,
+                  onEdit: onEdit,
+                  useSectionContainers: false,
+                ),
               );
+              if (useHorizontalLayout) {
+                return SingleChildScrollView(
+                  key: const ValueKey('project-overview-scroll'),
+                  child: projectInfo,
+                );
+              }
+              return projectInfo;
             },
             loading: () => const CommonProgressIndicator(),
             error: (error, stack) => Text(error.toString()),

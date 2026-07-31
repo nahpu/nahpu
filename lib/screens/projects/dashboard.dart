@@ -69,6 +69,7 @@ class TopPanel extends ConsumerWidget {
       children: [
         ProjectOverview(
           projectUuid: projectUuid,
+          useHorizontalLayout: useHorizontalLayout,
           onEdit: () {
             Navigator.of(context).push(
               MaterialPageRoute(

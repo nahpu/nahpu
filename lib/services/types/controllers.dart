@@ -60,30 +60,42 @@ class ProjectFormCtrModel {
     required this.projectNameCtr,
     required this.descriptionCtr,
     required this.pICtr,
+    required this.accessionCtr,
     required this.locationCtr,
     required this.timeZoneCtr,
     required this.startDateCtr,
     required this.endDateCtr,
+    required this.catalogNumberPrefixCtr,
+    required this.currentCatalogNumberCtr,
+    required this.catalogNumberSuffixCtr,
     required this.createdCtr,
   });
 
   TextEditingController projectNameCtr;
   TextEditingController descriptionCtr;
   TextEditingController pICtr;
+  TextEditingController accessionCtr;
   TextEditingController locationCtr;
   TextEditingController timeZoneCtr;
   DateEditingController startDateCtr;
   DateEditingController endDateCtr;
+  TextEditingController catalogNumberPrefixCtr;
+  TextEditingController currentCatalogNumberCtr;
+  TextEditingController catalogNumberSuffixCtr;
   String? createdCtr;
 
   factory ProjectFormCtrModel.empty() => ProjectFormCtrModel(
     projectNameCtr: TextEditingController(),
     descriptionCtr: TextEditingController(),
     pICtr: TextEditingController(),
+    accessionCtr: TextEditingController(),
     locationCtr: TextEditingController(),
     timeZoneCtr: TextEditingController(),
     startDateCtr: DateEditingController(),
     endDateCtr: DateEditingController(),
+    catalogNumberPrefixCtr: TextEditingController(),
+    currentCatalogNumberCtr: TextEditingController(),
+    catalogNumberSuffixCtr: TextEditingController(),
     createdCtr: null,
   );
 
@@ -92,10 +104,20 @@ class ProjectFormCtrModel {
         projectNameCtr: TextEditingController(text: data?.name ?? ''),
         descriptionCtr: TextEditingController(text: data?.description ?? ''),
         pICtr: TextEditingController(text: data?.principalInvestigator ?? ''),
+        accessionCtr: TextEditingController(text: data?.accession ?? ''),
         locationCtr: TextEditingController(text: data?.location ?? ''),
         timeZoneCtr: TextEditingController(text: data?.timeZone),
         startDateCtr: DateEditingController(date: data?.startDate),
         endDateCtr: DateEditingController(date: data?.endDate),
+        catalogNumberPrefixCtr: TextEditingController(
+          text: data?.catalogNumberPrefix ?? '',
+        ),
+        currentCatalogNumberCtr: TextEditingController(
+          text: data?.currentCatalogNumber?.toString() ?? '',
+        ),
+        catalogNumberSuffixCtr: TextEditingController(
+          text: data?.catalogNumberSuffix ?? '',
+        ),
         createdCtr: data?.created,
       );
 
@@ -103,10 +125,14 @@ class ProjectFormCtrModel {
     projectNameCtr.text = data.name;
     descriptionCtr.text = data.description ?? '';
     pICtr.text = data.principalInvestigator ?? '';
+    accessionCtr.text = data.accession ?? '';
     locationCtr.text = data.location ?? '';
     timeZoneCtr.text = data.timeZone ?? '';
     startDateCtr.date = data.startDate ?? '';
     endDateCtr.date = data.endDate ?? '';
+    catalogNumberPrefixCtr.text = data.catalogNumberPrefix ?? '';
+    currentCatalogNumberCtr.text = data.currentCatalogNumber?.toString() ?? '';
+    catalogNumberSuffixCtr.text = data.catalogNumberSuffix ?? '';
     createdCtr = data.created ?? '';
   }
 
@@ -114,10 +140,14 @@ class ProjectFormCtrModel {
     projectNameCtr.dispose();
     descriptionCtr.dispose();
     pICtr.dispose();
+    accessionCtr.dispose();
     locationCtr.dispose();
     timeZoneCtr.dispose();
     startDateCtr.dispose();
     endDateCtr.dispose();
+    catalogNumberPrefixCtr.dispose();
+    currentCatalogNumberCtr.dispose();
+    catalogNumberSuffixCtr.dispose();
   }
 }
 

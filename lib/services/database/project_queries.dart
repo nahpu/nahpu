@@ -21,6 +21,16 @@ class ProjectQuery extends DatabaseAccessor<Database> with _$ProjectQueryMixin {
     )..where((t) => t.uuid.equals(uuid))).getSingle();
   }
 
+  Future<bool> projectUuidExists(String uuid) async {
+    final row =
+        await (selectOnly(project)
+              ..addColumns([project.uuid])
+              ..where(project.uuid.equals(uuid))
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
+
   Future<ProjectData?> getProjectByName(String name) async {
     try {
       return await (select(

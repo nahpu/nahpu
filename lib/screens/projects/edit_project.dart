@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/projects/components/project_form.dart';
-import 'package:nahpu/services/database/database.dart';
 
 class EditProject extends ConsumerStatefulWidget {
   const EditProject({
@@ -20,6 +19,14 @@ class EditProject extends ConsumerStatefulWidget {
 }
 
 class EditProjectState extends ConsumerState<EditProject> {
+  ProjectFormCtrModel? _projectCtr;
+
+  @override
+  void dispose() {
+    _projectCtr?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +39,7 @@ class EditProjectState extends ConsumerState<EditProject> {
             .watch(projectInfoProvider(widget.projectUuid))
             .when(
               data: (data) => ProjectForm(
-                projectCtr: getProjectCtr(data),
+                projectCtr: _projectCtr ??= ProjectFormCtrModel.fromData(data),
                 projectUuid: widget.projectUuid,
                 isEditing: true,
                 returnToHome: widget.returnToHome,
@@ -42,9 +49,5 @@ class EditProjectState extends ConsumerState<EditProject> {
             ),
       ),
     );
-  }
-
-  ProjectFormCtrModel getProjectCtr(ProjectData? data) {
-    return ProjectFormCtrModel.fromData(data);
   }
 }

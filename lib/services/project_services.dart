@@ -1,4 +1,5 @@
 import 'package:nahpu/services/collevent_services.dart';
+import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
@@ -54,18 +55,41 @@ class _ProjectDeletionPhaseFailure implements Exception {
 class ProjectServices extends AppServices {
   const ProjectServices({required super.ref});
 
-  void createProject(ProjectCompanion form) {
-    ProjectQuery(dbAccess).createProject(form);
+  Future<void> createProject(ProjectCompanion form) async {
+    await ProjectQuery(dbAccess).createProject(form);
     invalidateProject();
     updateProjectUuid(form.uuid.value);
+  }
+
+  Future<void> createProjectSetup({
+    required ProjectCompanion project,
+    PersonnelCompanion? newCataloger,
+    String? catalogerUuid,
+  }) async {
+    await dbAccess.transaction(() async {
+      await ProjectQuery(dbAccess).createProject(project);
+      if (newCataloger != null) {
+        await PersonnelQuery(dbAccess).createPersonnel(newCataloger);
+      }
+      if (catalogerUuid != null) {
+        await PersonnelQuery(dbAccess).createProjectPersonnelEntry(
+          PersonnelListCompanion(
+            projectUuid: Value(project.uuid.value),
+            personnelUuid: Value(catalogerUuid),
+          ),
+        );
+      }
+    });
+    invalidateProject();
+    updateProjectUuid(project.uuid.value);
   }
 
   void updateProjectUuid(String projectUuid) {
     ref.read(projectUuidProvider.notifier).updateProjectUuid(projectUuid);
   }
 
-  void updateProject(String projectUuid, ProjectCompanion form) {
-    ProjectQuery(dbAccess).updateProjectEntry(projectUuid, form);
+  Future<void> updateProject(String projectUuid, ProjectCompanion form) async {
+    await ProjectQuery(dbAccess).updateProjectEntry(projectUuid, form);
     ref.invalidate(projectFormValidatorProvider);
     ref.invalidate(projectInfoProvider);
   }
@@ -76,6 +100,10 @@ class ProjectServices extends AppServices {
 
   Future<List<String>> getAllProjectNames() async {
     return await ProjectQuery(dbAccess).getAllProjectNames();
+  }
+
+  Future<bool> projectUuidExists(String uuid) {
+    return ProjectQuery(dbAccess).projectUuidExists(uuid);
   }
 
   Future<String> getProjectName(String uuid) async {
