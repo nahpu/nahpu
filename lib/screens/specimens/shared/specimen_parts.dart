@@ -1119,6 +1119,10 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ScannerScreen(
+                          supportedModes: const {
+                            ScannerMode.qr,
+                            ScannerMode.barcode,
+                          },
                           onDetect: (barcode) {
                             _onDetect(barcode);
                           },

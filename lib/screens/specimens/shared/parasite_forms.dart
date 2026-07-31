@@ -833,6 +833,7 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ScannerScreen(
+          supportedModes: const {ScannerMode.qr, ScannerMode.barcode},
           onDetect: (BarcodeCapture capture) {
             final value = capture.barcodes.firstOrNull?.rawValue;
             if (value != null) widget.controller.text = value;
