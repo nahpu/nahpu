@@ -925,7 +925,7 @@ class ParasiteRecordInfoContent extends StatelessWidget {
         InfoContent(
           header: 'Overview',
           content:
-              'Record parasites found on or within this specimen, '
+              'Record parasites collected from the specimen, '
               'including their taxonomy, location, collection, preservation, '
               'and identification details.',
         ),
