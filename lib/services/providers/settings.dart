@@ -19,6 +19,7 @@ import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 const String themeModePrefKey = 'themeMode';
 const String catalogFmtPrefKey = 'catalogFmt';
 const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
+const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
 
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
@@ -345,14 +346,26 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
       key: fieldIdModePrefKey,
     );
 
-    FieldIdMode fieldIdMode = FieldIdMode.values.byName(
+    final fieldIdMode = FieldIdMode.values.byName(
       fieldIdModeString ?? FieldIdMode.personnel.name,
     );
-
+    final prefs = ref.read(settingProvider);
+    final defaultMigrated =
+        prefs.getBool(fieldIdModeDefaultMigratedPrefKey) ?? false;
+    if (!defaultMigrated) {
+      await prefs.setBool(fieldIdModeDefaultMigratedPrefKey, true);
+      if (fieldIdModeString == null || fieldIdMode == FieldIdMode.project) {
+        await rust_config.setUserConfigString(
+          key: fieldIdModePrefKey,
+          value: FieldIdMode.personnel.name,
+        );
+        return FieldIdMode.personnel;
+      }
+    }
     if (fieldIdModeString == null) {
       await rust_config.setUserConfigString(
         key: fieldIdModePrefKey,
-        value: fieldIdMode.name,
+        value: FieldIdMode.personnel.name,
       );
     }
 

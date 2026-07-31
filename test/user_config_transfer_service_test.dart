@@ -13,9 +13,11 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/user_config_transfer_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/frb_generated.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   late Directory tempDir;
@@ -199,4 +201,27 @@ void main() {
       });
     },
   );
+
+  test('project mode is reset to the default off state once', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await rust_config.setUserConfigString(
+      key: fieldIdModePrefKey,
+      value: FieldIdMode.project.name,
+    );
+    final container = ProviderContainer(
+      overrides: [settingProvider.overrideWithValue(prefs)],
+    );
+    addTearDown(container.dispose);
+
+    expect(
+      await container.read(fieldIdModeNotifierProvider.future),
+      FieldIdMode.personnel,
+    );
+    expect(
+      await rust_config.getUserConfigString(key: fieldIdModePrefKey),
+      FieldIdMode.personnel.name,
+    );
+    expect(prefs.getBool(fieldIdModeDefaultMigratedPrefKey), isTrue);
+  });
 }

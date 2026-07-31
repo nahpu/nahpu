@@ -11,27 +11,21 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 void main() {
-  testWidgets('field ID settings use a segmented default selector', (
-    tester,
-  ) async {
+  testWidgets('field ID settings use a project ID toggle', (tester) async {
     final harness = await _FieldIdSettingsHarness.create();
     addTearDown(harness.dispose);
 
     await harness.pump(tester, isMobile: false);
 
-    final selector = find.byType(SegmentedButton<FieldIdMode>);
-    expect(selector, findsOneWidget);
-    expect(tester.getSize(selector).width, lessThanOrEqualTo(260));
-    expect(
-      tester.getCenter(selector).dx,
-      closeTo(tester.getCenter(find.byType(FieldIDFields)).dx, 0.1),
-    );
+    expect(find.byType(SegmentedButton<FieldIdMode>), findsNothing);
+    expect(find.byType(SwitchListTile), findsOneWidget);
+    expect(find.text('Use project ID'), findsOneWidget);
     expect(
       find.text('Personnel field IDs require a cataloger'),
       findsOneWidget,
     );
 
-    await tester.tap(find.text('Project'));
+    await tester.tap(find.text('Use project ID'));
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(TextField, 'Prefix'), findsOneWidget);
@@ -49,6 +43,13 @@ void main() {
       tester.getCenter(saveButton).dx,
       closeTo(tester.getCenter(find.byType(FieldIDFields)).dx, 0.1),
     );
+
+    await tester.tap(find.text('Use project ID'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Personnel field IDs require a cataloger'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('used prefix change warns about exports and labels in a dialog', (
@@ -60,7 +61,7 @@ void main() {
     addTearDown(harness.dispose);
 
     await harness.pump(tester, isMobile: false);
-    await tester.tap(find.text('Project'));
+    await tester.tap(find.text('Use project ID'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Prefix'), 'P-');
     await tester.tap(find.text('Save field ID settings'));
@@ -85,7 +86,7 @@ void main() {
     addTearDown(harness.dispose);
 
     await harness.pump(tester, isMobile: true);
-    await tester.tap(find.text('Project'));
+    await tester.tap(find.text('Use project ID'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Suffix'), '-M');
     await tester.tap(find.text('Save field ID settings'));

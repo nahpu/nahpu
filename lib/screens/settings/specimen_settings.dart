@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/projects/personnel/add_personnel.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
@@ -259,8 +261,8 @@ class FieldIDFields extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const FieldIdModeSelector(),
-              const SizedBox(height: 12),
+              const UseProjectIdToggle(),
+              const SizedBox(height: 8),
               fieldIdModeNotifier.when(
                 data: (mode) => mode == FieldIdMode.personnel
                     ? const _PersonnelFieldIdNote()
@@ -276,38 +278,34 @@ class FieldIDFields extends ConsumerWidget {
   }
 }
 
-class FieldIdModeSelector extends ConsumerWidget {
-  const FieldIdModeSelector({super.key});
+class UseProjectIdToggle extends ConsumerWidget {
+  const UseProjectIdToggle({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ref
         .watch(fieldIdModeNotifierProvider)
         .when(
-          data: (mode) => Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 260),
-              child: SegmentedButton<FieldIdMode>(
-                segments: const [
-                  ButtonSegment(
-                    value: FieldIdMode.personnel,
-                    icon: Icon(Icons.person_outline),
-                    label: Text('Personnel'),
-                  ),
-                  ButtonSegment(
-                    value: FieldIdMode.project,
-                    icon: Icon(Icons.folder_outlined),
-                    label: Text('Project'),
-                  ),
-                ],
-                selected: {mode},
-                showSelectedIcon: false,
-                onSelectionChanged: (selection) {
-                  ref
-                      .read(fieldIdModeNotifierProvider.notifier)
-                      .set(selection.single);
-                },
+          data: (mode) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: SwitchListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
               ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 2,
+              ),
+              title: const Text('Use project ID'),
+              value: mode == FieldIdMode.project,
+              onChanged: (value) {
+                ref
+                    .read(fieldIdModeNotifierProvider.notifier)
+                    .set(value ? FieldIdMode.project : FieldIdMode.personnel);
+              },
             ),
           ),
           loading: () => const CommonProgressIndicator(),
@@ -321,15 +319,33 @@ class _PersonnelFieldIdNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.info_outline),
-      title: const Text('Personnel field IDs require a cataloger'),
-      subtitle: const Text(
-        'Add at least one Cataloger with personal field-number registration '
-        'enabled and a current field number.',
-      ),
+    return Column(
+      children: [
+        CommonPadding(
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Personnel field IDs require a cataloger'),
+            subtitle: const Text(
+              'Add a personnel with at least one Cataloger role in the project '
+              'and assign a current field number to that role.',
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        PrimaryButton(
+          onPressed: () => _addPersonnel(context),
+          icon: Icons.add,
+          label: 'Add personnel',
+        ),
+      ],
     );
+  }
+
+  Future<void> _addPersonnel(BuildContext context) async {
+    await Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (context) => const AddPersonnel()));
   }
 }
 
@@ -405,23 +421,29 @@ class _ProjectFieldIdSettingsState
           ],
         ),
         const SizedBox(height: 8),
-        Text(
-          'Preview: ${_prefixController.text}${_numberController.text}'
-          '${_suffixController.text}',
-          style: Theme.of(context).textTheme.bodyMedium,
+        CommonPadding(
+          child: Text(
+            'Preview: ${_prefixController.text}${_numberController.text}'
+            '${_suffixController.text}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
         ),
+        const SizedBox(height: 8),
         autoIncrement.when(
-          data: (enabled) => SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Auto-increment project catalog number'),
-            value: enabled,
-            onChanged: (value) => ref
-                .read(projectFieldIdAutoIncrementProvider.notifier)
-                .set(value),
+          data: (enabled) => CommonPadding(
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Auto-increment catalog number'),
+              value: enabled,
+              onChanged: (value) => ref
+                  .read(projectFieldIdAutoIncrementProvider.notifier)
+                  .set(value),
+            ),
           ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text(error.toString()),
         ),
+        const SizedBox(height: 16),
         Center(
           child: FilledButton(
             onPressed: _save,

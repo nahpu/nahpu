@@ -39,10 +39,10 @@ void main() {
 
     await tester.tap(find.text('Edit'));
     expect(edited, isTrue);
-    _expectProjectIdInfo(find, isVisible: false);
+    expect(find.textContaining('Catalog number'), findsNothing);
   });
 
-  testWidgets('project info shows project ID settings in project mode', (
+  testWidgets('project info omits project ID settings in project mode', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -55,7 +55,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    _expectProjectIdInfo(find, isVisible: true);
+    expect(find.textContaining('Catalog number'), findsNothing);
   });
 
   testWidgets('home project menu exposes Show QR', (tester) async {
@@ -93,37 +93,6 @@ void main() {
 
     expect(find.text('Import JSON'), findsOneWidget);
   });
-}
-
-void _expectProjectIdInfo(CommonFinders find, {required bool isVisible}) {
-  final expectedCount = isVisible ? 1 : 0;
-  expect(
-    find.byWidgetPredicate(
-      (widget) =>
-          widget is ProjectInfoText &&
-          widget.title == 'Catalog number prefix: ' &&
-          widget.text == 'P-',
-    ),
-    findsNWidgets(expectedCount),
-  );
-  expect(
-    find.byWidgetPredicate(
-      (widget) =>
-          widget is ProjectInfoText &&
-          widget.title == 'Current catalog number: ' &&
-          widget.text == '12',
-    ),
-    findsNWidgets(expectedCount),
-  );
-  expect(
-    find.byWidgetPredicate(
-      (widget) =>
-          widget is ProjectInfoText &&
-          widget.title == 'Catalog number suffix: ' &&
-          widget.text == '-M',
-    ),
-    findsNWidgets(expectedCount),
-  );
 }
 
 class _TestFieldIdMode extends FieldIdModeNotifier {
