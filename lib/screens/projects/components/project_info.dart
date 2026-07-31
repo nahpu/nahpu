@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 
@@ -29,6 +32,30 @@ class ProjectInfo extends StatelessWidget {
         ProjectInfoText(
           title: 'Principal investigator: ',
           text: projectData?.principalInvestigator,
+        ),
+        Consumer(
+          builder: (context, ref, child) {
+            final fieldIdMode = ref.watch(fieldIdModeNotifierProvider).value;
+            if (fieldIdMode != FieldIdMode.project) {
+              return const SizedBox.shrink();
+            }
+            return Column(
+              children: [
+                ProjectInfoText(
+                  title: 'Catalog number prefix: ',
+                  text: projectData?.catalogNumberPrefix,
+                ),
+                ProjectInfoText(
+                  title: 'Current catalog number: ',
+                  text: projectData?.currentCatalogNumber?.toString(),
+                ),
+                ProjectInfoText(
+                  title: 'Catalog number suffix: ',
+                  text: projectData?.catalogNumberSuffix,
+                ),
+              ],
+            );
+          },
         ),
         ProjectInfoText(title: 'Location: ', text: projectData?.location),
         ProjectInfoText(title: 'Time zone: ', text: projectData?.timeZone),

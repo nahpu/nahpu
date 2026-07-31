@@ -6,17 +6,30 @@ import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 void main() {
-  const project = ProjectData(uuid: 'uuid', name: 'Project');
+  const project = ProjectData(
+    uuid: 'uuid',
+    name: 'Project',
+    catalogNumberPrefix: 'P-',
+    currentCatalogNumber: 12,
+    catalogNumberSuffix: '-M',
+  );
 
   testWidgets('project info shows text actions without embedding a QR', (
     tester,
   ) async {
     var edited = false;
     await tester.pumpWidget(
-      MaterialApp(
-        home: ProjectInfo(projectData: project, onEdit: () => edited = true),
+      ProviderScope(
+        overrides: [
+          fieldIdModeNotifierProvider.overrideWith(_TestFieldIdMode.personnel),
+        ],
+        child: MaterialApp(
+          home: ProjectInfo(projectData: project, onEdit: () => edited = true),
+        ),
       ),
     );
 
@@ -26,6 +39,23 @@ void main() {
 
     await tester.tap(find.text('Edit'));
     expect(edited, isTrue);
+    _expectProjectIdInfo(find, isVisible: false);
+  });
+
+  testWidgets('project info shows project ID settings in project mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          fieldIdModeNotifierProvider.overrideWith(_TestFieldIdMode.project),
+        ],
+        child: const MaterialApp(home: ProjectInfo(projectData: project)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    _expectProjectIdInfo(find, isVisible: true);
   });
 
   testWidgets('home project menu exposes Show QR', (tester) async {
@@ -63,4 +93,48 @@ void main() {
 
     expect(find.text('Import JSON'), findsOneWidget);
   });
+}
+
+void _expectProjectIdInfo(CommonFinders find, {required bool isVisible}) {
+  final expectedCount = isVisible ? 1 : 0;
+  expect(
+    find.byWidgetPredicate(
+      (widget) =>
+          widget is ProjectInfoText &&
+          widget.title == 'Catalog number prefix: ' &&
+          widget.text == 'P-',
+    ),
+    findsNWidgets(expectedCount),
+  );
+  expect(
+    find.byWidgetPredicate(
+      (widget) =>
+          widget is ProjectInfoText &&
+          widget.title == 'Current catalog number: ' &&
+          widget.text == '12',
+    ),
+    findsNWidgets(expectedCount),
+  );
+  expect(
+    find.byWidgetPredicate(
+      (widget) =>
+          widget is ProjectInfoText &&
+          widget.title == 'Catalog number suffix: ' &&
+          widget.text == '-M',
+    ),
+    findsNWidgets(expectedCount),
+  );
+}
+
+class _TestFieldIdMode extends FieldIdModeNotifier {
+  _TestFieldIdMode(this.mode);
+
+  _TestFieldIdMode.personnel() : mode = FieldIdMode.personnel;
+
+  _TestFieldIdMode.project() : mode = FieldIdMode.project;
+
+  final FieldIdMode mode;
+
+  @override
+  Future<FieldIdMode> build() async => mode;
 }

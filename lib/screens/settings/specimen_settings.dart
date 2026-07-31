@@ -284,26 +284,31 @@ class FieldIdModeSelector extends ConsumerWidget {
     return ref
         .watch(fieldIdModeNotifierProvider)
         .when(
-          data: (mode) => SegmentedButton<FieldIdMode>(
-            segments: const [
-              ButtonSegment(
-                value: FieldIdMode.personnel,
-                icon: Icon(Icons.person_outline),
-                label: Text('Personnel'),
+          data: (mode) => Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 260),
+              child: SegmentedButton<FieldIdMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: FieldIdMode.personnel,
+                    icon: Icon(Icons.person_outline),
+                    label: Text('Personnel'),
+                  ),
+                  ButtonSegment(
+                    value: FieldIdMode.project,
+                    icon: Icon(Icons.folder_outlined),
+                    label: Text('Project'),
+                  ),
+                ],
+                selected: {mode},
+                showSelectedIcon: false,
+                onSelectionChanged: (selection) {
+                  ref
+                      .read(fieldIdModeNotifierProvider.notifier)
+                      .set(selection.single);
+                },
               ),
-              ButtonSegment(
-                value: FieldIdMode.project,
-                icon: Icon(Icons.folder_outlined),
-                label: Text('Project'),
-              ),
-            ],
-            selected: {mode},
-            showSelectedIcon: false,
-            onSelectionChanged: (selection) {
-              ref
-                  .read(fieldIdModeNotifierProvider.notifier)
-                  .set(selection.single);
-            },
+            ),
           ),
           loading: () => const CommonProgressIndicator(),
           error: (e, s) => const Text('Error'),
@@ -409,10 +414,6 @@ class _ProjectFieldIdSettingsState
           data: (enabled) => SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Auto-increment project catalog number'),
-            subtitle: const Text(
-              'Assign the current number to a new project-ID specimen and '
-              'advance to the next number.',
-            ),
             value: enabled,
             onChanged: (value) => ref
                 .read(projectFieldIdAutoIncrementProvider.notifier)
@@ -421,8 +422,7 @@ class _ProjectFieldIdSettingsState
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text(error.toString()),
         ),
-        Align(
-          alignment: Alignment.centerRight,
+        Center(
           child: FilledButton(
             onPressed: _save,
             child: const Text('Save field ID settings'),

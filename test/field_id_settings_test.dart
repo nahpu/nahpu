@@ -19,7 +19,13 @@ void main() {
 
     await harness.pump(tester, isMobile: false);
 
-    expect(find.byType(SegmentedButton<FieldIdMode>), findsOneWidget);
+    final selector = find.byType(SegmentedButton<FieldIdMode>);
+    expect(selector, findsOneWidget);
+    expect(tester.getSize(selector).width, lessThanOrEqualTo(260));
+    expect(
+      tester.getCenter(selector).dx,
+      closeTo(tester.getCenter(find.byType(FieldIDFields)).dx, 0.1),
+    );
     expect(
       find.text('Personnel field IDs require a cataloger'),
       findsOneWidget,
@@ -34,6 +40,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.widgetWithText(TextField, 'Suffix'), findsOneWidget);
+    expect(find.textContaining('Assign the current number'), findsNothing);
+    final saveButton = find.widgetWithText(
+      FilledButton,
+      'Save field ID settings',
+    );
+    expect(
+      tester.getCenter(saveButton).dx,
+      closeTo(tester.getCenter(find.byType(FieldIDFields)).dx, 0.1),
+    );
   });
 
   testWidgets('used prefix change warns about exports and labels in a dialog', (
