@@ -616,6 +616,25 @@ class MammalAttributeCtrModel {
     embryoCRCtr.dispose();
     remarksCtr.dispose();
   }
+
+  void clearSexControllers() {
+    testisPosCtr = null;
+    testisLengthCtr.clear();
+    testisWidthCtr.clear();
+    epididymisCtr = null;
+    reproductiveStageCtr = null;
+    leftPlacentaCtr.clear();
+    rightPlacentaCtr.clear();
+    mammaeConditionCtr = null;
+    mammaeIngCtr.clear();
+    mammaeAxCtr.clear();
+    mammaeAbdCtr.clear();
+    vaginaOpeningCtr = null;
+    pubicSymphysisCtr = null;
+    embryoLeftCtr.clear();
+    embryoRightCtr.clear();
+    embryoCRCtr.clear();
+  }
 }
 
 class BirdAttributeCtrModel {
@@ -819,6 +838,21 @@ class BirdAttributeCtrModel {
     specimenRemarkCtr.dispose();
     habitatRemarkCtr.dispose();
   }
+
+  void clearSexControllers() {
+    testisLengthCtr.clear();
+    testisWidthCtr.clear();
+    testisRemarkCtr.clear();
+    ovaryLengthCtr.clear();
+    ovaryWidthCtr.clear();
+    ovaryAppearanceCtr = null;
+    firstOvaSizeCtr.clear();
+    secondOvaSizeCtr.clear();
+    thirdOvaSizeCtr.clear();
+    oviductWidthCtr.clear();
+    oviductAppearanceCtr = null;
+    ovaryRemarkCtr.clear();
+  }
 }
 
 class HerpAttributeCtrModel {
@@ -859,6 +893,10 @@ class HerpAttributeCtrModel {
     weightCtr.dispose();
     svlCtr.dispose();
     remarkCtr.dispose();
+  }
+
+  void clearSexControllers() {
+    // Placeholder for future sex-related attributes
   }
 }
 

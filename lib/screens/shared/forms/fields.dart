@@ -580,6 +580,7 @@ class UserDefinedSettingField extends ConsumerWidget {
               confirmFunction: () {
                 UtilityServices(ref: ref).getAllOptions(typePrefKey);
               },
+              cancelFunction: () {},
             );
           },
         );
