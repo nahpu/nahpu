@@ -39,6 +39,7 @@ const String treatmentFmtPrefKey = 'treatmentFmt';
 const String conditionPrefKey = 'specimenConditions';
 const String conditionFmtPrefKey = 'conditionFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
+const String projectFieldIdAutoIncrementPrefKey = 'projectFieldIdAutoIncrement';
 const String parasiteIdPrefixPrefKey = 'parasiteIdPrefix';
 const String parasiteIdNumberPrefKey = 'parasiteIdNumber';
 const String parasiteCategoryPrefKey = 'parasiteCategories';
@@ -380,6 +381,40 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
         value: mode.name,
       );
       return mode;
+    });
+  }
+}
+
+final projectFieldIdAutoIncrementProvider =
+    AsyncNotifierProvider.autoDispose<
+      ProjectFieldIdAutoIncrementNotifier,
+      bool
+    >(ProjectFieldIdAutoIncrementNotifier.new);
+
+class ProjectFieldIdAutoIncrementNotifier extends AsyncNotifier<bool> {
+  @override
+  Future<bool> build() async {
+    final value = await rust_config.getUserConfigString(
+      key: projectFieldIdAutoIncrementPrefKey,
+    );
+    if (value == null) {
+      await rust_config.setUserConfigString(
+        key: projectFieldIdAutoIncrementPrefKey,
+        value: false.toString(),
+      );
+      return false;
+    }
+    return value == true.toString();
+  }
+
+  Future<void> set(bool value) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await rust_config.setUserConfigString(
+        key: projectFieldIdAutoIncrementPrefKey,
+        value: value.toString(),
+      );
+      return value;
     });
   }
 }

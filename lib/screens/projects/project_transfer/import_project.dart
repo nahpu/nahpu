@@ -513,6 +513,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       'endDate': 'End date',
       'accession': 'Accession',
       'catalogNumberPrefix': 'Catalog number prefix',
+      'currentCatalogNumber': 'Current catalog number',
       'catalogNumberSuffix': 'Catalog number suffix',
     };
     final current = ref.watch(currProjInfoProvider);

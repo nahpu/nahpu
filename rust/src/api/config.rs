@@ -598,6 +598,7 @@ fn config_label(key: &str) -> &str {
         "parasiteStorageFmt" => "Parasite storage format",
         "parasiteTreatmentFmt" => "Parasite treatment format",
         "fieldIdMode" => "Field ID mode",
+        "projectFieldIdAutoIncrement" => "Auto-increment project field ID",
         "pdfExportFont" => "PDF export font",
         _ => key,
     }

@@ -1,10 +1,18 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/native.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/parasite_services.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/user_config_transfer_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/frb_generated.dart';
@@ -85,4 +93,110 @@ void main() {
     expect(category.values, ['Ectoparasite']);
     expect(category.isControlledVocabulary, isTrue);
   });
+
+  test('project field ID auto-increment is a labeled user config', () async {
+    await rust_config.setUserConfigString(
+      key: projectFieldIdAutoIncrementPrefKey,
+      value: true.toString(),
+    );
+
+    final preview = await rust_config.getConfigExportPreview();
+    final setting = preview.userConfigs.firstWhere(
+      (entry) => entry.key == projectFieldIdAutoIncrementPrefKey,
+    );
+    expect(setting.label, 'Auto-increment project field ID');
+    expect(setting.value, 'true');
+  });
+
+  testWidgets(
+    'project field IDs preserve separators and increment atomically',
+    (tester) async {
+      final database = Database.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      WidgetRef? widgetRef;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [databaseProvider.overrideWithValue(database)],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, child) {
+                widgetRef = ref;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      widgetRef!
+          .read(projectUuidProvider.notifier)
+          .updateProjectUuid('project-a');
+      await database
+          .into(database.project)
+          .insert(
+            const ProjectCompanion(
+              uuid: Value('project-a'),
+              name: Value('Project A'),
+              catalogNumberPrefix: Value('P '),
+              currentCatalogNumber: Value(12),
+              catalogNumberSuffix: Value(' X'),
+            ),
+          );
+      await database
+          .into(database.personnel)
+          .insert(
+            const PersonnelCompanion(
+              uuid: Value('cataloger-a'),
+              name: Value('Cataloger A'),
+              currentFieldNumber: Value(20),
+              isRegisterField: Value(true),
+            ),
+          );
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('specimen-a'),
+              projectUuid: Value('project-a'),
+              fieldNumber: Value(4),
+            ),
+          );
+      await tester.runAsync(() async {
+        await rust_config.setUserConfigString(
+          key: projectFieldIdAutoIncrementPrefKey,
+          value: true.toString(),
+        );
+
+        final service = ProjectFieldIdServices(ref: widgetRef!);
+        expect(await service.takeNextNumber(), 12);
+        final project = await service.getProject();
+        expect(project.currentCatalogNumber, 13);
+        expect(formatProjectFieldId(project, 12), 'P 12 X');
+
+        final specimenService = SpecimenServices(ref: widgetRef!);
+        await specimenService.setProjectFieldIdentifier(
+          specimenUuid: 'specimen-a',
+          projectFieldNumber: 2,
+        );
+        var specimen = await specimenService.getSpecimen('specimen-a');
+        expect(specimen.fieldNumber, isNull);
+        expect(specimen.projectFieldNumber, 2);
+        expect((await service.getProject()).currentCatalogNumber, 13);
+
+        await specimenService.setPersonnelFieldIdentifier(
+          specimenUuid: 'specimen-a',
+          catalogerUuid: 'cataloger-a',
+          fieldNumber: 1,
+        );
+        specimen = await specimenService.getSpecimen('specimen-a');
+        expect(specimen.fieldNumber, 1);
+        expect(specimen.projectFieldNumber, isNull);
+        final cataloger = await (database.select(
+          database.personnel,
+        )..where((row) => row.uuid.equals('cataloger-a'))).getSingle();
+        expect(cataloger.currentFieldNumber, 20);
+      });
+    },
+  );
 }

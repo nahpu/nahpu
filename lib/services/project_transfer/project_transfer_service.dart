@@ -1080,6 +1080,7 @@ class ProjectTransferService extends AppServices {
       'endDate',
       'accession',
       'catalogNumberPrefix',
+      'currentCatalogNumber',
       'catalogNumberSuffix',
     ];
     final selected = {
@@ -1438,6 +1439,12 @@ class ProjectTransferService extends AppServices {
       }
     }
     for (final row in records['specimen'] ?? const []) {
+      if (row['fieldNumber'] != null && row['projectFieldNumber'] != null) {
+        throw const FormatException(
+          'A specimen cannot have both a personnel field number and a '
+          'project field number.',
+        );
+      }
       if (row['speciesID'] != null && !taxonIds.contains(row['speciesID'])) {
         throw const FormatException('A specimen has unresolved taxonomy.');
       }

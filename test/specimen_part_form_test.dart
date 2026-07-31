@@ -37,6 +37,8 @@ void main() {
     expect(find.text('Curation'), findsOneWidget);
     _expectFieldInSection(tester, 'Additional treatment', 'Preparation');
     _expectFieldInSection(tester, 'Preparator', 'Sampling');
+    _expectFieldInSection(tester, 'Storage', 'Curation');
+    _expectFieldInSection(tester, 'Storage location', 'Curation');
     _expectFieldInSection(tester, 'Museum permanent', 'Curation');
 
     final showLess = find.text('Show less');
@@ -54,6 +56,8 @@ void main() {
     final controller = PartFormCtrModel.empty();
     controller.dateTakenCtr.date = '2026-07-01';
     controller.pmiCtr.text = '1:30';
+    controller.storageCtr.text = 'Ethanol';
+    controller.storageLocationCtr.text = 'Freezer 2, shelf B';
     controller.museumPermanentCtr.text = 'USNM';
     final database = await _pumpPartForm(tester, controller: controller);
     addTearDown(database.close);
@@ -61,6 +65,8 @@ void main() {
     expect(find.text('Show more'), findsOneWidget);
     _expectFieldInSection(tester, 'Date taken', 'Sampling');
     _expectFieldInSection(tester, 'PMI', 'Sampling');
+    _expectFieldInSection(tester, 'Storage', 'Curation');
+    _expectFieldInSection(tester, 'Storage location', 'Curation');
     _expectFieldInSection(tester, 'Museum permanent', 'Curation');
     expect(find.text('Museum loan'), findsNothing);
     expect(find.text('Remarks'), findsNothing);

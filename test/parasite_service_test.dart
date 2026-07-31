@@ -75,6 +75,8 @@ void main() {
             const SpecimenPartCompanion(
               specimenUuid: Value('specimen'),
               tissueID: Value('T-1'),
+              storage: Value('Ethanol'),
+              storageLocation: Value('Freezer 2'),
             ),
           );
       await database
@@ -109,6 +111,8 @@ void main() {
             count: const Value(1),
             category: const Value('Ectoparasite'),
             associationStatus: const Value(1),
+            storage: const Value('Slide'),
+            storageLocation: const Value('Cabinet A'),
           ),
         );
       }
@@ -148,6 +152,15 @@ void main() {
       expect(
         concatenated.single['parasite::associationStatus'],
         'Confirmed|Confirmed',
+      );
+      expect(
+        concatenated.single['parasite::storageLocation'],
+        'Cabinet A|Cabinet A',
+      );
+      expect(concatenated.single['specimenPart::storage'], 'Ethanol|');
+      expect(
+        concatenated.single['specimenPart::storageLocation'],
+        'Freezer 2|',
       );
 
       final expanded = await DynamicRecordExporter(

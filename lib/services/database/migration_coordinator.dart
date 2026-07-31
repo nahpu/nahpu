@@ -23,6 +23,7 @@ class _MigrationCoordinator {
       12: (m) => _Version13Migration(db).upgrade(m),
       13: (m) => _Version14Migration(db).upgrade(m),
       14: (m) => _Version15Migration(db).upgrade(m),
+      15: (m) => _Version16Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -34,6 +35,67 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version16Migration {
+  const _Version16Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    final projectColumns = await _columnNames('project');
+    if (!projectColumns.contains('currentCatalogNumber')) {
+      await migrator.addColumn(db.project, db.project.currentCatalogNumber);
+    }
+
+    final parasiteColumns = await _columnNames('parasite');
+    if (!parasiteColumns.contains('storageLocation')) {
+      await migrator.addColumn(db.parasite, db.parasite.storageLocation);
+    }
+
+    final specimenPartColumns = await _columnNames('specimenPart');
+    if (!specimenPartColumns.contains('storageLocation')) {
+      await migrator.addColumn(
+        db.specimenPart,
+        db.specimenPart.storageLocation,
+      );
+    }
+
+    await _validate();
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
+  }
+
+  Future<void> _validate() async {
+    final expectedColumns = {
+      'project': {'currentCatalogNumber'},
+      'parasite': {'storageLocation'},
+      'specimenPart': {'storageLocation'},
+    };
+    for (final entry in expectedColumns.entries) {
+      final columns = await db
+          .customSelect('PRAGMA table_info(${entry.key})', readsFrom: const {})
+          .get();
+      final names = columns.map((row) => row.read<String>('name')).toSet();
+      if (!names.containsAll(entry.value)) {
+        throw StateError(
+          'Database migration did not add the v16 columns to ${entry.key}.',
+        );
+      }
+    }
+
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v16 migration.');
     }
   }
 }

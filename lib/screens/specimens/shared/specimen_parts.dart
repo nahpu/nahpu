@@ -672,6 +672,8 @@ class PartFormState extends ConsumerState<PartForm> {
   }
 
   bool get _hasCurationData =>
+      widget.partCtr.storageCtr.text.trim().isNotEmpty ||
+      widget.partCtr.storageLocationCtr.text.trim().isNotEmpty ||
       widget.partCtr.museumPermanentCtr.text.trim().isNotEmpty ||
       widget.partCtr.museumLoanCtr.text.trim().isNotEmpty ||
       widget.partCtr.remarkCtr.text.trim().isNotEmpty;
@@ -700,6 +702,8 @@ class PartFormState extends ConsumerState<PartForm> {
       count: db.Value(widget.partCtr.countCtr.text),
       treatment: db.Value(widget.partCtr.treatmentCtr.text),
       additionalTreatment: db.Value(widget.partCtr.additionalTreatmentCtr.text),
+      storage: db.Value(widget.partCtr.storageCtr.text),
+      storageLocation: db.Value(widget.partCtr.storageLocationCtr.text),
       dateTaken: db.Value(widget.partCtr.dateTakenCtr.date),
       timeTaken: db.Value(widget.partCtr.timeTakenCtr.time),
       pmi: db.Value(widget.partCtr.pmiCtr.text),
@@ -1010,6 +1014,24 @@ class PartCurationFields extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        Visibility(
+          visible: visible || partCtr.storageCtr.text.isNotEmpty,
+          child: CommonTextField(
+            controller: partCtr.storageCtr,
+            labelText: 'Storage',
+            hintText: 'Enter storage medium or method',
+            isLastField: false,
+          ),
+        ),
+        Visibility(
+          visible: visible || partCtr.storageLocationCtr.text.isNotEmpty,
+          child: CommonTextField(
+            controller: partCtr.storageLocationCtr,
+            labelText: 'Storage location',
+            hintText: 'Enter freezer, cabinet, shelf, or container',
+            isLastField: false,
+          ),
+        ),
         Visibility(
           visible: visible || partCtr.museumPermanentCtr.text.isNotEmpty,
           child: CommonTextField(

@@ -435,6 +435,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
       count: db.Value(int.tryParse(controller.countCtr.text)),
       preparationMethod: db.Value(_text(controller.preparationMethodCtr)),
       storage: db.Value(_text(controller.storageCtr)),
+      storageLocation: db.Value(_text(controller.storageLocationCtr)),
       treatment: db.Value(_text(controller.treatmentCtr)),
       anatomicalLocation: db.Value(_text(controller.anatomicalLocationCtr)),
       lifeStage: db.Value(_text(controller.lifeStageCtr)),
@@ -602,6 +603,12 @@ class _AdvancedParasiteFields extends StatelessWidget {
                 controller: controller.storageCtr,
                 prefKey: parasiteStoragePrefKey,
                 labelText: 'Storage',
+              ),
+              CommonTextField(
+                controller: controller.storageLocationCtr,
+                labelText: 'Storage location',
+                hintText: 'Enter freezer, cabinet, shelf, or container',
+                isLastField: false,
               ),
               CommonTextField(
                 controller: controller.museumPermanentCtr,

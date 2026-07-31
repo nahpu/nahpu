@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,7 +84,47 @@ void main() {
     expect(specimen.catalogerID, 'cataloger-a');
     expect(specimen.identifierID, 'cataloger-a');
     expect(specimen.preparatorID, 'cataloger-a');
+    expect(specimen.fieldNumber, 7);
+    expect(specimen.projectFieldNumber, isNull);
   });
+
+  testWidgets(
+    'cataloger selection does not add a personnel ID to project-number record',
+    (tester) async {
+      final harness = await _SpecimenFormHarness.create();
+      addTearDown(harness.dispose);
+      await harness.database
+          .update(harness.database.specimen)
+          .write(const SpecimenCompanion(projectFieldNumber: Value(42)));
+      final controller = SpecimenFormCtrModel.fromData(
+        await harness.getSpecimen(),
+      );
+      addTearDown(controller.dispose);
+
+      await harness.pump(
+        tester,
+        PersonnelRecords(
+          specimenUuid: 'specimen-a',
+          specimenCtr: controller,
+          showMore: false,
+          onCatalogerChanged: () {},
+        ),
+      );
+
+      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Alice Cataloger').last);
+      await tester.pumpAndSettle();
+
+      final specimen = await harness.getSpecimen();
+      final cataloger = await (harness.database.select(
+        harness.database.personnel,
+      )..where((row) => row.uuid.equals('cataloger-a'))).getSingle();
+      expect(specimen.fieldNumber, isNull);
+      expect(specimen.projectFieldNumber, 42);
+      expect(cataloger.currentFieldNumber, 7);
+    },
+  );
 }
 
 class _SpecimenFormHarness {
@@ -119,7 +159,8 @@ class _SpecimenFormHarness {
           uuid: Value('cataloger-a'),
           name: Value('Alice Cataloger'),
           role: Value('Cataloger'),
-          isRegisterField: Value(false),
+          currentFieldNumber: Value(7),
+          isRegisterField: Value(true),
         ),
         PersonnelCompanion(
           uuid: Value('identifier-a'),

@@ -14,15 +14,46 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14]) {
-    test('upgrade from v$version to v15', () async {
+  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) {
+    test('upgrade from v$version to v16', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 15);
+      await verifier.migrateAndValidate(db, 16);
       await db.close();
     });
   }
+
+  test('v15 to v16 adds catalog and storage location columns', () async {
+    final schema = await verifier.schemaAt(15);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO specimen (uuid, projectUuid) "
+      "VALUES ('specimen', 'project')",
+    );
+    raw.execute(
+      "INSERT INTO specimenPart (specimenUuid, storage) "
+      "VALUES ('specimen', 'Ethanol')",
+    );
+    raw.execute(
+      "INSERT INTO parasite (specimenUuid, parasiteUuid, storage) "
+      "VALUES ('specimen', 'parasite', 'Slide')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 16);
+
+    final project = await db.select(db.project).getSingle();
+    final part = await db.select(db.specimenPart).getSingle();
+    final parasite = await db.select(db.parasite).getSingle();
+    expect(project.currentCatalogNumber, isNull);
+    expect(part.storage, 'Ethanol');
+    expect(part.storageLocation, isNull);
+    expect(parasite.storage, 'Slide');
+    expect(parasite.storageLocation, isNull);
+    await db.close();
+  });
 
   test('repairs an existing v8 index during upgrade', () async {
     final schema = await verifier.schemaAt(8);
@@ -31,7 +62,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 15);
+    await verifier.migrateAndValidate(db, 16);
     await db.close();
   });
 
@@ -43,7 +74,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 15);
+    await verifier.migrateAndValidate(db, 16);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -107,7 +138,7 @@ void main() {
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 15);
+    await verifier.migrateAndValidate(db, 16);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -169,7 +200,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 15);
+      await verifier.migrateAndValidate(db, 16);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -225,7 +256,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 15);
+    await verifier.migrateAndValidate(db, 16);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -285,7 +316,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 15);
+    await verifier.migrateAndValidate(db, 16);
 
     final specimens = await db.select(db.specimen).get();
     expect(
@@ -326,7 +357,7 @@ void main() {
       "('specimen', 1, 1, 'Fleas observed')",
     );
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 15);
+    await verifier.migrateAndValidate(db, 16);
 
     final project = await db.select(db.project).getSingle();
     expect(project.accession, isNull);

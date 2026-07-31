@@ -24,7 +24,7 @@ part 'migration_coordinator.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 15;
+const int kSchemaVersion = 16;
 
 @DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {

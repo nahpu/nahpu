@@ -17,39 +17,6 @@ class Project extends Table with TableInfo<Project, ProjectData> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL PRIMARY KEY',
   );
-  static const VerificationMeta _accessionMeta = const VerificationMeta(
-    'accession',
-  );
-  late final GeneratedColumn<String> accession = GeneratedColumn<String>(
-    'accession',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _catalogNumberPrefixMeta =
-      const VerificationMeta('catalogNumberPrefix');
-  late final GeneratedColumn<String> catalogNumberPrefix =
-      GeneratedColumn<String>(
-        'catalogNumberPrefix',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
-  static const VerificationMeta _catalogNumberSuffixMeta =
-      const VerificationMeta('catalogNumberSuffix');
-  late final GeneratedColumn<String> catalogNumberSuffix =
-      GeneratedColumn<String>(
-        'catalogNumberSuffix',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
@@ -75,6 +42,49 @@ class Project extends Table with TableInfo<Project, ProjectData> {
   late final GeneratedColumn<String> principalInvestigator =
       GeneratedColumn<String>(
         'principalInvestigator',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _accessionMeta = const VerificationMeta(
+    'accession',
+  );
+  late final GeneratedColumn<String> accession = GeneratedColumn<String>(
+    'accession',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _catalogNumberPrefixMeta =
+      const VerificationMeta('catalogNumberPrefix');
+  late final GeneratedColumn<String> catalogNumberPrefix =
+      GeneratedColumn<String>(
+        'catalogNumberPrefix',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _currentCatalogNumberMeta =
+      const VerificationMeta('currentCatalogNumber');
+  late final GeneratedColumn<int> currentCatalogNumber = GeneratedColumn<int>(
+    'currentCatalogNumber',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _catalogNumberSuffixMeta =
+      const VerificationMeta('catalogNumberSuffix');
+  late final GeneratedColumn<String> catalogNumberSuffix =
+      GeneratedColumn<String>(
+        'catalogNumberSuffix',
         aliasedName,
         true,
         type: DriftSqlType.string,
@@ -150,12 +160,13 @@ class Project extends Table with TableInfo<Project, ProjectData> {
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
-    accession,
-    catalogNumberPrefix,
-    catalogNumberSuffix,
     name,
     description,
     principalInvestigator,
+    accession,
+    catalogNumberPrefix,
+    currentCatalogNumber,
+    catalogNumberSuffix,
     location,
     timeZone,
     startDate,
@@ -183,30 +194,6 @@ class Project extends Table with TableInfo<Project, ProjectData> {
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
-    if (data.containsKey('accession')) {
-      context.handle(
-        _accessionMeta,
-        accession.isAcceptableOrUnknown(data['accession']!, _accessionMeta),
-      );
-    }
-    if (data.containsKey('catalogNumberPrefix')) {
-      context.handle(
-        _catalogNumberPrefixMeta,
-        catalogNumberPrefix.isAcceptableOrUnknown(
-          data['catalogNumberPrefix']!,
-          _catalogNumberPrefixMeta,
-        ),
-      );
-    }
-    if (data.containsKey('catalogNumberSuffix')) {
-      context.handle(
-        _catalogNumberSuffixMeta,
-        catalogNumberSuffix.isAcceptableOrUnknown(
-          data['catalogNumberSuffix']!,
-          _catalogNumberSuffixMeta,
-        ),
-      );
-    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -230,6 +217,39 @@ class Project extends Table with TableInfo<Project, ProjectData> {
         principalInvestigator.isAcceptableOrUnknown(
           data['principalInvestigator']!,
           _principalInvestigatorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('accession')) {
+      context.handle(
+        _accessionMeta,
+        accession.isAcceptableOrUnknown(data['accession']!, _accessionMeta),
+      );
+    }
+    if (data.containsKey('catalogNumberPrefix')) {
+      context.handle(
+        _catalogNumberPrefixMeta,
+        catalogNumberPrefix.isAcceptableOrUnknown(
+          data['catalogNumberPrefix']!,
+          _catalogNumberPrefixMeta,
+        ),
+      );
+    }
+    if (data.containsKey('currentCatalogNumber')) {
+      context.handle(
+        _currentCatalogNumberMeta,
+        currentCatalogNumber.isAcceptableOrUnknown(
+          data['currentCatalogNumber']!,
+          _currentCatalogNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('catalogNumberSuffix')) {
+      context.handle(
+        _catalogNumberSuffixMeta,
+        catalogNumberSuffix.isAcceptableOrUnknown(
+          data['catalogNumberSuffix']!,
+          _catalogNumberSuffixMeta,
         ),
       );
     }
@@ -285,18 +305,6 @@ class Project extends Table with TableInfo<Project, ProjectData> {
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
       )!,
-      accession: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}accession'],
-      ),
-      catalogNumberPrefix: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}catalogNumberPrefix'],
-      ),
-      catalogNumberSuffix: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}catalogNumberSuffix'],
-      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -308,6 +316,22 @@ class Project extends Table with TableInfo<Project, ProjectData> {
       principalInvestigator: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}principalInvestigator'],
+      ),
+      accession: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}accession'],
+      ),
+      catalogNumberPrefix: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalogNumberPrefix'],
+      ),
+      currentCatalogNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}currentCatalogNumber'],
+      ),
+      catalogNumberSuffix: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalogNumberSuffix'],
       ),
       location: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -347,12 +371,13 @@ class Project extends Table with TableInfo<Project, ProjectData> {
 
 class ProjectData extends DataClass implements Insertable<ProjectData> {
   final String uuid;
-  final String? accession;
-  final String? catalogNumberPrefix;
-  final String? catalogNumberSuffix;
   final String name;
   final String? description;
   final String? principalInvestigator;
+  final String? accession;
+  final String? catalogNumberPrefix;
+  final int? currentCatalogNumber;
+  final String? catalogNumberSuffix;
   final String? location;
   final String? timeZone;
   final String? startDate;
@@ -361,12 +386,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   final String? lastAccessed;
   const ProjectData({
     required this.uuid,
-    this.accession,
-    this.catalogNumberPrefix,
-    this.catalogNumberSuffix,
     required this.name,
     this.description,
     this.principalInvestigator,
+    this.accession,
+    this.catalogNumberPrefix,
+    this.currentCatalogNumber,
+    this.catalogNumberSuffix,
     this.location,
     this.timeZone,
     this.startDate,
@@ -378,21 +404,24 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
-    if (!nullToAbsent || accession != null) {
-      map['accession'] = Variable<String>(accession);
-    }
-    if (!nullToAbsent || catalogNumberPrefix != null) {
-      map['catalogNumberPrefix'] = Variable<String>(catalogNumberPrefix);
-    }
-    if (!nullToAbsent || catalogNumberSuffix != null) {
-      map['catalogNumberSuffix'] = Variable<String>(catalogNumberSuffix);
-    }
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
     if (!nullToAbsent || principalInvestigator != null) {
       map['principalInvestigator'] = Variable<String>(principalInvestigator);
+    }
+    if (!nullToAbsent || accession != null) {
+      map['accession'] = Variable<String>(accession);
+    }
+    if (!nullToAbsent || catalogNumberPrefix != null) {
+      map['catalogNumberPrefix'] = Variable<String>(catalogNumberPrefix);
+    }
+    if (!nullToAbsent || currentCatalogNumber != null) {
+      map['currentCatalogNumber'] = Variable<int>(currentCatalogNumber);
+    }
+    if (!nullToAbsent || catalogNumberSuffix != null) {
+      map['catalogNumberSuffix'] = Variable<String>(catalogNumberSuffix);
     }
     if (!nullToAbsent || location != null) {
       map['location'] = Variable<String>(location);
@@ -418,15 +447,6 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   ProjectCompanion toCompanion(bool nullToAbsent) {
     return ProjectCompanion(
       uuid: Value(uuid),
-      accession: accession == null && nullToAbsent
-          ? const Value.absent()
-          : Value(accession),
-      catalogNumberPrefix: catalogNumberPrefix == null && nullToAbsent
-          ? const Value.absent()
-          : Value(catalogNumberPrefix),
-      catalogNumberSuffix: catalogNumberSuffix == null && nullToAbsent
-          ? const Value.absent()
-          : Value(catalogNumberSuffix),
       name: Value(name),
       description: description == null && nullToAbsent
           ? const Value.absent()
@@ -434,6 +454,18 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       principalInvestigator: principalInvestigator == null && nullToAbsent
           ? const Value.absent()
           : Value(principalInvestigator),
+      accession: accession == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accession),
+      catalogNumberPrefix: catalogNumberPrefix == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogNumberPrefix),
+      currentCatalogNumber: currentCatalogNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currentCatalogNumber),
+      catalogNumberSuffix: catalogNumberSuffix == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogNumberSuffix),
       location: location == null && nullToAbsent
           ? const Value.absent()
           : Value(location),
@@ -462,17 +494,20 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ProjectData(
       uuid: serializer.fromJson<String>(json['uuid']),
-      accession: serializer.fromJson<String?>(json['accession']),
-      catalogNumberPrefix: serializer.fromJson<String?>(
-        json['catalogNumberPrefix'],
-      ),
-      catalogNumberSuffix: serializer.fromJson<String?>(
-        json['catalogNumberSuffix'],
-      ),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
       principalInvestigator: serializer.fromJson<String?>(
         json['principalInvestigator'],
+      ),
+      accession: serializer.fromJson<String?>(json['accession']),
+      catalogNumberPrefix: serializer.fromJson<String?>(
+        json['catalogNumberPrefix'],
+      ),
+      currentCatalogNumber: serializer.fromJson<int?>(
+        json['currentCatalogNumber'],
+      ),
+      catalogNumberSuffix: serializer.fromJson<String?>(
+        json['catalogNumberSuffix'],
       ),
       location: serializer.fromJson<String?>(json['location']),
       timeZone: serializer.fromJson<String?>(json['timeZone']),
@@ -487,14 +522,15 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
-      'accession': serializer.toJson<String?>(accession),
-      'catalogNumberPrefix': serializer.toJson<String?>(catalogNumberPrefix),
-      'catalogNumberSuffix': serializer.toJson<String?>(catalogNumberSuffix),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
       'principalInvestigator': serializer.toJson<String?>(
         principalInvestigator,
       ),
+      'accession': serializer.toJson<String?>(accession),
+      'catalogNumberPrefix': serializer.toJson<String?>(catalogNumberPrefix),
+      'currentCatalogNumber': serializer.toJson<int?>(currentCatalogNumber),
+      'catalogNumberSuffix': serializer.toJson<String?>(catalogNumberSuffix),
       'location': serializer.toJson<String?>(location),
       'timeZone': serializer.toJson<String?>(timeZone),
       'startDate': serializer.toJson<String?>(startDate),
@@ -506,12 +542,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
 
   ProjectData copyWith({
     String? uuid,
-    Value<String?> accession = const Value.absent(),
-    Value<String?> catalogNumberPrefix = const Value.absent(),
-    Value<String?> catalogNumberSuffix = const Value.absent(),
     String? name,
     Value<String?> description = const Value.absent(),
     Value<String?> principalInvestigator = const Value.absent(),
+    Value<String?> accession = const Value.absent(),
+    Value<String?> catalogNumberPrefix = const Value.absent(),
+    Value<int?> currentCatalogNumber = const Value.absent(),
+    Value<String?> catalogNumberSuffix = const Value.absent(),
     Value<String?> location = const Value.absent(),
     Value<String?> timeZone = const Value.absent(),
     Value<String?> startDate = const Value.absent(),
@@ -520,18 +557,21 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     Value<String?> lastAccessed = const Value.absent(),
   }) => ProjectData(
     uuid: uuid ?? this.uuid,
-    accession: accession.present ? accession.value : this.accession,
-    catalogNumberPrefix: catalogNumberPrefix.present
-        ? catalogNumberPrefix.value
-        : this.catalogNumberPrefix,
-    catalogNumberSuffix: catalogNumberSuffix.present
-        ? catalogNumberSuffix.value
-        : this.catalogNumberSuffix,
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
     principalInvestigator: principalInvestigator.present
         ? principalInvestigator.value
         : this.principalInvestigator,
+    accession: accession.present ? accession.value : this.accession,
+    catalogNumberPrefix: catalogNumberPrefix.present
+        ? catalogNumberPrefix.value
+        : this.catalogNumberPrefix,
+    currentCatalogNumber: currentCatalogNumber.present
+        ? currentCatalogNumber.value
+        : this.currentCatalogNumber,
+    catalogNumberSuffix: catalogNumberSuffix.present
+        ? catalogNumberSuffix.value
+        : this.catalogNumberSuffix,
     location: location.present ? location.value : this.location,
     timeZone: timeZone.present ? timeZone.value : this.timeZone,
     startDate: startDate.present ? startDate.value : this.startDate,
@@ -542,13 +582,6 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   ProjectData copyWithCompanion(ProjectCompanion data) {
     return ProjectData(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
-      accession: data.accession.present ? data.accession.value : this.accession,
-      catalogNumberPrefix: data.catalogNumberPrefix.present
-          ? data.catalogNumberPrefix.value
-          : this.catalogNumberPrefix,
-      catalogNumberSuffix: data.catalogNumberSuffix.present
-          ? data.catalogNumberSuffix.value
-          : this.catalogNumberSuffix,
       name: data.name.present ? data.name.value : this.name,
       description: data.description.present
           ? data.description.value
@@ -556,6 +589,16 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       principalInvestigator: data.principalInvestigator.present
           ? data.principalInvestigator.value
           : this.principalInvestigator,
+      accession: data.accession.present ? data.accession.value : this.accession,
+      catalogNumberPrefix: data.catalogNumberPrefix.present
+          ? data.catalogNumberPrefix.value
+          : this.catalogNumberPrefix,
+      currentCatalogNumber: data.currentCatalogNumber.present
+          ? data.currentCatalogNumber.value
+          : this.currentCatalogNumber,
+      catalogNumberSuffix: data.catalogNumberSuffix.present
+          ? data.catalogNumberSuffix.value
+          : this.catalogNumberSuffix,
       location: data.location.present ? data.location.value : this.location,
       timeZone: data.timeZone.present ? data.timeZone.value : this.timeZone,
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
@@ -571,12 +614,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   String toString() {
     return (StringBuffer('ProjectData(')
           ..write('uuid: $uuid, ')
-          ..write('accession: $accession, ')
-          ..write('catalogNumberPrefix: $catalogNumberPrefix, ')
-          ..write('catalogNumberSuffix: $catalogNumberSuffix, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('principalInvestigator: $principalInvestigator, ')
+          ..write('accession: $accession, ')
+          ..write('catalogNumberPrefix: $catalogNumberPrefix, ')
+          ..write('currentCatalogNumber: $currentCatalogNumber, ')
+          ..write('catalogNumberSuffix: $catalogNumberSuffix, ')
           ..write('location: $location, ')
           ..write('timeZone: $timeZone, ')
           ..write('startDate: $startDate, ')
@@ -590,12 +634,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   @override
   int get hashCode => Object.hash(
     uuid,
-    accession,
-    catalogNumberPrefix,
-    catalogNumberSuffix,
     name,
     description,
     principalInvestigator,
+    accession,
+    catalogNumberPrefix,
+    currentCatalogNumber,
+    catalogNumberSuffix,
     location,
     timeZone,
     startDate,
@@ -608,12 +653,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       identical(this, other) ||
       (other is ProjectData &&
           other.uuid == this.uuid &&
-          other.accession == this.accession &&
-          other.catalogNumberPrefix == this.catalogNumberPrefix &&
-          other.catalogNumberSuffix == this.catalogNumberSuffix &&
           other.name == this.name &&
           other.description == this.description &&
           other.principalInvestigator == this.principalInvestigator &&
+          other.accession == this.accession &&
+          other.catalogNumberPrefix == this.catalogNumberPrefix &&
+          other.currentCatalogNumber == this.currentCatalogNumber &&
+          other.catalogNumberSuffix == this.catalogNumberSuffix &&
           other.location == this.location &&
           other.timeZone == this.timeZone &&
           other.startDate == this.startDate &&
@@ -624,12 +670,13 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
 
 class ProjectCompanion extends UpdateCompanion<ProjectData> {
   final Value<String> uuid;
-  final Value<String?> accession;
-  final Value<String?> catalogNumberPrefix;
-  final Value<String?> catalogNumberSuffix;
   final Value<String> name;
   final Value<String?> description;
   final Value<String?> principalInvestigator;
+  final Value<String?> accession;
+  final Value<String?> catalogNumberPrefix;
+  final Value<int?> currentCatalogNumber;
+  final Value<String?> catalogNumberSuffix;
   final Value<String?> location;
   final Value<String?> timeZone;
   final Value<String?> startDate;
@@ -639,12 +686,13 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   final Value<int> rowid;
   const ProjectCompanion({
     this.uuid = const Value.absent(),
-    this.accession = const Value.absent(),
-    this.catalogNumberPrefix = const Value.absent(),
-    this.catalogNumberSuffix = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
     this.principalInvestigator = const Value.absent(),
+    this.accession = const Value.absent(),
+    this.catalogNumberPrefix = const Value.absent(),
+    this.currentCatalogNumber = const Value.absent(),
+    this.catalogNumberSuffix = const Value.absent(),
     this.location = const Value.absent(),
     this.timeZone = const Value.absent(),
     this.startDate = const Value.absent(),
@@ -655,12 +703,13 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   });
   ProjectCompanion.insert({
     required String uuid,
-    this.accession = const Value.absent(),
-    this.catalogNumberPrefix = const Value.absent(),
-    this.catalogNumberSuffix = const Value.absent(),
     required String name,
     this.description = const Value.absent(),
     this.principalInvestigator = const Value.absent(),
+    this.accession = const Value.absent(),
+    this.catalogNumberPrefix = const Value.absent(),
+    this.currentCatalogNumber = const Value.absent(),
+    this.catalogNumberSuffix = const Value.absent(),
     this.location = const Value.absent(),
     this.timeZone = const Value.absent(),
     this.startDate = const Value.absent(),
@@ -672,12 +721,13 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
        name = Value(name);
   static Insertable<ProjectData> custom({
     Expression<String>? uuid,
-    Expression<String>? accession,
-    Expression<String>? catalogNumberPrefix,
-    Expression<String>? catalogNumberSuffix,
     Expression<String>? name,
     Expression<String>? description,
     Expression<String>? principalInvestigator,
+    Expression<String>? accession,
+    Expression<String>? catalogNumberPrefix,
+    Expression<int>? currentCatalogNumber,
+    Expression<String>? catalogNumberSuffix,
     Expression<String>? location,
     Expression<String>? timeZone,
     Expression<String>? startDate,
@@ -688,15 +738,17 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
-      if (accession != null) 'accession': accession,
-      if (catalogNumberPrefix != null)
-        'catalogNumberPrefix': catalogNumberPrefix,
-      if (catalogNumberSuffix != null)
-        'catalogNumberSuffix': catalogNumberSuffix,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
       if (principalInvestigator != null)
         'principalInvestigator': principalInvestigator,
+      if (accession != null) 'accession': accession,
+      if (catalogNumberPrefix != null)
+        'catalogNumberPrefix': catalogNumberPrefix,
+      if (currentCatalogNumber != null)
+        'currentCatalogNumber': currentCatalogNumber,
+      if (catalogNumberSuffix != null)
+        'catalogNumberSuffix': catalogNumberSuffix,
       if (location != null) 'location': location,
       if (timeZone != null) 'timeZone': timeZone,
       if (startDate != null) 'startDate': startDate,
@@ -709,12 +761,13 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
 
   ProjectCompanion copyWith({
     Value<String>? uuid,
-    Value<String?>? accession,
-    Value<String?>? catalogNumberPrefix,
-    Value<String?>? catalogNumberSuffix,
     Value<String>? name,
     Value<String?>? description,
     Value<String?>? principalInvestigator,
+    Value<String?>? accession,
+    Value<String?>? catalogNumberPrefix,
+    Value<int?>? currentCatalogNumber,
+    Value<String?>? catalogNumberSuffix,
     Value<String?>? location,
     Value<String?>? timeZone,
     Value<String?>? startDate,
@@ -725,13 +778,14 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   }) {
     return ProjectCompanion(
       uuid: uuid ?? this.uuid,
-      accession: accession ?? this.accession,
-      catalogNumberPrefix: catalogNumberPrefix ?? this.catalogNumberPrefix,
-      catalogNumberSuffix: catalogNumberSuffix ?? this.catalogNumberSuffix,
       name: name ?? this.name,
       description: description ?? this.description,
       principalInvestigator:
           principalInvestigator ?? this.principalInvestigator,
+      accession: accession ?? this.accession,
+      catalogNumberPrefix: catalogNumberPrefix ?? this.catalogNumberPrefix,
+      currentCatalogNumber: currentCatalogNumber ?? this.currentCatalogNumber,
+      catalogNumberSuffix: catalogNumberSuffix ?? this.catalogNumberSuffix,
       location: location ?? this.location,
       timeZone: timeZone ?? this.timeZone,
       startDate: startDate ?? this.startDate,
@@ -748,15 +802,6 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
     }
-    if (accession.present) {
-      map['accession'] = Variable<String>(accession.value);
-    }
-    if (catalogNumberPrefix.present) {
-      map['catalogNumberPrefix'] = Variable<String>(catalogNumberPrefix.value);
-    }
-    if (catalogNumberSuffix.present) {
-      map['catalogNumberSuffix'] = Variable<String>(catalogNumberSuffix.value);
-    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
@@ -767,6 +812,18 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
       map['principalInvestigator'] = Variable<String>(
         principalInvestigator.value,
       );
+    }
+    if (accession.present) {
+      map['accession'] = Variable<String>(accession.value);
+    }
+    if (catalogNumberPrefix.present) {
+      map['catalogNumberPrefix'] = Variable<String>(catalogNumberPrefix.value);
+    }
+    if (currentCatalogNumber.present) {
+      map['currentCatalogNumber'] = Variable<int>(currentCatalogNumber.value);
+    }
+    if (catalogNumberSuffix.present) {
+      map['catalogNumberSuffix'] = Variable<String>(catalogNumberSuffix.value);
     }
     if (location.present) {
       map['location'] = Variable<String>(location.value);
@@ -796,12 +853,13 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   String toString() {
     return (StringBuffer('ProjectCompanion(')
           ..write('uuid: $uuid, ')
-          ..write('accession: $accession, ')
-          ..write('catalogNumberPrefix: $catalogNumberPrefix, ')
-          ..write('catalogNumberSuffix: $catalogNumberSuffix, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('principalInvestigator: $principalInvestigator, ')
+          ..write('accession: $accession, ')
+          ..write('catalogNumberPrefix: $catalogNumberPrefix, ')
+          ..write('currentCatalogNumber: $currentCatalogNumber, ')
+          ..write('catalogNumberSuffix: $catalogNumberSuffix, ')
           ..write('location: $location, ')
           ..write('timeZone: $timeZone, ')
           ..write('startDate: $startDate, ')
@@ -9529,17 +9587,6 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _identifierIDMeta = const VerificationMeta(
-    'identifierID',
-  );
-  late final GeneratedColumn<String> identifierID = GeneratedColumn<String>(
-    'identifierID',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'REFERENCES personnel(uuid)',
-  );
   static const VerificationMeta _fieldNumberMeta = const VerificationMeta(
     'fieldNumber',
   );
@@ -9615,6 +9662,17 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _identifierIDMeta = const VerificationMeta(
+    'identifierID',
+  );
+  late final GeneratedColumn<String> identifierID = GeneratedColumn<String>(
+    'identifierID',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'REFERENCES personnel(uuid)',
+  );
   static const VerificationMeta _preparatorIDMeta = const VerificationMeta(
     'preparatorID',
   );
@@ -9647,7 +9705,6 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
     methodID,
     coordinateID,
     catalogerID,
-    identifierID,
     fieldNumber,
     projectFieldNumber,
     collEventID,
@@ -9655,6 +9712,7 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
     collPersonnelID,
     collMethodID,
     museumID,
+    identifierID,
     preparatorID,
   ];
   @override
@@ -9815,15 +9873,6 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
         ),
       );
     }
-    if (data.containsKey('identifierID')) {
-      context.handle(
-        _identifierIDMeta,
-        identifierID.isAcceptableOrUnknown(
-          data['identifierID']!,
-          _identifierIDMeta,
-        ),
-      );
-    }
     if (data.containsKey('fieldNumber')) {
       context.handle(
         _fieldNumberMeta,
@@ -9882,6 +9931,15 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
       context.handle(
         _museumIDMeta,
         museumID.isAcceptableOrUnknown(data['museumID']!, _museumIDMeta),
+      );
+    }
+    if (data.containsKey('identifierID')) {
+      context.handle(
+        _identifierIDMeta,
+        identifierID.isAcceptableOrUnknown(
+          data['identifierID']!,
+          _identifierIDMeta,
+        ),
       );
     }
     if (data.containsKey('preparatorID')) {
@@ -9978,10 +10036,6 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
         DriftSqlType.string,
         data['${effectivePrefix}catalogerID'],
       ),
-      identifierID: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}identifierID'],
-      ),
       fieldNumber: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}fieldNumber'],
@@ -10009,6 +10063,10 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
       museumID: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}museumID'],
+      ),
+      identifierID: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}identifierID'],
       ),
       preparatorID: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -10049,8 +10107,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
   final String? prepTime;
   final String? collectionDate;
   final String? collectionTime;
-
-  /// v4 update
   final String? captureDate;
   final int? isRelativeTime;
   final String? captureTime;
@@ -10061,7 +10117,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
   /// v4 rename
   final int? coordinateID;
   final String? catalogerID;
-  final String? identifierID;
   final int? fieldNumber;
   final int? projectFieldNumber;
   final int? collEventID;
@@ -10069,6 +10124,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
   final int? collPersonnelID;
   final int? collMethodID;
   final String? museumID;
+  final String? identifierID;
   final String? preparatorID;
   const SpecimenData({
     required this.uuid,
@@ -10090,7 +10146,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     this.methodID,
     this.coordinateID,
     this.catalogerID,
-    this.identifierID,
     this.fieldNumber,
     this.projectFieldNumber,
     this.collEventID,
@@ -10098,6 +10153,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     this.collPersonnelID,
     this.collMethodID,
     this.museumID,
+    this.identifierID,
     this.preparatorID,
   });
   @override
@@ -10158,9 +10214,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     if (!nullToAbsent || catalogerID != null) {
       map['catalogerID'] = Variable<String>(catalogerID);
     }
-    if (!nullToAbsent || identifierID != null) {
-      map['identifierID'] = Variable<String>(identifierID);
-    }
     if (!nullToAbsent || fieldNumber != null) {
       map['fieldNumber'] = Variable<int>(fieldNumber);
     }
@@ -10181,6 +10234,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     }
     if (!nullToAbsent || museumID != null) {
       map['museumID'] = Variable<String>(museumID);
+    }
+    if (!nullToAbsent || identifierID != null) {
+      map['identifierID'] = Variable<String>(identifierID);
     }
     if (!nullToAbsent || preparatorID != null) {
       map['preparatorID'] = Variable<String>(preparatorID);
@@ -10245,9 +10301,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       catalogerID: catalogerID == null && nullToAbsent
           ? const Value.absent()
           : Value(catalogerID),
-      identifierID: identifierID == null && nullToAbsent
-          ? const Value.absent()
-          : Value(identifierID),
       fieldNumber: fieldNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(fieldNumber),
@@ -10269,6 +10322,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       museumID: museumID == null && nullToAbsent
           ? const Value.absent()
           : Value(museumID),
+      identifierID: identifierID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(identifierID),
       preparatorID: preparatorID == null && nullToAbsent
           ? const Value.absent()
           : Value(preparatorID),
@@ -10302,7 +10358,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       methodID: serializer.fromJson<String?>(json['methodID']),
       coordinateID: serializer.fromJson<int?>(json['coordinateID']),
       catalogerID: serializer.fromJson<String?>(json['catalogerID']),
-      identifierID: serializer.fromJson<String?>(json['identifierID']),
       fieldNumber: serializer.fromJson<int?>(json['fieldNumber']),
       projectFieldNumber: serializer.fromJson<int?>(json['projectFieldNumber']),
       collEventID: serializer.fromJson<int?>(json['collEventID']),
@@ -10312,6 +10367,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       collPersonnelID: serializer.fromJson<int?>(json['collPersonnelID']),
       collMethodID: serializer.fromJson<int?>(json['collMethodID']),
       museumID: serializer.fromJson<String?>(json['museumID']),
+      identifierID: serializer.fromJson<String?>(json['identifierID']),
       preparatorID: serializer.fromJson<String?>(json['preparatorID']),
     );
   }
@@ -10338,7 +10394,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       'methodID': serializer.toJson<String?>(methodID),
       'coordinateID': serializer.toJson<int?>(coordinateID),
       'catalogerID': serializer.toJson<String?>(catalogerID),
-      'identifierID': serializer.toJson<String?>(identifierID),
       'fieldNumber': serializer.toJson<int?>(fieldNumber),
       'projectFieldNumber': serializer.toJson<int?>(projectFieldNumber),
       'collEventID': serializer.toJson<int?>(collEventID),
@@ -10346,6 +10401,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       'collPersonnelID': serializer.toJson<int?>(collPersonnelID),
       'collMethodID': serializer.toJson<int?>(collMethodID),
       'museumID': serializer.toJson<String?>(museumID),
+      'identifierID': serializer.toJson<String?>(identifierID),
       'preparatorID': serializer.toJson<String?>(preparatorID),
     };
   }
@@ -10370,7 +10426,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     Value<String?> methodID = const Value.absent(),
     Value<int?> coordinateID = const Value.absent(),
     Value<String?> catalogerID = const Value.absent(),
-    Value<String?> identifierID = const Value.absent(),
     Value<int?> fieldNumber = const Value.absent(),
     Value<int?> projectFieldNumber = const Value.absent(),
     Value<int?> collEventID = const Value.absent(),
@@ -10378,6 +10433,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     Value<int?> collPersonnelID = const Value.absent(),
     Value<int?> collMethodID = const Value.absent(),
     Value<String?> museumID = const Value.absent(),
+    Value<String?> identifierID = const Value.absent(),
     Value<String?> preparatorID = const Value.absent(),
   }) => SpecimenData(
     uuid: uuid ?? this.uuid,
@@ -10407,7 +10463,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     methodID: methodID.present ? methodID.value : this.methodID,
     coordinateID: coordinateID.present ? coordinateID.value : this.coordinateID,
     catalogerID: catalogerID.present ? catalogerID.value : this.catalogerID,
-    identifierID: identifierID.present ? identifierID.value : this.identifierID,
     fieldNumber: fieldNumber.present ? fieldNumber.value : this.fieldNumber,
     projectFieldNumber: projectFieldNumber.present
         ? projectFieldNumber.value
@@ -10421,6 +10476,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
         : this.collPersonnelID,
     collMethodID: collMethodID.present ? collMethodID.value : this.collMethodID,
     museumID: museumID.present ? museumID.value : this.museumID,
+    identifierID: identifierID.present ? identifierID.value : this.identifierID,
     preparatorID: preparatorID.present ? preparatorID.value : this.preparatorID,
   );
   SpecimenData copyWithCompanion(SpecimenCompanion data) {
@@ -10466,9 +10522,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
       catalogerID: data.catalogerID.present
           ? data.catalogerID.value
           : this.catalogerID,
-      identifierID: data.identifierID.present
-          ? data.identifierID.value
-          : this.identifierID,
       fieldNumber: data.fieldNumber.present
           ? data.fieldNumber.value
           : this.fieldNumber,
@@ -10488,6 +10541,9 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           ? data.collMethodID.value
           : this.collMethodID,
       museumID: data.museumID.present ? data.museumID.value : this.museumID,
+      identifierID: data.identifierID.present
+          ? data.identifierID.value
+          : this.identifierID,
       preparatorID: data.preparatorID.present
           ? data.preparatorID.value
           : this.preparatorID,
@@ -10516,7 +10572,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           ..write('methodID: $methodID, ')
           ..write('coordinateID: $coordinateID, ')
           ..write('catalogerID: $catalogerID, ')
-          ..write('identifierID: $identifierID, ')
           ..write('fieldNumber: $fieldNumber, ')
           ..write('projectFieldNumber: $projectFieldNumber, ')
           ..write('collEventID: $collEventID, ')
@@ -10524,6 +10579,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           ..write('collPersonnelID: $collPersonnelID, ')
           ..write('collMethodID: $collMethodID, ')
           ..write('museumID: $museumID, ')
+          ..write('identifierID: $identifierID, ')
           ..write('preparatorID: $preparatorID')
           ..write(')'))
         .toString();
@@ -10550,7 +10606,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     methodID,
     coordinateID,
     catalogerID,
-    identifierID,
     fieldNumber,
     projectFieldNumber,
     collEventID,
@@ -10558,6 +10613,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
     collPersonnelID,
     collMethodID,
     museumID,
+    identifierID,
     preparatorID,
   ]);
   @override
@@ -10583,7 +10639,6 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           other.methodID == this.methodID &&
           other.coordinateID == this.coordinateID &&
           other.catalogerID == this.catalogerID &&
-          other.identifierID == this.identifierID &&
           other.fieldNumber == this.fieldNumber &&
           other.projectFieldNumber == this.projectFieldNumber &&
           other.collEventID == this.collEventID &&
@@ -10591,6 +10646,7 @@ class SpecimenData extends DataClass implements Insertable<SpecimenData> {
           other.collPersonnelID == this.collPersonnelID &&
           other.collMethodID == this.collMethodID &&
           other.museumID == this.museumID &&
+          other.identifierID == this.identifierID &&
           other.preparatorID == this.preparatorID);
 }
 
@@ -10614,7 +10670,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
   final Value<String?> methodID;
   final Value<int?> coordinateID;
   final Value<String?> catalogerID;
-  final Value<String?> identifierID;
   final Value<int?> fieldNumber;
   final Value<int?> projectFieldNumber;
   final Value<int?> collEventID;
@@ -10622,6 +10677,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
   final Value<int?> collPersonnelID;
   final Value<int?> collMethodID;
   final Value<String?> museumID;
+  final Value<String?> identifierID;
   final Value<String?> preparatorID;
   final Value<int> rowid;
   const SpecimenCompanion({
@@ -10644,7 +10700,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     this.methodID = const Value.absent(),
     this.coordinateID = const Value.absent(),
     this.catalogerID = const Value.absent(),
-    this.identifierID = const Value.absent(),
     this.fieldNumber = const Value.absent(),
     this.projectFieldNumber = const Value.absent(),
     this.collEventID = const Value.absent(),
@@ -10652,6 +10707,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     this.collPersonnelID = const Value.absent(),
     this.collMethodID = const Value.absent(),
     this.museumID = const Value.absent(),
+    this.identifierID = const Value.absent(),
     this.preparatorID = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -10675,7 +10731,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     this.methodID = const Value.absent(),
     this.coordinateID = const Value.absent(),
     this.catalogerID = const Value.absent(),
-    this.identifierID = const Value.absent(),
     this.fieldNumber = const Value.absent(),
     this.projectFieldNumber = const Value.absent(),
     this.collEventID = const Value.absent(),
@@ -10683,6 +10738,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     this.collPersonnelID = const Value.absent(),
     this.collMethodID = const Value.absent(),
     this.museumID = const Value.absent(),
+    this.identifierID = const Value.absent(),
     this.preparatorID = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : uuid = Value(uuid);
@@ -10706,7 +10762,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     Expression<String>? methodID,
     Expression<int>? coordinateID,
     Expression<String>? catalogerID,
-    Expression<String>? identifierID,
     Expression<int>? fieldNumber,
     Expression<int>? projectFieldNumber,
     Expression<int>? collEventID,
@@ -10714,6 +10769,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     Expression<int>? collPersonnelID,
     Expression<int>? collMethodID,
     Expression<String>? museumID,
+    Expression<String>? identifierID,
     Expression<String>? preparatorID,
     Expression<int>? rowid,
   }) {
@@ -10738,7 +10794,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       if (methodID != null) 'methodID': methodID,
       if (coordinateID != null) 'coordinateID': coordinateID,
       if (catalogerID != null) 'catalogerID': catalogerID,
-      if (identifierID != null) 'identifierID': identifierID,
       if (fieldNumber != null) 'fieldNumber': fieldNumber,
       if (projectFieldNumber != null) 'projectFieldNumber': projectFieldNumber,
       if (collEventID != null) 'collEventID': collEventID,
@@ -10747,6 +10802,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       if (collPersonnelID != null) 'collPersonnelID': collPersonnelID,
       if (collMethodID != null) 'collMethodID': collMethodID,
       if (museumID != null) 'museumID': museumID,
+      if (identifierID != null) 'identifierID': identifierID,
       if (preparatorID != null) 'preparatorID': preparatorID,
       if (rowid != null) 'rowid': rowid,
     });
@@ -10772,7 +10828,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     Value<String?>? methodID,
     Value<int?>? coordinateID,
     Value<String?>? catalogerID,
-    Value<String?>? identifierID,
     Value<int?>? fieldNumber,
     Value<int?>? projectFieldNumber,
     Value<int?>? collEventID,
@@ -10780,6 +10835,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     Value<int?>? collPersonnelID,
     Value<int?>? collMethodID,
     Value<String?>? museumID,
+    Value<String?>? identifierID,
     Value<String?>? preparatorID,
     Value<int>? rowid,
   }) {
@@ -10803,7 +10859,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       methodID: methodID ?? this.methodID,
       coordinateID: coordinateID ?? this.coordinateID,
       catalogerID: catalogerID ?? this.catalogerID,
-      identifierID: identifierID ?? this.identifierID,
       fieldNumber: fieldNumber ?? this.fieldNumber,
       projectFieldNumber: projectFieldNumber ?? this.projectFieldNumber,
       collEventID: collEventID ?? this.collEventID,
@@ -10811,6 +10866,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
       collPersonnelID: collPersonnelID ?? this.collPersonnelID,
       collMethodID: collMethodID ?? this.collMethodID,
       museumID: museumID ?? this.museumID,
+      identifierID: identifierID ?? this.identifierID,
       preparatorID: preparatorID ?? this.preparatorID,
       rowid: rowid ?? this.rowid,
     );
@@ -10876,9 +10932,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     if (catalogerID.present) {
       map['catalogerID'] = Variable<String>(catalogerID.value);
     }
-    if (identifierID.present) {
-      map['identifierID'] = Variable<String>(identifierID.value);
-    }
     if (fieldNumber.present) {
       map['fieldNumber'] = Variable<int>(fieldNumber.value);
     }
@@ -10899,6 +10952,9 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
     }
     if (museumID.present) {
       map['museumID'] = Variable<String>(museumID.value);
+    }
+    if (identifierID.present) {
+      map['identifierID'] = Variable<String>(identifierID.value);
     }
     if (preparatorID.present) {
       map['preparatorID'] = Variable<String>(preparatorID.value);
@@ -10931,7 +10987,6 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
           ..write('methodID: $methodID, ')
           ..write('coordinateID: $coordinateID, ')
           ..write('catalogerID: $catalogerID, ')
-          ..write('identifierID: $identifierID, ')
           ..write('fieldNumber: $fieldNumber, ')
           ..write('projectFieldNumber: $projectFieldNumber, ')
           ..write('collEventID: $collEventID, ')
@@ -10939,6 +10994,7 @@ class SpecimenCompanion extends UpdateCompanion<SpecimenData> {
           ..write('collPersonnelID: $collPersonnelID, ')
           ..write('collMethodID: $collMethodID, ')
           ..write('museumID: $museumID, ')
+          ..write('identifierID: $identifierID, ')
           ..write('preparatorID: $preparatorID, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -19270,6 +19326,17 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _storageLocationMeta = const VerificationMeta(
+    'storageLocation',
+  );
+  late final GeneratedColumn<String> storageLocation = GeneratedColumn<String>(
+    'storageLocation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _treatmentMeta = const VerificationMeta(
     'treatment',
   );
@@ -19422,6 +19489,7 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     count,
     preparationMethod,
     storage,
+    storageLocation,
     treatment,
     anatomicalLocation,
     lifeStage,
@@ -19511,6 +19579,15 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
       context.handle(
         _storageMeta,
         storage.isAcceptableOrUnknown(data['storage']!, _storageMeta),
+      );
+    }
+    if (data.containsKey('storageLocation')) {
+      context.handle(
+        _storageLocationMeta,
+        storageLocation.isAcceptableOrUnknown(
+          data['storageLocation']!,
+          _storageLocationMeta,
+        ),
       );
     }
     if (data.containsKey('treatment')) {
@@ -19660,6 +19737,10 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         DriftSqlType.string,
         data['${effectivePrefix}storage'],
       ),
+      storageLocation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}storageLocation'],
+      ),
       treatment: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}treatment'],
@@ -19743,6 +19824,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
   final int? count;
   final String? preparationMethod;
   final String? storage;
+  final String? storageLocation;
   final String? treatment;
   final String? anatomicalLocation;
   final String? lifeStage;
@@ -19768,6 +19850,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     this.count,
     this.preparationMethod,
     this.storage,
+    this.storageLocation,
     this.treatment,
     this.anatomicalLocation,
     this.lifeStage,
@@ -19809,6 +19892,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     }
     if (!nullToAbsent || storage != null) {
       map['storage'] = Variable<String>(storage);
+    }
+    if (!nullToAbsent || storageLocation != null) {
+      map['storageLocation'] = Variable<String>(storageLocation);
     }
     if (!nullToAbsent || treatment != null) {
       map['treatment'] = Variable<String>(treatment);
@@ -19877,6 +19963,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       storage: storage == null && nullToAbsent
           ? const Value.absent()
           : Value(storage),
+      storageLocation: storageLocation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storageLocation),
       treatment: treatment == null && nullToAbsent
           ? const Value.absent()
           : Value(treatment),
@@ -19936,6 +20025,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
         json['preparationMethod'],
       ),
       storage: serializer.fromJson<String?>(json['storage']),
+      storageLocation: serializer.fromJson<String?>(json['storageLocation']),
       treatment: serializer.fromJson<String?>(json['treatment']),
       anatomicalLocation: serializer.fromJson<String?>(
         json['anatomicalLocation'],
@@ -19966,6 +20056,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       'count': serializer.toJson<int?>(count),
       'preparationMethod': serializer.toJson<String?>(preparationMethod),
       'storage': serializer.toJson<String?>(storage),
+      'storageLocation': serializer.toJson<String?>(storageLocation),
       'treatment': serializer.toJson<String?>(treatment),
       'anatomicalLocation': serializer.toJson<String?>(anatomicalLocation),
       'lifeStage': serializer.toJson<String?>(lifeStage),
@@ -19992,6 +20083,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     Value<int?> count = const Value.absent(),
     Value<String?> preparationMethod = const Value.absent(),
     Value<String?> storage = const Value.absent(),
+    Value<String?> storageLocation = const Value.absent(),
     Value<String?> treatment = const Value.absent(),
     Value<String?> anatomicalLocation = const Value.absent(),
     Value<String?> lifeStage = const Value.absent(),
@@ -20017,6 +20109,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
         ? preparationMethod.value
         : this.preparationMethod,
     storage: storage.present ? storage.value : this.storage,
+    storageLocation: storageLocation.present
+        ? storageLocation.value
+        : this.storageLocation,
     treatment: treatment.present ? treatment.value : this.treatment,
     anatomicalLocation: anatomicalLocation.present
         ? anatomicalLocation.value
@@ -20068,6 +20163,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ? data.preparationMethod.value
           : this.preparationMethod,
       storage: data.storage.present ? data.storage.value : this.storage,
+      storageLocation: data.storageLocation.present
+          ? data.storageLocation.value
+          : this.storageLocation,
       treatment: data.treatment.present ? data.treatment.value : this.treatment,
       anatomicalLocation: data.anatomicalLocation.present
           ? data.anatomicalLocation.value
@@ -20114,6 +20212,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ..write('count: $count, ')
           ..write('preparationMethod: $preparationMethod, ')
           ..write('storage: $storage, ')
+          ..write('storageLocation: $storageLocation, ')
           ..write('treatment: $treatment, ')
           ..write('anatomicalLocation: $anatomicalLocation, ')
           ..write('lifeStage: $lifeStage, ')
@@ -20142,6 +20241,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     count,
     preparationMethod,
     storage,
+    storageLocation,
     treatment,
     anatomicalLocation,
     lifeStage,
@@ -20169,6 +20269,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           other.count == this.count &&
           other.preparationMethod == this.preparationMethod &&
           other.storage == this.storage &&
+          other.storageLocation == this.storageLocation &&
           other.treatment == this.treatment &&
           other.anatomicalLocation == this.anatomicalLocation &&
           other.lifeStage == this.lifeStage &&
@@ -20194,6 +20295,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
   final Value<int?> count;
   final Value<String?> preparationMethod;
   final Value<String?> storage;
+  final Value<String?> storageLocation;
   final Value<String?> treatment;
   final Value<String?> anatomicalLocation;
   final Value<String?> lifeStage;
@@ -20217,6 +20319,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.count = const Value.absent(),
     this.preparationMethod = const Value.absent(),
     this.storage = const Value.absent(),
+    this.storageLocation = const Value.absent(),
     this.treatment = const Value.absent(),
     this.anatomicalLocation = const Value.absent(),
     this.lifeStage = const Value.absent(),
@@ -20241,6 +20344,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.count = const Value.absent(),
     this.preparationMethod = const Value.absent(),
     this.storage = const Value.absent(),
+    this.storageLocation = const Value.absent(),
     this.treatment = const Value.absent(),
     this.anatomicalLocation = const Value.absent(),
     this.lifeStage = const Value.absent(),
@@ -20265,6 +20369,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     Expression<int>? count,
     Expression<String>? preparationMethod,
     Expression<String>? storage,
+    Expression<String>? storageLocation,
     Expression<String>? treatment,
     Expression<String>? anatomicalLocation,
     Expression<String>? lifeStage,
@@ -20289,6 +20394,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
       if (count != null) 'count': count,
       if (preparationMethod != null) 'preparationMethod': preparationMethod,
       if (storage != null) 'storage': storage,
+      if (storageLocation != null) 'storageLocation': storageLocation,
       if (treatment != null) 'treatment': treatment,
       if (anatomicalLocation != null) 'anatomicalLocation': anatomicalLocation,
       if (lifeStage != null) 'lifeStage': lifeStage,
@@ -20315,6 +20421,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     Value<int?>? count,
     Value<String?>? preparationMethod,
     Value<String?>? storage,
+    Value<String?>? storageLocation,
     Value<String?>? treatment,
     Value<String?>? anatomicalLocation,
     Value<String?>? lifeStage,
@@ -20339,6 +20446,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
       count: count ?? this.count,
       preparationMethod: preparationMethod ?? this.preparationMethod,
       storage: storage ?? this.storage,
+      storageLocation: storageLocation ?? this.storageLocation,
       treatment: treatment ?? this.treatment,
       anatomicalLocation: anatomicalLocation ?? this.anatomicalLocation,
       lifeStage: lifeStage ?? this.lifeStage,
@@ -20384,6 +20492,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     }
     if (storage.present) {
       map['storage'] = Variable<String>(storage.value);
+    }
+    if (storageLocation.present) {
+      map['storageLocation'] = Variable<String>(storageLocation.value);
     }
     if (treatment.present) {
       map['treatment'] = Variable<String>(treatment.value);
@@ -20439,6 +20550,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
           ..write('count: $count, ')
           ..write('preparationMethod: $preparationMethod, ')
           ..write('storage: $storage, ')
+          ..write('storageLocation: $storageLocation, ')
           ..write('treatment: $treatment, ')
           ..write('anatomicalLocation: $anatomicalLocation, ')
           ..write('lifeStage: $lifeStage, ')
@@ -20568,6 +20680,17 @@ class SpecimenPart extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _storageLocationMeta = const VerificationMeta(
+    'storageLocation',
+  );
+  late final GeneratedColumn<String> storageLocation = GeneratedColumn<String>(
+    'storageLocation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _dateTakenMeta = const VerificationMeta(
     'dateTaken',
   );
@@ -20642,6 +20765,7 @@ class SpecimenPart extends Table
     treatment,
     additionalTreatment,
     storage,
+    storageLocation,
     dateTaken,
     timeTaken,
     pmi,
@@ -20725,6 +20849,15 @@ class SpecimenPart extends Table
       context.handle(
         _storageMeta,
         storage.isAcceptableOrUnknown(data['storage']!, _storageMeta),
+      );
+    }
+    if (data.containsKey('storageLocation')) {
+      context.handle(
+        _storageLocationMeta,
+        storageLocation.isAcceptableOrUnknown(
+          data['storageLocation']!,
+          _storageLocationMeta,
+        ),
       );
     }
     if (data.containsKey('dateTaken')) {
@@ -20815,6 +20948,10 @@ class SpecimenPart extends Table
         DriftSqlType.string,
         data['${effectivePrefix}storage'],
       ),
+      storageLocation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}storageLocation'],
+      ),
       dateTaken: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}dateTaken'],
@@ -20870,6 +21007,7 @@ class SpecimenPartData extends DataClass
   final String? treatment;
   final String? additionalTreatment;
   final String? storage;
+  final String? storageLocation;
   final String? dateTaken;
   final String? timeTaken;
   final String? pmi;
@@ -20887,6 +21025,7 @@ class SpecimenPartData extends DataClass
     this.treatment,
     this.additionalTreatment,
     this.storage,
+    this.storageLocation,
     this.dateTaken,
     this.timeTaken,
     this.pmi,
@@ -20926,6 +21065,9 @@ class SpecimenPartData extends DataClass
     }
     if (!nullToAbsent || storage != null) {
       map['storage'] = Variable<String>(storage);
+    }
+    if (!nullToAbsent || storageLocation != null) {
+      map['storageLocation'] = Variable<String>(storageLocation);
     }
     if (!nullToAbsent || dateTaken != null) {
       map['dateTaken'] = Variable<String>(dateTaken);
@@ -20976,6 +21118,9 @@ class SpecimenPartData extends DataClass
       storage: storage == null && nullToAbsent
           ? const Value.absent()
           : Value(storage),
+      storageLocation: storageLocation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storageLocation),
       dateTaken: dateTaken == null && nullToAbsent
           ? const Value.absent()
           : Value(dateTaken),
@@ -21013,6 +21158,7 @@ class SpecimenPartData extends DataClass
         json['additionalTreatment'],
       ),
       storage: serializer.fromJson<String?>(json['storage']),
+      storageLocation: serializer.fromJson<String?>(json['storageLocation']),
       dateTaken: serializer.fromJson<String?>(json['dateTaken']),
       timeTaken: serializer.fromJson<String?>(json['timeTaken']),
       pmi: serializer.fromJson<String?>(json['pmi']),
@@ -21035,6 +21181,7 @@ class SpecimenPartData extends DataClass
       'treatment': serializer.toJson<String?>(treatment),
       'additionalTreatment': serializer.toJson<String?>(additionalTreatment),
       'storage': serializer.toJson<String?>(storage),
+      'storageLocation': serializer.toJson<String?>(storageLocation),
       'dateTaken': serializer.toJson<String?>(dateTaken),
       'timeTaken': serializer.toJson<String?>(timeTaken),
       'pmi': serializer.toJson<String?>(pmi),
@@ -21055,6 +21202,7 @@ class SpecimenPartData extends DataClass
     Value<String?> treatment = const Value.absent(),
     Value<String?> additionalTreatment = const Value.absent(),
     Value<String?> storage = const Value.absent(),
+    Value<String?> storageLocation = const Value.absent(),
     Value<String?> dateTaken = const Value.absent(),
     Value<String?> timeTaken = const Value.absent(),
     Value<String?> pmi = const Value.absent(),
@@ -21074,6 +21222,9 @@ class SpecimenPartData extends DataClass
         ? additionalTreatment.value
         : this.additionalTreatment,
     storage: storage.present ? storage.value : this.storage,
+    storageLocation: storageLocation.present
+        ? storageLocation.value
+        : this.storageLocation,
     dateTaken: dateTaken.present ? dateTaken.value : this.dateTaken,
     timeTaken: timeTaken.present ? timeTaken.value : this.timeTaken,
     pmi: pmi.present ? pmi.value : this.pmi,
@@ -21101,6 +21252,9 @@ class SpecimenPartData extends DataClass
           ? data.additionalTreatment.value
           : this.additionalTreatment,
       storage: data.storage.present ? data.storage.value : this.storage,
+      storageLocation: data.storageLocation.present
+          ? data.storageLocation.value
+          : this.storageLocation,
       dateTaken: data.dateTaken.present ? data.dateTaken.value : this.dateTaken,
       timeTaken: data.timeTaken.present ? data.timeTaken.value : this.timeTaken,
       pmi: data.pmi.present ? data.pmi.value : this.pmi,
@@ -21127,6 +21281,7 @@ class SpecimenPartData extends DataClass
           ..write('treatment: $treatment, ')
           ..write('additionalTreatment: $additionalTreatment, ')
           ..write('storage: $storage, ')
+          ..write('storageLocation: $storageLocation, ')
           ..write('dateTaken: $dateTaken, ')
           ..write('timeTaken: $timeTaken, ')
           ..write('pmi: $pmi, ')
@@ -21149,6 +21304,7 @@ class SpecimenPartData extends DataClass
     treatment,
     additionalTreatment,
     storage,
+    storageLocation,
     dateTaken,
     timeTaken,
     pmi,
@@ -21170,6 +21326,7 @@ class SpecimenPartData extends DataClass
           other.treatment == this.treatment &&
           other.additionalTreatment == this.additionalTreatment &&
           other.storage == this.storage &&
+          other.storageLocation == this.storageLocation &&
           other.dateTaken == this.dateTaken &&
           other.timeTaken == this.timeTaken &&
           other.pmi == this.pmi &&
@@ -21189,6 +21346,7 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
   final Value<String?> treatment;
   final Value<String?> additionalTreatment;
   final Value<String?> storage;
+  final Value<String?> storageLocation;
   final Value<String?> dateTaken;
   final Value<String?> timeTaken;
   final Value<String?> pmi;
@@ -21206,6 +21364,7 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
     this.treatment = const Value.absent(),
     this.additionalTreatment = const Value.absent(),
     this.storage = const Value.absent(),
+    this.storageLocation = const Value.absent(),
     this.dateTaken = const Value.absent(),
     this.timeTaken = const Value.absent(),
     this.pmi = const Value.absent(),
@@ -21224,6 +21383,7 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
     this.treatment = const Value.absent(),
     this.additionalTreatment = const Value.absent(),
     this.storage = const Value.absent(),
+    this.storageLocation = const Value.absent(),
     this.dateTaken = const Value.absent(),
     this.timeTaken = const Value.absent(),
     this.pmi = const Value.absent(),
@@ -21242,6 +21402,7 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
     Expression<String>? treatment,
     Expression<String>? additionalTreatment,
     Expression<String>? storage,
+    Expression<String>? storageLocation,
     Expression<String>? dateTaken,
     Expression<String>? timeTaken,
     Expression<String>? pmi,
@@ -21261,6 +21422,7 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
       if (additionalTreatment != null)
         'additionalTreatment': additionalTreatment,
       if (storage != null) 'storage': storage,
+      if (storageLocation != null) 'storageLocation': storageLocation,
       if (dateTaken != null) 'dateTaken': dateTaken,
       if (timeTaken != null) 'timeTaken': timeTaken,
       if (pmi != null) 'pmi': pmi,
@@ -21281,6 +21443,7 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
     Value<String?>? treatment,
     Value<String?>? additionalTreatment,
     Value<String?>? storage,
+    Value<String?>? storageLocation,
     Value<String?>? dateTaken,
     Value<String?>? timeTaken,
     Value<String?>? pmi,
@@ -21299,6 +21462,7 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
       treatment: treatment ?? this.treatment,
       additionalTreatment: additionalTreatment ?? this.additionalTreatment,
       storage: storage ?? this.storage,
+      storageLocation: storageLocation ?? this.storageLocation,
       dateTaken: dateTaken ?? this.dateTaken,
       timeTaken: timeTaken ?? this.timeTaken,
       pmi: pmi ?? this.pmi,
@@ -21341,6 +21505,9 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
     if (storage.present) {
       map['storage'] = Variable<String>(storage.value);
     }
+    if (storageLocation.present) {
+      map['storageLocation'] = Variable<String>(storageLocation.value);
+    }
     if (dateTaken.present) {
       map['dateTaken'] = Variable<String>(dateTaken.value);
     }
@@ -21375,6 +21542,7 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
           ..write('treatment: $treatment, ')
           ..write('additionalTreatment: $additionalTreatment, ')
           ..write('storage: $storage, ')
+          ..write('storageLocation: $storageLocation, ')
           ..write('dateTaken: $dateTaken, ')
           ..write('timeTaken: $timeTaken, ')
           ..write('pmi: $pmi, ')
@@ -22511,12 +22679,13 @@ abstract class _$Database extends GeneratedDatabase {
 typedef $ProjectCreateCompanionBuilder =
     ProjectCompanion Function({
       required String uuid,
-      Value<String?> accession,
-      Value<String?> catalogNumberPrefix,
-      Value<String?> catalogNumberSuffix,
       required String name,
       Value<String?> description,
       Value<String?> principalInvestigator,
+      Value<String?> accession,
+      Value<String?> catalogNumberPrefix,
+      Value<int?> currentCatalogNumber,
+      Value<String?> catalogNumberSuffix,
       Value<String?> location,
       Value<String?> timeZone,
       Value<String?> startDate,
@@ -22528,12 +22697,13 @@ typedef $ProjectCreateCompanionBuilder =
 typedef $ProjectUpdateCompanionBuilder =
     ProjectCompanion Function({
       Value<String> uuid,
-      Value<String?> accession,
-      Value<String?> catalogNumberPrefix,
-      Value<String?> catalogNumberSuffix,
       Value<String> name,
       Value<String?> description,
       Value<String?> principalInvestigator,
+      Value<String?> accession,
+      Value<String?> catalogNumberPrefix,
+      Value<int?> currentCatalogNumber,
+      Value<String?> catalogNumberSuffix,
       Value<String?> location,
       Value<String?> timeZone,
       Value<String?> startDate,
@@ -22579,21 +22749,6 @@ class $ProjectFilterComposer extends Composer<_$Database, Project> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get accession => $composableBuilder(
-    column: $table.accession,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get catalogNumberPrefix => $composableBuilder(
-    column: $table.catalogNumberPrefix,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get catalogNumberSuffix => $composableBuilder(
-    column: $table.catalogNumberSuffix,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
@@ -22606,6 +22761,26 @@ class $ProjectFilterComposer extends Composer<_$Database, Project> {
 
   ColumnFilters<String> get principalInvestigator => $composableBuilder(
     column: $table.principalInvestigator,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accession => $composableBuilder(
+    column: $table.accession,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogNumberPrefix => $composableBuilder(
+    column: $table.catalogNumberPrefix,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentCatalogNumber => $composableBuilder(
+    column: $table.currentCatalogNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogNumberSuffix => $composableBuilder(
+    column: $table.catalogNumberSuffix,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -22678,21 +22853,6 @@ class $ProjectOrderingComposer extends Composer<_$Database, Project> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get accession => $composableBuilder(
-    column: $table.accession,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get catalogNumberPrefix => $composableBuilder(
-    column: $table.catalogNumberPrefix,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get catalogNumberSuffix => $composableBuilder(
-    column: $table.catalogNumberSuffix,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -22705,6 +22865,26 @@ class $ProjectOrderingComposer extends Composer<_$Database, Project> {
 
   ColumnOrderings<String> get principalInvestigator => $composableBuilder(
     column: $table.principalInvestigator,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get accession => $composableBuilder(
+    column: $table.accession,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogNumberPrefix => $composableBuilder(
+    column: $table.catalogNumberPrefix,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentCatalogNumber => $composableBuilder(
+    column: $table.currentCatalogNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogNumberSuffix => $composableBuilder(
+    column: $table.catalogNumberSuffix,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -22750,19 +22930,6 @@ class $ProjectAnnotationComposer extends Composer<_$Database, Project> {
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
 
-  GeneratedColumn<String> get accession =>
-      $composableBuilder(column: $table.accession, builder: (column) => column);
-
-  GeneratedColumn<String> get catalogNumberPrefix => $composableBuilder(
-    column: $table.catalogNumberPrefix,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get catalogNumberSuffix => $composableBuilder(
-    column: $table.catalogNumberSuffix,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -22773,6 +22940,24 @@ class $ProjectAnnotationComposer extends Composer<_$Database, Project> {
 
   GeneratedColumn<String> get principalInvestigator => $composableBuilder(
     column: $table.principalInvestigator,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get accession =>
+      $composableBuilder(column: $table.accession, builder: (column) => column);
+
+  GeneratedColumn<String> get catalogNumberPrefix => $composableBuilder(
+    column: $table.catalogNumberPrefix,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get currentCatalogNumber => $composableBuilder(
+    column: $table.currentCatalogNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get catalogNumberSuffix => $composableBuilder(
+    column: $table.catalogNumberSuffix,
     builder: (column) => column,
   );
 
@@ -22851,12 +23036,13 @@ class $ProjectTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
-                Value<String?> accession = const Value.absent(),
-                Value<String?> catalogNumberPrefix = const Value.absent(),
-                Value<String?> catalogNumberSuffix = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String?> principalInvestigator = const Value.absent(),
+                Value<String?> accession = const Value.absent(),
+                Value<String?> catalogNumberPrefix = const Value.absent(),
+                Value<int?> currentCatalogNumber = const Value.absent(),
+                Value<String?> catalogNumberSuffix = const Value.absent(),
                 Value<String?> location = const Value.absent(),
                 Value<String?> timeZone = const Value.absent(),
                 Value<String?> startDate = const Value.absent(),
@@ -22866,12 +23052,13 @@ class $ProjectTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ProjectCompanion(
                 uuid: uuid,
-                accession: accession,
-                catalogNumberPrefix: catalogNumberPrefix,
-                catalogNumberSuffix: catalogNumberSuffix,
                 name: name,
                 description: description,
                 principalInvestigator: principalInvestigator,
+                accession: accession,
+                catalogNumberPrefix: catalogNumberPrefix,
+                currentCatalogNumber: currentCatalogNumber,
+                catalogNumberSuffix: catalogNumberSuffix,
                 location: location,
                 timeZone: timeZone,
                 startDate: startDate,
@@ -22883,12 +23070,13 @@ class $ProjectTableManager
           createCompanionCallback:
               ({
                 required String uuid,
-                Value<String?> accession = const Value.absent(),
-                Value<String?> catalogNumberPrefix = const Value.absent(),
-                Value<String?> catalogNumberSuffix = const Value.absent(),
                 required String name,
                 Value<String?> description = const Value.absent(),
                 Value<String?> principalInvestigator = const Value.absent(),
+                Value<String?> accession = const Value.absent(),
+                Value<String?> catalogNumberPrefix = const Value.absent(),
+                Value<int?> currentCatalogNumber = const Value.absent(),
+                Value<String?> catalogNumberSuffix = const Value.absent(),
                 Value<String?> location = const Value.absent(),
                 Value<String?> timeZone = const Value.absent(),
                 Value<String?> startDate = const Value.absent(),
@@ -22898,12 +23086,13 @@ class $ProjectTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ProjectCompanion.insert(
                 uuid: uuid,
-                accession: accession,
-                catalogNumberPrefix: catalogNumberPrefix,
-                catalogNumberSuffix: catalogNumberSuffix,
                 name: name,
                 description: description,
                 principalInvestigator: principalInvestigator,
+                accession: accession,
+                catalogNumberPrefix: catalogNumberPrefix,
+                currentCatalogNumber: currentCatalogNumber,
+                catalogNumberSuffix: catalogNumberSuffix,
                 location: location,
                 timeZone: timeZone,
                 startDate: startDate,
@@ -27439,7 +27628,6 @@ typedef $SpecimenCreateCompanionBuilder =
       Value<String?> methodID,
       Value<int?> coordinateID,
       Value<String?> catalogerID,
-      Value<String?> identifierID,
       Value<int?> fieldNumber,
       Value<int?> projectFieldNumber,
       Value<int?> collEventID,
@@ -27447,6 +27635,7 @@ typedef $SpecimenCreateCompanionBuilder =
       Value<int?> collPersonnelID,
       Value<int?> collMethodID,
       Value<String?> museumID,
+      Value<String?> identifierID,
       Value<String?> preparatorID,
       Value<int> rowid,
     });
@@ -27471,7 +27660,6 @@ typedef $SpecimenUpdateCompanionBuilder =
       Value<String?> methodID,
       Value<int?> coordinateID,
       Value<String?> catalogerID,
-      Value<String?> identifierID,
       Value<int?> fieldNumber,
       Value<int?> projectFieldNumber,
       Value<int?> collEventID,
@@ -27479,6 +27667,7 @@ typedef $SpecimenUpdateCompanionBuilder =
       Value<int?> collPersonnelID,
       Value<int?> collMethodID,
       Value<String?> museumID,
+      Value<String?> identifierID,
       Value<String?> preparatorID,
       Value<int> rowid,
     });
@@ -28106,7 +28295,6 @@ class $SpecimenTableManager
                 Value<String?> methodID = const Value.absent(),
                 Value<int?> coordinateID = const Value.absent(),
                 Value<String?> catalogerID = const Value.absent(),
-                Value<String?> identifierID = const Value.absent(),
                 Value<int?> fieldNumber = const Value.absent(),
                 Value<int?> projectFieldNumber = const Value.absent(),
                 Value<int?> collEventID = const Value.absent(),
@@ -28114,6 +28302,7 @@ class $SpecimenTableManager
                 Value<int?> collPersonnelID = const Value.absent(),
                 Value<int?> collMethodID = const Value.absent(),
                 Value<String?> museumID = const Value.absent(),
+                Value<String?> identifierID = const Value.absent(),
                 Value<String?> preparatorID = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SpecimenCompanion(
@@ -28136,7 +28325,6 @@ class $SpecimenTableManager
                 methodID: methodID,
                 coordinateID: coordinateID,
                 catalogerID: catalogerID,
-                identifierID: identifierID,
                 fieldNumber: fieldNumber,
                 projectFieldNumber: projectFieldNumber,
                 collEventID: collEventID,
@@ -28144,6 +28332,7 @@ class $SpecimenTableManager
                 collPersonnelID: collPersonnelID,
                 collMethodID: collMethodID,
                 museumID: museumID,
+                identifierID: identifierID,
                 preparatorID: preparatorID,
                 rowid: rowid,
               ),
@@ -28168,7 +28357,6 @@ class $SpecimenTableManager
                 Value<String?> methodID = const Value.absent(),
                 Value<int?> coordinateID = const Value.absent(),
                 Value<String?> catalogerID = const Value.absent(),
-                Value<String?> identifierID = const Value.absent(),
                 Value<int?> fieldNumber = const Value.absent(),
                 Value<int?> projectFieldNumber = const Value.absent(),
                 Value<int?> collEventID = const Value.absent(),
@@ -28176,6 +28364,7 @@ class $SpecimenTableManager
                 Value<int?> collPersonnelID = const Value.absent(),
                 Value<int?> collMethodID = const Value.absent(),
                 Value<String?> museumID = const Value.absent(),
+                Value<String?> identifierID = const Value.absent(),
                 Value<String?> preparatorID = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SpecimenCompanion.insert(
@@ -28198,7 +28387,6 @@ class $SpecimenTableManager
                 methodID: methodID,
                 coordinateID: coordinateID,
                 catalogerID: catalogerID,
-                identifierID: identifierID,
                 fieldNumber: fieldNumber,
                 projectFieldNumber: projectFieldNumber,
                 collEventID: collEventID,
@@ -28206,6 +28394,7 @@ class $SpecimenTableManager
                 collPersonnelID: collPersonnelID,
                 collMethodID: collMethodID,
                 museumID: museumID,
+                identifierID: identifierID,
                 preparatorID: preparatorID,
                 rowid: rowid,
               ),
@@ -32253,6 +32442,7 @@ typedef $ParasiteCreateCompanionBuilder =
       Value<int?> count,
       Value<String?> preparationMethod,
       Value<String?> storage,
+      Value<String?> storageLocation,
       Value<String?> treatment,
       Value<String?> anatomicalLocation,
       Value<String?> lifeStage,
@@ -32278,6 +32468,7 @@ typedef $ParasiteUpdateCompanionBuilder =
       Value<int?> count,
       Value<String?> preparationMethod,
       Value<String?> storage,
+      Value<String?> storageLocation,
       Value<String?> treatment,
       Value<String?> anatomicalLocation,
       Value<String?> lifeStage,
@@ -32360,6 +32551,11 @@ class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
 
   ColumnFilters<String> get storage => $composableBuilder(
     column: $table.storage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get storageLocation => $composableBuilder(
+    column: $table.storageLocation,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -32500,6 +32696,11 @@ class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get storageLocation => $composableBuilder(
+    column: $table.storageLocation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get treatment => $composableBuilder(
     column: $table.treatment,
     builder: (column) => ColumnOrderings(column),
@@ -32629,6 +32830,11 @@ class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
   GeneratedColumn<String> get storage =>
       $composableBuilder(column: $table.storage, builder: (column) => column);
 
+  GeneratedColumn<String> get storageLocation => $composableBuilder(
+    column: $table.storageLocation,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get treatment =>
       $composableBuilder(column: $table.treatment, builder: (column) => column);
 
@@ -32747,6 +32953,7 @@ class $ParasiteTableManager
                 Value<int?> count = const Value.absent(),
                 Value<String?> preparationMethod = const Value.absent(),
                 Value<String?> storage = const Value.absent(),
+                Value<String?> storageLocation = const Value.absent(),
                 Value<String?> treatment = const Value.absent(),
                 Value<String?> anatomicalLocation = const Value.absent(),
                 Value<String?> lifeStage = const Value.absent(),
@@ -32770,6 +32977,7 @@ class $ParasiteTableManager
                 count: count,
                 preparationMethod: preparationMethod,
                 storage: storage,
+                storageLocation: storageLocation,
                 treatment: treatment,
                 anatomicalLocation: anatomicalLocation,
                 lifeStage: lifeStage,
@@ -32795,6 +33003,7 @@ class $ParasiteTableManager
                 Value<int?> count = const Value.absent(),
                 Value<String?> preparationMethod = const Value.absent(),
                 Value<String?> storage = const Value.absent(),
+                Value<String?> storageLocation = const Value.absent(),
                 Value<String?> treatment = const Value.absent(),
                 Value<String?> anatomicalLocation = const Value.absent(),
                 Value<String?> lifeStage = const Value.absent(),
@@ -32818,6 +33027,7 @@ class $ParasiteTableManager
                 count: count,
                 preparationMethod: preparationMethod,
                 storage: storage,
+                storageLocation: storageLocation,
                 treatment: treatment,
                 anatomicalLocation: anatomicalLocation,
                 lifeStage: lifeStage,
@@ -32908,6 +33118,7 @@ typedef $SpecimenPartCreateCompanionBuilder =
       Value<String?> treatment,
       Value<String?> additionalTreatment,
       Value<String?> storage,
+      Value<String?> storageLocation,
       Value<String?> dateTaken,
       Value<String?> timeTaken,
       Value<String?> pmi,
@@ -32927,6 +33138,7 @@ typedef $SpecimenPartUpdateCompanionBuilder =
       Value<String?> treatment,
       Value<String?> additionalTreatment,
       Value<String?> storage,
+      Value<String?> storageLocation,
       Value<String?> dateTaken,
       Value<String?> timeTaken,
       Value<String?> pmi,
@@ -32990,6 +33202,11 @@ class $SpecimenPartFilterComposer extends Composer<_$Database, SpecimenPart> {
 
   ColumnFilters<String> get storage => $composableBuilder(
     column: $table.storage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get storageLocation => $composableBuilder(
+    column: $table.storageLocation,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -33082,6 +33299,11 @@ class $SpecimenPartOrderingComposer extends Composer<_$Database, SpecimenPart> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get storageLocation => $composableBuilder(
+    column: $table.storageLocation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get dateTaken => $composableBuilder(
     column: $table.dateTaken,
     builder: (column) => ColumnOrderings(column),
@@ -33158,6 +33380,11 @@ class $SpecimenPartAnnotationComposer
   GeneratedColumn<String> get storage =>
       $composableBuilder(column: $table.storage, builder: (column) => column);
 
+  GeneratedColumn<String> get storageLocation => $composableBuilder(
+    column: $table.storageLocation,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get dateTaken =>
       $composableBuilder(column: $table.dateTaken, builder: (column) => column);
 
@@ -33222,6 +33449,7 @@ class $SpecimenPartTableManager
                 Value<String?> treatment = const Value.absent(),
                 Value<String?> additionalTreatment = const Value.absent(),
                 Value<String?> storage = const Value.absent(),
+                Value<String?> storageLocation = const Value.absent(),
                 Value<String?> dateTaken = const Value.absent(),
                 Value<String?> timeTaken = const Value.absent(),
                 Value<String?> pmi = const Value.absent(),
@@ -33239,6 +33467,7 @@ class $SpecimenPartTableManager
                 treatment: treatment,
                 additionalTreatment: additionalTreatment,
                 storage: storage,
+                storageLocation: storageLocation,
                 dateTaken: dateTaken,
                 timeTaken: timeTaken,
                 pmi: pmi,
@@ -33258,6 +33487,7 @@ class $SpecimenPartTableManager
                 Value<String?> treatment = const Value.absent(),
                 Value<String?> additionalTreatment = const Value.absent(),
                 Value<String?> storage = const Value.absent(),
+                Value<String?> storageLocation = const Value.absent(),
                 Value<String?> dateTaken = const Value.absent(),
                 Value<String?> timeTaken = const Value.absent(),
                 Value<String?> pmi = const Value.absent(),
@@ -33275,6 +33505,7 @@ class $SpecimenPartTableManager
                 treatment: treatment,
                 additionalTreatment: additionalTreatment,
                 storage: storage,
+                storageLocation: storageLocation,
                 dateTaken: dateTaken,
                 timeTaken: timeTaken,
                 pmi: pmi,

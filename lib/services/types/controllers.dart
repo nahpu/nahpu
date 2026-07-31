@@ -876,6 +876,8 @@ class PartFormCtrModel {
     required this.countCtr,
     required this.treatmentCtr,
     required this.additionalTreatmentCtr,
+    required this.storageCtr,
+    required this.storageLocationCtr,
     required this.dateTakenCtr,
     required this.timeTakenCtr,
     required this.pmiCtr,
@@ -891,6 +893,8 @@ class PartFormCtrModel {
   TextEditingController countCtr;
   TextEditingController treatmentCtr;
   TextEditingController additionalTreatmentCtr;
+  TextEditingController storageCtr;
+  TextEditingController storageLocationCtr;
   DateEditingController dateTakenCtr;
   TimeEditingController timeTakenCtr;
   TextEditingController pmiCtr;
@@ -906,6 +910,8 @@ class PartFormCtrModel {
     countCtr: TextEditingController(),
     treatmentCtr: TextEditingController(),
     additionalTreatmentCtr: TextEditingController(),
+    storageCtr: TextEditingController(),
+    storageLocationCtr: TextEditingController(),
     dateTakenCtr: DateEditingController(),
     timeTakenCtr: TimeEditingController(),
     pmiCtr: TextEditingController(),
@@ -924,6 +930,8 @@ class PartFormCtrModel {
     additionalTreatmentCtr: TextEditingController(
       text: data.additionalTreatment ?? '',
     ),
+    storageCtr: TextEditingController(text: data.storage ?? ''),
+    storageLocationCtr: TextEditingController(text: data.storageLocation ?? ''),
     dateTakenCtr: DateEditingController(date: data.dateTaken ?? ''),
     timeTakenCtr: TimeEditingController(time: data.timeTaken ?? ''),
     pmiCtr: TextEditingController(text: data.pmi ?? ''),
@@ -939,6 +947,8 @@ class PartFormCtrModel {
     countCtr.dispose();
     treatmentCtr.dispose();
     additionalTreatmentCtr.dispose();
+    storageCtr.dispose();
+    storageLocationCtr.dispose();
     dateTakenCtr.dispose();
     timeTakenCtr.dispose();
     pmiCtr.dispose();
@@ -1123,6 +1133,7 @@ class ParasiteFormCtrModel {
     required this.countCtr,
     required this.preparationMethodCtr,
     required this.storageCtr,
+    required this.storageLocationCtr,
     required this.treatmentCtr,
     required this.anatomicalLocationCtr,
     required this.lifeStageCtr,
@@ -1145,6 +1156,7 @@ class ParasiteFormCtrModel {
   TextEditingController countCtr;
   TextEditingController preparationMethodCtr;
   TextEditingController storageCtr;
+  TextEditingController storageLocationCtr;
   TextEditingController treatmentCtr;
   TextEditingController anatomicalLocationCtr;
   TextEditingController lifeStageCtr;
@@ -1167,6 +1179,7 @@ class ParasiteFormCtrModel {
     countCtr: TextEditingController(text: '1'),
     preparationMethodCtr: TextEditingController(),
     storageCtr: TextEditingController(),
+    storageLocationCtr: TextEditingController(),
     treatmentCtr: TextEditingController(),
     anatomicalLocationCtr: TextEditingController(),
     lifeStageCtr: TextEditingController(),
@@ -1194,6 +1207,7 @@ class ParasiteFormCtrModel {
       text: data.preparationMethod ?? '',
     ),
     storageCtr: TextEditingController(text: data.storage ?? ''),
+    storageLocationCtr: TextEditingController(text: data.storageLocation ?? ''),
     treatmentCtr: TextEditingController(text: data.treatment ?? ''),
     anatomicalLocationCtr: TextEditingController(
       text: data.anatomicalLocation ?? '',
@@ -1216,6 +1230,7 @@ class ParasiteFormCtrModel {
     countCtr.dispose();
     preparationMethodCtr.dispose();
     storageCtr.dispose();
+    storageLocationCtr.dispose();
     treatmentCtr.dispose();
     anatomicalLocationCtr.dispose();
     lifeStageCtr.dispose();

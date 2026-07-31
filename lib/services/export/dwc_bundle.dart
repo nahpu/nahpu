@@ -252,6 +252,21 @@ class DwcBundleWriter extends AppServices {
         'cataloger',
         agents,
       );
+      String? catalogNumber;
+      if (specimen.projectFieldNumber != null) {
+        catalogNumber = formatProjectFieldId(
+          project,
+          specimen.projectFieldNumber,
+        );
+      } else if (specimen.fieldNumber != null) {
+        final catalogerData = specimen.catalogerID == null
+            ? null
+            : await PersonnelServices(
+                ref: ref,
+              ).getPersonnelByUuid(specimen.catalogerID!);
+        catalogNumber =
+            '${catalogerData?.initial ?? ''}${specimen.fieldNumber}';
+      }
       var eventAgents = event == null
           ? <_ResolvedAgent>[]
           : await _resolveEventAgents(event.id, agents);
@@ -267,6 +282,7 @@ class DwcBundleWriter extends AppServices {
           site: site,
           coordinate: coordinate,
           recorders: recorders,
+          catalogNumber: catalogNumber,
         ),
       );
       if (event != null) {
@@ -502,6 +518,7 @@ class DwcBundleWriter extends AppServices {
     required SiteData? site,
     required CoordinateData? coordinate,
     required List<_ResolvedAgent> recorders,
+    required String? catalogNumber,
   }) {
     final released = specimen.condition?.toLowerCase() == 'released';
     final scientificName = [
@@ -512,7 +529,7 @@ class DwcBundleWriter extends AppServices {
       'occurrenceID': specimen.uuid,
       'basisOfRecord': released ? 'HumanObservation' : 'PreservedSpecimen',
       'occurrenceStatus': 'detected',
-      'catalogNumber': specimen.projectFieldNumber ?? specimen.fieldNumber,
+      'catalogNumber': catalogNumber,
       'eventID': eventId,
       'eventDate':
           specimen.collectionDate ??
