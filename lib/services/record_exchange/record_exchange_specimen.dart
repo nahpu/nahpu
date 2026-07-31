@@ -72,6 +72,7 @@ class RecordExchangeSpecimen extends AppServices {
 
     final personnel = <String, Map<String, dynamic>>{};
     await _addPersonnel(personnel, specimen.catalogerID);
+    await _addPersonnel(personnel, specimen.identifierID);
     await _addPersonnel(personnel, specimen.preparatorID);
     for (final part in await SpecimenPartQuery(
       dbAccess,

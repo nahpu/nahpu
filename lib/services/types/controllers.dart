@@ -282,6 +282,7 @@ class SpecimenFormCtrModel {
     required this.idConfidenceCtr,
     required this.idMethodCtr,
     required this.catalogerCtr,
+    required this.identifierCtr,
     required this.museumIDCtr,
     required this.persFieldNumberCtr,
     required this.projFieldNumberCtr,
@@ -305,6 +306,7 @@ class SpecimenFormCtrModel {
   });
 
   String? catalogerCtr;
+  String? identifierCtr;
   String? preparatorCtr;
   String? conditionCtr;
   int? speciesCtr;
@@ -331,6 +333,7 @@ class SpecimenFormCtrModel {
 
   factory SpecimenFormCtrModel.empty() => SpecimenFormCtrModel(
     catalogerCtr: null,
+    identifierCtr: null,
     preparatorCtr: null,
     conditionCtr: null,
     collEventIDCtr: null,
@@ -359,6 +362,7 @@ class SpecimenFormCtrModel {
   factory SpecimenFormCtrModel.fromData(SpecimenData specimen) =>
       SpecimenFormCtrModel(
         catalogerCtr: specimen.catalogerID,
+        identifierCtr: specimen.identifierID,
         preparatorCtr: specimen.preparatorID,
         conditionCtr: specimen.condition,
         collEventIDCtr: specimen.collEventID,

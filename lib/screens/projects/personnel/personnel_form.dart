@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 
 const List<String> personnelRoleList = [
   'Cataloger',
+  'Identifier only',
   'Preparator only',
   'None',
 ];

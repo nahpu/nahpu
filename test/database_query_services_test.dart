@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/personnel_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 
@@ -120,6 +121,36 @@ void main() {
       expect(await query.countSpecimens(criteria), results.length);
       expect(results.map((row) => row.uuid), ['specimen-a-10']);
     });
+  });
+
+  test('specimen identifier prevents personnel removal', () async {
+    await db.into(db.project).insert(
+          const ProjectCompanion(
+            uuid: Value('project-a'),
+            name: Value('Project A'),
+          ),
+        );
+    await db.into(db.personnel).insert(
+          const PersonnelCompanion(
+            uuid: Value('identifier-a'),
+            name: Value('Iris Identifier'),
+          ),
+        );
+    await db.into(db.specimen).insert(
+          const SpecimenCompanion(
+            uuid: Value('specimen-a'),
+            projectUuid: Value('project-a'),
+            identifierID: Value('identifier-a'),
+          ),
+        );
+
+    expect(
+      await PersonnelQuery(db).isPersonnelUsedBySpecimenRecords(
+        projectUuid: 'project-a',
+        personnelUuid: 'identifier-a',
+      ),
+      isTrue,
+    );
   });
 }
 

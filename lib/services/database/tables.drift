@@ -333,7 +333,7 @@ CREATE TABLE specimen (
     prepDate TEXT,
     prepTime TEXT,
     collectionDate TEXT,
-    collectionTime TEXT, -- v4 update
+    collectionTime TEXT,
     captureDate TEXT,
     isRelativeTime INT,
     captureTime TEXT,
@@ -342,7 +342,6 @@ CREATE TABLE specimen (
     methodID TEXT, -- v4 rename
     coordinateID INT,
     catalogerID TEXT,
-    identifierID TEXT REFERENCES personnel(uuid),
     fieldNumber INT,
     projectFieldNumber INT,
     collEventID INT,
@@ -350,6 +349,7 @@ CREATE TABLE specimen (
     collPersonnelID INT,
     collMethodID INT,
     museumID TEXT,
+    identifierID TEXT REFERENCES personnel(uuid),
     preparatorID TEXT REFERENCES personnel(uuid),
     FOREIGN KEY(projectUuid) REFERENCES project(uuid),
     FOREIGN KEY(catalogerID) REFERENCES personnel(uuid),

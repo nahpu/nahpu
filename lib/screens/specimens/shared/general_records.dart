@@ -59,10 +59,15 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
             specimenUuid: widget.specimenUuid,
             specimenCtr: widget.specimenCtr,
             showMore: _showMore,
+            onCatalogerChanged: () => setState(() {}),
           ),
           SpeciesFieldCtr(
             specimenUuid: widget.specimenUuid,
             speciesCtr: widget.specimenCtr.speciesCtr,
+          ),
+          IdentifierField(
+            specimenUuid: widget.specimenUuid,
+            specimenCtr: widget.specimenCtr,
           ),
           IDConfidence(
             specimenUuid: widget.specimenUuid,
@@ -187,6 +192,59 @@ class IDConfidence extends ConsumerWidget {
               ),
             )
             .toList(),
+      ),
+    );
+  }
+}
+
+class IdentifierField extends ConsumerWidget {
+  const IdentifierField({
+    super.key,
+    required this.specimenUuid,
+    required this.specimenCtr,
+  });
+
+  final String specimenUuid;
+  final SpecimenFormCtrModel specimenCtr;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CommonPadding(
+      child: DropdownButtonFormField<String>(
+        key: ValueKey(specimenCtr.identifierCtr),
+        initialValue: specimenCtr.identifierCtr,
+        isExpanded: true,
+        decoration: const InputDecoration(
+          labelText: 'Identifier',
+          hintText: 'Choose an identifier (default is cataloger)',
+          hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
+        ),
+        items: ref
+            .watch(projectPersonnelProvider)
+            .when(
+              data: (data) => data
+                  .where(
+                    (element) =>
+                        element.role == 'Cataloger' ||
+                        element.role == 'Identifier only',
+                  )
+                  .map(
+                    (person) => DropdownMenuItem(
+                      value: person.uuid,
+                      child: CommonDropdownText(text: person.name ?? ''),
+                    ),
+                  )
+                  .toList(),
+              loading: () => const [],
+              error: (_, _) => const [],
+            ),
+        onChanged: (String? uuid) {
+          specimenCtr.identifierCtr = uuid;
+          SpecimenServices(ref: ref).updateSpecimen(
+            specimenUuid,
+            SpecimenCompanion(identifierID: db.Value(uuid)),
+          );
+        },
       ),
     );
   }
@@ -421,11 +479,13 @@ class PersonnelRecords extends ConsumerStatefulWidget {
     required this.specimenUuid,
     required this.specimenCtr,
     required this.showMore,
+    required this.onCatalogerChanged,
   });
 
   final SpecimenFormCtrModel specimenCtr;
   final String specimenUuid;
   final bool showMore;
+  final VoidCallback onCatalogerChanged;
 
   @override
   PersonnelRecordsState createState() => PersonnelRecordsState();
@@ -473,6 +533,7 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
             },
           ),
           DropdownButtonFormField<String>(
+            key: ValueKey(widget.specimenCtr.preparatorCtr),
             initialValue: widget.specimenCtr.preparatorCtr,
             isExpanded: true,
             decoration: const InputDecoration(
@@ -519,34 +580,39 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
       int personalFieldNumber = await SpecimenServices(
         ref: ref,
       ).getSpecimenFieldNumber(personnelUuid);
-      setState(() {
-        bool hasSelected = _selectedPersonnel.contains(personnelUuid);
-        int? currentFieldNumber = personnelData.isRegisterField
-            ? (hasSelected ? personalFieldNumber - 1 : personalFieldNumber)
-            : null;
-        widget.specimenCtr.catalogerCtr = personnelUuid;
-        widget.specimenCtr.preparatorCtr = personnelUuid;
-        widget.specimenCtr.persFieldNumberCtr.text = currentFieldNumber
-            .toString();
+      if (!mounted) return;
 
-        if (!hasSelected) {
-          PersonnelServices(ref: ref).updatePersonnelEntry(
-            personnelUuid,
-            PersonnelCompanion(
-              currentFieldNumber: db.Value(personalFieldNumber + 1),
-            ),
-          );
-          _selectedPersonnel.add(personnelUuid);
-        }
-        SpecimenServices(ref: ref).updateSpecimen(
-          widget.specimenUuid,
-          SpecimenCompanion(
-            catalogerID: db.Value(personnelUuid),
-            fieldNumber: db.Value(currentFieldNumber),
-            preparatorID: db.Value(personnelUuid),
+      bool hasSelected = _selectedPersonnel.contains(personnelUuid);
+      int? currentFieldNumber = personnelData.isRegisterField
+          ? (hasSelected ? personalFieldNumber - 1 : personalFieldNumber)
+          : null;
+      setState(() {
+        widget.specimenCtr.catalogerCtr = personnelUuid;
+        widget.specimenCtr.identifierCtr = personnelUuid;
+        widget.specimenCtr.preparatorCtr = personnelUuid;
+        widget.specimenCtr.persFieldNumberCtr.text =
+            currentFieldNumber?.toString() ?? '';
+        if (!hasSelected) _selectedPersonnel.add(personnelUuid);
+      });
+      widget.onCatalogerChanged();
+
+      if (!hasSelected) {
+        await PersonnelServices(ref: ref).updatePersonnelEntry(
+          personnelUuid,
+          PersonnelCompanion(
+            currentFieldNumber: db.Value(personalFieldNumber + 1),
           ),
         );
-      });
+      }
+      await SpecimenServices(ref: ref).updateSpecimen(
+        widget.specimenUuid,
+        SpecimenCompanion(
+          catalogerID: db.Value(personnelUuid),
+          identifierID: db.Value(personnelUuid),
+          fieldNumber: db.Value(currentFieldNumber),
+          preparatorID: db.Value(personnelUuid),
+        ),
+      );
     }
   }
 }

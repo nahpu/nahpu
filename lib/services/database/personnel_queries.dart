@@ -87,6 +87,7 @@ class PersonnelQuery extends DatabaseAccessor<Database>
           ..where((t) => t.projectUuid.equals(projectUuid))
           ..where((t) =>
               t.catalogerID.equals(personnelUuid) |
+              t.identifierID.equals(personnelUuid) |
               t.preparatorID.equals(personnelUuid))
           ..limit(1))
         .getSingleOrNull();

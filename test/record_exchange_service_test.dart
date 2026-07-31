@@ -297,15 +297,20 @@ void main() {
       await setUpService(tester);
       addTearDown(tearDownService);
 
-      await database
-          .into(database.personnel)
-          .insert(
-            const PersonnelCompanion(
-              uuid: Value('person-a'),
-              name: Value('Person A'),
-              isRegisterField: Value(true),
-            ),
-          );
+      await database.batch((batch) {
+        batch.insertAll(database.personnel, const [
+          PersonnelCompanion(
+            uuid: Value('person-a'),
+            name: Value('Person A'),
+            isRegisterField: Value(true),
+          ),
+          PersonnelCompanion(
+            uuid: Value('identifier-a'),
+            name: Value('Identifier A'),
+            role: Value('Identifier only'),
+          ),
+        ]);
+      });
       final taxon = await database
           .into(database.taxonomy)
           .insert(
@@ -350,6 +355,7 @@ void main() {
               coordinateID: Value(coordinate),
               collEventID: Value(event),
               catalogerID: const Value('person-a'),
+              identifierID: const Value('identifier-a'),
               fieldNumber: const Value(17),
             ),
           );
@@ -392,6 +398,12 @@ void main() {
       expect(exportedAssociatedData, isNot(contains('uri')));
       expect(payload.data['taxonomy'], isNotNull);
       expect(payload.data['event'], isNotNull);
+      expect(
+        RecordExchangePayload.mapList(
+          payload.data['personnel'],
+        ).map((person) => person['uuid']),
+        contains('identifier-a'),
+      );
 
       final parsed = RecordExchangePayload.parse(payload.compactEncoded);
       final result = await service.importPayload(
@@ -407,6 +419,7 @@ void main() {
       expect(imported.collEventID, event);
       expect(imported.speciesID, taxon);
       expect(imported.coordinateID, isNot(coordinate));
+      expect(imported.identifierID, 'identifier-a');
       final importedMammalAttribute =
           await (database.select(database.mammalAttribute)
                 ..where((row) => row.specimenUuid.equals(result.recordUuid!)))
