@@ -274,6 +274,30 @@ class SpecimenServices extends AppServices {
     MammalSpecimenQuery(dbAccess).updateMammalAttributes(specimenUuid, entries);
   }
 
+  void clearMammalSexAttributes(String specimenUuid) {
+    updateMammalAttribute(
+      specimenUuid,
+      const MammalAttributeCompanion(
+        testisPosition: db.Value(null),
+        testisLength: db.Value(null),
+        testisWidth: db.Value(null),
+        epididymisAppearance: db.Value(null),
+        vaginaOpening: db.Value(null),
+        pubicSymphysis: db.Value(null),
+        reproductiveStage: db.Value(null),
+        mammaeAxillaryCount: db.Value(null),
+        mammaeAbdominalCount: db.Value(null),
+        mammaeInguinalCount: db.Value(null),
+        mammaeCondition: db.Value(null),
+        embryoLeftCount: db.Value(null),
+        embryoRightCount: db.Value(null),
+        embryoCR: db.Value(null),
+        leftPlacentalScars: db.Value(null),
+        rightPlacentalScars: db.Value(null),
+      ),
+    );
+  }
+
   void _createHerpSpecimen(String specimenUuid) {
     HerpSpecimenQuery(dbAccess).createHerpAttributes(
       HerpAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
@@ -289,6 +313,10 @@ class SpecimenServices extends AppServices {
     HerpAttributeCompanion entries,
   ) {
     HerpSpecimenQuery(dbAccess).updateHerpAttributes(specimenUuid, entries);
+  }
+
+  void clearHerpSexAttributes(String specimenUuid) {
+    updateHerpAttribute(specimenUuid, const HerpAttributeCompanion());
   }
 
   void _createBirdSpecimen(String specimenUuid) {
@@ -387,6 +415,26 @@ class SpecimenServices extends AppServices {
     BirdAttributeCompanion entries,
   ) {
     BirdSpecimenQuery(dbAccess).updateBirdAttributes(specimenUuid, entries);
+  }
+
+  void clearBirdSexAttributes(String specimenUuid) {
+    updateBirdAttribute(
+      specimenUuid,
+      const BirdAttributeCompanion(
+        testisLength: db.Value(null),
+        testisWidth: db.Value(null),
+        testisRemark: db.Value(null),
+        ovaryLength: db.Value(null),
+        ovaryWidth: db.Value(null),
+        ovaryAppearance: db.Value(null),
+        firstOvaSize: db.Value(null),
+        secondOvaSize: db.Value(null),
+        thirdOvaSize: db.Value(null),
+        oviductWidth: db.Value(null),
+        oviductAppearance: db.Value(null),
+        ovaryRemark: db.Value(null),
+      ),
+    );
   }
 
   Future<void> deleteBirdAttributes(String specimenUuid) async {

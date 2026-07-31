@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -26,6 +27,7 @@ class HerpAttributeForms extends ConsumerStatefulWidget {
 
 class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
   HerpAttributeCtrModel ctr = HerpAttributeCtrModel.empty();
+  Key _sexDropdownKey = UniqueKey();
 
   @override
   void initState() {
@@ -49,6 +51,7 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             DropdownButtonFormField<SpecimenSex>(
+              key: _sexDropdownKey,
               initialValue: getSpecimenSex(ctr.sexCtr),
               isExpanded: true,
               decoration: const InputDecoration(
@@ -63,17 +66,7 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
                     ),
                   )
                   .toList(),
-              onChanged: (SpecimenSex? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    ctr.sexCtr = newValue.index;
-                    SpecimenServices(ref: ref).updateHerpAttribute(
-                      widget.specimenUuid,
-                      HerpAttributeCompanion(sex: db.Value(newValue.index)),
-                    );
-                  });
-                }
-              },
+              onChanged: _handleSexUpdate,
             ),
             DropdownButtonFormField<SpecimenAge>(
               initialValue: getSpecimenAge(ctr.ageCtr),
@@ -180,6 +173,55 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
 
     setState(() {
       ctr = HerpAttributeCtrModel.fromData(data);
+    });
+  }
+
+  Future<void> _handleSexUpdate(SpecimenSex? newSex) async {
+    SpecimenSex? currentSex = getSpecimenSex(ctr.sexCtr);
+    // No change in selected sex, no action needed
+    if (newSex == null || newSex == currentSex) return;
+
+    // Change from blank or unknown sex, no clearing needed
+    if (currentSex == null || currentSex == SpecimenSex.unknown) {
+      _updateSex(newSex);
+      return;
+    }
+
+    // Otherwise, we're changing from male/female to something else
+    // Prompt the user and clear the prior data if confirmed
+    showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return CommonAlertDialog(
+          titleText: 'Change sex?',
+          descText:
+              'Changing the sex will clear previously '
+              'entered sex data.',
+          confirmFunction: () {
+            ctr.clearSexControllers();
+            SpecimenServices(
+              ref: ref,
+            ).clearHerpSexAttributes(widget.specimenUuid);
+            _updateSex(newSex);
+          },
+          cancelFunction: () {
+            setState(() {
+              // Trigger a rebuild of the dropdown to revert the displayed value
+              _sexDropdownKey = UniqueKey();
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _updateSex(SpecimenSex newSex) {
+    setState(() {
+      ctr.sexCtr = newSex.index;
+      SpecimenServices(ref: ref).updateHerpAttribute(
+        widget.specimenUuid,
+        HerpAttributeCompanion(sex: db.Value(newSex.index)),
+      );
     });
   }
 }
