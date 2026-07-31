@@ -29,6 +29,7 @@ class BirdAttributeForms extends ConsumerStatefulWidget {
 class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
   BirdAttributeCtrModel ctr = BirdAttributeCtrModel.empty();
   bool _hasBursa = false;
+  Key _sexDropdownKey = UniqueKey();
 
   @override
   void initState() {
@@ -190,6 +191,7 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             DropdownButtonFormField<SpecimenSex>(
+              key: _sexDropdownKey,
               initialValue: getSpecimenSex(ctr.sexCtr),
               decoration: const InputDecoration(
                 labelText: 'Sex',
@@ -203,17 +205,7 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
                     ),
                   )
                   .toList(),
-              onChanged: (SpecimenSex? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    ctr.sexCtr = newValue.index;
-                    SpecimenServices(ref: ref).updateBirdAttribute(
-                      widget.specimenUuid,
-                      BirdAttributeCompanion(sex: db.Value(newValue.index)),
-                    );
-                  });
-                }
-              },
+              onChanged: _handleSexUpdate,
             ),
           ],
         ),
@@ -315,6 +307,85 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
     setState(() {
       ctr = BirdAttributeCtrModel.fromData(data);
     });
+  }
+
+  Future<void> _handleSexUpdate(SpecimenSex? newSex) async {
+    SpecimenSex? currentSex = getSpecimenSex(ctr.sexCtr);
+    // No change in selected sex, no action needed
+    if (newSex == null || newSex == currentSex) return;
+
+    // Change from blank or unknown sex, no clearing needed
+    if (currentSex == null || currentSex == SpecimenSex.unknown) {
+      _updateSex(newSex);
+      return;
+    }
+
+    // Otherwise, we're changing from male/female to something else
+    // Prompt the user and clear the prior data if confirmed
+    showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return CommonAlertDialog(
+          titleText: 'Change sex?',
+          descText:
+              'Changing the sex will clear previously '
+              'entered sex data.',
+          confirmFunction: () {
+            _clearSexFields();
+            _updateSex(newSex);
+          },
+          cancelFunction: () {
+            setState(() {
+              // Trigger a rebuild of the dropdown to revert the displayed value
+              _sexDropdownKey = UniqueKey();
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _updateSex(SpecimenSex newSex) {
+    setState(() {
+      ctr.sexCtr = newSex.index;
+      SpecimenServices(ref: ref).updateBirdAttribute(
+        widget.specimenUuid,
+        BirdAttributeCompanion(sex: db.Value(newSex.index)),
+      );
+    });
+  }
+
+  void _clearSexFields() {
+    ctr.testisLengthCtr.clear();
+    ctr.testisWidthCtr.clear();
+    ctr.testisRemarkCtr.clear();
+    ctr.ovaryLengthCtr.clear();
+    ctr.ovaryWidthCtr.clear();
+    ctr.ovaryAppearanceCtr = null;
+    ctr.firstOvaSizeCtr.clear();
+    ctr.secondOvaSizeCtr.clear();
+    ctr.thirdOvaSizeCtr.clear();
+    ctr.oviductWidthCtr.clear();
+    ctr.oviductAppearanceCtr = null;
+    ctr.ovaryRemarkCtr.clear();
+
+    SpecimenServices(ref: ref).updateBirdAttribute(
+      widget.specimenUuid,
+      const BirdAttributeCompanion(
+        testisLength: db.Value(null),
+        testisWidth: db.Value(null),
+        testisRemark: db.Value(null),
+        ovaryLength: db.Value(null),
+        ovaryWidth: db.Value(null),
+        ovaryAppearance: db.Value(null),
+        firstOvaSize: db.Value(null),
+        secondOvaSize: db.Value(null),
+        thirdOvaSize: db.Value(null),
+        oviductWidth: db.Value(null),
+        oviductAppearance: db.Value(null),
+        ovaryRemark: db.Value(null),
+      ),
+    );
   }
 }
 
