@@ -232,7 +232,7 @@ class ListProjectCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
             color: Theme.of(context).dividerColor.withAlpha(40),
-            width: NahpuStroke.regular,
+            width: NahpuStroke.thin,
           ),
         ),
         tileColor: Theme.of(
@@ -311,7 +311,7 @@ class GridProjectCard extends StatelessWidget {
               ).colorScheme.surfaceContainerHighest.withAlpha(80),
               border: Border.all(
                 color: Theme.of(context).dividerColor.withAlpha(40),
-                width: NahpuStroke.regular,
+                width: NahpuStroke.thin,
               ),
             ),
             padding: const EdgeInsets.all(32),

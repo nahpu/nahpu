@@ -60,7 +60,7 @@ class CommonSettingSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(NahpuRadius.large),
             side: BorderSide(
               color: Theme.of(context).colorScheme.outlineVariant,
-              width: NahpuStroke.regular,
+              width: NahpuStroke.thin,
             ),
           ),
           child: Column(

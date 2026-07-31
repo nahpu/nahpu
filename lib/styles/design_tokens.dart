@@ -25,6 +25,7 @@ abstract final class NahpuRadius {
 
 abstract final class NahpuStroke {
   static const double none = 0;
+  static const double thin = 1;
   static const double regular = 2;
 }
 

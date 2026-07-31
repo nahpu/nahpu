@@ -150,7 +150,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
         color: colors.surfaceContainerHighest.withAlpha(80),
         border: Border.all(
           color: colors.outlineVariant,
-          width: NahpuStroke.regular,
+          width: NahpuStroke.thin,
         ),
         borderRadius: BorderRadius.circular(16),
       ),

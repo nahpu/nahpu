@@ -56,7 +56,7 @@ class NahpuTheme {
         borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.medium)),
         side: BorderSide(
           color: colorScheme.outlineVariant,
-          width: NahpuStroke.regular,
+          width: NahpuStroke.thin,
         ),
       ),
     );
