@@ -47,6 +47,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
   int _accuracyDropdownVersion = 0;
   String? _storedAccuracy;
   String? _storedAccuracySpecify;
+  Key _sexDropdownKey = UniqueKey();
 
   @override
   void initState() {
@@ -350,6 +351,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             DropdownButtonFormField<SpecimenSex>(
+              key: _sexDropdownKey,
               initialValue: getSpecimenSex(ctr.sexCtr),
               isExpanded: true,
               decoration: const InputDecoration(
@@ -364,17 +366,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
                     ),
                   )
                   .toList(),
-              onChanged: (SpecimenSex? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    ctr.sexCtr = newValue.index;
-                    SpecimenServices(ref: ref).updateMammalAttribute(
-                      widget.specimenUuid,
-                      MammalAttributeCompanion(sex: db.Value(newValue.index)),
-                    );
-                  });
-                }
-              },
+              onChanged: _handleSexUpdate,
             ),
             DropdownButtonFormField<SpecimenAge>(
               initialValue: getSpecimenAge(ctr.ageCtr),
@@ -637,6 +629,55 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
       ),
     );
     _isShowingOutlierWarning = false;
+  }
+
+  Future<void> _handleSexUpdate(SpecimenSex? newSex) async {
+    SpecimenSex? currentSex = getSpecimenSex(ctr.sexCtr);
+    // No change in selected sex, no action needed
+    if (newSex == null || newSex == currentSex) return;
+
+    // Change from blank or unknown sex, no clearing needed
+    if (currentSex == null || currentSex == SpecimenSex.unknown) {
+      _updateSex(newSex);
+      return;
+    }
+
+    // Otherwise, we're changing from male/female to something else
+    // Prompt the user and clear the prior data if confirmed
+    showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return CommonAlertDialog(
+          titleText: 'Change sex?',
+          descText:
+              'Changing the sex will clear previously '
+              'entered sex data.',
+          confirmFunction: () {
+            ctr.clearSexControllers();
+            SpecimenServices(
+              ref: ref,
+            ).clearMammalSexAttributes(widget.specimenUuid);
+            _updateSex(newSex);
+          },
+          cancelFunction: () {
+            setState(() {
+              // Trigger a rebuild of the dropdown to revert the displayed value
+              _sexDropdownKey = UniqueKey();
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _updateSex(SpecimenSex newSex) {
+    setState(() {
+      ctr.sexCtr = newSex.index;
+      SpecimenServices(ref: ref).updateMammalAttribute(
+        widget.specimenUuid,
+        MammalAttributeCompanion(sex: db.Value(newSex.index)),
+      );
+    });
   }
 }
 

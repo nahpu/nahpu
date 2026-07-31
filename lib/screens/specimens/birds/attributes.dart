@@ -331,7 +331,10 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
               'Changing the sex will clear previously '
               'entered sex data.',
           confirmFunction: () {
-            _clearSexFields();
+            ctr.clearSexControllers();
+            SpecimenServices(
+              ref: ref,
+            ).clearBirdSexAttributes(widget.specimenUuid);
             _updateSex(newSex);
           },
           cancelFunction: () {
@@ -353,39 +356,6 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
         BirdAttributeCompanion(sex: db.Value(newSex.index)),
       );
     });
-  }
-
-  void _clearSexFields() {
-    ctr.testisLengthCtr.clear();
-    ctr.testisWidthCtr.clear();
-    ctr.testisRemarkCtr.clear();
-    ctr.ovaryLengthCtr.clear();
-    ctr.ovaryWidthCtr.clear();
-    ctr.ovaryAppearanceCtr = null;
-    ctr.firstOvaSizeCtr.clear();
-    ctr.secondOvaSizeCtr.clear();
-    ctr.thirdOvaSizeCtr.clear();
-    ctr.oviductWidthCtr.clear();
-    ctr.oviductAppearanceCtr = null;
-    ctr.ovaryRemarkCtr.clear();
-
-    SpecimenServices(ref: ref).updateBirdAttribute(
-      widget.specimenUuid,
-      const BirdAttributeCompanion(
-        testisLength: db.Value(null),
-        testisWidth: db.Value(null),
-        testisRemark: db.Value(null),
-        ovaryLength: db.Value(null),
-        ovaryWidth: db.Value(null),
-        ovaryAppearance: db.Value(null),
-        firstOvaSize: db.Value(null),
-        secondOvaSize: db.Value(null),
-        thirdOvaSize: db.Value(null),
-        oviductWidth: db.Value(null),
-        oviductAppearance: db.Value(null),
-        ovaryRemark: db.Value(null),
-      ),
-    );
   }
 }
 
