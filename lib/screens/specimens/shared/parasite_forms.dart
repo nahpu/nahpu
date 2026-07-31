@@ -323,55 +323,70 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             parasiteUuid: widget.controller.parasiteUuid,
             parasiteIdController: widget.controller.parasiteIdCtr,
           ),
-          _TaxonField(
-            selectedId: widget.controller.speciesId,
-            onChanged: (value) {
-              setState(() => widget.controller.speciesId = value);
-            },
+          FormSection(
+            title: 'Parasite details',
+            child: Column(
+              children: [
+                _TaxonField(
+                  selectedId: widget.controller.speciesId,
+                  onChanged: (value) {
+                    setState(() => widget.controller.speciesId = value);
+                  },
+                ),
+                CommonNumField(
+                  controller: widget.controller.countCtr,
+                  labelText: 'Count',
+                  hintText: 'Enter parasite count',
+                  isLastField: false,
+                ),
+                _ParasiteVocabularyField(
+                  controller: widget.controller.categoryCtr,
+                  prefKey: parasiteCategoryPrefKey,
+                  labelText: 'Category',
+                ),
+                _ParasiteVocabularyField(
+                  controller: widget.controller.anatomicalLocationCtr,
+                  prefKey: parasiteAnatomicalLocationPrefKey,
+                  labelText: 'Anatomical location',
+                ),
+                Visibility(
+                  visible: _showMore,
+                  child: _AdvancedParasiteDetailsFields(
+                    controller: widget.controller,
+                  ),
+                ),
+              ],
+            ),
           ),
-          CommonNumField(
-            controller: widget.controller.countCtr,
-            labelText: 'Count',
-            hintText: 'Enter parasite count',
-            isLastField: false,
-          ),
-          _ParasiteVocabularyField(
-            controller: widget.controller.categoryCtr,
-            prefKey: parasiteCategoryPrefKey,
-            labelText: 'Category',
-          ),
-          _ParasiteVocabularyField(
-            controller: widget.controller.anatomicalLocationCtr,
-            prefKey: parasiteAnatomicalLocationPrefKey,
-            labelText: 'Anatomical location',
-          ),
-          const CommonDivider(),
-          Text(
-            'Collection and identification',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          _IdentifierField(controller: widget.controller),
-          _ParasiteVocabularyField(
-            controller: widget.controller.detectionMethodCtr,
-            prefKey: parasiteDetectionMethodPrefKey,
-            labelText: 'Detection method',
-          ),
-          CommonDateField(
-            controller: widget.controller.dateCollectedCtr,
-            labelText: 'Date collected',
-            hintText: 'Enter collection date',
-            initialDate: DateTime.now(),
-            lastDate: DateTime.now(),
-            onTap: () {},
-            onClear: () {},
-          ),
-          CommonTimeField(
-            controller: widget.controller.timeCollectedCtr,
-            labelText: 'Time collected',
-            hintText: 'Enter collection time',
-            initialTime: TimeOfDay.now(),
-            onTap: () {},
-            onClear: () {},
+          FormSection(
+            title: 'Collection & identification',
+            child: Column(
+              children: [
+                _IdentifierField(controller: widget.controller),
+                _ParasiteVocabularyField(
+                  controller: widget.controller.detectionMethodCtr,
+                  prefKey: parasiteDetectionMethodPrefKey,
+                  labelText: 'Detection method',
+                ),
+                CommonDateField(
+                  controller: widget.controller.dateCollectedCtr,
+                  labelText: 'Date collected',
+                  hintText: 'Enter collection date',
+                  initialDate: DateTime.now(),
+                  lastDate: DateTime.now(),
+                  onTap: () {},
+                  onClear: () {},
+                ),
+                CommonTimeField(
+                  controller: widget.controller.timeCollectedCtr,
+                  labelText: 'Time collected',
+                  hintText: 'Enter collection time',
+                  initialTime: TimeOfDay.now(),
+                  onTap: () {},
+                  onClear: () {},
+                ),
+              ],
+            ),
           ),
           Visibility(
             visible: _showMore,
@@ -507,6 +522,7 @@ class _IdentifierField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField<String?>(
+      isExpanded: true,
       initialValue: controller.identifierId,
       decoration: const InputDecoration(
         labelText: 'Identifier',
@@ -535,30 +551,94 @@ class _IdentifierField extends ConsumerWidget {
   }
 }
 
-class _AdvancedParasiteFields extends ConsumerWidget {
+class _AdvancedParasiteFields extends StatelessWidget {
   const _AdvancedParasiteFields({required this.controller});
 
   final ParasiteFormCtrModel controller;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Column(
       children: [
-        _ParasiteVocabularyField(
-          controller: controller.preparationMethodCtr,
-          prefKey: parasitePreparationMethodPrefKey,
-          labelText: 'Preparation method',
+        FormSection(
+          title: 'Preparation & preservation',
+          child: Column(
+            children: [
+              _ParasiteVocabularyField(
+                controller: controller.preparationMethodCtr,
+                prefKey: parasitePreparationMethodPrefKey,
+                labelText: 'Preparation method',
+              ),
+              _ParasiteVocabularyField(
+                controller: controller.treatmentCtr,
+                prefKey: parasiteTreatmentPrefKey,
+                labelText: 'Treatment',
+              ),
+              CommonDateField(
+                controller: controller.datePreservedCtr,
+                labelText: 'Date preserved',
+                hintText: 'Enter preservation date',
+                initialDate: DateTime.now(),
+                lastDate: DateTime.now(),
+                onTap: () {},
+                onClear: () {},
+              ),
+              CommonTimeField(
+                controller: controller.timePreservedCtr,
+                labelText: 'Time preserved',
+                hintText: 'Enter preservation time',
+                initialTime: TimeOfDay.now(),
+                onTap: () {},
+                onClear: () {},
+              ),
+            ],
+          ),
         ),
-        _ParasiteVocabularyField(
-          controller: controller.storageCtr,
-          prefKey: parasiteStoragePrefKey,
-          labelText: 'Storage',
+        FormSection(
+          title: 'Curation',
+          child: Column(
+            children: [
+              _ParasiteVocabularyField(
+                controller: controller.storageCtr,
+                prefKey: parasiteStoragePrefKey,
+                labelText: 'Storage',
+              ),
+              CommonTextField(
+                controller: controller.museumPermanentCtr,
+                labelText: 'Museum permanent',
+                hintText: 'Enter museum name or abbreviation',
+                isLastField: false,
+              ),
+              CommonTextField(
+                controller: controller.museumLoanCtr,
+                labelText: 'Museum loan',
+                hintText: 'Enter museum name or abbreviation',
+                isLastField: false,
+              ),
+              CommonTextField(
+                controller: controller.remarkCtr,
+                labelText: 'Remarks',
+                hintText: 'Enter parasite remarks',
+                maxLines: 3,
+                isLastField: true,
+              ),
+            ],
+          ),
         ),
-        _ParasiteVocabularyField(
-          controller: controller.treatmentCtr,
-          prefKey: parasiteTreatmentPrefKey,
-          labelText: 'Treatment',
-        ),
+      ],
+    );
+  }
+}
+
+class _AdvancedParasiteDetailsFields extends StatelessWidget {
+  const _AdvancedParasiteDetailsFields({required this.controller});
+
+  final ParasiteFormCtrModel controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
         DropdownButtonFormField<String>(
           isExpanded: true,
           initialValue: _currentLifeStage,
@@ -597,42 +677,6 @@ class _AdvancedParasiteFields extends ConsumerWidget {
             ),
           ],
           onChanged: (value) => controller.associationStatus = value,
-        ),
-        CommonDateField(
-          controller: controller.datePreservedCtr,
-          labelText: 'Date preserved',
-          hintText: 'Enter preservation date',
-          initialDate: DateTime.now(),
-          lastDate: DateTime.now(),
-          onTap: () {},
-          onClear: () {},
-        ),
-        CommonTimeField(
-          controller: controller.timePreservedCtr,
-          labelText: 'Time preserved',
-          hintText: 'Enter preservation time',
-          initialTime: TimeOfDay.now(),
-          onTap: () {},
-          onClear: () {},
-        ),
-        CommonTextField(
-          controller: controller.museumPermanentCtr,
-          labelText: 'Museum permanent',
-          hintText: 'Enter museum name or abbreviation',
-          isLastField: false,
-        ),
-        CommonTextField(
-          controller: controller.museumLoanCtr,
-          labelText: 'Museum loan',
-          hintText: 'Enter museum name or abbreviation',
-          isLastField: false,
-        ),
-        CommonTextField(
-          controller: controller.remarkCtr,
-          labelText: 'Remarks',
-          hintText: 'Enter parasite remarks',
-          maxLines: 3,
-          isLastField: true,
         ),
       ],
     );

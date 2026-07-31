@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -73,6 +74,71 @@ void main() {
     final parasite = await database.select(database.parasite).getSingle();
     expect(parasite.parasiteUuid, displayedUuid);
   });
+
+  testWidgets('parasite fields are grouped into expandable sections', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          userDefinedFieldProvider.overrideWith2(
+            (prefKey) => _EmptyUserDefinedField(prefKey),
+          ),
+        ],
+        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Parasite details'), findsOneWidget);
+    expect(find.text('Collection & identification'), findsOneWidget);
+    expect(find.text('Preparation & preservation'), findsNothing);
+    expect(find.text('Curation'), findsNothing);
+    expect(find.text('Life stage'), findsNothing);
+
+    final showMore = find.text('Show more');
+    await tester.ensureVisible(showMore);
+    await tester.tap(showMore);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Preparation & preservation'), findsOneWidget);
+    expect(find.text('Curation'), findsOneWidget);
+    _expectFieldInSection(tester, 'Life stage', 'Parasite details');
+    _expectFieldInSection(
+      tester,
+      'Preparation method',
+      'Preparation & preservation',
+    );
+    _expectFieldInSection(tester, 'Storage', 'Curation');
+
+    final showLess = find.text('Show less');
+    await tester.ensureVisible(showLess);
+    await tester.tap(showLess);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Preparation & preservation'), findsNothing);
+    expect(find.text('Life stage'), findsNothing);
+  });
+}
+
+void _expectFieldInSection(
+  WidgetTester tester,
+  String fieldLabel,
+  String sectionTitle,
+) {
+  final sections = tester.widgetList<FormSection>(
+    find.ancestor(
+      of: find.text(fieldLabel),
+      matching: find.byType(FormSection),
+    ),
+  );
+  expect(sections.map((section) => section.title), contains(sectionTitle));
 }
 
 class _EmptyUserDefinedField extends UserDefinedField {

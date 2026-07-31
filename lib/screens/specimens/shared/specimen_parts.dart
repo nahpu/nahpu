@@ -620,13 +620,36 @@ class PartFormState extends ConsumerState<PartForm> {
             specimenUuid: widget.specimenUuid,
             partCtr: widget.partCtr,
           ),
-          SpecimenTypeField(partCtr: widget.partCtr),
-          SpecimenCountField(partCtr: widget.partCtr),
-          SpecimenTreatmentFields(
-            partCtr: widget.partCtr,
-            isVisible: _showMore,
+          FormSection(
+            title: 'Preparation',
+            child: Column(
+              children: [
+                SpecimenTypeField(partCtr: widget.partCtr),
+                SpecimenCountField(partCtr: widget.partCtr),
+                SpecimenTreatmentFields(
+                  partCtr: widget.partCtr,
+                  isVisible: _showMore,
+                ),
+              ],
+            ),
           ),
-          AdditionalPartFields(visible: _showMore, partCtr: widget.partCtr),
+          FormSection(
+            title: 'Sampling',
+            child: PartSamplingFields(
+              visible: _showMore,
+              partCtr: widget.partCtr,
+            ),
+          ),
+          Visibility(
+            visible: _showMore || _hasCurationData,
+            child: FormSection(
+              title: 'Curation',
+              child: PartCurationFields(
+                visible: _showMore,
+                partCtr: widget.partCtr,
+              ),
+            ),
+          ),
           ShowMoreButton(
             showMore: _showMore,
             onPressed: () {
@@ -647,6 +670,11 @@ class PartFormState extends ConsumerState<PartForm> {
       ),
     );
   }
+
+  bool get _hasCurationData =>
+      widget.partCtr.museumPermanentCtr.text.trim().isNotEmpty ||
+      widget.partCtr.museumLoanCtr.text.trim().isNotEmpty ||
+      widget.partCtr.remarkCtr.text.trim().isNotEmpty;
 
   Future<void> _createPart() async {
     SpecimenPartCompanion form = _getForm();
@@ -753,6 +781,7 @@ class SpecimenTypeField extends ConsumerWidget {
           data: (data) {
             final options = includeCurrentVocabularyValue(data, _getValue());
             return DropdownButtonFormField(
+              isExpanded: true,
               initialValue: _getValue(),
               decoration: const InputDecoration(
                 labelText: 'Preparation type',
@@ -801,6 +830,7 @@ class SpecimenTreatmentField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField(
+      isExpanded: true,
       initialValue: _getValue(),
       decoration: const InputDecoration(
         labelText: 'Treatment',
@@ -846,6 +876,7 @@ class AdditionalTreatmentField extends StatelessWidget {
     return Visibility(
       visible: isVisible,
       child: DropdownButtonFormField(
+        isExpanded: true,
         initialValue: _getValue(),
         decoration: const InputDecoration(
           labelText: 'Additional treatment',
@@ -875,8 +906,8 @@ class AdditionalTreatmentField extends StatelessWidget {
   }
 }
 
-class AdditionalPartFields extends ConsumerWidget {
-  const AdditionalPartFields({
+class PartSamplingFields extends ConsumerWidget {
+  const PartSamplingFields({
     super.key,
     required this.visible,
     required this.partCtr,
@@ -889,24 +920,10 @@ class AdditionalPartFields extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        CommonTimeField(
-          labelText: 'Time taken',
-          hintText: 'Enter time',
-          controller: partCtr.timeTakenCtr,
-          initialTime: TimeOfDay.now(),
-          onTap: () {},
-          onClear: () {},
-        ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Recommended for fresh tissues',
-            style: Theme.of(context).textTheme.labelSmall,
-          ),
-        ),
         Visibility(
           visible: visible || partCtr.preparatorCtr != null,
           child: DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: partCtr.preparatorCtr,
             decoration: const InputDecoration(
               labelText: 'Preparator',
@@ -950,6 +967,21 @@ class AdditionalPartFields extends ConsumerWidget {
             onClear: () {},
           ),
         ),
+        CommonTimeField(
+          labelText: 'Time taken',
+          hintText: 'Enter time',
+          controller: partCtr.timeTakenCtr,
+          initialTime: TimeOfDay.now(),
+          onTap: () {},
+          onClear: () {},
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Recommended for fresh tissues',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+        ),
         Visibility(
           visible: visible || partCtr.pmiCtr.text.isNotEmpty,
           child: CommonTextField(
@@ -959,6 +991,25 @@ class AdditionalPartFields extends ConsumerWidget {
             isLastField: false,
           ),
         ),
+      ],
+    );
+  }
+}
+
+class PartCurationFields extends StatelessWidget {
+  const PartCurationFields({
+    super.key,
+    required this.visible,
+    required this.partCtr,
+  });
+
+  final bool visible;
+  final PartFormCtrModel partCtr;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
         Visibility(
           visible: visible || partCtr.museumPermanentCtr.text.isNotEmpty,
           child: CommonTextField(
@@ -984,7 +1035,7 @@ class AdditionalPartFields extends ConsumerWidget {
             maxLines: 3,
             labelText: 'Remarks',
             hintText: 'Enter a remark specific to this part',
-            isLastField: false,
+            isLastField: true,
           ),
         ),
       ],
@@ -1017,10 +1068,8 @@ class PartIdForm extends ConsumerWidget {
         ),
         child: Column(
           children: [
-            Text(
-              'Additional Part ID',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('IDs', style: Theme.of(context).textTheme.titleLarge),
+            SelectableText('Specimen UUID: $specimenUuid'),
             TissueIDform(
               specimenUuid: specimenUuid,
               tissueIdCtr: partCtr.tissueIdCtr,
