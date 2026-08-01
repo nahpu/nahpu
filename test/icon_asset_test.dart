@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 /// Icons live directly in [iconDir]. Subdirectories are deliberately excluded
@@ -8,37 +9,58 @@ import 'package:nahpu/services/types/specimens.dart';
 /// `nahpu_legacy_icons/` is font-source art and is not checked here.
 const String iconDir = 'assets/icons';
 
-List<File> topLevelIcons() => Directory(iconDir)
-    .listSync()
-    .whereType<File>()
-    .where((f) => f.path.endsWith('.svg'))
-    .toList()
-  ..sort((a, b) => a.path.compareTo(b.path));
+List<File> topLevelIcons() =>
+    Directory(iconDir)
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.svg'))
+        .toList()
+      ..sort((a, b) => a.path.compareTo(b.path));
 
 void main() {
   group('Icon paths referenced from Dart resolve to real files', () {
     test('partIconPath entries exist', () {
       for (final entry in partIconPath.entries) {
-        expect(File(entry.value).existsSync(), isTrue,
-            reason: 'partIconPath["${entry.key}"] -> ${entry.value} is missing');
+        expect(
+          File(entry.value).existsSync(),
+          isTrue,
+          reason: 'partIconPath["${entry.key}"] -> ${entry.value} is missing',
+        );
       }
     });
 
     test('preparationIconPath entries exist', () {
       for (final fmt in preparationIconPath.entries) {
         for (final part in fmt.value.entries) {
-          expect(File(part.value).existsSync(), isTrue,
-              reason: 'preparationIconPath[${fmt.key}]["${part.key}"] -> '
-                  '${part.value} is missing');
+          expect(
+            File(part.value).existsSync(),
+            isTrue,
+            reason:
+                'preparationIconPath[${fmt.key}]["${part.key}"] -> '
+                '${part.value} is missing',
+          );
         }
+      }
+    });
+
+    test('CollMethodIcon entries exist', () {
+      for (final icon in CollMethodIcon.values) {
+        expect(
+          File(icon.iconPath).existsSync(),
+          isTrue,
+          reason: '$icon -> ${icon.iconPath} is missing',
+        );
       }
     });
 
     test('matchCatalogFmtToIconPath covers every CatalogFmt', () {
       for (final fmt in CatalogFmt.values) {
         final path = matchCatalogFmtToIconPath(fmt);
-        expect(File(path).existsSync(), isTrue,
-            reason: 'matchCatalogFmtToIconPath($fmt) -> $path is missing');
+        expect(
+          File(path).existsSync(),
+          isTrue,
+          reason: 'matchCatalogFmtToIconPath($fmt) -> $path is missing',
+        );
       }
     });
 
@@ -48,10 +70,11 @@ void main() {
       final pattern = RegExp(r'assets/icons/[\w.-]+\.svg');
       final missing = <String>[];
 
-      for (final file in Directory('lib')
-          .listSync(recursive: true)
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'))) {
+      for (final file
+          in Directory('lib')
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.dart'))) {
         final source = file.readAsStringSync();
         for (final match in pattern.allMatches(source)) {
           final path = match.group(0)!;
@@ -61,8 +84,11 @@ void main() {
         }
       }
 
-      expect(missing, isEmpty,
-          reason: 'Referenced icon assets do not exist:\n${missing.join('\n')}');
+      expect(
+        missing,
+        isEmpty,
+        reason: 'Referenced icon assets do not exist:\n${missing.join('\n')}',
+      );
     });
   });
 
@@ -81,9 +107,13 @@ void main() {
         }
       }
 
-      expect(duplicates, isEmpty,
-          reason: 'Duplicate icons -- reference one file from both call sites '
-              'instead:\n${duplicates.join('\n')}');
+      expect(
+        duplicates,
+        isEmpty,
+        reason:
+            'Duplicate icons -- reference one file from both call sites '
+            'instead:\n${duplicates.join('\n')}',
+      );
     });
 
     test('every icon uses the 48 grid and currentColor', () {
@@ -106,22 +136,27 @@ void main() {
   group('SpecimenPartIcon resolution', () {
     test('skull and skeleton resolve per catalog format', () {
       expect(
-        const SpecimenPartIcon(catalogFmt: CatalogFmt.birds, part: 'skull')
-            .match(),
+        const SpecimenPartIcon(
+          catalogFmt: CatalogFmt.birds,
+          part: 'skull',
+        ).match(),
         'assets/icons/bird_skull.svg',
       );
       expect(
         const SpecimenPartIcon(
-                catalogFmt: CatalogFmt.herpetofauna, part: 'skeleton')
-            .match(),
+          catalogFmt: CatalogFmt.herpetofauna,
+          part: 'skeleton',
+        ).match(),
         'assets/icons/herp_skeleton.svg',
       );
     });
 
     test('plural and mixed-case part names normalise', () {
       expect(
-        const SpecimenPartIcon(catalogFmt: CatalogFmt.mammals, part: 'Skulls')
-            .match(),
+        const SpecimenPartIcon(
+          catalogFmt: CatalogFmt.mammals,
+          part: 'Skulls',
+        ).match(),
         'assets/icons/mammal_skull.svg',
       );
     });
@@ -130,16 +165,20 @@ void main() {
     /// which over-trimmed or threw RangeError on padded values.
     test('whitespace-padded part names do not throw', () {
       expect(
-        const SpecimenPartIcon(catalogFmt: CatalogFmt.mammals, part: '  skulls')
-            .match(),
+        const SpecimenPartIcon(
+          catalogFmt: CatalogFmt.mammals,
+          part: '  skulls',
+        ).match(),
         'assets/icons/mammal_skull.svg',
       );
     });
 
     test('a format without dedicated art falls back to the whole animal', () {
       expect(
-        const SpecimenPartIcon(catalogFmt: CatalogFmt.birds, part: 'skin')
-            .match(),
+        const SpecimenPartIcon(
+          catalogFmt: CatalogFmt.birds,
+          part: 'skin',
+        ).match(),
         matchCatalogFmtToIconPath(CatalogFmt.birds),
       );
     });
@@ -147,10 +186,71 @@ void main() {
     test('unknown parts fall back to the clue icon', () {
       expect(
         const SpecimenPartIcon(
-                catalogFmt: CatalogFmt.mammals, part: 'nonsense value')
-            .match(),
+          catalogFmt: CatalogFmt.mammals,
+          part: 'nonsense value',
+        ).match(),
         partIconPath['unknown'],
       );
+    });
+  });
+
+  group('CollMethodIcon resolution', () {
+    /// The generic `trap` fallback would swallow these if the specific
+    /// branches did not run first.
+    test('specific traps win over the generic trap fallback', () {
+      expect(CollMethodIcon.fromMethod('Snap trap'), CollMethodIcon.snapTrap);
+      expect(
+        CollMethodIcon.fromMethod('  snap TRAP '),
+        CollMethodIcon.snapTrap,
+      );
+      expect(CollMethodIcon.fromMethod('Cage trap'), CollMethodIcon.cageTrap);
+      expect(
+        CollMethodIcon.fromMethod('Malaise trap'),
+        CollMethodIcon.malaiseTrap,
+      );
+      expect(CollMethodIcon.fromMethod('Light trap'), CollMethodIcon.lightTrap);
+    });
+
+    test('method names match case-insensitively', () {
+      expect(CollMethodIcon.fromMethod('Hands'), CollMethodIcon.hands);
+      expect(CollMethodIcon.fromMethod('hand'), CollMethodIcon.hands);
+      expect(CollMethodIcon.fromMethod('Mist Net'), CollMethodIcon.mistNet);
+      expect(CollMethodIcon.fromMethod('netline'), CollMethodIcon.mistNet);
+    });
+
+    /// Insect nets are checked before the bare `net` keyword.
+    test('sweep nets are distinct from mist nets', () {
+      expect(CollMethodIcon.fromMethod('Sweep net'), CollMethodIcon.sweepNet);
+      expect(CollMethodIcon.fromMethod('Insect net'), CollMethodIcon.sweepNet);
+      expect(CollMethodIcon.fromMethod('Net'), CollMethodIcon.mistNet);
+    });
+
+    test('every firearm resolves to the shotgun icon', () {
+      expect(
+        CollMethodIcon.fromMethod('Pellet Gun').iconPath,
+        'assets/icons/gun.svg',
+      );
+      expect(
+        CollMethodIcon.fromMethod('shotgun').iconPath,
+        'assets/icons/gun.svg',
+      );
+    });
+
+    test('unknown methods and null fall back to the generic trap', () {
+      expect(CollMethodIcon.fromMethod('Trapline'), CollMethodIcon.other);
+      expect(CollMethodIcon.fromMethod('nonsense value'), CollMethodIcon.other);
+      expect(CollMethodIcon.fromMethod(null), CollMethodIcon.other);
+      expect(CollMethodIcon.other.iconPath, 'assets/icons/trap.svg');
+    });
+
+    test('every default method resolves to a real icon', () {
+      for (final method in defaultCollMethods) {
+        expect(
+          File(CollMethodIcon.fromMethod(method).iconPath).existsSync(),
+          isTrue,
+          reason: '$method has no icon on disk',
+        );
+      }
     });
   });
 }

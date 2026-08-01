@@ -32,8 +32,7 @@ adding or editing an icon.
 
 **One flat color.** Every call site wraps the icon in
 `ColorFilter.mode(color, BlendMode.srcIn)`, and `getIconColor`
-(`lib/styles/decoration.dart`) returns `colorScheme.tertiary.withAlpha(120)` —
-47% opacity. So:
+(`lib/styles/decoration.dart`) returns `colorScheme.outline`. So:
 
 - Fill vs. stroke contrast does nothing. Overlapping strokes do not darken.
 - Detail must come from **line separation and negative space**, never shading.
@@ -44,12 +43,12 @@ adding or editing an icon.
 
 | Size | Widget | Where |
 |---|---|---|
-| 28px | `TileSvgIcon` | specimen part rows, coordinate rows |
+| 28px | `TileSvgIcon` | specimen part rows, coordinate rows, effort rows |
 | 64px | `CommonEmptyForm` | empty states |
 | 80px | `QrIcon` | QR view |
 | 116px | `FileFormatIcon` | export/bundle format pickers |
 
-28px at 47% opacity is the binding constraint. A line that vanishes there is
+28px in the muted outline color is the binding constraint. A line that vanishes there is
 wasted work, so **budget 3–4 interior detail strokes** for anything reachable at
 28px. Icons that only ever render at 64px or larger (`forest`, `agendas`,
 `planner`, `box`, `image-gallery`, the file formats) can afford more.
@@ -60,7 +59,9 @@ wasted work, so **budget 3–4 interior detail strokes** for anything reachable 
 2. Add it directly in this directory — never in `nahpu_legacy_icons/`.
 3. Reference it from Dart by path. If it is a specimen part, add it to
    `partIconPath` or `preparationIconPath` in `lib/services/types/specimens.dart`
-   rather than hardcoding the string at the call site.
+   rather than hardcoding the string at the call site. If it is a collecting
+   method, add it to `CollMethodIcon` in `lib/services/types/events.dart`
+   the same way.
 4. `flutter test` — the asset test checks the viewBox, the color declaration,
    that every path referenced from `lib/` exists, and that no two icons are
    byte-identical.

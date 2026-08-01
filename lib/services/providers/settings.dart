@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/utility_services.dart';
-import 'package:nahpu/services/types/collecting.dart';
+import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';

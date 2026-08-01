@@ -5,6 +5,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/controlled_vocabulary_services.dart';
@@ -278,13 +279,18 @@ class CollEffortTile extends StatelessWidget {
     return ListTile(
       title: CollEffortTitle(type: collEffort.method, count: collEffort.count),
       subtitle: Subtitle(data: collEffort),
-      leading: isSelecting
-          ? ListCheckBox(
-              isDisabled: false,
-              value: selectedCollEfforts.contains(collEffort.id),
-              onChanged: onChanged,
-            )
-          : const SizedBox.shrink(),
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          !isSelecting
+              ? CollEffortTileIcon(method: collEffort.method)
+              : ListCheckBox(
+                  isDisabled: false,
+                  value: selectedCollEfforts.contains(collEffort.id),
+                  onChanged: onChanged,
+                ),
+        ],
+      ),
       trailing: !isSelecting
           ? IconButton(
               icon: const Icon(Icons.edit_outlined),
@@ -303,6 +309,17 @@ class CollEffortTile extends StatelessWidget {
             )
           : SizedBox.shrink(),
     );
+  }
+}
+
+class CollEffortTileIcon extends StatelessWidget {
+  const CollEffortTileIcon({super.key, required this.method});
+
+  final String? method;
+
+  @override
+  Widget build(BuildContext context) {
+    return TileSvgIcon(iconPath: CollMethodIcon.fromMethod(method).iconPath);
   }
 }
 
