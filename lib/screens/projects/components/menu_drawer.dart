@@ -19,7 +19,9 @@ import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/utility_services.dart';
 
 class ProjectMenuDrawer extends ConsumerStatefulWidget {
-  const ProjectMenuDrawer({super.key});
+  const ProjectMenuDrawer({super.key, this.showCloseProject = true});
+
+  final bool showCloseProject;
 
   @override
   ProjectMenuDrawerState createState() => ProjectMenuDrawerState();
@@ -137,21 +139,14 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             );
           },
         ),
-        const Divider(color: Colors.grey),
-        ListTile(
-          leading: const Icon(Icons.exit_to_app_rounded),
-          title: const Text('Close project'),
-          onTap: () {
-            ProjectServices(ref: ref).updateProject(
-              projectUuid,
-              ProjectCompanion(lastAccessed: db.Value(getSystemDateTime())),
-            );
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Home()),
-            );
-          },
-        ),
+        if (widget.showCloseProject) ...[
+          const Divider(color: Colors.grey),
+          ListTile(
+            leading: const Icon(Icons.exit_to_app_rounded),
+            title: const Text('Close project'),
+            onTap: () => closeProject(context, ref, projectUuid),
+          ),
+        ],
         const SizedBox(height: 24),
         const Divider(color: Colors.grey),
         ListTile(
@@ -212,6 +207,17 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
       ],
     );
   }
+}
+
+void closeProject(BuildContext context, WidgetRef ref, String projectUuid) {
+  ProjectServices(ref: ref).updateProject(
+    projectUuid,
+    ProjectCompanion(lastAccessed: db.Value(getSystemDateTime())),
+  );
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const Home()),
+  );
 }
 
 class MenuAvatar extends ConsumerWidget {

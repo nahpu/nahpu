@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/events/event_view.dart';
 import 'package:nahpu/screens/narrative/narrative_view.dart';
+import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/dashboard.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/styles/design_tokens.dart';
+
+const double _projectMenuPanelWidth = 360;
 
 /// The top-level project pages, in [ProjectBottomNavbar] destination order.
 const List<Widget> defaultProjectPages = [
@@ -22,7 +26,7 @@ const List<Widget> defaultProjectPages = [
 /// via an [IndexedStack] driven by [projectNavbarIndexProvider] — no route
 /// push, so screens keep their state across tab switches. [pages] is
 /// injectable so widget tests can supply lightweight stand-ins.
-class ProjectShell extends ConsumerWidget {
+class ProjectShell extends ConsumerStatefulWidget {
   const ProjectShell({super.key, this.pages = defaultProjectPages});
 
   final List<Widget> pages;
@@ -50,16 +54,58 @@ class ProjectShell extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProjectShell> createState() => _ProjectShellState();
+}
+
+class _ProjectShellState extends ConsumerState<ProjectShell> {
+  bool _isProjectMenuOpen = false;
+
+  @override
+  Widget build(BuildContext context) {
     final index = ref.watch(projectNavbarIndexProvider);
     return FalseWillPop(
-      child: Scaffold(
-        body: IndexedStack(
-          index: index,
-          children: pages,
-        ),
-        bottomNavigationBar: const ProjectBottomNavbar(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final useProjectRail =
+              constraints.maxWidth >= NahpuBreakpoints.desktop;
+          return Scaffold(
+            body: _buildBody(useProjectRail, index),
+            bottomNavigationBar: useProjectRail
+                ? null
+                : const ProjectBottomNavbar(),
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildBody(bool useProjectRail, int index) {
+    final pageStack = IndexedStack(index: index, children: widget.pages);
+    if (!useProjectRail) return pageStack;
+    return Row(
+      children: [
+        ProjectNavigationRail(
+          isMenuOpen: _isProjectMenuOpen,
+          onToggleMenu: () {
+            setState(() => _isProjectMenuOpen = !_isProjectMenuOpen);
+          },
+        ),
+        Expanded(
+          child: Stack(
+            children: [
+              Positioned.fill(child: pageStack),
+              if (_isProjectMenuOpen)
+                const PositionedDirectional(
+                  top: 0,
+                  bottom: 0,
+                  start: 0,
+                  width: _projectMenuPanelWidth,
+                  child: ProjectMenuDrawer(showCloseProject: false),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

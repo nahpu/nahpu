@@ -8,6 +8,7 @@ import 'package:nahpu/screens/projects/personnel/personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/services/platform_services.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -31,9 +32,13 @@ class DashboardState extends ConsumerState<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final useProjectRail = getScreenType(context) == ScreenType.desktop;
     return Scaffold(
-      appBar: AppBar(title: const Text("Project Dashboard")),
-      drawer: const ProjectMenuDrawer(),
+      appBar: AppBar(
+        title: const Text("Project Dashboard"),
+        automaticallyImplyLeading: !useProjectRail,
+      ),
+      drawer: useProjectRail ? null : const ProjectMenuDrawer(),
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints c) {
           bool useHorizontalLayout = c.maxWidth > NahpuBreakpoints.compact;
