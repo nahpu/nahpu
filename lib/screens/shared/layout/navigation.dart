@@ -203,15 +203,18 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
           onDestinationSelected: (index) =>
               _selectProjectDestination(ref, index),
           trailingAtBottom: true,
-          trailing: _RailActionButton(
-            icon: Icons.exit_to_app_rounded,
-            collapsedLabel: 'Close',
-            expandedLabel: 'Close project',
-            tooltip: 'Close project',
-            foregroundColor: colorScheme.error,
-            isExtended: _isExtended,
-            onPressed: () =>
-                closeProject(context, ref, ref.read(projectUuidProvider)),
+          trailing: Padding(
+            padding: const EdgeInsets.only(bottom: NahpuSpacing.lg),
+            child: _RailActionButton(
+              icon: Icons.exit_to_app_rounded,
+              collapsedLabel: 'Close',
+              expandedLabel: 'Close project',
+              tooltip: 'Close project',
+              foregroundColor: standardForeground,
+              isExtended: _isExtended,
+              onPressed: () =>
+                  closeProject(context, ref, ref.read(projectUuidProvider)),
+            ),
           ),
         ),
       ),
