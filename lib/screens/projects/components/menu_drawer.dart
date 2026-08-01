@@ -17,6 +17,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ProjectMenuDrawer extends ConsumerStatefulWidget {
   const ProjectMenuDrawer({super.key, this.showCloseProject = true});
@@ -31,180 +32,194 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
   @override
   Widget build(BuildContext context) {
     final projectUuid = ref.watch(projectUuidProvider);
-    return NavigationDrawer(
-      children: [
-        MenuAvatar(projectUuid: projectUuid),
-        ListTile(
-          leading: const Icon(Icons.move_to_inbox_rounded),
-          title: const Text('Merge project'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ImportProjectScreen(),
-              ),
-            );
-          },
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
+      child: NavigationDrawer(
+        footer: SafeArea(
+          top: false,
+          child: _DeleteProjectTile(projectUuid: projectUuid),
         ),
-        ListTile(
-          leading: const Icon(Icons.outbox_rounded),
-          title: const Text('Export project'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ExportProjectScreen(),
-              ),
-            );
-          },
-        ),
-        const Divider(color: Colors.grey),
-        ListTile(
-          leading: const Icon(Icons.archive_rounded),
-          title: const Text('Bundle records'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const BundleRecordsForm(),
-              ),
-            );
-          },
-        ),
-        ListTile(
-          leading: Icon(Icons.adaptive.share_rounded),
-          title: const Text('Export records'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ExportForm()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.picture_as_pdf_rounded),
-          title: const Text('Export documents'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ExportDocumentsView(),
-              ),
-            );
-          },
-        ),
-        const Divider(color: Colors.grey),
-        ListTile(
-          leading: const Icon(Icons.storage_rounded),
-          title: const Text('Backup database'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ExportDbForm()),
-            );
-          },
-        ),
-        const Divider(color: Colors.grey),
-        ListTile(
-          leading: const Icon(Icons.settings_rounded),
-          title: const Text('Settings'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AppSettings()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.share_rounded),
-          title: const Text('Export user configs'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ExportSettingsForm(),
-              ),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.input_rounded),
-          title: const Text('Import user configs'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AppSettingsImport(),
-              ),
-            );
-          },
-        ),
-        if (widget.showCloseProject) ...[
-          const Divider(color: Colors.grey),
+        children: [
+          MenuAvatar(projectUuid: projectUuid),
+          if (widget.showCloseProject) ...[
+            ListTile(
+              leading: const Icon(Icons.exit_to_app_outlined),
+              title: const Text('Close project'),
+              onTap: () => closeProject(context, ref, projectUuid),
+            ),
+            const Divider(color: Colors.grey),
+          ],
           ListTile(
-            leading: const Icon(Icons.exit_to_app_rounded),
-            title: const Text('Close project'),
-            onTap: () => closeProject(context, ref, projectUuid),
+            leading: const Icon(Icons.move_to_inbox_outlined),
+            title: const Text('Merge project'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ImportProjectScreen(),
+                ),
+              );
+            },
           ),
+          ListTile(
+            leading: const Icon(Icons.outbox_outlined),
+            title: const Text('Export project'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ExportProjectScreen(),
+                ),
+              );
+            },
+          ),
+          Divider(color: Theme.of(context).colorScheme.outlineVariant),
+          ListTile(
+            leading: const Icon(Icons.archive_outlined),
+            title: const Text('Bundle records'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BundleRecordsForm(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.adaptive.share_outlined),
+            title: const Text('Export records'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ExportForm()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.picture_as_pdf_outlined),
+            title: const Text('Export documents'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ExportDocumentsView(),
+                ),
+              );
+            },
+          ),
+          Divider(color: Theme.of(context).colorScheme.outlineVariant),
+          ListTile(
+            leading: const Icon(Icons.storage_outlined),
+            title: const Text('Backup database'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ExportDbForm()),
+              );
+            },
+          ),
+          Divider(color: Theme.of(context).colorScheme.outlineVariant),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AppSettings()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.adaptive.share_outlined),
+            title: const Text('Export user configs'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ExportSettingsForm(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.input_outlined),
+            title: const Text('Import user configs'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AppSettingsImport(),
+                ),
+              );
+            },
+          ),
+          Divider(color: Theme.of(context).colorScheme.outlineVariant),
         ],
-        const SizedBox(height: 24),
-        const Divider(color: Colors.grey),
-        ListTile(
-          leading: Icon(
-            Icons.delete_rounded,
-            color: Theme.of(context).colorScheme.error,
-          ),
-          title: Text(
-            'Delete project',
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-          onTap: () async {
-            final confirmationCode = projectUuid.length >= 5
-                ? projectUuid.substring(0, 5)
-                : projectUuid;
-            return showDeleteAlertOnMenu(
-              context: context,
-              title: 'Delete project?',
-              deletePrompt:
-                  'You will delete this project and its related data. This cannot be undone.',
-              requiredConfirmationText: confirmationCode,
-              onDelete: () async {
-                try {
-                  final message = await ProjectServices(
-                    ref: ref,
-                  ).deleteProjectAndData(projectUuid);
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    Navigator.pushReplacement(
+      ),
+    );
+  }
+}
+
+class _DeleteProjectTile extends ConsumerWidget {
+  const _DeleteProjectTile({required this.projectUuid});
+
+  final String projectUuid;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final errorColor = Theme.of(context).colorScheme.error;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: NahpuSpacing.lg),
+      child: ListTile(
+        leading: Icon(Icons.delete_outline, color: errorColor),
+        title: Text('Delete project', style: TextStyle(color: errorColor)),
+        onTap: () async {
+          final confirmationCode = projectUuid.length >= 5
+              ? projectUuid.substring(0, 5)
+              : projectUuid;
+          return showDeleteAlertOnMenu(
+            context: context,
+            title: 'Delete project?',
+            deletePrompt:
+                'You will delete this project and its related data. This cannot be undone.',
+            requiredConfirmationText: confirmationCode,
+            onDelete: () async {
+              try {
+                final message = await ProjectServices(
+                  ref: ref,
+                ).deleteProjectAndData(projectUuid);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Home()),
+                  );
+                  if (message != null) {
+                    ScaffoldMessenger.of(
                       context,
-                      MaterialPageRoute(builder: (context) => const Home()),
-                    );
-                    if (message != null) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(message)));
-                    }
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    final errorMessage = e is ProjectDeletionFailure
-                        ? e.toUserMessage()
-                        : e.toString();
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Error'),
-                        content: Text(errorMessage),
-                      ),
-                    );
+                    ).showSnackBar(SnackBar(content: Text(message)));
                   }
                 }
-              },
-            );
-          },
-        ),
-      ],
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  final errorMessage = e is ProjectDeletionFailure
+                      ? e.toUserMessage()
+                      : e.toString();
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Error'),
+                      content: Text(errorMessage),
+                    ),
+                  );
+                }
+              }
+            },
+          );
+        },
+      ),
     );
   }
 }
