@@ -35,6 +35,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
       child: NavigationDrawer(
+        elevation: NahpuElevation.medium,
         footer: SafeArea(
           top: false,
           child: _DeleteProjectTile(projectUuid: projectUuid),
