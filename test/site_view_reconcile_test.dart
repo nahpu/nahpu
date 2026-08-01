@@ -43,9 +43,9 @@ void main() {
   }
 
   Future<int> seedSite(Database db) {
-    return db.into(db.site).insert(
-          const SiteCompanion(projectUuid: Value(projectUuid)),
-        );
+    return db
+        .into(db.site)
+        .insert(const SiteCompanion(projectUuid: Value(projectUuid)));
   }
 
   // PageViewer schedules a one-shot 5s timer to hide the page-number overlay;
@@ -53,8 +53,9 @@ void main() {
   Future<void> drainOverlayTimer(WidgetTester tester) =>
       tester.pump(const Duration(seconds: 6));
 
-  testWidgets('empty list renders without a setState-during-build error',
-      (tester) async {
+  testWidgets('empty list renders without a setState-during-build error', (
+    tester,
+  ) async {
     final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     addTearDown(db.close);
 
@@ -64,8 +65,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('deleting a mid-list site clamps the page counter into range',
-      (tester) async {
+  testWidgets('deleting a mid-list site clamps the page counter into range', (
+    tester,
+  ) async {
     final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     addTearDown(db.close);
     await seedSite(db);
@@ -91,8 +93,9 @@ void main() {
     await drainOverlayTimer(tester);
   });
 
-  testWidgets('deleting the last page while viewing it clamps back one page',
-      (tester) async {
+  testWidgets('deleting the last page while viewing it clamps back one page', (
+    tester,
+  ) async {
     final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     addTearDown(db.close);
     await seedSite(db);
@@ -116,8 +119,9 @@ void main() {
     await drainOverlayTimer(tester);
   });
 
-  testWidgets('deleting the last remaining site shows the empty state',
-      (tester) async {
+  testWidgets('deleting the last remaining site shows the empty state', (
+    tester,
+  ) async {
     final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     addTearDown(db.close);
     final onlyId = await seedSite(db);
@@ -135,8 +139,9 @@ void main() {
     await drainOverlayTimer(tester);
   });
 
-  testWidgets('first load points the menu at the visible record',
-      (tester) async {
+  testWidgets('first load points the menu at the visible record', (
+    tester,
+  ) async {
     final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     addTearDown(db.close);
     final onlyId = await seedSite(db);
@@ -164,8 +169,9 @@ void main() {
     // Assert the real viewport, not just the counter text — the counter reads
     // bookkeeping and can lie about the view.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
-    final controller =
-        tester.widget<PageView>(find.byType(PageView)).controller;
+    final controller = tester
+        .widget<PageView>(find.byType(PageView))
+        .controller;
     expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, lastId);
     expect(tester.takeException(), isNull);
@@ -186,8 +192,9 @@ void main() {
     // pending jump under its id, and invalidate the list.
     final newId = await seedSite(db);
     container
-        .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
-        .state = newId;
+            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+            .state =
+        newId;
     container.invalidate(siteEntryProvider);
     await tester.pumpAndSettle();
 
@@ -195,8 +202,9 @@ void main() {
     // real viewport too — a counter-only check can pass while the view stays
     // behind.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
-    final controller =
-        tester.widget<PageView>(find.byType(PageView)).controller;
+    final controller = tester
+        .widget<PageView>(find.byType(PageView))
+        .controller;
     expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     expect(
@@ -208,8 +216,9 @@ void main() {
     await drainOverlayTimer(tester);
   });
 
-  testWidgets('creating from a non-last page lands on the new record',
-      (tester) async {
+  testWidgets('creating from a non-last page lands on the new record', (
+    tester,
+  ) async {
     final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     addTearDown(db.close);
     for (var i = 0; i < 4; i++) {
@@ -227,8 +236,9 @@ void main() {
 
     final newId = await seedSite(db);
     container
-        .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
-        .state = newId;
+            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+            .state =
+        newId;
     container.invalidate(siteEntryProvider);
     await tester.pumpAndSettle();
 
@@ -236,12 +246,39 @@ void main() {
     // layout and stuck the view one page short. The keyed controller swap
     // must land the real viewport on the new record.
     expect(find.text('Page 5 of 5'), findsAtLeastNWidgets(1));
-    final controller =
-        tester.widget<PageView>(find.byType(PageView)).controller;
+    final controller = tester
+        .widget<PageView>(find.byType(PageView))
+        .controller;
     expect(controller?.page, 4.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     expect(tester.takeException(), isNull);
 
+    await drainOverlayTimer(tester);
+  });
+
+  testWidgets('creating while searching exits search and lands last', (
+    tester,
+  ) async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    addTearDown(db.close);
+    await seedSite(db);
+    await seedSite(db);
+    final container = await pumpViewer(tester, db);
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    expect(find.text('Cancel'), findsOneWidget);
+
+    final newId = await seedSite(db);
+    container
+        .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+        .updateState(newId);
+    container.invalidate(siteEntryProvider);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cancel'), findsNothing);
+    expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
+    expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     await drainOverlayTimer(tester);
   });
 }

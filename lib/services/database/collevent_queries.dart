@@ -5,9 +5,7 @@ import 'package:nahpu/services/utility_services.dart';
 
 part 'collevent_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class CollEventQuery extends DatabaseAccessor<Database>
     with _$CollEventQueryMixin {
   CollEventQuery(super.db);
@@ -16,28 +14,32 @@ class CollEventQuery extends DatabaseAccessor<Database>
       into(collEvent).insert(form);
 
   Future updateCollEventEntry(int id, CollEventCompanion entry) async {
-    return await (update(collEvent)..where((t) => t.id.equals(id)))
-        .write(entry);
+    return await (update(
+      collEvent,
+    )..where((t) => t.id.equals(id))).write(entry);
   }
 
   Future<List<int?>> getAllDistinctSites(String projectUuid) async {
-    List<CollEventData> data = await (select(collEvent)
-          ..where((t) => t.projectUuid.equals(projectUuid)))
-        .get();
+    List<CollEventData> data = await (select(
+      collEvent,
+    )..where((t) => t.projectUuid.equals(projectUuid))).get();
     List<int?> sites = data.map((e) => e.siteID).toSet().toList();
 
     return sites;
   }
 
+  /// Returns events oldest-first so new records are the final form page.
   Future<List<CollEventData>> getAllCollEvents(String projectUuid) async {
     return await (select(collEvent)
-          ..where((t) => t.projectUuid.equals(projectUuid)))
+          ..where((t) => t.projectUuid.equals(projectUuid))
+          ..orderBy([(row) => OrderingTerm.asc(row.id)]))
         .get();
   }
 
   Future<List<int>> getEventPerSite(int siteID) async {
-    List<CollEventData> data =
-        await (select(collEvent)..where((t) => t.siteID.equals(siteID))).get();
+    List<CollEventData> data = await (select(
+      collEvent,
+    )..where((t) => t.siteID.equals(siteID))).get();
     return data.map((e) => e.id).toList();
   }
 
@@ -53,8 +55,9 @@ class CollEventQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteAllCollEvents(String projectUuid) {
-    return (delete(collEvent)..where((t) => t.projectUuid.equals(projectUuid)))
-        .go();
+    return (delete(
+      collEvent,
+    )..where((t) => t.projectUuid.equals(projectUuid))).go();
   }
 }
 
@@ -71,9 +74,9 @@ class CollEffortQuery extends DatabaseAccessor<Database>
   }
 
   Future<List<CollEffortData>> getCollEffortByEventId(int collEventId) async {
-    return await (select(collEffort)
-          ..where((t) => t.eventID.equals(collEventId)))
-        .get();
+    return await (select(
+      collEffort,
+    )..where((t) => t.eventID.equals(collEventId))).get();
   }
 
   Future<CollEffortData> getCollEffortById(int effortId) async {
@@ -84,8 +87,10 @@ class CollEffortQuery extends DatabaseAccessor<Database>
   }
 
   Future<List<String>> getDistinctMethods() async {
-    List<CollEffortData> data =
-        await (select(collEffort, distinct: true)).get();
+    List<CollEffortData> data = await (select(
+      collEffort,
+      distinct: true,
+    )).get();
     List<String> methods = getDistinctList(data.map((e) => e.method).toList());
 
     if (kDebugMode) print('getDistinctMethods: $methods');
@@ -118,22 +123,25 @@ class CollPersonnelQuery extends DatabaseAccessor<Database>
   }
 
   Future<List<CollPersonnelData>> searchCollectingPersonnel(
-      List<String> uuids, String query) async {
+    List<String> uuids,
+    String query,
+  ) async {
     List<CollPersonnelData> personnelList = [];
     for (final personId in uuids) {
-      final data = await (select(collPersonnel)
-            ..where((t) => t.personnelId.equals(personId)))
-          .get();
+      final data = await (select(
+        collPersonnel,
+      )..where((t) => t.personnelId.equals(personId))).get();
       personnelList.addAll(data);
     }
     return personnelList;
   }
 
   Future<List<CollPersonnelData>> getCollPersonnelByEventId(
-      int collEventId) async {
-    return await (select(collPersonnel)
-          ..where((t) => t.eventID.equals(collEventId)))
-        .get();
+    int collEventId,
+  ) async {
+    return await (select(
+      collPersonnel,
+    )..where((t) => t.eventID.equals(collEventId))).get();
   }
 
   Future<CollPersonnelData> getCollPersonnelById(int personnelId) async {
@@ -162,13 +170,15 @@ class CollPersonnelQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteAllEventPersonnel(int eventId) {
-    return (delete(collPersonnel)..where((t) => t.eventID.equals(eventId)))
-        .go();
+    return (delete(
+      collPersonnel,
+    )..where((t) => t.eventID.equals(eventId))).go();
   }
 
   Future<void> deleteCollPersonnelByEventId(int eventId) {
-    return (delete(collPersonnel)..where((t) => t.eventID.equals(eventId)))
-        .go();
+    return (delete(
+      collPersonnel,
+    )..where((t) => t.eventID.equals(eventId))).go();
   }
 }
 
@@ -184,8 +194,9 @@ class WeatherDataQuery extends DatabaseAccessor<Database>
   }
 
   Future<WeatherData> getWeatherDataByEventId(int weatherId) async {
-    return await (select(weather)..where((t) => t.eventID.equals(weatherId)))
-        .getSingle();
+    return await (select(
+      weather,
+    )..where((t) => t.eventID.equals(weatherId))).getSingle();
   }
 
   Future<void> deleteWeatherData(int eventId) {

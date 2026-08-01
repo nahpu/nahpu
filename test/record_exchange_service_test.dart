@@ -441,6 +441,27 @@ void main() {
         importedAssociatedData.single.uri,
         'https://example.org/field-note',
       );
+
+      final embeddedResult = await service.importPayload(
+        parsed,
+        references: SpecimenImportReferences(
+          taxonomyId: taxon,
+          createEmbeddedEvent: true,
+          createEmbeddedSite: true,
+        ),
+      );
+      expect(embeddedResult.createdEventId, isNotNull);
+      expect(embeddedResult.createdSiteId, isNotNull);
+      final embeddedEvent =
+          await (database.select(database.collEvent)
+                ..where((row) => row.id.equals(embeddedResult.createdEventId!)))
+              .getSingle();
+      expect(embeddedEvent.siteID, embeddedResult.createdSiteId);
+      final embeddedSpecimen =
+          await (database.select(database.specimen)
+                ..where((row) => row.uuid.equals(embeddedResult.recordUuid!)))
+              .getSingle();
+      expect(embeddedSpecimen.collEventID, embeddedResult.createdEventId);
     },
   );
 }

@@ -202,12 +202,28 @@ class RecordExchangeActions {
         references: references,
         extractedMediaDirectory: imported.extractedMediaDirectory,
       );
-      ref.invalidate(specimenEntryProvider);
-      ref.invalidate(partBySpecimenProvider(result.recordUuid!));
-      ref.invalidate(associatedDataProvider(result.recordUuid!));
       ref
           .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
           .updateState(result.recordUuid);
+      if (result.createdEventId case final createdEventId?) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+            .updateState(createdEventId);
+      }
+      if (result.createdSiteId case final createdSiteId?) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+            .updateState(createdSiteId);
+      }
+      ref.invalidate(specimenEntryProvider);
+      if (result.createdEventId != null) {
+        ref.invalidate(collEventEntryProvider);
+      }
+      if (result.createdSiteId != null) {
+        ref.invalidate(siteEntryProvider);
+      }
+      ref.invalidate(partBySpecimenProvider(result.recordUuid!));
+      ref.invalidate(associatedDataProvider(result.recordUuid!));
       _showSuccess('Specimen imported successfully.');
     } catch (error) {
       _showError(error);
@@ -239,12 +255,12 @@ class RecordExchangeActions {
         payload,
         targetId: choice.targetId,
       );
-      ref.invalidate(siteEntryProvider);
-      ref.invalidate(allPersonnelProvider);
-      ref.invalidate(projectPersonnelProvider);
       ref
           .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
           .updateState(result.recordId);
+      ref.invalidate(siteEntryProvider);
+      ref.invalidate(allPersonnelProvider);
+      ref.invalidate(projectPersonnelProvider);
       _showSuccess('Site imported successfully.');
     } catch (error) {
       _showError(error);
@@ -281,13 +297,18 @@ class RecordExchangeActions {
         linkedSiteId: linkedSite?.siteId,
         createEmbeddedSite: linkedSite?.createEmbeddedSite ?? false,
       );
+      ref
+          .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+          .updateState(result.recordId);
+      if (result.createdSiteId case final createdSiteId?) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+            .updateState(createdSiteId);
+      }
       ref.invalidate(collEventEntryProvider);
       ref.invalidate(siteEntryProvider);
       ref.invalidate(allPersonnelProvider);
       ref.invalidate(projectPersonnelProvider);
-      ref
-          .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
-          .updateState(result.recordId);
       _showSuccess('Event imported successfully.');
     } catch (error) {
       _showError(error);

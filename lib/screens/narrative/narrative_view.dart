@@ -69,7 +69,8 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
                                 narrativeServices.invalidateNarrative();
                               });
                             },
-                            icon: const Icon(Icons.clear_rounded))
+                            icon: const Icon(Icons.clear_rounded),
+                          )
                         : const SizedBox.shrink(),
                   ],
                   onChanged: (value) {
@@ -98,17 +99,18 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
                       narrativeServices.invalidateNarrative();
                     });
                   },
-                  child: const Text('Cancel')),
+                  child: const Text('Cancel'),
+                ),
           !_isSearching ? const NewNarrative() : const SizedBox.shrink(),
-          NarrativeMenu(
-            narrativeId: _narrativeId,
-          ),
+          NarrativeMenu(narrativeId: _narrativeId),
         ],
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(
-          child: ref.watch(narrativeEntryProvider).when(
+          child: ref
+              .watch(narrativeEntryProvider)
+              .when(
                 data: (narrativeEntries) {
                   if (narrativeEntries.isEmpty) {
                     return EmptyNarrative(isButtonVisible: !_isSearching);
@@ -132,9 +134,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
       ),
       bottomSheet: Visibility(
         visible: isVisible,
-        child: PageNavButton(
-          pageNav: _pageNav,
-        ),
+        child: PageNavButton(pageNav: _pageNav),
       ),
     );
   }
@@ -148,6 +148,10 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
     }
     final index = _pageNav.clampToCount(count);
     setState(() {
+      if (landIndex != null && _isSearching) {
+        _isSearching = false;
+        _searchController.clear();
+      }
       isVisible = count >= 2;
       if (count == 0) {
         _narrativeId = null;
@@ -171,11 +175,13 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   int? _landingIndex(List<NarrativeData> narrativeEntries) {
     final firstLoad = !_loadedOnce;
     _loadedOnce = true;
-    final pendingJump =
-        ref.read(pendingRecordJumpProvider(RecordViewer.narrative));
+    final pendingJump = ref.read(
+      pendingRecordJumpProvider(RecordViewer.narrative),
+    );
     if (pendingJump != null) {
-      final target = narrativeEntries
-          .indexWhere((narrative) => narrative.id == pendingJump);
+      final target = narrativeEntries.indexWhere(
+        (narrative) => narrative.id == pendingJump,
+      );
       if (target != -1) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.narrative).notifier)
@@ -235,7 +241,9 @@ class NarrativePages extends StatelessWidget {
   }
 
   NarrativeFormCtrModel _updateController(
-      List<NarrativeData> narrativeEntries, int index) {
+    List<NarrativeData> narrativeEntries,
+    int index,
+  ) {
     // Prefer the separate `time` column if present; otherwise try
     // to parse a time from the existing date string for backwards
     // compatibility with old data.
@@ -257,17 +265,15 @@ class NarrativePages extends StatelessWidget {
       timeCtr: TimeEditingController(time: timeStd),
       siteCtr: narrativeEntries[index].siteID,
       writerCtr: narrativeEntries[index].writerId,
-      narrativeCtr:
-          TextEditingController(text: narrativeEntries[index].narrative),
+      narrativeCtr: TextEditingController(
+        text: narrativeEntries[index].narrative,
+      ),
     );
   }
 }
 
 class EmptyNarrative extends StatelessWidget {
-  const EmptyNarrative({
-    super.key,
-    required this.isButtonVisible,
-  });
+  const EmptyNarrative({super.key, required this.isButtonVisible});
 
   final bool isButtonVisible;
 

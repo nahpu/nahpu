@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/screens/projects/components/action_buttons.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/components/overview.dart';
 import 'package:nahpu/screens/projects/personnel/personnel.dart';
@@ -34,8 +33,6 @@ class DashboardState extends ConsumerState<Dashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Project Dashboard")),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-      floatingActionButton: const ActionButtons(),
       drawer: const ProjectMenuDrawer(),
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints c) {

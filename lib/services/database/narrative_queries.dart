@@ -3,9 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 
 part 'narrative_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class NarrativeQuery extends DatabaseAccessor<Database>
     with _$NarrativeQueryMixin {
   NarrativeQuery(super.db);
@@ -18,14 +16,17 @@ class NarrativeQuery extends DatabaseAccessor<Database>
   }
 
   Future<List<NarrativeData>> searchNarrative(String query) async {
-    return await (select(narrative)
-          ..where(
-              (t) => t.narrative.like('%$query%') | t.date.like('%$query%')))
+    return await (select(
+          narrative,
+        )..where((t) => t.narrative.like('%$query%') | t.date.like('%$query%')))
         .get();
   }
 
+  /// Returns narratives oldest-first so new records are the final form page.
   Future<List<NarrativeData>> getAllNarrative(String projectUuid) {
-    return (select(narrative)..where((t) => t.projectUuid.equals(projectUuid)))
+    return (select(narrative)
+          ..where((t) => t.projectUuid.equals(projectUuid))
+          ..orderBy([(row) => OrderingTerm.asc(row.id)]))
         .get();
   }
 
@@ -38,33 +39,36 @@ class NarrativeQuery extends DatabaseAccessor<Database>
   }
 
   Future<List<NarrativeMediaData>> getNarrativeMedia(int narrativeId) async {
-    return await (select(narrativeMedia)
-          ..where((t) => t.narrativeId.equals(narrativeId)))
-        .get();
+    return await (select(
+      narrativeMedia,
+    )..where((t) => t.narrativeId.equals(narrativeId))).get();
   }
 
   Future<NarrativeMediaData> getNarrativeMediaById(int mediaId) async {
-    return await (select(narrativeMedia)
-          ..where((t) => t.mediaId.equals(mediaId)))
-        .getSingle();
+    return await (select(
+      narrativeMedia,
+    )..where((t) => t.mediaId.equals(mediaId))).getSingle();
   }
 
   Future<void> updateNarrativeMedia(
-      int narrativeId, NarrativeMediaCompanion form) {
-    return (update(narrativeMedia)
-          ..where((t) => t.narrativeId.equals(narrativeId)))
-        .write(form);
+    int narrativeId,
+    NarrativeMediaCompanion form,
+  ) {
+    return (update(
+      narrativeMedia,
+    )..where((t) => t.narrativeId.equals(narrativeId))).write(form);
   }
 
   Future<void> deleteNarrativeMedia(int mediaId) {
-    return (delete(narrativeMedia)..where((t) => t.mediaId.equals(mediaId)))
-        .go();
+    return (delete(
+      narrativeMedia,
+    )..where((t) => t.mediaId.equals(mediaId))).go();
   }
 
   Future<void> deleteAllNarrativeMedia(int narrativeId) {
-    return (delete(narrativeMedia)
-          ..where((t) => t.narrativeId.equals(narrativeId)))
-        .go();
+    return (delete(
+      narrativeMedia,
+    )..where((t) => t.narrativeId.equals(narrativeId))).go();
   }
 
   Future<void> deleteNarrative(int id) {
@@ -72,8 +76,9 @@ class NarrativeQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteAllNarrative(String projectUuid) {
-    return (delete(narrative)..where((t) => t.projectUuid.equals(projectUuid)))
-        .go();
+    return (delete(
+      narrative,
+    )..where((t) => t.projectUuid.equals(projectUuid))).go();
   }
 
   /// Update only the writerId for a narrative using Drift's update API.

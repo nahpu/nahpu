@@ -68,7 +68,8 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
                                 services.invalidateCollEvent();
                               });
                             },
-                            icon: const Icon(Icons.clear_rounded))
+                            icon: const Icon(Icons.clear_rounded),
+                          )
                         : const SizedBox.shrink(),
                   ],
                   onChanged: (value) {
@@ -87,7 +88,8 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
                           });
                           _focus.requestFocus();
                         },
-                  icon: const Icon(Icons.search))
+                  icon: const Icon(Icons.search),
+                )
               : TextButton(
                   onPressed: () {
                     setState(() {
@@ -96,17 +98,18 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
                       services.invalidateCollEvent();
                     });
                   },
-                  child: const Text("Cancel")),
+                  child: const Text("Cancel"),
+                ),
           !_isSearching ? const NewCollEvents() : const SizedBox.shrink(),
-          CollEventMenu(
-            collEventId: _collEvenId,
-          ),
+          CollEventMenu(collEventId: _collEvenId),
         ],
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(
-          child: ref.watch(collEventEntryProvider).when(
+          child: ref
+              .watch(collEventEntryProvider)
+              .when(
                 data: (collEventEntries) {
                   if (collEventEntries.isEmpty) {
                     return EmptyCollEvent(isButtonVisible: !_isSearching);
@@ -130,9 +133,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
       ),
       bottomSheet: Visibility(
         visible: _isVisible,
-        child: PageNavButton(
-          pageNav: _pageNav,
-        ),
+        child: PageNavButton(pageNav: _pageNav),
       ),
     );
   }
@@ -146,6 +147,10 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
     }
     final index = _pageNav.clampToCount(count);
     setState(() {
+      if (landIndex != null && _isSearching) {
+        _isSearching = false;
+        _searchController.clear();
+      }
       _isVisible = count >= 2;
       if (count == 0) {
         _collEvenId = null;
@@ -169,11 +174,13 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   int? _landingIndex(List<CollEventData> collEventEntries) {
     final firstLoad = !_loadedOnce;
     _loadedOnce = true;
-    final pendingJump =
-        ref.read(pendingRecordJumpProvider(RecordViewer.collEvent));
+    final pendingJump = ref.read(
+      pendingRecordJumpProvider(RecordViewer.collEvent),
+    );
     if (pendingJump != null) {
-      final target =
-          collEventEntries.indexWhere((event) => event.id == pendingJump);
+      final target = collEventEntries.indexWhere(
+        (event) => event.id == pendingJump,
+      );
       if (target != -1) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)

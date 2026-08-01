@@ -3,9 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 
 part 'site_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   SiteQuery(super.db);
 
@@ -15,8 +13,11 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
     return (update(site)..where((t) => t.id.equals(id))).write(entry);
   }
 
+  /// Returns sites oldest-first so new records are the final form page.
   Future<List<SiteData>> getAllSites(String projectUuid) {
-    return (select(site)..where((t) => t.projectUuid.equals(projectUuid)))
+    return (select(site)
+          ..where((t) => t.projectUuid.equals(projectUuid))
+          ..orderBy([(row) => OrderingTerm.asc(row.id)]))
         .get();
   }
 
@@ -25,18 +26,21 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   }
 
   Future<List<SiteMediaData>> getSiteMedia(int siteId) async {
-    return await (select(siteMedia)..where((t) => t.siteId.equals(siteId)))
-        .get();
+    return await (select(
+      siteMedia,
+    )..where((t) => t.siteId.equals(siteId))).get();
   }
 
   Future<SiteMediaData> getSiteMediaById(int mediaId) async {
-    return await (select(siteMedia)..where((t) => t.mediaId.equals(mediaId)))
-        .getSingle();
+    return await (select(
+      siteMedia,
+    )..where((t) => t.mediaId.equals(mediaId))).getSingle();
   }
 
   Future<void> updateSiteMedia(int siteId, SiteMediaCompanion form) {
-    return (update(siteMedia)..where((t) => t.siteId.equals(siteId)))
-        .write(form);
+    return (update(
+      siteMedia,
+    )..where((t) => t.siteId.equals(siteId))).write(form);
   }
 
   Future<void> deleteSiteMedia(int mediaId) {

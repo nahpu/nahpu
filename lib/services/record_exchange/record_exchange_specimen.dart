@@ -111,7 +111,12 @@ class RecordExchangeSpecimen extends AppServices {
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
     );
-    final eventId = await _resolveEvent(payload, references, personnelIds);
+    final resolvedEvent = await _resolveEvent(
+      payload,
+      references,
+      personnelIds,
+    );
+    final eventId = resolvedEvent.eventId;
     final taxonomyId = await _resolveTaxonomy(payload, references);
     final coordinateId = await _importCoordinate(payload, references.siteId);
 
@@ -155,7 +160,11 @@ class RecordExchangeSpecimen extends AppServices {
 
     invalidateEffectiveControlledVocabularies(ref);
 
-    return RecordExchangeResult(recordUuid: newUuid);
+    return RecordExchangeResult(
+      recordUuid: newUuid,
+      createdEventId: resolvedEvent.createdEventId,
+      createdSiteId: resolvedEvent.createdSiteId,
+    );
   }
 
   Future<Map<String, dynamic>> _exportAttributes(String uuid) async {
@@ -273,15 +282,26 @@ class RecordExchangeSpecimen extends AppServices {
         null;
   }
 
-  Future<int?> _resolveEvent(
+  Future<({int? eventId, int? createdEventId, int? createdSiteId})>
+  _resolveEvent(
     RecordExchangePayload payload,
     SpecimenImportReferences references,
     Map<String, String> personnelIds,
   ) async {
     final event = payload.data['event'];
-    if (event == null) return references.eventId;
+    if (event == null) {
+      return (
+        eventId: references.eventId,
+        createdEventId: null,
+        createdSiteId: null,
+      );
+    }
     if (references.eventId != null && !references.createEmbeddedEvent) {
-      return references.eventId;
+      return (
+        eventId: references.eventId,
+        createdEventId: null,
+        createdSiteId: null,
+      );
     }
     if (!references.createEmbeddedEvent) {
       throw const FormatException('Select or create the specimen event.');
@@ -296,7 +316,11 @@ class RecordExchangeSpecimen extends AppServices {
       linkedSiteId: references.siteId,
       createEmbeddedSite: references.createEmbeddedSite,
     );
-    return result.recordId;
+    return (
+      eventId: result.recordId,
+      createdEventId: result.recordId,
+      createdSiteId: result.createdSiteId,
+    );
   }
 
   Future<int?> _resolveTaxonomy(
