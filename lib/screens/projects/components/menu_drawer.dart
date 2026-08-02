@@ -33,13 +33,17 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
   Widget build(BuildContext context) {
     final projectUuid = ref.watch(projectUuidProvider);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
+      padding: widget.showCloseProject
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
       child: NavigationDrawer(
         elevation: NahpuElevation.medium,
-        footer: SafeArea(
-          top: false,
-          child: _DeleteProjectTile(projectUuid: projectUuid),
-        ),
+        footer: widget.showCloseProject
+            ? null
+            : SafeArea(
+                top: false,
+                child: _DeleteProjectTile(projectUuid: projectUuid),
+              ),
         children: [
           MenuAvatar(projectUuid: projectUuid),
           if (widget.showCloseProject) ...[
@@ -156,6 +160,10 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             },
           ),
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
+          if (widget.showCloseProject) ...[
+            const SizedBox(height: NahpuSpacing.xl),
+            _DeleteProjectTile(projectUuid: projectUuid),
+          ],
         ],
       ),
     );

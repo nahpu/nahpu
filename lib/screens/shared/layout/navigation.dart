@@ -30,12 +30,7 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
       labelBehavior: isPhone
           ? NavigationDestinationLabelBehavior.onlyShowSelected
           : NavigationDestinationLabelBehavior.alwaysShow,
-      backgroundColor: Color.lerp(
-        Theme.of(context).colorScheme.surface,
-        Theme.of(context).colorScheme.secondary,
-        0.1,
-      ),
-      indicatorColor: Theme.of(context).colorScheme.secondaryContainer,
+      indicatorColor: Theme.of(context).colorScheme.primaryContainer,
       elevation: NahpuElevation.none,
       selectedIndex: selectedIndex,
       destinations: const [
@@ -106,16 +101,9 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
               ? Icons.keyboard_double_arrow_left_rounded
               : Icons.keyboard_double_arrow_right_rounded);
 
-    final railBackground = Color.lerp(
-      colorScheme.surface,
-      colorScheme.secondary,
-      0.1,
-    );
-
     return Padding(
       padding: const EdgeInsets.all(NahpuSpacing.md),
       child: Material(
-        color: railBackground,
         elevation: NahpuElevation.none,
         shape: RoundedRectangleBorder(
           side: BorderSide(color: colorScheme.outlineVariant),
@@ -127,8 +115,7 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
           labelType: _isExtended
               ? NavigationRailLabelType.none
               : NavigationRailLabelType.all,
-          backgroundColor: railBackground,
-          indicatorColor: colorScheme.secondaryContainer,
+          indicatorColor: colorScheme.primaryContainer,
           selectedIconTheme: IconThemeData(color: colorScheme.primary),
           selectedLabelTextStyle: theme.textTheme.labelMedium?.copyWith(
             color: colorScheme.primary,
