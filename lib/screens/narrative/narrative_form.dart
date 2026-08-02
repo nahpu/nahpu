@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/forms/site_name_display.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/narrative/components/media.dart';
@@ -70,6 +71,11 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
                       SiteForm(
                         narrativeId: widget.narrativeId,
                         narrativeCtr: widget.narrativeCtr,
+                        onSiteChanged: (siteId) {
+                          setState(() {
+                            widget.narrativeCtr.siteCtr = siteId;
+                          });
+                        },
                       ),
                       WriterForm(
                         narrativeId: widget.narrativeId,
@@ -77,7 +83,7 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
                       ),
                     ],
                   ),
-                  SiteNameField(siteId: widget.narrativeCtr.siteCtr),
+                  SiteNameDisplay(siteId: widget.narrativeCtr.siteCtr),
                 ],
               ),
             ),

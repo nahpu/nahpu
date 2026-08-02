@@ -8,6 +8,7 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/site_name_display.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
@@ -31,6 +32,7 @@ class CaptureRecordFields extends ConsumerStatefulWidget {
 
 class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
   bool _showMore = false;
+  int? _siteId;
   @override
   void initState() {
     super.initState();
@@ -45,10 +47,16 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          SiteNameDisplay(siteId: _siteId),
           EventIdField(
             specimenUuid: widget.specimenUuid,
             useHorizontalLayout: widget.useHorizontalLayout,
             specimenCtr: widget.specimenCtr,
+            onSiteChanged: (siteId) {
+              setState(() {
+                _siteId = siteId;
+              });
+            },
           ),
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
@@ -130,11 +138,13 @@ class EventIdField extends ConsumerStatefulWidget {
     required this.specimenUuid,
     required this.useHorizontalLayout,
     required this.specimenCtr,
+    required this.onSiteChanged,
   });
 
   final String specimenUuid;
   final bool useHorizontalLayout;
   final SpecimenFormCtrModel specimenCtr;
+  final ValueChanged<int?> onSiteChanged;
 
   @override
   EventIdFieldState createState() => EventIdFieldState();
@@ -273,20 +283,23 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
   Future<void> _updateSite(int? newValue) async {
     int? eventID;
     await _updateSpecimen(eventID);
+    if (!mounted) return;
     setState(() {
       ref.invalidate(collEventEntryProvider);
       siteIDctr = newValue;
     });
+    widget.onSiteChanged(newValue);
   }
 
   Future<void> _getSiteFromEventID() async {
     if (widget.specimenCtr.collEventIDCtr != null) {
       CollEventData? data = await CollEventServices(ref: ref)
           .getCollEvent(widget.specimenCtr.collEventIDCtr);
-      if (data != null) {
+      if (data != null && mounted) {
         setState(() {
           siteIDctr = data.siteID;
         });
+        widget.onSiteChanged(data.siteID);
       }
     }
   }

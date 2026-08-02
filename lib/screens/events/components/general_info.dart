@@ -7,6 +7,7 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/site_name_display.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -51,7 +52,7 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
       },
     );
     return FormCard(
-      title: 'General Information',
+      title: 'Event Details',
       isPrimary: true,
       infoContent: const CollInfoHelpContent(),
       mainAxisSize: MainAxisSize.min,
@@ -65,6 +66,7 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
               collEventCtr: widget.collEventCtr,
             ),
           ),
+          SiteNameDisplay(siteId: widget.collEventCtr.siteIDCtr),
           Padding(
             // Match adaptive layout padding
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -391,7 +393,7 @@ class CollInfoHelpContent extends StatelessWidget {
       content: [
         InfoContent(
             header: 'Overview',
-            content: 'General information about the event.'
+            content: 'Details about the collecting event.'
                 ' Event helps you keep track of collecting efforts.'),
         InfoContent(
           content: 'The event ID is automatically generated'
