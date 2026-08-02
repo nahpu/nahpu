@@ -96,6 +96,25 @@ void main() {
     expect(category.isControlledVocabulary, isTrue);
   });
 
+  test('datum defaults are redb-backed and exportable', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final datums = await container.read(
+      userDefinedFieldProvider(datumPrefKey).future,
+    );
+    expect(datums, ['WGS84', 'NAD83', 'NAD27']);
+    expect(datums, isNot(contains('Other')));
+
+    final preview = await rust_config.getConfigExportPreview();
+    final datum = preview.userConfigs.firstWhere(
+      (entry) => entry.key == datumPrefKey,
+    );
+    expect(datum.label, 'Datums');
+    expect(datum.values, datums);
+    expect(datum.isControlledVocabulary, isTrue);
+  });
+
   test('project field ID auto-increment is a labeled user config', () async {
     await rust_config.setUserConfigString(
       key: projectFieldIdAutoIncrementPrefKey,

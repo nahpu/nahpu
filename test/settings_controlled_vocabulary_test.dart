@@ -3,11 +3,53 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
+import 'package:nahpu/screens/settings/site_settings.dart';
 import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/utility_services.dart';
 
 void main() {
+  testWidgets('site settings include the default datum vocabulary', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          for (final key in [
+            siteTypeFmtPrefKey,
+            habitatTypeFmtPrefKey,
+            datumFmtPrefKey,
+          ])
+            textCaseFmtNotifierProvider(
+              key,
+            ).overrideWith(() => _FakeTextCaseFmtNotifier(key)),
+          effectiveUserDefinedFieldProvider(
+            siteTypePrefKey,
+          ).overrideWith((ref) async => const <String>[]),
+          effectiveUserDefinedFieldProvider(
+            habitatTypePrefKey,
+          ).overrideWith((ref) async => const <String>[]),
+          effectiveUserDefinedFieldProvider(
+            datumPrefKey,
+          ).overrideWith((ref) async => const ['WGS84', 'NAD83', 'NAD27']),
+        ],
+        child: const MaterialApp(home: SiteSelection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Datums'), findsOneWidget);
+    expect(find.text('WGS84'), findsOneWidget);
+    expect(find.text('NAD83'), findsOneWidget);
+    expect(find.text('NAD27'), findsOneWidget);
+    expect(find.text('Other'), findsNothing);
+  });
+
   testWidgets(
     'controlled vocabulary sections include format action and matching',
     (tester) async {

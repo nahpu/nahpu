@@ -385,9 +385,14 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
     try {
       final selected = _selectedImports.toList()..sort();
       final records = selected.map((index) => review.coordinates[index]);
-      final forms = CoordinateExchangeService(
-        ref: ref,
-      ).companionsForSite(records, widget.siteId);
+      final datums = await ref.read(
+        userDefinedFieldProvider(datumPrefKey).future,
+      );
+      final forms = CoordinateExchangeService.companionsForSite(
+        records,
+        widget.siteId,
+        defaultDatum: datums.firstOrNull,
+      );
       await CoordinateServices(ref: ref).createCoordinates(forms);
       ref.invalidate(coordinateBySiteProvider);
       ref.invalidate(coordinateByProjectProvider);
@@ -402,17 +407,19 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
       context,
       MaterialPageRoute(
         builder: (context) => ScannerScreen(
-          onDetect: (capture) {
+          onDetect: (capture) async {
             final rawValue = capture.barcodes.firstOrNull?.rawValue;
             if (rawValue == null) return;
             try {
               final coordinate = CoordinateExchangeService.decodeQr(rawValue);
-              _populateControllers(coordinate);
+              await _populateControllers(coordinate);
+              if (!mounted || !context.mounted) return;
               Navigator.pop(context);
-              if (mounted) setState(() => _mode = _AddCoordinateMode.manual);
+              setState(() => _mode = _AddCoordinateMode.manual);
             } catch (error) {
+              if (!mounted || !context.mounted) return;
               Navigator.pop(context);
-              if (mounted) _showError(error.toString());
+              _showError(error.toString());
             }
           },
         ),
@@ -420,7 +427,15 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
     );
   }
 
-  void _populateControllers(CoordinateData coordinate) {
+  Future<void> _populateControllers(CoordinateData coordinate) async {
+    String? datum = coordinate.datum;
+    if (datum == null) {
+      final datums = await ref.read(
+        userDefinedFieldProvider(datumPrefKey).future,
+      );
+      datum = datums.firstOrNull;
+    }
+    if (!mounted) return;
     widget.coordCtr.nameIdCtr.text = coordinate.nameId ?? '';
     widget.coordCtr.latitudeCtr.text =
         coordinate.decimalLatitude?.toString() ?? '';
@@ -428,7 +443,7 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
         coordinate.decimalLongitude?.toString() ?? '';
     widget.coordCtr.elevationCtr.text =
         coordinate.elevationInMeter?.toString() ?? '';
-    widget.coordCtr.datumCtr.text = coordinate.datum ?? 'WGS84';
+    widget.coordCtr.datumCtr.text = datum ?? '';
     widget.coordCtr.uncertaintyCtr.text =
         coordinate.uncertaintyInMeters?.toString() ?? '';
     widget.coordCtr.gpsUnitCtr.text = coordinate.gpsUnit ?? '';
@@ -591,8 +606,8 @@ class CoordinateForms extends ConsumerStatefulWidget {
 }
 
 class CoordinateFormsState extends ConsumerState<CoordinateForms> {
-  final List<String> _datum = ['WGS84', 'NAD83', 'NAD27', 'Other'];
   bool _isFetchingLocation = false;
+  String? _configuredDatumDefault;
   String _dmsLatitude = '';
   String _dmsLongitude = '';
 
@@ -603,6 +618,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
     widget.coordCtr.longitudeCtr.addListener(_updateGPSDescription);
     if (!widget.isEditing) {
       _prefillSiteId();
+      _setConfiguredDatumDefault();
     } else {
       _updateGPSDescription();
     }
@@ -736,24 +752,42 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
             ),
           ),
           CommonPadding(
-            child: DropdownButtonFormField(
-              initialValue: _getDatum(),
-              decoration: const InputDecoration(
-                labelText: 'Datum',
-                hintText: 'Specify the datum',
-              ),
-              items: _datum
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: e,
-                      child: CommonDropdownText(text: e),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                widget.coordCtr.datumCtr.text = value.toString();
-              },
-            ),
+            child: ref
+                .watch(effectiveUserDefinedFieldProvider(datumPrefKey))
+                .when(
+                  data: (data) {
+                    final current = widget.coordCtr.datumCtr.text.trim();
+                    final options = includeCurrentVocabularyValue(
+                      data,
+                      current.isEmpty ? null : current,
+                    );
+                    final selected = current.isEmpty
+                        ? _configuredDatumDefault
+                        : current;
+                    return DropdownButtonFormField<String>(
+                      key: ValueKey(selected),
+                      initialValue: selected,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Datum',
+                        hintText: 'Specify the datum',
+                      ),
+                      items: options
+                          .map(
+                            (datum) => DropdownMenuItem(
+                              value: datum,
+                              child: CommonDropdownText(text: datum),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        widget.coordCtr.datumCtr.text = value ?? '';
+                      },
+                    );
+                  },
+                  loading: () => const CommonProgressIndicator(),
+                  error: (error, _) => Text(error.toString()),
+                ),
           ),
           CommonPadding(
             child: CommonNumField(
@@ -917,15 +951,18 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
     });
   }
 
-  String _getDatum() {
-    if (widget.coordCtr.datumCtr.text.isEmpty) {
-      setState(() {
-        widget.coordCtr.datumCtr.text = _datum[0];
-      });
-      return widget.coordCtr.datumCtr.text;
-    } else {
-      return widget.coordCtr.datumCtr.text;
-    }
+  Future<void> _setConfiguredDatumDefault() async {
+    final datums = await ref.read(
+      userDefinedFieldProvider(datumPrefKey).future,
+    );
+    if (!mounted) return;
+    final datum = datums.firstOrNull;
+    setState(() {
+      _configuredDatumDefault = datum;
+      if (widget.coordCtr.datumCtr.text.isEmpty && datum != null) {
+        widget.coordCtr.datumCtr.text = datum;
+      }
+    });
   }
 
   Future<void> _createCoordinate() async {
@@ -1014,7 +1051,7 @@ class CoordinateInfoContent extends StatelessWidget {
           header: 'Datum',
           content:
               'The datum is the reference frame for the coordinates.'
-              ' The default is WGS84, which is the standard datum for GPS.',
+              ' New coordinates use the first datum configured in Site Settings.',
         ),
       ],
     );

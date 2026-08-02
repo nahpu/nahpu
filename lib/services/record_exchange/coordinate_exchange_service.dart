@@ -88,10 +88,11 @@ class CoordinateExchangeService extends AppServices {
     );
   }
 
-  List<CoordinateCompanion> companionsForSite(
+  static List<CoordinateCompanion> companionsForSite(
     Iterable<rust_gis.CoordinateTransferRecord> records,
-    int siteId,
-  ) {
+    int siteId, {
+    required String? defaultDatum,
+  }) {
     return records
         .map(
           (record) => CoordinateCompanion(
@@ -99,7 +100,7 @@ class CoordinateExchangeService extends AppServices {
             decimalLatitude: db.Value(record.decimalLatitude),
             decimalLongitude: db.Value(record.decimalLongitude),
             elevationInMeter: db.Value(record.elevationInMeter),
-            datum: const db.Value('WGS84'),
+            datum: db.Value(defaultDatum),
             siteID: db.Value(siteId),
             notes: db.Value(record.notes),
           ),

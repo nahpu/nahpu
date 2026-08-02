@@ -553,6 +553,7 @@ fn is_controlled_vocabulary(key: &str) -> bool {
         key,
         "siteTypes"
             | "habitatTypes"
+            | "datums"
             | "collEventMethods"
             | "collPersonnelRoles"
             | "specimenTypes"
@@ -571,6 +572,7 @@ fn config_label(key: &str) -> &str {
     match key {
         "siteTypes" => "Site types",
         "habitatTypes" => "Habitat types",
+        "datums" => "Datums",
         "collEventMethods" => "Collection methods",
         "collPersonnelRoles" => "Personnel roles",
         "specimenTypes" => "Specimen part types",
@@ -584,6 +586,7 @@ fn config_label(key: &str) -> &str {
         "parasiteTreatments" => "Parasite treatments",
         "siteTypeFmt" => "Site type format",
         "habitatTypeFmt" => "Habitat type format",
+        "datumFmt" => "Datum format",
         "collEventMethodFmt" => "Collection method format",
         "collPersonnelRoleFmt" => "Personnel role format",
         "specimenTypeFmt" => "Specimen part type format",

@@ -1,4 +1,5 @@
 import 'package:nahpu/services/database/collevent_queries.dart';
+import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ class UtilityServices extends AppServices {
         return await SiteQuery(dbAccess).getDistinctSiteTypes();
       case habitatTypePrefKey:
         return await SiteQuery(dbAccess).getDistinctHabitatTypes();
+      case datumPrefKey:
+        return await CoordinateQuery(dbAccess).getDistinctDatums();
       case collMethodPrefKey:
         return await CollEffortQuery(dbAccess).getDistinctMethods();
       case collRolePrefKey:
@@ -105,6 +108,8 @@ class UtilityServices extends AppServices {
         return 'site::type';
       case habitatTypePrefKey:
         return 'site::habitat';
+      case datumPrefKey:
+        return 'coordinate::datum';
       case collMethodPrefKey:
         return 'collEffort::method';
       case collRolePrefKey:

@@ -69,7 +69,7 @@ class CatalogSettings extends StatelessWidget {
         CommonSettingTile(
           title: 'Sites',
           icon: Icons.place_outlined,
-          label: 'Manage controlled vocabularies for site and habitat types',
+          label: 'Manage site types, habitat types, and coordinate datums',
           isNavigation: true,
           onTap: () => Navigator.push(
             context,

@@ -30,6 +30,16 @@ class CoordinateQuery extends DatabaseAccessor<Database>
     return (select(coordinate)..where((t) => t.siteID.equals(siteID))).get();
   }
 
+  Future<List<String>> getDistinctDatums() async {
+    final query = selectOnly(coordinate)
+      ..addColumns([coordinate.datum])
+      ..where(coordinate.datum.isNotNull() & coordinate.datum.isNotValue(''))
+      ..groupBy([coordinate.datum]);
+
+    final result = await query.get();
+    return result.map((row) => row.read(coordinate.datum)!).toList();
+  }
+
   Future<void> updateCoordinate(int id, CoordinateCompanion entry) {
     return (update(coordinate)..where((t) => t.id.equals(id))).write(entry);
   }

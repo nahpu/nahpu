@@ -33,6 +33,13 @@ class _SiteSelectionState extends State<SiteSelection> {
               fmtPrefKey: habitatTypeFmtPrefKey,
               typeName: 'habitat type',
             ),
+            ControlledVocabularySetting(
+              title: 'Datums',
+              typePrefKey: datumPrefKey,
+              fmtPrefKey: datumFmtPrefKey,
+              typeName: 'datum',
+              pluralName: 'datums',
+            ),
           ],
         ),
       ),

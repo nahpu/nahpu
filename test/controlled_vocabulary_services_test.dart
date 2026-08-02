@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -71,6 +72,28 @@ void main() {
     expect((await SpecimenQuery(database).getDistinctConditions()).toSet(), {
       'Good',
       'Custom condition',
+    });
+  });
+
+  test('datum query returns distinct nonblank stored values', () async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final siteId = await database
+        .into(database.site)
+        .insert(const SiteCompanion(projectUuid: Value('project')));
+    for (final datum in ['WGS84', 'Custom datum', 'WGS84', '', null]) {
+      await database
+          .into(database.coordinate)
+          .insert(
+            CoordinateCompanion(datum: Value(datum), siteID: Value(siteId)),
+          );
+    }
+
+    expect((await CoordinateQuery(database).getDistinctDatums()).toSet(), {
+      'WGS84',
+      'Custom datum',
     });
   });
 

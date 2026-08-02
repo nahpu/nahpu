@@ -29,6 +29,8 @@ const String siteTypePrefKey = 'siteTypes';
 const String siteTypeFmtPrefKey = 'siteTypeFmt';
 const String habitatTypePrefKey = 'habitatTypes';
 const String habitatTypeFmtPrefKey = 'habitatTypeFmt';
+const String datumPrefKey = 'datums';
+const String datumFmtPrefKey = 'datumFmt';
 const String collMethodPrefKey = 'collEventMethods';
 const String collMethodFmtPrefKey = 'collEventMethodFmt';
 const String collRolePrefKey = 'collPersonnelRoles';
@@ -162,6 +164,8 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultHabitatTypes;
     case siteTypePrefKey:
       return defaultSiteTypes;
+    case datumPrefKey:
+      return defaultDatums;
     case collMethodPrefKey:
       return defaultCollMethods;
     case collRolePrefKey:

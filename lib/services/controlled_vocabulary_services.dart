@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
+import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
@@ -9,6 +10,7 @@ import 'package:nahpu/services/providers/settings.dart';
 const controlledVocabularyPrefKeys = [
   siteTypePrefKey,
   habitatTypePrefKey,
+  datumPrefKey,
   collMethodPrefKey,
   collRolePrefKey,
   specimenTypePrefKey,
@@ -34,6 +36,7 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
         habitatTypePrefKey => await SiteQuery(
           database,
         ).getDistinctHabitatTypes(),
+        datumPrefKey => await CoordinateQuery(database).getDistinctDatums(),
         collMethodPrefKey => await CollEffortQuery(
           database,
         ).getDistinctMethods(),
