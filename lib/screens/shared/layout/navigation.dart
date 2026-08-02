@@ -116,10 +116,6 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
               ? NavigationRailLabelType.none
               : NavigationRailLabelType.all,
           indicatorColor: colorScheme.primaryContainer,
-          selectedIconTheme: IconThemeData(color: colorScheme.primary),
-          selectedLabelTextStyle: theme.textTheme.labelMedium?.copyWith(
-            color: colorScheme.primary,
-          ),
           unselectedIconTheme: IconThemeData(color: standardForeground),
           unselectedLabelTextStyle: theme.textTheme.labelMedium?.copyWith(
             color: standardForeground,
