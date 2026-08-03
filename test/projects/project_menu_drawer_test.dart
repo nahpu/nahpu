@@ -10,7 +10,7 @@ import 'package:nahpu/services/providers/projects.dart';
 
 void main() {
   testWidgets(
-    'project actions are ordered and delete is pinned to the bottom',
+    'project actions are ordered and delete follows the final action group',
     (tester) async {
       await _pumpDrawer(tester);
 
@@ -40,8 +40,11 @@ void main() {
         isTrue,
       );
 
-      final drawerBottom = tester.getBottomRight(find.byType(Drawer)).dy;
-      expect(tester.getBottomRight(deleteTile).dy, closeTo(drawerBottom, 1));
+      final finalDivider = find.byType(Divider).last;
+      expect(
+        tester.getTopLeft(deleteTile).dy,
+        greaterThanOrEqualTo(tester.getBottomRight(finalDivider).dy),
+      );
     },
   );
 

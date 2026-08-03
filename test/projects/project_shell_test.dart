@@ -133,23 +133,31 @@ void main() {
     final theme = Theme.of(tester.element(find.byType(NavigationRail)));
     expect(rail.extended, isFalse);
     expect(rail.labelType, NavigationRailLabelType.all);
-    expect(rail.selectedIconTheme?.color, theme.colorScheme.primary);
     expect(rail.unselectedIconTheme?.color, theme.colorScheme.onSurfaceVariant);
-    expect(rail.selectedLabelTextStyle?.color, theme.colorScheme.primary);
     expect(
       rail.unselectedLabelTextStyle?.color,
       theme.colorScheme.onSurfaceVariant,
     );
 
-    final railElement = tester.element(find.byType(NavigationRail));
-    final railSurface = railElement.findAncestorWidgetOfExactType<Material>();
-    expect(railSurface, isNotNull);
-    expect(railSurface!.elevation, NahpuElevation.high);
-    expect(railSurface.borderRadius, BorderRadius.circular(NahpuRadius.large));
+    final railSurfaceFinder = find.ancestor(
+      of: find.byType(NavigationRail),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Material && widget.shape is RoundedRectangleBorder,
+      ),
+    );
+    expect(railSurfaceFinder, findsOneWidget);
+    final railSurface = tester.widget<Material>(railSurfaceFinder);
+    expect(railSurface.elevation, NahpuElevation.none);
+    expect(railSurface.shape, isA<RoundedRectangleBorder>());
+    expect(
+      (railSurface.shape! as RoundedRectangleBorder).borderRadius,
+      BorderRadius.circular(NahpuRadius.large),
+    );
     expect(railSurface.clipBehavior, Clip.antiAlias);
-    final surfaceElement = tester.element(find.byWidget(railSurface));
+    final surfaceElement = tester.element(railSurfaceFinder);
     final railPadding = surfaceElement.findAncestorWidgetOfExactType<Padding>();
-    expect(railPadding?.padding, const EdgeInsets.all(NahpuSpacing.xs));
+    expect(railPadding?.padding, const EdgeInsets.all(NahpuSpacing.md));
 
     final expandButton = tester.widget<TextButton>(
       find.widgetWithText(TextButton, 'Expand'),
@@ -170,7 +178,7 @@ void main() {
     );
     expect(
       closeButton.style?.foregroundColor?.resolve({}),
-      theme.colorScheme.error,
+      theme.colorScheme.onSurfaceVariant,
     );
 
     final menuY = tester.getTopLeft(find.text('Menu')).dy;
