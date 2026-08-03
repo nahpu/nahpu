@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/project_exchange_service.dart';
+import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 
 void main() {
   const project = ProjectData(

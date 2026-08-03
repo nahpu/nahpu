@@ -1,4 +1,6 @@
 /// How a text replacement rule identifies matching content.
+/// Use in export to allow user to replace text in exported records
+/// either in tabular or document formats.
 enum TextReplacementMatchType { exact, regex }
 
 /// One ordered text replacement applied to a rendered or exported value.

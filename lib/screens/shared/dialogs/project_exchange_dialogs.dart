@@ -6,7 +6,7 @@ import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/project_exchange_service.dart';
+import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 
 enum _ProjectExportFormat { json }

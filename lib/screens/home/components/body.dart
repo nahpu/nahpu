@@ -8,7 +8,7 @@ import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/project_queries.dart';
-import 'package:nahpu/services/project_exchange_service.dart';
+import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/services/utility_services.dart';

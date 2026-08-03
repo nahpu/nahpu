@@ -12,7 +12,7 @@ import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/project_exchange_service.dart';
+import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/projects.dart';
