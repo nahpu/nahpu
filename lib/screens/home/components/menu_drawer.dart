@@ -36,18 +36,19 @@ class HomeMenuDrawer extends StatelessWidget {
           ),
         ),
         ListTile(
-          leading: const Icon(Icons.create_rounded),
+          leading: const Icon(Icons.create_outlined),
           title: const Text('Create project'),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const CreateProjectForm()),
+                builder: (context) => const CreateProjectForm(),
+              ),
             );
           },
         ),
         ListTile(
-          leading: const Icon(Icons.download_rounded),
+          leading: const Icon(Icons.download_outlined),
           title: const Text('Import project'),
           onTap: () {
             Navigator.push(
@@ -60,7 +61,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         const CommonLineDivider(),
         ListTile(
-          leading: const Icon(Icons.storage_rounded),
+          leading: const Icon(Icons.storage_outlined),
           title: const Text('Backup database'),
           onTap: () {
             Navigator.push(
@@ -71,7 +72,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         const CommonLineDivider(),
         ListTile(
-          leading: const Icon(Icons.settings_rounded),
+          leading: const Icon(Icons.settings_outlined),
           title: const Text('Settings'),
           onTap: () {
             Navigator.push(
@@ -82,24 +83,26 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
 
         ListTile(
-          leading: const Icon(Icons.share_rounded),
+          leading: Icon(Icons.adaptive.share_outlined),
           title: const Text('Export settings'),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const ExportSettingsForm()),
+                builder: (context) => const ExportSettingsForm(),
+              ),
             );
           },
         ),
         ListTile(
-          leading: const Icon(Icons.input_rounded),
+          leading: const Icon(Icons.input_outlined),
           title: const Text('Import settings'),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const AppSettingsImport()),
+                builder: (context) => const AppSettingsImport(),
+              ),
             );
           },
         ),
@@ -107,7 +110,7 @@ class HomeMenuDrawer extends StatelessWidget {
         // const LearningResourceTile(),
         // const CommonLineDivider(),
         ListTile(
-          leading: const Icon(Icons.info_rounded),
+          leading: const Icon(Icons.info_outlined),
           title: const Text('About'),
           onTap: () async {
             return showDialog(
@@ -119,7 +122,7 @@ class HomeMenuDrawer extends StatelessWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.web_rounded),
+          leading: const Icon(Icons.web_outlined),
           title: const Text('NAHPU website'),
           onTap: () {
             _launchHelpUrl();
@@ -133,10 +136,7 @@ class HomeMenuDrawer extends StatelessWidget {
 
   Future<void> _launchHelpUrl() async {
     final Uri url = Uri.parse(nahpuWebsite);
-    if (!await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication,
-    )) {
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $url';
     }
   }
@@ -183,9 +183,7 @@ class LearningResourceTile extends StatelessWidget {
       onTap: () async {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const LearningResourcePage(),
-          ),
+          MaterialPageRoute(builder: (context) => const LearningResourcePage()),
         );
       },
     );
