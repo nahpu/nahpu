@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/coordinate_input.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:uuid/uuid.dart';
 
@@ -312,7 +313,7 @@ class SpecimenFormCtrModel {
     required this.idConfidenceCtr,
     required this.idMethodCtr,
     required this.catalogerCtr,
-    required this.identifierCtr,
+    required this.determinerCtr,
     required this.museumIDCtr,
     required this.persFieldNumberCtr,
     required this.projFieldNumberCtr,
@@ -322,6 +323,7 @@ class SpecimenFormCtrModel {
     required this.collMethodCtr,
     required this.relativeTimeCtr,
     required this.coordinateCtr,
+    required this.coordinateExtentCtr,
     required this.preparatorCtr,
     required this.conditionCtr,
     required this.prepDateCtr,
@@ -336,7 +338,7 @@ class SpecimenFormCtrModel {
   });
 
   String? catalogerCtr;
-  String? identifierCtr;
+  String? determinerCtr;
   String? preparatorCtr;
   String? conditionCtr;
   int? speciesCtr;
@@ -347,6 +349,7 @@ class SpecimenFormCtrModel {
   int? collMethodCtr;
   int? relativeTimeCtr;
   int? coordinateCtr;
+  TextEditingController coordinateExtentCtr;
   TextEditingController idMethodCtr;
   TextEditingController museumIDCtr;
   TextEditingController persFieldNumberCtr;
@@ -363,7 +366,7 @@ class SpecimenFormCtrModel {
 
   factory SpecimenFormCtrModel.empty() => SpecimenFormCtrModel(
     catalogerCtr: null,
-    identifierCtr: null,
+    determinerCtr: null,
     preparatorCtr: null,
     conditionCtr: null,
     collEventIDCtr: null,
@@ -372,6 +375,7 @@ class SpecimenFormCtrModel {
     relativeTimeCtr: null,
     collMethodCtr: null,
     coordinateCtr: null,
+    coordinateExtentCtr: TextEditingController(),
     persFieldNumberCtr: TextEditingController(),
     projFieldNumberCtr: TextEditingController(),
     speciesCtr: null,
@@ -392,7 +396,7 @@ class SpecimenFormCtrModel {
   factory SpecimenFormCtrModel.fromData(SpecimenData specimen) =>
       SpecimenFormCtrModel(
         catalogerCtr: specimen.catalogerID,
-        identifierCtr: specimen.identifierID,
+        determinerCtr: specimen.determinerID,
         preparatorCtr: specimen.preparatorID,
         conditionCtr: specimen.condition,
         collEventIDCtr: specimen.collEventID,
@@ -401,6 +405,9 @@ class SpecimenFormCtrModel {
         collMethodCtr: specimen.collMethodID,
         relativeTimeCtr: specimen.isRelativeTime,
         coordinateCtr: specimen.coordinateID,
+        coordinateExtentCtr: TextEditingController(
+          text: specimen.coordinateExtentMeters?.truncateZero(),
+        ),
         idConfidenceCtr: specimen.iDConfidence,
         idMethodCtr: TextEditingController(text: specimen.iDMethod ?? ''),
         museumIDCtr: TextEditingController(text: specimen.museumID ?? ''),
@@ -438,6 +445,7 @@ class SpecimenFormCtrModel {
     captureDateCtr.dispose();
     captureTimeCtr.dispose();
     trapTypeCtr.dispose();
+    coordinateExtentCtr.dispose();
   }
 }
 
@@ -457,6 +465,7 @@ class MammalAttributeCtrModel {
     required this.frequencyAtMaxEnergyCtr,
     required this.durationCtr,
     required this.weightCtr,
+    required this.weightUnitCtr,
     required this.accuracyCtr,
     required this.sexCtr,
     required this.ageCtr,
@@ -493,6 +502,7 @@ class MammalAttributeCtrModel {
   TextEditingController frequencyAtMaxEnergyCtr;
   TextEditingController durationCtr;
   TextEditingController weightCtr;
+  String weightUnitCtr;
   MammalAccuracyDetails accuracyCtr;
   int? sexCtr;
   int? ageCtr;
@@ -529,6 +539,7 @@ class MammalAttributeCtrModel {
     frequencyAtMaxEnergyCtr: TextEditingController(),
     durationCtr: TextEditingController(),
     weightCtr: TextEditingController(),
+    weightUnitCtr: 'g',
     accuracyCtr: MammalAccuracyDetails(status: MammalAccuracyStatus.accurate),
     sexCtr: null,
     ageCtr: null,
@@ -583,6 +594,7 @@ class MammalAttributeCtrModel {
       text: data.duration?.truncateZero() ?? '',
     ),
     weightCtr: TextEditingController(text: data.weight?.truncateZero() ?? ''),
+    weightUnitCtr: data.weightUnit ?? 'g',
     accuracyCtr: parseMammalAccuracy(
       data.accuracy,
       accuracySpecify: data.accuracySpecify,
@@ -675,6 +687,7 @@ class MammalAttributeCtrModel {
 class BirdAttributeCtrModel {
   BirdAttributeCtrModel({
     required this.weightCtr,
+    required this.weightUnitCtr,
     required this.wingspanCtr,
     required this.irisCtr,
     required this.billCtr,
@@ -713,6 +726,7 @@ class BirdAttributeCtrModel {
   });
 
   TextEditingController weightCtr;
+  String weightUnitCtr;
   TextEditingController wingspanCtr;
   TextEditingController irisCtr;
   TextEditingController billCtr;
@@ -751,6 +765,7 @@ class BirdAttributeCtrModel {
 
   factory BirdAttributeCtrModel.empty() => BirdAttributeCtrModel(
     weightCtr: TextEditingController(),
+    weightUnitCtr: 'g',
     wingspanCtr: TextEditingController(),
     irisCtr: TextEditingController(),
     billCtr: TextEditingController(),
@@ -792,6 +807,7 @@ class BirdAttributeCtrModel {
     BirdAttributeData data,
   ) => BirdAttributeCtrModel(
     weightCtr: TextEditingController(text: data.weight?.truncateZero()),
+    weightUnitCtr: data.weightUnit ?? 'g',
     wingspanCtr: TextEditingController(text: data.wingspan?.truncateZero()),
     irisCtr: TextEditingController(text: data.irisColor ?? ''),
     billCtr: TextEditingController(text: data.billColor ?? ''),
@@ -895,6 +911,7 @@ class HerpAttributeCtrModel {
     required this.sexCtr,
     required this.ageCtr,
     required this.weightCtr,
+    required this.weightUnitCtr,
     required this.svlCtr,
     required this.remarkCtr,
   });
@@ -902,6 +919,7 @@ class HerpAttributeCtrModel {
   int? sexCtr;
   int? ageCtr;
   TextEditingController weightCtr;
+  String weightUnitCtr;
   TextEditingController svlCtr;
   TextEditingController remarkCtr;
 
@@ -909,6 +927,7 @@ class HerpAttributeCtrModel {
     sexCtr: null,
     ageCtr: null,
     weightCtr: TextEditingController(),
+    weightUnitCtr: 'g',
     svlCtr: TextEditingController(),
     remarkCtr: TextEditingController(),
   );
@@ -920,6 +939,7 @@ class HerpAttributeCtrModel {
         weightCtr: TextEditingController(
           text: data.weight?.truncateZero() ?? '',
         ),
+        weightUnitCtr: data.weightUnit ?? 'g',
         svlCtr: TextEditingController(text: data.svl?.truncateZero() ?? ''),
         remarkCtr: TextEditingController(text: data.remark ?? ''),
       );
@@ -1032,6 +1052,7 @@ class PersonnelFormCtrModel {
     required this.initialCtr,
     required this.emailCtr,
     required this.phoneCtr,
+    required this.orcidCtr,
     required this.affiliationCtr,
     required this.roleCtr,
     required this.collectorNumCtr,
@@ -1047,6 +1068,7 @@ class PersonnelFormCtrModel {
   String? roleCtr;
   TextEditingController collectorNumCtr;
   TextEditingController phoneCtr;
+  TextEditingController orcidCtr;
   TextEditingController photoPathCtr;
   TextEditingController noteCtr;
   bool isRegisterField;
@@ -1056,6 +1078,7 @@ class PersonnelFormCtrModel {
     initialCtr: TextEditingController(),
     emailCtr: TextEditingController(),
     phoneCtr: TextEditingController(),
+    orcidCtr: TextEditingController(),
     affiliationCtr: TextEditingController(),
     roleCtr: null,
     collectorNumCtr: TextEditingController(),
@@ -1070,6 +1093,7 @@ class PersonnelFormCtrModel {
         initialCtr: TextEditingController(text: personnel.initial),
         emailCtr: TextEditingController(text: personnel.email),
         phoneCtr: TextEditingController(text: personnel.phone),
+        orcidCtr: TextEditingController(text: personnel.orcid),
         affiliationCtr: TextEditingController(text: personnel.affiliation),
         roleCtr: personnel.role,
         collectorNumCtr: TextEditingController(
@@ -1085,6 +1109,7 @@ class PersonnelFormCtrModel {
     initialCtr.dispose();
     emailCtr.dispose();
     phoneCtr.dispose();
+    orcidCtr.dispose();
     affiliationCtr.dispose();
     collectorNumCtr.dispose();
     photoPathCtr.dispose();
@@ -1314,11 +1339,73 @@ class ParasiteFormCtrModel {
   }
 }
 
+class AngularCoordinateCtrModel {
+  AngularCoordinateCtrModel({
+    required this.degreesCtr,
+    required this.minutesCtr,
+    required this.secondsCtr,
+    this.direction,
+    this.invalidStoredValue,
+  });
+
+  TextEditingController degreesCtr;
+  TextEditingController minutesCtr;
+  TextEditingController secondsCtr;
+  AngularCoordinateDirection? direction;
+  String? invalidStoredValue;
+
+  factory AngularCoordinateCtrModel.empty() => AngularCoordinateCtrModel(
+    degreesCtr: TextEditingController(),
+    minutesCtr: TextEditingController(),
+    secondsCtr: TextEditingController(),
+  );
+
+  AngularCoordinateParts get parts => AngularCoordinateParts(
+    degrees: degreesCtr.text,
+    minutes: minutesCtr.text,
+    seconds: secondsCtr.text,
+    direction: direction,
+  );
+
+  bool get hasInput =>
+      degreesCtr.text.isNotEmpty ||
+      minutesCtr.text.isNotEmpty ||
+      secondsCtr.text.isNotEmpty ||
+      direction != null ||
+      invalidStoredValue != null;
+
+  void load(AngularCoordinateParts parts) {
+    degreesCtr.text = parts.degrees;
+    minutesCtr.text = parts.minutes;
+    secondsCtr.text = parts.seconds;
+    direction = parts.direction;
+    invalidStoredValue = null;
+  }
+
+  void clear() {
+    degreesCtr.clear();
+    minutesCtr.clear();
+    secondsCtr.clear();
+    direction = null;
+    invalidStoredValue = null;
+  }
+
+  void dispose() {
+    degreesCtr.dispose();
+    minutesCtr.dispose();
+    secondsCtr.dispose();
+  }
+}
+
 class CoordinateCtrModel {
   CoordinateCtrModel({
     required this.nameIdCtr,
+    required this.inputFormat,
     required this.latitudeCtr,
     required this.longitudeCtr,
+    required this.utmCtr,
+    required this.latitudeAngularCtr,
+    required this.longitudeAngularCtr,
     required this.elevationCtr,
     required this.datumCtr,
     required this.uncertaintyCtr,
@@ -1327,8 +1414,12 @@ class CoordinateCtrModel {
   });
 
   TextEditingController nameIdCtr;
+  String inputFormat;
   TextEditingController latitudeCtr;
   TextEditingController longitudeCtr;
+  TextEditingController utmCtr;
+  AngularCoordinateCtrModel latitudeAngularCtr;
+  AngularCoordinateCtrModel longitudeAngularCtr;
   TextEditingController elevationCtr;
   TextEditingController datumCtr;
   TextEditingController uncertaintyCtr;
@@ -1337,8 +1428,12 @@ class CoordinateCtrModel {
 
   factory CoordinateCtrModel.empty() => CoordinateCtrModel(
     nameIdCtr: TextEditingController(),
+    inputFormat: 'decimalDegrees',
     latitudeCtr: TextEditingController(),
     longitudeCtr: TextEditingController(),
+    utmCtr: TextEditingController(),
+    latitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+    longitudeAngularCtr: AngularCoordinateCtrModel.empty(),
     elevationCtr: TextEditingController(),
     datumCtr: TextEditingController(),
     uncertaintyCtr: TextEditingController(),
@@ -1346,27 +1441,116 @@ class CoordinateCtrModel {
     noteCtr: TextEditingController(),
   );
 
-  factory CoordinateCtrModel.fromData(
-    CoordinateData data,
-  ) => CoordinateCtrModel(
-    nameIdCtr: TextEditingController(text: data.nameId ?? ''),
-    latitudeCtr: TextEditingController(text: data.decimalLatitude.toString()),
-    longitudeCtr: TextEditingController(text: data.decimalLongitude.toString()),
-    elevationCtr: TextEditingController(
-      text: data.elevationInMeter?.truncateZero(),
-    ),
-    datumCtr: TextEditingController(text: data.datum ?? ''),
-    uncertaintyCtr: TextEditingController(
-      text: data.uncertaintyInMeters.toString(),
-    ),
-    gpsUnitCtr: TextEditingController(text: data.gpsUnit ?? ''),
-    noteCtr: TextEditingController(text: data.notes ?? ''),
-  );
+  factory CoordinateCtrModel.fromData(CoordinateData data) {
+    final controller = CoordinateCtrModel(
+      nameIdCtr: TextEditingController(text: data.nameId ?? ''),
+      inputFormat: 'decimalDegrees',
+      latitudeCtr: TextEditingController(),
+      longitudeCtr: TextEditingController(),
+      utmCtr: TextEditingController(),
+      latitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+      longitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+      elevationCtr: TextEditingController(
+        text: data.elevationInMeter?.truncateZero(),
+      ),
+      datumCtr: TextEditingController(text: data.datum ?? ''),
+      uncertaintyCtr: TextEditingController(
+        text: data.uncertaintyInMeters.toString(),
+      ),
+      gpsUnitCtr: TextEditingController(text: data.gpsUnit ?? ''),
+      noteCtr: TextEditingController(text: data.notes ?? ''),
+    );
+    controller.setCoordinateInputData(
+      decimalLatitude: data.decimalLatitude,
+      decimalLongitude: data.decimalLongitude,
+      verbatimLatitude: data.verbatimLatitude,
+      verbatimLongitude: data.verbatimLongitude,
+      verbatimCoordinates: data.verbatimCoordinates,
+      verbatimCoordinateSystem: data.verbatimCoordinateSystem,
+    );
+    return controller;
+  }
+
+  bool get hasCoordinateInput =>
+      latitudeCtr.text.isNotEmpty ||
+      longitudeCtr.text.isNotEmpty ||
+      utmCtr.text.isNotEmpty ||
+      latitudeAngularCtr.hasInput ||
+      longitudeAngularCtr.hasInput;
+
+  void setCoordinateInputData({
+    required double? decimalLatitude,
+    required double? decimalLongitude,
+    required String? verbatimLatitude,
+    required String? verbatimLongitude,
+    required String? verbatimCoordinates,
+    required String? verbatimCoordinateSystem,
+  }) {
+    clearCoordinateInput();
+    inputFormat = switch (verbatimCoordinateSystem) {
+      'degrees decimal minutes' => 'degreesDecimalMinutes',
+      'degrees minutes seconds' => 'degreesMinutesSeconds',
+      'UTM' => 'utm',
+      _ => 'decimalDegrees',
+    };
+    if (inputFormat == 'decimalDegrees') {
+      latitudeCtr.text = decimalLatitude?.toString() ?? '';
+      longitudeCtr.text = decimalLongitude?.toString() ?? '';
+      return;
+    }
+    if (inputFormat == 'utm') {
+      utmCtr.text = verbatimCoordinates ?? '';
+      return;
+    }
+
+    final includesSeconds = inputFormat == 'degreesMinutesSeconds';
+    _loadAngularInput(
+      latitudeAngularCtr,
+      verbatimLatitude,
+      axis: AngularCoordinateAxis.latitude,
+      includesSeconds: includesSeconds,
+    );
+    _loadAngularInput(
+      longitudeAngularCtr,
+      verbatimLongitude,
+      axis: AngularCoordinateAxis.longitude,
+      includesSeconds: includesSeconds,
+    );
+  }
+
+  void clearCoordinateInput() {
+    latitudeCtr.clear();
+    longitudeCtr.clear();
+    utmCtr.clear();
+    latitudeAngularCtr.clear();
+    longitudeAngularCtr.clear();
+  }
+
+  void _loadAngularInput(
+    AngularCoordinateCtrModel controller,
+    String? value, {
+    required AngularCoordinateAxis axis,
+    required bool includesSeconds,
+  }) {
+    final parts = CoordinateInputPartsCodec.tryParseVerbatim(
+      value,
+      axis: axis,
+      includesSeconds: includesSeconds,
+    );
+    if (parts == null) {
+      controller.invalidStoredValue = value ?? '';
+      return;
+    }
+    controller.load(parts);
+  }
 
   void dispose() {
     nameIdCtr.dispose();
     latitudeCtr.dispose();
     longitudeCtr.dispose();
+    utmCtr.dispose();
+    latitudeAngularCtr.dispose();
+    longitudeAngularCtr.dispose();
     elevationCtr.dispose();
     datumCtr.dispose();
     uncertaintyCtr.dispose();

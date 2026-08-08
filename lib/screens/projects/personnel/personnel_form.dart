@@ -1,4 +1,5 @@
 import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/orcid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/personnel/avatars.dart';
@@ -13,7 +14,7 @@ import 'package:flutter/services.dart';
 
 const List<String> personnelRoleList = [
   'Cataloger',
-  'Identifier only',
+  'Determiner only',
   'Preparator only',
   'None',
 ];
@@ -129,6 +130,21 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                 if (widget.isEditing) {
                   _validateEditing();
                 }
+              },
+            ),
+          ),
+          Visibility(
+            visible: _isShowMore || widget.ctr.orcidCtr.text.isNotEmpty,
+            child: TextFormField(
+              controller: widget.ctr.orcidCtr,
+              decoration: InputDecoration(
+                labelText: 'ORCID iD',
+                hintText: '0000-0000-0000-0000',
+                errorText: _orcidError,
+              ),
+              onChanged: (_) {
+                setState(() {});
+                if (widget.isEditing) _validateEditing();
               },
             ),
           ),
@@ -277,6 +293,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
   }
 
   bool _validateForm() {
+    if (_orcidError != null) return false;
     return widget.ctr.roleCtr == 'Cataloger'
         ? ref.read(personnelFormValidatorProvider).when(
               data: (data) => data.isValidCataloger,
@@ -290,6 +307,12 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
             );
   }
 
+  String? get _orcidError {
+    final value = widget.ctr.orcidCtr.text;
+    if (value.isEmpty || isValidOrcid(value)) return null;
+    return 'Enter a valid hyphenated ORCID iD';
+  }
+
   void _updatePersonnel() {
     PersonnelServices(ref: ref).updatePersonnelEntry(
       widget.personnelUuid,
@@ -299,6 +322,9 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
         affiliation: db.Value(widget.ctr.affiliationCtr.text),
         email: db.Value(widget.ctr.emailCtr.text),
         phone: db.Value(widget.ctr.phoneCtr.text),
+        orcid: db.Value(
+          widget.ctr.orcidCtr.text.isEmpty ? null : widget.ctr.orcidCtr.text,
+        ),
         role: db.Value(widget.ctr.roleCtr),
         isRegisterField: db.Value(widget.ctr.isRegisterField),
         currentFieldNumber: db.Value(
@@ -321,6 +347,9 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
         affiliation: db.Value(widget.ctr.affiliationCtr.text),
         email: db.Value(widget.ctr.emailCtr.text),
         phone: db.Value(widget.ctr.phoneCtr.text),
+        orcid: db.Value(
+          widget.ctr.orcidCtr.text.isEmpty ? null : widget.ctr.orcidCtr.text,
+        ),
         role: db.Value(widget.ctr.roleCtr),
         isRegisterField: db.Value(widget.ctr.isRegisterField),
         currentFieldNumber: db.Value(

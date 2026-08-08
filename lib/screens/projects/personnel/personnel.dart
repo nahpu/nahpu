@@ -313,6 +313,7 @@ class _PersonnelListTileState extends State<PersonnelListTile> {
       subtitle: PersonnelSubtitle(
         role: personnelData.role,
         affiliation: personnelData.affiliation,
+        orcid: personnelData.orcid,
         currentFieldNumber: personnelData.currentFieldNumber,
       ),
       trailing: !widget.isSelecting ? widget.trailing : SizedBox.shrink(),
@@ -337,11 +338,13 @@ class PersonnelSubtitle extends StatelessWidget {
     super.key,
     required this.role,
     required this.affiliation,
+    required this.orcid,
     required this.currentFieldNumber,
   });
 
   final String? role;
   final String? affiliation;
+  final String? orcid;
   final int? currentFieldNumber;
 
   @override
@@ -371,6 +374,21 @@ class PersonnelSubtitle extends StatelessWidget {
                     alignment: PlaceholderAlignment.middle),
                 TextSpan(
                   text: ' $affiliation ',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ],
+            )
+          : const TextSpan(),
+      (orcid != null && orcid != '')
+          ? TextSpan(
+              children: [
+                const WidgetSpan(
+                    child: Tooltip(
+                        message: 'ORCID iD',
+                        child: TileIcon(icon: Icons.badge_outlined)),
+                    alignment: PlaceholderAlignment.middle),
+                TextSpan(
+                  text: ' $orcid ',
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ],
@@ -429,9 +447,9 @@ class PersonnelInfoContent extends StatelessWidget {
               ' Their names will be listed in'
               ' any field that ask for personnel name input.'
               '\n\n'
-              'Identifier only - identifies specimens, '
+              'Determiner only - determines specimens, '
               'but does not catalog or prepare them.'
-              ' Their name will be listed in the identifier field.'
+              ' Their name will be listed in the determiner field.'
               '\n\n'
               'Preparator only - help prepare the specimens, '
               ' but does not record the specimen data.'

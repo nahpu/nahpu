@@ -8,6 +8,8 @@ import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/export/common.dart';
+import 'package:nahpu/services/export/dwc_values.dart';
+import 'package:nahpu/services/orcid.dart';
 
 enum MultiEntryExpansion { concatenate, specimenParts, parasites }
 
@@ -130,11 +132,12 @@ class DynamicRecordExporter {
       ).getPersonnelByUuid(data.preparatorID!);
       record['specimen::preparatorID'] = p.name ?? '';
     }
-    if (data.identifierID != null) {
+    if (data.determinerID != null) {
       final p = await PersonnelServices(
         ref: ref,
-      ).getPersonnelByUuid(data.identifierID!);
-      record['specimen::identifierID'] = p.name ?? '';
+      ).getPersonnelByUuid(data.determinerID!);
+      record['specimen::determiner'] = p.name ?? '';
+      record['specimen::determinerID'] = canonicalOrcidUrl(p.orcid) ?? p.uuid;
     }
     if (data.speciesID != null) {
       final tax = await TaxonomyServices(
@@ -274,6 +277,14 @@ class DynamicRecordExporter {
         _addData(record, 'coordinate', coord.toJson());
       }
     }
+    final uncertainty = double.tryParse(
+      record['coordinate::uncertaintyInMeters'] ?? '',
+    );
+    final extent = double.tryParse(
+      record['specimen::coordinateExtentMeters'] ?? '',
+    );
+    final combined = positiveCoordinateUncertainty(uncertainty, extent);
+    record['coordinate::uncertaintyInMeters'] = combined?.toString() ?? '';
   }
 
   Future<void> _getAttributeData(

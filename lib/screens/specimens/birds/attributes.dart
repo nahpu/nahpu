@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
+import 'package:nahpu/screens/specimens/shared/weight_field.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:drift/drift.dart' as db;
@@ -52,18 +53,25 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            CommonNumField(
+            WeightField(
               controller: ctr.weightCtr,
-              labelText: 'Weight (grams)',
-              hintText: 'Enter weight',
-              isDouble: true,
-              isLastField: false,
+              unit: ctr.weightUnitCtr,
+              onUnitChanged: (unit) {
+                setState(() => ctr.weightUnitCtr = unit);
+                SpecimenServices(ref: ref).updateBirdAttribute(
+                  widget.specimenUuid,
+                  BirdAttributeCompanion(weightUnit: db.Value(unit)),
+                );
+              },
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
                   final double weight = double.tryParse(value) ?? 0.0;
                   SpecimenServices(ref: ref).updateBirdAttribute(
                     widget.specimenUuid,
-                    BirdAttributeCompanion(weight: db.Value(weight)),
+                    BirdAttributeCompanion(
+                      weight: db.Value(weight),
+                      weightUnit: db.Value(ctr.weightUnitCtr),
+                    ),
                   );
                 }
               },

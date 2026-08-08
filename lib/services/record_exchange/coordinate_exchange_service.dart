@@ -93,19 +93,18 @@ class CoordinateExchangeService extends AppServices {
     int siteId, {
     required String? defaultDatum,
   }) {
-    return records
-        .map(
-          (record) => CoordinateCompanion(
-            nameId: db.Value(record.nameId),
-            decimalLatitude: db.Value(record.decimalLatitude),
-            decimalLongitude: db.Value(record.decimalLongitude),
-            elevationInMeter: db.Value(record.elevationInMeter),
-            datum: db.Value(defaultDatum),
-            siteID: db.Value(siteId),
-            notes: db.Value(record.notes),
-          ),
-        )
-        .toList();
+    return records.map((record) {
+      _validateCoordinatePair(record.decimalLatitude, record.decimalLongitude);
+      return CoordinateCompanion(
+        nameId: db.Value(record.nameId),
+        decimalLatitude: db.Value(record.decimalLatitude),
+        decimalLongitude: db.Value(record.decimalLongitude),
+        elevationInMeter: db.Value(record.elevationInMeter),
+        datum: db.Value(defaultDatum),
+        siteID: db.Value(siteId),
+        notes: db.Value(record.notes),
+      );
+    }).toList();
   }
 
   static String encodeQr(CoordinateData coordinate) {
@@ -125,7 +124,12 @@ class CoordinateExchangeService extends AppServices {
         'Coordinate QR code does not contain coordinate data.',
       );
     }
-    return CoordinateData.fromJson(Map<String, dynamic>.from(data));
+    final coordinate = CoordinateData.fromJson(Map<String, dynamic>.from(data));
+    _validateCoordinatePair(
+      coordinate.decimalLatitude,
+      coordinate.decimalLongitude,
+    );
+    return coordinate;
   }
 
   rust_gis.CoordinateTransferRecord _toTransferRecord(
@@ -141,8 +145,13 @@ class CoordinateExchangeService extends AppServices {
   }
 
   void _validateExportCoordinate(CoordinateData coordinate) {
-    final latitude = coordinate.decimalLatitude;
-    final longitude = coordinate.decimalLongitude;
+    _validateCoordinatePair(
+      coordinate.decimalLatitude,
+      coordinate.decimalLongitude,
+    );
+  }
+
+  static void _validateCoordinatePair(double? latitude, double? longitude) {
     if (latitude == null ||
         longitude == null ||
         !latitude.isFinite ||
@@ -152,7 +161,7 @@ class CoordinateExchangeService extends AppServices {
         longitude < -180 ||
         longitude > 180) {
       throw const FormatException(
-        'Every exported coordinate needs a valid latitude and longitude.',
+        'A valid latitude and longitude are required.',
       );
     }
   }

@@ -24,6 +24,7 @@ class _MigrationCoordinator {
       13: (m) => _Version14Migration(db).upgrade(m),
       14: (m) => _Version15Migration(db).upgrade(m),
       15: (m) => _Version16Migration(db).upgrade(m),
+      16: (m) => _Version17Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -35,6 +36,147 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version17Migration {
+  const _Version17Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    final specimenColumns = await _columnNames('specimen');
+    final hasIdentifier = specimenColumns.contains('identifierID');
+    final hasDeterminer = specimenColumns.contains('determinerID');
+    if (hasIdentifier == hasDeterminer) {
+      throw StateError(
+        'Expected exactly one of specimen.identifierID or determinerID.',
+      );
+    }
+    if (hasIdentifier) {
+      await migrator.renameColumn(
+        db.specimen,
+        'identifierID',
+        db.specimen.determinerID,
+      );
+    }
+
+    await _addColumnIfMissing(
+      migrator,
+      'specimen',
+      'coordinateExtentMeters',
+      db.specimen.coordinateExtentMeters,
+    );
+    await _addColumnIfMissing(
+      migrator,
+      'personnel',
+      'orcid',
+      db.personnel.orcid,
+    );
+    await _addColumnIfMissing(
+      migrator,
+      'coordinate',
+      'verbatimLatitude',
+      db.coordinate.verbatimLatitude,
+    );
+    await _addColumnIfMissing(
+      migrator,
+      'coordinate',
+      'verbatimLongitude',
+      db.coordinate.verbatimLongitude,
+    );
+    await _addColumnIfMissing(
+      migrator,
+      'coordinate',
+      'verbatimCoordinates',
+      db.coordinate.verbatimCoordinates,
+    );
+    await _addColumnIfMissing(
+      migrator,
+      'coordinate',
+      'verbatimCoordinateSystem',
+      db.coordinate.verbatimCoordinateSystem,
+    );
+
+    for (final entry in [
+      (table: 'mammalAttribute', column: db.mammalAttribute.weightUnit),
+      (table: 'birdAttribute', column: db.birdAttribute.weightUnit),
+      (table: 'herpAttribute', column: db.herpAttribute.weightUnit),
+    ]) {
+      await _addColumnIfMissing(
+        migrator,
+        entry.table,
+        'weightUnit',
+        entry.column,
+      );
+      await db.customStatement(
+        'UPDATE ${entry.table} SET weightUnit = ? '
+        "WHERE weight IS NOT NULL AND (weightUnit IS NULL OR TRIM(weightUnit) = '')",
+        ['g'],
+      );
+    }
+
+    await _validate();
+  }
+
+  Future<void> _addColumnIfMissing(
+    Migrator migrator,
+    String table,
+    String name,
+    GeneratedColumn<Object> column,
+  ) async {
+    if (!(await _columnNames(table)).contains(name)) {
+      await migrator.addColumn(
+        db.allTables.firstWhere((t) => t.actualTableName == table),
+        column,
+      );
+    }
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
+  }
+
+  Future<void> _validate() async {
+    final expectedColumns = {
+      'specimen': {'coordinateExtentMeters', 'determinerID'},
+      'personnel': {'orcid'},
+      'coordinate': {
+        'verbatimLatitude',
+        'verbatimLongitude',
+        'verbatimCoordinates',
+        'verbatimCoordinateSystem',
+      },
+      'mammalAttribute': {'weightUnit'},
+      'birdAttribute': {'weightUnit'},
+      'herpAttribute': {'weightUnit'},
+    };
+    for (final entry in expectedColumns.entries) {
+      if (!(await _columnNames(entry.key)).containsAll(entry.value)) {
+        throw StateError(
+          'Database migration did not add the v17 columns to ${entry.key}.',
+        );
+      }
+    }
+    if ((await _columnNames('specimen')).contains('identifierID')) {
+      throw StateError('Database migration retained specimen.identifierID.');
+    }
+
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError('Database migration introduced foreign-key violations.');
+    }
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v17 migration.');
     }
   }
 }
@@ -304,7 +446,10 @@ class _Version12Migration {
   Future<void> upgrade(Migrator migrator) async {
     await migrator.addColumn(db.taxonomy, db.taxonomy.taxonRank);
     await migrator.addColumn(db.taxonomy, db.taxonomy.subspecificEpithet);
-    await migrator.addColumn(db.specimen, db.specimen.identifierID);
+    await db.customStatement(
+      'ALTER TABLE specimen ADD COLUMN identifierID TEXT '
+      'REFERENCES personnel(uuid)',
+    );
     await migrator.addColumn(db.specimenPart, db.specimenPart.storage);
     await migrator.addColumn(db.associatedData, db.associatedData.projectUuid);
 

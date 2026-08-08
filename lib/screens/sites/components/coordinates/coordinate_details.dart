@@ -232,6 +232,29 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
                 ? '${widget.coordinate.decimalLongitude} ($_dmsLongitude)'
                 : 'N/A',
           ),
+          if (widget.coordinate.verbatimCoordinateSystem != null) ...[
+            const Divider(height: 16),
+            _buildDetailRow(
+              context,
+              Icons.text_fields_outlined,
+              'Original coordinate',
+              [
+                    widget.coordinate.verbatimLatitude,
+                    widget.coordinate.verbatimLongitude,
+                    widget.coordinate.verbatimCoordinates,
+                  ]
+                  .whereType<String>()
+                  .where((value) => value.isNotEmpty)
+                  .join(', '),
+            ),
+            const Divider(height: 16),
+            _buildDetailRow(
+              context,
+              Icons.grid_on_outlined,
+              'Original format',
+              widget.coordinate.verbatimCoordinateSystem!,
+            ),
+          ],
           const Divider(height: 16),
           _buildDetailRow(
             context,

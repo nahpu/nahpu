@@ -259,7 +259,10 @@ class SpecimenServices extends AppServices {
 
   void _createMammalSpecimen(String specimenUuid) {
     MammalSpecimenQuery(dbAccess).createMammalAttributes(
-      MammalAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
+      MammalAttributeCompanion(
+        specimenUuid: db.Value(specimenUuid),
+        weightUnit: const db.Value('g'),
+      ),
     );
   }
 
@@ -300,7 +303,10 @@ class SpecimenServices extends AppServices {
 
   void _createHerpSpecimen(String specimenUuid) {
     HerpSpecimenQuery(dbAccess).createHerpAttributes(
-      HerpAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
+      HerpAttributeCompanion(
+        specimenUuid: db.Value(specimenUuid),
+        weightUnit: const db.Value('g'),
+      ),
     );
   }
 
@@ -321,7 +327,10 @@ class SpecimenServices extends AppServices {
 
   void _createBirdSpecimen(String specimenUuid) {
     BirdSpecimenQuery(dbAccess).createBirdAttributes(
-      BirdAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
+      BirdAttributeCompanion(
+        specimenUuid: db.Value(specimenUuid),
+        weightUnit: const db.Value('g'),
+      ),
     );
   }
 

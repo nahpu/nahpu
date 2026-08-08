@@ -66,7 +66,7 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
             specimenUuid: widget.specimenUuid,
             speciesCtr: widget.specimenCtr.speciesCtr,
           ),
-          IdentifierField(
+          DeterminerField(
             specimenUuid: widget.specimenUuid,
             specimenCtr: widget.specimenCtr,
           ),
@@ -198,8 +198,8 @@ class IDConfidence extends ConsumerWidget {
   }
 }
 
-class IdentifierField extends ConsumerWidget {
-  const IdentifierField({
+class DeterminerField extends ConsumerWidget {
+  const DeterminerField({
     super.key,
     required this.specimenUuid,
     required this.specimenCtr,
@@ -212,12 +212,12 @@ class IdentifierField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonPadding(
       child: DropdownButtonFormField<String>(
-        key: ValueKey(specimenCtr.identifierCtr),
-        initialValue: specimenCtr.identifierCtr,
+        key: ValueKey(specimenCtr.determinerCtr),
+        initialValue: specimenCtr.determinerCtr,
         isExpanded: true,
         decoration: const InputDecoration(
-          labelText: 'Identifier',
-          hintText: 'Choose an identifier (default is cataloger)',
+          labelText: 'Determiner',
+          hintText: 'Choose a determiner (default is cataloger)',
           hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
         ),
         items: ref
@@ -227,7 +227,7 @@ class IdentifierField extends ConsumerWidget {
                   .where(
                     (element) =>
                         element.role == 'Cataloger' ||
-                        element.role == 'Identifier only',
+                        element.role == 'Determiner only',
                   )
                   .map(
                     (person) => DropdownMenuItem(
@@ -240,10 +240,10 @@ class IdentifierField extends ConsumerWidget {
               error: (_, _) => const [],
             ),
         onChanged: (String? uuid) {
-          specimenCtr.identifierCtr = uuid;
+          specimenCtr.determinerCtr = uuid;
           SpecimenServices(ref: ref).updateSpecimen(
             specimenUuid,
-            SpecimenCompanion(identifierID: db.Value(uuid)),
+            SpecimenCompanion(determinerID: db.Value(uuid)),
           );
         },
       ),
@@ -599,7 +599,7 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
           : null;
       setState(() {
         widget.specimenCtr.catalogerCtr = personnelUuid;
-        widget.specimenCtr.identifierCtr = personnelUuid;
+        widget.specimenCtr.determinerCtr = personnelUuid;
         widget.specimenCtr.preparatorCtr = personnelUuid;
         widget.specimenCtr.persFieldNumberCtr.text =
             currentFieldNumber?.toString() ?? '';
@@ -620,14 +620,14 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
       final companion = identifierMode == FieldIdMode.personnel
           ? SpecimenCompanion(
               catalogerID: db.Value(personnelUuid),
-              identifierID: db.Value(personnelUuid),
+              determinerID: db.Value(personnelUuid),
               fieldNumber: db.Value(currentFieldNumber),
               projectFieldNumber: const db.Value(null),
               preparatorID: db.Value(personnelUuid),
             )
           : SpecimenCompanion(
               catalogerID: db.Value(personnelUuid),
-              identifierID: db.Value(personnelUuid),
+              determinerID: db.Value(personnelUuid),
               preparatorID: db.Value(personnelUuid),
             );
       await specimenServices.updateSpecimen(widget.specimenUuid, companion);

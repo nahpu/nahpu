@@ -195,6 +195,12 @@ class SiteCopyServices extends AppServices {
               nameId: db.Value(coordinate.nameId),
               decimalLatitude: db.Value(coordinate.decimalLatitude),
               decimalLongitude: db.Value(coordinate.decimalLongitude),
+              verbatimLatitude: db.Value(coordinate.verbatimLatitude),
+              verbatimLongitude: db.Value(coordinate.verbatimLongitude),
+              verbatimCoordinates: db.Value(coordinate.verbatimCoordinates),
+              verbatimCoordinateSystem: db.Value(
+                coordinate.verbatimCoordinateSystem,
+              ),
               elevationInMeter: db.Value(coordinate.elevationInMeter),
               datum: db.Value(coordinate.datum),
               uncertaintyInMeters: db.Value(coordinate.uncertaintyInMeters),

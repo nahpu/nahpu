@@ -292,10 +292,20 @@ class PresetRecordExporter {
           final value = _formatDarwinCoreScalar(source, mapping);
           final dwc = headerResolver.dwcMappingForSource(directSource);
           if (dwc?.isMeasurement == true) {
+            final dynamicUnitSource = dwc?.measurementUnitSource;
+            final dynamicUnit = dynamicUnitSource == null
+                ? null
+                : source[dynamicUnitSource]?.trim();
             values.addAll(
               value.trim().isEmpty
                   ? const ['', '', '']
-                  : [dwc!.measurementType!, value, dwc.measurementUnit ?? ''],
+                  : [
+                      dwc!.measurementType!,
+                      value,
+                      dynamicUnit?.isNotEmpty == true
+                          ? dynamicUnit!
+                          : dwc.measurementUnit ?? '',
+                    ],
             );
           } else {
             final count = headerResolver.headersForSource(directSource).length;

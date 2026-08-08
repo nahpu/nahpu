@@ -15,6 +15,7 @@ pub struct DwcHeader {
     /// Static MeasurementOrFact values, when this source is a measurement.
     pub measurement_type: Option<String>,
     pub measurement_unit: Option<String>,
+    pub measurement_unit_source: Option<String>,
 }
 
 /// Resolves a batch of NAHPU source keys to Darwin Core or Dublin Core terms.
@@ -31,6 +32,7 @@ pub fn get_dwc_headers(source_keys: Vec<String>) -> Vec<DwcHeader> {
                 headers: mapping.headers.into_iter().map(str::to_string).collect(),
                 measurement_type: mapping.measurement_type.map(str::to_string),
                 measurement_unit: mapping.measurement_unit.map(str::to_string),
+                measurement_unit_source: mapping.measurement_unit_source.map(str::to_string),
             })
         })
         .collect()
@@ -66,7 +68,7 @@ mod tests {
 
         assert_eq!(headers.len(), 2);
         assert_eq!(headers[0].source_key, "site::siteID");
-        assert_eq!(headers[0].header, "dwc:siteNumber");
+        assert_eq!(headers[0].header, "dwc:locationID");
         assert_eq!(headers[1].source_key, "specimen::uuid");
         assert_eq!(headers[1].header, "dwc:occurrenceID");
     }

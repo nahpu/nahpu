@@ -54,11 +54,13 @@ class DwcSourceMapping {
     required this.headers,
     this.measurementType,
     this.measurementUnit,
+    this.measurementUnitSource,
   });
 
   final List<String> headers;
   final String? measurementType;
   final String? measurementUnit;
+  final String? measurementUnitSource;
 
   bool get isMeasurement => measurementType != null;
 }
@@ -112,6 +114,7 @@ class ExportHeaderResolver {
             headers: entry.headers,
             measurementType: entry.measurementType,
             measurementUnit: entry.measurementUnit,
+            measurementUnitSource: entry.measurementUnitSource,
           ),
       },
     );

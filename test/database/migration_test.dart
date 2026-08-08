@@ -14,17 +14,75 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) {
-    test('upgrade from v$version to v16', () async {
+  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]) {
+    test('upgrade from v$version to v17', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 16);
+      await verifier.migrateAndValidate(db, 17);
       await db.close();
     });
   }
 
-  test('v15 to v16 adds catalog and storage location columns', () async {
+  test('v16 to v17 preserves determiner and backfills weight units', () async {
+    final schema = await verifier.schemaAt(16);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO personnel (uuid, name) VALUES ('determiner', 'D. Expert')",
+    );
+    raw.execute(
+      'INSERT INTO specimen (uuid, projectUuid, identifierID) '
+      "VALUES ('mammal', 'project', 'determiner'), "
+      "('bird', 'project', NULL), ('herp', 'project', NULL)",
+    );
+    raw.execute(
+      "INSERT INTO coordinate (nameId, decimalLatitude, decimalLongitude) "
+      "VALUES ('point', 12.5, -45.25)",
+    );
+    raw.execute(
+      "INSERT INTO mammalAttribute (specimenUuid, weight) VALUES ('mammal', 10)",
+    );
+    raw.execute(
+      "INSERT INTO birdAttribute (specimenUuid, weight) VALUES ('bird', NULL)",
+    );
+    raw.execute(
+      "INSERT INTO herpAttribute (specimenUuid, weight) VALUES ('herp', 2.5)",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 17);
+
+    final mammal = await (db.select(
+      db.specimen,
+    )..where((row) => row.uuid.equals('mammal'))).getSingle();
+    expect(mammal.determinerID, 'determiner');
+    expect(mammal.coordinateExtentMeters, isNull);
+    expect((await db.select(db.personnel).getSingle()).orcid, isNull);
+
+    final coordinate = await db.select(db.coordinate).getSingle();
+    expect(coordinate.verbatimLatitude, isNull);
+    expect(coordinate.verbatimLongitude, isNull);
+    expect(coordinate.verbatimCoordinates, isNull);
+    expect(coordinate.verbatimCoordinateSystem, isNull);
+    expect((await db.select(db.mammalAttribute).getSingle()).weightUnit, 'g');
+    expect((await db.select(db.birdAttribute).getSingle()).weightUnit, isNull);
+    expect((await db.select(db.herpAttribute).getSingle()).weightUnit, 'g');
+
+    final specimenColumns = raw
+        .select('PRAGMA table_info(specimen)')
+        .map((column) => column['name']);
+    expect(specimenColumns, contains('determinerID'));
+    expect(specimenColumns, isNot(contains('identifierID')));
+    expect(raw.select('PRAGMA foreign_key_check'), isEmpty);
+    expect(
+      raw.select('PRAGMA integrity_check').single['integrity_check'],
+      'ok',
+    );
+    await db.close();
+  });
+
+  test('v15 to v17 adds catalog and storage location columns', () async {
     final schema = await verifier.schemaAt(15);
     final raw = schema.rawDatabase;
     raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
@@ -42,7 +100,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 16);
+    await verifier.migrateAndValidate(db, 17);
 
     final project = await db.select(db.project).getSingle();
     final part = await db.select(db.specimenPart).getSingle();
@@ -62,7 +120,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 16);
+    await verifier.migrateAndValidate(db, 17);
     await db.close();
   });
 
@@ -74,7 +132,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 16);
+    await verifier.migrateAndValidate(db, 17);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -134,11 +192,12 @@ void main() {
           'mandibleHex': null,
         });
       }
+      expectedRow['weightUnit'] = 'g';
       expected[table] = expectedRow;
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 16);
+    await verifier.migrateAndValidate(db, 17);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -200,7 +259,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 16);
+      await verifier.migrateAndValidate(db, 17);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -256,7 +315,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 16);
+    await verifier.migrateAndValidate(db, 17);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -316,7 +375,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 16);
+    await verifier.migrateAndValidate(db, 17);
 
     final specimens = await db.select(db.specimen).get();
     expect(
@@ -357,7 +416,7 @@ void main() {
       "('specimen', 1, 1, 'Fleas observed')",
     );
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 16);
+    await verifier.migrateAndValidate(db, 17);
 
     final project = await db.select(db.project).getSingle();
     expect(project.accession, isNull);

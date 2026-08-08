@@ -6,6 +6,7 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
+import 'package:nahpu/screens/specimens/shared/weight_field.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/herps.dart';
@@ -100,12 +101,16 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            CommonNumField(
+            WeightField(
               controller: ctr.weightCtr,
-              labelText: 'Weight (grams)',
-              hintText: 'Enter specimen weight',
-              isDouble: true,
-              isLastField: false,
+              unit: ctr.weightUnitCtr,
+              onUnitChanged: (unit) {
+                setState(() => ctr.weightUnitCtr = unit);
+                SpecimenServices(ref: ref).updateHerpAttribute(
+                  widget.specimenUuid,
+                  HerpAttributeCompanion(weightUnit: db.Value(unit)),
+                );
+              },
               onChanged: (value) {
                 if (value != null && value.isNotEmpty) {
                   setState(() {
@@ -113,6 +118,7 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
                       widget.specimenUuid,
                       HerpAttributeCompanion(
                         weight: db.Value(double.tryParse(value)),
+                        weightUnit: db.Value(ctr.weightUnitCtr),
                       ),
                     );
                   });

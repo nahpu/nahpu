@@ -123,7 +123,7 @@ void main() {
     });
   });
 
-  test('specimen identifier prevents personnel removal', () async {
+  test('specimen determiner prevents personnel removal', () async {
     await db.into(db.project).insert(
           const ProjectCompanion(
             uuid: Value('project-a'),
@@ -132,22 +132,22 @@ void main() {
         );
     await db.into(db.personnel).insert(
           const PersonnelCompanion(
-            uuid: Value('identifier-a'),
-            name: Value('Iris Identifier'),
+            uuid: Value('determiner-a'),
+            name: Value('Dana Determiner'),
           ),
         );
     await db.into(db.specimen).insert(
           const SpecimenCompanion(
             uuid: Value('specimen-a'),
             projectUuid: Value('project-a'),
-            identifierID: Value('identifier-a'),
+            determinerID: Value('determiner-a'),
           ),
         );
 
     expect(
       await PersonnelQuery(db).isPersonnelUsedBySpecimenRecords(
         projectUuid: 'project-a',
-        personnelUuid: 'identifier-a',
+        personnelUuid: 'determiner-a',
       ),
       isTrue,
     );

@@ -13,21 +13,21 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 void main() {
-  test('Identifier only is a supported personnel role', () {
-    expect(personnelRoleList, contains('Identifier only'));
+  test('Determiner only is a supported personnel role', () {
+    expect(personnelRoleList, contains('Determiner only'));
   });
 
-  test('specimen controller loads the persisted identifier', () {
+  test('specimen controller loads the persisted determiner', () {
     final controller = SpecimenFormCtrModel.fromData(
-      const SpecimenData(uuid: 'specimen-a', identifierID: 'identifier-a'),
+      const SpecimenData(uuid: 'specimen-a', determinerID: 'identifier-a'),
     );
     addTearDown(controller.dispose);
 
-    expect(controller.identifierCtr, 'identifier-a');
+    expect(controller.determinerCtr, 'identifier-a');
   });
 
   testWidgets(
-    'identifier lists catalogers and identifiers and persists selection',
+    'determiner lists catalogers and determiners and persists selection',
     (tester) async {
       final harness = await _SpecimenFormHarness.create();
       addTearDown(harness.dispose);
@@ -36,7 +36,7 @@ void main() {
 
       await harness.pump(
         tester,
-        IdentifierField(specimenUuid: 'specimen-a', specimenCtr: controller),
+        DeterminerField(specimenUuid: 'specimen-a', specimenCtr: controller),
       );
 
       await tester.tap(find.byType(DropdownButtonFormField<String>));
@@ -49,13 +49,13 @@ void main() {
       await tester.tap(find.text('Iris Identifier'));
       await tester.pumpAndSettle();
 
-      expect(controller.identifierCtr, 'identifier-a');
+      expect(controller.determinerCtr, 'identifier-a');
       final specimen = await harness.getSpecimen();
-      expect(specimen.identifierID, 'identifier-a');
+      expect(specimen.determinerID, 'identifier-a');
     },
   );
 
-  testWidgets('cataloger defaults preparator and identifier', (tester) async {
+  testWidgets('cataloger defaults preparator and determiner', (tester) async {
     final harness = await _SpecimenFormHarness.create();
     addTearDown(harness.dispose);
     final controller = SpecimenFormCtrModel.empty();
@@ -77,12 +77,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(controller.catalogerCtr, 'cataloger-a');
-    expect(controller.identifierCtr, 'cataloger-a');
+    expect(controller.determinerCtr, 'cataloger-a');
     expect(controller.preparatorCtr, 'cataloger-a');
 
     final specimen = await harness.getSpecimen();
     expect(specimen.catalogerID, 'cataloger-a');
-    expect(specimen.identifierID, 'cataloger-a');
+    expect(specimen.determinerID, 'cataloger-a');
     expect(specimen.preparatorID, 'cataloger-a');
     expect(specimen.fieldNumber, 7);
     expect(specimen.projectFieldNumber, isNull);
@@ -165,7 +165,7 @@ class _SpecimenFormHarness {
         PersonnelCompanion(
           uuid: Value('identifier-a'),
           name: Value('Iris Identifier'),
-          role: Value('Identifier only'),
+          role: Value('Determiner only'),
           isRegisterField: Value(false),
         ),
         PersonnelCompanion(

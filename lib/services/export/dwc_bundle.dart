@@ -20,6 +20,8 @@ import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/orcid.dart';
+import 'package:nahpu/services/export/dwc_values.dart';
 import 'package:nahpu/src/rust/api/dwc.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/api/nahpu_dp.dart';
@@ -252,6 +254,12 @@ class DwcBundleWriter extends AppServices {
         'cataloger',
         agents,
       );
+      final determiner = await _resolveAgent(
+        specimen.determinerID,
+        null,
+        'determiner',
+        agents,
+      );
       String? catalogNumber;
       if (specimen.projectFieldNumber != null) {
         catalogNumber = formatProjectFieldId(
@@ -282,6 +290,7 @@ class DwcBundleWriter extends AppServices {
           site: site,
           coordinate: coordinate,
           recorders: recorders,
+          determiner: determiner,
           catalogNumber: catalogNumber,
         ),
       );
@@ -303,6 +312,14 @@ class DwcBundleWriter extends AppServices {
         agents: recorders,
         output: occurrenceAgentRoles,
       );
+      if (determiner != null) {
+        _addAgentRoles(
+          targetId: specimen.uuid,
+          targetKey: 'occurrenceID',
+          agents: [determiner],
+          output: occurrenceAgentRoles,
+        );
+      }
       materialRows.addAll(
         await _materialRows(specimen.uuid, eventId, agents, materialAgentRoles),
       );
@@ -518,6 +535,7 @@ class DwcBundleWriter extends AppServices {
     required SiteData? site,
     required CoordinateData? coordinate,
     required List<_ResolvedAgent> recorders,
+    required _ResolvedAgent? determiner,
     required String? catalogNumber,
   }) {
     final released = specimen.condition?.toLowerCase() == 'released';
@@ -561,14 +579,22 @@ class DwcBundleWriter extends AppServices {
       'locationRemarks': site?.remark,
       'decimalLatitude': coordinate?.decimalLatitude,
       'decimalLongitude': coordinate?.decimalLongitude,
+      'verbatimLatitude': coordinate?.verbatimLatitude,
+      'verbatimLongitude': coordinate?.verbatimLongitude,
+      'verbatimCoordinates': coordinate?.verbatimCoordinates,
+      'verbatimCoordinateSystem': coordinate?.verbatimCoordinateSystem,
       'geodeticDatum': coordinate?.datum,
-      'coordinateUncertaintyInMeters': coordinate?.uncertaintyInMeters,
+      'coordinateUncertaintyInMeters': positiveCoordinateUncertainty(
+        coordinate?.uncertaintyInMeters?.toDouble(),
+        specimen.coordinateExtentMeters,
+      ),
       'minimumElevationInMeters': coordinate?.elevationInMeter,
       'maximumElevationInMeters': coordinate?.elevationInMeter,
       'georeferenceRemarks': coordinate?.notes,
-      'disposition': specimen.condition,
       'recordedBy': _agentNames(recorders),
       'recordedByID': _agentIds(recorders),
+      'identifiedBy': determiner?.name,
+      'identifiedByID': determiner?.id,
     };
   }
 
@@ -658,7 +684,9 @@ class DwcBundleWriter extends AppServices {
         'measurementID': '${specimen.uuid}:${entry.key}',
         'measurementType': entry.value.type,
         'measurementValue': value,
-        'measurementUnit': entry.value.unit,
+        'measurementUnit': entry.key == 'weight'
+            ? raw['weightUnit'] ?? entry.value.unit
+            : entry.value.unit,
       });
     }
     return rows;
@@ -766,15 +794,20 @@ class DwcBundleWriter extends AppServices {
     Map<String, _ResolvedAgent> agents,
   ) async {
     var name = storedName?.trim();
-    if ((name == null || name.isEmpty) && id != null && id.isNotEmpty) {
-      name = (await PersonnelServices(ref: ref).getPersonnelName(id))?.trim();
+    String? orcid;
+    if (id != null && id.isNotEmpty) {
+      final person = await PersonnelServices(ref: ref).getPersonnelByUuid(id);
+      if (name == null || name.isEmpty) name = person.name?.trim();
+      orcid = person.orcid;
     }
     if ((id == null || id.isEmpty) && (name == null || name.isEmpty)) {
       return null;
     }
-    final agentId = id?.isNotEmpty == true
-        ? id!
-        : 'name:${name!.toLowerCase().replaceAll(RegExp(r"[^a-z0-9]+"), "-")}';
+    final agentId =
+        canonicalOrcidUrl(orcid) ??
+        (id?.isNotEmpty == true
+            ? id!
+            : 'name:${name!.toLowerCase().replaceAll(RegExp(r"[^a-z0-9]+"), "-")}');
     final resolved = _ResolvedAgent(
       id: agentId,
       name: name?.isNotEmpty == true ? name! : agentId,

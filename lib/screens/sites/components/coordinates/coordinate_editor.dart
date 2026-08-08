@@ -30,15 +30,11 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
   void initState() {
     super.initState();
     widget.coordCtr.nameIdCtr.addListener(_manualFieldsChanged);
-    widget.coordCtr.latitudeCtr.addListener(_manualFieldsChanged);
-    widget.coordCtr.longitudeCtr.addListener(_manualFieldsChanged);
   }
 
   @override
   void dispose() {
     widget.coordCtr.nameIdCtr.removeListener(_manualFieldsChanged);
-    widget.coordCtr.latitudeCtr.removeListener(_manualFieldsChanged);
-    widget.coordCtr.longitudeCtr.removeListener(_manualFieldsChanged);
     widget.coordCtr.dispose();
     super.dispose();
   }
@@ -79,6 +75,7 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                       coordCtr: widget.coordCtr,
                       disposeController: false,
                       showActions: false,
+                      onCoordinateChanged: _manualFieldsChanged,
                     );
               final map = _buildMap();
               return Column(
@@ -162,7 +159,7 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
       : _ManualCoordinateMap(
           point: _manualPreview,
           isStale: _manualPreviewIsStale,
-          canRefresh: _validManualPoint != null,
+          canRefresh: widget.coordCtr.hasCoordinateInput,
           onRefresh: _refreshManualMap,
         );
 
@@ -195,28 +192,6 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
     await _manualFormKey.currentState?.submit();
   }
 
-  CoordinateMapPoint? get _validManualPoint {
-    final latitude = double.tryParse(widget.coordCtr.latitudeCtr.text.trim());
-    final longitude = double.tryParse(widget.coordCtr.longitudeCtr.text.trim());
-    if (latitude == null ||
-        longitude == null ||
-        !latitude.isFinite ||
-        !longitude.isFinite ||
-        latitude < -90 ||
-        latitude > 90 ||
-        longitude < -180 ||
-        longitude > 180) {
-      return null;
-    }
-    final name = widget.coordCtr.nameIdCtr.text.trim();
-    return CoordinateMapPoint(
-      id: 0,
-      name: name.isEmpty ? 'New coordinate' : name,
-      latitude: latitude,
-      longitude: longitude,
-    );
-  }
-
   void _manualFieldsChanged() {
     if (!mounted) return;
     setState(() {
@@ -224,42 +199,68 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
     });
   }
 
-  void _refreshManualMap() {
-    final point = _validManualPoint;
-    if (point == null) return;
-    setState(() {
-      _manualPreview = point;
-      _manualPreviewIsStale = false;
-    });
+  Future<void> _refreshManualMap() async {
+    try {
+      final parsed = await _manualFormKey.currentState?._parseInput();
+      if (parsed == null || !mounted) return;
+      final name = widget.coordCtr.nameIdCtr.text.trim();
+      setState(() {
+        _manualPreview = CoordinateMapPoint(
+          id: 0,
+          name: name.isEmpty ? 'New coordinate' : name,
+          latitude: parsed.decimalLatitude,
+          longitude: parsed.decimalLongitude,
+        );
+        _manualPreviewIsStale = false;
+      });
+    } catch (error) {
+      if (mounted) _showError(error.toString());
+    }
   }
 
   Widget _buildImportReview() {
     final review = _review;
     if (review == null) {
       return Center(
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            OutlinedButton.icon(
-              onPressed: _scanQr,
-              icon: const Icon(Icons.qr_code_scanner_outlined),
-              label: const Text('Scan QR'),
-            ),
-            FilledButton.icon(
-              onPressed: _isLoadingFile ? null : _pickCoordinateFile,
-              icon: _isLoadingFile
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.file_open_outlined),
-              label: Text(
-                _isLoadingFile ? 'Reading file…' : 'Select coordinate file',
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Supported files: GeoJSON/JSON, KML, zipped Shapefile, and GPX.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _scanQr,
+                    icon: const Icon(Icons.qr_code_scanner_outlined),
+                    label: const Text('Scan QR'),
+                  ),
+                  FilledButton.icon(
+                    onPressed: _isLoadingFile ? null : _pickCoordinateFile,
+                    icon: _isLoadingFile
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.file_open_outlined),
+                    label: Text(
+                      _isLoadingFile
+                          ? 'Reading file…'
+                          : 'Select coordinate file',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -437,10 +438,14 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
     }
     if (!mounted) return;
     widget.coordCtr.nameIdCtr.text = coordinate.nameId ?? '';
-    widget.coordCtr.latitudeCtr.text =
-        coordinate.decimalLatitude?.toString() ?? '';
-    widget.coordCtr.longitudeCtr.text =
-        coordinate.decimalLongitude?.toString() ?? '';
+    widget.coordCtr.setCoordinateInputData(
+      decimalLatitude: coordinate.decimalLatitude,
+      decimalLongitude: coordinate.decimalLongitude,
+      verbatimLatitude: coordinate.verbatimLatitude,
+      verbatimLongitude: coordinate.verbatimLongitude,
+      verbatimCoordinates: coordinate.verbatimCoordinates,
+      verbatimCoordinateSystem: coordinate.verbatimCoordinateSystem,
+    );
     widget.coordCtr.elevationCtr.text =
         coordinate.elevationInMeter?.toString() ?? '';
     widget.coordCtr.datumCtr.text = datum ?? '';
@@ -448,6 +453,7 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
         coordinate.uncertaintyInMeters?.toString() ?? '';
     widget.coordCtr.gpsUnitCtr.text = coordinate.gpsUnit ?? '';
     widget.coordCtr.noteCtr.text = coordinate.notes ?? '';
+    _manualFormKey.currentState?.syncInputFormat();
   }
 
   Future<void> _showMapSheet(Widget map) {
@@ -592,6 +598,7 @@ class CoordinateForms extends ConsumerStatefulWidget {
     this.isEditing = false,
     this.disposeController = true,
     this.showActions = true,
+    this.onCoordinateChanged,
   });
 
   final int? coordinateId;
@@ -600,6 +607,7 @@ class CoordinateForms extends ConsumerStatefulWidget {
   final bool isEditing;
   final bool disposeController;
   final bool showActions;
+  final VoidCallback? onCoordinateChanged;
 
   @override
   CoordinateFormsState createState() => CoordinateFormsState();
@@ -610,10 +618,17 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
   String? _configuredDatumDefault;
   String _dmsLatitude = '';
   String _dmsLongitude = '';
+  late CoordinateInputFormat _inputFormat;
+  AngularCoordinateValidation? _latitudeValidation;
+  AngularCoordinateValidation? _longitudeValidation;
+  int _formatSelectionRevision = 0;
 
   @override
   void initState() {
     super.initState();
+    _inputFormat = CoordinateInputFormat.values.byName(
+      widget.coordCtr.inputFormat,
+    );
     widget.coordCtr.latitudeCtr.addListener(_updateGPSDescription);
     widget.coordCtr.longitudeCtr.addListener(_updateGPSDescription);
     if (!widget.isEditing) {
@@ -718,29 +733,96 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
             ),
           ),
           const SizedBox(height: 12),
-          AdaptiveLayout(
-            useHorizontalLayout: useHorizontalLayout,
-            children: [
-              CommonNumField(
-                controller: widget.coordCtr.latitudeCtr,
-                labelText: 'Decimal Latitude',
-                hintText: 'Add a latitude',
-                isDouble: true,
-                isSigned: true,
-                isLastField: false,
-                helperText: _dmsLatitude.isEmpty ? null : _dmsLatitude,
-              ),
-              CommonNumField(
-                controller: widget.coordCtr.longitudeCtr,
-                labelText: 'Decimal Longitude',
-                hintText: 'Add a longitude',
-                isDouble: true,
-                isSigned: true,
-                isLastField: false,
-                helperText: _dmsLongitude.isEmpty ? null : _dmsLongitude,
-              ),
-            ],
+          CommonPadding(
+            child: DropdownButtonFormField<CoordinateInputFormat>(
+              key: ValueKey(_formatSelectionRevision),
+              initialValue: _inputFormat,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Coordinate format'),
+              items: const [
+                DropdownMenuItem(
+                  value: CoordinateInputFormat.decimalDegrees,
+                  child: Text('Decimal degrees'),
+                ),
+                DropdownMenuItem(
+                  value: CoordinateInputFormat.degreesDecimalMinutes,
+                  child: Text('Degrees decimal minutes (DDM)'),
+                ),
+                DropdownMenuItem(
+                  value: CoordinateInputFormat.degreesMinutesSeconds,
+                  child: Text('Degrees minutes seconds (DMS)'),
+                ),
+                DropdownMenuItem(
+                  value: CoordinateInputFormat.utm,
+                  child: Text('UTM (WGS84)'),
+                ),
+              ],
+              onChanged: _changeInputFormat,
+            ),
           ),
+          const SizedBox(height: 12),
+          if (_inputFormat == CoordinateInputFormat.utm)
+            CommonPadding(
+              child: CommonTextField(
+                controller: widget.coordCtr.utmCtr,
+                labelText: 'UTM coordinate',
+                hintText: '11 N 385153 3768853',
+                isLastField: false,
+                onChanged: (_) => _coordinateInputChanged(),
+              ),
+            )
+          else if (_inputFormat == CoordinateInputFormat.decimalDegrees)
+            AdaptiveLayout(
+              useHorizontalLayout: useHorizontalLayout,
+              children: [
+                CommonNumField(
+                  controller: widget.coordCtr.latitudeCtr,
+                  labelText: 'Decimal Latitude',
+                  hintText: 'Add a latitude',
+                  isDouble: true,
+                  isSigned: true,
+                  isLastField: false,
+                  helperText: _dmsLatitude.isEmpty ? null : _dmsLatitude,
+                  onChanged: (_) => _coordinateInputChanged(),
+                ),
+                CommonNumField(
+                  controller: widget.coordCtr.longitudeCtr,
+                  labelText: 'Decimal Longitude',
+                  hintText: 'Add a longitude',
+                  isDouble: true,
+                  isSigned: true,
+                  isLastField: false,
+                  helperText: _dmsLongitude.isEmpty ? null : _dmsLongitude,
+                  onChanged: (_) => _coordinateInputChanged(),
+                ),
+              ],
+            )
+          else
+            AdaptiveLayout(
+              useHorizontalLayout: useHorizontalLayout,
+              children: [
+                _AngularCoordinateFields(
+                  axis: AngularCoordinateAxis.latitude,
+                  controller: widget.coordCtr.latitudeAngularCtr,
+                  includesSeconds:
+                      _inputFormat ==
+                      CoordinateInputFormat.degreesMinutesSeconds,
+                  validation: _latitudeValidation,
+                  onChanged: () =>
+                      _angularInputChanged(AngularCoordinateAxis.latitude),
+                ),
+                _AngularCoordinateFields(
+                  axis: AngularCoordinateAxis.longitude,
+                  controller: widget.coordCtr.longitudeAngularCtr,
+                  includesSeconds:
+                      _inputFormat ==
+                      CoordinateInputFormat.degreesMinutesSeconds,
+                  validation: _longitudeValidation,
+                  onChanged: () =>
+                      _angularInputChanged(AngularCoordinateAxis.longitude),
+                ),
+              ],
+            ),
           const SizedBox(height: 12),
           CommonPadding(
             child: CommonNumField(
@@ -827,6 +909,81 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
         ],
       ),
     );
+  }
+
+  Future<void> _changeInputFormat(CoordinateInputFormat? value) async {
+    if (value == null || value == _inputFormat) return;
+    if (widget.coordCtr.hasCoordinateInput) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Change coordinate format?'),
+          content: const Text(
+            'Changing the format clears the entered coordinate values. '
+            'Name, elevation, datum, uncertainty, GPS unit, and notes are kept.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Clear and switch'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (confirmed != true) {
+        setState(() => _formatSelectionRevision++);
+        return;
+      }
+    }
+
+    setState(() {
+      widget.coordCtr.clearCoordinateInput();
+      _inputFormat = value;
+      widget.coordCtr.inputFormat = value.name;
+      _latitudeValidation = null;
+      _longitudeValidation = null;
+      _dmsLatitude = '';
+      _dmsLongitude = '';
+      _formatSelectionRevision++;
+      if (value == CoordinateInputFormat.utm) {
+        widget.coordCtr.datumCtr.text = 'WGS84';
+      }
+    });
+    _coordinateInputChanged();
+  }
+
+  void _coordinateInputChanged() {
+    widget.onCoordinateChanged?.call();
+  }
+
+  void _angularInputChanged(AngularCoordinateAxis axis) {
+    setState(() {
+      if (axis == AngularCoordinateAxis.latitude) {
+        _latitudeValidation = null;
+        widget.coordCtr.latitudeAngularCtr.invalidStoredValue = null;
+      } else {
+        _longitudeValidation = null;
+        widget.coordCtr.longitudeAngularCtr.invalidStoredValue = null;
+      }
+    });
+    _coordinateInputChanged();
+  }
+
+  void syncInputFormat() {
+    setState(() {
+      _inputFormat = CoordinateInputFormat.values.byName(
+        widget.coordCtr.inputFormat,
+      );
+      _latitudeValidation = null;
+      _longitudeValidation = null;
+      _formatSelectionRevision++;
+    });
+    _coordinateInputChanged();
   }
 
   Future<void> _updateGPSDescription() async {
@@ -942,6 +1099,10 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
 
   void _populateLocation(Position position) {
     setState(() {
+      widget.coordCtr.clearCoordinateInput();
+      _inputFormat = CoordinateInputFormat.decimalDegrees;
+      widget.coordCtr.inputFormat = _inputFormat.name;
+      _formatSelectionRevision++;
       widget.coordCtr.latitudeCtr.text = position.latitude.toStringAsFixed(6);
       widget.coordCtr.longitudeCtr.text = position.longitude.toStringAsFixed(6);
       widget.coordCtr.elevationCtr.text = position.altitude.toInt().toString();
@@ -949,6 +1110,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
           .toInt()
           .toString();
     });
+    _coordinateInputChanged();
   }
 
   Future<void> _setConfiguredDatumDefault() async {
@@ -966,7 +1128,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
   }
 
   Future<void> _createCoordinate() async {
-    CoordinateCompanion form = _getform();
+    final form = await _getform();
 
     await CoordinateServices(ref: ref).createCoordinate(form);
   }
@@ -991,21 +1153,73 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
   }
 
   Future<void> _updateCoordinate() async {
-    CoordinateCompanion form = _getform();
+    final form = await _getform();
     await CoordinateServices(
       ref: ref,
     ).updateCoordinate(widget.coordinateId!, form);
   }
 
-  CoordinateCompanion _getform() {
+  Future<ParsedCoordinateInput> _parseInput() async {
+    String primary;
+    String? secondary;
+    if (_inputFormat == CoordinateInputFormat.utm) {
+      primary = widget.coordCtr.utmCtr.text;
+    } else if (_inputFormat == CoordinateInputFormat.decimalDegrees) {
+      primary = widget.coordCtr.latitudeCtr.text;
+      secondary = widget.coordCtr.longitudeCtr.text;
+    } else {
+      final includesSeconds =
+          _inputFormat == CoordinateInputFormat.degreesMinutesSeconds;
+      final latitudeValidation = CoordinateInputPartsCodec.validate(
+        widget.coordCtr.latitudeAngularCtr.parts,
+        axis: AngularCoordinateAxis.latitude,
+        includesSeconds: includesSeconds,
+      );
+      final longitudeValidation = CoordinateInputPartsCodec.validate(
+        widget.coordCtr.longitudeAngularCtr.parts,
+        axis: AngularCoordinateAxis.longitude,
+        includesSeconds: includesSeconds,
+      );
+      if (mounted) {
+        setState(() {
+          _latitudeValidation = latitudeValidation;
+          _longitudeValidation = longitudeValidation;
+        });
+      }
+      if (!latitudeValidation.isValid || !longitudeValidation.isValid) {
+        final message = !latitudeValidation.isValid
+            ? latitudeValidation.firstError
+            : longitudeValidation.firstError;
+        throw FormatException(message);
+      }
+      primary = CoordinateInputPartsCodec.compose(
+        widget.coordCtr.latitudeAngularCtr.parts,
+        axis: AngularCoordinateAxis.latitude,
+        includesSeconds: includesSeconds,
+      );
+      secondary = CoordinateInputPartsCodec.compose(
+        widget.coordCtr.longitudeAngularCtr.parts,
+        axis: AngularCoordinateAxis.longitude,
+        includesSeconds: includesSeconds,
+      );
+    }
+    return parseCoordinateInput(
+      format: _inputFormat,
+      primary: primary,
+      secondary: secondary,
+    );
+  }
+
+  Future<CoordinateCompanion> _getform() async {
+    final parsed = await _parseInput();
     return CoordinateCompanion(
       nameId: db.Value(widget.coordCtr.nameIdCtr.text),
-      decimalLatitude: db.Value(
-        double.tryParse(widget.coordCtr.latitudeCtr.text),
-      ),
-      decimalLongitude: db.Value(
-        double.tryParse(widget.coordCtr.longitudeCtr.text),
-      ),
+      decimalLatitude: db.Value(parsed.decimalLatitude),
+      decimalLongitude: db.Value(parsed.decimalLongitude),
+      verbatimLatitude: db.Value(parsed.verbatimLatitude),
+      verbatimLongitude: db.Value(parsed.verbatimLongitude),
+      verbatimCoordinates: db.Value(parsed.verbatimCoordinates),
+      verbatimCoordinateSystem: db.Value(parsed.verbatimCoordinateSystem),
       elevationInMeter: db.Value(
         double.tryParse(widget.coordCtr.elevationCtr.text),
       ),
@@ -1016,6 +1230,154 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       gpsUnit: db.Value(widget.coordCtr.gpsUnitCtr.text),
       siteID: db.Value(widget.siteId),
       notes: db.Value(widget.coordCtr.noteCtr.text),
+    );
+  }
+}
+
+class _AngularCoordinateFields extends StatelessWidget {
+  const _AngularCoordinateFields({
+    required this.axis,
+    required this.controller,
+    required this.includesSeconds,
+    required this.validation,
+    required this.onChanged,
+  });
+
+  final AngularCoordinateAxis axis;
+  final AngularCoordinateCtrModel controller;
+  final bool includesSeconds;
+  final AngularCoordinateValidation? validation;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final axisLabel = axis == AngularCoordinateAxis.latitude
+        ? 'Latitude'
+        : 'Longitude';
+    final directions = axis == AngularCoordinateAxis.latitude
+        ? const [
+            AngularCoordinateDirection.north,
+            AngularCoordinateDirection.south,
+          ]
+        : const [
+            AngularCoordinateDirection.east,
+            AngularCoordinateDirection.west,
+          ];
+    final invalidStoredValue = controller.invalidStoredValue;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          axisLabel,
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        if (invalidStoredValue != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              'This verbatim ${axis.name} could not be read and may have been '
+              'changed outside NAHPU. Re-enter it before saving.\n'
+              'Original: ${invalidStoredValue.isEmpty ? '(missing)' : invalidStoredValue}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.start,
+          children: [
+            SizedBox(
+              width: 132,
+              child: CommonNumField(
+                controller: controller.degreesCtr,
+                labelText: '$axisLabel degrees',
+                hintText: '0',
+                isLastField: false,
+                errorText: validation?.degreesError,
+                onChanged: (_) => onChanged(),
+              ),
+            ),
+            SizedBox(
+              width: 160,
+              child: CommonNumField(
+                controller: controller.minutesCtr,
+                labelText: includesSeconds
+                    ? '$axisLabel minutes'
+                    : '$axisLabel decimal minutes',
+                hintText: '0',
+                isDouble: !includesSeconds,
+                isLastField: false,
+                errorText: validation?.minutesError,
+                onChanged: (_) => onChanged(),
+              ),
+            ),
+            if (includesSeconds)
+              SizedBox(
+                width: 148,
+                child: CommonNumField(
+                  controller: controller.secondsCtr,
+                  labelText: '$axisLabel seconds',
+                  hintText: '0',
+                  isDouble: true,
+                  isLastField: false,
+                  errorText: validation?.secondsError,
+                  onChanged: (_) => onChanged(),
+                ),
+              ),
+            SizedBox(
+              width: 132,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    '$axisLabel direction',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 4),
+                  SegmentedButton<AngularCoordinateDirection>(
+                    showSelectedIcon: false,
+                    emptySelectionAllowed: true,
+                    segments: [
+                      for (final direction in directions)
+                        ButtonSegment(
+                          value: direction,
+                          label: Text(direction.label),
+                        ),
+                    ],
+                    selected: controller.direction == null
+                        ? const <AngularCoordinateDirection>{}
+                        : {controller.direction!},
+                    onSelectionChanged: (selection) {
+                      controller.direction = selection.firstOrNull;
+                      onChanged();
+                    },
+                  ),
+                  if (validation?.directionError != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      validation!.directionError!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -1036,9 +1398,17 @@ class CoordinateInfoContent extends StatelessWidget {
         ),
         InfoContent(
           content:
-              'Current version only supports decimal format.'
-              ' The West and South directions are negative'
-              ' and the East and North directions are positive.',
+              'Manual entry supports decimal degrees (DD), degrees and decimal'
+              ' minutes (DDM), degrees-minutes-seconds (DMS), and WGS84 UTM.'
+              ' DDM and DMS use separate numeric fields with required N/S and'
+              ' E/W direction controls.',
+        ),
+        InfoContent(
+          header: 'Import',
+          content:
+              'Coordinate file import supports GeoJSON/JSON, KML, zipped'
+              ' Shapefile, and GPX files. NAHPU coordinate QR codes can also'
+              ' be scanned from the Import tab.',
         ),
         InfoContent(
           header: 'List information',

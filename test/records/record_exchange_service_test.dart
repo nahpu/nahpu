@@ -307,7 +307,8 @@ void main() {
           PersonnelCompanion(
             uuid: Value('identifier-a'),
             name: Value('Identifier A'),
-            role: Value('Identifier only'),
+            role: Value('Determiner only'),
+            orcid: Value('0000-0002-1825-0097'),
           ),
         ]);
       });
@@ -334,6 +335,9 @@ void main() {
               siteID: Value(site),
               decimalLatitude: const Value(12.3),
               decimalLongitude: const Value(-45.6),
+              verbatimLatitude: const Value("12° 18' 0\" N"),
+              verbatimLongitude: const Value("45° 36' 0\" W"),
+              verbatimCoordinateSystem: const Value('degrees minutes seconds'),
             ),
           );
       final event = await database
@@ -355,7 +359,8 @@ void main() {
               coordinateID: Value(coordinate),
               collEventID: Value(event),
               catalogerID: const Value('person-a'),
-              identifierID: const Value('identifier-a'),
+              determinerID: const Value('identifier-a'),
+              coordinateExtentMeters: const Value(3.5),
               fieldNumber: const Value(17),
             ),
           );
@@ -365,6 +370,7 @@ void main() {
             MammalAttributeCompanion.insert(
               specimenUuid: specimenUuid,
               weight: Value(2.5),
+              weightUnit: Value('kg'),
               accuracy: Value('inaccurate:tailLength,weight'),
               accuracySpecify: Value('Tail cropped'),
             ),
@@ -419,12 +425,29 @@ void main() {
       expect(imported.collEventID, event);
       expect(imported.speciesID, taxon);
       expect(imported.coordinateID, isNot(coordinate));
-      expect(imported.identifierID, 'identifier-a');
+      expect(imported.determinerID, 'identifier-a');
+      expect(imported.coordinateExtentMeters, 3.5);
+      final importedCoordinate =
+          (await database.select(database.coordinate).get()).singleWhere(
+            (row) => row.id == imported.coordinateID,
+          );
+      expect(importedCoordinate.verbatimLatitude, "12° 18' 0\" N");
+      expect(
+        importedCoordinate.verbatimCoordinateSystem,
+        'degrees minutes seconds',
+      );
+      expect(
+        (await database.select(database.personnel).get())
+            .singleWhere((person) => person.uuid == 'identifier-a')
+            .orcid,
+        '0000-0002-1825-0097',
+      );
       final importedMammalAttribute =
           await (database.select(database.mammalAttribute)
                 ..where((row) => row.specimenUuid.equals(result.recordUuid!)))
               .getSingle();
       expect(importedMammalAttribute.weight, 2.5);
+      expect(importedMammalAttribute.weightUnit, 'kg');
       expect(importedMammalAttribute.accuracy, 'inaccurate:tailLength,weight');
       expect(importedMammalAttribute.accuracySpecify, 'Tail cropped');
       expect(

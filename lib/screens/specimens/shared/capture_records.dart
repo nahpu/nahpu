@@ -101,6 +101,10 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
             specimenUuid: widget.specimenUuid,
             specimenCtr: widget.specimenCtr,
           ),
+          CoordinateExtentField(
+            specimenUuid: widget.specimenUuid,
+            specimenCtr: widget.specimenCtr,
+          ),
           Visibility(
               visible: _isCollectorFieldVisible,
               child: CollPersonnelField(
@@ -572,6 +576,63 @@ class CoordinateFieldState extends ConsumerState<CoordinateField> {
             SpecimenServices(ref: ref).updateSpecimen(widget.specimenUuid,
                 SpecimenCompanion(coordinateID: db.Value(newValue)));
           });
+        },
+      ),
+    );
+  }
+}
+
+class CoordinateExtentField extends ConsumerStatefulWidget {
+  const CoordinateExtentField({
+    super.key,
+    required this.specimenUuid,
+    required this.specimenCtr,
+  });
+
+  final String specimenUuid;
+  final SpecimenFormCtrModel specimenCtr;
+
+  @override
+  ConsumerState<CoordinateExtentField> createState() =>
+      _CoordinateExtentFieldState();
+}
+
+class _CoordinateExtentFieldState extends ConsumerState<CoordinateExtentField> {
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) {
+    return CommonPadding(
+      child: CommonNumField(
+        controller: widget.specimenCtr.coordinateExtentCtr,
+        labelText: 'Coordinate extent (m)',
+        hintText: 'Add the coordinate extent',
+        isDouble: true,
+        isSigned: false,
+        isLastField: false,
+        errorText: _error,
+        onChanged: (value) {
+          final rawExtent = value?.trim() ?? '';
+          if (rawExtent.isEmpty) {
+            if (_error != null) setState(() => _error = null);
+            SpecimenServices(ref: ref).updateSpecimen(
+              widget.specimenUuid,
+              const SpecimenCompanion(
+                coordinateExtentMeters: db.Value(null),
+              ),
+            );
+            return;
+          }
+          final extent = double.tryParse(rawExtent);
+          if (extent == null || !extent.isFinite || extent <= 0) {
+            setState(() => _error = 'Extent must be a number greater than zero');
+            return;
+          }
+          if (_error != null) setState(() => _error = null);
+          SpecimenServices(ref: ref).updateSpecimen(
+            widget.specimenUuid,
+            SpecimenCompanion(coordinateExtentMeters: db.Value(extent)),
+          );
         },
       ),
     );

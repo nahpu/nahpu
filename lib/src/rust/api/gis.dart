@@ -6,8 +6,9 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `direction_for_decimal`
+// These functions are ignored because they are not marked as `pub`: `direction_for_decimal`, `parse_angular_pair`, `parse_decimal_axis`, `parse_utm_input`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `from`, `from`, `from`, `from`, `from`, `try_from`
+// These functions are ignored (category: IgnoreBecauseNotAllowedOwner): `decimal`, `decimal`, `direction`, `direction`
 
 /// Exports one or more coordinates using NAHPU GIS.
 Future<void> exportCoordinates({
@@ -32,6 +33,17 @@ Future<ImportedVectorLayer> convertVectorLayerToGeojson({
 }) => RustLib.instance.api.crateApiGisConvertVectorLayerToGeojson(
   inputPath: inputPath,
   outputPath: outputPath,
+);
+
+/// Parses a coordinate using the explicitly selected NAHPU coordinate format.
+Future<ParsedCoordinateInput> parseCoordinateInput({
+  required CoordinateInputFormat format,
+  required String primary,
+  String? secondary,
+}) => RustLib.instance.api.crateApiGisParseCoordinateInput(
+  format: format,
+  primary: primary,
+  secondary: secondary,
 );
 
 /// Converts DMS to decimal degrees.
@@ -116,6 +128,12 @@ Future<UtmCoordinateFfi> ddToUtm({
 Future<double> parseCoordinateString({required String s}) =>
     RustLib.instance.api.crateApiGisParseCoordinateString(s: s);
 
+abstract class AngularCoordinate {
+  Future<double> decimal();
+
+  Future<CardinalDirection> direction();
+}
+
 /// Represents a geographic cardinal direction.
 enum CardinalDirection {
   /// Northern hemisphere (positive latitude)
@@ -167,6 +185,14 @@ class CoordinateFileImportResult {
           coordinates == other.coordinates &&
           skippedCount == other.skippedCount &&
           warnings == other.warnings;
+}
+
+/// Coordinate formats accepted by the NAHPU coordinate editor.
+enum CoordinateInputFormat {
+  decimalDegrees,
+  degreesDecimalMinutes,
+  degreesMinutesSeconds,
+  utm,
 }
 
 /// Portable point fields supported by NAHPU GIS imports and exports.
@@ -339,6 +365,46 @@ class ImportedVectorLayer {
           featureCount == other.featureCount &&
           bounds == other.bounds &&
           sourceCrs == other.sourceCrs;
+}
+
+/// A validated coordinate normalized for database storage.
+class ParsedCoordinateInput {
+  final double decimalLatitude;
+  final double decimalLongitude;
+  final String? verbatimLatitude;
+  final String? verbatimLongitude;
+  final String? verbatimCoordinates;
+  final String? verbatimCoordinateSystem;
+
+  const ParsedCoordinateInput({
+    required this.decimalLatitude,
+    required this.decimalLongitude,
+    this.verbatimLatitude,
+    this.verbatimLongitude,
+    this.verbatimCoordinates,
+    this.verbatimCoordinateSystem,
+  });
+
+  @override
+  int get hashCode =>
+      decimalLatitude.hashCode ^
+      decimalLongitude.hashCode ^
+      verbatimLatitude.hashCode ^
+      verbatimLongitude.hashCode ^
+      verbatimCoordinates.hashCode ^
+      verbatimCoordinateSystem.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ParsedCoordinateInput &&
+          runtimeType == other.runtimeType &&
+          decimalLatitude == other.decimalLatitude &&
+          decimalLongitude == other.decimalLongitude &&
+          verbatimLatitude == other.verbatimLatitude &&
+          verbatimLongitude == other.verbatimLongitude &&
+          verbatimCoordinates == other.verbatimCoordinates &&
+          verbatimCoordinateSystem == other.verbatimCoordinateSystem;
 }
 
 /// Represents a coordinate in Universal Transverse Mercator (UTM) format.

@@ -72,7 +72,7 @@ class RecordExchangeSpecimen extends AppServices {
 
     final personnel = <String, Map<String, dynamic>>{};
     await _addPersonnel(personnel, specimen.catalogerID);
-    await _addPersonnel(personnel, specimen.identifierID);
+    await _addPersonnel(personnel, specimen.determinerID);
     await _addPersonnel(personnel, specimen.preparatorID);
     for (final part in await SpecimenPartQuery(
       dbAccess,
@@ -418,11 +418,15 @@ class RecordExchangeSpecimen extends AppServices {
     );
     final mammal = attributes['mammal'];
     if (mammal is Map) {
+      final mammalJson = Map<String, dynamic>.from(mammal);
+      if (mammalJson['weight'] != null && mammalJson['weightUnit'] == null) {
+        mammalJson['weightUnit'] = 'g';
+      }
       await dbAccess
           .into(dbAccess.mammalAttribute)
           .insert(
             MammalAttributeData.fromJson({
-              ...Map<String, dynamic>.from(mammal),
+              ...mammalJson,
               'specimenUuid': uuid,
             }).toCompanion(true),
           );
@@ -434,6 +438,9 @@ class RecordExchangeSpecimen extends AppServices {
       birdJson['toeHex'] ??= birdJson['footHex'];
       birdJson.remove('footColor');
       birdJson.remove('footHex');
+      if (birdJson['weight'] != null && birdJson['weightUnit'] == null) {
+        birdJson['weightUnit'] = 'g';
+      }
       await dbAccess
           .into(dbAccess.birdAttribute)
           .insert(
@@ -445,11 +452,15 @@ class RecordExchangeSpecimen extends AppServices {
     }
     final herp = attributes['herp'];
     if (herp is Map) {
+      final herpJson = Map<String, dynamic>.from(herp);
+      if (herpJson['weight'] != null && herpJson['weightUnit'] == null) {
+        herpJson['weightUnit'] = 'g';
+      }
       await dbAccess
           .into(dbAccess.herpAttribute)
           .insert(
             HerpAttributeData.fromJson({
-              ...Map<String, dynamic>.from(herp),
+              ...herpJson,
               'specimenUuid': uuid,
             }).toCompanion(true),
           );

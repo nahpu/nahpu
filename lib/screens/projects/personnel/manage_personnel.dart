@@ -316,6 +316,7 @@ class SelectPersonnelTile extends StatelessWidget {
         subtitle: PersonnelSubtitle(
           role: data.role,
           affiliation: data.affiliation,
+          orcid: data.orcid,
           currentFieldNumber: data.currentFieldNumber,
         ),
         leading: isSelecting

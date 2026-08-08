@@ -138,7 +138,7 @@ class ProjectTransferService extends AppServices {
     _addStringValues(records['site']!, 'leadStaffId', personnelIds);
     _addStringValues(records['collPersonnel']!, 'personnelId', personnelIds);
     _addStringValues(records['specimen']!, 'catalogerID', personnelIds);
-    _addStringValues(records['specimen']!, 'identifierID', personnelIds);
+    _addStringValues(records['specimen']!, 'determinerID', personnelIds);
     _addStringValues(records['specimen']!, 'preparatorID', personnelIds);
     _addStringValues(records['specimenPart']!, 'personnelId', personnelIds);
     _addStringValues(records['parasite']!, 'identifierID', personnelIds);
@@ -801,7 +801,7 @@ class ProjectTransferService extends AppServices {
             'collEventID': eventMap[row['collEventID'] as int?],
             'coordinateID': coordinateMap[row['coordinateID'] as int?],
             'catalogerID': personnelMap[row['catalogerID'] as String?],
-            'identifierID': personnelMap[row['identifierID'] as String?],
+            'determinerID': personnelMap[row['determinerID'] as String?],
             'preparatorID': personnelMap[row['preparatorID'] as String?],
             'collPersonnelID': collPersonnelMap[row['collPersonnelID'] as int?],
             'collMethodID': effortMap[row['collMethodID'] as int?],
@@ -1110,7 +1110,12 @@ class ProjectTransferService extends AppServices {
         if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
         final uuid = specimenMap[sourceUuid];
         if (uuid != null) {
-          await _insert(table, {...row, 'specimenUuid': uuid});
+          await _insert(table, {
+            ...row,
+            'specimenUuid': uuid,
+            if (row['weight'] != null && row['weightUnit'] == null)
+              'weightUnit': 'g',
+          });
         }
       }
     }
