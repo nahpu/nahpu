@@ -798,28 +798,32 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
               ],
             )
           else
-            AdaptiveLayout(
-              useHorizontalLayout: useHorizontalLayout,
+            Column(
               children: [
-                _AngularCoordinateFields(
-                  axis: AngularCoordinateAxis.latitude,
-                  controller: widget.coordCtr.latitudeAngularCtr,
-                  includesSeconds:
-                      _inputFormat ==
-                      CoordinateInputFormat.degreesMinutesSeconds,
-                  validation: _latitudeValidation,
-                  onChanged: () =>
-                      _angularInputChanged(AngularCoordinateAxis.latitude),
+                CommonPadding(
+                  child: _AngularCoordinateFields(
+                    axis: AngularCoordinateAxis.latitude,
+                    controller: widget.coordCtr.latitudeAngularCtr,
+                    includesSeconds:
+                        _inputFormat ==
+                        CoordinateInputFormat.degreesMinutesSeconds,
+                    validation: _latitudeValidation,
+                    onChanged: () =>
+                        _angularInputChanged(AngularCoordinateAxis.latitude),
+                  ),
                 ),
-                _AngularCoordinateFields(
-                  axis: AngularCoordinateAxis.longitude,
-                  controller: widget.coordCtr.longitudeAngularCtr,
-                  includesSeconds:
-                      _inputFormat ==
-                      CoordinateInputFormat.degreesMinutesSeconds,
-                  validation: _longitudeValidation,
-                  onChanged: () =>
-                      _angularInputChanged(AngularCoordinateAxis.longitude),
+                const SizedBox(height: 12),
+                CommonPadding(
+                  child: _AngularCoordinateFields(
+                    axis: AngularCoordinateAxis.longitude,
+                    controller: widget.coordCtr.longitudeAngularCtr,
+                    includesSeconds:
+                        _inputFormat ==
+                        CoordinateInputFormat.degreesMinutesSeconds,
+                    validation: _longitudeValidation,
+                    onChanged: () =>
+                        _angularInputChanged(AngularCoordinateAxis.longitude),
+                  ),
                 ),
               ],
             ),
@@ -1235,6 +1239,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
 }
 
 class _AngularCoordinateFields extends StatelessWidget {
+  static const double _controlWidth = 132;
+
   const _AngularCoordinateFields({
     required this.axis,
     required this.controller,
@@ -1264,120 +1270,129 @@ class _AngularCoordinateFields extends StatelessWidget {
             AngularCoordinateDirection.west,
           ];
     final invalidStoredValue = controller.invalidStoredValue;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          axisLabel,
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withAlpha(80),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          width: NahpuStroke.thin,
         ),
-        const SizedBox(height: 8),
-        if (invalidStoredValue != null) ...[
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.errorContainer,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'This verbatim ${axis.name} could not be read and may have been '
-              'changed outside NAHPU. Re-enter it before saving.\n'
-              'Original: ${invalidStoredValue.isEmpty ? '(missing)' : invalidStoredValue}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onErrorContainer,
-              ),
-            ),
+        borderRadius: BorderRadius.circular(NahpuRadius.large),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            axisLabel,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-        ],
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.start,
-          children: [
-            SizedBox(
-              width: 132,
-              child: CommonNumField(
-                controller: controller.degreesCtr,
-                labelText: '$axisLabel degrees',
-                hintText: '0',
-                isLastField: false,
-                errorText: validation?.degreesError,
-                onChanged: (_) => onChanged(),
+          if (invalidStoredValue != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'This verbatim ${axis.name} could not be read and may have been '
+                'changed outside NAHPU. Re-enter it before saving.\n'
+                'Original: ${invalidStoredValue.isEmpty ? '(missing)' : invalidStoredValue}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
               ),
             ),
-            SizedBox(
-              width: 160,
-              child: CommonNumField(
-                controller: controller.minutesCtr,
-                labelText: includesSeconds
-                    ? '$axisLabel minutes'
-                    : '$axisLabel decimal minutes',
-                hintText: '0',
-                isDouble: !includesSeconds,
-                isLastField: false,
-                errorText: validation?.minutesError,
-                onChanged: (_) => onChanged(),
-              ),
-            ),
-            if (includesSeconds)
+            const SizedBox(height: 8),
+          ],
+          Wrap(
+            spacing: NahpuSpacing.md,
+            runSpacing: NahpuSpacing.md,
+            crossAxisAlignment: WrapCrossAlignment.start,
+            children: [
               SizedBox(
-                width: 148,
+                width: _controlWidth,
                 child: CommonNumField(
-                  controller: controller.secondsCtr,
-                  labelText: '$axisLabel seconds',
+                  controller: controller.degreesCtr,
+                  labelText: 'Degree',
                   hintText: '0',
-                  isDouble: true,
                   isLastField: false,
-                  errorText: validation?.secondsError,
+                  errorText: validation?.degreesError,
                   onChanged: (_) => onChanged(),
                 ),
               ),
-            SizedBox(
-              width: 132,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    '$axisLabel direction',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 4),
-                  SegmentedButton<AngularCoordinateDirection>(
-                    showSelectedIcon: false,
-                    emptySelectionAllowed: true,
-                    segments: [
-                      for (final direction in directions)
-                        ButtonSegment(
-                          value: direction,
-                          label: Text(direction.label),
-                        ),
-                    ],
-                    selected: controller.direction == null
-                        ? const <AngularCoordinateDirection>{}
-                        : {controller.direction!},
-                    onSelectionChanged: (selection) {
-                      controller.direction = selection.firstOrNull;
-                      onChanged();
-                    },
-                  ),
-                  if (validation?.directionError != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      validation!.directionError!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ],
-                ],
+              SizedBox(
+                width: _controlWidth,
+                child: CommonNumField(
+                  controller: controller.minutesCtr,
+                  labelText: 'Minute',
+                  hintText: '0',
+                  isDouble: !includesSeconds,
+                  isLastField: false,
+                  errorText: validation?.minutesError,
+                  onChanged: (_) => onChanged(),
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+              if (includesSeconds)
+                SizedBox(
+                  width: _controlWidth,
+                  child: CommonNumField(
+                    controller: controller.secondsCtr,
+                    labelText: 'Second',
+                    hintText: '0',
+                    isDouble: true,
+                    isLastField: false,
+                    errorText: validation?.secondsError,
+                    onChanged: (_) => onChanged(),
+                  ),
+                ),
+              SizedBox(
+                width: _controlWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('Direction'),
+                    const SizedBox(height: 4),
+                    SegmentedButton<AngularCoordinateDirection>(
+                      showSelectedIcon: false,
+                      emptySelectionAllowed: true,
+                      segments: [
+                        for (final direction in directions)
+                          ButtonSegment(
+                            value: direction,
+                            label: Text(direction.label),
+                          ),
+                      ],
+                      selected: controller.direction == null
+                          ? const <AngularCoordinateDirection>{}
+                          : {controller.direction!},
+                      onSelectionChanged: (selection) {
+                        controller.direction = selection.firstOrNull;
+                        onChanged();
+                      },
+                    ),
+                    if (validation?.directionError != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        validation!.directionError!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

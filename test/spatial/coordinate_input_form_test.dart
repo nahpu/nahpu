@@ -8,6 +8,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/sites/components/coordinates.dart';
 import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/coordinate_input.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -38,19 +39,26 @@ void main() {
 
     await _selectFormat(tester, 'Degrees decimal minutes (DDM)');
 
-    expect(_field('Latitude degrees'), findsOneWidget);
-    expect(_field('Latitude decimal minutes'), findsOneWidget);
-    expect(_field('Longitude degrees'), findsOneWidget);
-    expect(_field('Longitude decimal minutes'), findsOneWidget);
-    expect(_field('Latitude seconds'), findsNothing);
+    expect(_fields('Degree'), findsNWidgets(2));
+    expect(_fields('Minute'), findsNWidgets(2));
+    expect(_fields('Second'), findsNothing);
+    expect(find.text('Latitude'), findsOneWidget);
+    expect(find.text('Longitude'), findsOneWidget);
+    expect(find.text('Latitude degrees'), findsNothing);
+    expect(find.text('Longitude decimal minutes'), findsNothing);
     expect(resources.controller.latitudeAngularCtr.direction, isNull);
     expect(resources.controller.longitudeAngularCtr.direction, isNull);
 
+    final controlWidth = tester.getSize(_field('Degree')).width;
+    expect(tester.getSize(_field('Minute')).width, controlWidth);
+    final directions = find.byType(SegmentedButton<AngularCoordinateDirection>);
+    expect(directions, findsNWidgets(2));
+    expect(tester.getSize(directions.first).width, controlWidth);
+
     await _selectFormat(tester, 'Degrees minutes seconds (DMS)');
 
-    expect(_field('Latitude seconds'), findsOneWidget);
-    expect(_field('Longitude seconds'), findsOneWidget);
-    expect(_field('Latitude decimal minutes'), findsNothing);
+    expect(_fields('Second'), findsNWidgets(2));
+    expect(_fields('Minute'), findsNWidgets(2));
   });
 
   testWidgets(
@@ -59,21 +67,21 @@ void main() {
       final resources = await _pumpCoordinateForm(tester);
       addTearDown(resources.dispose);
       await _selectFormat(tester, 'Degrees decimal minutes (DDM)');
-      await tester.enterText(_field('Latitude degrees'), '41');
+      await tester.enterText(_field('Degree'), '41');
 
       await _selectFormat(tester, 'Degrees minutes seconds (DMS)');
       expect(find.text('Change coordinate format?'), findsOneWidget);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
-      expect(_field('Latitude decimal minutes'), findsOneWidget);
+      expect(_fields('Minute'), findsNWidgets(2));
       expect(resources.controller.latitudeAngularCtr.degreesCtr.text, '41');
 
       await _selectFormat(tester, 'Degrees minutes seconds (DMS)');
       await tester.tap(find.text('Clear and switch'));
       await tester.pumpAndSettle();
 
-      expect(_field('Latitude seconds'), findsOneWidget);
+      expect(_fields('Second'), findsNWidgets(2));
       expect(resources.controller.latitudeAngularCtr.degreesCtr.text, isEmpty);
     },
   );
@@ -82,10 +90,10 @@ void main() {
     final resources = await _pumpCoordinateForm(tester, withFormKey: true);
     addTearDown(resources.dispose);
     await _selectFormat(tester, 'Degrees decimal minutes (DDM)');
-    await tester.enterText(_field('Latitude degrees'), '41');
-    await tester.enterText(_field('Latitude decimal minutes'), '24.2');
-    await tester.enterText(_field('Longitude degrees'), '123');
-    await tester.enterText(_field('Longitude decimal minutes'), '15.5');
+    await tester.enterText(_field('Degree'), '41');
+    await tester.enterText(_field('Minute'), '24.2');
+    await tester.enterText(_field('Degree', index: 1), '123');
+    await tester.enterText(_field('Minute', index: 1), '15.5');
 
     await tester.runAsync(resources.formKey!.currentState!.submit);
     await tester.pumpAndSettle();
@@ -104,10 +112,10 @@ void main() {
     final resources = await _pumpCoordinateForm(tester, withFormKey: true);
     addTearDown(resources.dispose);
     await _selectFormat(tester, 'Degrees decimal minutes (DDM)');
-    await tester.enterText(_field('Latitude degrees'), '41');
-    await tester.enterText(_field('Latitude decimal minutes'), '24.2028');
-    await tester.enterText(_field('Longitude degrees'), '123');
-    await tester.enterText(_field('Longitude decimal minutes'), '15.500');
+    await tester.enterText(_field('Degree'), '41');
+    await tester.enterText(_field('Minute'), '24.2028');
+    await tester.enterText(_field('Degree', index: 1), '123');
+    await tester.enterText(_field('Minute', index: 1), '15.500');
     await _selectDirection(tester, 'N');
     await _selectDirection(tester, 'W');
 
@@ -130,12 +138,12 @@ void main() {
     final resources = await _pumpCoordinateForm(tester, withFormKey: true);
     addTearDown(resources.dispose);
     await _selectFormat(tester, 'Degrees minutes seconds (DMS)');
-    await tester.enterText(_field('Latitude degrees'), '12');
-    await tester.enterText(_field('Latitude minutes'), '03');
-    await tester.enterText(_field('Latitude seconds'), '04.250');
-    await tester.enterText(_field('Longitude degrees'), '45');
-    await tester.enterText(_field('Longitude minutes'), '30');
-    await tester.enterText(_field('Longitude seconds'), '0');
+    await tester.enterText(_field('Degree'), '12');
+    await tester.enterText(_field('Minute'), '03');
+    await tester.enterText(_field('Second'), '04.250');
+    await tester.enterText(_field('Degree', index: 1), '45');
+    await tester.enterText(_field('Minute', index: 1), '30');
+    await tester.enterText(_field('Second', index: 1), '0');
     await _selectDirection(tester, 'S');
     await _selectDirection(tester, 'W');
 
@@ -175,7 +183,7 @@ void main() {
 
     expect(find.textContaining('changed outside NAHPU'), findsOneWidget);
     expect(find.textContaining('externally changed latitude'), findsOneWidget);
-    expect(_field('Latitude degrees'), findsOneWidget);
+    expect(_fields('Degree'), findsNWidgets(2));
     expect(controller.latitudeAngularCtr.degreesCtr.text, isEmpty);
   });
 
@@ -199,10 +207,12 @@ void main() {
   });
 }
 
-Finder _field(String label) => find.byWidgetPredicate(
+Finder _fields(String label) => find.byWidgetPredicate(
   (widget) => widget is TextField && widget.decoration?.labelText == label,
   description: 'TextField with label $label',
 );
+
+Finder _field(String label, {int index = 0}) => _fields(label).at(index);
 
 Future<void> _selectFormat(WidgetTester tester, String label) async {
   await tester.tap(
