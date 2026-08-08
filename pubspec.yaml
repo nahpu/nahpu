@@ -65,7 +65,7 @@ dependencies:
   flutter_markdown_plus: ^1.0.7
   flex_color_picker: ^3.8.0
   google_fonts: ^8.1.0
-  pdfrx: ^2.4.4
+  pdfrx: ^2.4.7
   flutter_map: ^8.3.1
   flutter_map_pmtiles: ^1.0.5
   pmtiles: ^1.2.0
