@@ -33,7 +33,7 @@ class SiteInfo extends ConsumerWidget {
 
     return FormCard(
       isPrimary: true,
-      title: 'Site Info',
+      title: 'Site Identity',
       infoContent: const SiteInfoContent(),
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
