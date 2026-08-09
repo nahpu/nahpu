@@ -72,11 +72,11 @@ class ProjectNavigationRail extends ConsumerStatefulWidget {
   const ProjectNavigationRail({
     super.key,
     required this.isMenuOpen,
-    required this.onToggleMenu,
+    required this.onMenuVisibilityChanged,
   });
 
   final bool isMenuOpen;
-  final VoidCallback onToggleMenu;
+  final ValueChanged<bool> onMenuVisibilityChanged;
 
   @override
   ConsumerState<ProjectNavigationRail> createState() =>
@@ -152,7 +152,8 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
                     : 'Open project menu',
                 foregroundColor: standardForeground,
                 isExtended: _isExtended,
-                onPressed: widget.onToggleMenu,
+                onPressed: () =>
+                    widget.onMenuVisibilityChanged(!widget.isMenuOpen),
               ),
             ],
           ),

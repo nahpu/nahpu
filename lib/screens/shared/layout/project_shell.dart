@@ -60,6 +60,12 @@ class ProjectShell extends ConsumerStatefulWidget {
 class _ProjectShellState extends ConsumerState<ProjectShell> {
   bool _isProjectMenuOpen = false;
 
+  void _closeProjectMenu() {
+    if (_isProjectMenuOpen) {
+      setState(() => _isProjectMenuOpen = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final index = ref.watch(projectNavbarIndexProvider);
@@ -86,8 +92,10 @@ class _ProjectShellState extends ConsumerState<ProjectShell> {
       children: [
         ProjectNavigationRail(
           isMenuOpen: _isProjectMenuOpen,
-          onToggleMenu: () {
-            setState(() => _isProjectMenuOpen = !_isProjectMenuOpen);
+          onMenuVisibilityChanged: (isOpen) {
+            if (_isProjectMenuOpen != isOpen) {
+              setState(() => _isProjectMenuOpen = isOpen);
+            }
           },
         ),
         Expanded(
@@ -95,12 +103,21 @@ class _ProjectShellState extends ConsumerState<ProjectShell> {
             children: [
               Positioned.fill(child: pageStack),
               if (_isProjectMenuOpen)
-                const PositionedDirectional(
+                PositionedDirectional(
                   top: 0,
                   bottom: 0,
                   start: 0,
                   width: _projectMenuPanelWidth,
-                  child: ProjectMenuDrawer(showCloseProject: false),
+                  child: TapRegion(
+                    onTapOutside: (_) => _closeProjectMenu(),
+                    child: FocusScope(
+                      autofocus: true,
+                      onFocusChange: (hasFocus) {
+                        if (!hasFocus) _closeProjectMenu();
+                      },
+                      child: const ProjectMenuDrawer(showCloseProject: false),
+                    ),
+                  ),
                 ),
             ],
           ),

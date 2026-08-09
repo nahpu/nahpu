@@ -215,43 +215,69 @@ void main() {
     expect(rail.labelType, NavigationRailLabelType.all);
   });
 
-  testWidgets('overlays the page while leaving the rail interactive', (
+  testWidgets(
+    'dismisses the menu outside the panel while keeping the rail interactive',
+    (tester) async {
+      await _pumpShell(tester, size: const Size(1200, 900));
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(IndexedStack)),
+      );
+      final pageSizeBefore = tester.getSize(find.byType(IndexedStack));
+      final railRect = tester.getRect(find.byType(ProjectNavigationRail));
+      final modalBarriersBefore = find.byType(ModalBarrier).evaluate().length;
+
+      await tester.tap(find.text('Menu'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(projectNavbarIndexProvider), 0);
+      expect(find.byType(NavigationDrawer), findsOneWidget);
+      expect(find.byType(ModalBarrier).evaluate().length, modalBarriersBefore);
+      expect(find.text('Delete project'), findsOneWidget);
+      expect(find.text('Close project'), findsNothing);
+      expect(tester.getSize(find.byType(IndexedStack)), pageSizeBefore);
+      final drawerRect = tester.getRect(find.byType(NavigationDrawer));
+      expect(drawerRect.left, railRect.right);
+      expect(drawerRect.width, 360);
+
+      await tester.tap(find.text('Sites'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(projectNavbarIndexProvider), 1);
+      expect(find.text('PAGE-Sites'), findsOneWidget);
+      expect(find.byType(NavigationDrawer), findsNothing);
+
+      await tester.tap(find.text('Menu'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NavigationDrawer), findsOneWidget);
+
+      final reopenedDrawerRect = tester.getRect(find.byType(NavigationDrawer));
+      await tester.tapAt(
+        Offset(reopenedDrawerRect.right + 32, reopenedDrawerRect.center.dy),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NavigationDrawer), findsNothing);
+      expect(container.read(projectNavbarIndexProvider), 1);
+    },
+  );
+
+  testWidgets('closes the menu when its focus leaves the panel', (
     tester,
   ) async {
     await _pumpShell(tester, size: const Size(1200, 900));
 
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(IndexedStack)),
-    );
-    final pageSizeBefore = tester.getSize(find.byType(IndexedStack));
-    final railRect = tester.getRect(find.byType(ProjectNavigationRail));
-    final modalBarriersBefore = find.byType(ModalBarrier).evaluate().length;
-
     await tester.tap(find.text('Menu'));
     await tester.pumpAndSettle();
 
-    expect(container.read(projectNavbarIndexProvider), 0);
     expect(find.byType(NavigationDrawer), findsOneWidget);
-    expect(find.byType(ModalBarrier).evaluate().length, modalBarriersBefore);
-    expect(find.text('Delete project'), findsOneWidget);
-    expect(find.text('Close project'), findsNothing);
-    expect(tester.getSize(find.byType(IndexedStack)), pageSizeBefore);
-    final drawerRect = tester.getRect(find.byType(NavigationDrawer));
-    expect(drawerRect.left, railRect.right);
-    expect(drawerRect.width, 360);
+    expect(FocusManager.instance.primaryFocus, isNotNull);
 
-    await tester.tap(find.text('Sites'));
-    await tester.pumpAndSettle();
-
-    expect(container.read(projectNavbarIndexProvider), 1);
-    expect(find.text('PAGE-Sites'), findsOneWidget);
-    expect(find.byType(NavigationDrawer), findsOneWidget);
-
-    await tester.tap(find.text('Menu'));
+    FocusManager.instance.primaryFocus!.unfocus();
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationDrawer), findsNothing);
-    expect(container.read(projectNavbarIndexProvider), 1);
   });
 
   testWidgets('rail destinations use the same page indexes as the bottom bar', (
