@@ -18,6 +18,7 @@ import 'package:nahpu/services/project_transfer/project_transfer_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -1033,6 +1034,77 @@ void main() {
       find.widgetWithText(FilledButton, 'Continue'),
     );
     expect(continueButton.onPressed, isNull);
+  });
+
+  testWidgets('wide transfer wizards use the rounded themed step rail', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1000, 800);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+
+    for (final screen in <Widget>[
+      const ImportProjectScreen(),
+      const ImportProjectScreen.newProject(),
+    ]) {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [databaseProvider.overrideWithValue(database)],
+          child: MaterialApp(home: screen),
+        ),
+      );
+      await tester.pump();
+
+      final rail = tester.widget<Container>(
+        find.byKey(const ValueKey('project-transfer-step-rail')),
+      );
+      final decoration = rail.decoration! as BoxDecoration;
+      final theme = Theme.of(
+        tester.element(
+          find.byKey(const ValueKey('project-transfer-step-rail')),
+        ),
+      );
+      final firstStep = tester.widget<ListTile>(find.byType(ListTile).first);
+
+      expect(decoration.borderRadius, BorderRadius.circular(NahpuRadius.large));
+      expect(decoration.border, isA<Border>());
+      expect(find.byType(VerticalDivider), findsNothing);
+      expect(firstStep.selectedTileColor, theme.colorScheme.primaryContainer);
+      expect(firstStep.selectedColor, theme.colorScheme.onPrimaryContainer);
+    }
+  });
+
+  testWidgets('compact transfer wizard keeps horizontal step chips', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 800);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: const MaterialApp(home: ImportProjectScreen()),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(ChoiceChip), findsWidgets);
+    expect(
+      find.byKey(const ValueKey('project-transfer-step-rail')),
+      findsNothing,
+    );
   });
 
   testWidgets('home menu exposes project creation and import', (tester) async {

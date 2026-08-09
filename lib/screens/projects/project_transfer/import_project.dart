@@ -10,6 +10,7 @@ import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/project_services.dart';
 import 'package:nahpu/services/project_transfer/project_transfer_service.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
 
 class ImportProjectScreen extends ConsumerStatefulWidget {
@@ -119,7 +120,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 880;
+    final wide =
+        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.projectWizardRail;
     return Scaffold(
       appBar: AppBar(
         title: Text(_isNewProject ? 'Import project' : 'Merge project'),
@@ -132,8 +134,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        SizedBox(width: 248, child: _buildStepRail()),
-                        const VerticalDivider(width: 2),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
+                          child: SizedBox(width: 248, child: _buildStepRail()),
+                        ),
                         Expanded(child: _buildStepBody()),
                       ],
                     )
@@ -167,30 +171,53 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _buildStepRail() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      itemCount: _steps.length,
-      itemBuilder: (context, index) {
-        final selected = index == _step;
-        final enabled = index <= _maxVisitedStep;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('project-transfer-step-rail'),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withAlpha(80),
+        border: Border.all(
+          color: colors.outlineVariant,
+          width: NahpuStroke.thin,
+        ),
+        borderRadius: BorderRadius.circular(NahpuRadius.large),
+      ),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(NahpuSpacing.lg),
+        itemCount: _steps.length,
+        itemBuilder: (context, index) {
+          final selected = index == _step;
+          final enabled = index <= _maxVisitedStep;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: NahpuSpacing.sm),
+            child: Material(
+              color: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(NahpuRadius.medium),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                selected: selected,
+                selectedTileColor: colors.primaryContainer,
+                selectedColor: colors.onPrimaryContainer,
+                enabled: enabled,
+                leading: _StepNumber(
+                  number: index + 1,
+                  selected: selected,
+                  complete: index < _step,
+                ),
+                title: Text(
+                  _steps[index],
+                  style: selected
+                      ? const TextStyle(fontWeight: FontWeight.w600)
+                      : null,
+                ),
+                onTap: enabled ? () => setState(() => _step = index) : null,
+              ),
             ),
-            selected: selected,
-            enabled: enabled,
-            leading: _StepNumber(
-              number: index + 1,
-              selected: selected,
-              complete: index < _step,
-            ),
-            title: Text(_steps[index]),
-            onTap: enabled ? () => setState(() => _step = index) : null,
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -1342,22 +1369,16 @@ class _StepNumber extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return CircleAvatar(
-      radius: 14,
+      radius: NahpuRadius.medium,
       backgroundColor: selected
-          ? Theme.of(context).colorScheme.primary
-          : Theme.of(context).colorScheme.surfaceContainerHighest,
+          ? colors.primary
+          : colors.surfaceContainerHighest,
+      foregroundColor: selected ? colors.onPrimary : colors.onSurfaceVariant,
       child: complete
           ? const Icon(Icons.check_rounded, size: 16)
-          : Text(
-              '$number',
-              style: TextStyle(
-                color: selected
-                    ? Theme.of(context).colorScheme.onPrimary
-                    : null,
-                fontSize: 12,
-              ),
-            ),
+          : Text('$number', style: TextStyle(fontSize: 12)),
     );
   }
 }
