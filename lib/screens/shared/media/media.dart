@@ -18,6 +18,7 @@ import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
 
 const int imageSize = 300;
@@ -168,10 +169,7 @@ class MediaButton extends StatelessWidget {
 }
 
 class MediaViewerBuilder extends StatelessWidget {
-  const MediaViewerBuilder({
-    super.key,
-    required this.images,
-  });
+  const MediaViewerBuilder({super.key, required this.images});
 
   final List<MediaData> images;
 
@@ -211,11 +209,7 @@ class MediaViewerBuilder extends StatelessWidget {
 }
 
 class MediaCard extends ConsumerStatefulWidget {
-  const MediaCard({
-    super.key,
-    required this.ctr,
-    this.onTap,
-  });
+  const MediaCard({super.key, required this.ctr, this.onTap});
 
   final MediaFormCtr ctr;
   final VoidCallback? onTap;
@@ -268,16 +262,13 @@ class MediaCardState extends ConsumerState<MediaCard> {
                         }
                         return _MediaTypeFallback(kind: mediaAsset.kind);
                       } else {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
                     },
                     future: _getMediaPath(),
-                    initialData: null)
-                : const Center(
-                    child: Text('No media'),
-                  ),
+                    initialData: null,
+                  )
+                : const Center(child: Text('No media')),
           ),
         ),
         Positioned(
@@ -287,12 +278,14 @@ class MediaCardState extends ConsumerState<MediaCard> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(24)),
+              borderRadius: const BorderRadius.all(
+                Radius.circular(NahpuRadius.medium),
+              ),
               child: Container(
                 padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                color: Theme.of(context)
-                    .scaffoldBackgroundColor
-                    .withAlpha((0.9 * 255).toInt()),
+                color: Theme.of(
+                  context,
+                ).scaffoldBackgroundColor.withAlpha((0.9 * 255).toInt()),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(0),
                   dense: true,
@@ -318,12 +311,15 @@ class MediaCardState extends ConsumerState<MediaCard> {
   }
 
   Future<_MediaAssetPreview> _getMediaPath() async {
-    MediaCategory category =
-        matchMediaCategoryString(widget.ctr.categoryCtr.text);
+    MediaCategory category = matchMediaCategoryString(
+      widget.ctr.categoryCtr.text,
+    );
     final fileName = widget.ctr.fileNameCtr!;
     final kind = _getMediaKind();
-    final mediaPath = await ImageServices(ref: ref, category: category)
-        .getMediaPath(fileName);
+    final mediaPath = await ImageServices(
+      ref: ref,
+      category: category,
+    ).getMediaPath(fileName);
     final exists = await mediaPath.exists();
 
     return _MediaAssetPreview(
@@ -351,10 +347,7 @@ class _MediaAssetPreview {
 }
 
 class _MediaTypeFallback extends StatelessWidget {
-  const _MediaTypeFallback({
-    required this.kind,
-    this.label,
-  });
+  const _MediaTypeFallback({required this.kind, this.label});
 
   final MediaKind kind;
   final String? label;
@@ -393,10 +386,7 @@ class _MediaTypeFallback extends StatelessWidget {
 }
 
 class MediaPopUpMenu extends ConsumerStatefulWidget {
-  const MediaPopUpMenu({
-    super.key,
-    required this.ctr,
-  });
+  const MediaPopUpMenu({super.key, required this.ctr});
 
   final MediaFormCtr ctr;
 
@@ -442,35 +432,34 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
           ),
           PopupMenuItem(
             child: ListTile(
-              leading: Icon(
-                Icons.edit_outlined,
-              ),
-              title: const Text(
-                'Rename',
-              ),
+              leading: Icon(Icons.edit_outlined),
+              title: const Text('Rename'),
               onTap: () {
                 Navigator.pop(context);
                 showDialog(
                   context: context,
                   builder: (context) {
                     TextEditingController fileNameCtr = TextEditingController(
-                        text: path.basenameWithoutExtension(
-                            widget.ctr.fileNameCtr ?? ''));
+                      text: path.basenameWithoutExtension(
+                        widget.ctr.fileNameCtr ?? '',
+                      ),
+                    );
                     return AlertDialog(
                       title: const Text('Rename'),
                       content: TextField(
                         controller: fileNameCtr,
                         decoration: InputDecoration(
-                            labelText: 'File name',
-                            hintText: 'Enter file name without extension',
-                            suffix: fileNameCtr.text.isNotEmpty
-                                ? IconButton(
-                                    onPressed: () {
-                                      fileNameCtr.clear();
-                                    },
-                                    icon: const Icon(Icons.clear_rounded),
-                                  )
-                                : null),
+                          labelText: 'File name',
+                          hintText: 'Enter file name without extension',
+                          suffix: fileNameCtr.text.isNotEmpty
+                              ? IconButton(
+                                  onPressed: () {
+                                    fileNameCtr.clear();
+                                  },
+                                  icon: const Icon(Icons.clear_rounded),
+                                )
+                              : null,
+                        ),
                       ),
                       actions: [
                         SecondaryButton(
@@ -497,30 +486,37 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
             ),
           ),
           PopupMenuItem(
-              child: ListTile(
-            leading: Icon(Icons.adaptive.share),
-            title: const Text('Share'),
-            onTap: () async {
-              MediaCategory category =
-                  matchMediaCategoryString(widget.ctr.categoryCtr.text);
-              File path = await ImageServices(ref: ref, category: category)
-                  .getMediaPath(widget.ctr.fileNameCtr!);
-              _shareFile(path);
-            },
-          )),
+            child: ListTile(
+              leading: Icon(Icons.adaptive.share),
+              title: const Text('Share'),
+              onTap: () async {
+                MediaCategory category = matchMediaCategoryString(
+                  widget.ctr.categoryCtr.text,
+                );
+                File path = await ImageServices(
+                  ref: ref,
+                  category: category,
+                ).getMediaPath(widget.ctr.fileNameCtr!);
+                _shareFile(path);
+              },
+            ),
+          ),
           const PopupMenuDivider(),
           PopupMenuItem(
             onTap: () async {
-              await MediaServices(ref: ref).deleteMedia(
-                widget.ctr.primaryId!,
-                widget.ctr.categoryCtr.text,
-              );
+              await MediaServices(
+                ref: ref,
+              ).deleteMedia(widget.ctr.primaryId!, widget.ctr.categoryCtr.text);
             },
             child: ListTile(
-              leading: Icon(Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error),
-              title: Text('Delete',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              leading: Icon(
+                Icons.delete_outline,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                'Delete',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           ),
         ];
@@ -560,80 +556,78 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
 }
 
 class PhotoDetailForm extends ConsumerWidget {
-  const PhotoDetailForm({
-    super.key,
-    required this.ctr,
-  });
+  const PhotoDetailForm({super.key, required this.ctr});
 
   final MediaFormCtr ctr;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
-        child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextField(
-          controller: ctr.captionCtr,
-          decoration: InputDecoration(
-            labelText: 'Caption',
-            hintText: 'Enter caption',
-            suffix: IconButton(
-              icon: Icon(
-                Icons.clear_rounded,
-                color: Theme.of(context).disabledColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: ctr.captionCtr,
+            decoration: InputDecoration(
+              labelText: 'Caption',
+              hintText: 'Enter caption',
+              suffix: IconButton(
+                icon: Icon(
+                  Icons.clear_rounded,
+                  color: Theme.of(context).disabledColor,
+                ),
+                onPressed: () {
+                  ctr.captionCtr.clear();
+                },
               ),
-              onPressed: () {
-                ctr.captionCtr.clear();
-              },
             ),
-          ),
-          keyboardType: TextInputType.text,
-          maxLines: 3,
-          onChanged: (value) {
-            if (value.isNotEmpty) {
-              MediaServices(ref: ref).updateMedia(
+            keyboardType: TextInputType.text,
+            maxLines: 3,
+            onChanged: (value) {
+              if (value.isNotEmpty) {
+                MediaServices(ref: ref).updateMedia(
                   ctr.primaryId!,
                   ctr.categoryCtr.text,
-                  MediaCompanion(
-                    caption: db.Value(value),
-                  ));
-            }
-          },
-        ),
-        DropdownButtonFormField<String>(
-          initialValue: ctr.photographerCtr,
-          decoration: const InputDecoration(
-            labelText: 'Photographer',
-            hintText: 'Select Personnel',
+                  MediaCompanion(caption: db.Value(value)),
+                );
+              }
+            },
           ),
-          items: ref.watch(projectPersonnelProvider).when(
-                data: (value) => value
-                    .map((person) => DropdownMenuItem(
+          DropdownButtonFormField<String>(
+            initialValue: ctr.photographerCtr,
+            decoration: const InputDecoration(
+              labelText: 'Photographer',
+              hintText: 'Select Personnel',
+            ),
+            items: ref
+                .watch(projectPersonnelProvider)
+                .when(
+                  data: (value) => value
+                      .map(
+                        (person) => DropdownMenuItem(
                           value: person.uuid,
-                          child: CommonDropdownText(
-                            text: person.name ?? '',
-                          ),
-                        ))
-                    .toList(),
-                loading: () => const [],
-                error: (error, stack) => const [],
-              ),
-          onChanged: (String? value) {
-            if (value != null) {
-              MediaServices(ref: ref).updateMedia(
+                          child: CommonDropdownText(text: person.name ?? ''),
+                        ),
+                      )
+                      .toList(),
+                  loading: () => const [],
+                  error: (error, stack) => const [],
+                ),
+            onChanged: (String? value) {
+              if (value != null) {
+                MediaServices(ref: ref).updateMedia(
                   ctr.primaryId!,
                   ctr.categoryCtr.text,
-                  MediaCompanion(
-                    personnelId: db.Value(value),
-                  ));
-            }
-          },
-        ),
-        const SizedBox(height: 24),
-        ExifViewer(ctr: ctr),
-      ],
-    ));
+                  MediaCompanion(personnelId: db.Value(value)),
+                );
+              }
+            },
+          ),
+          const SizedBox(height: 24),
+          ExifViewer(ctr: ctr),
+        ],
+      ),
+    );
   }
 }
 
@@ -647,10 +641,7 @@ class ExifViewer extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 4,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             border: Border.all(
               color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -668,10 +659,7 @@ class ExifViewer extends StatelessWidget {
         Text(ctr.additionalExifCtr.text, textAlign: TextAlign.center),
         const SizedBox(height: 4),
         if (_parseDateTime().isNotEmpty)
-          Text(
-            _parseDateTime(),
-            textAlign: TextAlign.center,
-          ),
+          Text(_parseDateTime(), textAlign: TextAlign.center),
       ],
     );
   }
@@ -698,7 +686,8 @@ class MediaInfoContent extends StatelessWidget {
     return const InfoContainer(
       content: [
         InfoContent(
-          content: 'Media files of the project.'
+          content:
+              'Media files of the project.'
               ' On mobile, gallery and camera import images only.'
               ' Use Files to import audio and video.',
         ),

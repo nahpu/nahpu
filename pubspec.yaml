@@ -74,6 +74,7 @@ dependencies:
   maplibre_webview: ^0.3.5
   video_player: ^2.13.0
   fvp: ^0.37.3
+  record: ^7.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
