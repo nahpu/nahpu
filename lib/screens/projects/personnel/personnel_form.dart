@@ -1,5 +1,5 @@
-import 'package:nahpu/services/personnel_services.dart';
-import 'package:nahpu/services/orcid.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
+import 'package:nahpu/services/projects/orcid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/personnel/avatars.dart';
@@ -59,21 +59,20 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PersonnelAvatar(
-            ctr: widget.ctr,
-          ),
+          PersonnelAvatar(ctr: widget.ctr),
           const SizedBox(height: 8),
           PersonnelNameField(
-              ctr: widget.ctr,
-              onChanged: (value) {
-                if (widget.isEditing) {
-                  _validateEditing();
-                } else {
-                  ref
-                      .watch(personnelFormValidatorProvider.notifier)
-                      .validateName(value);
-                }
-              }),
+            ctr: widget.ctr,
+            onChanged: (value) {
+              if (widget.isEditing) {
+                _validateEditing();
+              } else {
+                ref
+                    .watch(personnelFormValidatorProvider.notifier)
+                    .validateName(value);
+              }
+            },
+          ),
           TextFormField(
             controller: widget.ctr.affiliationCtr,
             decoration: const InputDecoration(
@@ -91,25 +90,27 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
             child: TextFormField(
               controller: widget.ctr.emailCtr,
               decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Enter email',
-                  errorText: ref.watch(personnelFormValidatorProvider).when(
-                        data: (data) => data.email.errMsg,
-                        loading: () => null,
-                        error: (e, s) => null,
-                      )),
+                labelText: 'Email',
+                hintText: 'Enter email',
+                errorText: ref
+                    .watch(personnelFormValidatorProvider)
+                    .when(
+                      data: (data) => data.email.errMsg,
+                      loading: () => null,
+                      error: (e, s) => null,
+                    ),
+              ),
               onChanged: (value) {
                 if (widget.isEditing) {
                   _validateEditing();
                 } else {
                   widget.ctr.emailCtr.value = TextEditingValue(
-                      text: value.toLowerCase(),
-                      selection: widget.ctr.emailCtr.selection);
+                    text: value.toLowerCase(),
+                    selection: widget.ctr.emailCtr.selection,
+                  );
                   ref
                       .watch(personnelFormValidatorProvider.notifier)
-                      .validateEmail(
-                        value,
-                      );
+                      .validateEmail(value);
                 }
               },
             ),
@@ -123,9 +124,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                 hintText: 'Enter phone',
               ),
               keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: (value) {
                 if (widget.isEditing) {
                   _validateEditing();
@@ -171,13 +170,15 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                   },
           ),
           Visibility(
-              visible: widget.ctr.roleCtr == 'Cataloger',
-              child: Column(children: [
+            visible: widget.ctr.roleCtr == 'Cataloger',
+            child: Column(
+              children: [
                 SwitchListTile(
                   title: const Text('Register personal field number'),
                   subtitle: Text(
-                      'Initials and cataloger number will be used to generate specimen field ID.',
-                      style: Theme.of(context).textTheme.labelSmall),
+                    'Initials and cataloger number will be used to generate specimen field ID.',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
                   value: widget.ctr.isRegisterField,
                   onChanged: (bool value) {
                     setState(() {
@@ -193,8 +194,9 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                   },
                 ),
                 Visibility(
-                    visible: widget.ctr.isRegisterField,
-                    child: Column(children: [
+                  visible: widget.ctr.isRegisterField,
+                  child: Column(
+                    children: [
                       PersonnelInitialField(
                         ctr: widget.ctr,
                         onChanged: (value) {
@@ -207,8 +209,10 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                           } else {
                             ref
                                 .watch(personnelFormValidatorProvider.notifier)
-                                .validateInitial(widget.ctr.initialCtr.text,
-                                    widget.ctr.isRegisterField);
+                                .validateInitial(
+                                  widget.ctr.initialCtr.text,
+                                  widget.ctr.isRegisterField,
+                                );
                           }
                         },
                       ),
@@ -221,12 +225,18 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                             ref
                                 .watch(personnelFormValidatorProvider.notifier)
                                 .validateCollNum(
-                                    value, widget.ctr.isRegisterField);
+                                  value,
+                                  widget.ctr.isRegisterField,
+                                );
                           }
                         },
                       ),
-                    ]))
-              ])),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           Visibility(
             visible: _isShowMore || widget.ctr.noteCtr.text.isNotEmpty,
             child: TextField(
@@ -244,15 +254,14 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
             ),
           ),
           TextButton(
-              onPressed: () {
-                setState(() {
-                  _isShowMore = !_isShowMore;
-                });
-              },
-              child: Text(_isShowMore ? 'Show less' : 'Show more')),
-          const SizedBox(
-            height: 16,
+            onPressed: () {
+              setState(() {
+                _isShowMore = !_isShowMore;
+              });
+            },
+            child: Text(_isShowMore ? 'Show less' : 'Show more'),
           ),
+          const SizedBox(height: 16),
           FormButton(
             isEditing: widget.isEditing,
             onSubmitted: _validateForm()
@@ -295,16 +304,20 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
   bool _validateForm() {
     if (_orcidError != null) return false;
     return widget.ctr.roleCtr == 'Cataloger'
-        ? ref.read(personnelFormValidatorProvider).when(
-              data: (data) => data.isValidCataloger,
-              loading: () => false,
-              error: (error, stackTrace) => false,
-            )
-        : ref.read(personnelFormValidatorProvider).when(
-              data: (data) => data.isValidOther,
-              loading: () => false,
-              error: (error, stackTrace) => false,
-            );
+        ? ref
+              .read(personnelFormValidatorProvider)
+              .when(
+                data: (data) => data.isValidCataloger,
+                loading: () => false,
+                error: (error, stackTrace) => false,
+              )
+        : ref
+              .read(personnelFormValidatorProvider)
+              .when(
+                data: (data) => data.isValidOther,
+                loading: () => false,
+                error: (error, stackTrace) => false,
+              );
   }
 
   String? get _orcidError {
@@ -327,9 +340,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
         ),
         role: db.Value(widget.ctr.roleCtr),
         isRegisterField: db.Value(widget.ctr.isRegisterField),
-        currentFieldNumber: db.Value(
-          _getCollectorNumber(),
-        ),
+        currentFieldNumber: db.Value(_getCollectorNumber()),
         photoPath: db.Value(widget.ctr.photoPathCtr.text),
         notes: db.Value(widget.ctr.noteCtr.text),
       ),
@@ -352,17 +363,17 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
         ),
         role: db.Value(widget.ctr.roleCtr),
         isRegisterField: db.Value(widget.ctr.isRegisterField),
-        currentFieldNumber: db.Value(
-          _getCollectorNumber(),
-        ),
+        currentFieldNumber: db.Value(_getCollectorNumber()),
         photoPath: db.Value(widget.ctr.photoPathCtr.text),
         notes: db.Value(widget.ctr.noteCtr.text),
       ),
     );
-    await personnelServices.addPersonnelToProject(PersonnelListCompanion(
-      personnelUuid: db.Value(widget.personnelUuid),
-      projectUuid: db.Value(projectUuid),
-    ));
+    await personnelServices.addPersonnelToProject(
+      PersonnelListCompanion(
+        personnelUuid: db.Value(widget.personnelUuid),
+        projectUuid: db.Value(projectUuid),
+      ),
+    );
   }
 
   int _getCollectorNumber() {
@@ -391,7 +402,9 @@ class PersonnelNameField extends ConsumerWidget {
       decoration: InputDecoration(
         labelText: 'Name*',
         hintText: 'Enter a name (required)',
-        errorText: ref.watch(personnelFormValidatorProvider).when(
+        errorText: ref
+            .watch(personnelFormValidatorProvider)
+            .when(
               data: (data) => data.name.errMsg,
               loading: () => null,
               error: (e, s) => null,
@@ -418,16 +431,17 @@ class PersonnelInitialField extends ConsumerWidget {
       controller: ctr.initialCtr,
       maxLength: 8,
       decoration: InputDecoration(
-          labelText: 'Initials*',
-          hintText: 'e.g., HH or H-H',
-          errorText: ref.watch(personnelFormValidatorProvider).when(
-                data: (data) => data.initial.errMsg,
-                loading: () => null,
-                error: (e, s) => null,
-              )),
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(5),
-      ],
+        labelText: 'Initials*',
+        hintText: 'e.g., HH or H-H',
+        errorText: ref
+            .watch(personnelFormValidatorProvider)
+            .when(
+              data: (data) => data.initial.errMsg,
+              loading: () => null,
+              error: (e, s) => null,
+            ),
+      ),
+      inputFormatters: [LengthLimitingTextInputFormatter(5)],
       onChanged: onChanged,
     );
   }
@@ -449,19 +463,18 @@ class CatalogerNumberField extends ConsumerWidget {
       enabled: ctr.roleCtr == 'Cataloger',
       controller: ctr.collectorNumCtr,
       decoration: InputDecoration(
-          labelText: 'Cataloger number*',
-          hintText: '1234',
-          errorText: ref.watch(personnelFormValidatorProvider).when(
-                data: (data) => data.collNum.errMsg,
-                loading: () => null,
-                error: (e, s) => null,
-              )),
+        labelText: 'Cataloger number*',
+        hintText: '1234',
+        errorText: ref
+            .watch(personnelFormValidatorProvider)
+            .when(
+              data: (data) => data.collNum.errMsg,
+              loading: () => null,
+              error: (e, s) => null,
+            ),
+      ),
       keyboardType: TextInputType.number,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(
-          RegExp(r'[0-9]+'),
-        ),
-      ],
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]+'))],
       onChanged: onChanged,
     );
   }

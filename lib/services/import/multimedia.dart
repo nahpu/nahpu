@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:exif/exif.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/media_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/import.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:path/path.dart' as path;
 

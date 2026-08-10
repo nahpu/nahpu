@@ -7,8 +7,8 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/navigation_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/common/navigation_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 class SpecimenSearchView extends ConsumerStatefulWidget {
@@ -64,22 +64,26 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
                             ref.invalidate(specimenEntryProvider);
                           });
                         },
-                        icon: const Icon(Icons.clear_rounded))
+                        icon: const Icon(Icons.clear_rounded),
+                      )
                     : IconButton(
                         onPressed: () {
                           showDialog(
-                              context: context,
-                              builder: (context) => SearchOptionScreen(
-                                  selectedSearchValue: _selectedSearchValue,
-                                  onSelected: (index) {
-                                    setState(() {
-                                      _selectedSearchValue = index;
-                                      _searchController.clear();
-                                      Navigator.pop(context);
-                                    });
-                                  }));
+                            context: context,
+                            builder: (context) => SearchOptionScreen(
+                              selectedSearchValue: _selectedSearchValue,
+                              onSelected: (index) {
+                                setState(() {
+                                  _selectedSearchValue = index;
+                                  _searchController.clear();
+                                  Navigator.pop(context);
+                                });
+                              },
+                            ),
+                          );
                         },
-                        icon: const Icon(Icons.tune_rounded))
+                        icon: const Icon(Icons.tune_rounded),
+                      ),
               ],
               onChanged: (query) async {
                 _filteredSpecimenData = await SpecimenSearchServices(
@@ -94,8 +98,9 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
                   }
                   // Reuse the single PageController (no recreate/leak); clamp
                   // the page into the new result range and jump to it.
-                  final index =
-                      _pageNav.clampToCount(_filteredSpecimenData.length);
+                  final index = _pageNav.clampToCount(
+                    _filteredSpecimenData.length,
+                  );
                   _isVisible = query.isNotEmpty;
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted) _pageNav.clampController(index);
@@ -104,13 +109,14 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
               },
             ),
             TextButton(
-                onPressed: () {
-                  _searchController.clear();
-                  ref.invalidate(specimenEntryProvider);
-                  // Return to the still-mounted viewer below this screen.
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancel')),
+              onPressed: () {
+                _searchController.clear();
+                ref.invalidate(specimenEntryProvider);
+                // Return to the still-mounted viewer below this screen.
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
           ],
         ),
         body: SafeArea(
@@ -123,14 +129,13 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
                     setState(() {
                       _updatePageNav(index);
                     });
-                  })
+                  },
+                )
               : const EmptySpecimen(isButtonVisible: false),
         ),
         bottomSheet: Visibility(
           visible: _isVisible,
-          child: PageNavButton(
-            pageNav: _pageNav,
-          ),
+          child: PageNavButton(pageNav: _pageNav),
         ),
       ),
     );

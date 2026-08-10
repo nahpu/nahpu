@@ -8,7 +8,7 @@ import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_viewport_projection.dart';
 import 'package:nahpu/screens/shared/maps/map_point_hit_test.dart';
 import 'package:nahpu/screens/shared/maps/map_tooltip_card.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 
 void main() {
   test('ProjectDeletionFailure message includes phase and diagnostics', () {

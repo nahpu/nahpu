@@ -6,9 +6,9 @@ import 'package:nahpu/screens/settings/user_config_transfer_widgets.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/user_config_transfer_service.dart';
+import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class AppSettingsImport extends ConsumerStatefulWidget {

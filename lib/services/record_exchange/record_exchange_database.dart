@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/database.dart' as nahpu_db;
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 
 class RecordExchangeDatabase extends AppServices {
   const RecordExchangeDatabase({required super.ref});

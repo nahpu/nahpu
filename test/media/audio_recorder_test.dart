@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/media/audio_recorder.dart';
-import 'package:nahpu/services/audio_recording_services.dart';
+import 'package:nahpu/services/media/audio_recording_services.dart';
 import 'package:record/record.dart';
 
 void main() {

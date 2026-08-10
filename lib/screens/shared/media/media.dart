@@ -12,12 +12,12 @@ import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/media_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/import.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
 

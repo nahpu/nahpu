@@ -5,11 +5,11 @@ import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class TaxonRegistryLayout extends StatefulWidget {
   const TaxonRegistryLayout({super.key, required this.children});

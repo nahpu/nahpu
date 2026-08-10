@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:nahpu/services/specimen_attribute_names.dart';
+import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 import 'package:nahpu/services/types/mammals.dart';
 
 /// The comparison used by a conditional bracket rule.

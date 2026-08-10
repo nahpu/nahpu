@@ -6,7 +6,7 @@ import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/screens/shared/media/audio_recorder.dart';
 import 'package:nahpu/screens/shared/media/media_capture.dart';
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/import.dart';
 
 class SpecimenMediaForm extends ConsumerStatefulWidget {

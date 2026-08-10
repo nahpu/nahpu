@@ -1,18 +1,17 @@
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/site_writer.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/personnel_services.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 
 class CollectingRecordWriterServices extends AppServices {
-  const CollectingRecordWriterServices({
-    required super.ref,
-  });
+  const CollectingRecordWriterServices({required super.ref});
 
   Future<List<String>> getRecord(SpecimenData data) async {
     String specimenUuid = data.uuid;
-    ({String name, String initial}) cataloger =
-        await _getCatalogerIdentity(data.catalogerID);
+    ({String name, String initial}) cataloger = await _getCatalogerIdentity(
+      data.catalogerID,
+    );
     String fieldNumber = '${data.fieldNumber ?? ''}';
     String preparator = await _getPreparatorName(data.preparatorID);
     List<String> taxonomy = await _getSpeciesName(data.speciesID);
@@ -39,8 +38,9 @@ class CollectingRecordWriterServices extends AppServices {
     if (speciesId == null) {
       return [''];
     } else {
-      TaxonomyData taxon =
-          await TaxonomyServices(ref: ref).getTaxonById(speciesId);
+      TaxonomyData taxon = await TaxonomyServices(
+        ref: ref,
+      ).getTaxonById(speciesId);
 
       return [
         taxon.taxonOrder ?? '',
@@ -52,12 +52,14 @@ class CollectingRecordWriterServices extends AppServices {
   }
 
   Future<({String name, String initial})> _getCatalogerIdentity(
-      String? catalogerUuid) async {
+    String? catalogerUuid,
+  ) async {
     if (catalogerUuid == null) {
       return (name: '', initial: '');
     } else {
-      PersonnelData person =
-          await PersonnelServices(ref: ref).getPersonnelByUuid(catalogerUuid);
+      PersonnelData person = await PersonnelServices(
+        ref: ref,
+      ).getPersonnelByUuid(catalogerUuid);
       return (name: person.name ?? '', initial: person.initial ?? '');
     }
   }
@@ -66,8 +68,9 @@ class CollectingRecordWriterServices extends AppServices {
     if (preparatorUuid == null) {
       return '';
     } else {
-      PersonnelData person =
-          await PersonnelServices(ref: ref).getPersonnelByUuid(preparatorUuid);
+      PersonnelData person = await PersonnelServices(
+        ref: ref,
+      ).getPersonnelByUuid(preparatorUuid);
       return person.name ?? '';
     }
   }
@@ -76,10 +79,9 @@ class CollectingRecordWriterServices extends AppServices {
     if (coordinateId == null) {
       return '';
     } else {
-      List<String> coordinate =
-          await SiteWriterServices(ref: ref).getCoordinateById(
-        coordinateId,
-      );
+      List<String> coordinate = await SiteWriterServices(
+        ref: ref,
+      ).getCoordinateById(coordinateId);
       return coordinate.join();
     }
   }

@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;

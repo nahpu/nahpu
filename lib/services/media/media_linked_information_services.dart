@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
@@ -7,9 +7,9 @@ import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/import.dart';
 
 class MediaLinkedField {

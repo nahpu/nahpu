@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
 import 'package:nahpu/screens/settings/site_settings.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/user_config_settings_service.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/settings/user_config_settings_service.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 void main() {
   testWidgets('site settings include the default datum vocabulary', (

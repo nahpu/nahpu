@@ -13,7 +13,7 @@ import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
@@ -26,13 +26,13 @@ import 'package:nahpu/screens/templates/components/layout/template_editor_scaffo
 import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/screens/templates/template_preview_specimen_selection.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/collevent_services.dart';
-import 'package:nahpu/services/narrative_services.dart';
-import 'package:nahpu/services/project_services.dart';
-import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:path/path.dart' as path;
 

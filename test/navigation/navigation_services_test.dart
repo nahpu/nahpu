@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/navigation_services.dart';
+import 'package:nahpu/services/common/navigation_services.dart';
 
 void main() {
   group('PageNavigation.clampToCount', () {
@@ -75,15 +75,19 @@ void main() {
       nav.dispose();
     });
 
-    testWidgets('does not cut short an in-flight page animation',
-        (tester) async {
+    testWidgets('does not cut short an in-flight page animation', (
+      tester,
+    ) async {
       final nav = PageNavigation.init();
       await tester.pumpWidget(buildPager(nav));
       nav.pageController.jumpToPage(9);
       await tester.pump();
 
-      nav.pageController.animateToPage(0,
-          duration: kTabScrollDuration, curve: Curves.easeInOut);
+      nav.pageController.animateToPage(
+        0,
+        duration: kTabScrollDuration,
+        curve: Curves.easeInOut,
+      );
       // A refresh triggered by an intermediate onPageChanged reconciles a few
       // frames later with the page recorded back then; it must not hijack the
       // viewport.

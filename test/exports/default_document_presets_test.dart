@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/document_layout_service.dart';
+import 'package:nahpu/services/templates/document_layout_service.dart';
 
 void main() {
   group('default document presets', () {

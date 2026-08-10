@@ -1,23 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class ProjectFormField {
   final String? errMsg;
   final bool isValid;
 
-  ProjectFormField({
-    required this.errMsg,
-    this.isValid = false,
-  });
+  ProjectFormField({required this.errMsg, this.isValid = false});
 
-  ProjectFormField copyWith({
-    String? errMsg,
-    bool? isValid,
-  }) {
+  ProjectFormField copyWith({String? errMsg, bool? isValid}) {
     return ProjectFormField(
       errMsg: errMsg ?? this.errMsg,
       isValid: isValid ?? this.isValid,
@@ -40,15 +34,12 @@ class ProjectForm {
   final ProjectFormField projectName;
   final ProjectFormField existingProject;
 
-  const ProjectForm({
-    required this.projectName,
-    required this.existingProject,
-  });
+  const ProjectForm({required this.projectName, required this.existingProject});
 
   factory ProjectForm.empty() => ProjectForm(
-        projectName: ProjectFormField(errMsg: null, isValid: false),
-        existingProject: ProjectFormField(errMsg: null, isValid: false),
-      );
+    projectName: ProjectFormField(errMsg: null, isValid: false),
+    existingProject: ProjectFormField(errMsg: null, isValid: false),
+  );
 
   bool get isValid {
     return projectName.isValid && existingProject.isValid;
@@ -80,15 +71,9 @@ class PersonnelFormField {
   final String? errMsg;
   final bool isValid;
 
-  PersonnelFormField({
-    required this.errMsg,
-    this.isValid = false,
-  });
+  PersonnelFormField({required this.errMsg, this.isValid = false});
 
-  PersonnelFormField copyWith({
-    String? errMsg,
-    bool? isValid,
-  }) {
+  PersonnelFormField copyWith({String? errMsg, bool? isValid}) {
     return PersonnelFormField(
       errMsg: errMsg ?? this.errMsg,
       isValid: isValid ?? this.isValid,
@@ -121,11 +106,11 @@ class PersonnelForm {
   });
 
   factory PersonnelForm.empty() => PersonnelForm(
-        name: PersonnelFormField(errMsg: null, isValid: false),
-        email: PersonnelFormField(errMsg: null, isValid: true),
-        initial: PersonnelFormField(errMsg: null, isValid: false),
-        collNum: PersonnelFormField(errMsg: null, isValid: false),
-      );
+    name: PersonnelFormField(errMsg: null, isValid: false),
+    email: PersonnelFormField(errMsg: null, isValid: true),
+    initial: PersonnelFormField(errMsg: null, isValid: false),
+    collNum: PersonnelFormField(errMsg: null, isValid: false),
+  );
 
   bool get isValidCataloger {
     return name.isValid && email.isValid && initial.isValid && collNum.isValid;
@@ -163,7 +148,8 @@ class PersonnelForm {
 
 final projectFormValidatorProvider =
     AsyncNotifierProvider.autoDispose<ProjectFormValidator, ProjectForm>(
-        ProjectFormValidator.new);
+      ProjectFormValidator.new,
+    );
 
 class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
   Future<ProjectForm> _fetch() {
@@ -181,7 +167,9 @@ class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
   }
 
   Future<void> validateOnEditing(
-      String? initialProjectName, String? projectName) async {
+    String? initialProjectName,
+    String? projectName,
+  ) async {
     await validateProjectName(projectName);
     if (initialProjectName != projectName) {
       await checkProjectNameExists(projectName);
@@ -190,7 +178,8 @@ class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
       state = await AsyncValue.guard(() async {
         if (state.value == null) return ProjectForm.empty();
         return state.value!.copyWith(
-            existingProject: ProjectFormField(errMsg: null, isValid: true));
+          existingProject: ProjectFormField(errMsg: null, isValid: true),
+        );
       });
     }
   }
@@ -201,29 +190,40 @@ class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
       if (state.value == null) return ProjectForm.empty();
       if (value == null || value.isEmpty) {
         return state.value!.copyWith(
-            projectName: ProjectFormField(errMsg: null, isValid: false));
+          projectName: ProjectFormField(errMsg: null, isValid: false),
+        );
       }
 
       if (value.length < 3) {
         return state.value!.copyWith(
-            projectName: ProjectFormField(
-                errMsg: "Project name is too short", isValid: false));
+          projectName: ProjectFormField(
+            errMsg: "Project name is too short",
+            isValid: false,
+          ),
+        );
       }
 
       if (!value.isValidProjectName) {
         return state.value!.copyWith(
-            projectName: ProjectFormField(
-                errMsg: "Project name is invalid", isValid: false));
+          projectName: ProjectFormField(
+            errMsg: "Project name is invalid",
+            isValid: false,
+          ),
+        );
       }
 
       if (value.length > 25) {
         return state.value!.copyWith(
-            projectName: ProjectFormField(
-                errMsg: "Project name is too long", isValid: false));
+          projectName: ProjectFormField(
+            errMsg: "Project name is too long",
+            isValid: false,
+          ),
+        );
       }
 
-      return state.value!
-          .copyWith(projectName: ProjectFormField(errMsg: null, isValid: true));
+      return state.value!.copyWith(
+        projectName: ProjectFormField(errMsg: null, isValid: true),
+      );
     });
   }
 
@@ -233,21 +233,27 @@ class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       if (state.value == null) return ProjectForm.empty();
-      List<String> data =
-          await ProjectQuery(ref.read(databaseProvider)).getAllProjectNames();
+      List<String> data = await ProjectQuery(
+        ref.read(databaseProvider),
+      ).getAllProjectNames();
       if (data.isEmpty) {
         return state.value!.copyWith(
-            existingProject: ProjectFormField(errMsg: null, isValid: true));
+          existingProject: ProjectFormField(errMsg: null, isValid: true),
+        );
       }
 
       bool isMatch = _findMatchingName(data, value);
       if (isMatch) {
         return state.value!.copyWith(
-            existingProject: ProjectFormField(
-                errMsg: "Project name already exists", isValid: false));
+          existingProject: ProjectFormField(
+            errMsg: "Project name already exists",
+            isValid: false,
+          ),
+        );
       }
       return state.value!.copyWith(
-          existingProject: ProjectFormField(errMsg: null, isValid: true));
+        existingProject: ProjectFormField(errMsg: null, isValid: true),
+      );
     });
   }
 
@@ -258,7 +264,8 @@ class ProjectFormValidator extends AsyncNotifier<ProjectForm> {
 
 final personnelFormValidatorProvider =
     AsyncNotifierProvider.autoDispose<PersonnelFormValidator, PersonnelForm>(
-        PersonnelFormValidator.new);
+      PersonnelFormValidator.new,
+    );
 
 class PersonnelFormValidator extends AsyncNotifier<PersonnelForm> {
   Future<PersonnelForm> _fetch() {
@@ -275,31 +282,38 @@ class PersonnelFormValidator extends AsyncNotifier<PersonnelForm> {
     await validateEmail(formCtr.emailCtr.text);
     await validateInitial(formCtr.initialCtr.text, formCtr.isRegisterField);
     await validateCollNum(
-        formCtr.collectorNumCtr.text, formCtr.isRegisterField);
+      formCtr.collectorNumCtr.text,
+      formCtr.isRegisterField,
+    );
   }
 
   Future<void> validateName(String? value) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       if (value == null || value.isEmpty || state.value == null) {
-        return state.value!
-            .copyWith(name: PersonnelFormField(errMsg: null, isValid: false));
+        return state.value!.copyWith(
+          name: PersonnelFormField(errMsg: null, isValid: false),
+        );
       }
 
       if (value.length < 3) {
         return state.value!.copyWith(
-            name: PersonnelFormField(
-                errMsg: "Name is too short", isValid: false));
+          name: PersonnelFormField(errMsg: "Name is too short", isValid: false),
+        );
       }
 
       if (!value.isValidName) {
         return state.value!.copyWith(
-            name: PersonnelFormField(
-                errMsg: "Invalid characters", isValid: false));
+          name: PersonnelFormField(
+            errMsg: "Invalid characters",
+            isValid: false,
+          ),
+        );
       }
 
-      return state.value!
-          .copyWith(name: PersonnelFormField(errMsg: null, isValid: true));
+      return state.value!.copyWith(
+        name: PersonnelFormField(errMsg: null, isValid: true),
+      );
     });
   }
 
@@ -311,18 +325,23 @@ class PersonnelFormValidator extends AsyncNotifier<PersonnelForm> {
       }
 
       if (value == null || value.isEmpty) {
-        return state.value!
-            .copyWith(email: PersonnelFormField(errMsg: null, isValid: true));
+        return state.value!.copyWith(
+          email: PersonnelFormField(errMsg: null, isValid: true),
+        );
       }
 
       if (!value.isValidEmail) {
         return state.value!.copyWith(
-            email: PersonnelFormField(
-                errMsg: "Invalid email address", isValid: false));
+          email: PersonnelFormField(
+            errMsg: "Invalid email address",
+            isValid: false,
+          ),
+        );
       }
 
-      return state.value!
-          .copyWith(email: PersonnelFormField(errMsg: null, isValid: true));
+      return state.value!.copyWith(
+        email: PersonnelFormField(errMsg: null, isValid: true),
+      );
     });
   }
 
@@ -330,29 +349,38 @@ class PersonnelFormValidator extends AsyncNotifier<PersonnelForm> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       if (!isRegister) {
-        return state.value!
-            .copyWith(initial: PersonnelFormField(errMsg: null, isValid: true));
+        return state.value!.copyWith(
+          initial: PersonnelFormField(errMsg: null, isValid: true),
+        );
       }
 
       if (value == null || value.isEmpty || state.value == null) {
         return state.value!.copyWith(
-            initial: PersonnelFormField(errMsg: null, isValid: false));
+          initial: PersonnelFormField(errMsg: null, isValid: false),
+        );
       }
 
       if (value.length < 2) {
         return state.value!.copyWith(
-            initial: PersonnelFormField(
-                errMsg: "Initial is too short", isValid: false));
+          initial: PersonnelFormField(
+            errMsg: "Initial is too short",
+            isValid: false,
+          ),
+        );
       }
 
       if (!value.isValidInitial) {
         return state.value!.copyWith(
-            initial: PersonnelFormField(
-                errMsg: "Invalid characters", isValid: false));
+          initial: PersonnelFormField(
+            errMsg: "Invalid characters",
+            isValid: false,
+          ),
+        );
       }
 
-      return state.value!
-          .copyWith(initial: PersonnelFormField(errMsg: null, isValid: true));
+      return state.value!.copyWith(
+        initial: PersonnelFormField(errMsg: null, isValid: true),
+      );
     });
   }
 
@@ -360,23 +388,29 @@ class PersonnelFormValidator extends AsyncNotifier<PersonnelForm> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       if (!isRegister) {
-        return state.value!
-            .copyWith(collNum: PersonnelFormField(errMsg: null, isValid: true));
+        return state.value!.copyWith(
+          collNum: PersonnelFormField(errMsg: null, isValid: true),
+        );
       }
 
       if (value == null || value.isEmpty || state.value == null) {
         return state.value!.copyWith(
-            collNum: PersonnelFormField(errMsg: null, isValid: false));
+          collNum: PersonnelFormField(errMsg: null, isValid: false),
+        );
       }
 
       if (!value.isValidCollNum) {
         return state.value!.copyWith(
-            collNum: PersonnelFormField(
-                errMsg: "Invalid collector number", isValid: false));
+          collNum: PersonnelFormField(
+            errMsg: "Invalid collector number",
+            isValid: false,
+          ),
+        );
       }
 
-      return state.value!
-          .copyWith(collNum: PersonnelFormField(errMsg: null, isValid: true));
+      return state.value!.copyWith(
+        collNum: PersonnelFormField(errMsg: null, isValid: true),
+      );
     });
   }
 }

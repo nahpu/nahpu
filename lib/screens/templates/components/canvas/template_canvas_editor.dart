@@ -15,7 +15,7 @@ import 'package:nahpu/services/templates/canvas_snap_service.dart';
 import 'package:nahpu/services/templates/nested_list_service.dart';
 import 'package:nahpu/services/templates/canvas_overflow_service.dart';
 import 'package:nahpu/services/templates/dynamic_layout_service.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/styles/themes.dart';
 
 import 'dart:math' as math;

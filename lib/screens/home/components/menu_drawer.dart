@@ -7,7 +7,7 @@ import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/app_settings_import.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';

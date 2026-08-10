@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/coordinate_input.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/projects/coordinate_input.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:uuid/uuid.dart';
 
 class DateEditingController extends TextEditingController {

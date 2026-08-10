@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 
 /// Encodes, decodes, and writes project information exchanged between NAHPU
 /// installations.

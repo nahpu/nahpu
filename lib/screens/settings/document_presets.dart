@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
-import 'package:nahpu/services/document_layout_service.dart';
+import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:path/path.dart' as path;
 
 // Preview and specimen selection imports
@@ -27,9 +27,9 @@ import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_table_preview_settings_service.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/screens/settings/document_presets/template_preset_manager.dart';
-import 'package:nahpu/services/config_services.dart';
+import 'package:nahpu/services/settings/config_services.dart';
 import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

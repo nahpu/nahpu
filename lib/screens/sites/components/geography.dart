@@ -5,7 +5,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 
 class Geography extends StatelessWidget {
   const Geography({
@@ -35,15 +35,17 @@ class Geography extends StatelessWidget {
             useHorizontalLayout: useHorizontalLayout,
             children: [
               PreciseLocality(
-                  id: id,
-                  useHorizontalLayout: useHorizontalLayout,
-                  siteFormCtr: siteFormCtr),
+                id: id,
+                useHorizontalLayout: useHorizontalLayout,
+                siteFormCtr: siteFormCtr,
+              ),
               LocalityNote(
-                  id: id,
-                  useHorizontalLayout: useHorizontalLayout,
-                  siteFormCtr: siteFormCtr)
+                id: id,
+                useHorizontalLayout: useHorizontalLayout,
+                siteFormCtr: siteFormCtr,
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -51,11 +53,12 @@ class Geography extends StatelessWidget {
 }
 
 class MainSiteLocality extends ConsumerWidget {
-  const MainSiteLocality(
-      {super.key,
-      required this.id,
-      required this.useHorizontalLayout,
-      required this.siteFormCtr});
+  const MainSiteLocality({
+    super.key,
+    required this.id,
+    required this.useHorizontalLayout,
+    required this.siteFormCtr,
+  });
 
   final int id;
   final bool useHorizontalLayout;
@@ -73,10 +76,9 @@ class MainSiteLocality extends ConsumerWidget {
             hintText: 'Enter a country',
           ),
           onChanged: (value) {
-            SiteServices(ref: ref).updateSite(
-              id,
-              SiteCompanion(country: db.Value(value)),
-            );
+            SiteServices(
+              ref: ref,
+            ).updateSite(id, SiteCompanion(country: db.Value(value)));
           },
         ),
         TextFormField(
@@ -86,10 +88,9 @@ class MainSiteLocality extends ConsumerWidget {
             hintText: 'Enter a state/province',
           ),
           onChanged: (value) {
-            SiteServices(ref: ref).updateSite(
-              id,
-              SiteCompanion(stateProvince: db.Value(value)),
-            );
+            SiteServices(
+              ref: ref,
+            ).updateSite(id, SiteCompanion(stateProvince: db.Value(value)));
           },
         ),
         TextFormField(
@@ -99,10 +100,9 @@ class MainSiteLocality extends ConsumerWidget {
             hintText: 'Enter a county/parish/district',
           ),
           onChanged: (value) {
-            SiteServices(ref: ref).updateSite(
-              id,
-              SiteCompanion(county: db.Value(value)),
-            );
+            SiteServices(
+              ref: ref,
+            ).updateSite(id, SiteCompanion(county: db.Value(value)));
           },
         ),
         TextFormField(
@@ -112,10 +112,9 @@ class MainSiteLocality extends ConsumerWidget {
             hintText: 'Enter a municipality/city/town',
           ),
           onChanged: (value) {
-            SiteServices(ref: ref).updateSite(
-              id,
-              SiteCompanion(municipality: db.Value(value)),
-            );
+            SiteServices(
+              ref: ref,
+            ).updateSite(id, SiteCompanion(municipality: db.Value(value)));
           },
         ),
       ],
@@ -124,11 +123,12 @@ class MainSiteLocality extends ConsumerWidget {
 }
 
 class PreciseLocality extends ConsumerWidget {
-  const PreciseLocality(
-      {super.key,
-      required this.id,
-      required this.useHorizontalLayout,
-      required this.siteFormCtr});
+  const PreciseLocality({
+    super.key,
+    required this.id,
+    required this.useHorizontalLayout,
+    required this.siteFormCtr,
+  });
 
   final int id;
   final bool useHorizontalLayout;
@@ -144,21 +144,21 @@ class PreciseLocality extends ConsumerWidget {
         hintText: 'Enter a precise locality lower than municipality',
       ),
       onChanged: (value) {
-        SiteServices(ref: ref).updateSite(
-          id,
-          SiteCompanion(locality: db.Value(value)),
-        );
+        SiteServices(
+          ref: ref,
+        ).updateSite(id, SiteCompanion(locality: db.Value(value)));
       },
     );
   }
 }
 
 class LocalityNote extends ConsumerWidget {
-  const LocalityNote(
-      {super.key,
-      required this.id,
-      required this.useHorizontalLayout,
-      required this.siteFormCtr});
+  const LocalityNote({
+    super.key,
+    required this.id,
+    required this.useHorizontalLayout,
+    required this.siteFormCtr,
+  });
 
   final int id;
   final bool useHorizontalLayout;
@@ -174,10 +174,9 @@ class LocalityNote extends ConsumerWidget {
         hintText: 'Enter more info about the site (optional)',
       ),
       onChanged: (value) {
-        SiteServices(ref: ref).updateSite(
-          id,
-          SiteCompanion(remark: db.Value(value)),
-        );
+        SiteServices(
+          ref: ref,
+        ).updateSite(id, SiteCompanion(remark: db.Value(value)));
       },
     );
   }
@@ -192,7 +191,8 @@ class GeographyInfoContent extends StatelessWidget {
       content: [
         InfoContent(
           header: 'Geography',
-          content: 'Information about the site\'s location. '
+          content:
+              'Information about the site\'s location. '
               'The list follow the hierarchy of location '
               'based on the Darwin Core standard. ',
         ),

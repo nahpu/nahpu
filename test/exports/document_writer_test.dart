@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 rust_config.DocumentLayoutPreset _layout({

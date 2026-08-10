@@ -7,10 +7,10 @@ import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/import.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:path/path.dart';
 
 String formatSiteName(SiteData site) {

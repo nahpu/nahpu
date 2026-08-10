@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 part 'specimen_queries.g.dart';
 

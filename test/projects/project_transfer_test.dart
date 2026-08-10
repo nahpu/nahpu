@@ -14,7 +14,7 @@ import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/project_transfer/project_transfer_service.dart';
+import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';

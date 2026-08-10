@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/personnel_services.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/parasites.dart';
-import 'package:nahpu/services/collevent_services.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/export/common.dart';
 import 'package:nahpu/services/export/dwc_values.dart';
-import 'package:nahpu/services/orcid.dart';
+import 'package:nahpu/services/projects/orcid.dart';
 
 enum MultiEntryExpansion { concatenate, specimenParts, parasites }
 

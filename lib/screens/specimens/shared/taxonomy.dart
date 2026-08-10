@@ -2,15 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/taxonomy_services.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class TaxonomicForm extends ConsumerWidget {
   const TaxonomicForm({
@@ -28,7 +28,9 @@ class TaxonomicForm extends ConsumerWidget {
       title: 'Taxon Info',
       infoContent: const TaxonomyInfoContent(),
       mainAxisAlignment: MainAxisAlignment.center,
-      child: ref.watch(taxonDataProvider(specimenUuid)).when(
+      child: ref
+          .watch(taxonDataProvider(specimenUuid))
+          .when(
             data: (taxonData) {
               if (taxonData == null) {
                 return const Text('No species selected');
@@ -38,18 +40,9 @@ class TaxonomicForm extends ConsumerWidget {
                     AdaptiveLayout(
                       useHorizontalLayout: useHorizontalLayout,
                       children: [
-                        TaxonText(
-                          rank: 'Class',
-                          value: taxonData.taxonClass,
-                        ),
-                        TaxonText(
-                          rank: 'Order',
-                          value: taxonData.taxonOrder,
-                        ),
-                        TaxonText(
-                          rank: 'Family',
-                          value: taxonData.taxonFamily,
-                        ),
+                        TaxonText(rank: 'Class', value: taxonData.taxonClass),
+                        TaxonText(rank: 'Order', value: taxonData.taxonOrder),
+                        TaxonText(rank: 'Family', value: taxonData.taxonFamily),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -102,9 +95,7 @@ class TaxonomicForm extends ConsumerWidget {
                   authors: taxonData.authors,
                   commonName: taxonData.commonName,
                 ),
-                Flexible(
-                  child: TaxonDetailsView(taxonData: taxonData),
-                ),
+                Flexible(child: TaxonDetailsView(taxonData: taxonData)),
               ],
             ),
           ),
@@ -135,90 +126,96 @@ class TaxonInfoTitle extends StatelessWidget {
         Text(
           displayName,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w400,
-              fontStyle: FontStyle.italic,
-              fontFamily: "Merriweather"),
+            fontWeight: FontWeight.w400,
+            fontStyle: FontStyle.italic,
+            fontFamily: "Merriweather",
+          ),
         ),
         if (authors != null && authors!.isNotEmpty)
-          Text(
-            '${authors!}, ',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('${authors!}, ', style: Theme.of(context).textTheme.titleMedium),
         if (commonName != null && commonName!.isNotEmpty)
           Text(
             commonName!.toCommonName(),
             style: Theme.of(context).textTheme.bodyMedium,
             overflow: TextOverflow.visible,
           ),
-        Divider(color: Theme.of(context).dividerColor, thickness: 2)
+        Divider(color: Theme.of(context).dividerColor, thickness: 2),
       ],
     );
   }
 }
 
 class TaxonDetailsView extends StatelessWidget {
-  const TaxonDetailsView({
-    super.key,
-    required this.taxonData,
-  });
+  const TaxonDetailsView({super.key, required this.taxonData});
 
   final TaxonomyData taxonData;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-        child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        Text(
-          'Classification',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        TaxonDetailRow(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Text(
+            'Classification',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          TaxonDetailRow(
             label: 'Rank',
-            value: taxonRankFromString(taxonData.taxonRank)?.label),
-        TaxonDetailRow(
+            value: taxonRankFromString(taxonData.taxonRank)?.label,
+          ),
+          TaxonDetailRow(
             label: 'Kingdom',
-            value: taxonData.kingdom ?? getKingdom(taxonData.taxonClass)),
-        TaxonDetailRow(
+            value: taxonData.kingdom ?? getKingdom(taxonData.taxonClass),
+          ),
+          TaxonDetailRow(
             label: 'Phylum',
-            value: taxonData.phylum ?? getPhylum(taxonData.taxonClass)),
-        TaxonDetailRow(label: 'Class', value: taxonData.taxonClass),
-        TaxonDetailRow(label: 'Order', value: taxonData.taxonOrder),
-        TaxonDetailRow(label: 'Family', value: taxonData.taxonFamily),
-        TaxonDetailRow(label: 'Genus', value: taxonData.genus, isItalic: true),
-        TaxonDetailRow(
-          label: 'Species',
-          value: '${taxonData.genus} ${taxonData.specificEpithet}',
-          isItalic: true,
-        ),
-        TaxonDetailRow(
+            value: taxonData.phylum ?? getPhylum(taxonData.taxonClass),
+          ),
+          TaxonDetailRow(label: 'Class', value: taxonData.taxonClass),
+          TaxonDetailRow(label: 'Order', value: taxonData.taxonOrder),
+          TaxonDetailRow(label: 'Family', value: taxonData.taxonFamily),
+          TaxonDetailRow(
+            label: 'Genus',
+            value: taxonData.genus,
+            isItalic: true,
+          ),
+          TaxonDetailRow(
+            label: 'Species',
+            value: '${taxonData.genus} ${taxonData.specificEpithet}',
+            isItalic: true,
+          ),
+          TaxonDetailRow(
             label: 'Subspecies',
             value: taxonData.subspecificEpithet,
-            isItalic: true),
-        TaxonDetailRow(label: 'Authors', value: taxonData.authors),
-        const SizedBox(height: 8),
-        if (taxonData.redListCategory != null &&
-            taxonData.redListCategory!.isNotEmpty)
-          TaxonDetailRow(
-            label: 'Red List category',
-            isStacked: true,
-            customValue:
-                RedListCategoryPill(category: taxonData.redListCategory!),
+            isItalic: true,
           ),
-        TaxonDetailRow(label: 'CITES status', value: taxonData.citesStatus),
-        TaxonDetailRow(
+          TaxonDetailRow(label: 'Authors', value: taxonData.authors),
+          const SizedBox(height: 8),
+          if (taxonData.redListCategory != null &&
+              taxonData.redListCategory!.isNotEmpty)
+            TaxonDetailRow(
+              label: 'Red List category',
+              isStacked: true,
+              customValue: RedListCategoryPill(
+                category: taxonData.redListCategory!,
+              ),
+            ),
+          TaxonDetailRow(label: 'CITES status', value: taxonData.citesStatus),
+          TaxonDetailRow(
             label: 'Country status',
             isStacked: true,
-            value: taxonData.countryStatus),
-        TaxonDetailRow(
-          label: 'Notes',
-          isStacked: true,
-          value: taxonData.notes,
-        ),
-      ],
-    ));
+            value: taxonData.countryStatus,
+          ),
+          TaxonDetailRow(
+            label: 'Notes',
+            isStacked: true,
+            value: taxonData.notes,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -230,8 +227,9 @@ class RedListCategoryPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bgColor = matchRedListCategoryColor(category);
-    final textColor =
-        bgColor.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+    final textColor = bgColor.computeLuminance() > 0.3
+        ? Colors.black
+        : Colors.white;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
@@ -269,8 +267,8 @@ class TaxonDetailRow extends StatelessWidget {
     }
 
     final textStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontStyle: isItalic ? FontStyle.italic : null,
-        );
+      fontStyle: isItalic ? FontStyle.italic : null,
+    );
 
     if (isStacked) {
       return Padding(
@@ -278,16 +276,9 @@ class TaxonDetailRow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+            Text(label, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 4),
-            customValue ??
-                Text(
-                  value!,
-                  style: textStyle,
-                ),
+            customValue ?? Text(value!, style: textStyle),
           ],
         ),
       );
@@ -302,10 +293,7 @@ class TaxonDetailRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 140,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+            child: Text(label, style: Theme.of(context).textTheme.titleSmall),
           ),
           Expanded(
             child: Row(
@@ -314,13 +302,7 @@ class TaxonDetailRow extends StatelessWidget {
                   : CrossAxisAlignment.center,
               children: [
                 Text(': ', style: Theme.of(context).textTheme.titleSmall),
-                Expanded(
-                  child: customValue ??
-                      Text(
-                        value!,
-                        style: textStyle,
-                      ),
-                ),
+                Expanded(child: customValue ?? Text(value!, style: textStyle)),
               ],
             ),
           ),
@@ -331,11 +313,7 @@ class TaxonDetailRow extends StatelessWidget {
 }
 
 class TaxonText extends StatelessWidget {
-  const TaxonText({
-    super.key,
-    required this.rank,
-    required this.value,
-  });
+  const TaxonText({super.key, required this.rank, required this.value});
 
   final String rank;
   final String? value;
@@ -350,13 +328,10 @@ class TaxonText extends StatelessWidget {
         Text(
           rank,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
-        Text(
-          value ?? '',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
+        Text(value ?? '', style: Theme.of(context).textTheme.bodyLarge),
       ],
     );
   }
@@ -410,9 +385,9 @@ class SpeciesAutoCompleteState extends ConsumerState<SpeciesAutoComplete> {
   void _inputTaxon(String selection) {
     _copyTaxon(selection);
     var taxon = widget.speciesCtr.text.split(' ');
-    TaxonomyServices(ref: ref)
-        .getTaxonBySpecies(taxon[0], taxon[1])
-        .then((data) {
+    TaxonomyServices(ref: ref).getTaxonBySpecies(taxon[0], taxon[1]).then((
+      data,
+    ) {
       SpecimenServices(ref: ref).updateSpecimen(
         widget.specimenUuid,
         SpecimenCompanion(speciesID: db.Value(data?.id)),
@@ -443,11 +418,12 @@ class SpeciesInputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CommonPadding(
-        child: SpeciesAutoComplete(
-      specimenUuid: specimenUuid,
-      speciesCtr: _getSpeciesCtr,
-      options: _options,
-    ));
+      child: SpeciesAutoComplete(
+        specimenUuid: specimenUuid,
+        speciesCtr: _getSpeciesCtr,
+        options: _options,
+      ),
+    );
   }
 
   TextEditingController get _getSpeciesCtr {
@@ -455,10 +431,12 @@ class SpeciesInputField extends StatelessWidget {
       return TextEditingController();
     }
     var data = taxonList.firstWhere((taxon) => taxon.id == speciesCtr);
-    TextEditingController ctr =
-        TextEditingController(text: '${data.genus} ${data.specificEpithet}');
-    ctr.selection =
-        TextSelection.fromPosition(TextPosition(offset: ctr.text.length));
+    TextEditingController ctr = TextEditingController(
+      text: '${data.genus} ${data.specificEpithet}',
+    );
+    ctr.selection = TextSelection.fromPosition(
+      TextPosition(offset: ctr.text.length),
+    );
     return ctr;
   }
 
@@ -524,18 +502,21 @@ class TaxonomyInfoContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ScreenType screenType = getScreenType(context);
-    return InfoContainer(content: [
-      const InfoContent(
-        content: 'Taxonomic information is automatically added based on the '
-            'species you enter. ',
-      ),
-      screenType == ScreenType.phone
-          ? const InfoContent(
-              content: 'From top to bottom: Class, Order, Family',
-            )
-          : const InfoContent(
-              content: 'From left to right: Class, Order, Family',
-            )
-    ]);
+    return InfoContainer(
+      content: [
+        const InfoContent(
+          content:
+              'Taxonomic information is automatically added based on the '
+              'species you enter. ',
+        ),
+        screenType == ScreenType.phone
+            ? const InfoContent(
+                content: 'From top to bottom: Class, Order, Family',
+              )
+            : const InfoContent(
+                content: 'From left to right: Class, Order, Family',
+              ),
+      ],
+    );
   }
 }

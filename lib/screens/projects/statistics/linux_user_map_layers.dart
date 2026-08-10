@@ -6,7 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_pmtiles/flutter_map_pmtiles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:path/path.dart' as path;

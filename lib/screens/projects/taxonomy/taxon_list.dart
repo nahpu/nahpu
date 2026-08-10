@@ -7,10 +7,10 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 
 class TaxonRegistryPage extends ConsumerStatefulWidget {
   const TaxonRegistryPage({super.key});
@@ -23,17 +23,14 @@ class TaxonRegistryPageState extends ConsumerState<TaxonRegistryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Taxon registry'),
-      ),
-      body: ref.watch(taxonRegistryProvider).when(
+      appBar: AppBar(title: const Text('Taxon registry')),
+      body: ref
+          .watch(taxonRegistryProvider)
+          .when(
             data: (data) {
               if (data.isEmpty) {
                 return const Center(
-                  child: Text(
-                    'No taxon found',
-                    textAlign: TextAlign.center,
-                  ),
+                  child: Text('No taxon found', textAlign: TextAlign.center),
                 );
               }
               return TaxonList(taxonList: data);
@@ -46,10 +43,7 @@ class TaxonRegistryPageState extends ConsumerState<TaxonRegistryPage> {
 }
 
 class TaxonList extends StatefulWidget {
-  const TaxonList({
-    super.key,
-    required this.taxonList,
-  });
+  const TaxonList({super.key, required this.taxonList});
 
   final List<TaxonomyData> taxonList;
 
@@ -94,14 +88,17 @@ class _TaxonListState extends State<TaxonList> {
                             _filteredTaxonList.clear();
                           });
                         },
-                        icon: const Icon(Icons.clear_rounded))
-                    : const SizedBox.shrink()
+                        icon: const Icon(Icons.clear_rounded),
+                      )
+                    : const SizedBox.shrink(),
               ],
               onChanged: (String value) {
                 String searchValue = value.toLowerCase();
                 setState(() {
-                  _filteredTaxonList = TaxonFilterServices()
-                      .filterTaxonList(widget.taxonList, searchValue);
+                  _filteredTaxonList = TaxonFilterServices().filterTaxonList(
+                    widget.taxonList,
+                    searchValue,
+                  );
                 });
               },
             ),
@@ -110,12 +107,13 @@ class _TaxonListState extends State<TaxonList> {
                 ? const SizedBox.shrink()
                 : Text('Results: ${_filteredTaxonList.length}'),
             SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-                child: TaxonListView(
-                  taxonList: _filteredTaxonList.isNotEmpty
-                      ? _filteredTaxonList
-                      : widget.taxonList,
-                ))
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: TaxonListView(
+                taxonList: _filteredTaxonList.isNotEmpty
+                    ? _filteredTaxonList
+                    : widget.taxonList,
+              ),
+            ),
           ],
         ),
       ),
@@ -124,10 +122,7 @@ class _TaxonListState extends State<TaxonList> {
 }
 
 class TaxonListView extends ConsumerStatefulWidget {
-  const TaxonListView({
-    super.key,
-    required this.taxonList,
-  });
+  const TaxonListView({super.key, required this.taxonList});
 
   final List<TaxonomyData> taxonList;
 
@@ -164,14 +159,14 @@ class TaxonListViewState extends ConsumerState<TaxonListView> {
                 },
           onSelectAllPressed:
               _selectedTaxon.length == widget.taxonList.length ||
-                      _selectedTaxon.length == _allowedTaxa.length
-                  ? null
-                  : () {
-                      setState(() {
-                        _selectedTaxon.clear();
-                        _selectedTaxon.addAll(_allowedTaxa);
-                      });
-                    },
+                  _selectedTaxon.length == _allowedTaxa.length
+              ? null
+              : () {
+                  setState(() {
+                    _selectedTaxon.clear();
+                    _selectedTaxon.addAll(_allowedTaxa);
+                  });
+                },
           onSelectPressed: () async {
             _usedTaxon = await _getUsedTaxa();
             _allowedTaxa = _getAllowedTaxa();
@@ -200,17 +195,20 @@ class TaxonListViewState extends ConsumerState<TaxonListView> {
                   ),
                   leading: _isSelecting
                       ? ListCheckBox(
-                          isDisabled:
-                              _usedTaxon.contains(widget.taxonList[index].id),
-                          value: _selectedTaxon
-                              .contains(widget.taxonList[index].id),
+                          isDisabled: _usedTaxon.contains(
+                            widget.taxonList[index].id,
+                          ),
+                          value: _selectedTaxon.contains(
+                            widget.taxonList[index].id,
+                          ),
                           onChanged: (value) {
                             setState(() {
                               if (value == true) {
                                 _selectedTaxon.add(widget.taxonList[index].id);
                               } else {
-                                _selectedTaxon
-                                    .remove(widget.taxonList[index].id);
+                                _selectedTaxon.remove(
+                                  widget.taxonList[index].id,
+                                );
                               }
                             });
                           },
@@ -225,7 +223,8 @@ class TaxonListViewState extends ConsumerState<TaxonListView> {
                                 builder: (context) => EditTaxon(
                                   taxonId: widget.taxonList[index].id,
                                   ctr: TaxonRegistryCtrModel.fromData(
-                                      widget.taxonList[index]),
+                                    widget.taxonList[index],
+                                  ),
                                 ),
                               ),
                             );

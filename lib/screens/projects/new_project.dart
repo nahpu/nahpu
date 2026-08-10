@@ -10,17 +10,17 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 enum _CreateProjectStep {

@@ -13,14 +13,14 @@ import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/media_services.dart';
-import 'package:nahpu/services/collevent_services.dart';
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/media/media_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/import.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';

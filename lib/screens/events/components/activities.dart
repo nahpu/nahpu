@@ -4,7 +4,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 
@@ -16,8 +16,11 @@ const List<String> collActivityList = [
 ];
 
 class CollActivityFields extends ConsumerWidget {
-  const CollActivityFields(
-      {super.key, required this.collEventId, required this.collEventCtr});
+  const CollActivityFields({
+    super.key,
+    required this.collEventId,
+    required this.collEventCtr,
+  });
 
   final int collEventId;
   final CollEventFormCtrModel collEventCtr;
@@ -76,12 +79,15 @@ class ActivityInfoContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const InfoContainer(content: [
-      InfoContent(
-        content: 'Primary activity for the event.'
-            'We recommend to add notes if you have a secondary activity'
-            ' or select "Other".',
-      ),
-    ]);
+    return const InfoContainer(
+      content: [
+        InfoContent(
+          content:
+              'Primary activity for the event.'
+              'We recommend to add notes if you have a secondary activity'
+              ' or select "Other".',
+        ),
+      ],
+    );
   }
 }

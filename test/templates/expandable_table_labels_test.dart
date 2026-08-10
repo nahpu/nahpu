@@ -7,7 +7,7 @@ import 'package:nahpu/screens/exports/components/columns.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
 

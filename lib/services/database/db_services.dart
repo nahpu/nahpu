@@ -1,7 +1,7 @@
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String newDbPref = 'isNewDb';

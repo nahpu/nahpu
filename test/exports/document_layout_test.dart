@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:nahpu/src/rust/frb_generated.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
-import 'package:nahpu/services/document_layout_service.dart';
+import 'package:nahpu/services/templates/document_layout_service.dart';
 
 void main() {
   setUpAll(() async {

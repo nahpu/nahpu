@@ -2,16 +2,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/conditional_brackets.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/templates/template_model.dart'

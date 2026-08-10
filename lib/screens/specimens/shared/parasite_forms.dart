@@ -9,18 +9,18 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/parasite_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/taxa.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/parasites.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class ParasiteForms extends StatelessWidget {
   const ParasiteForms({super.key, required this.specimenUuid});

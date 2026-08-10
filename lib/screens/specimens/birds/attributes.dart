@@ -10,7 +10,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/weight_field.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:drift/drift.dart' as db;
 
 class BirdAttributeForms extends ConsumerStatefulWidget {

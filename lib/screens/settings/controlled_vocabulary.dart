@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class ControlledVocabularySetting extends ConsumerWidget {
   const ControlledVocabularySetting({

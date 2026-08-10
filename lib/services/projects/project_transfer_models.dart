@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:nahpu/services/specimen_attribute_names.dart';
+import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 
 const int projectTransferVersion = 4;
 const Set<int> supportedProjectTransferVersions = {1, 2, 3, 4};

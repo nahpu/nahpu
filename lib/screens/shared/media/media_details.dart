@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/media_linked_information_services.dart';
+import 'package:nahpu/services/media/media_linked_information_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 
 class MediaDetailsView extends ConsumerWidget {

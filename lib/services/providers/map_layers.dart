@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/maps/map_layer_service.dart';
+import 'package:nahpu/services/sites/map_layer_service.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 
 final userMapCatalogProvider =

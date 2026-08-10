@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/birds.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 
 /// Formats bird attribute records for specimen exports.
 class BirdAttributes {

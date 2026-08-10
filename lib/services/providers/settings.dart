@@ -5,12 +5,12 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
-import 'package:nahpu/services/user_config_settings_service.dart';
+import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 // App settings keys (UI/Device states)

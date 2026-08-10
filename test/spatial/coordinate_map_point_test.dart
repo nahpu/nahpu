@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/maps/coordinate_map_point.dart';
+import 'package:nahpu/services/sites/coordinate_map_point.dart';
 
 void main() {
   test('coordinate map points accept valid WGS84 positions', () {

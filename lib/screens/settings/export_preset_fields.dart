@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/inline_grouped_field_picker.dart';
 import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
-import 'package:nahpu/services/conditional_brackets.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 
 class ExportPresetFieldsScreen extends ConsumerStatefulWidget {
   const ExportPresetFieldsScreen({

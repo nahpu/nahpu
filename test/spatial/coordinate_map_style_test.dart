@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/maps/coordinate_map_point.dart';
+import 'package:nahpu/services/sites/coordinate_map_point.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
 
 void main() {

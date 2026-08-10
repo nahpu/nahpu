@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/layout/navigation.dart';
-import 'package:nahpu/services/navigation_services.dart';
+import 'package:nahpu/services/common/navigation_services.dart';
 
 void main() {
   const pageCount = 150;

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/media_linked_information_services.dart';
+import 'package:nahpu/services/media/media_linked_information_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/import.dart';
 

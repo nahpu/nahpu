@@ -2,10 +2,10 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:nahpu/services/export/media_writer.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/src/rust/api/export.dart';
 
@@ -22,8 +22,9 @@ class NarrativeRecordWriter extends AppServices {
   final Map<String, String>? customColumnNames;
 
   Future<void> writeNarrativeDelimited(File filePath, ExportFmt format) async {
-    List<NarrativeData> narrativeList =
-        await NarrativeServices(ref: ref).getAllNarrative();
+    List<NarrativeData> narrativeList = await NarrativeServices(
+      ref: ref,
+    ).getAllNarrative();
 
     List<Map<String, dynamic>> jsonList = [];
 
@@ -35,10 +36,10 @@ class NarrativeRecordWriter extends AppServices {
             selectedColumns!.contains(narrativeExportList[i])) {
           String key =
               customColumnNames?.containsKey(narrativeExportList[i]) == true
-                  ? customColumnNames![narrativeExportList[i]]!
-                  : useFieldNamesOnly
-                      ? narrativeExportList[i].split('::').last
-                      : narrativeExportList[i];
+              ? customColumnNames![narrativeExportList[i]]!
+              : useFieldNamesOnly
+              ? narrativeExportList[i].split('::').last
+              : narrativeExportList[i];
           row[key] = rowDetails[i];
         }
       }
@@ -49,8 +50,8 @@ class NarrativeRecordWriter extends AppServices {
     List<String> filteredHeader = selectedColumns == null
         ? narrativeExportList
         : narrativeExportList
-            .where((h) => selectedColumns!.contains(h))
-            .toList();
+              .where((h) => selectedColumns!.contains(h))
+              .toList();
 
     final writer = RecordWriter(
       jsonContent: jsonContent,
@@ -58,8 +59,8 @@ class NarrativeRecordWriter extends AppServices {
       columnNames: customColumnNames != null
           ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
           : useFieldNamesOnly
-              ? filteredHeader.map((e) => e.split('::').last).toList()
-              : filteredHeader,
+          ? filteredHeader.map((e) => e.split('::').last).toList()
+          : filteredHeader,
       exportFormat: format.name,
       concatenateMultiEntries: true,
     );
@@ -67,8 +68,9 @@ class NarrativeRecordWriter extends AppServices {
   }
 
   Future<List<String>> getNarrative(NarrativeData narrative) async {
-    String verbatimLocality = await SiteWriterServices(ref: ref)
-        .getVerbatimLocality(narrative.siteID);
+    String verbatimLocality = await SiteWriterServices(
+      ref: ref,
+    ).getVerbatimLocality(narrative.siteID);
     String mediaDetails = await getNarrativeMedia(narrative.id);
     String narrativeDate = narrative.date ?? '';
     String fieldNote = narrative.narrative ?? '';
@@ -76,14 +78,15 @@ class NarrativeRecordWriter extends AppServices {
       narrativeDate,
       verbatimLocality,
       fieldNote,
-      mediaDetails
+      mediaDetails,
     ];
     return narrativeList;
   }
 
   Future<String> getNarrativeMedia(int? narrativeID) async {
-    String mediaDetails =
-        await MediaWriterServices(ref: ref).getNarrativeMedias(narrativeID);
+    String mediaDetails = await MediaWriterServices(
+      ref: ref,
+    ).getNarrativeMedias(narrativeID);
 
     return mediaDetails;
   }

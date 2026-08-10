@@ -8,7 +8,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
 import 'package:nahpu/screens/sites/components/copy_from_project_dialog.dart';
-import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
   return SiteServices(ref: ref).createNewSite().then((newId) {

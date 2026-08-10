@@ -7,7 +7,7 @@ import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/personnel_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
-import 'package:nahpu/services/site_copy_services.dart';
+import 'package:nahpu/services/sites/site_copy_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/sites.dart';

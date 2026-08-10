@@ -1,7 +1,7 @@
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nahpu/services/providers/settings.dart';

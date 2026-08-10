@@ -1,7 +1,7 @@
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 
 const int measurementOutlierMinSampleSize = 10;
 
@@ -169,29 +169,34 @@ class MammalMeasurementOutlierServices extends AppServices {
     required MammalMeasurementOutlierField field,
     required double value,
   }) async {
-    final specimenData =
-        await SpecimenQuery(dbAccess).getSpecimenByUuid(specimenUuid);
+    final specimenData = await SpecimenQuery(
+      dbAccess,
+    ).getSpecimenByUuid(specimenUuid);
     final speciesId = specimenData.speciesID;
     if (speciesId == null) return null;
 
     final currentTaxon = await TaxonomyQuery(dbAccess).getTaxonById(speciesId);
-    final specimens =
-        await SpecimenQuery(dbAccess).getAllSpecimens(currentProjectUuid);
+    final specimens = await SpecimenQuery(
+      dbAccess,
+    ).getAllSpecimens(currentProjectUuid);
     final specimenUuids = specimens.map((specimen) => specimen.uuid).toList();
-    final measurements = await MammalSpecimenQuery(dbAccess)
-        .getMammalAttributesBySpecimenUuids(specimenUuids);
+    final measurements = await MammalSpecimenQuery(
+      dbAccess,
+    ).getMammalAttributesBySpecimenUuids(specimenUuids);
     final measurementByUuid = {
       for (final measurement in measurements)
-        measurement.specimenUuid: measurement
+        measurement.specimenUuid: measurement,
     };
     final taxonById = {
       for (final taxon in await TaxonomyQuery(dbAccess).getTaxonList())
-        taxon.id: taxon
+        taxon.id: taxon,
     };
 
     final speciesValues = _valuesForSpecimens(
-      specimens.where((specimen) =>
-          specimen.uuid != specimenUuid && specimen.speciesID == speciesId),
+      specimens.where(
+        (specimen) =>
+            specimen.uuid != specimenUuid && specimen.speciesID == speciesId,
+      ),
       measurementByUuid,
       field,
     );

@@ -7,7 +7,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
 
 class SiteForm extends ConsumerWidget {
   const SiteForm({
@@ -25,9 +25,7 @@ class SiteForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     List<SiteData> data = [];
     final siteEntry = ref.watch(siteEntryProvider);
-    siteEntry.whenData(
-      (siteEntry) => data = siteEntry,
-    );
+    siteEntry.whenData((siteEntry) => data = siteEntry);
     return SiteIdField(
       value: narrativeCtr.siteCtr,
       siteData: data,
@@ -55,31 +53,29 @@ class DateForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-        labelText: 'Date',
-        hintText: 'Enter date',
-        initialDate: DateTime.now(),
-        lastDate: DateTime.now(),
-        controller: narrativeCtr.dateCtr,
-        onTap: () {
-          // Persist date and (optionally) time into separate columns.
-          String? dateStd = narrativeCtr.dateCtr.date;
-          String? timeStd = narrativeCtr.timeCtr.time;
-          NarrativeServices(ref: ref).updateNarrative(
-            narrativeId,
-            NarrativeCompanion(
-              date: db.Value(dateStd),
-              time: db.Value(timeStd),
-            ),
-          );
-        },
-        onClear: () {
-          // Clearing date should remove the stored date (and time)
-          narrativeCtr.timeCtr.time = null;
-          NarrativeServices(ref: ref).updateNarrative(
-            narrativeId,
-            NarrativeCompanion(date: db.Value(null), time: db.Value(null)),
-          );
-        });
+      labelText: 'Date',
+      hintText: 'Enter date',
+      initialDate: DateTime.now(),
+      lastDate: DateTime.now(),
+      controller: narrativeCtr.dateCtr,
+      onTap: () {
+        // Persist date and (optionally) time into separate columns.
+        String? dateStd = narrativeCtr.dateCtr.date;
+        String? timeStd = narrativeCtr.timeCtr.time;
+        NarrativeServices(ref: ref).updateNarrative(
+          narrativeId,
+          NarrativeCompanion(date: db.Value(dateStd), time: db.Value(timeStd)),
+        );
+      },
+      onClear: () {
+        // Clearing date should remove the stored date (and time)
+        narrativeCtr.timeCtr.time = null;
+        NarrativeServices(ref: ref).updateNarrative(
+          narrativeId,
+          NarrativeCompanion(date: db.Value(null), time: db.Value(null)),
+        );
+      },
+    );
   }
 }
 
@@ -108,10 +104,7 @@ class TimeForm extends ConsumerWidget {
         // Update both date and time
         NarrativeServices(ref: ref).updateNarrative(
           narrativeId,
-          NarrativeCompanion(
-            date: db.Value(dateStd),
-            time: db.Value(timeStd),
-          ),
+          NarrativeCompanion(date: db.Value(dateStd), time: db.Value(timeStd)),
         );
       } else {
         // Just update time
@@ -153,9 +146,7 @@ class WriterForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     List<PersonnelData> personnelList = [];
     final personnelEntry = ref.watch(projectPersonnelProvider);
-    personnelEntry.whenData(
-      (personnelEntry) => personnelList = personnelEntry,
-    );
+    personnelEntry.whenData((personnelEntry) => personnelList = personnelEntry);
 
     return DropdownButtonFormField<String?>(
       initialValue: narrativeCtr.writerCtr,
@@ -174,8 +165,9 @@ class WriterForm extends ConsumerWidget {
           .toList(),
       onChanged: (String? uuid) async {
         narrativeCtr.writerCtr = uuid;
-        await NarrativeServices(ref: ref)
-            .updateNarrativeWriter(narrativeId, uuid);
+        await NarrativeServices(
+          ref: ref,
+        ).updateNarrativeWriter(narrativeId, uuid);
       },
     );
   }

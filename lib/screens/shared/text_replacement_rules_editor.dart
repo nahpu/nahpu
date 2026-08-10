@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 
 /// Inline editor for ordered exact and regular-expression replacements.
 class TextReplacementRulesEditor extends StatefulWidget {

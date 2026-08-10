@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
-import 'package:nahpu/services/audio_recording_services.dart';
+import 'package:nahpu/services/media/audio_recording_services.dart';
 import 'package:record/record.dart';
 import 'package:video_player/video_player.dart';
 

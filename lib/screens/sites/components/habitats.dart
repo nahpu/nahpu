@@ -6,9 +6,9 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 
 class Habitat extends ConsumerWidget {
   const Habitat({

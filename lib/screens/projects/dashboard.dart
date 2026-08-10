@@ -8,7 +8,7 @@ import 'package:nahpu/screens/projects/personnel/personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 

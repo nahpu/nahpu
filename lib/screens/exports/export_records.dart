@@ -10,8 +10,8 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -180,10 +180,7 @@ class ExportFormState extends ConsumerState<ExportForm>
                 Expanded(
                   child: TabBarView(
                     controller: _mobileTabController,
-                    children: [
-                      settingsPane,
-                      previewPane,
-                    ],
+                    children: [settingsPane, previewPane],
                   ),
                 ),
               ],
@@ -204,11 +201,11 @@ class ExportFormState extends ConsumerState<ExportForm>
           exportCtr.exportFmtCtr == ExportFmt.json);
 
   String _matchFileIconPath() => switch (exportCtr.exportFmtCtr) {
-        ExportFmt.csv => 'assets/icons/csv.svg',
-        ExportFmt.tsv => 'assets/icons/tsv.svg',
-        ExportFmt.excel => 'assets/icons/xlsx.svg',
-        ExportFmt.json => 'assets/icons/json.svg',
-      };
+    ExportFmt.csv => 'assets/icons/csv.svg',
+    ExportFmt.tsv => 'assets/icons/tsv.svg',
+    ExportFmt.excel => 'assets/icons/xlsx.svg',
+    ExportFmt.json => 'assets/icons/json.svg',
+  };
 
   Future<void> _exportFile() async {
     setState(() => _isRunning = true);
@@ -224,17 +221,17 @@ class ExportFormState extends ConsumerState<ExportForm>
         fileStem: _fileStem,
         ext: ext,
       ).getSavePath();
-      await PresetRecordExporter(ref: ref, preset: _selectedPreset!).write(
-        _savePath,
-        format,
-      );
+      await PresetRecordExporter(
+        ref: ref,
+        preset: _selectedPreset!,
+      ).write(_savePath, format);
       if (mounted) setState(() => _hasSaved = true);
       _showSavedPath();
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     } finally {
       if (mounted) setState(() => _isRunning = false);
@@ -259,9 +256,9 @@ class ExportFormState extends ConsumerState<ExportForm>
       await FilePickerServices().shareFile(context, _savePath);
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $error')));
       }
     }
   }
@@ -269,9 +266,7 @@ class ExportFormState extends ConsumerState<ExportForm>
   void _managePresets() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const ExportPresetsScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ExportPresetsScreen()),
     );
     setState(() {});
   }
@@ -319,10 +314,9 @@ class _PresetPicker extends StatelessWidget {
     }
     return Card(
       elevation: 0,
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -336,8 +330,9 @@ class _PresetPicker extends StatelessWidget {
                     'Record type, headers, and field mappings are set by the preset.',
               ),
               items: presets.keys
-                  .map((name) =>
-                      DropdownMenuItem(value: name, child: Text(name)))
+                  .map(
+                    (name) => DropdownMenuItem(value: name, child: Text(name)),
+                  )
                   .toList(growable: false),
               onChanged: onPresetChanged,
             ),
@@ -407,25 +402,32 @@ class PresetPreviewPane extends StatelessWidget {
                     children: [
                       Chip(
                         label: Text(
-                            'Record: ${recordTypeToString(preset.recordType)}'),
-                        avatar:
-                            const Icon(Icons.description_outlined, size: 16),
+                          'Record: ${recordTypeToString(preset.recordType)}',
+                        ),
+                        avatar: const Icon(
+                          Icons.description_outlined,
+                          size: 16,
+                        ),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       if (preset.recordType == RecordType.specimenRecord)
                         Chip(
-                          label:
-                              Text('Taxon: ${preset.specimenRecordType.name}'),
+                          label: Text(
+                            'Taxon: ${preset.specimenRecordType.name}',
+                          ),
                           avatar: const Icon(Icons.pets_outlined, size: 16),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       Chip(
                         label: Text('Header: ${preset.headerFormat.name}'),
                         avatar: const Icon(Icons.title_outlined, size: 16),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ],
                   ),
@@ -486,7 +488,9 @@ class PresetColumnChips extends StatelessWidget {
   }
 
   String _getMappingLabel(
-      ExportFieldMapping mapping, ExportHeaderFormat format) {
+    ExportFieldMapping mapping,
+    ExportHeaderFormat format,
+  ) {
     final override = mapping.headerOverride?.trim();
     if (override != null && override.isNotEmpty) return override;
     if (mapping.isNested) {
@@ -538,8 +542,10 @@ class _ExportPresetTablePreviewScreenState
   Future<void> _fetchData() async {
     setState(() => _isLoading = true);
     try {
-      final data = await PresetRecordExporter(ref: ref, preset: widget.preset)
-          .getPreviewData();
+      final data = await PresetRecordExporter(
+        ref: ref,
+        preset: widget.preset,
+      ).getPreviewData();
       if (mounted) {
         setState(() {
           _headers = data.headers;
@@ -565,137 +571,131 @@ class _ExportPresetTablePreviewScreenState
         : _rows.sublist(startIndex, endIndex);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Table preview'),
-      ),
+      appBar: AppBar(title: const Text('Table preview')),
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _rows.isEmpty
-                ? const Center(child: Text('No records found for this preset.'))
-                : Column(
-                    children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return Scrollbar(
-                              controller: _vScrollController,
+            ? const Center(child: Text('No records found for this preset.'))
+            : Column(
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Scrollbar(
+                          controller: _vScrollController,
+                          child: SingleChildScrollView(
+                            controller: _vScrollController,
+                            scrollDirection: Axis.vertical,
+                            child: Scrollbar(
+                              controller: _hScrollController,
                               child: SingleChildScrollView(
-                                controller: _vScrollController,
-                                scrollDirection: Axis.vertical,
-                                child: Scrollbar(
-                                  controller: _hScrollController,
-                                  child: SingleChildScrollView(
-                                    controller: _hScrollController,
-                                    scrollDirection: Axis.horizontal,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minWidth: constraints.maxWidth,
+                                controller: _hScrollController,
+                                scrollDirection: Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: constraints.maxWidth,
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16.0),
+                                    ),
+                                    child: DataTable(
+                                      headingRowColor: WidgetStateProperty.all(
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer,
                                       ),
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                          top: Radius.circular(16.0),
-                                        ),
-                                        child: DataTable(
-                                          headingRowColor:
-                                              WidgetStateProperty.all(
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .primaryContainer,
-                                          ),
-                                          columnSpacing: 16,
-                                          horizontalMargin: 12,
-                                          dataRowMinHeight: 40,
-                                          columns: [
-                                            for (final col in _headers)
-                                              DataColumn(
-                                                label: ConstrainedBox(
-                                                  constraints:
-                                                      const BoxConstraints(
-                                                    minWidth: 72,
-                                                    maxWidth: 160,
-                                                  ),
-                                                  child: Text(
-                                                    col,
-                                                    softWrap: true,
-                                                  ),
-                                                ),
+                                      columnSpacing: 16,
+                                      horizontalMargin: 12,
+                                      dataRowMinHeight: 40,
+                                      columns: [
+                                        for (final col in _headers)
+                                          DataColumn(
+                                            label: ConstrainedBox(
+                                              constraints: const BoxConstraints(
+                                                minWidth: 72,
+                                                maxWidth: 160,
                                               ),
-                                          ],
-                                          rows: [
-                                            for (final row in currentPageData)
-                                              DataRow(
-                                                cells: [
-                                                  for (var index = 0;
-                                                      index < _headers.length;
-                                                      index++)
-                                                    DataCell(
-                                                      ConstrainedBox(
-                                                        constraints:
-                                                            const BoxConstraints(
+                                              child: Text(col, softWrap: true),
+                                            ),
+                                          ),
+                                      ],
+                                      rows: [
+                                        for (final row in currentPageData)
+                                          DataRow(
+                                            cells: [
+                                              for (
+                                                var index = 0;
+                                                index < _headers.length;
+                                                index++
+                                              )
+                                                DataCell(
+                                                  ConstrainedBox(
+                                                    constraints:
+                                                        const BoxConstraints(
                                                           maxWidth: 200,
                                                         ),
-                                                        child: Text(
-                                                          index < row.length
-                                                              ? row[index]
-                                                              : '',
-                                                          maxLines: 2,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      ),
+                                                    child: Text(
+                                                      index < row.length
+                                                          ? row[index]
+                                                          : '',
+                                                      maxLines: 2,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
-                                                ],
-                                              ),
-                                          ],
-                                        ),
-                                      ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 8.0,
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              'Showing ${startIndex + 1}-$endIndex of ${_rows.length} records',
-                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(Icons.chevron_left),
-                              onPressed: _currentPage > 0
-                                  ? () {
-                                      setState(() => _currentPage--);
-                                    }
-                                  : null,
-                            ),
-                            Text(
-                              'Page ${_currentPage + 1} of ${(_rows.isNotEmpty ? (_rows.length / _pageSize).ceil() : 1)}',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.chevron_right),
-                              onPressed:
-                                  (_currentPage + 1) * _pageSize < _rows.length
-                                      ? () {
-                                          setState(() => _currentPage++);
-                                        }
-                                      : null,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Showing ${startIndex + 1}-$endIndex of ${_rows.length} records',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: _currentPage > 0
+                              ? () {
+                                  setState(() => _currentPage--);
+                                }
+                              : null,
+                        ),
+                        Text(
+                          'Page ${_currentPage + 1} of ${(_rows.isNotEmpty ? (_rows.length / _pageSize).ceil() : 1)}',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed:
+                              (_currentPage + 1) * _pageSize < _rows.length
+                              ? () {
+                                  setState(() => _currentPage++);
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

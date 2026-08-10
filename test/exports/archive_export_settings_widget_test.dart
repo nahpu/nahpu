@@ -12,7 +12,7 @@ import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/project_transfer/project_transfer_models.dart';
+import 'package:nahpu/services/projects/project_transfer_models.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 

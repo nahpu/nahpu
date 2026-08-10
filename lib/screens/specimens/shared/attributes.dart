@@ -6,7 +6,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/parasite_services.dart';
+import 'package:nahpu/services/specimens/parasite_services.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 
 class AttributeForm extends StatefulWidget {

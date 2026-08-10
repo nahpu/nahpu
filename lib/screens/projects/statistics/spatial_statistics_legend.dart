@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class SpatialStatisticsLegend extends StatefulWidget {
   const SpatialStatisticsLegend({

@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:nahpu/services/project_transfer/project_transfer_service.dart';
+import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/src/rust/api/archive.dart';
 import 'package:nahpu/src/rust/frb_generated.dart';
 

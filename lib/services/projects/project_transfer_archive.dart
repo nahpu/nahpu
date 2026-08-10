@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/project_transfer/project_transfer_models.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/projects/project_transfer_models.dart';
 import 'package:nahpu/src/rust/api/archive.dart';
 import 'package:path/path.dart' as path;
 

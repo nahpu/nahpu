@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/conditional_brackets.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 
 void main() {

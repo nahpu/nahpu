@@ -5,7 +5,7 @@ import 'package:nahpu/screens/shared/media/media.dart';
 import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/screens/shared/media/audio_recorder.dart';
 import 'package:nahpu/screens/shared/media/media_capture.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/types/import.dart';

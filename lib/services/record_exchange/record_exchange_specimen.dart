@@ -5,14 +5,14 @@ import 'package:path/path.dart' as path;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/media_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_site_event.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:uuid/uuid.dart';
 
 /// Exchanges a specimen and its related attributes using the portable v1 wire

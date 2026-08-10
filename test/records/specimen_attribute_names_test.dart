@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/specimen_attribute_names.dart';
+import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 
 void main() {
   test('canonicalizes legacy specimen attribute identifiers', () {

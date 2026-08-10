@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 part 'collevent_queries.g.dart';
 

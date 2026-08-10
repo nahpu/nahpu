@@ -7,7 +7,7 @@ import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/screens/shared/media/audio_recorder.dart';
 import 'package:nahpu/screens/shared/media/media_capture.dart';
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/types/import.dart';
 
 class SiteMediaForm extends ConsumerStatefulWidget {

@@ -6,7 +6,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
 
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {

@@ -7,7 +7,7 @@ import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:path/path.dart';
 
@@ -15,10 +15,9 @@ class NarrativeServices extends AppServices {
   const NarrativeServices({required super.ref});
 
   Future<int> createNewNarrative() async {
-    int narrativeID =
-        await NarrativeQuery(dbAccess).createNarrative(NarrativeCompanion(
-      projectUuid: db.Value(currentProjectUuid),
-    ));
+    int narrativeID = await NarrativeQuery(dbAccess).createNarrative(
+      NarrativeCompanion(projectUuid: db.Value(currentProjectUuid)),
+    );
     invalidateNarrative();
     return narrativeID;
   }
@@ -60,8 +59,9 @@ class NarrativeServices extends AppServices {
           }
 
           if (!hasTime) {
-            await dbAccess
-                .customStatement('ALTER TABLE narrative ADD COLUMN time TEXT');
+            await dbAccess.customStatement(
+              'ALTER TABLE narrative ADD COLUMN time TEXT',
+            );
           }
 
           await NarrativeQuery(dbAccess).updateNarrativeEntry(id, entries);
@@ -86,7 +86,9 @@ class NarrativeServices extends AppServices {
   }
 
   Future<void> createNarrativeMediaFromList(
-      int narrativeId, List<String> filePaths) async {
+    int narrativeId,
+    List<String> filePaths,
+  ) async {
     for (String filePath in filePaths) {
       await createNarrativeMedia(narrativeId, filePath);
     }
@@ -94,15 +96,17 @@ class NarrativeServices extends AppServices {
 
   Future<void> createNarrativeMedia(int narrativeId, String filePath) async {
     final metadata = await MediaMetadataServices().extract(File(filePath));
-    int mediaId = await MediaDbQuery(dbAccess).createMedia(MediaCompanion(
-      projectUuid: db.Value(currentProjectUuid),
-      fileName: db.Value(basename(filePath)),
-      category: db.Value(matchMediaCategory(MediaCategory.narrative)),
-      taken: db.Value(metadata.taken),
-      camera: db.Value(metadata.camera),
-      lenses: db.Value(metadata.lenses),
-      additionalExif: db.Value(metadata.additionalExif),
-    ));
+    int mediaId = await MediaDbQuery(dbAccess).createMedia(
+      MediaCompanion(
+        projectUuid: db.Value(currentProjectUuid),
+        fileName: db.Value(basename(filePath)),
+        category: db.Value(matchMediaCategory(MediaCategory.narrative)),
+        taken: db.Value(metadata.taken),
+        camera: db.Value(metadata.camera),
+        lenses: db.Value(metadata.lenses),
+        additionalExif: db.Value(metadata.additionalExif),
+      ),
+    );
     NarrativeMediaCompanion entries = NarrativeMediaCompanion(
       narrativeId: db.Value(narrativeId),
       mediaId: db.Value(mediaId),
@@ -130,8 +134,9 @@ class NarrativeServices extends AppServices {
   }
 
   Future<void> deleteAllNarrative(String projectUuid) async {
-    List<NarrativeData> narratives =
-        await NarrativeQuery(dbAccess).getAllNarrative(projectUuid);
+    List<NarrativeData> narratives = await NarrativeQuery(
+      dbAccess,
+    ).getAllNarrative(projectUuid);
     for (NarrativeData narrative in narratives) {
       await deleteAllNarrativeMedia(narrative.id);
     }

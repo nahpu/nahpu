@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/coordinate_input.dart';
+import 'package:nahpu/services/projects/coordinate_input.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 

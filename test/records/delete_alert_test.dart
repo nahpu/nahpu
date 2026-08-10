@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 
 void main() {
   testWidgets('delete button requires exact confirmation text', (tester) async {
@@ -23,25 +23,29 @@ void main() {
       ),
     );
 
-    TextButton deleteButton =
-        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Delete'));
+    TextButton deleteButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Delete'),
+    );
     expect(deleteButton.onPressed, isNull);
 
     await tester.enterText(find.byType(TextField), 'abcd');
     await tester.pump();
-    deleteButton =
-        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Delete'));
+    deleteButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Delete'),
+    );
     expect(deleteButton.onPressed, isNull);
 
     await tester.enterText(find.byType(TextField), 'abcde');
     await tester.pump();
-    deleteButton =
-        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Delete'));
+    deleteButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Delete'),
+    );
     expect(deleteButton.onPressed, isNotNull);
   });
 
-  testWidgets('delete button uses disabled visual state before confirmation',
-      (tester) async {
+  testWidgets('delete button uses disabled visual state before confirmation', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
@@ -57,25 +61,30 @@ void main() {
       ),
     );
 
-    TextButton deleteButton =
-        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Delete'));
-    final disabledColor =
-        deleteButton.style?.foregroundColor?.resolve({WidgetState.disabled});
+    TextButton deleteButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Delete'),
+    );
+    final disabledColor = deleteButton.style?.foregroundColor?.resolve({
+      WidgetState.disabled,
+    });
     expect(disabledColor, isNotNull);
 
     await tester.enterText(find.byType(TextField), 'abcde');
     await tester.pump();
 
-    deleteButton =
-        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Delete'));
-    final enabledColor =
-        deleteButton.style?.foregroundColor?.resolve(<WidgetState>{});
+    deleteButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Delete'),
+    );
+    final enabledColor = deleteButton.style?.foregroundColor?.resolve(
+      <WidgetState>{},
+    );
     expect(enabledColor, isNotNull);
     expect(enabledColor, isNot(equals(disabledColor)));
   });
 
-  testWidgets('dialog controls are disabled while delete is running',
-      (tester) async {
+  testWidgets('dialog controls are disabled while delete is running', (
+    tester,
+  ) async {
     final completer = Completer<void>();
 
     await tester.pumpWidget(
@@ -98,20 +107,23 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Delete'));
     await tester.pump();
 
-    final TextField textField =
-        tester.widget<TextField>(find.byType(TextField));
+    final TextField textField = tester.widget<TextField>(
+      find.byType(TextField),
+    );
     expect(textField.enabled, isFalse);
 
-    final TextButton cancelButton =
-        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Cancel'));
+    final TextButton cancelButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Cancel'),
+    );
     expect(cancelButton.onPressed, isNull);
 
     completer.complete();
     await tester.pump();
   });
 
-  testWidgets('shows formatted phase failure message in error dialog',
-      (tester) async {
+  testWidgets('shows formatted phase failure message in error dialog', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(

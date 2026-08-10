@@ -1,6 +1,6 @@
-import 'package:nahpu/services/conditional_brackets.dart';
-import 'package:nahpu/services/specimen_attribute_names.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
+import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 
 enum ExportFmt { csv, tsv, excel, json }
 

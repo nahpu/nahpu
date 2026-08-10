@@ -4,7 +4,7 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class SpecimenSearchChips extends StatelessWidget {
   const SpecimenSearchChips({
@@ -59,10 +59,12 @@ class SiteIdField extends ConsumerWidget {
         hintText: 'Enter a site',
       ),
       items: siteData
-          .map((site) => DropdownMenuItem(
-                value: site.id,
-                child: CommonDropdownText(text: site.siteID ?? ''),
-              ))
+          .map(
+            (site) => DropdownMenuItem(
+              value: site.id,
+              child: CommonDropdownText(text: site.siteID ?? ''),
+            ),
+          )
           .toList(),
       onChanged: onChanges,
     );

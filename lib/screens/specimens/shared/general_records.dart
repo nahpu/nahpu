@@ -13,9 +13,9 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/taxonomy.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/personnel_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 
 class GeneralRecordField extends ConsumerStatefulWidget {

@@ -1,4 +1,4 @@
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
@@ -10,10 +10,10 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/narrative_services.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:uuid/uuid.dart';
 
 String get uuid => const Uuid().v4();
@@ -123,30 +123,47 @@ class ProjectServices extends AppServices {
   Future<String?> deleteProjectAndData(String projectUuid) async {
     try {
       await dbAccess.transaction(() async {
-        await _runDeletionPhase('specimen records',
-            () => SpecimenServices(ref: ref).deleteAllSpecimens(projectUuid));
-        await _runDeletionPhase('collecting events',
-            () => CollEventServices(ref: ref).deleteAllCollEvents(projectUuid));
-        await _runDeletionPhase('narrative entries',
-            () => NarrativeServices(ref: ref).deleteAllNarrative(projectUuid));
-        await _runDeletionPhase('site records',
-            () => SiteServices(ref: ref).deleteAllSites(projectUuid));
         await _runDeletionPhase(
-            'associated data',
-            () => AssociatedDataQuery(dbAccess)
-                .deleteAllAssociatedDataForProject(projectUuid));
+          'specimen records',
+          () => SpecimenServices(ref: ref).deleteAllSpecimens(projectUuid),
+        );
         await _runDeletionPhase(
-            'project personnel links',
-            () => PersonnelQuery(dbAccess)
-                .deleteAllProjectPersonnel(projectUuid: projectUuid));
+          'collecting events',
+          () => CollEventServices(ref: ref).deleteAllCollEvents(projectUuid),
+        );
         await _runDeletionPhase(
-            'project media', () => _cleanupProjectMedia(projectUuid));
-        await _runDeletionPhase('project record',
-            () => ProjectQuery(dbAccess).deleteProject(projectUuid));
+          'narrative entries',
+          () => NarrativeServices(ref: ref).deleteAllNarrative(projectUuid),
+        );
+        await _runDeletionPhase(
+          'site records',
+          () => SiteServices(ref: ref).deleteAllSites(projectUuid),
+        );
+        await _runDeletionPhase(
+          'associated data',
+          () => AssociatedDataQuery(
+            dbAccess,
+          ).deleteAllAssociatedDataForProject(projectUuid),
+        );
+        await _runDeletionPhase(
+          'project personnel links',
+          () => PersonnelQuery(
+            dbAccess,
+          ).deleteAllProjectPersonnel(projectUuid: projectUuid),
+        );
+        await _runDeletionPhase(
+          'project media',
+          () => _cleanupProjectMedia(projectUuid),
+        );
+        await _runDeletionPhase(
+          'project record',
+          () => ProjectQuery(dbAccess).deleteProject(projectUuid),
+        );
       });
     } catch (e) {
-      final phase =
-          e is _ProjectDeletionPhaseFailure ? e.phase : 'project data';
+      final phase = e is _ProjectDeletionPhaseFailure
+          ? e.phase
+          : 'project data';
       String diagnostics = '';
       try {
         diagnostics = await _collectDeletionDiagnostics(projectUuid);
@@ -161,8 +178,9 @@ class ProjectServices extends AppServices {
     }
 
     String? cleanupWarning;
-    final projectDir =
-        await FileServices(ref: ref).getProjectDirByUUID(projectUuid);
+    final projectDir = await FileServices(
+      ref: ref,
+    ).getProjectDirByUUID(projectUuid);
     try {
       if (projectDir.existsSync()) {
         await projectDir.delete(recursive: true);
@@ -176,7 +194,9 @@ class ProjectServices extends AppServices {
   }
 
   Future<void> _runDeletionPhase(
-      String phase, Future<void> Function() action) async {
+    String phase,
+    Future<void> Function() action,
+  ) async {
     try {
       await action();
     } catch (e) {
@@ -187,39 +207,44 @@ class ProjectServices extends AppServices {
   Future<String> _collectDeletionDiagnostics(String projectUuid) async {
     final parts = <String>[];
 
-    final specimenCount =
-        (await SpecimenQuery(dbAccess).getAllSpecimens(projectUuid)).length;
+    final specimenCount = (await SpecimenQuery(
+      dbAccess,
+    ).getAllSpecimens(projectUuid)).length;
     if (specimenCount > 0) {
       parts.add(_formatCount(specimenCount, 'specimen record'));
     }
 
-    final collEventCount =
-        (await CollEventQuery(dbAccess).getAllCollEvents(projectUuid)).length;
+    final collEventCount = (await CollEventQuery(
+      dbAccess,
+    ).getAllCollEvents(projectUuid)).length;
     if (collEventCount > 0) {
       parts.add(_formatCount(collEventCount, 'collecting event'));
     }
 
-    final narrativeCount =
-        (await NarrativeQuery(dbAccess).getAllNarrative(projectUuid)).length;
+    final narrativeCount = (await NarrativeQuery(
+      dbAccess,
+    ).getAllNarrative(projectUuid)).length;
     if (narrativeCount > 0) {
       parts.add(_formatCount(narrativeCount, 'narrative entry'));
     }
 
-    final siteCount =
-        (await SiteQuery(dbAccess).getAllSites(projectUuid)).length;
+    final siteCount = (await SiteQuery(
+      dbAccess,
+    ).getAllSites(projectUuid)).length;
     if (siteCount > 0) {
       parts.add(_formatCount(siteCount, 'site record'));
     }
 
-    final projectPersonnelCount =
-        (await PersonnelQuery(dbAccess).getProjectPersonnelLinks(projectUuid))
-            .length;
+    final projectPersonnelCount = (await PersonnelQuery(
+      dbAccess,
+    ).getProjectPersonnelLinks(projectUuid)).length;
     if (projectPersonnelCount > 0) {
       parts.add(_formatCount(projectPersonnelCount, 'project personnel link'));
     }
 
-    final mediaCount =
-        (await MediaDbQuery(dbAccess).getMediaByProject(projectUuid)).length;
+    final mediaCount = (await MediaDbQuery(
+      dbAccess,
+    ).getMediaByProject(projectUuid)).length;
     if (mediaCount > 0) {
       parts.add(_formatCount(mediaCount, 'project media item'));
     }
@@ -243,8 +268,9 @@ class ProjectServices extends AppServices {
     final mediaQuery = MediaDbQuery(dbAccess);
     final projectMedia = await mediaQuery.getMediaByProject(projectUuid);
     for (final mediaRow in projectMedia) {
-      final hasSharedReference =
-          await mediaQuery.isMediaReferencedByTaxonomy(mediaRow.primaryId);
+      final hasSharedReference = await mediaQuery.isMediaReferencedByTaxonomy(
+        mediaRow.primaryId,
+      );
       if (hasSharedReference) {
         await mediaQuery.detachMediaFromProject(mediaRow.primaryId);
       } else {
@@ -267,8 +293,10 @@ extension StringValidator on String {
   }
 
   bool get isValidProjectName {
-    final projectNameRegex =
-        RegExp(r'^[\d\p{L}\p{Mn}\s\-\\_]+$', unicode: true);
+    final projectNameRegex = RegExp(
+      r'^[\d\p{L}\p{Mn}\s\-\\_]+$',
+      unicode: true,
+    );
     return projectNameRegex.hasMatch(this);
   }
 
@@ -284,8 +312,9 @@ extension StringValidator on String {
   }
 
   bool get isValidEmail {
-    final emailRegex =
-        RegExp(r'(^[a-zA-Z0-9_.]+[@]{1}[a-z0-9]+[\.][a-z](.)+$)');
+    final emailRegex = RegExp(
+      r'(^[a-zA-Z0-9_.]+[@]{1}[a-z0-9]+[\.][a-z](.)+$)',
+    );
     return emailRegex.hasMatch(this);
   }
 }

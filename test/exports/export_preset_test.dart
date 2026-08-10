@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/conditional_brackets.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/types/export.dart';
 
 void main() {

@@ -1,2 +1,2 @@
-export 'package:nahpu/services/maps/coordinate_format.dart';
-export 'package:nahpu/services/maps/natural_earth.dart';
+export 'package:nahpu/services/sites/coordinate_format.dart';
+export 'package:nahpu/services/sites/natural_earth.dart';

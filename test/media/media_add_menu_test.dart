@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 
 void main() {
   test('media add sources are limited by operating-system type', () {

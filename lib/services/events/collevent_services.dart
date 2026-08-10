@@ -6,10 +6,10 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/media_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
-import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:path/path.dart' show basename;
 

@@ -1,7 +1,7 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/file_format.dart';
 
 void main() {
@@ -9,17 +9,15 @@ void main() {
     List<XTypeGroup>? lastAcceptedTypeGroups;
 
     final selected = await FilePickerServices(
-      openFiles: ({
-        List<XTypeGroup>? acceptedTypeGroups,
-        String? initialDirectory,
-        String? confirmButtonText,
-      }) async {
-        lastAcceptedTypeGroups = acceptedTypeGroups;
-        return [
-          XFile('/tmp/voice.mp3'),
-          XFile('/tmp/clip.mp4'),
-        ];
-      },
+      openFiles:
+          ({
+            List<XTypeGroup>? acceptedTypeGroups,
+            String? initialDirectory,
+            String? confirmButtonText,
+          }) async {
+            lastAcceptedTypeGroups = acceptedTypeGroups;
+            return [XFile('/tmp/voice.mp3'), XFile('/tmp/clip.mp4')];
+          },
     ).pickMultiFiles([mediaFmt]);
 
     expect(selected, hasLength(2));
@@ -47,18 +45,11 @@ void main() {
       ]),
       throwsA(
         isA<UnsupportedMediaFileException>()
-            .having(
-              (error) => error.paths,
-              'paths',
-              contains('/tmp/notes.txt'),
-            )
+            .having((error) => error.paths, 'paths', contains('/tmp/notes.txt'))
             .having(
               (error) => error.toString(),
               'message',
-              allOf(
-                contains('Unsupported media file'),
-                contains('notes.txt'),
-              ),
+              allOf(contains('Unsupported media file'), contains('notes.txt')),
             ),
       ),
     );

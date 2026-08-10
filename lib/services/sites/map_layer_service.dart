@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:path/path.dart' as path;
 import 'package:pmtiles/pmtiles.dart';

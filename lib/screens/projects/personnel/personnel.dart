@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
-import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
 enum PersonnelMenuAction { edit, delete }
@@ -79,8 +79,9 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
                     onSelectAllPressed: () {
                       setState(() {
                         _selectedPersonnel.clear();
-                        _selectedPersonnel
-                            .addAll(data.map((e) => e.uuid).toList());
+                        _selectedPersonnel.addAll(
+                          data.map((e) => e.uuid).toList(),
+                        );
                       });
                     },
                     onSelectPressed: () {
@@ -115,11 +116,13 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
                               icon: const Icon(Icons.edit_outlined),
                               onPressed: () {
                                 Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => EditPersonnelForm(
-                                              personnelData: data[index],
-                                            )));
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditPersonnelForm(
+                                      personnelData: data[index],
+                                    ),
+                                  ),
+                                );
                               },
                             ),
                           );
@@ -145,7 +148,7 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
                           customDialogText:
                               'Are you sure you want to remove the selected personnel from the project?',
                           customDialogButtonText: 'Remove',
-                        )
+                        ),
                 ],
               );
       },
@@ -177,9 +180,11 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
     }
 
     if (numberPersonnelDeleted < _selectedPersonnel.length) {
-      _showError('${_selectedPersonnel.length - numberPersonnelDeleted} '
-          'personnel could not be removed as they are being '
-          'used by project records.');
+      _showError(
+        '${_selectedPersonnel.length - numberPersonnelDeleted} '
+        'personnel could not be removed as they are being '
+        'used by project records.',
+      );
     }
   }
 
@@ -189,10 +194,7 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
 
   void _showError(String errors) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errors),
-        duration: const Duration(seconds: 10),
-      ),
+      SnackBar(content: Text(errors), duration: const Duration(seconds: 10)),
     );
   }
 }
@@ -203,18 +205,19 @@ class EmptyPersonnel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-        child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'No personnel found.',
-          style: Theme.of(context).textTheme.labelLarge,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        const AddPersonnelButton(),
-      ],
-    ));
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'No personnel found.',
+            style: Theme.of(context).textTheme.labelLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const AddPersonnelButton(),
+        ],
+      ),
+    );
   }
 }
 
@@ -228,22 +231,19 @@ class AddPersonnelButton extends StatelessWidget {
       spacing: 8,
       children: [
         SecondaryButton(
-            text: 'Manage',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ManagePersonnel(),
-                ),
-              );
-            }),
+          text: 'Manage',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ManagePersonnel()),
+            );
+          },
+        ),
         PrimaryButton(
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const AddPersonnel(),
-              ),
+              MaterialPageRoute(builder: (context) => const AddPersonnel()),
             );
           },
           label: 'Add personnel',
@@ -293,19 +293,22 @@ class _PersonnelListTileState extends State<PersonnelListTile> {
   Widget build(BuildContext context) {
     final personnelData = widget.personnelData;
     return ListTile(
-      leading: Row(mainAxisSize: MainAxisSize.min, children: [
-        !widget.isSelecting
-            ? SizedBox(
-                height: avatarSize.toDouble(),
-                width: avatarSize.toDouble(),
-                child: AvatarViewer(
-                  avatarCtr: _personnelPhotoCtr,
-                ))
-            : ListCheckBox(
-                isDisabled: false,
-                value: widget.selectedPersonnel.contains(personnelData.uuid),
-                onChanged: widget.onChanged),
-      ]),
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          !widget.isSelecting
+              ? SizedBox(
+                  height: avatarSize.toDouble(),
+                  width: avatarSize.toDouble(),
+                  child: AvatarViewer(avatarCtr: _personnelPhotoCtr),
+                )
+              : ListCheckBox(
+                  isDisabled: false,
+                  value: widget.selectedPersonnel.contains(personnelData.uuid),
+                  onChanged: widget.onChanged,
+                ),
+        ],
+      ),
       title: Text(
         _getTitle(personnelData.name, personnelData.initial),
         style: Theme.of(context).textTheme.titleMedium,
@@ -350,66 +353,79 @@ class PersonnelSubtitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
-        text: TextSpan(children: [
-      (role != null && role != '')
-          ? TextSpan(children: [
-              const WidgetSpan(
-                  child: Tooltip(
-                      message: 'Role',
-                      child: TileIcon(icon: Icons.account_circle_outlined)),
-                  alignment: PlaceholderAlignment.middle),
-              TextSpan(
-                text: ' $role ',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-            ])
-          : const TextSpan(),
-      (affiliation != null && affiliation != '')
-          ? TextSpan(
-              children: [
-                const WidgetSpan(
-                    child: Tooltip(
+      text: TextSpan(
+        children: [
+          (role != null && role != '')
+              ? TextSpan(
+                  children: [
+                    const WidgetSpan(
+                      child: Tooltip(
+                        message: 'Role',
+                        child: TileIcon(icon: Icons.account_circle_outlined),
+                      ),
+                      alignment: PlaceholderAlignment.middle,
+                    ),
+                    TextSpan(
+                      text: ' $role ',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ],
+                )
+              : const TextSpan(),
+          (affiliation != null && affiliation != '')
+              ? TextSpan(
+                  children: [
+                    const WidgetSpan(
+                      child: Tooltip(
                         message: 'Affiliation',
-                        child: TileIcon(icon: Icons.business_rounded)),
-                    alignment: PlaceholderAlignment.middle),
-                TextSpan(
-                  text: ' $affiliation ',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-              ],
-            )
-          : const TextSpan(),
-      (orcid != null && orcid != '')
-          ? TextSpan(
-              children: [
-                const WidgetSpan(
-                    child: Tooltip(
+                        child: TileIcon(icon: Icons.business_rounded),
+                      ),
+                      alignment: PlaceholderAlignment.middle,
+                    ),
+                    TextSpan(
+                      text: ' $affiliation ',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ],
+                )
+              : const TextSpan(),
+          (orcid != null && orcid != '')
+              ? TextSpan(
+                  children: [
+                    const WidgetSpan(
+                      child: Tooltip(
                         message: 'ORCID iD',
-                        child: TileIcon(icon: Icons.badge_outlined)),
-                    alignment: PlaceholderAlignment.middle),
-                TextSpan(
-                  text: ' $orcid ',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-              ],
-            )
-          : const TextSpan(),
-      currentFieldNumber == null || currentFieldNumber! == 0
-          ? const TextSpan()
-          : TextSpan(
-              children: [
-                WidgetSpan(
-                    child: Tooltip(
+                        child: TileIcon(icon: Icons.badge_outlined),
+                      ),
+                      alignment: PlaceholderAlignment.middle,
+                    ),
+                    TextSpan(
+                      text: ' $orcid ',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ],
+                )
+              : const TextSpan(),
+          currentFieldNumber == null || currentFieldNumber! == 0
+              ? const TextSpan()
+              : TextSpan(
+                  children: [
+                    WidgetSpan(
+                      child: Tooltip(
                         message: 'Current Field Number',
-                        child: TileIcon(icon: Icons.numbers_outlined)),
-                    alignment: PlaceholderAlignment.middle),
-                TextSpan(
-                  text: ' $currentFieldNumber',
-                  style: Theme.of(context).textTheme.labelLarge,
+                        child: TileIcon(icon: Icons.numbers_outlined),
+                      ),
+                      alignment: PlaceholderAlignment.middle,
+                    ),
+                    TextSpan(
+                      text: ' $currentFieldNumber',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-    ]));
+        ],
+      ),
+    );
   }
 }
 
@@ -422,26 +438,30 @@ class PersonnelInfoContent extends StatelessWidget {
       content: [
         InfoContent(
           header: 'Overview',
-          content: 'List of personnel for this project.'
+          content:
+              'List of personnel for this project.'
               ' Use the add button to add personnel.'
               ' To edit or delete the personnel, use the menu button.'
               ' You need at least a cataloger to start adding specimens.',
         ),
         InfoContent(
-          content: 'When you create a personnel,'
+          content:
+              'When you create a personnel,'
               ' their data will be saved in the database'
               ' for reuse in other projects. Deleting a personnel will'
               ' only remove them from this project. '
               'You can permanently delete a personnel in the settings.',
         ),
         InfoContent(
-          content: 'Some institutions use project ID'
+          content:
+              'Some institutions use project ID'
               ' instead of initial for the specimen field ID.'
               ' Replace the initial with the project ID.',
         ),
         InfoContent(
           header: 'Role definitions',
-          content: 'Cataloger - responsible for cataloging the specimens.'
+          content:
+              'Cataloger - responsible for cataloging the specimens.'
               ' They are the ones who responsible for recording the specimen data.'
               ' You cannot change the cataloger role once the personnel is created.'
               ' Their names will be listed in'

@@ -4,7 +4,7 @@ import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/document_selection.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 
 class SiteSelectionScreen extends ConsumerStatefulWidget {
   const SiteSelectionScreen({
@@ -41,11 +41,13 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isSingleSelection
-            ? 'Select Site for Preview'
-            : widget.selectedIds != null
-                ? 'Select Sites for Preview'
-                : 'Select sites'),
+        title: Text(
+          widget.isSingleSelection
+              ? 'Select Site for Preview'
+              : widget.selectedIds != null
+              ? 'Select Sites for Preview'
+              : 'Select sites',
+        ),
       ),
       body: SafeArea(
         child: sitesAsync.when(
@@ -61,8 +63,9 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
             }).toList();
 
             final allFilteredIds = filtered.map((e) => e.id).toSet();
-            final isSelectAllEnabled =
-                allFilteredIds.any((id) => !selectedIds.contains(id));
+            final isSelectAllEnabled = allFilteredIds.any(
+              (id) => !selectedIds.contains(id),
+            );
 
             return Column(
               children: [
@@ -78,8 +81,10 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                                     widget.onSelectionChanged!(<int>{});
                                   } else {
                                     ref
-                                        .read(documentSiteSelectionProvider
-                                            .notifier)
+                                        .read(
+                                          documentSiteSelectionProvider
+                                              .notifier,
+                                        )
                                         .updateSelection(<int>{});
                                   }
                                 }
@@ -89,15 +94,18 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                         TextButton(
                           onPressed: isSelectAllEnabled
                               ? () {
-                                  final newSelected =
-                                      Set<int>.from(selectedIds);
+                                  final newSelected = Set<int>.from(
+                                    selectedIds,
+                                  );
                                   newSelected.addAll(allFilteredIds);
                                   if (widget.onSelectionChanged != null) {
                                     widget.onSelectionChanged!(newSelected);
                                   } else {
                                     ref
-                                        .read(documentSiteSelectionProvider
-                                            .notifier)
+                                        .read(
+                                          documentSiteSelectionProvider
+                                              .notifier,
+                                        )
                                         .updateSelection(newSelected);
                                   }
                                 }
@@ -121,9 +129,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                     ),
                     elevation: const WidgetStatePropertyAll(0),
                     backgroundColor: WidgetStatePropertyAll(
-                      Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
+                      Theme.of(context).colorScheme.surfaceContainerHighest
                           .withValues(alpha: 0.45),
                     ),
                     trailing: [
@@ -191,8 +197,9 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                                   widget.onSelectionChanged!(newSelected);
                                 } else {
                                   ref
-                                      .read(documentSiteSelectionProvider
-                                          .notifier)
+                                      .read(
+                                        documentSiteSelectionProvider.notifier,
+                                      )
                                       .updateSelection(newSelected);
                                 }
                               },
@@ -268,11 +275,13 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isSingleSelection
-            ? 'Select Event for Preview'
-            : widget.selectedIds != null
-                ? 'Select Events for Preview'
-                : 'Select events'),
+        title: Text(
+          widget.isSingleSelection
+              ? 'Select Event for Preview'
+              : widget.selectedIds != null
+              ? 'Select Events for Preview'
+              : 'Select events',
+        ),
       ),
       body: SafeArea(
         child: _loadingIds
@@ -290,8 +299,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   }).toList();
 
                   final allFilteredIds = filtered.map((e) => e.id).toSet();
-                  final isSelectAllEnabled =
-                      allFilteredIds.any((id) => !selectedIds.contains(id));
+                  final isSelectAllEnabled = allFilteredIds.any(
+                    (id) => !selectedIds.contains(id),
+                  );
 
                   return Column(
                     children: [
@@ -308,8 +318,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                         } else {
                                           ref
                                               .read(
-                                                  documentEventSelectionProvider
-                                                      .notifier)
+                                                documentEventSelectionProvider
+                                                    .notifier,
+                                              )
                                               .updateSelection(<int>{});
                                         }
                                       }
@@ -319,17 +330,20 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                               TextButton(
                                 onPressed: isSelectAllEnabled
                                     ? () {
-                                        final newSelected =
-                                            Set<int>.from(selectedIds);
+                                        final newSelected = Set<int>.from(
+                                          selectedIds,
+                                        );
                                         newSelected.addAll(allFilteredIds);
                                         if (widget.onSelectionChanged != null) {
-                                          widget
-                                              .onSelectionChanged!(newSelected);
+                                          widget.onSelectionChanged!(
+                                            newSelected,
+                                          );
                                         } else {
                                           ref
                                               .read(
-                                                  documentEventSelectionProvider
-                                                      .notifier)
+                                                documentEventSelectionProvider
+                                                    .notifier,
+                                              )
                                               .updateSelection(newSelected);
                                         }
                                       }
@@ -374,9 +388,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                 itemCount: filtered.length,
                                 itemBuilder: (context, index) {
                                   final event = filtered[index];
-                                  final isSelected =
-                                      selectedIds.contains(event.id);
-                                  final name = _eventIds[event.id] ??
+                                  final isSelected = selectedIds.contains(
+                                    event.id,
+                                  );
+                                  final name =
+                                      _eventIds[event.id] ??
                                       'Event ID: ${event.id}';
 
                                   if (widget.isSingleSelection) {
@@ -388,8 +404,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                       ),
                                       onTap: () {
                                         if (widget.onSelectionChanged != null) {
-                                          widget
-                                              .onSelectionChanged!({event.id});
+                                          widget.onSelectionChanged!({
+                                            event.id,
+                                          });
                                         } else {
                                           Navigator.pop(context, event.id);
                                         }
@@ -407,8 +424,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                     controlAffinity:
                                         ListTileControlAffinity.leading,
                                     onChanged: (val) {
-                                      final newSelected =
-                                          Set<int>.from(selectedIds);
+                                      final newSelected = Set<int>.from(
+                                        selectedIds,
+                                      );
                                       if (val == true) {
                                         newSelected.add(event.id);
                                       } else {
@@ -418,8 +436,10 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                         widget.onSelectionChanged!(newSelected);
                                       } else {
                                         ref
-                                            .read(documentEventSelectionProvider
-                                                .notifier)
+                                            .read(
+                                              documentEventSelectionProvider
+                                                  .notifier,
+                                            )
                                             .updateSelection(newSelected);
                                       }
                                     },
@@ -474,11 +494,13 @@ class _NarrativeSelectionScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isSingleSelection
-            ? 'Select Narrative for Preview'
-            : widget.selectedIds != null
-                ? 'Select Narratives for Preview'
-                : 'Select narratives'),
+        title: Text(
+          widget.isSingleSelection
+              ? 'Select Narrative for Preview'
+              : widget.selectedIds != null
+              ? 'Select Narratives for Preview'
+              : 'Select narratives',
+        ),
       ),
       body: SafeArea(
         child: narrativesAsync.when(
@@ -491,8 +513,9 @@ class _NarrativeSelectionScreenState
             }).toList();
 
             final allFilteredIds = filtered.map((e) => e.id).toSet();
-            final isSelectAllEnabled =
-                allFilteredIds.any((id) => !selectedIds.contains(id));
+            final isSelectAllEnabled = allFilteredIds.any(
+              (id) => !selectedIds.contains(id),
+            );
 
             return Column(
               children: [
@@ -508,8 +531,10 @@ class _NarrativeSelectionScreenState
                                     widget.onSelectionChanged!(<int>{});
                                   } else {
                                     ref
-                                        .read(documentNarrativeSelectionProvider
-                                            .notifier)
+                                        .read(
+                                          documentNarrativeSelectionProvider
+                                              .notifier,
+                                        )
                                         .updateSelection(<int>{});
                                   }
                                 }
@@ -519,15 +544,18 @@ class _NarrativeSelectionScreenState
                         TextButton(
                           onPressed: isSelectAllEnabled
                               ? () {
-                                  final newSelected =
-                                      Set<int>.from(selectedIds);
+                                  final newSelected = Set<int>.from(
+                                    selectedIds,
+                                  );
                                   newSelected.addAll(allFilteredIds);
                                   if (widget.onSelectionChanged != null) {
                                     widget.onSelectionChanged!(newSelected);
                                   } else {
                                     ref
-                                        .read(documentNarrativeSelectionProvider
-                                            .notifier)
+                                        .read(
+                                          documentNarrativeSelectionProvider
+                                              .notifier,
+                                        )
                                         .updateSelection(newSelected);
                                   }
                                 }
@@ -572,8 +600,9 @@ class _NarrativeSelectionScreenState
                           itemCount: filtered.length,
                           itemBuilder: (context, index) {
                             final narrative = filtered[index];
-                            final isSelected =
-                                selectedIds.contains(narrative.id);
+                            final isSelected = selectedIds.contains(
+                              narrative.id,
+                            );
 
                             if (widget.isSingleSelection) {
                               return ListTile(
@@ -613,8 +642,10 @@ class _NarrativeSelectionScreenState
                                   widget.onSelectionChanged!(newSelected);
                                 } else {
                                   ref
-                                      .read(documentNarrativeSelectionProvider
-                                          .notifier)
+                                      .read(
+                                        documentNarrativeSelectionProvider
+                                            .notifier,
+                                      )
                                       .updateSelection(newSelected);
                                 }
                               },

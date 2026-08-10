@@ -15,8 +15,8 @@ import 'package:nahpu/screens/settings/app_settings_import.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/project_services.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 class ProjectMenuDrawer extends ConsumerStatefulWidget {

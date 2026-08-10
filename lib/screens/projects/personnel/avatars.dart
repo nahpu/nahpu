@@ -7,19 +7,16 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/validation.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/import.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:path/path.dart';
 
 const int avatarSize = 160;
 
 class PersonnelAvatar extends ConsumerStatefulWidget {
-  const PersonnelAvatar({
-    super.key,
-    required this.ctr,
-  });
+  const PersonnelAvatar({super.key, required this.ctr});
 
   final PersonnelFormCtrModel ctr;
 
@@ -36,27 +33,24 @@ class PersonnelAvatarState extends ConsumerState<PersonnelAvatar> {
       child: Stack(
         children: [
           widget.ctr.photoPathCtr.text.isEmpty
-              ? ref.watch(catalogFmtNotifierProvider).when(
-                    data: (data) {
-                      final defaultAvatar =
-                          PersonnelImageService().getDefaultAvatar(data);
-                      widget.ctr.photoPathCtr.text = defaultAvatar;
-                      return Positioned.fill(
-                          child: DefaultAvatar(
-                        filePath: defaultAvatar,
-                      ));
-                    },
-                    loading: () => const Center(
-                      child: CommonProgressIndicator(),
-                    ),
-                    error: (error, stack) => const Center(
-                      child: Text('Error'),
-                    ),
-                  )
+              ? ref
+                    .watch(catalogFmtNotifierProvider)
+                    .when(
+                      data: (data) {
+                        final defaultAvatar = PersonnelImageService()
+                            .getDefaultAvatar(data);
+                        widget.ctr.photoPathCtr.text = defaultAvatar;
+                        return Positioned.fill(
+                          child: DefaultAvatar(filePath: defaultAvatar),
+                        );
+                      },
+                      loading: () =>
+                          const Center(child: CommonProgressIndicator()),
+                      error: (error, stack) =>
+                          const Center(child: Text('Error')),
+                    )
               : Positioned.fill(
-                  child: AvatarViewer(
-                    avatarCtr: widget.ctr.photoPathCtr,
-                  ),
+                  child: AvatarViewer(avatarCtr: widget.ctr.photoPathCtr),
                 ),
           Positioned(
             bottom: 0,
@@ -66,9 +60,7 @@ class PersonnelAvatarState extends ConsumerState<PersonnelAvatar> {
                     onSelectPhoto: _selectPhoto,
                     onTakePhoto: _takePhoto,
                   )
-                : ImageButton(
-                    onPressed: _selectPhoto,
-                  ),
+                : ImageButton(onPressed: _selectPhoto),
           ),
         ],
       ),
@@ -107,10 +99,7 @@ class PersonnelAvatarState extends ConsumerState<PersonnelAvatar> {
 }
 
 class AvatarViewer extends ConsumerStatefulWidget {
-  const AvatarViewer({
-    super.key,
-    required this.avatarCtr,
-  });
+  const AvatarViewer({super.key, required this.avatarCtr});
 
   final TextEditingController avatarCtr;
   // final int imageSize;
@@ -138,17 +127,17 @@ class AvatarViewerState extends ConsumerState<AvatarViewer> {
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 return CircleAvatar(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
                   foregroundImage: FileImage(snapshot.data as File),
                 );
               } else {
-                return const Center(
-                  child: Text('Image not found'),
-                );
+                return const Center(child: Text('Image not found'));
               }
             },
-            future: _getPersonnelMediaPath());
+            future: _getPersonnelMediaPath(),
+          );
   }
 
   Future<File> _getPersonnelMediaPath() async {
@@ -168,33 +157,32 @@ class DefaultAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        foregroundImage: AssetImage(filePath));
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      foregroundImage: AssetImage(filePath),
+    );
   }
 }
 
 class ImageButton extends StatelessWidget {
-  const ImageButton({
-    super.key,
-    required this.onPressed,
-  });
+  const ImageButton({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          shape: BoxShape.circle,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(
+          Icons.add_a_photo_outlined,
+          color: Theme.of(context).colorScheme.primary,
         ),
-        child: IconButton(
-          icon: Icon(
-            Icons.add_a_photo_outlined,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          onPressed: onPressed,
-        ));
+        onPressed: onPressed,
+      ),
+    );
   }
 }
 
@@ -221,20 +209,17 @@ class ImageSpeedDials extends StatelessWidget {
 
   List<SpeedDialChild> _getSpeedDial(BuildContext context) {
     if (systemPlatform == PlatformType.desktop) {
-      return [
-        _selectPhotoDial(context),
-      ];
+      return [_selectPhotoDial(context)];
     }
-    return [
-      _takePhotoDial(context),
-      _selectPhotoDial(context),
-    ];
+    return [_takePhotoDial(context), _selectPhotoDial(context)];
   }
 
   SpeedDialChild _takePhotoDial(BuildContext context) {
     return SpeedDialChild(
-      child: Icon(Icons.camera_alt_outlined,
-          color: Theme.of(context).colorScheme.onSecondary),
+      child: Icon(
+        Icons.camera_alt_outlined,
+        color: Theme.of(context).colorScheme.onSecondary,
+      ),
       backgroundColor: Theme.of(context).colorScheme.secondary,
       label: 'Take Photo',
       onTap: onTakePhoto,
@@ -243,8 +228,10 @@ class ImageSpeedDials extends StatelessWidget {
 
   SpeedDialChild _selectPhotoDial(BuildContext context) {
     return SpeedDialChild(
-      child: Icon(Icons.photo_library_outlined,
-          color: Theme.of(context).colorScheme.onSecondary),
+      child: Icon(
+        Icons.photo_library_outlined,
+        color: Theme.of(context).colorScheme.onSecondary,
+      ),
       backgroundColor: Theme.of(context).colorScheme.secondary,
       label: 'Select Photo',
       onTap: onSelectPhoto,

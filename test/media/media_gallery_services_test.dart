@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/media_gallery_services.dart';
+import 'package:nahpu/services/media/media_gallery_services.dart';
 import 'package:nahpu/services/types/import.dart';
 
 void main() {

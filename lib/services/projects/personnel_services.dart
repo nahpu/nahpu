@@ -4,10 +4,10 @@ import 'dart:math';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/personnel_queries.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:path/path.dart' as path;
 
 class PersonnelServices extends AppServices {
@@ -19,8 +19,9 @@ class PersonnelServices extends AppServices {
   }
 
   Future<List<String>> getAllPersonnelListedInProjects() async {
-    List<PersonnelListData> personnel =
-        await PersonnelQuery(dbAccess).getAllPersonnelListedInProjects();
+    List<PersonnelListData> personnel = await PersonnelQuery(
+      dbAccess,
+    ).getAllPersonnelListedInProjects();
 
     return getDistinctList(personnel.map((e) => e.personnelUuid).toList());
   }
@@ -31,24 +32,30 @@ class PersonnelServices extends AppServices {
   }
 
   Future<String?> getPersonnelName(String uuid) async {
-    PersonnelData? personnel =
-        await PersonnelQuery(dbAccess).getPersonnelByUuid(uuid);
+    PersonnelData? personnel = await PersonnelQuery(
+      dbAccess,
+    ).getPersonnelByUuid(uuid);
     return personnel.name;
   }
 
   Future<List<String>> searchPersonnel(String search) async {
-    List<PersonnelData> data =
-        await PersonnelQuery(dbAccess).searchPersonnel(search);
+    List<PersonnelData> data = await PersonnelQuery(
+      dbAccess,
+    ).searchPersonnel(search);
 
     return data.map((e) => e.uuid).toList();
   }
 
   Future<void> addMultiplePersonnelToProject(
-      List<PersonnelData> personnel) async {
+    List<PersonnelData> personnel,
+  ) async {
     for (final person in personnel) {
-      await addPersonnelToProject(PersonnelListCompanion(
+      await addPersonnelToProject(
+        PersonnelListCompanion(
           personnelUuid: db.Value(person.uuid),
-          projectUuid: db.Value(currentProjectUuid)));
+          projectUuid: db.Value(currentProjectUuid),
+        ),
+      );
     }
     invalidatePersonnel();
   }
@@ -59,14 +66,17 @@ class PersonnelServices extends AppServices {
   }
 
   Future<void> updatePersonnelEntry(
-      String uuid, PersonnelCompanion personnel) async {
+    String uuid,
+    PersonnelCompanion personnel,
+  ) async {
     await PersonnelQuery(dbAccess).updatePersonnelEntry(uuid, personnel);
     invalidatePersonnel();
   }
 
   Future<int?> getCurrentPersonnelFieldNumber(String personnelUuid) async {
-    return await PersonnelQuery(dbAccess)
-        .getCurrentFieldNumberByUuid(personnelUuid);
+    return await PersonnelQuery(
+      dbAccess,
+    ).getCurrentFieldNumberByUuid(personnelUuid);
   }
 
   Future<PersonnelData> getPersonnelByUuid(String uuid) async {
@@ -78,18 +88,24 @@ class PersonnelServices extends AppServices {
   }
 
   Future<List<PersonnelData>> getPersonnelByProjectUuid(
-      String projectUuid) async {
-    return await PersonnelQuery(dbAccess)
-        .getPersonnelByProjectUuid(projectUuid);
+    String projectUuid,
+  ) async {
+    return await PersonnelQuery(
+      dbAccess,
+    ).getPersonnelByProjectUuid(projectUuid);
   }
 
   Future<(bool, String)> personnelUsedBy(String personnelUuid) async {
     bool isUsedInPersonnel = await PersonnelQuery(dbAccess)
         .isPersonnelUsedBySpecimenRecords(
-            projectUuid: currentProjectUuid, personnelUuid: personnelUuid);
+          projectUuid: currentProjectUuid,
+          personnelUuid: personnelUuid,
+        );
     bool isUsedInCollEvent = await PersonnelQuery(dbAccess)
         .isPersonnelUsedByCollEvents(
-            projectUuid: currentProjectUuid, personnelUuid: personnelUuid);
+          projectUuid: currentProjectUuid,
+          personnelUuid: personnelUuid,
+        );
     if (isUsedInPersonnel || isUsedInCollEvent) {
       String recordType = isUsedInPersonnel ? 'specimen' : 'collection event';
       recordType = isUsedInPersonnel && isUsedInCollEvent
@@ -106,10 +122,13 @@ class PersonnelServices extends AppServices {
 
     if (inUse) {
       throw Exception(
-          'Failed to delete! Personnel is being used in the $recordType records.');
+        'Failed to delete! Personnel is being used in the $recordType records.',
+      );
     } else {
       await PersonnelQuery(dbAccess).deleteProjectPersonnel(
-          projectUuid: currentProjectUuid, personnelUuid: personnelUuid);
+        projectUuid: currentProjectUuid,
+        personnelUuid: personnelUuid,
+      );
       invalidatePersonnel();
     }
   }

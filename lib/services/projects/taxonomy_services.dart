@@ -1,7 +1,7 @@
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:flutter/material.dart';
 
 class TaxonomyServices extends AppServices {

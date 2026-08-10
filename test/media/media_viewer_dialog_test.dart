@@ -13,7 +13,7 @@ import 'package:nahpu/screens/shared/media/media.dart';
 import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:path/path.dart' as path;

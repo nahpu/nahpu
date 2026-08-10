@@ -8,7 +8,7 @@ import 'package:nahpu/services/export/specimen_part_records.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/export/bird_attributes.dart';
 import 'package:nahpu/services/export/mammal_attributes.dart';
 import 'package:nahpu/services/export/herp_attributes.dart';

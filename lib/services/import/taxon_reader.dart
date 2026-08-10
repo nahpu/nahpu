@@ -6,12 +6,12 @@ import 'package:nahpu/src/rust/api/import.dart';
 import 'package:path/path.dart' as p;
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 const Set<String> supportedTaxonExcelExtensions = {
   '.xlsx',
@@ -36,15 +36,15 @@ enum TaxonParseResolution {
 
 class TaxonFileParseOptions {
   const TaxonFileParseOptions.auto()
-      : mode = TaxonFileParseMode.auto,
-        delimiter = null;
+    : mode = TaxonFileParseMode.auto,
+      delimiter = null;
 
   const TaxonFileParseOptions.delimiter(this.delimiter)
-      : mode = TaxonFileParseMode.delimiter;
+    : mode = TaxonFileParseMode.delimiter;
 
   const TaxonFileParseOptions.excel()
-      : mode = TaxonFileParseMode.excel,
-        delimiter = null;
+    : mode = TaxonFileParseMode.excel,
+      delimiter = null;
 
   final TaxonFileParseMode mode;
   final String? delimiter;
@@ -78,10 +78,7 @@ class TaxonFileParseDetails {
 }
 
 class TaxonParsedFile {
-  const TaxonParsedFile({
-    required this.data,
-    required this.details,
-  });
+  const TaxonParsedFile({required this.data, required this.details});
 
   final CsvData data;
   final TaxonFileParseDetails details;
@@ -106,10 +103,7 @@ class _DelimiterCandidateScore {
 }
 
 class _DelimiterGuess {
-  const _DelimiterGuess({
-    required this.delimiter,
-    required this.resolution,
-  });
+  const _DelimiterGuess({required this.delimiter, required this.resolution});
 
   final String delimiter;
   final TaxonParseResolution resolution;
@@ -141,7 +135,8 @@ class TaxonFileParser {
           final delimiter = _normalizeDelimiter(options.delimiter ?? '');
           if (delimiter.isEmpty) {
             throw const TaxonFileParseException(
-                'Custom delimiter cannot be empty.');
+              'Custom delimiter cannot be empty.',
+            );
           }
           return await _parseDelimitedFileWithDetails(
             inputFile,
@@ -174,7 +169,9 @@ class TaxonFileParser {
   }
 
   Future<TaxonParsedFile> _parseByExtensionDetailed(
-      File inputFile, String extension) {
+    File inputFile,
+    String extension,
+  ) {
     return _parseByExtensionOrGuessDetailed(inputFile, extension);
   }
 
@@ -238,7 +235,8 @@ class TaxonFileParser {
       final lines = await _readDelimitedRows(inputFile, delimiter);
       List<List<dynamic>> rows = lines
           .where(
-              (row) => row.any((value) => value.toString().trim().isNotEmpty))
+            (row) => row.any((value) => value.toString().trim().isNotEmpty),
+          )
           .toList();
 
       if (rows.length < 2) {
@@ -271,9 +269,12 @@ class TaxonFileParser {
   }
 
   Future<List<List<dynamic>>> _readDelimitedRows(
-      File inputFile, String delimiter) async {
-    return await RecordReader(filePath: inputFile.path)
-        .importDelimitedRaw(delimiter: delimiter);
+    File inputFile,
+    String delimiter,
+  ) async {
+    return await RecordReader(
+      filePath: inputFile.path,
+    ).importDelimitedRaw(delimiter: delimiter);
   }
 
   Future<_DelimiterGuess?> _guessDelimiter(File inputFile) async {
@@ -321,8 +322,10 @@ class TaxonFileParser {
   ) async {
     final List<_DelimiterCandidateScore> scores = [];
     for (final delimiter in candidates) {
-      final candidateScore =
-          await _scoreDelimiterCandidate(inputFile, delimiter);
+      final candidateScore = await _scoreDelimiterCandidate(
+        inputFile,
+        delimiter,
+      );
       if (candidateScore != null) {
         scores.add(candidateScore);
       }
@@ -338,7 +341,8 @@ class TaxonFileParser {
       final rows = await _readDelimitedRows(inputFile, delimiter);
       final nonEmptyRows = rows
           .where(
-              (row) => row.any((value) => value.toString().trim().isNotEmpty))
+            (row) => row.any((value) => value.toString().trim().isNotEmpty),
+          )
           .toList();
       if (nonEmptyRows.length < 2) {
         return null;
@@ -368,7 +372,8 @@ class TaxonFileParser {
         return null;
       }
 
-      final score = (consistency * 1000).round() +
+      final score =
+          (consistency * 1000).round() +
           (mostCommonLength * 25) +
           (nonEmptyRows.length * 5);
       return _DelimiterCandidateScore(
@@ -440,12 +445,13 @@ class TaxonFileParser {
     }
 
     final minCount = lines.length;
-    final candidates = counts.entries
-        .where((entry) => entry.value >= minCount)
-        .map((entry) => entry.key)
-        .where((char) => char != ',' && char != '\t' && char != ';')
-        .toList()
-      ..sort((a, b) => (counts[b] ?? 0).compareTo(counts[a] ?? 0));
+    final candidates =
+        counts.entries
+            .where((entry) => entry.value >= minCount)
+            .map((entry) => entry.key)
+            .where((char) => char != ',' && char != '\t' && char != ';')
+            .toList()
+          ..sort((a, b) => (counts[b] ?? 0).compareTo(counts[a] ?? 0));
 
     return candidates.take(8).toList();
   }
@@ -678,8 +684,9 @@ class TaxonEntryReader extends AppServices {
 
   Future<bool> _checkSpeciesExist(TaxonEntryData data) async {
     try {
-      TaxonomyData? species = await TaxonomyServices(ref: ref)
-          .getTaxonBySpecies(data.genus, data.specificEpithet);
+      TaxonomyData? species = await TaxonomyServices(
+        ref: ref,
+      ).getTaxonBySpecies(data.genus, data.specificEpithet);
       return species != null;
     } catch (e) {
       throw Exception('Error checking species: $e');

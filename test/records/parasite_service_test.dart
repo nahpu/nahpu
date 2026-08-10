@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/dynamic_record_exporter.dart';
-import 'package:nahpu/services/parasite_services.dart';
+import 'package:nahpu/services/specimens/parasite_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 
 void main() {

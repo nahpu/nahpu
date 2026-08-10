@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/export/dwc_values.dart';
-import 'package:nahpu/services/orcid.dart';
+import 'package:nahpu/services/projects/orcid.dart';
 
 void main() {
   test('coordinate extent augments positive uncertainty only', () {

@@ -2,26 +2,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
-import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/associated_data.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class PartDataForm extends ConsumerStatefulWidget {
   const PartDataForm({

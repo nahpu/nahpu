@@ -9,7 +9,7 @@ import 'package:nahpu/screens/narrative/components/media.dart';
 import 'package:nahpu/screens/narrative/components/top_forms.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 class NarrativeForm extends ConsumerStatefulWidget {
@@ -95,10 +95,8 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
                 narrativeId: widget.narrativeId,
               ),
             ),
-            NarrativeMediaForm(
-              narrativeId: widget.narrativeId,
-            ),
-            const BottomPadding()
+            NarrativeMediaForm(narrativeId: widget.narrativeId),
+            const BottomPadding(),
           ],
         );
       },

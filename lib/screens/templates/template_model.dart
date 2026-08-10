@@ -5,8 +5,8 @@ import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/birds.dart' as birds;
 import 'package:nahpu/services/types/specimens.dart' as specimens;
 import 'package:nahpu/services/types/herps.dart' as herps;
-import 'package:nahpu/services/specimen_attribute_names.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
 bool isTemplateImagePathUsable(String path) {

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/personnel/personnel_form.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 
 class NewPersonnel extends ConsumerWidget {
@@ -12,11 +12,7 @@ class NewPersonnel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final PersonnelFormCtrModel ctr = PersonnelFormCtrModel.empty();
-    return PersonnelFormPage(
-      ctr: ctr,
-      personnelUuid: uuid,
-      isEditing: false,
-    );
+    return PersonnelFormPage(ctr: ctr, personnelUuid: uuid, isEditing: false);
   }
 }
 

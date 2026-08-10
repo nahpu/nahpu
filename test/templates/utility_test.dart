@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 void main() {
   test('Test list is distinct', () {
@@ -26,11 +26,7 @@ void main() {
   });
 
   test('Test list contains', () {
-    List<String> list = [
-      'a',
-      'b',
-      'c',
-    ];
+    List<String> list = ['a', 'b', 'c'];
     expect(isListContains(list, 'A'), isTrue);
     expect(isListContains(list, 'e'), isFalse);
   });
