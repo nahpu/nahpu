@@ -54,9 +54,10 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProviderChannel, null);
     await db.close();
-    if (tempAppDir.existsSync()) {
-      await tempAppDir.delete(recursive: true);
-    }
+    PaintingBinding.instance.imageCache
+      ..clear()
+      ..clearLiveImages();
+    await _deleteTempDirectory(tempAppDir);
   });
 
   testWidgets('defaults category, searches metadata, and changes sort', (
@@ -198,6 +199,23 @@ void main() {
     await tester.pump();
     expect(find.text('Identifiers'), findsOneWidget);
   });
+}
+
+Future<void> _deleteTempDirectory(Directory directory) async {
+  if (!await directory.exists()) return;
+
+  const maxAttempts = 5;
+  for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await directory.delete(recursive: true);
+      return;
+    } on FileSystemException catch (error) {
+      final isWindowsSharingViolation =
+          Platform.isWindows && error.osError?.errorCode == 32;
+      if (!isWindowsSharingViolation || attempt == maxAttempts) rethrow;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+  }
 }
 
 Future<void> _seedMedia(Database db, Directory appDir) async {
