@@ -4,6 +4,8 @@ import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
 import 'package:nahpu/screens/shared/media/media_gallery.dart';
+import 'package:nahpu/screens/shared/media/audio_recorder.dart';
+import 'package:nahpu/screens/shared/media/media_capture.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/import.dart';
@@ -31,7 +33,9 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
   @override
   Widget build(BuildContext context) {
     MediaCategory mediaCategory = MediaCategory.site;
-    return ref.watch(siteMediaProvider(widget.siteId)).when(
+    return ref
+        .watch(siteMediaProvider(widget.siteId))
+        .when(
           data: (data) {
             return MediaViewer(
               images: List.from(data),
@@ -42,23 +46,18 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
                   List<String> images = await ImageServices(
                     ref: ref,
                     category: mediaCategory,
-                  ).pickFromGallery();
+                  ).pickMediaFromGallery();
                   if (images.isNotEmpty) {
-                    await SiteServices(ref: ref).createSiteMediaFromList(
-                      widget.siteId,
-                      images,
-                    );
+                    await SiteServices(
+                      ref: ref,
+                    ).createSiteMediaFromList(widget.siteId, images);
                     _doneSelecting();
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          e.toString(),
-                        ),
-                      ),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
                   }
                 }
               },
@@ -69,55 +68,63 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
                     category: mediaCategory,
                   ).pickMediaFromFiles();
                   if (mediaFiles.isNotEmpty) {
-                    await SiteServices(ref: ref).createSiteMediaFromList(
-                      widget.siteId,
-                      mediaFiles,
-                    );
+                    await SiteServices(
+                      ref: ref,
+                    ).createSiteMediaFromList(widget.siteId, mediaFiles);
                     _doneSelecting();
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          e.toString(),
-                        ),
-                      ),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
                   }
                 }
               },
-              onAccessingCamera: () async {
+              onTakeMedia: () async {
                 try {
-                  String? image = await ImageServices(
+                  final captured = await showMediaCapture(context);
+                  if (captured == null) return;
+                  final media = await ImageServices(
                     ref: ref,
                     category: mediaCategory,
-                  ).accessCamera();
-                  if (image != null) {
-                    await SiteServices(ref: ref).createSiteMedia(
-                      widget.siteId,
-                      image,
-                    );
-                  }
+                  ).importCapturedMedia(captured);
+                  await SiteServices(
+                    ref: ref,
+                  ).createSiteMedia(widget.siteId, media);
                   _doneSelecting();
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          e.toString(),
-                        ),
-                      ),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
+                  }
+                }
+              },
+              onRecordAudio: () async {
+                try {
+                  final recording = await showAudioRecorder(context);
+                  if (recording == null) return;
+                  final media = await ImageServices(
+                    ref: ref,
+                    category: mediaCategory,
+                  ).importCapturedMedia(recording);
+                  await SiteServices(
+                    ref: ref,
+                  ).createSiteMedia(widget.siteId, media);
+                  _doneSelecting();
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
                   }
                 }
               },
             );
           },
           loading: () => const CommonProgressIndicator(),
-          error: (e, s) => Text(
-            e.toString(),
-          ),
+          error: (e, s) => Text(e.toString()),
         );
   }
 

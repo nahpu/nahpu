@@ -77,5 +77,7 @@
 	</array>
 	<key>NSLocationUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like to access you location to get site coordinates</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>$(PRODUCT_NAME) would like to use your microphone to record audio</string>
 </dict>
 </plist>

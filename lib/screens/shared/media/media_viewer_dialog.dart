@@ -11,8 +11,8 @@ import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:video_player/video_player.dart';
 
-const double _metadataPanelWidth = 300;
-const double _metadataPanelHeight = 220;
+const double _metadataPanelWidth = 360;
+const double _metadataPanelHeight = 280;
 const double _smallScreenBreakpoint = 600;
 const List<double> _playbackSpeeds = [
   0.25,
@@ -669,29 +669,7 @@ class _MediaMetadataPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 8, 8),
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Text(
-                'Details',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ),
-            Expanded(child: MediaDetailsView(media: media)),
-          ],
-        ),
-      ),
+      child: MediaDetailsView(media: media),
     );
   }
 }

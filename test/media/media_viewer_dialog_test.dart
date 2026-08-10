@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/io_services.dart';
@@ -142,20 +143,21 @@ void main() {
     await _openDialog(tester);
 
     // Metadata visible by default.
-    expect(find.text('Details'), findsOneWidget);
+    expect(find.text('Details'), findsNothing);
+    expect(find.byType(MediaDetailsView), findsOneWidget);
     expect(find.text('A nice view'), findsOneWidget);
     expect(find.text('tag-1'), findsOneWidget);
     expect(find.byType(FormSection), findsAtLeastNWidgets(3));
 
     await tester.tap(find.byIcon(Icons.info));
     await tester.pump();
-    expect(find.text('Details'), findsNothing);
+    expect(find.byType(MediaDetailsView), findsNothing);
     expect(find.text('A nice view'), findsNothing);
     expect(find.byIcon(Icons.info_outline), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.info_outline));
     await tester.pump();
-    expect(find.text('Details'), findsOneWidget);
+    expect(find.byType(MediaDetailsView), findsOneWidget);
     expect(find.text('A nice view'), findsOneWidget);
   });
 
@@ -169,15 +171,15 @@ void main() {
     await _openDialog(tester);
 
     final sidePanel = find.ancestor(
-      of: find.text('Details'),
+      of: find.byType(MediaDetailsView),
       matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.width == 300,
+        (widget) => widget is SizedBox && widget.width == 360,
       ),
     );
     final bottomPanel = find.ancestor(
-      of: find.text('Details'),
+      of: find.byType(MediaDetailsView),
       matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.height == 220,
+        (widget) => widget is SizedBox && widget.height == 280,
       ),
     );
     expect(sidePanel, findsOneWidget);
@@ -194,15 +196,15 @@ void main() {
     await _openDialog(tester);
 
     final sidePanel = find.ancestor(
-      of: find.text('Details'),
+      of: find.byType(MediaDetailsView),
       matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.width == 300,
+        (widget) => widget is SizedBox && widget.width == 360,
       ),
     );
     final bottomPanel = find.ancestor(
-      of: find.text('Details'),
+      of: find.byType(MediaDetailsView),
       matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.height == 220,
+        (widget) => widget is SizedBox && widget.height == 280,
       ),
     );
     expect(bottomPanel, findsOneWidget);
@@ -496,9 +498,10 @@ Future<void> _pumpMediaViewer(
               return MediaViewer(
                 images: mediaList,
                 contentHeight: contentHeight,
-                onAddFromGallery: () {},
-                onAddFromFiles: () {},
-                onAccessingCamera: () {},
+                onAddFromGallery: () async {},
+                onAddFromFiles: () async {},
+                onTakeMedia: () async {},
+                onRecordAudio: () async {},
                 onOpenGallery: onOpenGallery ?? () {},
               );
             },

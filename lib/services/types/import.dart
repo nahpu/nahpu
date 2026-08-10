@@ -111,6 +111,10 @@ MediaCategory matchMediaCategoryString(String category) {
       return MediaCategory.narrative;
     case 'specimen':
       return MediaCategory.specimen;
+    case 'personnel':
+      return MediaCategory.personnel;
+    case 'all':
+      return MediaCategory.all;
     default:
       return MediaCategory.site;
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
+import 'package:nahpu/services/media_linked_information_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 
 class MediaDetailsView extends ConsumerWidget {
@@ -20,6 +21,14 @@ class MediaDetailsView extends ConsumerWidget {
               .firstOrNull
               ?.name,
         );
+    final linkedInformation = ref.watch(
+      mediaLinkedInformationProvider(
+        MediaLinkRequest(
+          mediaId: media.primaryId,
+          category: media.category ?? '',
+        ),
+      ),
+    );
     final sections = <_MediaDetailSection>[
       _MediaDetailSection(
         title: 'File',
@@ -58,19 +67,28 @@ class MediaDetailsView extends ConsumerWidget {
       shrinkWrap: true,
       padding: const EdgeInsets.all(16),
       children: [
-        for (final section in sections)
-          FormSection(
-            title: section.title,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final (rowIndex, entry) in section.rows.indexed) ...[
-                  if (rowIndex > 0) const SizedBox(height: 12),
-                  _MediaDetailRow(entry: entry),
-                ],
-              ],
-            ),
+        linkedInformation.when(
+          data: (information) => information == null
+              ? const SizedBox.shrink()
+              : _MediaDetailSectionView(
+                  section: _MediaDetailSection(
+                    title: 'Linked information',
+                    rows: information.fields
+                        .map((field) => MapEntry(field.label, field.value))
+                        .toList(growable: false),
+                  ),
+                ),
+          loading: () => const FormSection(
+            title: 'Linked information',
+            child: Center(child: CircularProgressIndicator()),
           ),
+          error: (error, stack) => FormSection(
+            title: 'Linked information',
+            child: Text('Linked information is unavailable: $error'),
+          ),
+        ),
+        for (final section in sections)
+          _MediaDetailSectionView(section: section),
       ],
     );
   }
@@ -81,6 +99,28 @@ class MediaDetailsView extends ConsumerWidget {
       return rawValue ?? '';
     }
     return '${value.date} ${value.time}'.trim();
+  }
+}
+
+class _MediaDetailSectionView extends StatelessWidget {
+  const _MediaDetailSectionView({required this.section});
+
+  final _MediaDetailSection section;
+
+  @override
+  Widget build(BuildContext context) {
+    return FormSection(
+      title: section.title,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (rowIndex, entry) in section.rows.indexed) ...[
+            if (rowIndex > 0) const SizedBox(height: 12),
+            _MediaDetailRow(entry: entry),
+          ],
+        ],
+      ),
+    );
   }
 }
 

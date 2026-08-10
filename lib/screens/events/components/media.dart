@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
 import 'package:nahpu/screens/shared/media/media_gallery.dart';
+import 'package:nahpu/screens/shared/media/audio_recorder.dart';
+import 'package:nahpu/screens/shared/media/media_capture.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/providers/collevents.dart';
@@ -24,7 +26,8 @@ class EventMediaForm extends ConsumerWidget {
                 showMediaGallery(context, initialCategory: MediaCategory.event),
             onAddFromGallery: () => _addFromGallery(context, ref),
             onAddFromFiles: () => _addFromFiles(context, ref),
-            onAccessingCamera: () => _addFromCamera(context, ref),
+            onTakeMedia: () => _takeMedia(context, ref),
+            onRecordAudio: () => _recordAudio(context, ref),
           ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Center(child: Text(error.toString())),
@@ -36,7 +39,7 @@ class EventMediaForm extends ConsumerWidget {
       final files = await ImageServices(
         ref: ref,
         category: MediaCategory.event,
-      ).pickFromGallery();
+      ).pickMediaFromGallery();
       if (files.isNotEmpty) {
         await CollEventServices(
           ref: ref,
@@ -59,15 +62,27 @@ class EventMediaForm extends ConsumerWidget {
     });
   }
 
-  Future<void> _addFromCamera(BuildContext context, WidgetRef ref) async {
+  Future<void> _takeMedia(BuildContext context, WidgetRef ref) async {
     await _guard(context, () async {
+      final captured = await showMediaCapture(context);
+      if (captured == null) return;
       final file = await ImageServices(
         ref: ref,
         category: MediaCategory.event,
-      ).accessCamera();
-      if (file != null) {
-        await CollEventServices(ref: ref).createEventMedia(eventId, file);
-      }
+      ).importCapturedMedia(captured);
+      await CollEventServices(ref: ref).createEventMedia(eventId, file);
+    });
+  }
+
+  Future<void> _recordAudio(BuildContext context, WidgetRef ref) async {
+    await _guard(context, () async {
+      final recording = await showAudioRecorder(context);
+      if (recording == null) return;
+      final file = await ImageServices(
+        ref: ref,
+        category: MediaCategory.event,
+      ).importCapturedMedia(recording);
+      await CollEventServices(ref: ref).createEventMedia(eventId, file);
     });
   }
 

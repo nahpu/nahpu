@@ -13,6 +13,22 @@ import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/utility_services.dart';
 import 'package:path/path.dart';
 
+String formatSiteName(SiteData site) {
+  return [
+        site.country,
+        site.stateProvince,
+        site.county,
+        site.municipality,
+        site.locality,
+      ]
+      .whereType<String>()
+      .map((part) => part.trim())
+      .where((part) {
+        return part.isNotEmpty;
+      })
+      .join(', ');
+}
+
 class SiteServices extends AppServices {
   const SiteServices({required super.ref});
 

@@ -23,21 +23,25 @@ import 'package:path/path.dart' as path;
 
 const int imageSize = 300;
 
+typedef MediaActionCallback = Future<void> Function();
+
 class MediaViewer extends ConsumerStatefulWidget {
   const MediaViewer({
     super.key,
     required this.images,
     required this.onAddFromGallery,
     required this.onAddFromFiles,
-    required this.onAccessingCamera,
+    required this.onTakeMedia,
+    required this.onRecordAudio,
     required this.onOpenGallery,
     this.contentHeight,
   });
 
   final List<MediaData> images;
-  final VoidCallback onAddFromGallery;
-  final VoidCallback onAddFromFiles;
-  final VoidCallback onAccessingCamera;
+  final MediaActionCallback onAddFromGallery;
+  final MediaActionCallback onAddFromFiles;
+  final MediaActionCallback onTakeMedia;
+  final MediaActionCallback onRecordAudio;
   final VoidCallback onOpenGallery;
   final double? contentHeight;
 
@@ -76,10 +80,22 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
                 isCentered: false,
                 infoContent: MediaInfoContent(),
               ),
-              MediaButton(
-                onAddFromGallery: widget.onAddFromGallery,
-                onAddFromFiles: widget.onAddFromFiles,
-                onAccessingCamera: widget.onAccessingCamera,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton.icon(
+                    onPressed: widget.onOpenGallery,
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: const Text('Gallery'),
+                  ),
+                  const SizedBox(width: 8),
+                  MediaButton(
+                    onAddFromGallery: widget.onAddFromGallery,
+                    onAddFromFiles: widget.onAddFromFiles,
+                    onTakeMedia: widget.onTakeMedia,
+                    onRecordAudio: widget.onRecordAudio,
+                  ),
+                ],
               ),
             ],
           ),
@@ -108,11 +124,6 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
                       _selectedMedia.clear();
                     });
                   },
-            leadingAction: TextButton.icon(
-              onPressed: widget.onOpenGallery,
-              icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Gallery'),
-            ),
           ),
         ),
         SizedBox(
@@ -199,80 +210,115 @@ class EmptyMedia extends StatelessWidget {
   }
 }
 
-/// Display options to add media.
-/// On mobile, secondary action opens gallery/files and primary action opens camera.
-/// On desktop, primary action opens the file picker.
+enum MediaAddSource { takeMedia, recordAudio, gallery, file }
+
+List<MediaAddSource> mediaAddSourcesForPlatform(PlatformType platform) {
+  return [
+    if (platform == PlatformType.mobile) MediaAddSource.takeMedia,
+    MediaAddSource.recordAudio,
+    if (platform == PlatformType.mobile) MediaAddSource.gallery,
+    MediaAddSource.file,
+  ];
+}
+
 class MediaButton extends StatelessWidget {
   const MediaButton({
     super.key,
     required this.onAddFromGallery,
     required this.onAddFromFiles,
-    required this.onAccessingCamera,
+    required this.onTakeMedia,
+    required this.onRecordAudio,
+    this.platformOverride,
   });
 
-  final VoidCallback onAddFromGallery;
-  final VoidCallback onAddFromFiles;
-  final VoidCallback onAccessingCamera;
+  final MediaActionCallback onAddFromGallery;
+  final MediaActionCallback onAddFromFiles;
+  final MediaActionCallback onTakeMedia;
+  final MediaActionCallback onRecordAudio;
+  final PlatformType? platformOverride;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.start,
-      spacing: 8,
-      children: [
-        systemPlatform == PlatformType.mobile
-            ? IconButton(
-                onPressed: () {
-                  _showImportSourceSheet(context);
-                },
-                icon: const Icon(Icons.add),
-              )
-            : const SizedBox.shrink(),
-        PrimaryIconButton(
-          onPressed: systemPlatform == PlatformType.mobile
-              ? onAccessingCamera
-              : onAddFromFiles,
-          icon: systemPlatform == PlatformType.mobile
-              ? Icons.camera_alt_outlined
-              : Icons.attach_file_outlined,
-        ),
-      ],
+    return PrimaryButton(
+      onPressed: () => _showImportSourcePicker(context),
+      label: 'Add',
+      icon: Icons.add,
     );
   }
 
-  void _showImportSourceSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
-                title: const Text('Gallery'),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  onAddFromGallery();
-                },
+  Future<void> _showImportSourcePicker(BuildContext context) async {
+    final sources = mediaAddSourcesForPlatform(
+      platformOverride ?? systemPlatform,
+    );
+    final source = MediaQuery.sizeOf(context).width < 600
+        ? await showModalBottomSheet<MediaAddSource>(
+            context: context,
+            showDragHandle: true,
+            builder: (context) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final source in sources)
+                    _MediaAddSourceTile(source: source),
+                  const SizedBox(height: 8),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.folder_open_outlined),
-                title: const Text('Files'),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  onAddFromFiles();
-                },
+            ),
+          )
+        : await showDialog<MediaAddSource>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Add media'),
+              contentPadding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+              content: SizedBox(
+                width: 400,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final source in sources)
+                      _MediaAddSourceTile(source: source),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
+            ),
+          );
+    if (source == null) return;
+    await switch (source) {
+      MediaAddSource.takeMedia => onTakeMedia(),
+      MediaAddSource.recordAudio => onRecordAudio(),
+      MediaAddSource.gallery => onAddFromGallery(),
+      MediaAddSource.file => onAddFromFiles(),
+    };
+  }
+}
+
+class _MediaAddSourceTile extends StatelessWidget {
+  const _MediaAddSourceTile({required this.source});
+
+  final MediaAddSource source;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: () => Navigator.of(context).pop(source),
+      leading: Icon(_icon),
+      title: Text(_label),
     );
   }
+
+  IconData get _icon => switch (source) {
+    MediaAddSource.takeMedia => Icons.photo_camera_outlined,
+    MediaAddSource.recordAudio => Icons.mic_none,
+    MediaAddSource.gallery => Icons.photo_library_outlined,
+    MediaAddSource.file => Icons.folder_open_outlined,
+  };
+
+  String get _label => switch (source) {
+    MediaAddSource.takeMedia => 'Take photos/videos',
+    MediaAddSource.recordAudio => 'Record audio',
+    MediaAddSource.gallery => 'Add from gallery',
+    MediaAddSource.file => 'Add from file',
+  };
 }
 
 class MediaViewerBuilder extends StatelessWidget {
@@ -651,7 +697,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Edit media'),
         content: SizedBox(
-          width: 480,
+          width: 560,
           child: MediaEditForm(
             media: widget.media,
             onClose: () => Navigator.of(dialogContext).pop(),
@@ -960,9 +1006,9 @@ class MediaInfoContent extends StatelessWidget {
       content: [
         InfoContent(
           content:
-              'Media files of the project.'
-              ' On mobile, gallery and camera import images only.'
-              ' Use Files to import audio and video.',
+              'Media files of the project. Use Add to take photos or videos,'
+              ' record audio, or import supported media. Camera and gallery'
+              ' actions are available on Android and iOS.',
         ),
       ],
     );

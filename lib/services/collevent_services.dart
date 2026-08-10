@@ -13,6 +13,15 @@ import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:path/path.dart' show basename;
 
+String formatCollEventId(CollEventData event, SiteData? site) {
+  final siteId = site?.siteID ?? '';
+  final startDate = event.startDate ?? '';
+  final suffix = event.idSuffix?.trim().isNotEmpty ?? false
+      ? '-${event.idSuffix}'
+      : '';
+  return '$siteId-$startDate$suffix';
+}
+
 class CollEventServices extends AppServices {
   const CollEventServices({required super.ref});
 
@@ -36,15 +45,7 @@ class CollEventServices extends AppServices {
 
   Future<String> getCollEventID(CollEventData collEventData) async {
     final site = await SiteServices(ref: ref).getSite(collEventData.siteID);
-    String siteID = site != null ? site.siteID ?? '' : '';
-    String startDate = collEventData.startDate != null
-        ? collEventData.startDate.toString()
-        : '';
-    String suffix =
-        collEventData.idSuffix != null && collEventData.idSuffix!.isNotEmpty
-        ? '-${collEventData.idSuffix ?? ''}'
-        : '';
-    return '$siteID-$startDate$suffix';
+    return formatCollEventId(collEventData, site);
   }
 
   Future<List<CollEventData>> getAllCollEvents() async {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 class SiteNameDisplay extends ConsumerWidget {
@@ -25,7 +25,7 @@ class SiteNameDisplay extends ConsumerWidget {
               return const SizedBox.shrink();
             }
 
-            final siteName = _formatSiteName(matches.first);
+            final siteName = formatSiteName(matches.first);
             if (siteName.isEmpty) {
               return const SizedBox.shrink();
             }
@@ -58,21 +58,5 @@ class SiteNameDisplay extends ConsumerWidget {
           },
           orElse: () => const SizedBox.shrink(),
         );
-  }
-
-  String _formatSiteName(SiteData site) {
-    return [
-          site.country,
-          site.stateProvince,
-          site.county,
-          site.municipality,
-          site.locality,
-        ]
-        .whereType<String>()
-        .map((part) => part.trim())
-        .where((part) {
-          return part.isNotEmpty;
-        })
-        .join(', ');
   }
 }
