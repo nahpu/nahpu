@@ -236,7 +236,7 @@ class _FakeTextCaseFmtNotifier extends TextCaseFmtNotifier {
   Future<TextCaseFmt> build() async => TextCaseFmt.anyCase;
 
   @override
-  Future<void> set(String prefKey, TextCaseFmt fmt) async {
+  Future<void> set(TextCaseFmt fmt) async {
     state = AsyncData(fmt);
   }
 }

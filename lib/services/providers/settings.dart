@@ -225,15 +225,15 @@ final userDefinedFieldProvider = AsyncNotifierProvider.family
     .autoDispose<UserDefinedField, List<String>, String>(UserDefinedField.new);
 
 class UserDefinedField extends AsyncNotifier<List<String>> {
-  UserDefinedField(this.prefKey);
-  final String prefKey;
+  UserDefinedField(this._prefKey);
+  final String _prefKey;
 
   Future<List<String>> _fetchSettings() async {
-    final optionList = await rust_config.getUserConfigList(key: prefKey);
-    List<String> currentOptions = optionList ?? getDefaultOptionsList(prefKey);
+    final optionList = await rust_config.getUserConfigList(key: _prefKey);
+    List<String> currentOptions = optionList ?? getDefaultOptionsList(_prefKey);
 
     if (optionList == null) {
-      await rust_config.setUserConfigList(key: prefKey, value: currentOptions);
+      await rust_config.setUserConfigList(key: _prefKey, value: currentOptions);
     }
 
     return currentOptions;
@@ -248,13 +248,13 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     if (newOption.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final optionList = await rust_config.getUserConfigList(key: prefKey);
+      final optionList = await rust_config.getUserConfigList(key: _prefKey);
       if (optionList != null && isListContains(optionList, newOption)) {
         return optionList;
       }
 
       List<String> newList = [...optionList ?? [], newOption];
-      await rust_config.setUserConfigList(key: prefKey, value: newList);
+      await rust_config.setUserConfigList(key: _prefKey, value: newList);
       return newList;
     });
   }
@@ -262,7 +262,7 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
   Future<void> replaceAll(List<String> newOptions) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await rust_config.setUserConfigList(key: prefKey, value: newOptions);
+      await rust_config.setUserConfigList(key: _prefKey, value: newOptions);
       return newOptions;
     });
   }
@@ -271,13 +271,13 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
     if (option.isEmpty) return;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final optionsList = await rust_config.getUserConfigList(key: prefKey);
+      final optionsList = await rust_config.getUserConfigList(key: _prefKey);
       if (optionsList == null || optionsList.isEmpty) return [];
 
       if (!optionsList.contains(option)) return optionsList;
 
       List<String> newOptions = [...optionsList]..remove(option);
-      await rust_config.setUserConfigList(key: prefKey, value: newOptions);
+      await rust_config.setUserConfigList(key: _prefKey, value: newOptions);
       return newOptions;
     });
   }
@@ -285,7 +285,7 @@ class UserDefinedField extends AsyncNotifier<List<String>> {
   Future<void> clear() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await rust_config.deleteUserConfig(key: prefKey);
+      await rust_config.deleteUserConfig(key: _prefKey);
       return [];
     });
   }
@@ -297,13 +297,13 @@ final textCaseFmtNotifierProvider = AsyncNotifierProvider.family
     );
 
 class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
-  TextCaseFmtNotifier(this.prefKey);
-  final String prefKey;
+  TextCaseFmtNotifier(this._prefKey);
+  final String _prefKey;
 
   Future<TextCaseFmt> _fetchSettings() async {
-    final fmtString = await rust_config.getUserConfigString(key: prefKey);
+    final fmtString = await rust_config.getUserConfigString(key: _prefKey);
 
-    final defaultFormat = prefKey == conditionFmtPrefKey
+    final defaultFormat = _prefKey == conditionFmtPrefKey
         ? TextCaseFmt.sentenceCase
         : TextCaseFmt.anyCase;
     TextCaseFmt fmt = TextCaseFmt.values.byName(
@@ -311,7 +311,7 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
     );
 
     if (fmtString == null) {
-      await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
+      await rust_config.setUserConfigString(key: _prefKey, value: fmt.name);
     }
 
     return fmt;
@@ -322,18 +322,18 @@ class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
     return await _fetchSettings();
   }
 
-  Future<void> set(String prefKey, TextCaseFmt fmt) async {
+  Future<void> set(TextCaseFmt fmt) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final fmtString = await rust_config.getUserConfigString(key: prefKey);
-      final defaultFormat = prefKey == conditionFmtPrefKey
+      final fmtString = await rust_config.getUserConfigString(key: _prefKey);
+      final defaultFormat = _prefKey == conditionFmtPrefKey
           ? TextCaseFmt.sentenceCase
           : TextCaseFmt.anyCase;
       final setFmt = TextCaseFmt.values.byName(fmtString ?? defaultFormat.name);
 
       if (setFmt == fmt) return fmt;
 
-      await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
+      await rust_config.setUserConfigString(key: _prefKey, value: fmt.name);
       return fmt;
     });
   }

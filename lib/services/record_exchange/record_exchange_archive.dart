@@ -28,7 +28,7 @@ class RecordExchangeArchiveService extends AppServices {
     if (archiveFormat == null) {
       if (payload.hasMedia) {
         throw const FormatException(
-          'Specimen media must be exported in a compressed archive.',
+          'Linked media must be exported in a compressed archive.',
         );
       }
       final output = await AppIOServices(
@@ -41,7 +41,7 @@ class RecordExchangeArchiveService extends AppServices {
     }
     if (payload.hasMedia && payload.mediaFiles.length != payload.mediaCount) {
       throw const FormatException(
-        'The specimen media manifest does not contain every media file.',
+        'The media manifest does not contain every linked media file.',
       );
     }
 
@@ -58,7 +58,9 @@ class RecordExchangeArchiveService extends AppServices {
       await recordFile.writeAsString(payload.encoded);
       final archiveFiles = <String>[recordFile.path];
       for (final media in payload.mediaFiles) {
-        final target = File(path.join(staging.path, media.archivePath));
+        final target = File(
+          path.joinAll([staging.path, ...path.posix.split(media.archivePath)]),
+        );
         await target.parent.create(recursive: true);
         await File(media.sourcePath).copy(target.path);
         archiveFiles.add(target.path);
@@ -91,14 +93,17 @@ class RecordExchangeArchiveService extends AppServices {
     }
   }
 
-  Future<RecordExchangeArchiveFile> read(XFile input) async {
+  Future<RecordExchangeArchiveFile> read(
+    XFile input, {
+    required RecordExchangeType expectedType,
+  }) async {
     final inputFile = File(input.path);
     final extension = inputFile.path.toLowerCase();
     if (extension.endsWith('.json')) {
       return RecordExchangeArchiveFile(
         payload: RecordExchangePayload.parse(
           await inputFile.readAsString(),
-          expectedType: 'specimen',
+          expectedType: expectedType.wireName,
         ),
       );
     }
@@ -140,7 +145,7 @@ class RecordExchangeArchiveService extends AppServices {
       return RecordExchangeArchiveFile(
         payload: RecordExchangePayload.parse(
           await recordFile.readAsString(),
-          expectedType: 'specimen',
+          expectedType: expectedType.wireName,
         ),
         extractedMediaDirectory: extraction,
       );

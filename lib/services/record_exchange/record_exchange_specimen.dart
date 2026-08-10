@@ -252,7 +252,7 @@ class RecordExchangeSpecimen extends AppServices {
       if (!source.existsSync()) {
         throw FormatException('Media file is missing: ${media.fileName}');
       }
-      final archivePath = path.join(
+      final archivePath = path.posix.join(
         'media',
         '$mediaId-${path.basename(media.fileName!)}',
       );
@@ -520,14 +520,19 @@ class RecordExchangeSpecimen extends AppServices {
       );
       final normalizedPath = archivePath == null
           ? null
-          : path.normalize(archivePath);
+          : path.posix.normalize(archivePath);
       if (archivePath == null ||
-          path.isAbsolute(archivePath) ||
+          path.posix.isAbsolute(archivePath) ||
           normalizedPath != archivePath ||
-          !archivePath.startsWith('media${path.separator}')) {
+          !archivePath.startsWith('media/')) {
         throw const FormatException('Media archive path is invalid.');
       }
-      final source = File(path.join(extractedMediaDirectory.path, archivePath));
+      final source = File(
+        path.joinAll([
+          extractedMediaDirectory.path,
+          ...path.posix.split(archivePath),
+        ]),
+      );
       if (!source.existsSync()) {
         throw FormatException('Media archive file is missing: $archivePath');
       }

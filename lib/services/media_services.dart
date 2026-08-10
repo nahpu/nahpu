@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
@@ -10,6 +11,7 @@ import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/types/import.dart';
@@ -24,7 +26,10 @@ class MediaServices extends AppServices {
   }
 
   Future<void> updateMedia(
-      int mediaID, String category, MediaCompanion form) async {
+    int mediaID,
+    String category,
+    MediaCompanion form,
+  ) async {
     await MediaDbQuery(dbAccess).updateMedia(mediaID, form);
     MediaCategory mediaCategory = matchMediaCategoryString(category);
     _invalidateMedia(mediaCategory);
@@ -47,13 +52,19 @@ class MediaServices extends AppServices {
     return MediaDbQuery(dbAccess).getMediaByProject(currentProjectUuid);
   }
 
-  Future<void> renameMedia(int mediaID, String oldName, String newName,
-      MediaCategory category) async {
+  Future<void> renameMedia(
+    int mediaID,
+    String oldName,
+    String newName,
+    MediaCategory category,
+  ) async {
     if (oldName == newName || newName.isEmpty) {
       return;
     }
-    File oldPath =
-        await ImageServices(ref: ref, category: category).getMediaPath(oldName);
+    File oldPath = await ImageServices(
+      ref: ref,
+      category: category,
+    ).getMediaPath(oldName);
     if (!oldPath.existsSync()) {
       throw Exception('File not found');
     }
@@ -61,18 +72,18 @@ class MediaServices extends AppServices {
     String ext = path.extension(oldPath.path);
     newName = newName.contains(' ') ? newName.replaceAll(' ', '_') : newName;
     String finalName = newName + ext;
-    File newPath = await ImageServices(ref: ref, category: category)
-        .getMediaPath(finalName);
+    File newPath = await ImageServices(
+      ref: ref,
+      category: category,
+    ).getMediaPath(finalName);
     if (newPath.existsSync()) {
       throw Exception('File exists');
     }
     try {
       await oldPath.rename(newPath.path);
-      await MediaDbQuery(dbAccess).updateMedia(
-          mediaID,
-          MediaCompanion(
-            fileName: db.Value(finalName),
-          ));
+      await MediaDbQuery(
+        dbAccess,
+      ).updateMedia(mediaID, MediaCompanion(fileName: db.Value(finalName)));
     } catch (e) {
       throw Exception('Failed to rename file');
     }
@@ -80,11 +91,92 @@ class MediaServices extends AppServices {
     _invalidateMedia(category);
   }
 
+  Future<void> updateMediaDetails({
+    required MediaData media,
+    required String fileName,
+    required String caption,
+    required String tag,
+    required String? personnelId,
+  }) async {
+    final category = matchMediaCategoryString(media.category ?? '');
+    final oldName = media.fileName ?? '';
+    var normalizedName = fileName.trim().replaceAll(' ', '_');
+    if (normalizedName.isEmpty) {
+      throw Exception('File name cannot be empty');
+    }
+    if (path.basename(normalizedName) != normalizedName) {
+      throw Exception('File name cannot contain a path');
+    }
+
+    final extension = path.extension(oldName);
+    if (normalizedName.toLowerCase().endsWith(extension.toLowerCase())) {
+      normalizedName = path.basenameWithoutExtension(normalizedName);
+    }
+    final finalName = '$normalizedName$extension';
+    File? oldPath;
+    File? newPath;
+    var renamed = false;
+    if (finalName != oldName) {
+      oldPath = await ImageServices(
+        ref: ref,
+        category: category,
+      ).getMediaPath(oldName);
+      if (!await oldPath.exists()) {
+        throw Exception('File not found');
+      }
+      newPath = await ImageServices(
+        ref: ref,
+        category: category,
+      ).getMediaPath(finalName);
+      if (await newPath.exists()) {
+        throw Exception('File exists');
+      }
+      await oldPath.rename(newPath.path);
+      renamed = true;
+    }
+
+    try {
+      await MediaDbQuery(dbAccess).updateMedia(
+        media.primaryId,
+        MediaCompanion(
+          fileName: db.Value(finalName),
+          caption: db.Value(caption.trim().isEmpty ? null : caption.trim()),
+          tag: db.Value(tag.trim().isEmpty ? null : tag.trim()),
+          personnelId: db.Value(personnelId),
+        ),
+      );
+    } catch (_) {
+      if (renamed &&
+          newPath != null &&
+          oldPath != null &&
+          await newPath.exists()) {
+        await newPath.rename(oldPath.path);
+      }
+      rethrow;
+    }
+    _invalidateMedia(category);
+  }
+
   Future<void> deleteMedia(int id, String category) async {
     MediaCategory mediaCategory = matchMediaCategoryString(category);
-    await _deleteMatchingCategory(id, mediaCategory);
-    await MediaDbQuery(dbAccess).deleteMedia(id);
+    await _deleteMedia(id, mediaCategory);
     _invalidateMedia(mediaCategory);
+  }
+
+  Future<void> deleteMediaFromList(List<int> ids, String category) async {
+    if (ids.isEmpty) return;
+    final mediaCategory = matchMediaCategoryString(category);
+    await dbAccess.transaction(() async {
+      for (final id in ids) {
+        await _deleteMedia(id, mediaCategory);
+      }
+    });
+    _invalidateMedia(mediaCategory);
+  }
+
+  Future<void> _deleteMedia(int id, MediaCategory category) async {
+    await _deleteMatchingCategory(id, category);
+    await MediaDbQuery(dbAccess).deleteMedia(id);
   }
 
   Future<void> _deleteMatchingCategory(int id, MediaCategory category) async {
@@ -92,6 +184,9 @@ class MediaServices extends AppServices {
       case MediaCategory.narrative:
         await NarrativeQuery(dbAccess).deleteNarrativeMedia(id);
 
+        break;
+      case MediaCategory.event:
+        await CollEventQuery(dbAccess).deleteEventMedia(id);
         break;
       case MediaCategory.site:
         await SiteQuery(dbAccess).deleteSiteMedia(id);
@@ -111,6 +206,9 @@ class MediaServices extends AppServices {
       case MediaCategory.narrative:
         ref.invalidate(narrativeMediaProvider);
         break;
+      case MediaCategory.event:
+        ref.invalidate(eventMediaProvider);
+        break;
       case MediaCategory.site:
         ref.invalidate(siteMediaProvider);
         break;
@@ -127,8 +225,9 @@ class MediaFinder extends AppServices {
   const MediaFinder({required super.ref});
 
   Future<List<File>> getAllMedia() async {
-    final List<MediaData> mediaList =
-        await MediaServices(ref: ref).getAllMedia();
+    final List<MediaData> mediaList = await MediaServices(
+      ref: ref,
+    ).getAllMedia();
     final mediaPath = await _getAllPathForMedia(mediaList);
 
     final personnelPath = await getAllPersonnelMedia();
@@ -136,21 +235,21 @@ class MediaFinder extends AppServices {
       print('Found ${mediaPath.length} media files');
       print('Found ${personnelPath.length} personnel files');
     }
-    return [
-      ...mediaPath,
-      ...personnelPath,
-    ];
+    return [...mediaPath, ...personnelPath];
   }
 
   Future<List<File>> getAllPersonnelMedia() async {
-    List<PersonnelData> personnelList =
-        await PersonnelServices(ref: ref).getAllPersonnel();
+    List<PersonnelData> personnelList = await PersonnelServices(
+      ref: ref,
+    ).getAllPersonnel();
     final List<File> mediaPaths = [];
     for (final personnel in personnelList) {
       if (personnel.photoPath != null &&
           !personnel.photoPath!.startsWith(avatarPath)) {
         final mediaPath = await getPathForPersonnel(
-            personnel.photoPath!, MediaCategory.personnel);
+          personnel.photoPath!,
+          MediaCategory.personnel,
+        );
         _checkPath(mediaPath);
         mediaPaths.add(mediaPath);
       }
@@ -159,14 +258,17 @@ class MediaFinder extends AppServices {
   }
 
   Future<List<File>> getAllPersonnelMediaByProject() async {
-    List<PersonnelData> personnelList = await PersonnelServices(ref: ref)
-        .getPersonnelByProjectUuid(currentProjectUuid);
+    List<PersonnelData> personnelList = await PersonnelServices(
+      ref: ref,
+    ).getPersonnelByProjectUuid(currentProjectUuid);
     final List<File> mediaPaths = [];
     for (final personnel in personnelList) {
       if (personnel.photoPath != null &&
           !personnel.photoPath!.startsWith(avatarPath)) {
         final mediaPath = await getPathForPersonnel(
-            personnel.photoPath!, MediaCategory.personnel);
+          personnel.photoPath!,
+          MediaCategory.personnel,
+        );
         _checkPath(mediaPath);
         mediaPaths.add(mediaPath);
       }
@@ -175,8 +277,9 @@ class MediaFinder extends AppServices {
   }
 
   Future<List<File>> getAllMediaFileByProject() async {
-    final List<MediaData> mediaData =
-        await MediaServices(ref: ref).getAllMediaByProject();
+    final List<MediaData> mediaData = await MediaServices(
+      ref: ref,
+    ).getAllMediaByProject();
     final mediaPaths = await _getAllPathForMedia(mediaData);
     final personnelPaths = await getAllPersonnelMediaByProject();
     return mediaPaths + personnelPaths;
@@ -188,7 +291,9 @@ class MediaFinder extends AppServices {
   }
 
   Future<File> getPathForPersonnel(
-      String filePath, MediaCategory category) async {
+    String filePath,
+    MediaCategory category,
+  ) async {
     Directory mediaDir = getMediaDir(category);
     Directory appDir = await nahpuDocumentDir;
     String fullPath = path.join(appDir.path, mediaDir.path, filePath);
@@ -200,8 +305,9 @@ class MediaFinder extends AppServices {
     for (final media in data) {
       if (media.fileName != null && media.category != null) {
         final category = matchMediaCategoryString(media.category!);
-        Directory projectDir = await FileServices(ref: ref)
-            .getProjectDirByUUID(media.projectUuid!);
+        Directory projectDir = await FileServices(
+          ref: ref,
+        ).getProjectDirByUUID(media.projectUuid!);
         File mediaPath = _getMediaPath(projectDir, media.fileName!, category);
         if (kDebugMode) print(mediaPath.path);
         if (_checkPath(mediaPath)) {
@@ -218,7 +324,10 @@ class MediaFinder extends AppServices {
   }
 
   File _getMediaPath(
-      Directory projectDir, String filePath, MediaCategory category) {
+    Directory projectDir,
+    String filePath,
+    MediaCategory category,
+  ) {
     Directory mediaDir = getMediaDir(category);
     String fullPath = path.join(projectDir.path, mediaDir.path, filePath);
     return File(fullPath);

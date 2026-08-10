@@ -20,6 +20,7 @@
 ///     └── <project_uuid>/                # Individual project directories
 ///         └── media/                     # Project-specific media files (`mediaDir`)
 ///             ├── site/                  # Site photos/media
+///             ├── event/                 # Event photos/media
 ///             ├── specimen/              # Specimen photos/media
 ///             └── narrative/             # Narrative photos/media
 ///
@@ -286,6 +287,8 @@ class AppServices {
     switch (category) {
       case MediaCategory.site:
         return Directory('$mediaDir/site');
+      case MediaCategory.event:
+        return Directory('$mediaDir/event');
       case MediaCategory.specimen:
         return Directory('$mediaDir/specimen');
       case MediaCategory.narrative:

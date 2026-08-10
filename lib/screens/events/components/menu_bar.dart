@@ -163,7 +163,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
         title: 'Delete collecting event?',
         deletePrompt:
             'You will also delete collecting effort'
-            ', collecting personnel, and weather data in this event.',
+            ', collecting personnel, weather data, and media in this event.',
         onDelete: () async {
           try {
             await CollEventServices(
@@ -206,7 +206,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       deletePrompt:
           'Deleting all collecting events will also delete all associated'
           ' collecting effort, collecting personnel, '
-          'and weather data from the database.',
+          'weather data, and media from the database.',
       onDelete: () async {
         try {
           final service = CollEventServices(ref: ref);

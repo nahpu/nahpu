@@ -66,9 +66,7 @@ Future<void> _showCaseFormatPicker(
         );
 
   if (!context.mounted || selected == null) return;
-  await ref
-      .read(textCaseFmtNotifierProvider(prefKey).notifier)
-      .set(prefKey, selected);
+  await ref.read(textCaseFmtNotifierProvider(prefKey).notifier).set(selected);
 }
 
 class _CaseFormatPicker extends ConsumerWidget {

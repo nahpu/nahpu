@@ -7,12 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/media_services.dart';
+import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/narrative.dart';
@@ -29,12 +31,13 @@ void main() {
   late Database db;
 
   setUp(() {
-    tempAppDir =
-        Directory.systemTemp.createTempSync('nahpu-media-storage-test');
+    tempAppDir = Directory.systemTemp.createTempSync(
+      'nahpu-media-storage-test',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProviderChannel, (_) async {
-      return tempAppDir.path;
-    });
+          return tempAppDir.path;
+        });
     db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
   });
 
@@ -54,8 +57,11 @@ void main() {
     final sourceFile = _createTempFile('narrative-audio.mp3', [1, 2, 3]);
     addTearDown(() => _safeDelete(sourceFile));
 
-    await tester.runAsync(() => NarrativeServices(ref: ref)
-        .createNarrativeMediaFromList(narrativeId, [sourceFile.path]));
+    await tester.runAsync(
+      () => NarrativeServices(
+        ref: ref,
+      ).createNarrativeMediaFromList(narrativeId, [sourceFile.path]),
+    );
 
     final mediaRows = await MediaDbQuery(db).getMediaByProject(projectUuid);
     expect(mediaRows, hasLength(1));
@@ -80,7 +86,8 @@ void main() {
     addTearDown(() => _safeDelete(sourceFile));
 
     await tester.runAsync(
-        () => SiteServices(ref: ref).createSiteMedia(siteId, sourceFile.path));
+      () => SiteServices(ref: ref).createSiteMedia(siteId, sourceFile.path),
+    );
 
     final mediaRows = await MediaDbQuery(db).getMediaByProject(projectUuid);
     expect(mediaRows, hasLength(1));
@@ -104,8 +111,11 @@ void main() {
     final sourceFile = _createTempFile('specimen-doc.pdf', [8, 9, 10]);
     addTearDown(() => _safeDelete(sourceFile));
 
-    await tester.runAsync(() => SpecimenServices(ref: ref)
-        .createSpecimenMediaFromList(specimenUuid, [sourceFile.path]));
+    await tester.runAsync(
+      () => SpecimenServices(
+        ref: ref,
+      ).createSpecimenMediaFromList(specimenUuid, [sourceFile.path]),
+    );
 
     final mediaRows = await MediaDbQuery(db).getMediaByProject(projectUuid);
     expect(mediaRows, hasLength(1));
@@ -122,6 +132,41 @@ void main() {
     expect(links.single.mediaId, media.primaryId);
   });
 
+  testWidgets('stores non-image event media and join row', (tester) async {
+    const projectUuid = 'proj-event-media';
+    final ref = await _buildRef(tester, db, projectUuid);
+    final eventId = await _seedEvent(db, projectUuid);
+    final sourceFile = _createTempFile('event-audio.wav', [11, 12, 13]);
+    addTearDown(() => _safeDelete(sourceFile));
+
+    await tester.runAsync(
+      () => CollEventServices(
+        ref: ref,
+      ).createEventMedia(eventId, sourceFile.path),
+    );
+
+    final mediaRows = await MediaDbQuery(db).getMediaByProject(projectUuid);
+    expect(mediaRows, hasLength(1));
+    final media = mediaRows.single;
+    expect(media.fileName, 'event-audio.wav');
+    expect(media.category, 'event');
+    expect(media.additionalExif ?? '', contains('Type: Audio'));
+
+    final links = await CollEventQuery(db).getEventMedia(eventId);
+    expect(links, hasLength(1));
+    expect(links.single.mediaId, media.primaryId);
+
+    final duplicatedEventId = await EventDuplicateService(
+      ref: ref,
+    ).duplicate(eventId);
+    expect(duplicatedEventId, isNotNull);
+    expect(await CollEventQuery(db).getEventMedia(duplicatedEventId!), isEmpty);
+
+    await CollEventServices(ref: ref).deleteCollEvent(eventId);
+    expect(await CollEventQuery(db).getEventMedia(eventId), isEmpty);
+    expect(MediaDbQuery(db).getMedia(media.primaryId), throwsStateError);
+  });
+
   testWidgets('media provider refreshes after deleting media', (tester) async {
     const projectUuid = 'proj-delete-media';
     final ref = await _buildRef(tester, db, projectUuid);
@@ -129,25 +174,33 @@ void main() {
     final sourceFile = _createTempFile('narrative-clip.mp4', [1, 2, 3]);
     addTearDown(() => _safeDelete(sourceFile));
 
-    await tester.runAsync(() => NarrativeServices(ref: ref)
-        .createNarrativeMediaFromList(narrativeId, [sourceFile.path]));
+    await tester.runAsync(
+      () => NarrativeServices(
+        ref: ref,
+      ).createNarrativeMediaFromList(narrativeId, [sourceFile.path]),
+    );
 
     // Keep the provider alive so its cache persists between reads,
     // mimicking the media grid watching it.
-    final subscription =
-        ref.listenManual(narrativeMediaProvider(narrativeId), (previous, next) {});
+    final subscription = ref.listenManual(
+      narrativeMediaProvider(narrativeId),
+      (previous, next) {},
+    );
     addTearDown(subscription.close);
 
     final before = await tester.runAsync(
-        () => ref.read(narrativeMediaProvider(narrativeId).future));
+      () => ref.read(narrativeMediaProvider(narrativeId).future),
+    );
     expect(before, hasLength(1));
     final mediaId = before!.single.primaryId;
 
     await tester.runAsync(
-        () => MediaServices(ref: ref).deleteMedia(mediaId, 'narrative'));
+      () => MediaServices(ref: ref).deleteMedia(mediaId, 'narrative'),
+    );
 
     final after = await tester.runAsync(
-        () => ref.read(narrativeMediaProvider(narrativeId).future));
+      () => ref.read(narrativeMediaProvider(narrativeId).future),
+    );
     expect(after, isEmpty);
   });
 }
@@ -179,10 +232,12 @@ Future<WidgetRef> _buildRef(
 }
 
 Future<int> _seedSite(Database db, String projectUuid) async {
-  await ProjectQuery(db).createProject(ProjectCompanion(
-    uuid: Value(projectUuid),
-    name: Value('Project $projectUuid'),
-  ));
+  await ProjectQuery(db).createProject(
+    ProjectCompanion(
+      uuid: Value(projectUuid),
+      name: Value('Project $projectUuid'),
+    ),
+  );
   return db
       .into(db.site)
       .insert(SiteCompanion(projectUuid: Value(projectUuid)));
@@ -200,13 +255,7 @@ Future<int> _seedNarrative(Database db, String projectUuid) async {
 }
 
 Future<String> _seedSpecimen(Database db, String projectUuid) async {
-  final siteId = await _seedSite(db, projectUuid);
-  final eventId = await db.into(db.collEvent).insert(
-        CollEventCompanion(
-          projectUuid: Value(projectUuid),
-          siteID: Value(siteId),
-        ),
-      );
+  final eventId = await _seedEvent(db, projectUuid);
 
   const specimenUuid = 'specimen-media-1';
   await SpecimenQuery(db).createSpecimen(
@@ -218,6 +267,18 @@ Future<String> _seedSpecimen(Database db, String projectUuid) async {
     ),
   );
   return specimenUuid;
+}
+
+Future<int> _seedEvent(Database db, String projectUuid) async {
+  final siteId = await _seedSite(db, projectUuid);
+  return db
+      .into(db.collEvent)
+      .insert(
+        CollEventCompanion(
+          projectUuid: Value(projectUuid),
+          siteID: Value(siteId),
+        ),
+      );
 }
 
 File _createTempFile(String fileName, List<int> bytes) {

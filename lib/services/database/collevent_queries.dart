@@ -50,6 +50,22 @@ class CollEventQuery extends DatabaseAccessor<Database>
         .getSingle();
   }
 
+  Future<void> createEventMedia(EventMediaCompanion form) {
+    return into(eventMedia).insert(form);
+  }
+
+  Future<List<EventMediaData>> getEventMedia(int eventId) {
+    return (select(eventMedia)..where((t) => t.eventID.equals(eventId))).get();
+  }
+
+  Future<void> deleteEventMedia(int mediaId) {
+    return (delete(eventMedia)..where((t) => t.mediaId.equals(mediaId))).go();
+  }
+
+  Future<void> deleteAllEventMedia(int eventId) {
+    return (delete(eventMedia)..where((t) => t.eventID.equals(eventId))).go();
+  }
+
   Future<void> deleteCollEvent(int id) {
     return (delete(collEvent)..where((t) => t.id.equals(id))).go();
   }

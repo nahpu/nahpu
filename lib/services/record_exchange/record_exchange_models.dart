@@ -153,6 +153,8 @@ class RecordExchangePayload {
         }
         mapList(linked['coordinates']);
       }
+      final media = data['media'];
+      if (media != null) mapList(media);
       return;
     }
 

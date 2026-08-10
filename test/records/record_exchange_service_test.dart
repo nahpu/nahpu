@@ -1,20 +1,37 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as path;
+import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
   late Database database;
+  late Directory tempAppDir;
   late WidgetRef widgetRef;
   late RecordExchangeService service;
 
   Future<void> setUpService(WidgetTester tester) async {
+    tempAppDir = Directory.systemTemp.createTempSync(
+      'nahpu-record-exchange-test',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(pathProviderChannel, (_) async {
+          return tempAppDir.path;
+        });
     database = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     WidgetRef? capturedRef;
     await tester.pumpWidget(
@@ -45,7 +62,12 @@ void main() {
   }
 
   Future<void> tearDownService() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(pathProviderChannel, null);
     await database.close();
+    if (tempAppDir.existsSync()) {
+      await tempAppDir.delete(recursive: true);
+    }
   }
 
   testWidgets('site package round-trips coordinates and referenced personnel', (
@@ -269,6 +291,141 @@ void main() {
     )..where((row) => row.id.equals(result.recordId))).getSingle();
     expect(importedEvent.siteID, result.createdSiteId);
   });
+
+  testWidgets(
+    'event archive carries media and only media payloads replace target media',
+    (tester) async {
+      await setUpService(tester);
+      addTearDown(tearDownService);
+      await database
+          .into(database.personnel)
+          .insert(
+            const PersonnelCompanion(
+              uuid: Value('photographer-a'),
+              name: Value('Photographer A'),
+            ),
+          );
+      final sourceEvent = await database
+          .into(database.collEvent)
+          .insert(
+            const CollEventCompanion(
+              projectUuid: Value('project-a'),
+              idSuffix: Value('MEDIA'),
+            ),
+          );
+      final sourceMediaId = await database
+          .into(database.media)
+          .insert(
+            const MediaCompanion(
+              projectUuid: Value('project-a'),
+              category: Value('event'),
+              fileName: Value('event-photo.jpg'),
+              caption: Value('Habitat overview'),
+              tag: Value('habitat'),
+              taken: Value('2026-08-09 14:30:00'),
+              camera: Value('NAHPU Camera'),
+              lenses: Value('35 mm'),
+              additionalExif: Value('ISO: 200'),
+              personnelId: Value('photographer-a'),
+            ),
+          );
+      await CollEventQuery(database).createEventMedia(
+        EventMediaCompanion(
+          eventID: Value(sourceEvent),
+          mediaId: Value(sourceMediaId),
+        ),
+      );
+      final eventMediaDirectory = Directory(
+        path.join(tempAppDir.path, 'nahpu', 'project-a', 'media', 'event'),
+      )..createSync(recursive: true);
+      File(
+        path.join(eventMediaDirectory.path, 'event-photo.jpg'),
+      ).writeAsBytesSync([1, 2, 3, 4]);
+
+      final mediaPayload = (await tester.runAsync(
+        () => service.exportEvent(sourceEvent, includeMedia: true),
+      ))!;
+      expect(mediaPayload.mediaCount, 1);
+      expect(mediaPayload.mediaFiles, hasLength(1));
+      expect(
+        RecordExchangePayload.mapList(
+          mediaPayload.data['personnel'],
+        ).single['uuid'],
+        'photographer-a',
+      );
+
+      final targetEvent = await database
+          .into(database.collEvent)
+          .insert(const CollEventCompanion(projectUuid: Value('project-a')));
+      final oldMediaId = await MediaDbQuery(database).createMedia(
+        const MediaCompanion(
+          projectUuid: Value('project-a'),
+          category: Value('event'),
+          fileName: Value('old.jpg'),
+        ),
+      );
+      await CollEventQuery(database).createEventMedia(
+        EventMediaCompanion(
+          eventID: Value(targetEvent),
+          mediaId: Value(oldMediaId),
+        ),
+      );
+
+      final metadataPayload = await service.exportEvent(sourceEvent);
+      await service.importPayload(metadataPayload, targetId: targetEvent);
+      expect(
+        (await CollEventQuery(
+          database,
+        ).getEventMedia(targetEvent)).single.mediaId,
+        oldMediaId,
+      );
+
+      final extraction = Directory(path.join(tempAppDir.path, 'extracted'));
+      final entry = RecordExchangePayload.mapList(
+        mediaPayload.data['media'],
+      ).single;
+      final archivePath = entry['archivePath'] as String;
+      final extractedFile = File(
+        path.joinAll([extraction.path, ...path.posix.split(archivePath)]),
+      );
+      extractedFile.parent.createSync(recursive: true);
+      extractedFile.writeAsBytesSync([1, 2, 3, 4]);
+
+      await tester.runAsync(
+        () => service.importPayload(
+          mediaPayload,
+          targetId: targetEvent,
+          extractedMediaDirectory: extraction,
+        ),
+      );
+
+      final targetLinks = await CollEventQuery(
+        database,
+      ).getEventMedia(targetEvent);
+      expect(targetLinks, hasLength(1));
+      expect(targetLinks.single.mediaId, isNot(oldMediaId));
+      expect(
+        () => MediaDbQuery(database).getMedia(oldMediaId),
+        throwsA(isA<StateError>()),
+      );
+      final importedMedia = await MediaDbQuery(
+        database,
+      ).getMedia(targetLinks.single.mediaId!);
+      expect(importedMedia.category, 'event');
+      expect(importedMedia.caption, 'Habitat overview');
+      expect(importedMedia.tag, 'habitat');
+      expect(importedMedia.camera, 'NAHPU Camera');
+      expect(importedMedia.lenses, '35 mm');
+      expect(importedMedia.additionalExif, 'ISO: 200');
+      expect(importedMedia.personnelId, 'photographer-a');
+      expect(
+        File(
+          path.join(eventMediaDirectory.path, importedMedia.fileName),
+        ).existsSync(),
+        isTrue,
+      );
+    },
+  );
 
   testWidgets('parser rejects the wrong record type and unsupported version', (
     tester,

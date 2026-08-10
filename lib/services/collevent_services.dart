@@ -1,18 +1,25 @@
+import 'dart:io';
+
 import 'package:intl/intl.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/media_queries.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/media_services.dart';
+import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/types/import.dart';
+import 'package:path/path.dart' show basename;
 
 class CollEventServices extends AppServices {
   const CollEventServices({required super.ref});
 
   Future<int> createNewCollEvents() async {
-    int eventID =
-        await CollEventQuery(dbAccess).createCollEvent(CollEventCompanion(
-      projectUuid: db.Value(currentProjectUuid),
-    ));
+    int eventID = await CollEventQuery(dbAccess).createCollEvent(
+      CollEventCompanion(projectUuid: db.Value(currentProjectUuid)),
+    );
     // Weather data used collecting event id as a foreign key
     // so we need to create a new weather data entry
     // for the new collecting event
@@ -22,8 +29,9 @@ class CollEventServices extends AppServices {
   }
 
   Future<void> createWeatherData(int eventID) async {
-    await WeatherDataQuery(dbAccess)
-        .createWeatherData(WeatherCompanion(eventID: db.Value(eventID)));
+    await WeatherDataQuery(
+      dbAccess,
+    ).createWeatherData(WeatherCompanion(eventID: db.Value(eventID)));
   }
 
   Future<String> getCollEventID(CollEventData collEventData) async {
@@ -34,8 +42,8 @@ class CollEventServices extends AppServices {
         : '';
     String suffix =
         collEventData.idSuffix != null && collEventData.idSuffix!.isNotEmpty
-            ? '-${collEventData.idSuffix ?? ''}'
-            : '';
+        ? '-${collEventData.idSuffix ?? ''}'
+        : '';
     return '$siteID-$startDate$suffix';
   }
 
@@ -95,6 +103,38 @@ class CollEventServices extends AppServices {
     }
   }
 
+  Future<void> createEventMediaFromList(
+    int eventId,
+    List<String> filePaths,
+  ) async {
+    for (final filePath in filePaths) {
+      await createEventMedia(eventId, filePath);
+    }
+    ref.invalidate(eventMediaProvider(eventId));
+  }
+
+  Future<void> createEventMedia(int eventId, String filePath) async {
+    final metadata = await MediaMetadataServices().extract(File(filePath));
+    final mediaId = await MediaDbQuery(dbAccess).createMedia(
+      MediaCompanion(
+        projectUuid: db.Value(currentProjectUuid),
+        fileName: db.Value(basename(filePath)),
+        category: db.Value(matchMediaCategory(MediaCategory.event)),
+        taken: db.Value(metadata.taken),
+        camera: db.Value(metadata.camera),
+        lenses: db.Value(metadata.lenses),
+        additionalExif: db.Value(metadata.additionalExif),
+      ),
+    );
+    await CollEventQuery(dbAccess).createEventMedia(
+      EventMediaCompanion(
+        eventID: db.Value(eventId),
+        mediaId: db.Value(mediaId),
+      ),
+    );
+    ref.invalidate(eventMediaProvider(eventId));
+  }
+
   Future<int> createCollPersonnel(CollPersonnelCompanion form) async {
     int id = await CollPersonnelQuery(dbAccess).createCollPersonnel(form);
     invalidateCollPersonnel();
@@ -124,9 +164,14 @@ class CollEventServices extends AppServices {
 
   Future<void> deleteCollEvent(int collEvenId) async {
     try {
+      final mediaIds = (await CollEventQuery(dbAccess).getEventMedia(
+        collEvenId,
+      )).map((entry) => entry.mediaId).whereType<int>().toList();
+      await MediaServices(ref: ref).deleteMediaFromList(mediaIds, 'event');
       await WeatherDataQuery(dbAccess).deleteWeatherData(collEvenId);
-      await CollPersonnelQuery(dbAccess)
-          .deleteCollPersonnelByEventId(collEvenId);
+      await CollPersonnelQuery(
+        dbAccess,
+      ).deleteCollPersonnelByEventId(collEvenId);
       await CollEffortQuery(dbAccess).deleteCollEffortByEventId(collEvenId);
       await CollEventQuery(dbAccess).deleteCollEvent(collEvenId);
       invalidateCollEvent();
@@ -149,12 +194,18 @@ class CollEventServices extends AppServices {
 
   Future<void> deleteAllCollEvents(String projectUuid) async {
     try {
-      List<CollEventData> collEvents =
-          await CollEventQuery(dbAccess).getAllCollEvents(projectUuid);
+      List<CollEventData> collEvents = await CollEventQuery(
+        dbAccess,
+      ).getAllCollEvents(projectUuid);
       for (CollEventData collEvent in collEvents) {
+        final mediaIds = (await CollEventQuery(dbAccess).getEventMedia(
+          collEvent.id,
+        )).map((entry) => entry.mediaId).whereType<int>().toList();
+        await MediaServices(ref: ref).deleteMediaFromList(mediaIds, 'event');
         await WeatherDataQuery(dbAccess).deleteWeatherData(collEvent.id);
-        await CollPersonnelQuery(dbAccess)
-            .deleteCollPersonnelByEventId(collEvent.id);
+        await CollPersonnelQuery(
+          dbAccess,
+        ).deleteCollPersonnelByEventId(collEvent.id);
         await CollEffortQuery(dbAccess).deleteCollEffortByEventId(collEvent.id);
       }
       await CollEventQuery(dbAccess).deleteAllCollEvents(projectUuid);
@@ -170,8 +221,9 @@ class CollEventServices extends AppServices {
   }
 
   Future<void> deleteCollPersonnelFromList(List<int> collEffortList) async {
-    await CollPersonnelQuery(dbAccess)
-        .deleteCollPersonnelFromList(collEffortList);
+    await CollPersonnelQuery(
+      dbAccess,
+    ).deleteCollPersonnelFromList(collEffortList);
   }
 
   void invalidateCollEvent() {
@@ -193,26 +245,28 @@ class EventDuplicateService extends AppServices {
   /// We duplicate most of the data from the origin event
   /// Returns the new event's id, or null when the origin no longer exists.
   Future<int?> duplicate(int originEventID) async {
-    CollEventData? collEventData =
-        await collEventServices.getCollEvent(originEventID);
+    CollEventData? collEventData = await collEventServices.getCollEvent(
+      originEventID,
+    );
 
     if (collEventData == null) {
       return null;
     }
     String newStartDate = _incrementDate(collEventData.startDate ?? '') ?? '';
     String newEndDate = _incrementDate(collEventData.endDate ?? '') ?? '';
-    int destinationEventId =
-        await CollEventQuery(dbAccess).createCollEvent(CollEventCompanion(
-      projectUuid: db.Value(currentProjectUuid),
-      siteID: db.Value(collEventData.siteID),
-      startDate: db.Value(newStartDate),
-      endDate: db.Value(newEndDate),
-      startTime: db.Value(collEventData.startTime),
-      endTime: db.Value(collEventData.endTime),
-      idSuffix: db.Value(collEventData.idSuffix),
-      primaryCollMethod: db.Value(collEventData.primaryCollMethod),
-      collMethodNotes: db.Value(collEventData.collMethodNotes),
-    ));
+    int destinationEventId = await CollEventQuery(dbAccess).createCollEvent(
+      CollEventCompanion(
+        projectUuid: db.Value(currentProjectUuid),
+        siteID: db.Value(collEventData.siteID),
+        startDate: db.Value(newStartDate),
+        endDate: db.Value(newEndDate),
+        startTime: db.Value(collEventData.startTime),
+        endTime: db.Value(collEventData.endTime),
+        idSuffix: db.Value(collEventData.idSuffix),
+        primaryCollMethod: db.Value(collEventData.primaryCollMethod),
+        collMethodNotes: db.Value(collEventData.collMethodNotes),
+      ),
+    );
     await _duplicateCollEffort(originEventID, destinationEventId);
     await _duplicateCollPersonnel(originEventID, destinationEventId);
     collEventServices.createWeatherData(destinationEventId);
@@ -221,32 +275,41 @@ class EventDuplicateService extends AppServices {
   }
 
   Future<void> _duplicateCollEffort(
-      int originEventID, int destinationEventId) async {
-    List<CollEffortData> collEfforts =
-        await collEventServices.getAllCollEffort(originEventID);
+    int originEventID,
+    int destinationEventId,
+  ) async {
+    List<CollEffortData> collEfforts = await collEventServices.getAllCollEffort(
+      originEventID,
+    );
     for (CollEffortData collEffort in collEfforts) {
-      await collEventServices.createCollEffort(CollEffortCompanion(
-        eventID: db.Value(destinationEventId),
-        method: db.Value(collEffort.method),
-        brand: db.Value(collEffort.brand),
-        count: db.Value(collEffort.count),
-        size: db.Value(collEffort.size),
-        notes: db.Value(collEffort.notes),
-      ));
+      await collEventServices.createCollEffort(
+        CollEffortCompanion(
+          eventID: db.Value(destinationEventId),
+          method: db.Value(collEffort.method),
+          brand: db.Value(collEffort.brand),
+          count: db.Value(collEffort.count),
+          size: db.Value(collEffort.size),
+          notes: db.Value(collEffort.notes),
+        ),
+      );
     }
   }
 
   Future<void> _duplicateCollPersonnel(
-      int originEventID, int destinationEventId) async {
-    List<CollPersonnelData> collPersonnel =
-        await collEventServices.getAllCollPersonnel(originEventID);
+    int originEventID,
+    int destinationEventId,
+  ) async {
+    List<CollPersonnelData> collPersonnel = await collEventServices
+        .getAllCollPersonnel(originEventID);
     for (CollPersonnelData personnel in collPersonnel) {
-      await collEventServices.createCollPersonnel(CollPersonnelCompanion(
-        eventID: db.Value(destinationEventId),
-        personnelId: db.Value(personnel.personnelId),
-        name: db.Value(personnel.name),
-        role: db.Value(personnel.role),
-      ));
+      await collEventServices.createCollPersonnel(
+        CollPersonnelCompanion(
+          eventID: db.Value(destinationEventId),
+          personnelId: db.Value(personnel.personnelId),
+          name: db.Value(personnel.name),
+          role: db.Value(personnel.role),
+        ),
+      );
     }
   }
 
@@ -270,16 +333,19 @@ class CollEventSearchServices {
 
   List<CollEventData> search(String query) {
     List<CollEventData> filteredCollEvents = collEvents
-        .where((collEvent) =>
-            _isMatch(collEvent.startDate, query) ||
-            _isMatch(collEvent.endDate, query))
+        .where(
+          (collEvent) =>
+              _isMatch(collEvent.startDate, query) ||
+              _isMatch(collEvent.endDate, query),
+        )
         .toList();
     return filteredCollEvents;
   }
 
   List<CollEventData> searchBySiteID(int siteID) {
-    List<CollEventData> filteredCollEvents =
-        collEvents.where((collEvent) => collEvent.siteID == siteID).toList();
+    List<CollEventData> filteredCollEvents = collEvents
+        .where((collEvent) => collEvent.siteID == siteID)
+        .toList();
     return filteredCollEvents;
   }
 
@@ -293,9 +359,12 @@ class CollEvenPersonnelServices extends AppServices {
   const CollEvenPersonnelServices({required super.ref});
 
   Future<List<int>> searchPersonnel(
-      List<String> personnelUuids, String query) async {
-    List<CollPersonnelData> data = await CollPersonnelQuery(dbAccess)
-        .searchCollectingPersonnel(personnelUuids, query);
+    List<String> personnelUuids,
+    String query,
+  ) async {
+    List<CollPersonnelData> data = await CollPersonnelQuery(
+      dbAccess,
+    ).searchCollectingPersonnel(personnelUuids, query);
     return data.map((e) => e.id).toList();
   }
 }

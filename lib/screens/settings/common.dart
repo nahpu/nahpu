@@ -381,7 +381,7 @@ class TextCaseFmtDropDown extends StatelessWidget {
                     .read(
                       textCaseFmtNotifierProvider(textCasePrefString).notifier,
                     )
-                    .set(textCasePrefString, selectedFmt);
+                    .set(selectedFmt);
               }
             },
           ),

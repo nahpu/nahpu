@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -32,12 +33,11 @@ void main() {
   late Database db;
 
   setUp(() {
-    tempAppDir =
-        Directory.systemTemp.createTempSync('nahpu-media-viewer-test');
+    tempAppDir = Directory.systemTemp.createTempSync('nahpu-media-viewer-test');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProviderChannel, (_) async {
-      return tempAppDir.path;
-    });
+          return tempAppDir.path;
+        });
     db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
   });
 
@@ -55,17 +55,16 @@ void main() {
     for (int i = 1; i <= count; i++) {
       final fileName = 'photo$i.png';
       _writeMediaFile(tempAppDir, fileName, _pngBytes);
-      mediaList.add(_buildMedia(
-        id: i,
-        fileName: fileName,
-        caption: 'Caption $i',
-      ));
+      mediaList.add(
+        _buildMedia(id: i, fileName: fileName, caption: 'Caption $i'),
+      );
     }
     return mediaList;
   }
 
-  testWidgets('opening the dialog shows the image area and counter',
-      (tester) async {
+  testWidgets('opening the dialog shows the image area and counter', (
+    tester,
+  ) async {
     final mediaList = seedImages(2);
     await _pumpViewerLauncher(tester, db, mediaList);
     await _openDialog(tester);
@@ -89,8 +88,7 @@ void main() {
     expect(viewer.minScale, 0.8);
   });
 
-  testWidgets('next and previous navigate without wraparound',
-      (tester) async {
+  testWidgets('next and previous navigate without wraparound', (tester) async {
     final mediaList = seedImages(3);
     await _pumpViewerLauncher(tester, db, mediaList);
     await _openDialog(tester);
@@ -209,8 +207,9 @@ void main() {
     expect(sidePanel, findsNothing);
   });
 
-  testWidgets('falls back gracefully for audio when playback is unavailable',
-      (tester) async {
+  testWidgets('falls back gracefully for audio when playback is unavailable', (
+    tester,
+  ) async {
     _writeMediaFile(tempAppDir, 'sound.mp3', [1, 2, 3]);
     final mediaList = [_buildMedia(id: 1, fileName: 'sound.mp3')];
     await _pumpViewerLauncher(tester, db, mediaList);
@@ -225,8 +224,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('tapping a media card thumbnail opens the viewer dialog',
-      (tester) async {
+  testWidgets('tapping a media card thumbnail opens the viewer dialog', (
+    tester,
+  ) async {
     final mediaList = seedImages(2);
     WidgetRef? widgetRef;
 
@@ -265,6 +265,133 @@ void main() {
     expect(find.byType(MediaViewerDialog), findsOneWidget);
     expect(find.text('1 / 2'), findsOneWidget);
   });
+
+  testWidgets('narrow media menu uses sheets and separates edit from info', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(500, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    _writeMediaFile(tempAppDir, 'photo1.png', _pngBytes);
+    final media = _buildMedia(
+      id: 1,
+      fileName: 'photo1.png',
+      caption: 'Habitat overview',
+      tag: 'habitat',
+      camera: 'NAHPU Camera',
+    );
+    await _pumpMediaGrid(tester, db, [media]);
+
+    await tester.tap(find.byTooltip('Media actions'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit'), findsOneWidget);
+    expect(find.text('Show info'), findsOneWidget);
+
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit media'), findsOneWidget);
+    expect(find.text('File name'), findsOneWidget);
+    expect(find.text('Caption'), findsOneWidget);
+    expect(find.text('Tag'), findsOneWidget);
+    expect(find.text('Photographer'), findsOneWidget);
+    expect(find.text('Category'), findsOneWidget);
+    expect(find.text('Camera'), findsNothing);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Media actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Show info'));
+    await tester.pumpAndSettle();
+    expect(find.text('Media info'), findsOneWidget);
+    expect(find.text('Camera'), findsOneWidget);
+    expect(find.text('NAHPU Camera'), findsOneWidget);
+    expect(find.text('Additional EXIF'), findsOneWidget);
+  });
+
+  testWidgets('media labels show type icons and switch to checkboxes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final mediaList = [
+      _buildMedia(id: 1, fileName: 'photo.png'),
+      _buildMedia(id: 2, fileName: 'sound.wav'),
+      _buildMedia(id: 3, fileName: 'clip.mp4'),
+      _buildMedia(id: 4, fileName: 'document.pdf'),
+    ];
+    await _pumpMediaViewer(tester, db, mediaList);
+    await _flushMediaLoad(tester);
+
+    final expectedIcons = [
+      Icons.image_outlined,
+      Icons.audio_file_outlined,
+      Icons.video_file_outlined,
+      Icons.insert_drive_file_outlined,
+    ];
+    final cards = find.byType(MediaCard);
+    expect(cards, findsNWidgets(expectedIcons.length));
+    for (var index = 0; index < expectedIcons.length; index++) {
+      final label = tester.widget<ListTile>(
+        find.descendant(of: cards.at(index), matching: find.byType(ListTile)),
+      );
+      expect((label.leading! as Icon).icon, expectedIcons[index]);
+    }
+
+    await tester.tap(find.text('Select'));
+    await tester.pump();
+
+    for (var index = 0; index < expectedIcons.length; index++) {
+      final label = tester.widget<ListTile>(
+        find.descendant(of: cards.at(index), matching: find.byType(ListTile)),
+      );
+      expect(label.leading, isA<ListCheckBox>());
+    }
+  });
+
+  testWidgets('media selection controls align actions and select every card', (
+    tester,
+  ) async {
+    final mediaList = seedImages(2);
+    await _pumpMediaViewer(tester, db, mediaList);
+    await _flushMediaLoad(tester);
+
+    expect(find.text('Caption 1'), findsNothing);
+    expect(find.text('Select'), findsOneWidget);
+    await tester.tap(find.text('Select'));
+    await tester.pump();
+
+    expect(find.text('Clear'), findsOneWidget);
+    expect(find.text('Select all'), findsOneWidget);
+    expect(find.text('Done'), findsOneWidget);
+    expect(
+      tester.getCenter(find.text('Clear')).dx,
+      lessThan(tester.getCenter(find.text('Select all')).dx),
+    );
+    expect(
+      tester.getCenter(find.text('Select all')).dx,
+      lessThan(tester.getCenter(find.text('Done')).dx),
+    );
+    expect(find.byType(Checkbox), findsNWidgets(2));
+    expect(find.byTooltip('Media actions'), findsNothing);
+
+    await tester.tap(find.text('Select all'));
+    await tester.pump();
+    final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
+    expect(checkboxes.every((checkbox) => checkbox.value == true), isTrue);
+    expect(find.text('Delete 2 media files'), findsOneWidget);
+
+    await tester.tap(find.text('Clear'));
+    await tester.pump();
+    expect(
+      tester
+          .widgetList<Checkbox>(find.byType(Checkbox))
+          .every((checkbox) => checkbox.value == false),
+      isTrue,
+    );
+  });
 }
 
 MediaData _buildMedia({
@@ -272,6 +399,7 @@ MediaData _buildMedia({
   required String fileName,
   String? caption,
   String? tag,
+  String? camera,
 }) {
   return MediaData(
     primaryId: id,
@@ -281,21 +409,81 @@ MediaData _buildMedia({
     caption: caption,
     tag: tag,
     taken: '',
-    camera: '',
+    camera: camera ?? '',
     lenses: '',
     additionalExif: '',
   );
 }
 
+Future<void> _pumpMediaGrid(
+  WidgetTester tester,
+  Database db,
+  List<MediaData> mediaList,
+) async {
+  WidgetRef? widgetRef;
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(db)],
+      child: MaterialApp(
+        home: Scaffold(
+          body: Consumer(
+            builder: (context, ref, child) {
+              widgetRef = ref;
+              return MediaViewerBuilder(images: mediaList);
+            },
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
+  widgetRef!.read(projectUuidProvider.notifier).updateProjectUuid(_projectUuid);
+  await _flushMediaLoad(tester);
+}
+
+Future<void> _pumpMediaViewer(
+  WidgetTester tester,
+  Database db,
+  List<MediaData> mediaList, {
+  double contentHeight = 360,
+}) async {
+  WidgetRef? widgetRef;
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(db)],
+      child: MaterialApp(
+        home: Scaffold(
+          body: Consumer(
+            builder: (context, ref, child) {
+              widgetRef = ref;
+              return MediaViewer(
+                images: mediaList,
+                contentHeight: contentHeight,
+                onAddFromGallery: () {},
+                onAddFromFiles: () {},
+                onAccessingCamera: () {},
+              );
+            },
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
+  widgetRef!.read(projectUuidProvider.notifier).updateProjectUuid(_projectUuid);
+}
+
 File _writeMediaFile(Directory appDir, String fileName, List<int> bytes) {
-  final file = File(path.join(
-    appDir.path,
-    nahpuAppDir,
-    _projectUuid,
-    mediaDir,
-    'site',
-    fileName,
-  ));
+  final file = File(
+    path.join(
+      appDir.path,
+      nahpuAppDir,
+      _projectUuid,
+      mediaDir,
+      'site',
+      fileName,
+    ),
+  );
   file.createSync(recursive: true);
   file.writeAsBytesSync(bytes);
   return file;
