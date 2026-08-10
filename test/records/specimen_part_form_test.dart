@@ -84,9 +84,7 @@ Future<Database> _pumpPartForm(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(database),
-        userDefinedFieldProvider.overrideWith2(
-          (prefKey) => _EmptyUserDefinedField(prefKey),
-        ),
+        userDefinedFieldProvider.overrideWith((ref, prefKey) async => const []),
       ],
       child: MaterialApp(
         home: Scaffold(
@@ -115,11 +113,4 @@ void _expectFieldInSection(
     ),
   );
   expect(sections.map((section) => section.title), contains(sectionTitle));
-}
-
-class _EmptyUserDefinedField extends UserDefinedField {
-  _EmptyUserDefinedField(super.prefKey);
-
-  @override
-  Future<List<String>> build() async => const [];
 }

@@ -94,9 +94,7 @@ Widget _harness({
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(database),
-      userDefinedFieldProvider.overrideWith2(
-        (prefKey) => _DatumOptions(prefKey, configured),
-      ),
+      userDefinedFieldProvider.overrideWith((ref, prefKey) async => configured),
       effectiveUserDefinedFieldProvider(
         datumPrefKey,
       ).overrideWith((ref) async => configured),
@@ -114,13 +112,4 @@ Widget _harness({
       ),
     ),
   );
-}
-
-class _DatumOptions extends UserDefinedField {
-  _DatumOptions(super.prefKey, this.options);
-
-  final List<String> options;
-
-  @override
-  Future<List<String>> build() async => options;
 }

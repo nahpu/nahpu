@@ -10,6 +10,7 @@ import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/user_config_settings_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 // App settings keys (UI/Device states)
@@ -67,6 +68,10 @@ const String exportPresetPrefKey = 'exportPresets';
 final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
 });
+
+final userConfigSettingsServiceProvider = Provider<UserConfigSettingsService>(
+  (ref) => const UserConfigSettingsService(),
+);
 
 final themeSettingProvider = AsyncNotifierProvider<ThemeSetting, ThemeMode>(
   ThemeSetting.new,
@@ -221,123 +226,23 @@ class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
   }
 }
 
-final userDefinedFieldProvider = AsyncNotifierProvider.family
-    .autoDispose<UserDefinedField, List<String>, String>(UserDefinedField.new);
-
-class UserDefinedField extends AsyncNotifier<List<String>> {
-  UserDefinedField(this._prefKey);
-  final String _prefKey;
-
-  Future<List<String>> _fetchSettings() async {
-    final optionList = await rust_config.getUserConfigList(key: _prefKey);
-    List<String> currentOptions = optionList ?? getDefaultOptionsList(_prefKey);
-
-    if (optionList == null) {
-      await rust_config.setUserConfigList(key: _prefKey, value: currentOptions);
-    }
-
-    return currentOptions;
-  }
-
-  @override
-  Future<List<String>> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> add(String newOption) async {
-    if (newOption.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final optionList = await rust_config.getUserConfigList(key: _prefKey);
-      if (optionList != null && isListContains(optionList, newOption)) {
-        return optionList;
-      }
-
-      List<String> newList = [...optionList ?? [], newOption];
-      await rust_config.setUserConfigList(key: _prefKey, value: newList);
-      return newList;
+final userDefinedFieldProvider = FutureProvider.family
+    .autoDispose<List<String>, String>((ref, prefKey) {
+      return ref
+          .watch(userConfigSettingsServiceProvider)
+          .loadOptions(prefKey, getDefaultOptionsList(prefKey));
     });
-  }
 
-  Future<void> replaceAll(List<String> newOptions) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await rust_config.setUserConfigList(key: _prefKey, value: newOptions);
-      return newOptions;
-    });
-  }
-
-  Future<void> remove(String option) async {
-    if (option.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final optionsList = await rust_config.getUserConfigList(key: _prefKey);
-      if (optionsList == null || optionsList.isEmpty) return [];
-
-      if (!optionsList.contains(option)) return optionsList;
-
-      List<String> newOptions = [...optionsList]..remove(option);
-      await rust_config.setUserConfigList(key: _prefKey, value: newOptions);
-      return newOptions;
-    });
-  }
-
-  Future<void> clear() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await rust_config.deleteUserConfig(key: _prefKey);
-      return [];
-    });
-  }
-}
-
-final textCaseFmtNotifierProvider = AsyncNotifierProvider.family
-    .autoDispose<TextCaseFmtNotifier, TextCaseFmt, String>(
-      TextCaseFmtNotifier.new,
-    );
-
-class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
-  TextCaseFmtNotifier(this._prefKey);
-  final String _prefKey;
-
-  Future<TextCaseFmt> _fetchSettings() async {
-    final fmtString = await rust_config.getUserConfigString(key: _prefKey);
-
-    final defaultFormat = _prefKey == conditionFmtPrefKey
-        ? TextCaseFmt.sentenceCase
-        : TextCaseFmt.anyCase;
-    TextCaseFmt fmt = TextCaseFmt.values.byName(
-      fmtString ?? defaultFormat.name,
-    );
-
-    if (fmtString == null) {
-      await rust_config.setUserConfigString(key: _prefKey, value: fmt.name);
-    }
-
-    return fmt;
-  }
-
-  @override
-  Future<TextCaseFmt> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> set(TextCaseFmt fmt) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final fmtString = await rust_config.getUserConfigString(key: _prefKey);
-      final defaultFormat = _prefKey == conditionFmtPrefKey
+final textCaseFmtProvider = FutureProvider.family
+    .autoDispose<TextCaseFmt, String>((ref, prefKey) async {
+      final defaultFormat = prefKey == conditionFmtPrefKey
           ? TextCaseFmt.sentenceCase
           : TextCaseFmt.anyCase;
-      final setFmt = TextCaseFmt.values.byName(fmtString ?? defaultFormat.name);
-
-      if (setFmt == fmt) return fmt;
-
-      await rust_config.setUserConfigString(key: _prefKey, value: fmt.name);
-      return fmt;
+      final format = await ref
+          .watch(userConfigSettingsServiceProvider)
+          .loadTextCaseFormat(prefKey, defaultFormat.name);
+      return TextCaseFmt.values.byName(format);
     });
-  }
-}
 
 final fieldIdModeNotifierProvider =
     AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(

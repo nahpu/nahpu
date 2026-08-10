@@ -23,7 +23,7 @@ void main() {
       ),
     );
 
-    expect(find.text('g'), findsOneWidget);
+    expect(find.text('Weight (g)'), findsOneWidget);
     await tester.tap(find.byTooltip('Change weight unit'));
     await tester.pumpAndSettle();
     expect(find.text('kg'), findsOneWidget);

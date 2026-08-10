@@ -225,7 +225,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
 
   void _invalidateSettingsProviders() {
     ref.invalidate(userDefinedFieldProvider);
-    ref.invalidate(textCaseFmtNotifierProvider);
+    ref.invalidate(textCaseFmtProvider);
     ref.invalidate(fieldIdModeNotifierProvider);
     ref.invalidate(projectFieldIdAutoIncrementProvider);
     ref.invalidate(exportPresetNotifierProvider);

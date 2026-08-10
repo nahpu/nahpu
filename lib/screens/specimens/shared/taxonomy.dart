@@ -390,13 +390,13 @@ class SpeciesAutoCompleteState extends ConsumerState<SpeciesAutoComplete> {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Type species name and select from list',
+      message: 'Type taxon name and select from list',
       child: AutoCompleteField(
         focusNode: _focusNode,
         controller: widget.speciesCtr,
         options: widget.options,
-        labelText: 'Species',
-        hintText: 'Type species name',
+        labelText: 'Taxon',
+        hintText: 'Type taxon name',
         onSelected: (String selection) {
           setState(() {
             _inputTaxon(selection);
@@ -467,7 +467,7 @@ class SpeciesInputField extends StatelessWidget {
       .toList();
 }
 
-/// Species field that is disabled
+/// Taxon field that is disabled
 /// Used when the taxon list is empty
 class DisabledSpeciesField extends StatelessWidget {
   const DisabledSpeciesField({super.key});
@@ -478,8 +478,8 @@ class DisabledSpeciesField extends StatelessWidget {
       child: TextFormField(
         enabled: false,
         decoration: const InputDecoration(
-          labelText: 'Species',
-          hintText: 'Enter species',
+          labelText: 'Taxon',
+          hintText: 'Enter taxon',
         ),
       ),
     );
@@ -506,12 +506,12 @@ class SpeciesField extends StatelessWidget {
       enabled: enable,
       controller: speciesCtr,
       decoration: const InputDecoration(
-        labelText: 'Species',
-        hintText: 'Choose a species',
+        labelText: 'Taxon',
+        hintText: 'Choose a taxon',
       ),
       focusNode: focusNode,
       onFieldSubmitted: onFieldSubmitted,
-      validator: (value) => value!.isEmpty ? 'Please enter a species' : null,
+      validator: (value) => value!.isEmpty ? 'Please enter a taxon' : null,
       keyboardType: TextInputType.text,
       textInputAction: TextInputAction.done,
     );

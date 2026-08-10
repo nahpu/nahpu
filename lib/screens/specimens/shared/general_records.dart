@@ -1067,13 +1067,14 @@ class CollRecordInfoContent extends StatelessWidget {
               'select the preparator from the dropdown.',
         ),
         InfoContent(
-          header: 'Species field',
+          header: 'Taxon field',
           content:
-              'Type the species name to search for it in the taxon registry.'
-              ' You can start by typing the epithet to simplify the search.'
-              'The species field will be disabled if no'
+              'Type the taxon name to search for it in the taxon registry. '
+              'You can start by typing the epithet to simplify the search. '
+              'The taxon field will be disabled if no'
               ' taxa are registered in the project.'
-              ' You can add a taxon in the taxon registry section in the project dashboard.',
+              ' You can add a taxon in the taxon registry section in the '
+              'project dashboard.',
         ),
         InfoContent(
           header: 'Condition field',

@@ -6,6 +6,7 @@ import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
 import 'package:nahpu/screens/settings/site_settings.dart';
 import 'package:nahpu/services/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/user_config_settings_service.dart';
 import 'package:nahpu/services/utility_services.dart';
 
 void main() {
@@ -25,9 +26,12 @@ void main() {
             habitatTypeFmtPrefKey,
             datumFmtPrefKey,
           ])
-            textCaseFmtNotifierProvider(
+            textCaseFmtProvider(
               key,
-            ).overrideWith(() => _FakeTextCaseFmtNotifier(key)),
+            ).overrideWith((ref) async => TextCaseFmt.anyCase),
+          userConfigSettingsServiceProvider.overrideWithValue(
+            const _FakeUserConfigSettingsService(),
+          ),
           effectiveUserDefinedFieldProvider(
             siteTypePrefKey,
           ).overrideWith((ref) async => const <String>[]),
@@ -215,9 +219,12 @@ Widget _settingsHarness(
   return ProviderScope(
     overrides: [
       for (final key in formatKeys)
-        textCaseFmtNotifierProvider(
+        textCaseFmtProvider(
           key,
-        ).overrideWith(() => _FakeTextCaseFmtNotifier(key)),
+        ).overrideWith((ref) async => TextCaseFmt.anyCase),
+      userConfigSettingsServiceProvider.overrideWithValue(
+        const _FakeUserConfigSettingsService(),
+      ),
       for (final key in vocabularyKeys)
         effectiveUserDefinedFieldProvider(
           key,
@@ -229,14 +236,9 @@ Widget _settingsHarness(
   );
 }
 
-class _FakeTextCaseFmtNotifier extends TextCaseFmtNotifier {
-  _FakeTextCaseFmtNotifier(super.prefKey);
+class _FakeUserConfigSettingsService extends UserConfigSettingsService {
+  const _FakeUserConfigSettingsService();
 
   @override
-  Future<TextCaseFmt> build() async => TextCaseFmt.anyCase;
-
-  @override
-  Future<void> set(TextCaseFmt fmt) async {
-    state = AsyncData(fmt);
-  }
+  Future<void> setTextCaseFormat(String prefKey, String format) async {}
 }

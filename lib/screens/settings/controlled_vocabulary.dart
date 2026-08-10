@@ -66,7 +66,10 @@ Future<void> _showCaseFormatPicker(
         );
 
   if (!context.mounted || selected == null) return;
-  await ref.read(textCaseFmtNotifierProvider(prefKey).notifier).set(selected);
+  await ref
+      .read(userConfigSettingsServiceProvider)
+      .setTextCaseFormat(prefKey, selected.name);
+  ref.invalidate(textCaseFmtProvider(prefKey));
 }
 
 class _CaseFormatPicker extends ConsumerWidget {
@@ -78,7 +81,7 @@ class _CaseFormatPicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
       child: ref
-          .watch(textCaseFmtNotifierProvider(prefKey))
+          .watch(textCaseFmtProvider(prefKey))
           .when(
             data: (current) => RadioGroup<TextCaseFmt>(
               groupValue: current,

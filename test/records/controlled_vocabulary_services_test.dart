@@ -147,8 +147,8 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           databaseProvider.overrideWithValue(database),
-          userDefinedFieldProvider.overrideWith2(
-            (prefKey) => _DelayedUserDefinedField(prefKey, configured.future),
+          userDefinedFieldProvider.overrideWith(
+            (ref, prefKey) => configured.future,
           ),
         ],
       );
@@ -165,13 +165,4 @@ void main() {
       expect(await result, const ['Configured site']);
     },
   );
-}
-
-class _DelayedUserDefinedField extends UserDefinedField {
-  _DelayedUserDefinedField(super.prefKey, this.result);
-
-  final Future<List<String>> result;
-
-  @override
-  Future<List<String>> build() => result;
 }

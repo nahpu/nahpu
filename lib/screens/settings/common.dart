@@ -318,7 +318,7 @@ class AsyncTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ref
-        .watch(textCaseFmtNotifierProvider(textCasePrefString))
+        .watch(textCaseFmtProvider(textCasePrefString))
         .when(
           data: (fmt) => TextField(
             controller: controller,
@@ -361,7 +361,7 @@ class TextCaseFmtDropDown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ref
-        .watch(textCaseFmtNotifierProvider(textCasePrefString))
+        .watch(textCaseFmtProvider(textCasePrefString))
         .when(
           data: (fmt) => DropdownButtonFormField<TextCaseFmt>(
             isExpanded: true,
@@ -375,13 +375,12 @@ class TextCaseFmtDropDown extends StatelessWidget {
                   ),
                 )
                 .toList(),
-            onChanged: (TextCaseFmt? selectedFmt) {
+            onChanged: (TextCaseFmt? selectedFmt) async {
               if (selectedFmt != null) {
-                ref
-                    .read(
-                      textCaseFmtNotifierProvider(textCasePrefString).notifier,
-                    )
-                    .set(selectedFmt);
+                await ref
+                    .read(userConfigSettingsServiceProvider)
+                    .setTextCaseFormat(textCasePrefString, selectedFmt.name);
+                ref.invalidate(textCaseFmtProvider(textCasePrefString));
               }
             },
           ),

@@ -298,8 +298,8 @@ Widget _harness({required Database database, required Widget child}) {
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(database),
-      userDefinedFieldProvider.overrideWith2(
-        (prefKey) => _DatumOptions(prefKey),
+      userDefinedFieldProvider.overrideWith(
+        (ref, prefKey) async => const ['WGS84'],
       ),
       effectiveUserDefinedFieldProvider(
         datumPrefKey,
@@ -326,11 +326,4 @@ class _CoordinateTestResources {
     if (disposeController) controller.dispose();
     await database.close();
   }
-}
-
-class _DatumOptions extends UserDefinedField {
-  _DatumOptions(super.prefKey);
-
-  @override
-  Future<List<String>> build() async => const ['WGS84'];
 }

@@ -48,14 +48,17 @@ class UtilityServices extends AppServices {
 
   Future<void> getAllOptions(String prefKey) async {
     List<String> data = await getDistinctOptions(prefKey);
-    final notifier = ref.read(userDefinedFieldProvider(prefKey).notifier);
     List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
-    await notifier.replaceAll(options);
+    await ref
+        .read(userConfigSettingsServiceProvider)
+        .replaceOptions(prefKey, options);
     _invalidateOptions(prefKey);
   }
 
   Future<void> addOption(String prefKey, String option) async {
-    await ref.read(userDefinedFieldProvider(prefKey).notifier).add(option);
+    await ref
+        .read(userConfigSettingsServiceProvider)
+        .addOption(prefKey, option);
     _invalidateOptions(prefKey);
   }
 
@@ -89,12 +92,14 @@ class UtilityServices extends AppServices {
       return;
     }
 
-    await ref.read(userDefinedFieldProvider(prefKey).notifier).remove(option);
+    await ref
+        .read(userConfigSettingsServiceProvider)
+        .removeOption(prefKey, option);
     _invalidateOptions(prefKey);
   }
 
   Future<void> removeAllOptions(String prefKey) async {
-    await ref.read(userDefinedFieldProvider(prefKey).notifier).clear();
+    await ref.read(userConfigSettingsServiceProvider).clearOptions(prefKey);
     _invalidateOptions(prefKey);
   }
 

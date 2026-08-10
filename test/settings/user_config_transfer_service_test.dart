@@ -14,6 +14,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/user_config_settings_service.dart';
 import 'package:nahpu/services/user_config_transfer_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/frb_generated.dart';
@@ -113,6 +114,33 @@ void main() {
     expect(datum.label, 'Datums');
     expect(datum.values, datums);
     expect(datum.isControlledVocabulary, isTrue);
+  });
+
+  test('user config settings service persists options and formats', () async {
+    const service = UserConfigSettingsService();
+    const optionKey = 'testOptions';
+    const formatKey = 'testFormat';
+
+    expect(await service.loadOptions(optionKey, const ['Forest']), const [
+      'Forest',
+    ]);
+    await service.addOption(optionKey, 'forest');
+    await service.addOption(optionKey, 'Ocean');
+    expect(await rust_config.getUserConfigList(key: optionKey), [
+      'Forest',
+      'Ocean',
+    ]);
+
+    await service.removeOption(optionKey, 'Ocean');
+    expect(await rust_config.getUserConfigList(key: optionKey), ['Forest']);
+    await service.replaceOptions(optionKey, const ['Desert']);
+    expect(await rust_config.getUserConfigList(key: optionKey), ['Desert']);
+    await service.clearOptions(optionKey);
+    expect(await rust_config.getUserConfigList(key: optionKey), isNull);
+
+    expect(await service.loadTextCaseFormat(formatKey, 'anyCase'), 'anyCase');
+    await service.setTextCaseFormat(formatKey, 'titleCase');
+    expect(await rust_config.getUserConfigString(key: formatKey), 'titleCase');
   });
 
   test('project field ID auto-increment is a labeled user config', () async {
