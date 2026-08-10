@@ -54,7 +54,9 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProviderChannel, null);
     await db.close();
-    if (tempAppDir.existsSync()) tempAppDir.deleteSync(recursive: true);
+    if (tempAppDir.existsSync()) {
+      await tempAppDir.delete(recursive: true);
+    }
   });
 
   testWidgets('defaults category, searches metadata, and changes sort', (
