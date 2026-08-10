@@ -27,24 +27,16 @@ class WeightField extends StatelessWidget {
       controller: controller,
       focusNode: focusNode,
       decoration: InputDecoration(
-        labelText: 'Weight${isBracketed ? '*' : ''}',
+        labelText: 'Weight ($unit)${isBracketed ? '*' : ''}',
         hintText: 'Enter specimen weight',
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(unit),
-            PopupMenuButton<String>(
-              tooltip: 'Change weight unit',
-              icon: const Icon(Icons.edit_outlined),
-              initialValue: unit,
-              onSelected: onUnitChanged,
-              itemBuilder: (context) => specimenWeightUnits
-                  .map(
-                    (value) => PopupMenuItem(value: value, child: Text(value)),
-                  )
-                  .toList(),
-            ),
-          ],
+        suffixIcon: PopupMenuButton<String>(
+          tooltip: 'Change weight unit',
+          icon: const Icon(Icons.edit_outlined),
+          initialValue: unit,
+          onSelected: onUnitChanged,
+          itemBuilder: (context) => specimenWeightUnits
+              .map((value) => PopupMenuItem(value: value, child: Text(value)))
+              .toList(),
         ),
       ),
       inputFormatters: [
