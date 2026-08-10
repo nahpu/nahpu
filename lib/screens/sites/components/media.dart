@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/import.dart';
@@ -34,6 +35,8 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
           data: (data) {
             return MediaViewer(
               images: List.from(data),
+              onOpenGallery: () =>
+                  showMediaGallery(context, initialCategory: mediaCategory),
               onAddFromGallery: () async {
                 try {
                   List<String> images = await ImageServices(

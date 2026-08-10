@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/specimen_services.dart';
 import 'package:nahpu/services/types/import.dart';
@@ -33,6 +34,8 @@ class SpecimenMediaFormState extends ConsumerState<SpecimenMediaForm> {
           data: (data) {
             return MediaViewer(
               images: List.from(data),
+              onOpenGallery: () =>
+                  showMediaGallery(context, initialCategory: mediaCategory),
               onAddFromGallery: () async {
                 try {
                   List<String> images = await ImageServices(

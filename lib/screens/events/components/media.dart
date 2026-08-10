@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/services/collevent_services.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/providers/collevents.dart';
@@ -19,6 +20,8 @@ class EventMediaForm extends ConsumerWidget {
         .when(
           data: (media) => MediaViewer(
             images: media,
+            onOpenGallery: () =>
+                showMediaGallery(context, initialCategory: MediaCategory.event),
             onAddFromGallery: () => _addFromGallery(context, ref),
             onAddFromFiles: () => _addFromFiles(context, ref),
             onAccessingCamera: () => _addFromCamera(context, ref),

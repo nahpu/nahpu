@@ -2,18 +2,16 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
-import 'package:nahpu/services/database/narrative_queries.dart';
-import 'package:nahpu/services/database/site_queries.dart';
-import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/io_services.dart';
 import 'package:nahpu/services/personnel_services.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:path/path.dart' as path;
@@ -158,50 +156,61 @@ class MediaServices extends AppServices {
   }
 
   Future<void> deleteMedia(int id, String category) async {
-    MediaCategory mediaCategory = matchMediaCategoryString(category);
-    await _deleteMedia(id, mediaCategory);
-    _invalidateMedia(mediaCategory);
+    final media = await MediaDbQuery(dbAccess).getMedia(id);
+    await deleteMediaItems([_withCategoryFallback(media, category)]);
   }
 
   Future<void> deleteMediaFromList(List<int> ids, String category) async {
     if (ids.isEmpty) return;
-    final mediaCategory = matchMediaCategoryString(category);
+    final query = MediaDbQuery(dbAccess);
+    final media = <MediaData>[];
+    for (final id in ids.toSet()) {
+      media.add(_withCategoryFallback(await query.getMedia(id), category));
+    }
+    await deleteMediaItems(media);
+  }
+
+  Future<void> deleteMediaItems(Iterable<MediaData> items) async {
+    final mediaById = <int, MediaData>{
+      for (final item in items) item.primaryId: item,
+    };
+    if (mediaById.isEmpty) return;
+
+    final filesByPath = <String, File>{};
+    for (final media in mediaById.values) {
+      final fileName = media.fileName;
+      if (fileName == null || fileName.isEmpty) continue;
+      final category = matchMediaCategoryString(media.category ?? '');
+      final file = await MediaFinder(
+        ref: ref,
+      ).getPathForMedia(fileName, category);
+      filesByPath[file.path] = file;
+    }
+
+    final query = MediaDbQuery(dbAccess);
     await dbAccess.transaction(() async {
-      for (final id in ids) {
-        await _deleteMedia(id, mediaCategory);
+      for (final media in mediaById.values) {
+        await query.deleteMediaReferences(media.primaryId);
+        await query.deleteMedia(media.primaryId);
       }
     });
-    _invalidateMedia(mediaCategory);
-  }
 
-  Future<void> _deleteMedia(int id, MediaCategory category) async {
-    await _deleteMatchingCategory(id, category);
-    await MediaDbQuery(dbAccess).deleteMedia(id);
-  }
-
-  Future<void> _deleteMatchingCategory(int id, MediaCategory category) async {
-    switch (category) {
-      case MediaCategory.narrative:
-        await NarrativeQuery(dbAccess).deleteNarrativeMedia(id);
-
-        break;
-      case MediaCategory.event:
-        await CollEventQuery(dbAccess).deleteEventMedia(id);
-        break;
-      case MediaCategory.site:
-        await SiteQuery(dbAccess).deleteSiteMedia(id);
-        break;
-      case MediaCategory.specimen:
-        await SpecimenQuery(dbAccess).deleteSpecimenMedia(id);
-        break;
-      case MediaCategory.personnel:
-        break;
-      default:
-        break;
+    final failedPaths = <String>[];
+    for (final file in filesByPath.values) {
+      try {
+        if (await file.exists()) await file.delete();
+      } catch (_) {
+        failedPaths.add(file.path);
+      }
+    }
+    _invalidateAllMedia();
+    if (failedPaths.isNotEmpty) {
+      throw MediaFileDeletionException(failedPaths);
     }
   }
 
   void _invalidateMedia(MediaCategory category) {
+    ref.invalidate(projectMediaProvider);
     switch (category) {
       case MediaCategory.narrative:
         ref.invalidate(narrativeMediaProvider);
@@ -218,6 +227,35 @@ class MediaServices extends AppServices {
       default:
         break;
     }
+  }
+
+  void _invalidateAllMedia() {
+    ref.invalidate(projectMediaProvider);
+    ref.invalidate(narrativeMediaProvider);
+    ref.invalidate(eventMediaProvider);
+    ref.invalidate(siteMediaProvider);
+    ref.invalidate(specimenMediaProvider);
+    ref.invalidate(taxonRegistryProvider);
+    ref.invalidate(taxonProvider);
+    ref.invalidate(taxonDataProvider);
+  }
+
+  MediaData _withCategoryFallback(MediaData media, String category) {
+    if (media.category?.isNotEmpty ?? false) return media;
+    return media.copyWith(category: db.Value(category));
+  }
+}
+
+class MediaFileDeletionException implements Exception {
+  const MediaFileDeletionException(this.paths);
+
+  final List<String> paths;
+
+  @override
+  String toString() {
+    final count = paths.length;
+    return 'Media records were deleted, but $count media '
+        '${count == 1 ? 'file' : 'files'} could not be removed from disk.';
   }
 }
 

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -144,6 +145,7 @@ void main() {
     expect(find.text('Details'), findsOneWidget);
     expect(find.text('A nice view'), findsOneWidget);
     expect(find.text('tag-1'), findsOneWidget);
+    expect(find.byType(FormSection), findsAtLeastNWidgets(3));
 
     await tester.tap(find.byIcon(Icons.info));
     await tester.pump();
@@ -307,6 +309,7 @@ void main() {
     expect(find.text('Camera'), findsOneWidget);
     expect(find.text('NAHPU Camera'), findsOneWidget);
     expect(find.text('Additional EXIF'), findsOneWidget);
+    expect(find.byType(FormSection), findsNWidgets(4));
   });
 
   testWidgets('media labels show type icons and switch to checkboxes', (
@@ -360,6 +363,11 @@ void main() {
 
     expect(find.text('Caption 1'), findsNothing);
     expect(find.text('Select'), findsOneWidget);
+    expect(find.text('Gallery'), findsOneWidget);
+    expect(
+      tester.getCenter(find.text('Gallery')).dx,
+      lessThan(tester.getCenter(find.text('Select')).dx),
+    );
     await tester.tap(find.text('Select'));
     await tester.pump();
 
@@ -391,6 +399,34 @@ void main() {
           .every((checkbox) => checkbox.value == false),
       isTrue,
     );
+  });
+
+  testWidgets('empty media grid still opens the project gallery', (
+    tester,
+  ) async {
+    var galleryOpenCount = 0;
+    await _pumpMediaViewer(
+      tester,
+      db,
+      const [],
+      onOpenGallery: () => galleryOpenCount++,
+    );
+
+    expect(find.text('Gallery'), findsOneWidget);
+    expect(find.text('Select'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextButton>(
+            find.ancestor(
+              of: find.text('Select'),
+              matching: find.byType(TextButton),
+            ),
+          )
+          .onPressed,
+      isNull,
+    );
+    await tester.tap(find.text('Gallery'));
+    expect(galleryOpenCount, 1);
   });
 }
 
@@ -446,6 +482,7 @@ Future<void> _pumpMediaViewer(
   Database db,
   List<MediaData> mediaList, {
   double contentHeight = 360,
+  VoidCallback? onOpenGallery,
 }) async {
   WidgetRef? widgetRef;
   await tester.pumpWidget(
@@ -462,6 +499,7 @@ Future<void> _pumpMediaViewer(
                 onAddFromGallery: () {},
                 onAddFromFiles: () {},
                 onAccessingCamera: () {},
+                onOpenGallery: onOpenGallery ?? () {},
               );
             },
           ),

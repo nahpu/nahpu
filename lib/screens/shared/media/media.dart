@@ -30,6 +30,7 @@ class MediaViewer extends ConsumerStatefulWidget {
     required this.onAddFromGallery,
     required this.onAddFromFiles,
     required this.onAccessingCamera,
+    required this.onOpenGallery,
     this.contentHeight,
   });
 
@@ -37,6 +38,7 @@ class MediaViewer extends ConsumerStatefulWidget {
   final VoidCallback onAddFromGallery;
   final VoidCallback onAddFromFiles;
   final VoidCallback onAccessingCamera;
+  final VoidCallback onOpenGallery;
   final double? contentHeight;
 
   @override
@@ -82,29 +84,37 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
             ],
           ),
         ),
-        if (widget.images.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: SelectItemsInterface(
-              isSelecting: _isSelecting,
-              onClearPressed: _selectedMedia.isEmpty
-                  ? null
-                  : () => setState(_selectedMedia.clear),
-              onSelectAllPressed: () {
-                setState(() {
-                  _selectedMedia
-                    ..clear()
-                    ..addAll(widget.images.map((media) => media.primaryId));
-                });
-              },
-              onSelectPressed: () {
-                setState(() {
-                  _isSelecting = !_isSelecting;
-                  _selectedMedia.clear();
-                });
-              },
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SelectItemsInterface(
+            isSelecting: _isSelecting,
+            onClearPressed: _selectedMedia.isEmpty
+                ? null
+                : () => setState(_selectedMedia.clear),
+            onSelectAllPressed: widget.images.isEmpty
+                ? null
+                : () {
+                    setState(() {
+                      _selectedMedia
+                        ..clear()
+                        ..addAll(widget.images.map((media) => media.primaryId));
+                    });
+                  },
+            onSelectPressed: widget.images.isEmpty
+                ? null
+                : () {
+                    setState(() {
+                      _isSelecting = !_isSelecting;
+                      _selectedMedia.clear();
+                    });
+                  },
+            leadingAction: TextButton.icon(
+              onPressed: widget.onOpenGallery,
+              icon: const Icon(Icons.photo_library_outlined),
+              label: const Text('Gallery'),
             ),
           ),
+        ),
         SizedBox(
           height:
               widget.contentHeight ?? MediaQuery.of(context).size.height * 0.5,
@@ -147,21 +157,32 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
 
   Future<void> _deleteSelectedMedia() async {
     Navigator.of(context).pop();
+    var recordsDeleted = false;
     try {
-      await MediaServices(ref: ref).deleteMediaFromList(
-        _selectedMedia.toList(),
-        widget.images.first.category ?? '',
+      await MediaServices(ref: ref).deleteMediaItems(
+        widget.images.where(
+          (media) => _selectedMedia.contains(media.primaryId),
+        ),
       );
-      if (!mounted) return;
-      setState(() {
-        _selectedMedia.clear();
-        _isSelecting = false;
-      });
+      recordsDeleted = true;
+    } on MediaFileDeletionException catch (error) {
+      recordsDeleted = true;
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
+      }
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(error.toString())));
+    }
+    if (mounted && recordsDeleted) {
+      setState(() {
+        _selectedMedia.clear();
+        _isSelecting = false;
+      });
     }
   }
 }
@@ -700,7 +721,8 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
       builder: (context) => AlertDialog(
         title: const Text('Delete media file?'),
         content: Text(
-          'Remove ${widget.media.fileName ?? 'this media file'} from this record?',
+          'Delete ${widget.media.fileName ?? 'this media file'} from all '
+          'NAHPU records and from disk? This cannot be undone.',
         ),
         actions: [
           TextButton(

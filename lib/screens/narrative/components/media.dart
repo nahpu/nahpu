@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/narrative_services.dart';
@@ -69,6 +70,8 @@ class NarrativeMediaViewerState extends ConsumerState<NarrativeMediaViewer> {
     MediaCategory mediaCategory = MediaCategory.narrative;
     return MediaViewer(
       images: widget.data,
+      onOpenGallery: () =>
+          showMediaGallery(context, initialCategory: mediaCategory),
       onAddFromGallery: () async {
         try {
           List<String> images =

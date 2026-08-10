@@ -21,6 +21,7 @@ import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/types/import.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -162,7 +163,9 @@ void main() {
     expect(duplicatedEventId, isNotNull);
     expect(await CollEventQuery(db).getEventMedia(duplicatedEventId!), isEmpty);
 
-    await CollEventServices(ref: ref).deleteCollEvent(eventId);
+    await tester.runAsync(
+      () => CollEventServices(ref: ref).deleteCollEvent(eventId),
+    );
     expect(await CollEventQuery(db).getEventMedia(eventId), isEmpty);
     expect(MediaDbQuery(db).getMedia(media.primaryId), throwsStateError);
   });
@@ -203,6 +206,106 @@ void main() {
     );
     expect(after, isEmpty);
   });
+
+  testWidgets(
+    'mixed media deletion removes links, taxonomy references, and files',
+    (tester) async {
+      const projectUuid = 'proj-delete-mixed-media';
+      final ref = await _buildRef(tester, db, projectUuid);
+      await ProjectQuery(db).createProject(
+        const ProjectCompanion(
+          uuid: Value(projectUuid),
+          name: Value('Mixed media project'),
+        ),
+      );
+      final siteId = await db
+          .into(db.site)
+          .insert(const SiteCompanion(projectUuid: Value(projectUuid)));
+      final eventId = await db
+          .into(db.collEvent)
+          .insert(
+            CollEventCompanion(
+              projectUuid: const Value(projectUuid),
+              siteID: Value(siteId),
+            ),
+          );
+      const specimenUuid = 'mixed-specimen';
+      await SpecimenQuery(db).createSpecimen(
+        SpecimenCompanion(
+          uuid: const Value(specimenUuid),
+          projectUuid: const Value(projectUuid),
+          taxonGroup: const Value('General Mammals'),
+          collEventID: Value(eventId),
+        ),
+      );
+      final narrativeId = await NarrativeQuery(db).createNarrative(
+        NarrativeCompanion(
+          projectUuid: const Value(projectUuid),
+          siteID: Value(siteId),
+          narrative: const Value('Mixed media narrative'),
+        ),
+      );
+      final sources = [
+        _createTempFile('site.jpg', [1]),
+        _createTempFile('event.jpg', [2]),
+        _createTempFile('specimen.jpg', [3]),
+        _createTempFile('narrative.jpg', [4]),
+      ];
+      addTearDown(() {
+        for (final source in sources) {
+          _safeDelete(source);
+        }
+      });
+
+      await tester.runAsync(() async {
+        await SiteServices(ref: ref).createSiteMedia(siteId, sources[0].path);
+        await CollEventServices(
+          ref: ref,
+        ).createEventMedia(eventId, sources[1].path);
+        await SpecimenServices(
+          ref: ref,
+        ).createSpecimenMedia(specimenUuid, sources[2].path);
+        await NarrativeServices(
+          ref: ref,
+        ).createNarrativeMedia(narrativeId, sources[3].path);
+      });
+
+      final media = await MediaDbQuery(db).getRecordMediaByProject(projectUuid);
+      expect(media, hasLength(4));
+      await db
+          .into(db.taxonomy)
+          .insert(TaxonomyCompanion(mediaId: Value(media.first.primaryId)));
+      final storedFiles = (await tester.runAsync(() async {
+        final files = <File>[];
+        for (final item in media) {
+          final storedFile = await MediaFinder(ref: ref).getPathForMedia(
+            item.fileName!,
+            matchMediaCategoryString(item.category!),
+          );
+          await storedFile.create(recursive: true);
+          await storedFile.writeAsBytes([item.primaryId]);
+          files.add(storedFile);
+        }
+        return files;
+      }))!;
+      expect(storedFiles.every((file) => file.existsSync()), isTrue);
+
+      await tester.runAsync(
+        () => MediaServices(ref: ref).deleteMediaItems(media),
+      );
+
+      expect(
+        await MediaDbQuery(db).getRecordMediaByProject(projectUuid),
+        isEmpty,
+      );
+      expect(await SiteQuery(db).getSiteMedia(siteId), isEmpty);
+      expect(await CollEventQuery(db).getEventMedia(eventId), isEmpty);
+      expect(await SpecimenQuery(db).getSpecimenMedia(specimenUuid), isEmpty);
+      expect(await NarrativeQuery(db).getNarrativeMedia(narrativeId), isEmpty);
+      expect((await db.select(db.taxonomy).getSingle()).mediaId, isNull);
+      expect(storedFiles.every((file) => !file.existsSync()), isTrue);
+    },
+  );
 }
 
 Future<WidgetRef> _buildRef(
