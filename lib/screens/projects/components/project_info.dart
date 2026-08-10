@@ -10,12 +10,14 @@ class ProjectInfo extends StatelessWidget {
     required this.projectData,
     this.onEdit,
     this.showExport = true,
+    this.showActions = true,
     this.useSectionContainers = true,
   });
 
   final ProjectData? projectData;
   final VoidCallback? onEdit;
   final bool showExport;
+  final bool showActions;
   final bool useSectionContainers;
 
   @override
@@ -103,25 +105,12 @@ class ProjectInfo extends StatelessWidget {
               value: _parseDate(projectData?.lastAccessed),
               isSmall: true,
             ),
-            if (projectData != null && (onEdit != null || showExport)) ...[
-              const SizedBox(height: 4),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                children: [
-                  if (onEdit != null)
-                    TextButton(onPressed: onEdit, child: const Text('Edit')),
-                  if (showExport)
-                    TextButton(
-                      onPressed: () => showProjectExportDialog(
-                        context: context,
-                        projectData: projectData!,
-                      ),
-                      child: const Text('Export info'),
-                    ),
-                ],
+            if (showActions)
+              ProjectInfoActions(
+                projectData: projectData,
+                onEdit: onEdit,
+                showExport: showExport,
               ),
-            ],
           ],
         ),
       ],
@@ -141,6 +130,46 @@ class ProjectInfo extends StatelessWidget {
     }
     final value = parseDate(date);
     return '${value.date} ${value.time}';
+  }
+}
+
+class ProjectInfoActions extends StatelessWidget {
+  const ProjectInfoActions({
+    super.key,
+    required this.projectData,
+    this.onEdit,
+    this.showExport = true,
+  });
+
+  final ProjectData? projectData;
+  final VoidCallback? onEdit;
+  final bool showExport;
+
+  @override
+  Widget build(BuildContext context) {
+    if (projectData == null || (onEdit == null && !showExport)) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        children: [
+          if (onEdit != null)
+            TextButton(onPressed: onEdit, child: const Text('Edit')),
+          if (showExport)
+            TextButton(
+              onPressed: () => showProjectExportDialog(
+                context: context,
+                projectData: projectData!,
+              ),
+              child: const Text('Export info'),
+            ),
+        ],
+      ),
+    );
   }
 }
 

@@ -109,6 +109,7 @@ class _ProjectShellState extends ConsumerState<ProjectShell> {
                   start: 0,
                   width: _projectMenuPanelWidth,
                   child: TapRegion(
+                    groupId: projectMenuTapRegionGroupId,
                     onTapOutside: (_) => _closeProjectMenu(),
                     child: FocusScope(
                       autofocus: true,

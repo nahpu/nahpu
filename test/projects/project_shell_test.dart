@@ -263,6 +263,29 @@ void main() {
     },
   );
 
+  testWidgets('toggles the menu closed from the rail button', (tester) async {
+    await _pumpShell(tester, size: const Size(1200, 900));
+
+    await tester.tap(find.text('Menu'));
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationDrawer), findsOneWidget);
+
+    await tester.tap(find.text('Menu'));
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationDrawer), findsNothing);
+
+    await tester.tap(find.text('Expand'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Menu'));
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationDrawer), findsOneWidget);
+
+    await tester.tap(find.text('Close menu'));
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationDrawer), findsNothing);
+  });
+
   testWidgets('closes the menu when its focus leaves the panel', (
     tester,
   ) async {

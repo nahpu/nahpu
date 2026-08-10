@@ -50,6 +50,7 @@ void main() {
                     child: ProjectOverview(
                       projectUuid: 'project-uuid',
                       useHorizontalLayout: true,
+                      onEdit: () {},
                     ),
                   ),
                 )
@@ -57,6 +58,7 @@ void main() {
                   child: ProjectOverview(
                     projectUuid: 'project-uuid',
                     useHorizontalLayout: false,
+                    onEdit: () {},
                   ),
                 ),
         ),
@@ -85,6 +87,20 @@ void main() {
       tester.state<ScrollableState>(scrollable.first).position.maxScrollExtent,
       greaterThan(0),
     );
+    expect(find.text('Edit'), findsOneWidget);
+    expect(find.text('Export info'), findsOneWidget);
+    expect(
+      find.descendant(of: overviewScroll, matching: find.text('Edit')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: overviewScroll, matching: find.text('Export info')),
+      findsNothing,
+    );
+    await tester.drag(overviewScroll, const Offset(0, -200));
+    await tester.pump();
+    expect(find.text('Edit'), findsOneWidget);
+    expect(find.text('Export info'), findsOneWidget);
     expect(tester.takeException(), equals(null));
   });
 

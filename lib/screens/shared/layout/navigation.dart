@@ -13,6 +13,7 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 const double _projectRailExtendedWidth = 256;
+const Object projectMenuTapRegionGroupId = 'project-menu';
 
 class ProjectBottomNavbar extends ConsumerStatefulWidget {
   const ProjectBottomNavbar({super.key});
@@ -141,19 +142,22 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
                   setState(() => _isExtended = !_isExtended);
                 },
               ),
-              _RailActionButton(
-                icon: widget.isMenuOpen
-                    ? Icons.menu_open_rounded
-                    : Icons.menu_rounded,
-                collapsedLabel: 'Menu',
-                expandedLabel: widget.isMenuOpen ? 'Close menu' : 'Menu',
-                tooltip: widget.isMenuOpen
-                    ? 'Close project menu'
-                    : 'Open project menu',
-                foregroundColor: standardForeground,
-                isExtended: _isExtended,
-                onPressed: () =>
-                    widget.onMenuVisibilityChanged(!widget.isMenuOpen),
+              TapRegion(
+                groupId: projectMenuTapRegionGroupId,
+                child: _RailActionButton(
+                  icon: widget.isMenuOpen
+                      ? Icons.menu_open_rounded
+                      : Icons.menu_rounded,
+                  collapsedLabel: 'Menu',
+                  expandedLabel: widget.isMenuOpen ? 'Close menu' : 'Menu',
+                  tooltip: widget.isMenuOpen
+                      ? 'Close project menu'
+                      : 'Open project menu',
+                  foregroundColor: standardForeground,
+                  isExtended: _isExtended,
+                  onPressed: () =>
+                      widget.onMenuVisibilityChanged(!widget.isMenuOpen),
+                ),
               ),
             ],
           ),

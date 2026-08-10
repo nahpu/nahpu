@@ -33,17 +33,28 @@ class ProjectOverview extends ConsumerWidget {
                 padding: const EdgeInsets.all(8),
                 child: ProjectInfo(
                   projectData: data,
-                  onEdit: onEdit,
+                  showActions: false,
                   useSectionContainers: false,
                 ),
               );
+              final actions = ProjectInfoActions(
+                projectData: data,
+                onEdit: onEdit,
+              );
               if (useHorizontalLayout) {
-                return SingleChildScrollView(
-                  key: const ValueKey('project-overview-scroll'),
-                  child: projectInfo,
+                return Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        key: const ValueKey('project-overview-scroll'),
+                        child: projectInfo,
+                      ),
+                    ),
+                    actions,
+                  ],
                 );
               }
-              return projectInfo;
+              return Column(children: [projectInfo, actions]);
             },
             loading: () => const CommonProgressIndicator(),
             error: (error, stack) => Text(error.toString()),
