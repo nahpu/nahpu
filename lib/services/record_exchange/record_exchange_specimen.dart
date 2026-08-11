@@ -15,11 +15,11 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:uuid/uuid.dart';
 
-/// Exchanges a specimen and its related attributes using the portable v1 wire
+/// Exchanges a specimen and its related attributes using the portable wire
 /// format.
 ///
 /// The wire key remains `measurements` for compatibility even though records
-/// are persisted in the mammal, bird, and herpetofauna attribute tables.
+/// are persisted in taxon-specific attribute tables.
 class RecordExchangeSpecimen extends AppServices {
   const RecordExchangeSpecimen({required super.ref});
 
@@ -177,10 +177,14 @@ class RecordExchangeSpecimen extends AppServices {
     final herp = await (dbAccess.select(
       dbAccess.herpAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
+    final arthropod = await (dbAccess.select(
+      dbAccess.arthropodAttribute,
+    )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
     return {
       'mammal': mammal?.toJson(),
       'avian': bird?.toJson(),
       'herp': herp?.toJson(),
+      'arthropod': arthropod?.toJson(),
     };
   }
 
@@ -406,6 +410,9 @@ class RecordExchangeSpecimen extends AppServices {
     await (dbAccess.delete(
       dbAccess.herpAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
+    await (dbAccess.delete(
+      dbAccess.arthropodAttribute,
+    )..where((row) => row.specimenUuid.equals(uuid))).go();
   }
 
   Future<void> _importAttributes(
@@ -461,6 +468,17 @@ class RecordExchangeSpecimen extends AppServices {
           .insert(
             HerpAttributeData.fromJson({
               ...herpJson,
+              'specimenUuid': uuid,
+            }).toCompanion(true),
+          );
+    }
+    final arthropod = attributes['arthropod'];
+    if (arthropod is Map) {
+      await dbAccess
+          .into(dbAccess.arthropodAttribute)
+          .insert(
+            ArthropodAttributeData.fromJson({
+              ...Map<String, dynamic>.from(arthropod),
               'specimenUuid': uuid,
             }).toCompanion(true),
           );

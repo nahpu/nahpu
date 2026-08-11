@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+const int recordExchangeVersion = 2;
+const Set<int> supportedRecordExchangeVersions = {1, 2};
+
 enum RecordExchangeType { site, event, specimen }
 
 enum RecordArchiveFormat { zip, tarGzip }
@@ -34,7 +37,7 @@ class RecordExchangePayload {
   const RecordExchangePayload({
     required this.type,
     required this.data,
-    this.version = 1,
+    this.version = recordExchangeVersion,
     this.mediaFiles = const [],
   });
 
@@ -105,7 +108,7 @@ class RecordExchangePayload {
     if (name is! String || version is! num || rawData is! Map) {
       throw const FormatException('Invalid NAHPU record JSON envelope.');
     }
-    if (version.toInt() != 1) {
+    if (!supportedRecordExchangeVersions.contains(version.toInt())) {
       throw const FormatException('Unsupported NAHPU record JSON version.');
     }
     final type = RecordExchangeType.values.where(
