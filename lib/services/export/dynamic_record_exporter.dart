@@ -312,6 +312,12 @@ class DynamicRecordExporter {
     if (herp != null) {
       _addData(record, 'herpAttribute', herp.toJson());
     }
+    final arthropod = await (db.select(
+      db.arthropodAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+    if (arthropod != null) {
+      _addData(record, 'arthropodAttribute', arthropod.toJson());
+    }
     final detection = await (db.select(
       db.parasiteDetection,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).getSingleOrNull();

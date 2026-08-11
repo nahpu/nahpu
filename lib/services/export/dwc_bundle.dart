@@ -280,6 +280,10 @@ class DwcBundleWriter extends AppServices {
           : await _resolveEventAgents(event.id, agents);
       if (eventAgents.isEmpty && cataloger != null) eventAgents = [cataloger];
       final recorders = _catalogerFirst(cataloger, eventAgents);
+      final arthropodAttributes =
+          normalizeBundleTaxonGroup(specimen.taxonGroup) == 'Arthropods'
+          ? await _arthropodAttributeValues(specimen.uuid)
+          : const <String, dynamic>{};
 
       occurrenceRows.add(
         _occurrenceRow(
@@ -292,6 +296,7 @@ class DwcBundleWriter extends AppServices {
           recorders: recorders,
           determiner: determiner,
           catalogNumber: catalogNumber,
+          arthropodAttributes: arthropodAttributes,
         ),
       );
       if (event != null) {
@@ -537,6 +542,7 @@ class DwcBundleWriter extends AppServices {
     required List<_ResolvedAgent> recorders,
     required _ResolvedAgent? determiner,
     required String? catalogNumber,
+    required Map<String, dynamic> arthropodAttributes,
   }) {
     final released = specimen.condition?.toLowerCase() == 'released';
     final scientificName = [
@@ -595,7 +601,32 @@ class DwcBundleWriter extends AppServices {
       'recordedByID': _agentIds(recorders),
       'identifiedBy': determiner?.name,
       'identifiedByID': determiner?.id,
+      'sex': _specimenSexLabel(arthropodAttributes['sex']),
+      'associatedTaxa': _hostAssociation(arthropodAttributes['hostOrganism']),
+      'occurrenceRemarks': arthropodAttributes['remark'],
     };
+  }
+
+  Future<Map<String, dynamic>> _arthropodAttributeValues(String uuid) async {
+    try {
+      return (await SpecimenServices(
+        ref: ref,
+      ).getArthropodAttributeData(uuid)).toJson();
+    } catch (_) {
+      return const <String, dynamic>{};
+    }
+  }
+
+  String? _specimenSexLabel(dynamic value) {
+    if (value is! int || value < 0 || value >= specimenSexList.length) {
+      return null;
+    }
+    return specimenSexList[value];
+  }
+
+  String? _hostAssociation(dynamic value) {
+    if (value is! String || value.trim().isEmpty) return null;
+    return 'host: ${value.trim()}';
   }
 
   Map<String, dynamic> _eventRow(
@@ -703,6 +734,10 @@ class DwcBundleWriter extends AppServices {
           return (await SpecimenServices(
             ref: ref,
           ).getHerpAttributeData(specimen.uuid)).toJson();
+        case 'Arthropods':
+          return (await SpecimenServices(
+            ref: ref,
+          ).getArthropodAttributeData(specimen.uuid)).toJson();
         default:
           return (await SpecimenServices(
             ref: ref,
@@ -932,6 +967,13 @@ List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
     ),
     ..._enumMappingRows(
       table: 'herpAttribute',
+      column: 'sex',
+      enumType: 'SpecimenSex',
+      values: SpecimenSex.values,
+      displayNames: specimenSexList,
+    ),
+    ..._enumMappingRows(
+      table: 'arthropodAttribute',
       column: 'sex',
       enumType: 'SpecimenSex',
       values: SpecimenSex.values,
@@ -1197,6 +1239,19 @@ const _measurementDefinitions = <String, _MeasurementDefinition>{
     'frequency at maximum energy',
     'kHz',
   ),
+  'headWidth': _MeasurementDefinition('head width', 'mm'),
+  'bodyLength': _MeasurementDefinition('body length', 'mm'),
+  'wingspanUpper': _MeasurementDefinition('upper wingspan', 'mm'),
+  'wingspanLower': _MeasurementDefinition('lower wingspan', 'mm'),
+  'hostPart': _MeasurementDefinition('host part'),
+  'canopyAffinity': _MeasurementDefinition('canopy affinity'),
+  'canopyCover': _MeasurementDefinition('canopy cover'),
+  'ambientTemperature': _MeasurementDefinition('ambient temperature', '°C'),
+  'ambientHumidity': _MeasurementDefinition('ambient humidity', '%'),
+  'waterTemperature': _MeasurementDefinition('water temperature', '°C'),
+  'pH': _MeasurementDefinition('pH'),
+  'dissolvedOxygen': _MeasurementDefinition('dissolved oxygen', 'mg/L'),
+  'flowVelocity': _MeasurementDefinition('flow velocity', 'm/s'),
 };
 
 /// Normalizes both current and legacy database labels to package choices.
@@ -1216,6 +1271,11 @@ String normalizeBundleTaxonGroup(String? value) {
       normalized.contains('reptil') ||
       normalized.contains('amphib')) {
     return 'Herpetofauna';
+  }
+  if (normalized.contains('arthropod') ||
+      normalized.contains('insect') ||
+      normalized.contains('arachnid')) {
+    return 'Arthropods';
   }
   return value?.trim().isNotEmpty == true ? value!.trim() : 'Other';
 }
@@ -1245,6 +1305,7 @@ const List<String> _nahpuTableNames = [
   'mammalAttribute',
   'birdAttribute',
   'herpAttribute',
+  'arthropodAttribute',
   'parasiteDetection',
   'parasite',
   'specimenPart',
