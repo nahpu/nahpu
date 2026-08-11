@@ -1702,6 +1702,12 @@ void main() {
       expect(formatTemplateText('\u2640', 'sex', 'symbol:unknown'), '\u2640');
       expect(formatTemplateText('\u2642', 'sex', 'letter:na'), 'M');
       expect(formatTemplateText('\u2640', 'sex', 'text:none'), 'Female');
+
+      expect(formatTemplateText('3', 'sex', 'text:unknown'), 'Gynandromorph');
+      expect(formatTemplateText('4', 'sex', 'letter:unknown'), 'H');
+      expect(formatTemplateText('5', 'sex', 'symbol:unknown'), '\u2640?');
+      expect(formatTemplateText('Male?', 'sex', 'letter:unknown'), 'M?');
+      expect(formatTemplateText('\u26A5', 'sex', 'text:unknown'), 'Hermaphrodite');
     });
 
     test('Typst keeps sex symbols and selects a glyph-capable font', () {

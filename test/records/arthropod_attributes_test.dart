@@ -7,6 +7,8 @@ import 'package:nahpu/screens/specimens/arthropods/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 void main() {
   testWidgets(
@@ -43,7 +45,12 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [databaseProvider.overrideWithValue(database)],
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            specimenSexVocabularyProvider.overrideWith(
+              (ref) async => allowedSpecimenSexes,
+            ),
+          ],
           child: const MaterialApp(
             home: Scaffold(
               body: SizedBox(
@@ -61,6 +68,21 @@ void main() {
 
       expect(find.text('Ecological interactions'), findsOneWidget);
       expect(find.text('Environmental parameters'), findsOneWidget);
+      expect(find.byType(SpecimenSexDropdown), findsOneWidget);
+      final sectionLabel = tester.widget<Text>(
+        find.text('Ecological interactions'),
+      );
+      expect(sectionLabel.textAlign, TextAlign.center);
+      expect(
+        sectionLabel.style,
+        Theme.of(
+          tester.element(find.text('Ecological interactions')),
+        ).textTheme.titleMedium,
+      );
+      expect(
+        tester.getTopLeft(find.byType(SpecimenSexDropdown)).dy,
+        lessThan(tester.getTopLeft(find.text('Ecological interactions')).dy),
+      );
       expect(find.text('Show specimen morphometrics'), findsOneWidget);
       expect(find.text('Head width (mm)'), findsNothing);
       expect(find.byType(ParasiteDetectionForm), findsNothing);
@@ -111,7 +133,12 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(database)],
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          specimenSexVocabularyProvider.overrideWith(
+            (ref) async => defaultSpecimenSexes,
+          ),
+        ],
         child: const MaterialApp(
           home: Scaffold(
             body: ArthropodAttributeForms(

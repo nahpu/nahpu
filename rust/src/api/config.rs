@@ -6,6 +6,16 @@ use nahpu_configs::ConfigDb;
 use std::collections::HashMap;
 
 const RECORD_EXPORT_PRESET_PAYLOAD_KEY: &str = "__nahpu_record_export_preset_v2__";
+const SPECIMEN_SEX_CONFIG_KEY: &str = "specimenSexes";
+const ALLOWED_SPECIMEN_SEX_VALUES: &[&str] = &[
+    "Male",
+    "Female",
+    "Unknown",
+    "Gynandromorph",
+    "Hermaphrodite",
+    "Female?",
+    "Male?",
+];
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum UserConfigSection {
@@ -336,6 +346,9 @@ pub fn init_config_db(path: String) -> Result<(), String> {
 }
 
 pub fn set_user_config_list(key: String, value: Vec<String>) -> Result<(), String> {
+    if key == SPECIMEN_SEX_CONFIG_KEY {
+        validate_specimen_sex_values(&value)?;
+    }
     let db = ConfigDb::get_instance()?;
     db.set_user_config_list(&key, &value)
 }
@@ -447,7 +460,32 @@ fn read_config_export(file_path: &str) -> Result<nahpu_configs::UserConfigsExpor
     if export.included_sections.is_empty() {
         return Err("The user configuration transfer contains no sections".to_string());
     }
+    if let Some(value) = export.configs.get(SPECIMEN_SEX_CONFIG_KEY) {
+        let values = value
+            .as_array()
+            .ok_or_else(|| "Specimen sexes must be a list".to_string())?
+            .iter()
+            .map(|item| {
+                item.as_str()
+                    .map(ToString::to_string)
+                    .ok_or_else(|| "Specimen sex values must be text".to_string())
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        validate_specimen_sex_values(&values)?;
+    }
     Ok(export)
+}
+
+fn validate_specimen_sex_values(values: &[String]) -> Result<(), String> {
+    if let Some(value) = values
+        .iter()
+        .find(|value| !ALLOWED_SPECIMEN_SEX_VALUES.contains(&value.as_str()))
+    {
+        return Err(format!(
+            "Unsupported specimen sex '{value}'. Choose a value from the restricted vocabulary."
+        ));
+    }
+    Ok(())
 }
 
 fn build_config_transfer_preview(
@@ -559,6 +597,7 @@ fn is_controlled_vocabulary(key: &str) -> bool {
             | "specimenTypes"
             | "specimenTreatment"
             | "specimenConditions"
+            | "specimenSexes"
             | "parasiteCategories"
             | "parasiteDetectionMethods"
             | "parasitePreparationMethods"
@@ -578,6 +617,7 @@ fn config_label(key: &str) -> &str {
         "specimenTypes" => "Specimen part types",
         "specimenTreatment" => "Treatments",
         "specimenConditions" => "Conditions",
+        "specimenSexes" => "Specimen sexes",
         "parasiteCategories" => "Parasite categories",
         "parasiteDetectionMethods" => "Parasite detection methods",
         "parasitePreparationMethods" => "Parasite preparation methods",
@@ -713,4 +753,24 @@ pub fn import_document_layout_from_file(file_path: String) -> Result<DocumentLay
     let layout: nahpu_configs::models::DocumentLayoutPreset =
         serde_json::from_str(&content).map_err(|e| e.to_string())?;
     Ok(layout.into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_specimen_sex_values;
+
+    #[test]
+    fn specimen_sex_vocabulary_accepts_only_supported_values() {
+        let supported = vec![
+            "Male".to_string(),
+            "Female".to_string(),
+            "Unknown".to_string(),
+            "Gynandromorph".to_string(),
+            "Hermaphrodite".to_string(),
+            "Female?".to_string(),
+            "Male?".to_string(),
+        ];
+        assert!(validate_specimen_sex_values(&supported).is_ok());
+        assert!(validate_specimen_sex_values(&["Worker".to_string()]).is_err());
+    }
 }

@@ -73,7 +73,7 @@ void main() {
         )
         .toSet();
 
-    expect(mappings, hasLength(60));
+    expect(mappings, hasLength(76));
     expect(keys, hasLength(mappings.length));
     final qcf = mappings.singleWhere(
       (mapping) =>
@@ -103,6 +103,15 @@ void main() {
     );
     expect(arthropodFemale['enum_name'], 'female');
     expect(arthropodFemale['display_name'], 'Female');
+
+    final birdMaleUncertain = mappings.singleWhere(
+      (mapping) =>
+          mapping['table'] == 'birdAttribute' &&
+          mapping['column'] == 'sex' &&
+          mapping['sqlite_index'] == 6,
+    );
+    expect(birdMaleUncertain['enum_name'], 'maleUncertain');
+    expect(birdMaleUncertain['display_name'], 'Male?');
   });
 
   testWidgets('users can switch to selected taxa and change the selection', (
