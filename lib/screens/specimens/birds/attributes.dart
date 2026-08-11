@@ -198,21 +198,9 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            DropdownButtonFormField<SpecimenSex>(
+            SpecimenSexDropdown(
               key: _sexDropdownKey,
-              initialValue: getSpecimenSex(ctr.sexCtr),
-              decoration: const InputDecoration(
-                labelText: 'Sex',
-                hintText: 'Choose one',
-              ),
-              items: specimenSexList
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: SpecimenSex.values[specimenSexList.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ),
-                  )
-                  .toList(),
+              currentCode: ctr.sexCtr,
               onChanged: _handleSexUpdate,
             ),
           ],
@@ -319,31 +307,35 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
   }
 
   Future<void> _handleSexUpdate(SpecimenSex? newSex) async {
-    SpecimenSex? currentSex = getSpecimenSex(ctr.sexCtr);
-    // No change in selected sex, no action needed
+    final currentSex = getSpecimenSex(ctr.sexCtr);
     if (newSex == null || newSex == currentSex) return;
 
-    // Change from blank or unknown sex, no clearing needed
-    if (currentSex == null || currentSex == SpecimenSex.unknown) {
+    final clearMale =
+        currentSex?.supportsMaleAttributes == true &&
+        !newSex.supportsMaleAttributes;
+    final clearFemale =
+        currentSex?.supportsFemaleAttributes == true &&
+        !newSex.supportsFemaleAttributes;
+    if (!clearMale && !clearFemale) {
       _updateSex(newSex);
       return;
     }
 
-    // Otherwise, we're changing from male/female to something else
-    // Prompt the user and clear the prior data if confirmed
-    showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return CommonAlertDialog(
           titleText: 'Change sex?',
           descText:
-              'Changing the sex will clear previously '
-              'entered sex data.',
+              'Changing the sex will clear reproductive data that does not '
+              'apply to the new selection.',
           confirmFunction: () {
-            ctr.clearSexControllers();
-            SpecimenServices(
-              ref: ref,
-            ).clearBirdSexAttributes(widget.specimenUuid);
+            ctr.clearSexControllers(male: clearMale, female: clearFemale);
+            SpecimenServices(ref: ref).clearBirdSexAttributes(
+              widget.specimenUuid,
+              male: clearMale,
+              female: clearFemale,
+            );
             _updateSex(newSex);
           },
           cancelFunction: () {
@@ -358,11 +350,12 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
   }
 
   void _updateSex(SpecimenSex newSex) {
+    final code = getSpecimenSexCode(newSex);
     setState(() {
-      ctr.sexCtr = newSex.index;
+      ctr.sexCtr = code;
       SpecimenServices(ref: ref).updateBirdAttribute(
         widget.specimenUuid,
-        BirdAttributeCompanion(sex: db.Value(newSex.index)),
+        BirdAttributeCompanion(sex: db.Value(code)),
       );
     });
   }
@@ -467,11 +460,11 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      visible: widget.sex == SpecimenSex.male,
+      visible: widget.sex?.supportsMaleAttributes == true,
       child: Column(
         children: [
           const CommonDivider(),
-          Text('Male Gonads', style: Theme.of(context).textTheme.titleLarge),
+          const SpecimenAttributeSectionLabel(text: 'Male gonads'),
           Text(
             'Left testis size (mm)',
             style: Theme.of(context).textTheme.titleSmall,
@@ -616,12 +609,12 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
     );
 
     return Visibility(
-      visible: widget.sex == SpecimenSex.female,
+      visible: widget.sex?.supportsFemaleAttributes == true,
       child: Column(
         children: [
           const CommonDivider(),
-          Text('Female Gonads', style: Theme.of(context).textTheme.titleLarge),
-          Text('Ovary size', style: Theme.of(context).textTheme.titleMedium),
+          const SpecimenAttributeSectionLabel(text: 'Female gonads'),
+          const SpecimenAttributeSectionLabel(text: 'Ovary size'),
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
@@ -688,7 +681,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
               useHorizontalLayout: widget.useHorizontalLayout,
             ),
           ),
-          Text('Oviduct', style: Theme.of(context).textTheme.titleMedium),
+          const SpecimenAttributeSectionLabel(text: 'Oviduct'),
           OviductForm(
             specimenUuid: widget.specimenUuid,
             ctr: widget.ctr,
@@ -800,9 +793,8 @@ class OvumSizeForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        Text(
-          'The Diameter of Three Largest Ova (mm)',
-          style: Theme.of(context).textTheme.titleMedium,
+        const SpecimenAttributeSectionLabel(
+          text: 'Diameter of three largest ova (mm)',
         ),
         AdaptiveLayout(
           useHorizontalLayout: useHorizontalLayout,
@@ -1016,7 +1008,7 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          Text('Molt', style: Theme.of(context).textTheme.titleMedium),
+          const SpecimenAttributeSectionLabel(text: 'Molt'),
           BodyMoltForm(specimenUuid: widget.specimenUuid, ctr: widget.ctr),
           DropdownButtonFormField<int?>(
             initialValue: widget.ctr.wingIsMoltCtr,
@@ -1211,7 +1203,7 @@ class Notes extends ConsumerWidget {
       padding: const EdgeInsets.all(4),
       child: Column(
         children: [
-          Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+          const SpecimenAttributeSectionLabel(text: 'Notes'),
           CommonTextField(
             controller: ctr.habitatRemarkCtr,
             maxLines: 3,

@@ -62,12 +62,20 @@ class _ArthropodAttributeFormsState
   Widget build(BuildContext context) {
     return AttributeForm(
       children: [
-        const _ArthropodSectionTitle(text: 'Ecological interactions'),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            SpecimenSexDropdown(
+              key: _sexDropdownKey,
+              currentCode: _ctr.sexCtr,
+              onChanged: _updateSex,
+            ),
+          ],
+        ),
+        const SpecimenAttributeSectionLabel(text: 'Ecological interactions'),
         _EcologicalInteractionSection(
           ctr: _ctr,
-          sexDropdownKey: _sexDropdownKey,
           useHorizontalLayout: widget.useHorizontalLayout,
-          onSexChanged: _updateSex,
           onHostOrganismChanged: (value) => _updateAttribute(
             ArthropodAttributeCompanion(
               hostOrganism: db.Value(_optionalText(value)),
@@ -85,7 +93,7 @@ class _ArthropodAttributeFormsState
           ),
         ),
         const CommonDivider(),
-        const _ArthropodSectionTitle(text: 'Environmental parameters'),
+        const SpecimenAttributeSectionLabel(text: 'Environmental parameters'),
         _EnvironmentalParameterSection(
           ctr: _ctr,
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -134,7 +142,7 @@ class _ArthropodAttributeFormsState
           ],
         ),
         if (_showMorphometrics) ...[
-          const _ArthropodSectionTitle(text: 'Specimen morphometrics'),
+          const SpecimenAttributeSectionLabel(text: 'Specimen morphometrics'),
           _MorphometricsSection(
             ctr: _ctr,
             useHorizontalLayout: widget.useHorizontalLayout,
@@ -206,8 +214,9 @@ class _ArthropodAttributeFormsState
   }
 
   void _updateSex(SpecimenSex? value) {
-    setState(() => _ctr.sexCtr = value?.index);
-    _updateAttribute(ArthropodAttributeCompanion(sex: db.Value(value?.index)));
+    final code = value == null ? null : getSpecimenSexCode(value);
+    setState(() => _ctr.sexCtr = code);
+    _updateAttribute(ArthropodAttributeCompanion(sex: db.Value(code)));
   }
 
   void _updateDouble(String? value, _ArthropodCompanionBuilder builder) {
@@ -256,38 +265,17 @@ class _ArthropodAttributeFormsState
   }
 }
 
-class _ArthropodSectionTitle extends StatelessWidget {
-  const _ArthropodSectionTitle({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(text, style: Theme.of(context).textTheme.titleMedium),
-      ),
-    );
-  }
-}
-
 class _EcologicalInteractionSection extends StatelessWidget {
   const _EcologicalInteractionSection({
     required this.ctr,
-    required this.sexDropdownKey,
     required this.useHorizontalLayout,
-    required this.onSexChanged,
     required this.onHostOrganismChanged,
     required this.onHostPartChanged,
     required this.onCanopyAffinityChanged,
   });
 
   final ArthropodAttributeCtrModel ctr;
-  final Key sexDropdownKey;
   final bool useHorizontalLayout;
-  final ValueChanged<SpecimenSex?> onSexChanged;
   final ValueChanged<String?> onHostOrganismChanged;
   final ValueChanged<String?> onHostPartChanged;
   final ValueChanged<String?> onCanopyAffinityChanged;
@@ -299,26 +287,6 @@ class _EcologicalInteractionSection extends StatelessWidget {
         AdaptiveLayout(
           useHorizontalLayout: useHorizontalLayout,
           children: [
-            DropdownButtonFormField<SpecimenSex>(
-              key: sexDropdownKey,
-              initialValue: getSpecimenSex(ctr.sexCtr),
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Sex',
-                hintText: 'Select specimen sex',
-              ),
-              items: SpecimenSex.values
-                  .map(
-                    (value) => DropdownMenuItem(
-                      value: value,
-                      child: CommonDropdownText(
-                        text: specimenSexList[value.index],
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: onSexChanged,
-            ),
             CommonTextField(
               controller: ctr.hostOrganismCtr,
               labelText: 'Host organism',

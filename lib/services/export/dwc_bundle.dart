@@ -618,10 +618,7 @@ class DwcBundleWriter extends AppServices {
   }
 
   String? _specimenSexLabel(dynamic value) {
-    if (value is! int || value < 0 || value >= specimenSexList.length) {
-      return null;
-    }
-    return specimenSexList[value];
+    return value is int ? getSpecimenSexLabel(value) : null;
   }
 
   String? _hostAssociation(dynamic value) {
@@ -951,34 +948,10 @@ class DwcBundleWriter extends AppServices {
 
 List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
   return [
-    ..._enumMappingRows(
-      table: 'mammalAttribute',
-      column: 'sex',
-      enumType: 'SpecimenSex',
-      values: SpecimenSex.values,
-      displayNames: specimenSexList,
-    ),
-    ..._enumMappingRows(
-      table: 'birdAttribute',
-      column: 'sex',
-      enumType: 'SpecimenSex',
-      values: SpecimenSex.values,
-      displayNames: specimenSexList,
-    ),
-    ..._enumMappingRows(
-      table: 'herpAttribute',
-      column: 'sex',
-      enumType: 'SpecimenSex',
-      values: SpecimenSex.values,
-      displayNames: specimenSexList,
-    ),
-    ..._enumMappingRows(
-      table: 'arthropodAttribute',
-      column: 'sex',
-      enumType: 'SpecimenSex',
-      values: SpecimenSex.values,
-      displayNames: specimenSexList,
-    ),
+    ..._specimenSexMappingRows(table: 'mammalAttribute', column: 'sex'),
+    ..._specimenSexMappingRows(table: 'birdAttribute', column: 'sex'),
+    ..._specimenSexMappingRows(table: 'herpAttribute', column: 'sex'),
+    ..._specimenSexMappingRows(table: 'arthropodAttribute', column: 'sex'),
     ..._enumMappingRows(
       table: 'mammalAttribute',
       column: 'age',
@@ -1080,6 +1053,23 @@ List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
   ];
 }
 
+List<Map<String, dynamic>> _specimenSexMappingRows({
+  required String table,
+  required String column,
+}) {
+  return [
+    for (final entry in specimenSexByCode.entries)
+      <String, dynamic>{
+        'table': table,
+        'column': column,
+        'enum_type': 'SpecimenSex',
+        'sqlite_index': entry.key,
+        'enum_name': entry.value.name,
+        'display_name': specimenSexLabel[entry.value],
+      },
+  ];
+}
+
 List<Map<String, dynamic>> _enumMappingRows({
   required String table,
   required String column,
@@ -1165,6 +1155,11 @@ const _nahpuControlledVocabularyDefinitions = [
     section: 'specimens',
     configKey: conditionPrefKey,
     name: 'Specimen condition',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: specimenSexPrefKey,
+    name: 'Specimen sex',
   ),
   _NahpuControlledVocabularyDefinition(
     section: 'parasites',

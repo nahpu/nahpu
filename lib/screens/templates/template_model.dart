@@ -352,9 +352,7 @@ String? getEncodedDefaultValue(String key, String value) {
   if (intVal == null) return null;
 
   if (cleanKey.endsWith('::sex')) {
-    if (intVal >= 0 && intVal < specimens.specimenSexList.length) {
-      return specimens.specimenSexList[intVal];
-    }
+    return specimens.getSpecimenSexLabel(intVal);
   } else if (cleanKey == 'mammalattribute::age' ||
       cleanKey == 'mammalmeasurement::age') {
     if (intVal >= 0 && intVal < mammals.specimenAgeList.length) {
@@ -415,47 +413,27 @@ String? getEncodedDefaultValue(String key, String value) {
 }
 
 String formatSexText(String text, String formatOption) {
-  final cleanText = text.trim().toLowerCase();
-
   final parts = formatOption.split(':');
   final presentation = parts.isNotEmpty ? parts[0] : 'text';
   final missingOpt = parts.length > 1 ? parts[1] : 'unknown';
 
-  // Formatting can run more than once while a template moves through the
-  // editor, placeholder substitution, and PDF measurement/rendering paths.
-  // Treat already-rendered sex symbols as their source value so formatting is
-  // idempotent instead of turning them into the unknown-value fallback.
-  final isMale =
-      cleanText == '0' ||
-      cleanText == 'male' ||
-      cleanText == 'm' ||
-      cleanText == '\u2642';
-  final isFemale =
-      cleanText == '1' ||
-      cleanText == 'female' ||
-      cleanText == 'f' ||
-      cleanText == '\u2640';
+  final sex = specimens.specimenSexFromDisplayValue(text);
+  if (sex != null && sex != specimens.SpecimenSex.unknown) {
+    if (presentation == 'symbol') return specimens.specimenSexSymbol[sex]!;
+    if (presentation == 'letter') return specimens.specimenSexLetter[sex]!;
+    return specimens.specimenSexLabel[sex]!;
+  }
 
-  if (isMale) {
-    if (presentation == 'symbol') return '\u2642'; // ♂
-    if (presentation == 'letter') return 'M';
-    return 'Male';
-  } else if (isFemale) {
-    if (presentation == 'symbol') return '\u2640'; // ♀
-    if (presentation == 'letter') return 'F';
-    return 'Female';
-  } else {
-    switch (missingOpt) {
-      case 'na':
-        return 'N/A';
-      case 'none':
-        return '';
-      case 'unknown':
-      default:
-        if (presentation == 'symbol') return '?';
-        if (presentation == 'letter') return 'U';
-        return 'Unknown';
-    }
+  switch (missingOpt) {
+    case 'na':
+      return 'N/A';
+    case 'none':
+      return '';
+    case 'unknown':
+    default:
+      if (presentation == 'symbol') return '?';
+      if (presentation == 'letter') return 'U';
+      return 'Unknown';
   }
 }
 

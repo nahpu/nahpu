@@ -6,6 +6,7 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 const controlledVocabularyPrefKeys = [
   siteTypePrefKey,
@@ -16,6 +17,7 @@ const controlledVocabularyPrefKeys = [
   specimenTypePrefKey,
   treatmentPrefKey,
   conditionPrefKey,
+  specimenSexPrefKey,
   parasiteCategoryPrefKey,
   parasiteDetectionMethodPrefKey,
   parasitePreparationMethodPrefKey,
@@ -31,6 +33,11 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
       );
       final database = ref.watch(databaseProvider);
       final configured = await configuredFuture;
+      if (prefKey == specimenSexPrefKey) {
+        return normalizeSpecimenSexOptions(
+          configured,
+        ).map((sex) => specimenSexLabel[sex]!).toList(growable: false);
+      }
       final stored = switch (prefKey) {
         siteTypePrefKey => await SiteQuery(database).getDistinctSiteTypes(),
         habitatTypePrefKey => await SiteQuery(
@@ -75,6 +82,31 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
 
       return mergeVocabularyOptions(configured, stored);
     });
+
+final specimenSexVocabularyProvider =
+    FutureProvider.autoDispose<List<SpecimenSex>>((ref) async {
+      final settings = ref.watch(userConfigSettingsServiceProvider);
+      final configured = await settings.loadOptions(
+        specimenSexPrefKey,
+        defaultSpecimenSexLabels,
+      );
+      final normalized = normalizeSpecimenSexOptions(configured);
+      final normalizedLabels = normalized
+          .map((sex) => specimenSexLabel[sex]!)
+          .toList(growable: false);
+      if (!_sameOptions(configured, normalizedLabels)) {
+        await settings.replaceOptions(specimenSexPrefKey, normalizedLabels);
+      }
+      return List.unmodifiable(normalized);
+    });
+
+bool _sameOptions(List<String> left, List<String> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index++) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
+}
 
 List<String> mergeVocabularyOptions(
   Iterable<String> configured,

@@ -13,6 +13,7 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/specimens/parasite_services.dart';
 import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 class SpecimenSelection extends ConsumerStatefulWidget {
@@ -75,6 +76,7 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                 ),
                 FieldIDFields(isMobile: isMobile),
                 TissueIDFields(isMobile: isMobile),
+                const SpecimenSexSetting(),
                 const ControlledVocabularySetting(
                   title: 'Specimen types',
                   typePrefKey: specimenTypePrefKey,
@@ -106,6 +108,99 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
         ),
       ),
     );
+  }
+}
+
+class SpecimenSexSetting extends ConsumerWidget {
+  const SpecimenSexSetting({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CommonSettingSection(
+      title: 'Sex',
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Text(
+            'Male, Female, and Unknown are always available. Add optional '
+            'terms with +. A question mark records examiner uncertainty.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 12, 8, 16),
+          child: ref
+              .watch(specimenSexVocabularyProvider)
+              .when(
+                data: (enabled) => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    for (final sex in defaultSpecimenSexes)
+                      Chip(label: Text(specimenSexLabel[sex]!)),
+                    for (final sex in optionalSpecimenSexes)
+                      if (enabled.contains(sex))
+                        InputChip(
+                          label: Text(specimenSexLabel[sex]!),
+                          onDeleted: () => _remove(context, ref, sex),
+                        )
+                      else
+                        ActionChip(
+                          avatar: const Icon(Icons.add, size: 18),
+                          label: Text(specimenSexLabel[sex]!),
+                          onPressed: () => _add(ref, sex),
+                        ),
+                  ],
+                ),
+                loading: () => const Center(child: CommonProgressIndicator()),
+                error: (error, _) => Text('Unable to load sex options: $error'),
+              ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _add(WidgetRef ref, SpecimenSex sex) async {
+    await ref
+        .read(userConfigSettingsServiceProvider)
+        .addOption(specimenSexPrefKey, specimenSexLabel[sex]!);
+    ref.invalidate(specimenSexVocabularyProvider);
+    ref.invalidate(userDefinedFieldProvider(specimenSexPrefKey));
+  }
+
+  Future<void> _remove(
+    BuildContext context,
+    WidgetRef ref,
+    SpecimenSex sex,
+  ) async {
+    final usedCodes = await SpecimenServices(ref: ref).getDistinctSexCodes();
+    if (!context.mounted) return;
+    if (usedCodes.contains(getSpecimenSexCode(sex))) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Cannot remove sex'),
+          content: Text(
+            '${specimenSexLabel[sex]} is used by one or more specimen records. '
+            'Change those records before removing this option.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    await ref
+        .read(userConfigSettingsServiceProvider)
+        .removeOption(specimenSexPrefKey, specimenSexLabel[sex]!);
+    ref.invalidate(specimenSexVocabularyProvider);
+    ref.invalidate(userDefinedFieldProvider(specimenSexPrefKey));
   }
 }
 

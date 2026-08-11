@@ -39,7 +39,7 @@ class HerpAttributes extends AppServices {
   }
 
   List<String> _getSexData() {
-    String sex = data.sex != null ? specimenSexList[data.sex!] : '';
+    String sex = getSpecimenSexLabel(data.sex) ?? '';
     return [sex];
   }
 }

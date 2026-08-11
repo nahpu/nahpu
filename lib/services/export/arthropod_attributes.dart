@@ -21,7 +21,7 @@ class ArthropodAttributes {
       _number(data.bodyLength),
       _number(data.wingspanUpper),
       _number(data.wingspanLower),
-      data.sex == null ? '' : specimenSexList[data.sex!],
+      getSpecimenSexLabel(data.sex) ?? '',
       data.hostOrganism ?? '',
       data.hostPart ?? '',
       data.canopyAffinity ?? '',

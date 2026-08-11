@@ -9,6 +9,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class AppSettingsImport extends ConsumerStatefulWidget {
@@ -225,6 +226,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
 
   void _invalidateSettingsProviders() {
     ref.invalidate(userDefinedFieldProvider);
+    ref.invalidate(specimenSexVocabularyProvider);
     ref.invalidate(textCaseFmtProvider);
     ref.invalidate(fieldIdModeNotifierProvider);
     ref.invalidate(projectFieldIdAutoIncrementProvider);

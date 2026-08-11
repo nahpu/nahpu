@@ -184,25 +184,14 @@ class _PreviewPage extends StatelessWidget {
                   ),
                   child: Transform.rotate(
                     angle: degreesToRadians(ct.rotationDegrees),
-                    child: IconTheme(
-                      data: IconThemeData(
-                        size:
-                            math.min(
-                              (ct.iconWidthMm ??
-                                      kTemplateSpecimenSexIconDefaultWidthMm) *
-                                  scale,
-                              (ct.iconHeightMm ??
-                                      kTemplateSpecimenSexIconDefaultHeightMm) *
-                                  scale,
-                            ) *
-                            0.88,
-                        color: Colors.black,
-                      ),
-                      child: Icon(
-                        templateSpecimenSexIconForFieldKey(
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text(
+                        templateSpecimenSexGlyphForFieldKey(
                           placeholderValues,
                           gKey,
                         ),
+                        style: const TextStyle(color: Colors.black),
                       ),
                     ),
                   ),

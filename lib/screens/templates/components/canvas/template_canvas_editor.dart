@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/screens/templates/template_outline.dart'
     show templateAreaStackDecoration, TemplateOutlineOverlayPainter;
 import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart'
-    show templateSpecimenSexIconForFieldKey;
+    show templateSpecimenSexGlyphForFieldKey;
 import 'package:nahpu/services/export/document_writer.dart'
     show resolveDocumentTemplatePlaceholders;
 import 'package:nahpu/screens/templates/template_model.dart';
@@ -656,10 +656,13 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                           'p${page1 ? '1' : '2'}_gct_${element.id}',
                                         ),
                                         imagePath: '',
-                                        vectorChild: Icon(
-                                          templateSpecimenSexIconForFieldKey(
-                                            editorTemplateFieldPreview,
-                                            gKey,
+                                        vectorChild: FittedBox(
+                                          fit: BoxFit.contain,
+                                          child: Text(
+                                            templateSpecimenSexGlyphForFieldKey(
+                                              editorTemplateFieldPreview,
+                                              gKey,
+                                            ),
                                           ),
                                         ),
                                         position: renderedPosition(element),

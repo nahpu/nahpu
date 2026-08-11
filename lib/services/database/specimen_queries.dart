@@ -119,6 +119,31 @@ class SpecimenQuery extends DatabaseAccessor<Database>
         .toList(growable: false);
   }
 
+  Future<Set<int>> getDistinctSexCodes() async {
+    final codes = <int>{};
+    final mammalQuery = selectOnly(mammalAttribute, distinct: true)
+      ..addColumns([mammalAttribute.sex])
+      ..where(mammalAttribute.sex.isNotNull());
+    final birdQuery = selectOnly(birdAttribute, distinct: true)
+      ..addColumns([birdAttribute.sex])
+      ..where(birdAttribute.sex.isNotNull());
+    final herpQuery = selectOnly(herpAttribute, distinct: true)
+      ..addColumns([herpAttribute.sex])
+      ..where(herpAttribute.sex.isNotNull());
+    final arthropodQuery = selectOnly(arthropodAttribute, distinct: true)
+      ..addColumns([arthropodAttribute.sex])
+      ..where(arthropodAttribute.sex.isNotNull());
+
+    final results = await Future.wait([
+      mammalQuery.map((row) => row.read(mammalAttribute.sex)).get(),
+      birdQuery.map((row) => row.read(birdAttribute.sex)).get(),
+      herpQuery.map((row) => row.read(herpAttribute.sex)).get(),
+      arthropodQuery.map((row) => row.read(arthropodAttribute.sex)).get(),
+    ]);
+    codes.addAll(results.expand((values) => values).whereType<int>());
+    return codes;
+  }
+
   Future<List<SpecimenData>> getAllAvianSpecimens(String projectUuid) {
     return (select(specimen)
           ..where((t) => t.projectUuid.equals(projectUuid))

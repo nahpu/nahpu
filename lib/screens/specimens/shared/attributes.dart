@@ -8,6 +8,8 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/parasite_services.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 class AttributeForm extends StatefulWidget {
   const AttributeForm({super.key, required this.children});
@@ -56,6 +58,64 @@ class AttributeInfoContent extends StatelessWidget {
               'taxon-specific observations.',
         ),
       ],
+    );
+  }
+}
+
+class SpecimenAttributeSectionLabel extends StatelessWidget {
+  const SpecimenAttributeSectionLabel({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+      child: Center(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ),
+    );
+  }
+}
+
+class SpecimenSexDropdown extends ConsumerWidget {
+  const SpecimenSexDropdown({
+    super.key,
+    required this.currentCode,
+    required this.onChanged,
+  });
+
+  final int? currentCode;
+  final ValueChanged<SpecimenSex?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = getSpecimenSex(currentCode);
+    final configured = ref
+        .watch(specimenSexVocabularyProvider)
+        .maybeWhen(data: (value) => value, orElse: () => defaultSpecimenSexes);
+    final options = [...configured];
+    if (current != null && !options.contains(current)) options.add(current);
+
+    return DropdownButtonFormField<SpecimenSex>(
+      initialValue: current,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: 'Sex',
+        hintText: 'Select specimen sex',
+      ),
+      items: [
+        for (final sex in options)
+          DropdownMenuItem(
+            value: sex,
+            child: CommonDropdownText(text: specimenSexLabel[sex]!),
+          ),
+      ],
+      onChanged: onChanged,
     );
   }
 }
@@ -126,7 +186,7 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
     return Column(
       children: [
         const CommonDivider(),
-        Text('Parasites', style: Theme.of(context).textTheme.titleMedium),
+        const SpecimenAttributeSectionLabel(text: 'Parasites'),
         DropdownButtonFormField<int?>(
           key: ValueKey('examined-${detection?.parasiteExamined}'),
           initialValue: detection?.parasiteExamined,

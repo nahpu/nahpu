@@ -275,6 +275,10 @@ class SpecimenServices extends AppServices {
     return MammalSpecimenQuery(dbAccess).getMammalAttributeByUuid(specimenUuid);
   }
 
+  Future<Set<int>> getDistinctSexCodes() {
+    return SpecimenQuery(dbAccess).getDistinctSexCodes();
+  }
+
   void updateMammalAttribute(
     String specimenUuid,
     MammalAttributeCompanion entries,
@@ -282,26 +286,50 @@ class SpecimenServices extends AppServices {
     MammalSpecimenQuery(dbAccess).updateMammalAttributes(specimenUuid, entries);
   }
 
-  void clearMammalSexAttributes(String specimenUuid) {
+  void clearMammalSexAttributes(
+    String specimenUuid, {
+    bool male = true,
+    bool female = true,
+  }) {
     updateMammalAttribute(
       specimenUuid,
-      const MammalAttributeCompanion(
-        testisPosition: db.Value(null),
-        testisLength: db.Value(null),
-        testisWidth: db.Value(null),
-        epididymisAppearance: db.Value(null),
-        vaginaOpening: db.Value(null),
-        pubicSymphysis: db.Value(null),
-        reproductiveStage: db.Value(null),
-        mammaeAxillaryCount: db.Value(null),
-        mammaeAbdominalCount: db.Value(null),
-        mammaeInguinalCount: db.Value(null),
-        mammaeCondition: db.Value(null),
-        embryoLeftCount: db.Value(null),
-        embryoRightCount: db.Value(null),
-        embryoCR: db.Value(null),
-        leftPlacentalScars: db.Value(null),
-        rightPlacentalScars: db.Value(null),
+      MammalAttributeCompanion(
+        testisPosition: male ? const db.Value(null) : const db.Value.absent(),
+        testisLength: male ? const db.Value(null) : const db.Value.absent(),
+        testisWidth: male ? const db.Value(null) : const db.Value.absent(),
+        epididymisAppearance: male
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        vaginaOpening: female ? const db.Value(null) : const db.Value.absent(),
+        pubicSymphysis: female ? const db.Value(null) : const db.Value.absent(),
+        reproductiveStage: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        mammaeAxillaryCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        mammaeAbdominalCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        mammaeInguinalCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        mammaeCondition: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        embryoLeftCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        embryoRightCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        embryoCR: female ? const db.Value(null) : const db.Value.absent(),
+        leftPlacentalScars: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        rightPlacentalScars: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
       ),
     );
   }
@@ -431,22 +459,30 @@ class SpecimenServices extends AppServices {
     BirdSpecimenQuery(dbAccess).updateBirdAttributes(specimenUuid, entries);
   }
 
-  void clearBirdSexAttributes(String specimenUuid) {
+  void clearBirdSexAttributes(
+    String specimenUuid, {
+    bool male = true,
+    bool female = true,
+  }) {
     updateBirdAttribute(
       specimenUuid,
-      const BirdAttributeCompanion(
-        testisLength: db.Value(null),
-        testisWidth: db.Value(null),
-        testisRemark: db.Value(null),
-        ovaryLength: db.Value(null),
-        ovaryWidth: db.Value(null),
-        ovaryAppearance: db.Value(null),
-        firstOvaSize: db.Value(null),
-        secondOvaSize: db.Value(null),
-        thirdOvaSize: db.Value(null),
-        oviductWidth: db.Value(null),
-        oviductAppearance: db.Value(null),
-        ovaryRemark: db.Value(null),
+      BirdAttributeCompanion(
+        testisLength: male ? const db.Value(null) : const db.Value.absent(),
+        testisWidth: male ? const db.Value(null) : const db.Value.absent(),
+        testisRemark: male ? const db.Value(null) : const db.Value.absent(),
+        ovaryLength: female ? const db.Value(null) : const db.Value.absent(),
+        ovaryWidth: female ? const db.Value(null) : const db.Value.absent(),
+        ovaryAppearance: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        firstOvaSize: female ? const db.Value(null) : const db.Value.absent(),
+        secondOvaSize: female ? const db.Value(null) : const db.Value.absent(),
+        thirdOvaSize: female ? const db.Value(null) : const db.Value.absent(),
+        oviductWidth: female ? const db.Value(null) : const db.Value.absent(),
+        oviductAppearance: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        ovaryRemark: female ? const db.Value(null) : const db.Value.absent(),
       ),
     );
   }

@@ -664,23 +664,27 @@ class MammalAttributeCtrModel {
     remarksCtr.dispose();
   }
 
-  void clearSexControllers() {
-    testisPosCtr = null;
-    testisLengthCtr.clear();
-    testisWidthCtr.clear();
-    epididymisCtr = null;
-    reproductiveStageCtr = null;
-    leftPlacentaCtr.clear();
-    rightPlacentaCtr.clear();
-    mammaeConditionCtr = null;
-    mammaeIngCtr.clear();
-    mammaeAxCtr.clear();
-    mammaeAbdCtr.clear();
-    vaginaOpeningCtr = null;
-    pubicSymphysisCtr = null;
-    embryoLeftCtr.clear();
-    embryoRightCtr.clear();
-    embryoCRCtr.clear();
+  void clearSexControllers({bool male = true, bool female = true}) {
+    if (male) {
+      testisPosCtr = null;
+      testisLengthCtr.clear();
+      testisWidthCtr.clear();
+      epididymisCtr = null;
+    }
+    if (female) {
+      reproductiveStageCtr = null;
+      leftPlacentaCtr.clear();
+      rightPlacentaCtr.clear();
+      mammaeConditionCtr = null;
+      mammaeIngCtr.clear();
+      mammaeAxCtr.clear();
+      mammaeAbdCtr.clear();
+      vaginaOpeningCtr = null;
+      pubicSymphysisCtr = null;
+      embryoLeftCtr.clear();
+      embryoRightCtr.clear();
+      embryoCRCtr.clear();
+    }
   }
 }
 
@@ -890,19 +894,23 @@ class BirdAttributeCtrModel {
     habitatRemarkCtr.dispose();
   }
 
-  void clearSexControllers() {
-    testisLengthCtr.clear();
-    testisWidthCtr.clear();
-    testisRemarkCtr.clear();
-    ovaryLengthCtr.clear();
-    ovaryWidthCtr.clear();
-    ovaryAppearanceCtr = null;
-    firstOvaSizeCtr.clear();
-    secondOvaSizeCtr.clear();
-    thirdOvaSizeCtr.clear();
-    oviductWidthCtr.clear();
-    oviductAppearanceCtr = null;
-    ovaryRemarkCtr.clear();
+  void clearSexControllers({bool male = true, bool female = true}) {
+    if (male) {
+      testisLengthCtr.clear();
+      testisWidthCtr.clear();
+      testisRemarkCtr.clear();
+    }
+    if (female) {
+      ovaryLengthCtr.clear();
+      ovaryWidthCtr.clear();
+      ovaryAppearanceCtr = null;
+      firstOvaSizeCtr.clear();
+      secondOvaSizeCtr.clear();
+      thirdOvaSizeCtr.clear();
+      oviductWidthCtr.clear();
+      oviductAppearanceCtr = null;
+      ovaryRemarkCtr.clear();
+    }
   }
 }
 

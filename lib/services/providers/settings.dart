@@ -42,6 +42,7 @@ const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
 const String conditionPrefKey = 'specimenConditions';
 const String conditionFmtPrefKey = 'conditionFmt';
+const String specimenSexPrefKey = 'specimenSexes';
 const String fieldIdModePrefKey = 'fieldIdMode';
 const String projectFieldIdAutoIncrementPrefKey = 'projectFieldIdAutoIncrement';
 const String parasiteIdPrefixPrefKey = 'parasiteIdPrefix';
@@ -181,6 +182,8 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultTreatment;
     case conditionPrefKey:
       return defaultCondition;
+    case specimenSexPrefKey:
+      return defaultSpecimenSexLabels;
     default:
       return [];
   }

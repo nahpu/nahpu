@@ -456,18 +456,13 @@ class _DocumentTypstRenderer {
   }
 
   String _genderSymbolForDisplayValue(String display) {
-    final s = display.trim().toLowerCase();
-    if (s == '0' || s == 'male' || s == 'm' || s == '\u2642') {
-      return '\u2642';
-    }
-    if (s == '1' || s == 'female' || s == 'f' || s == '\u2640') {
-      return '\u2640';
-    }
-    return '?';
+    final sex = specimenSexFromDisplayValue(display);
+    return sex == null ? '?' : specimenSexSymbol[sex]!;
   }
 
-  bool _containsSexSymbol(String text) =>
-      text.runes.any((rune) => rune == 0x2640 || rune == 0x2642);
+  bool _containsSexSymbol(String text) => text.runes.any(
+    (rune) => rune == 0x2640 || rune == 0x2642 || rune == 0x26A5,
+  );
 
   String _fieldValueCi(Map<String, String> m, String key) {
     if (m.containsKey(key)) return m[key] ?? '';
