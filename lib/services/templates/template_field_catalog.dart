@@ -43,17 +43,25 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'mammalAttribute',
         'birdAttribute',
         'herpAttribute',
+        'arthropodAttribute',
         'specimenPart',
       };
       if (selectedTaxon == 'Mammals') {
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
+        allowedTables.remove('arthropodAttribute');
       } else if (selectedTaxon == 'Birds') {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('herpAttribute');
+        allowedTables.remove('arthropodAttribute');
       } else if (selectedTaxon == 'Herpetofauna') {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
+        allowedTables.remove('arthropodAttribute');
+      } else if (selectedTaxon == 'Arthropods') {
+        allowedTables.remove('mammalAttribute');
+        allowedTables.remove('birdAttribute');
+        allowedTables.remove('herpAttribute');
       }
       break;
   }
