@@ -587,6 +587,7 @@ Map<String, List<String>> _availableFieldGroups(
         'mammalAttribute',
         'birdAttribute',
         'herpAttribute',
+        'arthropodAttribute',
         'specimenPart',
       };
       if (specimenRecordType == SpecimenRecordType.generalMammals ||
@@ -594,12 +595,19 @@ Map<String, List<String>> _availableFieldGroups(
           specimenRecordType == SpecimenRecordType.allMammals) {
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
+        allowedTables.remove('arthropodAttribute');
       } else if (specimenRecordType == SpecimenRecordType.birds) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('herpAttribute');
+        allowedTables.remove('arthropodAttribute');
       } else if (specimenRecordType == SpecimenRecordType.herpetofauna) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
+        allowedTables.remove('arthropodAttribute');
+      } else if (specimenRecordType == SpecimenRecordType.arthropods) {
+        allowedTables.remove('mammalAttribute');
+        allowedTables.remove('birdAttribute');
+        allowedTables.remove('herpAttribute');
       }
       break;
   }

@@ -10,6 +10,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/material.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -40,13 +41,24 @@ class PartDataForm extends ConsumerStatefulWidget {
 class PartDataFormState extends ConsumerState<PartDataForm>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final int _length = 3;
+
+  int get _length => supportsParasites(widget.catalogFmt) ? 3 : 2;
 
   @override
   void initState() {
     super.initState();
 
     _tabController = TabController(length: _length, vsync: this);
+  }
+
+  @override
+  void didUpdateWidget(covariant PartDataForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (supportsParasites(oldWidget.catalogFmt) !=
+        supportsParasites(widget.catalogFmt)) {
+      _tabController.dispose();
+      _tabController = TabController(length: _length, vsync: this);
+    }
   }
 
   @override
@@ -71,7 +83,8 @@ class PartDataFormState extends ConsumerState<PartDataForm>
               matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true),
             ),
           ),
-          const Tab(icon: Icon(Icons.bug_report_outlined)),
+          if (supportsParasites(widget.catalogFmt))
+            const Tab(icon: Icon(Icons.bug_report_outlined)),
           Tab(icon: Icon(Icons.storage_rounded)),
         ],
         children: [
@@ -79,7 +92,8 @@ class PartDataFormState extends ConsumerState<PartDataForm>
             specimenUuid: widget.specimenUuid,
             catalogFmt: widget.catalogFmt,
           ),
-          ParasiteForms(specimenUuid: widget.specimenUuid),
+          if (supportsParasites(widget.catalogFmt))
+            ParasiteForms(specimenUuid: widget.specimenUuid),
           AssociatedDataViewer(specimenUuid: widget.specimenUuid),
         ],
       ),

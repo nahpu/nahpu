@@ -441,10 +441,56 @@ void main() {
     );
     expect(
       () => RecordExchangePayload.parse(
-        '{"nahpu_record":"site","version":2,"data":{}}',
+        '{"nahpu_record":"site","version":99,"data":{}}',
       ),
       throwsFormatException,
     );
+  });
+
+  testWidgets('specimen package round-trips arthropod attributes', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    await database
+        .into(database.specimen)
+        .insert(
+          const SpecimenCompanion(
+            uuid: Value('arthropod-a'),
+            projectUuid: Value('project-a'),
+            taxonGroup: Value('Arthropods'),
+          ),
+        );
+    await database
+        .into(database.arthropodAttribute)
+        .insert(
+          const ArthropodAttributeCompanion(
+            specimenUuid: Value('arthropod-a'),
+            bodyLength: Value(12.5),
+            hostOrganism: Value('Quercus alba'),
+            ambientHumidity: Value(72),
+          ),
+        );
+
+    final payload = await service.exportSpecimen('arthropod-a');
+    expect(payload.version, recordExchangeVersion);
+    final measurements = Map<String, dynamic>.from(
+      payload.data['measurements'] as Map,
+    );
+    expect(
+      (measurements['arthropod'] as Map<String, dynamic>)['bodyLength'],
+      12.5,
+    );
+
+    final result = await service.importPayload(
+      RecordExchangePayload.parse(payload.compactEncoded),
+    );
+    final imported = await (database.select(
+      database.arthropodAttribute,
+    )..where((row) => row.specimenUuid.equals(result.recordUuid!))).getSingle();
+    expect(imported.bodyLength, 12.5);
+    expect(imported.hostOrganism, 'Quercus alba');
+    expect(imported.ambientHumidity, 72);
   });
 
   testWidgets(

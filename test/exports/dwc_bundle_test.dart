@@ -39,6 +39,8 @@ void main() {
     expect(normalizeBundleTaxonGroup('Non-Bat Mammals'), 'Mammals');
     expect(normalizeBundleTaxonGroup('Bats'), 'Bats');
     expect(normalizeBundleTaxonGroup('Herpetofauna'), 'Herpetofauna');
+    expect(normalizeBundleTaxonGroup('Arthropoda'), 'Arthropods');
+    expect(normalizeBundleTaxonGroup('Insects'), 'Arthropods');
   });
 
   test('bundle types expose valid archive choices and extensions', () {
@@ -71,7 +73,7 @@ void main() {
         )
         .toSet();
 
-    expect(mappings, hasLength(57));
+    expect(mappings, hasLength(60));
     expect(keys, hasLength(mappings.length));
     final qcf = mappings.singleWhere(
       (mapping) =>
@@ -92,6 +94,15 @@ void main() {
     expect(highConfidence['enum_type'], 'IdentificationConfidence');
     expect(highConfidence['enum_name'], 'high');
     expect(highConfidence['display_name'], 'High');
+
+    final arthropodFemale = mappings.singleWhere(
+      (mapping) =>
+          mapping['table'] == 'arthropodAttribute' &&
+          mapping['column'] == 'sex' &&
+          mapping['sqlite_index'] == 1,
+    );
+    expect(arthropodFemale['enum_name'], 'female');
+    expect(arthropodFemale['display_name'], 'Female');
   });
 
   testWidgets('users can switch to selected taxa and change the selection', (

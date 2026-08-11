@@ -4,6 +4,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/specimens/arthropods/attributes.dart';
 import 'package:nahpu/screens/specimens/birds/attributes.dart';
 import 'package:nahpu/screens/specimens/mammalian/attributes.dart';
 import 'package:nahpu/screens/specimens/herpetofauna/attributes.dart';
@@ -107,6 +108,11 @@ class MainFormsState extends ConsumerState<MainForms> {
         );
       case CatalogFmt.herpetofauna:
         return HerpAttributeForms(
+          useHorizontalLayout: useHorizontalLayout,
+          specimenUuid: widget.specimenUuid,
+        );
+      case CatalogFmt.arthropods:
+        return ArthropodAttributeForms(
           useHorizontalLayout: useHorizontalLayout,
           specimenUuid: widget.specimenUuid,
         );

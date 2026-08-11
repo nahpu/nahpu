@@ -369,6 +369,38 @@ void main() {
       expect(payload.rows('specimen'), hasLength(1));
     });
 
+    testWidgets('exports arthropod attributes with project specimens', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('arthropod-a'),
+              projectUuid: Value('project-a'),
+              taxonGroup: Value('Arthropods'),
+            ),
+          );
+      await database
+          .into(database.arthropodAttribute)
+          .insert(
+            const ArthropodAttributeCompanion(
+              specimenUuid: Value('arthropod-a'),
+              headWidth: Value(3.25),
+              dissolvedOxygen: Value(8.4),
+            ),
+          );
+
+      final payload = await tester.runAsync(service.buildExport);
+
+      expect(payload!.version, projectTransferVersion);
+      expect(payload.rows('arthropodAttribute'), hasLength(1));
+      expect(payload.rows('arthropodAttribute').single['headWidth'], 3.25);
+      expect(payload.rows('arthropodAttribute').single['dissolvedOxygen'], 8.4);
+    });
+
     testWidgets('exports parasite identifiers and event data links', (
       tester,
     ) async {
