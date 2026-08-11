@@ -64,6 +64,7 @@ enum SpecimenRecordType {
   bats,
   allMammals,
   herpetofauna,
+  arthropods,
   allTaxa,
 }
 
@@ -75,9 +76,14 @@ const List<String> specimenExportFmtList = [
   'Custom fields',
 ];
 
-enum TaxonRecordType { birds, mammals, herps }
+enum TaxonRecordType { birds, mammals, herps, arthropods }
 
-const List<String> taxonRecordTypeList = ['Birds', 'Mammals', 'Herpetofauna'];
+const List<String> taxonRecordTypeList = [
+  'Birds',
+  'Mammals',
+  'Herpetofauna',
+  'Arthropods',
+];
 
 enum MammalRecordType { excludeBats, onlyBats, allMammals }
 
@@ -295,6 +301,25 @@ const herpAttributeExportList = [
   'measurement::age',
   'measurement::weight',
   'measurement::svl',
+  'measurement::remark',
+];
+
+const arthropodAttributeExportList = [
+  'measurement::headWidth',
+  'measurement::bodyLength',
+  'measurement::wingspanUpper',
+  'measurement::wingspanLower',
+  'measurement::sex',
+  'measurement::hostOrganism',
+  'measurement::hostPart',
+  'measurement::canopyAffinity',
+  'measurement::canopyCover',
+  'measurement::ambientTemperature',
+  'measurement::ambientHumidity',
+  'measurement::waterTemperature',
+  'measurement::pH',
+  'measurement::dissolvedOxygen',
+  'measurement::flowVelocity',
   'measurement::remark',
 ];
 

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'nahpu_icons.dart';
 
-enum CatalogFmt { mammals, birds, herpetofauna }
+enum CatalogFmt { mammals, birds, herpetofauna, arthropods }
 
 // Database read through index.
 // and stored as integer.
@@ -95,7 +95,12 @@ const List<String> relativeTimeList = [
 
 const List<String> idConfidenceList = ['Low', 'Medium', 'High'];
 
-const List<String> taxonGroupList = ['Birds', 'Mammals', 'Herpetofauna'];
+const List<String> taxonGroupList = [
+  'Birds',
+  'Mammals',
+  'Herpetofauna',
+  'Arthropods',
+];
 
 CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
   switch (taxonGroup) {
@@ -106,6 +111,9 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
       return CatalogFmt.mammals;
     case 'Herpetofauna':
       return CatalogFmt.herpetofauna;
+    case 'Arthropoda':
+    case 'Arthropods':
+      return CatalogFmt.arthropods;
     default:
       return CatalogFmt.mammals;
   }
@@ -119,6 +127,8 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
       return SpecimenRecordType.generalMammals;
     case CatalogFmt.herpetofauna:
       return SpecimenRecordType.herpetofauna;
+    case CatalogFmt.arthropods:
+      return SpecimenRecordType.arthropods;
   }
 }
 
@@ -132,6 +142,8 @@ String matchRecordTypeToTaxonGroup(SpecimenRecordType recordType) {
       return 'Bats';
     case SpecimenRecordType.herpetofauna:
       return 'Herpetofauna';
+    case SpecimenRecordType.arthropods:
+      return 'Arthropods';
     default:
       throw Exception('Invalid record type');
   }
@@ -148,6 +160,9 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
       return SpecimenRecordType.bats;
     case 'Herpetofauna':
       return SpecimenRecordType.herpetofauna;
+    case 'Arthropoda':
+    case 'Arthropods':
+      return SpecimenRecordType.arthropods;
     default:
       return SpecimenRecordType.generalMammals;
   }
@@ -161,6 +176,8 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
       return 'Mammals';
     case CatalogFmt.herpetofauna:
       return 'Herpetofauna';
+    case CatalogFmt.arthropods:
+      return 'Arthropods';
   }
 }
 
@@ -174,6 +191,8 @@ IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
       return isFilledIcon
           ? NahpuIcons.amphibianFilled
           : NahpuIcons.amphibianOutlined;
+    case CatalogFmt.arthropods:
+      return isFilledIcon ? NahpuIcons.miteFilled : NahpuIcons.miteOutlined;
   }
 }
 
@@ -203,6 +222,8 @@ String matchCatalogFmtToIconPath(CatalogFmt fmt) {
       return 'assets/icons/bird_outlined.svg';
     case CatalogFmt.herpetofauna:
       return 'assets/icons/amphibian_outlined.svg';
+    case CatalogFmt.arthropods:
+      return 'assets/icons/mite.svg';
   }
 }
 

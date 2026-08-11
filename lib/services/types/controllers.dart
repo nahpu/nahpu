@@ -955,6 +955,127 @@ class HerpAttributeCtrModel {
   }
 }
 
+class ArthropodAttributeCtrModel {
+  ArthropodAttributeCtrModel({
+    required this.headWidthCtr,
+    required this.bodyLengthCtr,
+    required this.wingspanUpperCtr,
+    required this.wingspanLowerCtr,
+    required this.sexCtr,
+    required this.hostOrganismCtr,
+    required this.hostPartCtr,
+    required this.canopyAffinityCtr,
+    required this.canopyCoverCtr,
+    required this.ambientTemperatureCtr,
+    required this.ambientHumidityCtr,
+    required this.waterTemperatureCtr,
+    required this.pHCtr,
+    required this.dissolvedOxygenCtr,
+    required this.flowVelocityCtr,
+    required this.remarkCtr,
+  });
+
+  TextEditingController headWidthCtr;
+  TextEditingController bodyLengthCtr;
+  TextEditingController wingspanUpperCtr;
+  TextEditingController wingspanLowerCtr;
+  int? sexCtr;
+  TextEditingController hostOrganismCtr;
+  TextEditingController hostPartCtr;
+  TextEditingController canopyAffinityCtr;
+  TextEditingController canopyCoverCtr;
+  TextEditingController ambientTemperatureCtr;
+  TextEditingController ambientHumidityCtr;
+  TextEditingController waterTemperatureCtr;
+  TextEditingController pHCtr;
+  TextEditingController dissolvedOxygenCtr;
+  TextEditingController flowVelocityCtr;
+  TextEditingController remarkCtr;
+
+  bool get hasMorphometricData =>
+      headWidthCtr.text.isNotEmpty ||
+      bodyLengthCtr.text.isNotEmpty ||
+      wingspanUpperCtr.text.isNotEmpty ||
+      wingspanLowerCtr.text.isNotEmpty;
+
+  factory ArthropodAttributeCtrModel.empty() => ArthropodAttributeCtrModel(
+    headWidthCtr: TextEditingController(),
+    bodyLengthCtr: TextEditingController(),
+    wingspanUpperCtr: TextEditingController(),
+    wingspanLowerCtr: TextEditingController(),
+    sexCtr: null,
+    hostOrganismCtr: TextEditingController(),
+    hostPartCtr: TextEditingController(),
+    canopyAffinityCtr: TextEditingController(),
+    canopyCoverCtr: TextEditingController(),
+    ambientTemperatureCtr: TextEditingController(),
+    ambientHumidityCtr: TextEditingController(),
+    waterTemperatureCtr: TextEditingController(),
+    pHCtr: TextEditingController(),
+    dissolvedOxygenCtr: TextEditingController(),
+    flowVelocityCtr: TextEditingController(),
+    remarkCtr: TextEditingController(),
+  );
+
+  factory ArthropodAttributeCtrModel.fromData(ArthropodAttributeData data) =>
+      ArthropodAttributeCtrModel(
+        headWidthCtr: TextEditingController(
+          text: data.headWidth?.truncateZero() ?? '',
+        ),
+        bodyLengthCtr: TextEditingController(
+          text: data.bodyLength?.truncateZero() ?? '',
+        ),
+        wingspanUpperCtr: TextEditingController(
+          text: data.wingspanUpper?.truncateZero() ?? '',
+        ),
+        wingspanLowerCtr: TextEditingController(
+          text: data.wingspanLower?.truncateZero() ?? '',
+        ),
+        sexCtr: data.sex,
+        hostOrganismCtr: TextEditingController(text: data.hostOrganism ?? ''),
+        hostPartCtr: TextEditingController(text: data.hostPart ?? ''),
+        canopyAffinityCtr: TextEditingController(
+          text: data.canopyAffinity ?? '',
+        ),
+        canopyCoverCtr: TextEditingController(text: data.canopyCover ?? ''),
+        ambientTemperatureCtr: TextEditingController(
+          text: data.ambientTemperature?.truncateZero() ?? '',
+        ),
+        ambientHumidityCtr: TextEditingController(
+          text: data.ambientHumidity?.truncateZero() ?? '',
+        ),
+        waterTemperatureCtr: TextEditingController(
+          text: data.waterTemperature?.truncateZero() ?? '',
+        ),
+        pHCtr: TextEditingController(text: data.pH?.truncateZero() ?? ''),
+        dissolvedOxygenCtr: TextEditingController(
+          text: data.dissolvedOxygen?.truncateZero() ?? '',
+        ),
+        flowVelocityCtr: TextEditingController(
+          text: data.flowVelocity?.truncateZero() ?? '',
+        ),
+        remarkCtr: TextEditingController(text: data.remark ?? ''),
+      );
+
+  void dispose() {
+    headWidthCtr.dispose();
+    bodyLengthCtr.dispose();
+    wingspanUpperCtr.dispose();
+    wingspanLowerCtr.dispose();
+    hostOrganismCtr.dispose();
+    hostPartCtr.dispose();
+    canopyAffinityCtr.dispose();
+    canopyCoverCtr.dispose();
+    ambientTemperatureCtr.dispose();
+    ambientHumidityCtr.dispose();
+    waterTemperatureCtr.dispose();
+    pHCtr.dispose();
+    dissolvedOxygenCtr.dispose();
+    flowVelocityCtr.dispose();
+    remarkCtr.dispose();
+  }
+}
+
 class PartFormCtrModel {
   PartFormCtrModel({
     required this.tissueIdCtr,

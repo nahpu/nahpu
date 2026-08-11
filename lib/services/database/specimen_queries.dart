@@ -399,6 +399,37 @@ class HerpSpecimenQuery extends DatabaseAccessor<Database>
   }
 }
 
+class ArthropodSpecimenQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  ArthropodSpecimenQuery(super.db);
+
+  Future<int> createArthropodAttributes(ArthropodAttributeCompanion form) =>
+      into(arthropodAttribute).insert(form);
+
+  Future<void> updateArthropodAttributes(
+    String specimenUuid,
+    ArthropodAttributeCompanion entry,
+  ) async {
+    await (update(
+      arthropodAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
+  }
+
+  Future<ArthropodAttributeData> getArthropodAttributeByUuid(
+    String specimenUuid,
+  ) {
+    return (select(
+      arthropodAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+  }
+
+  Future<void> deleteArthropodAttributes(String specimenUuid) async {
+    await (delete(
+      arthropodAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
+  }
+}
+
 class SpecimenPartQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   SpecimenPartQuery(super.db);

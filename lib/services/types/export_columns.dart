@@ -38,12 +38,16 @@ List<String> getAvailableExportColumns({
           case SpecimenRecordType.herpetofauna:
             attributeList = herpAttributeExportList;
             break;
+          case SpecimenRecordType.arthropods:
+            attributeList = arthropodAttributeExportList;
+            break;
           case SpecimenRecordType.allTaxa:
             attributeList = <String>{
               ...mammalAttributeExportList,
               ...birdAttributeExportList,
               ...batAttributeExportList,
               ...herpAttributeExportList,
+              ...arthropodAttributeExportList,
             }.toSet().toList();
             break;
         }
@@ -53,8 +57,10 @@ List<String> getAvailableExportColumns({
         ...siteExportList,
         ...collEventExportList,
         ...attributeList,
-        ...parasiteDetectionExportList,
-        ...parasiteExportList,
+        if (specimenRecordType != SpecimenRecordType.arthropods)
+          ...parasiteDetectionExportList,
+        if (specimenRecordType != SpecimenRecordType.arthropods)
+          ...parasiteExportList,
         partExportSimple,
         'media::media',
       ];

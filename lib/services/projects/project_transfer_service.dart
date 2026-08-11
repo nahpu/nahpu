@@ -92,6 +92,11 @@ class ProjectTransferService extends AppServices {
       'specimenUuid',
       specimenUuids,
     );
+    records['arthropodAttribute'] = await _rowsForStrings(
+      'arthropodAttribute',
+      'specimenUuid',
+      specimenUuids,
+    );
     records['specimenPart'] = await _rowsForStrings(
       'specimenPart',
       'specimenUuid',
@@ -1104,7 +1109,12 @@ class ProjectTransferService extends AppServices {
     Map<int, int?> taxonomyMap,
     Set<String> specimensUsingImportedChildren,
   ) async {
-    for (final table in ['mammalAttribute', 'birdAttribute', 'herpAttribute']) {
+    for (final table in [
+      'mammalAttribute',
+      'birdAttribute',
+      'herpAttribute',
+      'arthropodAttribute',
+    ]) {
       for (final row in payload.rows(table)) {
         final sourceUuid = row['specimenUuid'] as String?;
         if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
@@ -1415,6 +1425,7 @@ class ProjectTransferService extends AppServices {
       'mammalAttribute',
       'birdAttribute',
       'herpAttribute',
+      'arthropodAttribute',
       'specimenPart',
       'parasiteDetection',
       'parasite',
@@ -1462,6 +1473,7 @@ class ProjectTransferService extends AppServices {
       'mammalAttribute',
       'birdAttribute',
       'herpAttribute',
+      'arthropodAttribute',
       'specimenPart',
       'parasiteDetection',
       'parasite',

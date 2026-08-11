@@ -9,6 +9,7 @@ import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -36,8 +37,8 @@ String formatProjectFieldId(ProjectData project, int? number) {
 
 /// Coordinates specimen persistence, including taxon-specific attribute rows.
 ///
-/// Each specimen owns at most one mammal, bird, or herpetofauna attribute row,
-/// selected by its active catalog format.
+/// Each specimen owns at most one taxon-specific attribute row, selected by
+/// its active catalog format.
 class SpecimenServices extends AppServices {
   const SpecimenServices({required super.ref});
 
@@ -61,20 +62,24 @@ class SpecimenServices extends AppServices {
           projectFieldNumber: db.Value(currentProjectNumber),
         ),
       );
+      switch (catalogFmt) {
+        case CatalogFmt.birds:
+          await _createBirdSpecimen(specimenUuid);
+          break;
+        case CatalogFmt.mammals:
+          await _createMammalSpecimen(specimenUuid);
+          break;
+        case CatalogFmt.herpetofauna:
+          await _createHerpSpecimen(specimenUuid);
+          break;
+        case CatalogFmt.arthropods:
+          await _createArthropodSpecimen(specimenUuid);
+          break;
+      }
+      if (supportsParasites(catalogFmt)) {
+        await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
+      }
     });
-    await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
-
-    switch (catalogFmt) {
-      case CatalogFmt.birds:
-        _createBirdSpecimen(specimenUuid);
-        break;
-      case CatalogFmt.mammals:
-        _createMammalSpecimen(specimenUuid);
-        break;
-      case CatalogFmt.herpetofauna:
-        _createHerpSpecimen(specimenUuid);
-        break;
-    }
     invalidateSpecimenList();
 
     return specimenUuid;
@@ -257,8 +262,8 @@ class SpecimenServices extends AppServices {
     }
   }
 
-  void _createMammalSpecimen(String specimenUuid) {
-    MammalSpecimenQuery(dbAccess).createMammalAttributes(
+  Future<void> _createMammalSpecimen(String specimenUuid) async {
+    await MammalSpecimenQuery(dbAccess).createMammalAttributes(
       MammalAttributeCompanion(
         specimenUuid: db.Value(specimenUuid),
         weightUnit: const db.Value('g'),
@@ -301,8 +306,8 @@ class SpecimenServices extends AppServices {
     );
   }
 
-  void _createHerpSpecimen(String specimenUuid) {
-    HerpSpecimenQuery(dbAccess).createHerpAttributes(
+  Future<void> _createHerpSpecimen(String specimenUuid) async {
+    await HerpSpecimenQuery(dbAccess).createHerpAttributes(
       HerpAttributeCompanion(
         specimenUuid: db.Value(specimenUuid),
         weightUnit: const db.Value('g'),
@@ -325,8 +330,8 @@ class SpecimenServices extends AppServices {
     updateHerpAttribute(specimenUuid, const HerpAttributeCompanion());
   }
 
-  void _createBirdSpecimen(String specimenUuid) {
-    BirdSpecimenQuery(dbAccess).createBirdAttributes(
+  Future<void> _createBirdSpecimen(String specimenUuid) async {
+    await BirdSpecimenQuery(dbAccess).createBirdAttributes(
       BirdAttributeCompanion(
         specimenUuid: db.Value(specimenUuid),
         weightUnit: const db.Value('g'),
@@ -446,6 +451,29 @@ class SpecimenServices extends AppServices {
     );
   }
 
+  Future<void> _createArthropodSpecimen(String specimenUuid) async {
+    await ArthropodSpecimenQuery(dbAccess).createArthropodAttributes(
+      ArthropodAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
+    );
+  }
+
+  Future<ArthropodAttributeData> getArthropodAttributeData(
+    String specimenUuid,
+  ) {
+    return ArthropodSpecimenQuery(
+      dbAccess,
+    ).getArthropodAttributeByUuid(specimenUuid);
+  }
+
+  Future<void> updateArthropodAttribute(
+    String specimenUuid,
+    ArthropodAttributeCompanion entries,
+  ) {
+    return ArthropodSpecimenQuery(
+      dbAccess,
+    ).updateArthropodAttributes(specimenUuid, entries);
+  }
+
   Future<void> deleteBirdAttributes(String specimenUuid) async {
     await BirdSpecimenQuery(dbAccess).deleteBirdAttributes(specimenUuid);
   }
@@ -456,6 +484,12 @@ class SpecimenServices extends AppServices {
 
   Future<void> deleteHerpAttributes(String specimenUuid) async {
     await HerpSpecimenQuery(dbAccess).deleteHerpAttributes(specimenUuid);
+  }
+
+  Future<void> deleteArthropodAttributes(String specimenUuid) async {
+    await ArthropodSpecimenQuery(
+      dbAccess,
+    ).deleteArthropodAttributes(specimenUuid);
   }
 
   Future<void> deleteSpecimen(
@@ -474,6 +508,9 @@ class SpecimenServices extends AppServices {
         break;
       case CatalogFmt.herpetofauna:
         await deleteHerpAttributes(specimenUuid);
+        break;
+      case CatalogFmt.arthropods:
+        await deleteArthropodAttributes(specimenUuid);
         break;
     }
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimenUuid);
@@ -502,6 +539,9 @@ class SpecimenServices extends AppServices {
           break;
         case CatalogFmt.herpetofauna:
           await deleteHerpAttributes(specimen.uuid);
+          break;
+        case CatalogFmt.arthropods:
+          await deleteArthropodAttributes(specimen.uuid);
           break;
       }
     }
