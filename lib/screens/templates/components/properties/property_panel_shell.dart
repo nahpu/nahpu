@@ -22,8 +22,8 @@ class TemplatePropertyPanelShell extends StatelessWidget {
           SizedBox(
             height: 32,
             child: VerticalDivider(
-              width: 1,
-              thickness: 1,
+              width: 2,
+              thickness: 2,
               color: scheme.outlineVariant,
             ),
           ),

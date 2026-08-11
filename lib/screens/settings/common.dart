@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class CommonSettingList extends StatelessWidget {
-  const CommonSettingList({
-    super.key,
-    required this.sections,
-  });
+  const CommonSettingList({super.key, required this.sections});
 
   final List<Widget> sections;
 
@@ -17,13 +15,12 @@ class CommonSettingList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: ListView(
-              children: sections,
-            ),
-          )),
+        constraints: const BoxConstraints(maxWidth: NahpuContentWidth.settings),
+        child: Padding(
+          padding: const EdgeInsets.all(NahpuSpacing.md),
+          child: ListView(children: sections),
+        ),
+      ),
     );
   }
 }
@@ -56,15 +53,14 @@ class CommonSettingSection extends StatelessWidget {
           ),
         Material(
           clipBehavior: Clip.hardEdge,
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withAlpha(120),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withAlpha(120),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(NahpuRadius.large),
             side: BorderSide(
               color: Theme.of(context).colorScheme.outlineVariant,
-              width: 1.2,
+              width: NahpuStroke.thin,
             ),
           ),
           child: Column(
@@ -74,12 +70,12 @@ class CommonSettingSection extends StatelessWidget {
                     for (final (index, e) in children.indexed) ...[
                       e,
                       if (index != children.length - 1) const SettingDivider(),
-                    ]
+                    ],
                   ]
                 : children,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: NahpuSpacing.xl),
       ],
     );
   }
@@ -110,56 +106,57 @@ class CommonSettingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-        child: ListTile(
-          minVerticalPadding: 0,
-          title: Text(title,
-              style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.onSurface)),
-          subtitle: label != null
-              ? Text(
-                  label!,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color:
-                        Theme.of(context).colorScheme.onSurface.withAlpha(160),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                )
-              : null,
-          leading: leading ??
-              (icon != null
-                  ? Icon(
-                      icon,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
-                  : null),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              value != null
-                  ? Text(
-                      value!,
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withAlpha(120)),
-                    )
-                  : const SizedBox.shrink(),
-              const SizedBox(width: 4),
-              trailing ?? const SizedBox.shrink(),
-              isNavigation
-                  ? const Icon(Icons.arrow_forward_ios)
-                  : const SizedBox.shrink(),
-            ],
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+      child: ListTile(
+        minVerticalPadding: 0,
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
-          onTap: onTap,
-        ));
+        ),
+        subtitle: label != null
+            ? Text(
+                label!,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(160),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )
+            : null,
+        leading:
+            leading ??
+            (icon != null
+                ? Icon(icon, color: Theme.of(context).colorScheme.primary)
+                : null),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            value != null
+                ? Text(
+                    value!,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(120),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            const SizedBox(width: 4),
+            trailing ?? const SizedBox.shrink(),
+            isNavigation
+                ? const Icon(Icons.arrow_forward_ios)
+                : const SizedBox.shrink(),
+          ],
+        ),
+        onTap: onTap,
+      ),
+    );
   }
 }
 
@@ -178,23 +175,21 @@ class SwitchSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 16),
-                overflow: TextOverflow.ellipsis,
-              ),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16),
+              overflow: TextOverflow.ellipsis,
             ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-            )
-          ],
-        ));
+          ),
+          Switch(value: value, onChanged: onChanged),
+        ],
+      ),
+    );
   }
 }
 
@@ -205,7 +200,7 @@ class SettingDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Divider(
       height: 0,
-      thickness: 1.2,
+      thickness: NahpuStroke.regular,
       indent: 60,
       color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
     );
@@ -215,7 +210,7 @@ class SettingDivider extends StatelessWidget {
 class SettingChips extends StatelessWidget {
   const SettingChips({
     super.key,
-    required this.title,
+    this.title,
     required this.controller,
     required this.ref,
     required this.textCasePrefString,
@@ -223,11 +218,12 @@ class SettingChips extends StatelessWidget {
     required this.chipList,
     required this.hintText,
     required this.onPressed,
+    this.onCaseFormatPressed,
     required this.resetLabel,
     required this.onReset,
   });
 
-  final String title;
+  final String? title;
   final TextEditingController controller;
   final WidgetRef ref;
   final String textCasePrefString;
@@ -235,30 +231,32 @@ class SettingChips extends StatelessWidget {
   final List<Widget> chipList;
   final String hintText;
   final VoidCallback onPressed;
+  final VoidCallback? onCaseFormatPressed;
   final String resetLabel;
   final VoidCallback onReset;
 
   @override
   Widget build(BuildContext context) {
-    return CommonSettingSection(
-      title: title,
-      children: [
-        Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-            child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: chipList,
-            )),
-        const SizedBox(height: 10),
-        Row(
+    final content = [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 12,
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: chipList,
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 270),
+            Flexible(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
                 child: AsyncTextField(
                   controller: controller,
                   labelText: labelText,
@@ -266,29 +264,36 @@ class SettingChips extends StatelessWidget {
                   onPressed: onPressed,
                   ref: ref,
                   textCasePrefString: textCasePrefString,
-                )),
+                ),
+              ),
+            ),
             IconButton(
-              iconSize: 25,
+              iconSize: NahpuControlSize.icon,
               color: Theme.of(context).colorScheme.onSurface,
               icon: const Icon(Icons.add),
               onPressed: onPressed,
             ),
+            if (onCaseFormatPressed != null)
+              IconButton(
+                tooltip: 'Set case format',
+                icon: const Icon(Icons.text_format_outlined),
+                onPressed: onCaseFormatPressed,
+              ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
-          child: TextButton(
-            onPressed: onReset,
-            child: Text(
-              resetLabel,
-              style: const TextStyle(
-                fontSize: 14,
-              ),
-            ),
-          ),
-        )
-      ],
-    );
+      ),
+      Padding(
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
+        child: TextButton(
+          onPressed: onReset,
+          child: Text(resetLabel, style: const TextStyle(fontSize: 14)),
+        ),
+      ),
+    ];
+
+    return title == null
+        ? Column(children: content)
+        : CommonSettingSection(title: title, children: content);
   }
 }
 
@@ -312,7 +317,9 @@ class AsyncTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ref.watch(textCaseFmtNotifierProvider(textCasePrefString)).when(
+    return ref
+        .watch(textCaseFmtProvider(textCasePrefString))
+        .when(
           data: (fmt) => TextField(
             controller: controller,
             decoration: InputDecoration(
@@ -353,24 +360,30 @@ class TextCaseFmtDropDown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ref.watch(textCaseFmtNotifierProvider(textCasePrefString)).when(
+    return ref
+        .watch(textCaseFmtProvider(textCasePrefString))
+        .when(
           data: (fmt) => DropdownButtonFormField<TextCaseFmt>(
-              initialValue: fmt,
-              decoration: InputDecoration(
-                labelText: label,
-              ),
-              items: textCaseFmtMap.entries
-                  .map((e) => DropdownMenuItem<TextCaseFmt>(
-                      value: e.key, child: CommonDropdownText(text: e.value)))
-                  .toList(),
-              onChanged: (TextCaseFmt? selectedFmt) {
-                if (selectedFmt != null) {
-                  ref
-                      .read(textCaseFmtNotifierProvider(textCasePrefString)
-                          .notifier)
-                      .set(textCasePrefString, selectedFmt);
-                }
-              }),
+            isExpanded: true,
+            initialValue: fmt,
+            decoration: InputDecoration(labelText: label),
+            items: textCaseFmtMap.entries
+                .map(
+                  (e) => DropdownMenuItem<TextCaseFmt>(
+                    value: e.key,
+                    child: CommonDropdownText(text: e.value),
+                  ),
+                )
+                .toList(),
+            onChanged: (TextCaseFmt? selectedFmt) async {
+              if (selectedFmt != null) {
+                await ref
+                    .read(userConfigSettingsServiceProvider)
+                    .setTextCaseFormat(textCasePrefString, selectedFmt.name);
+                ref.invalidate(textCaseFmtProvider(textCasePrefString));
+              }
+            },
+          ),
           loading: () => const CommonProgressIndicator(),
           error: (e, s) => const Text('Error'),
         );
@@ -394,11 +407,7 @@ class CommonSettingChip extends StatelessWidget {
     return Chip(
       label: Text(text),
       shape: const StadiumBorder(side: BorderSide(color: Colors.transparent)),
-      backgroundColor: Color.lerp(
-        primaryColor,
-        Theme.of(context).colorScheme.surface,
-        0.85,
-      ),
+      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
       onDeleted: onDeleted,
     );
   }

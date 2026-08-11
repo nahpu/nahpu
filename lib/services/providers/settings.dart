@@ -5,11 +5,12 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nahpu/services/utility_services.dart';
-import 'package:nahpu/services/types/collecting.dart';
+import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 // App settings keys (UI/Device states)
@@ -19,6 +20,7 @@ import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 const String themeModePrefKey = 'themeMode';
 const String catalogFmtPrefKey = 'catalogFmt';
 const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
+const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
 
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
@@ -28,6 +30,8 @@ const String siteTypePrefKey = 'siteTypes';
 const String siteTypeFmtPrefKey = 'siteTypeFmt';
 const String habitatTypePrefKey = 'habitatTypes';
 const String habitatTypeFmtPrefKey = 'habitatTypeFmt';
+const String datumPrefKey = 'datums';
+const String datumFmtPrefKey = 'datumFmt';
 const String collMethodPrefKey = 'collEventMethods';
 const String collMethodFmtPrefKey = 'collEventMethodFmt';
 const String collRolePrefKey = 'collPersonnelRoles';
@@ -39,6 +43,23 @@ const String treatmentFmtPrefKey = 'treatmentFmt';
 const String conditionPrefKey = 'specimenConditions';
 const String conditionFmtPrefKey = 'conditionFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
+const String projectFieldIdAutoIncrementPrefKey = 'projectFieldIdAutoIncrement';
+const String parasiteIdPrefixPrefKey = 'parasiteIdPrefix';
+const String parasiteIdNumberPrefKey = 'parasiteIdNumber';
+const String parasiteCategoryPrefKey = 'parasiteCategories';
+const String parasiteCategoryFmtPrefKey = 'parasiteCategoryFmt';
+const String parasiteDetectionMethodPrefKey = 'parasiteDetectionMethods';
+const String parasiteDetectionMethodFmtPrefKey = 'parasiteDetectionMethodFmt';
+const String parasitePreparationMethodPrefKey = 'parasitePreparationMethods';
+const String parasitePreparationMethodFmtPrefKey =
+    'parasitePreparationMethodFmt';
+const String parasiteAnatomicalLocationPrefKey = 'parasiteAnatomicalLocations';
+const String parasiteAnatomicalLocationFmtPrefKey =
+    'parasiteAnatomicalLocationFmt';
+const String parasiteStoragePrefKey = 'parasiteStorage';
+const String parasiteStorageFmtPrefKey = 'parasiteStorageFmt';
+const String parasiteTreatmentPrefKey = 'parasiteTreatments';
+const String parasiteTreatmentFmtPrefKey = 'parasiteTreatmentFmt';
 
 // Document Export settings
 // User-configurable export presets and PDF document settings.
@@ -47,6 +68,10 @@ const String exportPresetPrefKey = 'exportPresets';
 final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
 });
+
+final userConfigSettingsServiceProvider = Provider<UserConfigSettingsService>(
+  (ref) => const UserConfigSettingsService(),
+);
 
 final themeSettingProvider = AsyncNotifierProvider<ThemeSetting, ThemeMode>(
   ThemeSetting.new,
@@ -144,6 +169,8 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultHabitatTypes;
     case siteTypePrefKey:
       return defaultSiteTypes;
+    case datumPrefKey:
+      return defaultDatums;
     case collMethodPrefKey:
       return defaultCollMethods;
     case collRolePrefKey:
@@ -199,124 +226,23 @@ class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
   }
 }
 
-final userDefinedFieldProvider = AsyncNotifierProvider.family
-    .autoDispose<UserDefinedField, List<String>, String>(UserDefinedField.new);
-
-class UserDefinedField extends AsyncNotifier<List<String>> {
-  UserDefinedField(this.prefKey);
-  final String prefKey;
-
-  Future<List<String>> _fetchSettings() async {
-    final optionList = await rust_config.getUserConfigList(key: prefKey);
-    List<String> currentOptions = optionList ?? getDefaultOptionsList(prefKey);
-
-    if (optionList == null) {
-      await rust_config.setUserConfigList(key: prefKey, value: currentOptions);
-    }
-
-    return currentOptions;
-  }
-
-  @override
-  Future<List<String>> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> add(String newOption) async {
-    if (newOption.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final optionList = await rust_config.getUserConfigList(key: prefKey);
-      if (optionList != null && isListContains(optionList, newOption)) {
-        return optionList;
-      }
-
-      List<String> newList = [...optionList ?? [], newOption];
-      await rust_config.setUserConfigList(key: prefKey, value: newList);
-      return newList;
+final userDefinedFieldProvider = FutureProvider.family
+    .autoDispose<List<String>, String>((ref, prefKey) {
+      return ref
+          .watch(userConfigSettingsServiceProvider)
+          .loadOptions(prefKey, getDefaultOptionsList(prefKey));
     });
-  }
 
-  Future<void> replaceAll(List<String> newOptions) async {
-    if (newOptions.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await rust_config.setUserConfigList(key: prefKey, value: newOptions);
-      return newOptions;
-    });
-  }
-
-  Future<void> remove(String option) async {
-    if (option.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final optionsList = await rust_config.getUserConfigList(key: prefKey);
-      if (optionsList == null || optionsList.isEmpty) return [];
-
-      if (!optionsList.contains(option)) return optionsList;
-
-      List<String> newOptions = [...optionsList]..remove(option);
-      await rust_config.setUserConfigList(key: prefKey, value: newOptions);
-      return newOptions;
-    });
-  }
-
-  Future<void> clear() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await rust_config.deleteUserConfig(key: prefKey);
-      return [];
-    });
-  }
-}
-
-final textCaseFmtNotifierProvider = AsyncNotifierProvider.family
-    .autoDispose<TextCaseFmtNotifier, TextCaseFmt, String>(
-      TextCaseFmtNotifier.new,
-    );
-
-class TextCaseFmtNotifier extends AsyncNotifier<TextCaseFmt> {
-  TextCaseFmtNotifier(this.prefKey);
-  final String prefKey;
-
-  Future<TextCaseFmt> _fetchSettings() async {
-    final fmtString = await rust_config.getUserConfigString(key: prefKey);
-
-    final defaultFormat = prefKey == conditionFmtPrefKey
-        ? TextCaseFmt.sentenceCase
-        : TextCaseFmt.anyCase;
-    TextCaseFmt fmt = TextCaseFmt.values.byName(
-      fmtString ?? defaultFormat.name,
-    );
-
-    if (fmtString == null) {
-      await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
-    }
-
-    return fmt;
-  }
-
-  @override
-  Future<TextCaseFmt> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> set(String prefKey, TextCaseFmt fmt) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final fmtString = await rust_config.getUserConfigString(key: prefKey);
+final textCaseFmtProvider = FutureProvider.family
+    .autoDispose<TextCaseFmt, String>((ref, prefKey) async {
       final defaultFormat = prefKey == conditionFmtPrefKey
           ? TextCaseFmt.sentenceCase
           : TextCaseFmt.anyCase;
-      final setFmt = TextCaseFmt.values.byName(fmtString ?? defaultFormat.name);
-
-      if (setFmt == fmt) return fmt;
-
-      await rust_config.setUserConfigString(key: prefKey, value: fmt.name);
-      return fmt;
+      final format = await ref
+          .watch(userConfigSettingsServiceProvider)
+          .loadTextCaseFormat(prefKey, defaultFormat.name);
+      return TextCaseFmt.values.byName(format);
     });
-  }
-}
 
 final fieldIdModeNotifierProvider =
     AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(
@@ -329,14 +255,26 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
       key: fieldIdModePrefKey,
     );
 
-    FieldIdMode fieldIdMode = FieldIdMode.values.byName(
+    final fieldIdMode = FieldIdMode.values.byName(
       fieldIdModeString ?? FieldIdMode.personnel.name,
     );
-
+    final prefs = ref.read(settingProvider);
+    final defaultMigrated =
+        prefs.getBool(fieldIdModeDefaultMigratedPrefKey) ?? false;
+    if (!defaultMigrated) {
+      await prefs.setBool(fieldIdModeDefaultMigratedPrefKey, true);
+      if (fieldIdModeString == null || fieldIdMode == FieldIdMode.project) {
+        await rust_config.setUserConfigString(
+          key: fieldIdModePrefKey,
+          value: FieldIdMode.personnel.name,
+        );
+        return FieldIdMode.personnel;
+      }
+    }
     if (fieldIdModeString == null) {
       await rust_config.setUserConfigString(
         key: fieldIdModePrefKey,
-        value: fieldIdMode.name,
+        value: FieldIdMode.personnel.name,
       );
     }
 
@@ -365,6 +303,40 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
         value: mode.name,
       );
       return mode;
+    });
+  }
+}
+
+final projectFieldIdAutoIncrementProvider =
+    AsyncNotifierProvider.autoDispose<
+      ProjectFieldIdAutoIncrementNotifier,
+      bool
+    >(ProjectFieldIdAutoIncrementNotifier.new);
+
+class ProjectFieldIdAutoIncrementNotifier extends AsyncNotifier<bool> {
+  @override
+  Future<bool> build() async {
+    final value = await rust_config.getUserConfigString(
+      key: projectFieldIdAutoIncrementPrefKey,
+    );
+    if (value == null) {
+      await rust_config.setUserConfigString(
+        key: projectFieldIdAutoIncrementPrefKey,
+        value: false.toString(),
+      );
+      return false;
+    }
+    return value == true.toString();
+  }
+
+  Future<void> set(bool value) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await rust_config.setUserConfigString(
+        key: projectFieldIdAutoIncrementPrefKey,
+        value: value.toString(),
+      );
+      return value;
     });
   }
 }

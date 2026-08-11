@@ -10,18 +10,15 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:path/path.dart' as path;
 
 class AssociatedDataViewer extends ConsumerStatefulWidget {
-  const AssociatedDataViewer({
-    super.key,
-    required this.specimenUuid,
-  });
+  const AssociatedDataViewer({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
@@ -36,23 +33,20 @@ class AssociatedDataViewerState extends ConsumerState<AssociatedDataViewer> {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         const TitleForm(
-            text: 'Associated Data', infoContent: AssociateDataInfo()),
+          text: 'Associated Data',
+          infoContent: AssociateDataInfo(),
+        ),
         SizedBox(
           height: 450,
-          child: AssociatedDataList(
-            specimenUuid: widget.specimenUuid,
-          ),
-        )
+          child: AssociatedDataList(specimenUuid: widget.specimenUuid),
+        ),
       ],
     );
   }
 }
 
 class AssociatedDataList extends ConsumerStatefulWidget {
-  const AssociatedDataList({
-    super.key,
-    required this.specimenUuid,
-  });
+  const AssociatedDataList({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
@@ -85,19 +79,20 @@ class AssociatedDataListState extends ConsumerState<AssociatedDataList> {
                     child: CommonScrollbar(
                       scrollController: _scrollController,
                       child: ListView.builder(
-                          controller: _scrollController,
-                          shrinkWrap: true,
-                          itemCount: data.length,
-                          itemBuilder: (context, index) {
-                            return AssociateDataItem(
-                              specimenUuid: widget.specimenUuid,
-                              data: data[index],
-                            );
-                          }),
+                        controller: _scrollController,
+                        shrinkWrap: true,
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          return AssociateDataItem(
+                            specimenUuid: widget.specimenUuid,
+                            data: data[index],
+                          );
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  AddAssociatedButton(specimenUuid: widget.specimenUuid)
+                  AddAssociatedButton(specimenUuid: widget.specimenUuid),
                 ],
               );
       },
@@ -121,10 +116,7 @@ class AssociateDataItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(data.name ?? 'No name'),
-      subtitle: Text(
-        _subtitle,
-        overflow: TextOverflow.ellipsis,
-      ),
+      subtitle: Text(_subtitle, overflow: TextOverflow.ellipsis),
       trailing: IconButton(
         icon: const Icon(Icons.edit),
         onPressed: () {
@@ -132,9 +124,10 @@ class AssociateDataItem extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) => EditAssociatedData(
-                  specimenUuid: specimenUuid,
-                  associatedDataId: data.primaryId,
-                  ctr: AssociatedDataCtr.fromData(data)),
+                specimenUuid: specimenUuid,
+                associatedDataId: data.primaryId,
+                ctr: AssociatedDataCtr.fromData(data),
+              ),
             ),
           );
         },
@@ -173,9 +166,7 @@ class AddAssociatedButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => NewAssociatedData(
-              specimenUuid: specimenUuid,
-            ),
+            builder: (context) => NewAssociatedData(specimenUuid: specimenUuid),
           ),
         );
       },
@@ -195,7 +186,7 @@ class EmptyAssociatedData extends StatelessWidget {
       children: [
         const Text('No associated data added'),
         const SizedBox(height: 8),
-        AddAssociatedButton(specimenUuid: specimenUuid)
+        AddAssociatedButton(specimenUuid: specimenUuid),
       ],
     );
   }
@@ -233,10 +224,7 @@ class EditAssociatedData extends StatelessWidget {
 }
 
 class NewAssociatedData extends StatelessWidget {
-  const NewAssociatedData({
-    super.key,
-    required this.specimenUuid,
-  });
+  const NewAssociatedData({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
@@ -300,10 +288,7 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
             ),
             initialValue: widget.ctr.typeCtr,
             items: dataOptions.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
+              return DropdownMenuItem<String>(value: value, child: Text(value));
             }).toList(),
             onChanged: (String? newValue) {
               setState(() {
@@ -343,46 +328,47 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
           ),
           const SizedBox(height: 12),
           Visibility(
-              visible: widget.ctr.typeCtr == 'File',
-              child: widget.ctr.uriCtr.text.isNotEmpty
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.file_present,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          path.basename(widget.ctr.uriCtr.text),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.clear_rounded),
-                          onPressed: () {
-                            setState(() {
-                              widget.ctr.uriCtr.text = '';
-                            });
-                          },
-                        )
-                      ],
-                    )
-                  : SelectFileField(
-                      filePath: _filePath,
-                      isLoading: _isLoading,
-                      width: double.infinity,
-                      maxWidth: double.infinity,
-                      onCleared: () {
-                        setState(() {
-                          _filePath = null;
-                        });
-                      },
-                      onPressed: () {
-                        _getFile();
-                      },
-                    )),
+            visible: widget.ctr.typeCtr == 'File',
+            child: widget.ctr.uriCtr.text.isNotEmpty
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.file_present,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        path.basename(widget.ctr.uriCtr.text),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.clear_rounded),
+                        onPressed: () {
+                          setState(() {
+                            widget.ctr.uriCtr.text = '';
+                          });
+                        },
+                      ),
+                    ],
+                  )
+                : SelectFileField(
+                    filePath: _filePath,
+                    isLoading: _isLoading,
+                    width: double.infinity,
+                    maxWidth: double.infinity,
+                    onCleared: () {
+                      setState(() {
+                        _filePath = null;
+                      });
+                    },
+                    onPressed: () {
+                      _getFile();
+                    },
+                  ),
+          ),
           const SizedBox(height: 16),
           FormButton(
             isEditing: widget.isEditing,
@@ -393,11 +379,9 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                   if (context.mounted) Navigator.pop(context);
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                      ),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
                   }
                 }
               } else {
@@ -406,16 +390,14 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                   if (context.mounted) Navigator.pop(context);
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                      ),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
                   }
                 }
               }
             },
-          )
+          ),
         ],
       ),
     );
@@ -423,8 +405,9 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
 
   Future<void> _createData() async {
     final data = _getForm();
-    await AssociatedDataServices(ref: ref)
-        .createAssociatedData(widget.specimenUuid, data);
+    await AssociatedDataServices(
+      ref: ref,
+    ).createAssociatedData(widget.specimenUuid, data);
   }
 
   Future<void> _updateData() async {
@@ -433,8 +416,9 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
     try {
       await service.updateAssociatedData(widget.associatedDataId!, data);
       if (_filePath != null) {
-        final path =
-            await service.copyAssociatedDataFile(File(_filePath!.path));
+        final path = await service.copyAssociatedDataFile(
+          File(_filePath!.path),
+        );
         if (context.mounted) {
           _showPath(path);
         }
@@ -447,19 +431,15 @@ class AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
   }
 
   void _showPath(File path) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('File copied to $path'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('File copied to $path')));
   }
 
   void _showError(String error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error: $error'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Error: $error')));
   }
 
   AssociatedDataCompanion _getForm() {
@@ -503,7 +483,8 @@ class AssociateDataInfo extends StatelessWidget {
       content: [
         InfoContent(
           header: 'Overview',
-          content: 'Associated data of the project. It includes data, such as '
+          content:
+              'Associated data of the project. It includes data, such as '
               'the GenBank accession number and other digital data associated with the specimen.',
         ),
         InfoContent(
@@ -511,7 +492,7 @@ class AssociateDataInfo extends StatelessWidget {
               'Some of digital data can also be added in the specimen part or media sections.'
               ' Use the associated data section to add data '
               'that is not covered in other sections.',
-        )
+        ),
       ],
     );
   }

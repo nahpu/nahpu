@@ -45,6 +45,7 @@ dependencies:
   flutter_riverpod: ^3.3.2
   shared_preferences: ^2.1.1
   fl_chart: ^1.0.0
+  camera: ^0.11.2+1
   image_picker: ^1.0.0
   share_plus: ^13.1.0
   exif: ^3.1.4
@@ -65,7 +66,7 @@ dependencies:
   flutter_markdown_plus: ^1.0.7
   flex_color_picker: ^3.8.0
   google_fonts: ^8.1.0
-  pdfrx: ^2.4.4
+  pdfrx: ^2.4.7
   flutter_map: ^8.3.1
   flutter_map_pmtiles: ^1.0.5
   pmtiles: ^1.2.0
@@ -74,6 +75,7 @@ dependencies:
   maplibre_webview: ^0.3.5
   video_player: ^2.13.0
   fvp: ^0.37.3
+  record: ^7.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

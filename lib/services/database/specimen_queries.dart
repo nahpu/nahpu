@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 part 'specimen_queries.g.dart';
 
@@ -14,10 +14,12 @@ class SpecimenQuery extends DatabaseAccessor<Database>
   Future<int> createSpecimen(SpecimenCompanion form) =>
       into(specimen).insert(form);
 
+  /// Returns specimens oldest-first so new records are the final form page.
   Future<List<SpecimenData>> getAllSpecimens(String projectUuid) {
-    return (select(
-      specimen,
-    )..where((t) => t.projectUuid.equals(projectUuid))).get();
+    return (select(specimen)
+          ..where((t) => t.projectUuid.equals(projectUuid))
+          ..orderBy([(row) => OrderingTerm.asc(row.rowId)]))
+        .get();
   }
 
   Future<List<SpecimenData>> searchSpecimens(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -95,7 +95,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
               : () async => await _duplicateEvent(),
           child: const DuplicateMenuButton(text: 'Duplicate event'),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           enabled: widget.collEventId != null,
           onTap: widget.collEventId == null
@@ -122,7 +122,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
             title: Text('Export event'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           onTap: () => RecordExchangeActions(
             context: context,
@@ -143,7 +143,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
             title: Text('Import event'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           child: const DeleteMenuButton(deleteAll: false),
           onTap: () => _deleteEvent(),
@@ -163,7 +163,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
         title: 'Delete collecting event?',
         deletePrompt:
             'You will also delete collecting effort'
-            ', collecting personnel, and weather data in this event.',
+            ', collecting personnel, weather data, and media in this event.',
         onDelete: () async {
           try {
             await CollEventServices(
@@ -206,7 +206,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       deletePrompt:
           'Deleting all collecting events will also delete all associated'
           ' collecting effort, collecting personnel, '
-          'and weather data from the database.',
+          'weather data, and media from the database.',
       onDelete: () async {
         try {
           final service = CollEventServices(ref: ref);

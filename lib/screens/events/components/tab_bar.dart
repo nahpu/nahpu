@@ -45,9 +45,7 @@ class _CollEventTabBarState extends State<CollEventTabBar>
         tabController: _tabController,
         height: 502,
         tabs: [
-          const Tab(
-            icon: Icon(Icons.groups_2_outlined),
-          ),
+          const Tab(icon: Icon(Icons.groups_2_outlined)),
           Tab(icon: Icon(Icons.wb_cloudy_outlined)),
         ],
         children: [

@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class SpatialStatisticsLegend extends StatefulWidget {
   const SpatialStatisticsLegend({
@@ -155,7 +155,7 @@ class _LegendSample extends StatelessWidget {
                     color: colorScheme.primary.withValues(alpha: 0.32),
                     border: Border.all(
                       color: colorScheme.primary.withValues(alpha: 0.86),
-                      width: 1.5,
+                      width: 2,
                     ),
                   ),
                 ),

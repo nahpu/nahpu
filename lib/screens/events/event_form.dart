@@ -4,14 +4,18 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/events/components/activities.dart';
 import 'package:nahpu/screens/events/components/effort.dart';
 import 'package:nahpu/screens/events/components/general_info.dart';
+import 'package:nahpu/screens/events/components/media.dart';
 import 'package:nahpu/screens/events/components/tab_bar.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
 class CollEventForm extends ConsumerStatefulWidget {
-  const CollEventForm(
-      {super.key, required this.id, required this.collEventCtr});
+  const CollEventForm({
+    super.key,
+    required this.id,
+    required this.collEventCtr,
+  });
 
   final int id;
   final CollEventFormCtrModel collEventCtr;
@@ -39,9 +43,10 @@ class CollEventFormState extends ConsumerState<CollEventForm> {
               height: topCollEventHeight,
               children: [
                 EventInfoField(
-                    collEventId: widget.id,
-                    useHorizontalLayout: useHorizontalLayout,
-                    collEventCtr: widget.collEventCtr),
+                  collEventId: widget.id,
+                  useHorizontalLayout: useHorizontalLayout,
+                  collEventCtr: widget.collEventCtr,
+                ),
                 CollActivityFields(
                   collEventId: widget.id,
                   collEventCtr: widget.collEventCtr,
@@ -52,16 +57,15 @@ class CollEventFormState extends ConsumerState<CollEventForm> {
               useHorizontalLayout: useHorizontalLayout,
               height: bottomCollEventHeight,
               children: [
-                CollEffort(
-                  collEventId: widget.id,
-                ),
+                CollEffort(collEventId: widget.id),
                 CollEventTabBar(
                   eventID: widget.id,
                   useHorizontalLayout: useHorizontalLayout,
                 ),
               ],
             ),
-            const BottomPadding()
+            EventMediaForm(eventId: widget.id),
+            const BottomPadding(),
           ],
         );
       },

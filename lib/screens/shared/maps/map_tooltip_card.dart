@@ -22,9 +22,9 @@ class MapTooltipCard extends StatelessWidget {
       color: theme.colorScheme.surfaceContainerHigh,
       elevation: 4,
       shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.28),
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

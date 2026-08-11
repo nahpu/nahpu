@@ -227,6 +227,157 @@ pub struct UtmCoordinateFfi {
     pub northing: f64,
 }
 
+/// Coordinate formats accepted by the NAHPU coordinate editor.
+pub enum CoordinateInputFormat {
+    DecimalDegrees,
+    DegreesDecimalMinutes,
+    DegreesMinutesSeconds,
+    Utm,
+}
+
+/// A validated coordinate normalized for database storage.
+pub struct ParsedCoordinateInput {
+    pub decimal_latitude: f64,
+    pub decimal_longitude: f64,
+    pub verbatim_latitude: Option<String>,
+    pub verbatim_longitude: Option<String>,
+    pub verbatim_coordinates: Option<String>,
+    pub verbatim_coordinate_system: Option<String>,
+}
+
+/// Parses a coordinate using the explicitly selected NAHPU coordinate format.
+pub fn parse_coordinate_input(
+    format: CoordinateInputFormat,
+    primary: String,
+    secondary: Option<String>,
+) -> Result<ParsedCoordinateInput, String> {
+    match format {
+        CoordinateInputFormat::DecimalDegrees => {
+            let latitude = parse_decimal_axis(&primary, CoordinateAxis::Latitude)?;
+            let longitude_text = secondary
+                .as_deref()
+                .ok_or_else(|| "Longitude is required".to_owned())?;
+            let longitude = parse_decimal_axis(longitude_text, CoordinateAxis::Longitude)?;
+            Ok(ParsedCoordinateInput {
+                decimal_latitude: latitude,
+                decimal_longitude: longitude,
+                verbatim_latitude: None,
+                verbatim_longitude: None,
+                verbatim_coordinates: None,
+                verbatim_coordinate_system: None,
+            })
+        }
+        CoordinateInputFormat::DegreesDecimalMinutes => {
+            parse_angular_pair::<Ddm>(&primary, secondary, "degrees decimal minutes")
+        }
+        CoordinateInputFormat::DegreesMinutesSeconds => {
+            parse_angular_pair::<Dms>(&primary, secondary, "degrees minutes seconds")
+        }
+        CoordinateInputFormat::Utm => parse_utm_input(primary),
+    }
+}
+
+trait AngularCoordinate: std::str::FromStr<Err = nahpu_gis::GisError> {
+    fn direction(&self) -> CardinalDirection;
+    fn decimal(&self) -> f64;
+}
+
+impl AngularCoordinate for Ddm {
+    fn direction(&self) -> CardinalDirection {
+        self.direction.into()
+    }
+
+    fn decimal(&self) -> f64 {
+        self.to_decimal()
+    }
+}
+
+impl AngularCoordinate for Dms {
+    fn direction(&self) -> CardinalDirection {
+        self.direction.into()
+    }
+
+    fn decimal(&self) -> f64 {
+        self.to_decimal()
+    }
+}
+
+fn parse_angular_pair<T>(
+    latitude_text: &str,
+    longitude_text: Option<String>,
+    system: &str,
+) -> Result<ParsedCoordinateInput, String>
+where
+    T: AngularCoordinate,
+{
+    let longitude_text = longitude_text.ok_or_else(|| "Longitude is required".to_owned())?;
+    let latitude = latitude_text
+        .parse::<T>()
+        .map_err(|error| error.to_string())?;
+    let longitude = longitude_text
+        .parse::<T>()
+        .map_err(|error| error.to_string())?;
+    if !matches!(
+        latitude.direction(),
+        CardinalDirection::North | CardinalDirection::South
+    ) {
+        return Err("Latitude must use a north or south direction".to_owned());
+    }
+    if !matches!(
+        longitude.direction(),
+        CardinalDirection::East | CardinalDirection::West
+    ) {
+        return Err("Longitude must use an east or west direction".to_owned());
+    }
+    Ok(ParsedCoordinateInput {
+        decimal_latitude: latitude.decimal(),
+        decimal_longitude: longitude.decimal(),
+        verbatim_latitude: Some(latitude_text.to_owned()),
+        verbatim_longitude: Some(longitude_text),
+        verbatim_coordinates: None,
+        verbatim_coordinate_system: Some(system.to_owned()),
+    })
+}
+
+fn parse_decimal_axis(value: &str, axis: CoordinateAxis) -> Result<f64, String> {
+    let decimal = value
+        .trim()
+        .parse::<f64>()
+        .map_err(|_| "Coordinate must be a decimal number".to_owned())?;
+    direction_for_decimal(decimal, axis)?;
+    Ok(decimal)
+}
+
+fn parse_utm_input(value: String) -> Result<ParsedCoordinateInput, String> {
+    let components = value.split_whitespace().collect::<Vec<_>>();
+    if components.len() != 4 {
+        return Err("UTM must contain zone, hemisphere, easting, and northing".to_owned());
+    }
+    let zone = components[0]
+        .parse::<u8>()
+        .map_err(|_| "UTM zone must be a number".to_owned())?;
+    let hemisphere = match components[1].to_ascii_uppercase().as_str() {
+        "N" | "NORTH" => CardinalDirection::North,
+        "S" | "SOUTH" => CardinalDirection::South,
+        _ => return Err("UTM hemisphere must be N or S".to_owned()),
+    };
+    let easting = components[2]
+        .parse::<f64>()
+        .map_err(|_| "UTM easting must be a number".to_owned())?;
+    let northing = components[3]
+        .parse::<f64>()
+        .map_err(|_| "UTM northing must be a number".to_owned())?;
+    let (latitude, longitude) = utm_to_dd(zone, hemisphere, easting, northing)?;
+    Ok(ParsedCoordinateInput {
+        decimal_latitude: latitude,
+        decimal_longitude: longitude,
+        verbatim_latitude: None,
+        verbatim_longitude: None,
+        verbatim_coordinates: Some(value),
+        verbatim_coordinate_system: Some("UTM".to_owned()),
+    })
+}
+
 /// Converts DMS to decimal degrees.
 ///
 /// # Examples
@@ -358,5 +509,55 @@ mod tests {
             "unused.geojson".to_owned(),
         );
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn parses_supported_coordinate_inputs_and_preserves_verbatim_values() {
+        let decimal = parse_coordinate_input(
+            CoordinateInputFormat::DecimalDegrees,
+            "41.5".to_owned(),
+            Some("-123.25".to_owned()),
+        )
+        .unwrap();
+        assert_eq!(decimal.decimal_latitude, 41.5);
+        assert!(decimal.verbatim_coordinate_system.is_none());
+
+        let dms = parse_coordinate_input(
+            CoordinateInputFormat::DegreesMinutesSeconds,
+            "41° 24' 12.2\" N".to_owned(),
+            Some("123° 15' 0\" W".to_owned()),
+        )
+        .unwrap();
+        assert_eq!(dms.verbatim_latitude.as_deref(), Some("41° 24' 12.2\" N"));
+        assert_eq!(
+            dms.verbatim_coordinate_system.as_deref(),
+            Some("degrees minutes seconds")
+        );
+
+        let utm = parse_coordinate_input(
+            CoordinateInputFormat::Utm,
+            "11 N 385153 3768853".to_owned(),
+            None,
+        )
+        .unwrap();
+        assert_eq!(
+            utm.verbatim_coordinates.as_deref(),
+            Some("11 N 385153 3768853")
+        );
+        assert_eq!(utm.verbatim_coordinate_system.as_deref(), Some("UTM"));
+    }
+
+    #[test]
+    fn rejects_wrong_axis_and_incomplete_coordinates() {
+        assert!(parse_coordinate_input(
+            CoordinateInputFormat::DegreesDecimalMinutes,
+            "41 24.2 E".to_owned(),
+            Some("123 15.0 W".to_owned()),
+        )
+        .is_err());
+        assert!(
+            parse_coordinate_input(CoordinateInputFormat::Utm, "11 N 385153".to_owned(), None,)
+                .is_err()
+        );
     }
 }

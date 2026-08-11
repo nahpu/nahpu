@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/styles/decoration.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class FormCard extends StatelessWidget {
   const FormCard({
@@ -36,68 +37,71 @@ class FormCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(NahpuSpacing.xs),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(NahpuRadius.large),
           color: isPrimary
-              ? Color.lerp(Theme.of(context).colorScheme.secondaryContainer,
-                  Theme.of(context).colorScheme.surface, 0.2)
-              : Theme.of(context)
-                  .colorScheme
-                  .surfaceContainerHighest
-                  .withAlpha(80),
+              ? Color.lerp(
+                  Theme.of(context).colorScheme.secondaryContainer,
+                  Theme.of(context).colorScheme.surface,
+                  0.2,
+                )
+              : Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withAlpha(80),
           border: Border.all(
             color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
+            width: NahpuStroke.thin,
           ),
         ),
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: mainAxisAlignment,
-            mainAxisSize: mainAxisSize,
-            children: [
-              isWithTitle
-                  ? TitleForm(
-                      text: title,
-                      infoContent: infoContent ?? const SizedBox.shrink(),
-                    )
-                  : const SizedBox.shrink(),
-              isWithTitle && !isPrimary
-                  ? Divider(
-                      thickness: 0.6,
-                      color: Theme.of(context).tabBarTheme.dividerColor)
-                  : const SizedBox.shrink(),
-              isExpanded
-                  ? Expanded(
-                      child: isWithSidePadding
-                          ? Padding(
-                              padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-                              child: child)
-                          : Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: child,
-                            ),
-                    )
-                  : isWithSidePadding
-                      ? Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-                          child: child)
-                      : Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: child,
-                        )
-            ]),
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: mainAxisAlignment,
+          mainAxisSize: mainAxisSize,
+          children: [
+            isWithTitle
+                ? TitleForm(
+                    text: title,
+                    infoContent: infoContent ?? const SizedBox.shrink(),
+                  )
+                : const SizedBox.shrink(),
+            isWithTitle && !isPrimary
+                ? Divider(
+                    thickness: NahpuStroke.thin,
+                    color: Theme.of(context).tabBarTheme.dividerColor,
+                  )
+                : const SizedBox.shrink(),
+            isExpanded
+                ? Expanded(
+                    child: isWithSidePadding
+                        ? Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                            child: child,
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: child,
+                          ),
+                  )
+                : isWithSidePadding
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                    child: child,
+                  )
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: child,
+                  ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class CommonIDForm extends StatelessWidget {
-  const CommonIDForm({
-    super.key,
-    required this.child,
-  });
+  const CommonIDForm({super.key, required this.child});
   final Widget child;
 
   @override
@@ -105,15 +109,51 @@ class CommonIDForm extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 4),
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(NahpuSpacing.md),
         decoration: BoxDecoration(
           border: Border.all(
             color: Theme.of(context).disabledColor,
-            width: 2,
+            width: NahpuStroke.thin,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(NahpuRadius.large),
         ),
         child: child,
+      ),
+    );
+  }
+}
+
+class FormSection extends StatelessWidget {
+  const FormSection({super.key, required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(NahpuSpacing.xl),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(NahpuRadius.large),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withAlpha(80),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            width: NahpuStroke.thin,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: NahpuSpacing.md),
+            child,
+          ],
+        ),
       ),
     );
   }
@@ -136,16 +176,13 @@ class TitleForm extends StatelessWidget {
     return Padding(
       padding: isCentered
           ? const EdgeInsets.fromLTRB(46, 0, 0, 4)
-          : const EdgeInsets.only(right: 10),
+          : const EdgeInsets.only(right: NahpuSpacing.md),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.values[1],
         children: [
-          Text(
-            text,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          InfoButton(content: infoContent)
+          Text(text, style: Theme.of(context).textTheme.titleLarge),
+          InfoButton(content: infoContent),
         ],
       ),
     );
@@ -188,12 +225,9 @@ class _InfoButtonState extends State<InfoButton> {
           content: Container(
             width: 400,
             constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.75),
-            child: InfoContainer(
-              content: [
-                widget.content,
-              ],
+              maxHeight: MediaQuery.sizeOf(context).height * 0.75,
             ),
+            child: InfoContainer(content: [widget.content]),
           ),
           actions: [
             TextButton(
@@ -210,45 +244,42 @@ class _InfoButtonState extends State<InfoButton> {
 
   void showModalSheet() {
     showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        showDragHandle: true,
-        builder: (BuildContext context) {
-          return Container(
-            width: double.infinity,
-            constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.9),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Info',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                Divider(
-                  thickness: 1.2,
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxHeight: MediaQuery.sizeOf(context).height * 0.75),
-                    child: widget.content,
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext context) {
+        return Container(
+          width: double.infinity,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Info', style: Theme.of(context).textTheme.titleLarge),
+              Divider(
+                thickness: NahpuStroke.thin,
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(context).height * 0.75,
                   ),
+                  child: widget.content,
                 ),
-              ],
-            ),
-          );
-        });
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
 class InfoContainer extends StatefulWidget {
-  const InfoContainer({
-    super.key,
-    required this.content,
-  });
+  const InfoContainer({super.key, required this.content});
 
   final List<Widget> content;
 
@@ -322,12 +353,10 @@ class InfoContent extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             color: Theme.of(context).colorScheme.primary.withAlpha(16),
           ),
-          child: richContent ??
-              Text(
-                content ?? '',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-        )
+          child:
+              richContent ??
+              Text(content ?? '', style: Theme.of(context).textTheme.bodyLarge),
+        ),
       ],
     );
   }
@@ -340,24 +369,21 @@ void showDeleteAlertOnMenu({
   required FutureOr<void> Function() onDelete,
   String? requiredConfirmationText,
 }) {
-  Future.delayed(
-    const Duration(milliseconds: 0),
-    () {
-      if (context.mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return DeleteAlerts(
-              deletePrompt: deletePrompt,
-              title: title,
-              onDelete: onDelete,
-              requiredConfirmationText: requiredConfirmationText,
-            );
-          },
-        );
-      }
-    },
-  );
+  Future.delayed(const Duration(milliseconds: 0), () {
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return DeleteAlerts(
+            deletePrompt: deletePrompt,
+            title: title,
+            onDelete: onDelete,
+            requiredConfirmationText: requiredConfirmationText,
+          );
+        },
+      );
+    }
+  });
 }
 
 class DeleteAlerts extends ConsumerStatefulWidget {
@@ -409,10 +435,7 @@ class _DeleteAlertsState extends ConsumerState<DeleteAlerts> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            widget.deletePrompt,
-            textAlign: TextAlign.center,
-          ),
+          Text(widget.deletePrompt, textAlign: TextAlign.center),
           if (widget.requiredConfirmationText != null) ...[
             const SizedBox(height: 16),
             Text(
@@ -446,8 +469,9 @@ class _DeleteAlertsState extends ConsumerState<DeleteAlerts> {
         TextButton(
           style: TextButton.styleFrom(
             foregroundColor: Theme.of(context).colorScheme.error,
-            disabledForegroundColor:
-                Theme.of(context).colorScheme.onSurface.withAlpha(160),
+            disabledForegroundColor: Theme.of(
+              context,
+            ).colorScheme.onSurface.withAlpha(160),
           ),
           onPressed: _isDeleteEnabled && !_isDeleting
               ? () async {
@@ -499,10 +523,8 @@ class CommonTabBars extends ConsumerWidget {
         SizedBox(
           height: height,
           child: CommonPadding(
-              child: TabBarView(
-            controller: tabController,
-            children: children,
-          )),
+            child: TabBarView(controller: tabController, children: children),
+          ),
         ),
       ],
     );
@@ -529,16 +551,10 @@ class CommonEmptyForm extends StatelessWidget {
         SvgPicture.asset(
           iconPath,
           height: 64,
-          colorFilter: ColorFilter.mode(
-            getIconColor(context),
-            BlendMode.srcIn,
-          ),
+          colorFilter: ColorFilter.mode(getIconColor(context), BlendMode.srcIn),
         ),
         const SizedBox(height: 8),
-        Text(
-          text,
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
+        Text(text, style: Theme.of(context).textTheme.labelLarge),
         child ?? const SizedBox.shrink(),
       ],
     );

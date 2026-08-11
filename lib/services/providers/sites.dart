@@ -6,7 +6,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
-import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final siteEntryProvider =

@@ -6,7 +6,7 @@ import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 
 class GenericFileSettingsCard<T> extends StatelessWidget {
   const GenericFileSettingsCard({

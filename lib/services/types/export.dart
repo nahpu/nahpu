@@ -1,6 +1,6 @@
-import 'package:nahpu/services/conditional_brackets.dart';
-import 'package:nahpu/services/specimen_attribute_names.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
+import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 
 enum ExportFmt { csv, tsv, excel, json }
 
@@ -135,6 +135,36 @@ const List<String> partExportListDelimited = [
   'part::museumPermanent',
   'part::museumLoan',
   'part::remark',
+];
+
+const List<String> parasiteDetectionExportList = [
+  'parasiteDetection::parasiteExamined',
+  'parasiteDetection::parasiteDetected',
+  'parasiteDetection::detectionRemark',
+];
+
+const List<String> parasiteExportList = [
+  'parasite::parasiteUuid',
+  'parasite::parasiteID',
+  'parasite::scientificName',
+  'parasite::speciesID',
+  'parasite::identifierID',
+  'parasite::count',
+  'parasite::category',
+  'parasite::anatomicalLocation',
+  'parasite::lifeStage',
+  'parasite::associationStatus',
+  'parasite::detectionMethod',
+  'parasite::dateCollected',
+  'parasite::timeCollected',
+  'parasite::preparationMethod',
+  'parasite::storage',
+  'parasite::treatment',
+  'parasite::datePreserved',
+  'parasite::timePreserved',
+  'parasite::museumPermanent',
+  'parasite::museumLoan',
+  'parasite::remark',
 ];
 
 const siteExportList = [

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/inline_grouped_field_picker.dart';
 import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
-import 'package:nahpu/services/conditional_brackets.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_font_size_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
 import 'package:nahpu/services/templates/template_field_catalog.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/screens/templates/components/properties/text_format_options.dart';
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
@@ -67,8 +67,8 @@ class TextPropertiesPanel extends StatelessWidget {
           SizedBox(
             height: 32,
             child: VerticalDivider(
-              width: 1,
-              thickness: 1,
+              width: 2,
+              thickness: 2,
               color: scheme.outlineVariant,
             ),
           ),
@@ -161,7 +161,7 @@ class TextPropertiesPanel extends StatelessWidget {
       final content = Padding(
         padding: inToolbar
             ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
-            : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            : const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -544,7 +544,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
     return Padding(
       padding: widget.inToolbar
           ? const EdgeInsets.all(8)
-          : const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          : const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

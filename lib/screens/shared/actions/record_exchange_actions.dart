@@ -61,7 +61,11 @@ class RecordExchangeActions {
   Future<void> exportEventRecord(int eventId) async {
     try {
       final service = RecordExchangeService(ref: ref);
-      final payload = await service.exportEvent(eventId);
+      final mediaCount = await service.getEventMediaCount(eventId);
+      final payload = await service.exportEvent(
+        eventId,
+        includeMedia: mediaCount > 0,
+      );
       if (!context.mounted) return;
       await showRecordExportDialog(
         context: context,
@@ -71,11 +75,21 @@ class RecordExchangeActions {
               required fileStem,
               required destinationDirectory,
               required archiveFormat,
-            }) => service.saveJson(
-              payload,
-              fileStem: fileStem,
-              destinationDirectory: destinationDirectory,
-            ),
+            }) {
+              if (archiveFormat == null) {
+                return service.saveJson(
+                  payload,
+                  fileStem: fileStem,
+                  destinationDirectory: destinationDirectory,
+                );
+              }
+              return service.saveRecordArchive(
+                payload,
+                fileStem: fileStem,
+                archiveFormat: archiveFormat,
+                destinationDirectory: destinationDirectory,
+              );
+            },
       );
     } catch (error) {
       _showError(error);
@@ -152,17 +166,27 @@ class RecordExchangeActions {
   }
 
   Future<void> importEventRecord({int? initialTargetId}) async {
-    final file = await RecordExchangeService(ref: ref).selectJsonFile();
+    final service = RecordExchangeService(ref: ref);
+    final file = await service.selectRecordFile();
     if (file == null) return;
+    RecordExchangeArchiveFile? imported;
     try {
-      final content = await File(file.path).readAsString();
-      final payload = RecordExchangePayload.parse(
-        content,
-        expectedType: 'event',
+      imported = await service.readRecordFile(
+        file,
+        expectedType: RecordExchangeType.event,
       );
-      await _importEventPayload(payload, initialTargetId: initialTargetId);
+      await _importEventPayload(
+        imported.payload,
+        initialTargetId: initialTargetId,
+        extractedMediaDirectory: imported.extractedMediaDirectory,
+      );
     } catch (error) {
       _showError(error);
+    } finally {
+      final directory = imported?.extractedMediaDirectory;
+      if (directory != null && directory.existsSync()) {
+        await directory.delete(recursive: true);
+      }
     }
   }
 
@@ -171,7 +195,9 @@ class RecordExchangeActions {
     if (file == null) return;
     RecordExchangeArchiveFile? imported;
     try {
-      imported = await RecordExchangeService(ref: ref).readRecordFile(file);
+      imported = await RecordExchangeService(
+        ref: ref,
+      ).readRecordFile(file, expectedType: RecordExchangeType.specimen);
       final service = RecordExchangeService(ref: ref);
       final specimens = await service.getCurrentProjectSpecimens();
       if (!context.mounted) return;
@@ -202,12 +228,28 @@ class RecordExchangeActions {
         references: references,
         extractedMediaDirectory: imported.extractedMediaDirectory,
       );
-      ref.invalidate(specimenEntryProvider);
-      ref.invalidate(partBySpecimenProvider(result.recordUuid!));
-      ref.invalidate(associatedDataProvider(result.recordUuid!));
       ref
           .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
           .updateState(result.recordUuid);
+      if (result.createdEventId case final createdEventId?) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+            .updateState(createdEventId);
+      }
+      if (result.createdSiteId case final createdSiteId?) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+            .updateState(createdSiteId);
+      }
+      ref.invalidate(specimenEntryProvider);
+      if (result.createdEventId != null) {
+        ref.invalidate(collEventEntryProvider);
+      }
+      if (result.createdSiteId != null) {
+        ref.invalidate(siteEntryProvider);
+      }
+      ref.invalidate(partBySpecimenProvider(result.recordUuid!));
+      ref.invalidate(associatedDataProvider(result.recordUuid!));
       _showSuccess('Specimen imported successfully.');
     } catch (error) {
       _showError(error);
@@ -239,12 +281,12 @@ class RecordExchangeActions {
         payload,
         targetId: choice.targetId,
       );
-      ref.invalidate(siteEntryProvider);
-      ref.invalidate(allPersonnelProvider);
-      ref.invalidate(projectPersonnelProvider);
       ref
           .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
           .updateState(result.recordId);
+      ref.invalidate(siteEntryProvider);
+      ref.invalidate(allPersonnelProvider);
+      ref.invalidate(projectPersonnelProvider);
       _showSuccess('Site imported successfully.');
     } catch (error) {
       _showError(error);
@@ -254,6 +296,7 @@ class RecordExchangeActions {
   Future<void> _importEventPayload(
     RecordExchangePayload payload, {
     int? initialTargetId,
+    Directory? extractedMediaDirectory,
   }) async {
     try {
       final service = RecordExchangeService(ref: ref);
@@ -280,14 +323,21 @@ class RecordExchangeActions {
         targetId: target.targetId,
         linkedSiteId: linkedSite?.siteId,
         createEmbeddedSite: linkedSite?.createEmbeddedSite ?? false,
+        extractedMediaDirectory: extractedMediaDirectory,
       );
-      ref.invalidate(collEventEntryProvider);
-      ref.invalidate(siteEntryProvider);
-      ref.invalidate(allPersonnelProvider);
-      ref.invalidate(projectPersonnelProvider);
       ref
           .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
           .updateState(result.recordId);
+      if (result.createdSiteId case final createdSiteId?) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
+            .updateState(createdSiteId);
+      }
+      ref.invalidate(collEventEntryProvider);
+      ref.invalidate(eventMediaProvider(result.recordId));
+      ref.invalidate(siteEntryProvider);
+      ref.invalidate(allPersonnelProvider);
+      ref.invalidate(projectPersonnelProvider);
       _showSuccess('Event imported successfully.');
     } catch (error) {
       _showError(error);

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/services/navigation_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/navigation_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/styles/design_tokens.dart';
+
+const double _projectRailExtendedWidth = 256;
+const Object projectMenuTapRegionGroupId = 'project-menu';
 
 class ProjectBottomNavbar extends ConsumerStatefulWidget {
   const ProjectBottomNavbar({super.key});
@@ -26,13 +31,8 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
       labelBehavior: isPhone
           ? NavigationDestinationLabelBehavior.onlyShowSelected
           : NavigationDestinationLabelBehavior.alwaysShow,
-      backgroundColor: Color.lerp(
-        Theme.of(context).colorScheme.surface,
-        Theme.of(context).colorScheme.secondary,
-        0.1,
-      ),
-      indicatorColor: Theme.of(context).colorScheme.secondaryContainer,
-      elevation: 10,
+      indicatorColor: Theme.of(context).colorScheme.primaryContainer,
+      elevation: NahpuElevation.none,
       selectedIndex: selectedIndex,
       destinations: const [
         NavigationDestination(
@@ -63,44 +63,252 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
         ),
       ],
       onDestinationSelected: (int index) {
-        ref.read(projectNavbarIndexProvider.notifier).updateState(index);
-        _onItemTapped(index);
+        _selectProjectDestination(ref, index);
       },
     );
   }
+}
 
-  /// Re-fetches the destination tab's data. [ProjectShell]'s [IndexedStack]
-  /// keeps every screen's providers alive, so this explicit invalidation is
-  /// the only re-fetch on a tab switch.
-  void _onItemTapped(int index) {
-    switch (index) {
-      case 0:
-        _invalidateAll();
-        break;
-      case 1:
-        ref.invalidate(siteEntryProvider);
-        break;
-      case 2:
-        ref.invalidate(siteEntryProvider);
-        ref.invalidate(collEventEntryProvider);
-        break;
-      case 3:
-        ref.invalidate(collEventEntryProvider);
-        ref.invalidate(specimenEntryProvider);
-        break;
-      case 4:
-        ref.invalidate(siteEntryProvider);
-        ref.invalidate(narrativeEntryProvider);
-        break;
-    }
+class ProjectNavigationRail extends ConsumerStatefulWidget {
+  const ProjectNavigationRail({
+    super.key,
+    required this.isMenuOpen,
+    required this.onMenuVisibilityChanged,
+  });
+
+  final bool isMenuOpen;
+  final ValueChanged<bool> onMenuVisibilityChanged;
+
+  @override
+  ConsumerState<ProjectNavigationRail> createState() =>
+      _ProjectNavigationRailState();
+}
+
+class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
+  bool _isExtended = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedIndex = ref.watch(projectNavbarIndexProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final standardForeground = colorScheme.onSurfaceVariant;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final toggleIcon = _isExtended
+        ? (isRtl
+              ? Icons.keyboard_double_arrow_right_rounded
+              : Icons.keyboard_double_arrow_left_rounded)
+        : (isRtl
+              ? Icons.keyboard_double_arrow_left_rounded
+              : Icons.keyboard_double_arrow_right_rounded);
+
+    return Padding(
+      padding: const EdgeInsets.all(NahpuSpacing.md),
+      child: Material(
+        elevation: NahpuElevation.none,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(NahpuRadius.large),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: NavigationRail(
+          extended: _isExtended,
+          labelType: _isExtended
+              ? NavigationRailLabelType.none
+              : NavigationRailLabelType.all,
+          indicatorColor: colorScheme.primaryContainer,
+          unselectedIconTheme: IconThemeData(color: standardForeground),
+          unselectedLabelTextStyle: theme.textTheme.labelMedium?.copyWith(
+            color: standardForeground,
+          ),
+          groupAlignment: -1,
+          scrollable: true,
+          selectedIndex: selectedIndex,
+          leading: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _RailActionButton(
+                icon: toggleIcon,
+                collapsedLabel: _isExtended ? 'Collapse' : 'Expand',
+                expandedLabel: _isExtended
+                    ? 'Collapse navigation'
+                    : 'Expand navigation',
+                tooltip: _isExtended
+                    ? 'Collapse navigation rail'
+                    : 'Expand navigation rail',
+                foregroundColor: standardForeground,
+                isExtended: _isExtended,
+                onPressed: () {
+                  setState(() => _isExtended = !_isExtended);
+                },
+              ),
+              TapRegion(
+                groupId: projectMenuTapRegionGroupId,
+                child: _RailActionButton(
+                  icon: widget.isMenuOpen
+                      ? Icons.menu_open_rounded
+                      : Icons.menu_rounded,
+                  collapsedLabel: 'Menu',
+                  expandedLabel: widget.isMenuOpen ? 'Close menu' : 'Menu',
+                  tooltip: widget.isMenuOpen
+                      ? 'Close project menu'
+                      : 'Open project menu',
+                  foregroundColor: standardForeground,
+                  isExtended: _isExtended,
+                  onPressed: () =>
+                      widget.onMenuVisibilityChanged(!widget.isMenuOpen),
+                ),
+              ),
+            ],
+          ),
+          destinations: const [
+            NavigationRailDestination(
+              selectedIcon: Icon(Icons.dashboard_rounded),
+              icon: Icon(Icons.dashboard_outlined),
+              label: Text('Dashboard'),
+            ),
+            NavigationRailDestination(
+              selectedIcon: Icon(Icons.place_rounded),
+              icon: Icon(Icons.place_outlined),
+              label: Text('Sites'),
+            ),
+            NavigationRailDestination(
+              selectedIcon: Icon(Icons.calendar_month_rounded),
+              icon: Icon(Icons.calendar_month_outlined),
+              label: Text('Events'),
+            ),
+            NavigationRailDestination(
+              selectedIcon: SpecimenIcons(isSelected: true),
+              icon: SpecimenIcons(isSelected: false),
+              label: Text('Specimens'),
+            ),
+            NavigationRailDestination(
+              selectedIcon: Icon(Icons.book_rounded),
+              icon: Icon(Icons.book_outlined),
+              label: Text('Narrative'),
+            ),
+          ],
+          onDestinationSelected: (index) =>
+              _selectProjectDestination(ref, index),
+          trailingAtBottom: true,
+          trailing: Padding(
+            padding: const EdgeInsets.only(bottom: NahpuSpacing.lg),
+            child: _RailActionButton(
+              icon: Icons.exit_to_app_rounded,
+              collapsedLabel: 'Close',
+              expandedLabel: 'Close project',
+              tooltip: 'Close project',
+              foregroundColor: standardForeground,
+              isExtended: _isExtended,
+              onPressed: () =>
+                  closeProject(context, ref, ref.read(projectUuidProvider)),
+            ),
+          ),
+        ),
+      ),
+    );
   }
+}
 
-  void _invalidateAll() {
-    ref.invalidate(siteEntryProvider);
-    ref.invalidate(weatherDataProvider);
-    ref.invalidate(collEventEntryProvider);
-    ref.invalidate(specimenEntryProvider);
-    ref.invalidate(narrativeEntryProvider);
+class _RailActionButton extends StatelessWidget {
+  const _RailActionButton({
+    required this.icon,
+    required this.collapsedLabel,
+    required this.expandedLabel,
+    required this.tooltip,
+    required this.foregroundColor,
+    required this.isExtended,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String collapsedLabel;
+  final String expandedLabel;
+  final String tooltip;
+  final Color foregroundColor;
+  final bool isExtended;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isExtended) {
+      return SizedBox(
+        width: _projectRailExtendedWidth,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: TextButton.icon(
+            style: TextButton.styleFrom(
+              alignment: AlignmentDirectional.centerStart,
+              minimumSize: const Size.fromHeight(56),
+              foregroundColor: foregroundColor,
+            ),
+            onPressed: onPressed,
+            icon: Icon(icon),
+            label: Text(expandedLabel),
+          ),
+        ),
+      );
+    }
+
+    return Tooltip(
+      message: tooltip,
+      child: TextButton(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(64, 64),
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          foregroundColor: foregroundColor,
+        ),
+        onPressed: onPressed,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon),
+            const SizedBox(height: 2),
+            Text(
+              collapsedLabel,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: foregroundColor),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _selectProjectDestination(WidgetRef ref, int index) {
+  ref.read(projectNavbarIndexProvider.notifier).updateState(index);
+  _invalidateProjectDestination(ref, index);
+}
+
+/// Re-fetches the destination tab's data. [ProjectShell]'s [IndexedStack]
+/// keeps every screen's providers alive, so this explicit invalidation is
+/// the only re-fetch on a tab switch.
+void _invalidateProjectDestination(WidgetRef ref, int index) {
+  switch (index) {
+    case 0:
+      ref.invalidate(siteEntryProvider);
+      ref.invalidate(weatherDataProvider);
+      ref.invalidate(collEventEntryProvider);
+      ref.invalidate(specimenEntryProvider);
+      ref.invalidate(narrativeEntryProvider);
+      break;
+    case 1:
+      ref.invalidate(siteEntryProvider);
+      break;
+    case 2:
+      ref.invalidate(siteEntryProvider);
+      ref.invalidate(collEventEntryProvider);
+      break;
+    case 3:
+      ref.invalidate(collEventEntryProvider);
+      ref.invalidate(specimenEntryProvider);
+      break;
+    case 4:
+      ref.invalidate(siteEntryProvider);
+      ref.invalidate(narrativeEntryProvider);
+      break;
   }
 }
 
@@ -254,7 +462,9 @@ class PageNumberViewer extends StatelessWidget {
               Theme.of(context).colorScheme.surface,
               0.5,
             ),
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
+            borderRadius: const BorderRadius.all(
+              Radius.circular(NahpuRadius.medium),
+            ),
           ),
           height: 40,
           width: 120,
@@ -326,7 +536,7 @@ class NavSheetState extends ConsumerState<NavSheet> {
                   },
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: NahpuSpacing.md),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: PageInfo(pageNav: widget.pageNav),

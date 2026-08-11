@@ -7,8 +7,9 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/site_name_display.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 
@@ -45,13 +46,9 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
   @override
   Widget build(BuildContext context) {
     final siteEntry = ref.watch(siteEntryProvider);
-    siteEntry.whenData(
-      (siteEntry) => {
-        data = siteEntry,
-      },
-    );
+    siteEntry.whenData((siteEntry) => {data = siteEntry});
     return FormCard(
-      title: 'General Information',
+      title: 'Event Details',
       isPrimary: true,
       infoContent: const CollInfoHelpContent(),
       mainAxisSize: MainAxisSize.min,
@@ -59,15 +56,16 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 5, right: 5, top: 10),
+            padding: const EdgeInsets.only(left: 4, right: 4, top: 8),
             child: CollEventIdTile(
               collEventId: widget.collEventId,
               collEventCtr: widget.collEventCtr,
             ),
           ),
+          SiteNameDisplay(siteId: widget.collEventCtr.siteIDCtr),
           Padding(
             // Match adaptive layout padding
-            padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             child: SiteIdField(
               value: widget.collEventCtr.siteIDCtr,
               siteData: data,
@@ -76,10 +74,9 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
                   setState(() {
                     widget.collEventCtr.siteIDCtr = value;
                     CollEventServices(ref: ref).updateCollEvent(
-                        widget.collEventId,
-                        CollEventCompanion(
-                          siteID: db.Value(value),
-                        ));
+                      widget.collEventId,
+                      CollEventCompanion(siteID: db.Value(value)),
+                    );
                   });
                 }
               },
@@ -89,28 +86,28 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
               CommonDateField(
-                  labelText: 'Start Date',
-                  hintText: 'Enter date',
-                  controller: widget.collEventCtr.startDateCtr,
-                  initialDate: _getInitialStartDate(),
-                  lastDate: DateTime.now(),
-                  onTap: () {
-                    CollEventServices(ref: ref).updateCollEvent(
-                      widget.collEventId,
-                      CollEventCompanion(
-                        startDate:
-                            db.Value(widget.collEventCtr.startDateCtr.date),
+                labelText: 'Start Date',
+                hintText: 'Enter date',
+                controller: widget.collEventCtr.startDateCtr,
+                initialDate: _getInitialStartDate(),
+                lastDate: DateTime.now(),
+                onTap: () {
+                  CollEventServices(ref: ref).updateCollEvent(
+                    widget.collEventId,
+                    CollEventCompanion(
+                      startDate: db.Value(
+                        widget.collEventCtr.startDateCtr.date,
                       ),
-                    );
-                  },
-                  onClear: () {
-                    CollEventServices(ref: ref).updateCollEvent(
-                      widget.collEventId,
-                      CollEventCompanion(
-                        startDate: db.Value(null),
-                      ),
-                    );
-                  }),
+                    ),
+                  );
+                },
+                onClear: () {
+                  CollEventServices(ref: ref).updateCollEvent(
+                    widget.collEventId,
+                    CollEventCompanion(startDate: db.Value(null)),
+                  );
+                },
+              ),
               EndDateField(
                 collEventId: widget.collEventId,
                 collEventCtr: widget.collEventCtr,
@@ -128,23 +125,25 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
   }
 
   DateTime _getInitialStartDate() {
-    return ref.read(catalogFmtNotifierProvider).when(
-      data: (catalogFmt) {
-        switch (catalogFmt) {
-          case CatalogFmt.mammals:
-            return DateTime.now().subtract(const Duration(days: 1));
-          default:
-            // Birds, herpetofauna
+    return ref
+        .read(catalogFmtNotifierProvider)
+        .when(
+          data: (catalogFmt) {
+            switch (catalogFmt) {
+              case CatalogFmt.mammals:
+                return DateTime.now().subtract(const Duration(days: 1));
+              default:
+                // Birds, herpetofauna
+                return DateTime.now();
+            }
+          },
+          loading: () {
             return DateTime.now();
-        }
-      },
-      loading: () {
-        return DateTime.now();
-      },
-      error: (e, s) {
-        return DateTime.now();
-      },
-    );
+          },
+          error: (e, s) {
+            return DateTime.now();
+          },
+        );
   }
 }
 
@@ -161,27 +160,24 @@ class EndDateField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-        labelText: 'End Date',
-        hintText: 'Enter date',
-        controller: collEventCtr.endDateCtr,
-        initialDate: DateTime.now(),
-        lastDate: DateTime.now(),
-        onTap: () {
-          CollEventServices(ref: ref).updateCollEvent(
-            collEventId,
-            CollEventCompanion(
-              endDate: db.Value(collEventCtr.endDateCtr.date),
-            ),
-          );
-        },
-        onClear: () {
-          CollEventServices(ref: ref).updateCollEvent(
-            collEventId,
-            CollEventCompanion(
-              endDate: db.Value(null),
-            ),
-          );
-        });
+      labelText: 'End Date',
+      hintText: 'Enter date',
+      controller: collEventCtr.endDateCtr,
+      initialDate: DateTime.now(),
+      lastDate: DateTime.now(),
+      onTap: () {
+        CollEventServices(ref: ref).updateCollEvent(
+          collEventId,
+          CollEventCompanion(endDate: db.Value(collEventCtr.endDateCtr.date)),
+        );
+      },
+      onClear: () {
+        CollEventServices(ref: ref).updateCollEvent(
+          collEventId,
+          CollEventCompanion(endDate: db.Value(null)),
+        );
+      },
+    );
   }
 }
 
@@ -218,14 +214,15 @@ class CollEventIdTile extends ConsumerWidget {
                         content: TextFormField(
                           controller: collEventCtr.idSuffixCtr,
                           decoration: InputDecoration(
-                              labelText: 'ID suffix',
-                              hintText: 'Enter ID suffix',
-                              suffix: IconButton(
-                                icon: const Icon(Icons.clear_rounded),
-                                onPressed: () {
-                                  collEventCtr.idSuffixCtr.clear();
-                                },
-                              )),
+                            labelText: 'ID suffix',
+                            hintText: 'Enter ID suffix',
+                            suffix: IconButton(
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                collEventCtr.idSuffixCtr.clear();
+                              },
+                            ),
+                          ),
                         ),
                         actions: [
                           TextButton(
@@ -239,8 +236,9 @@ class CollEventIdTile extends ConsumerWidget {
                               CollEventServices(ref: ref).updateCollEvent(
                                 collEventId,
                                 CollEventCompanion(
-                                  idSuffix:
-                                      db.Value(collEventCtr.idSuffixCtr.text),
+                                  idSuffix: db.Value(
+                                    collEventCtr.idSuffixCtr.text,
+                                  ),
                                 ),
                               );
                               ref.invalidate(siteEntryProvider);
@@ -295,7 +293,8 @@ class EventIDTextState extends ConsumerState<EventIDText> {
                     )
                   : const SizedBox.shrink();
             },
-            future: _getEventID())
+            future: _getEventID(),
+          )
         : const SizedBox.shrink();
   }
 
@@ -328,45 +327,53 @@ class EventTimeField extends ConsumerWidget {
       useHorizontalLayout: useHorizontalLayout,
       children: [
         CommonTimeField(
-            labelText: 'Start Time',
-            hintText: 'Enter time',
-            controller: collEventCtr.startTimeCtr,
-            initialTime: _getInitialTime(ref),
-            onTap: () {
-              CollEventServices(ref: ref).updateCollEvent(
-                collEventId,
-                CollEventCompanion(
-                  startTime: db.Value(collEventCtr.startTimeCtr.time),
-                ),
-              );
-            },
-            onClear: () {
-              CollEventServices(ref: ref).updateCollEvent(
-                  collEventId, CollEventCompanion(startTime: db.Value(null)));
-            }),
+          labelText: 'Start Time',
+          hintText: 'Enter time',
+          controller: collEventCtr.startTimeCtr,
+          initialTime: _getInitialTime(ref),
+          onTap: () {
+            CollEventServices(ref: ref).updateCollEvent(
+              collEventId,
+              CollEventCompanion(
+                startTime: db.Value(collEventCtr.startTimeCtr.time),
+              ),
+            );
+          },
+          onClear: () {
+            CollEventServices(ref: ref).updateCollEvent(
+              collEventId,
+              CollEventCompanion(startTime: db.Value(null)),
+            );
+          },
+        ),
         CommonTimeField(
-            labelText: 'End Time',
-            hintText: 'Enter time',
-            controller: collEventCtr.endTimeCtr,
-            initialTime: _getInitialTime(ref),
-            onTap: () {
-              CollEventServices(ref: ref).updateCollEvent(
-                collEventId,
-                CollEventCompanion(
-                  endTime: db.Value(collEventCtr.endTimeCtr.time),
-                ),
-              );
-            },
-            onClear: () {
-              CollEventServices(ref: ref).updateCollEvent(
-                  collEventId, CollEventCompanion(endTime: db.Value(null)));
-            }),
+          labelText: 'End Time',
+          hintText: 'Enter time',
+          controller: collEventCtr.endTimeCtr,
+          initialTime: _getInitialTime(ref),
+          onTap: () {
+            CollEventServices(ref: ref).updateCollEvent(
+              collEventId,
+              CollEventCompanion(
+                endTime: db.Value(collEventCtr.endTimeCtr.time),
+              ),
+            );
+          },
+          onClear: () {
+            CollEventServices(ref: ref).updateCollEvent(
+              collEventId,
+              CollEventCompanion(endTime: db.Value(null)),
+            );
+          },
+        ),
       ],
     );
   }
 
   TimeOfDay _getInitialTime(WidgetRef ref) {
-    return ref.read(catalogFmtNotifierProvider).when(
+    return ref
+        .read(catalogFmtNotifierProvider)
+        .when(
           data: (catalogFmt) {
             switch (catalogFmt) {
               case CatalogFmt.mammals:
@@ -390,24 +397,28 @@ class CollInfoHelpContent extends StatelessWidget {
     return const InfoContainer(
       content: [
         InfoContent(
-            header: 'Overview',
-            content: 'General information about the event.'
-                ' Event helps you keep track of collecting efforts.'),
+          header: 'Overview',
+          content:
+              'Details about the collecting event.'
+              ' Event helps you keep track of collecting efforts.',
+        ),
         InfoContent(
-          content: 'The event ID is automatically generated'
+          content:
+              'The event ID is automatically generated'
               ' based on the site ID and the start date of the event.'
               ' You can add suffix for the event ID'
               ' by using the edit icon.',
         ),
         InfoContent(
-          content: 'We recommend creating a new event'
+          content:
+              'We recommend creating a new event'
               ' for each day for each site, even if the effort is the same.'
               ' You can use duplicate button in the menu to duplicated a event.'
               ' The new events will have the same information as the original event,'
               ' except the weather data, and the dates'
               ' Weather data will be empty. '
               'The date will be auto-incremented by one day',
-        )
+        ),
       ],
     );
   }

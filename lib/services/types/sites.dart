@@ -55,6 +55,8 @@ const List<String> defaultHabitatTypes = [
   'Montane Forest',
 ];
 
+const List<String> defaultDatums = ['WGS84', 'NAD83', 'NAD27'];
+
 class CoordinateIcon {
   const CoordinateIcon({required this.coordinateName});
 

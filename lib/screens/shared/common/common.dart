@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/styles/decoration.dart';
 
@@ -26,8 +27,8 @@ class CommonProgressIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
       child: SizedBox(
-        height: 30,
-        width: 30,
+        height: NahpuControlSize.iconLarge,
+        width: NahpuControlSize.iconLarge,
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
     );
@@ -50,7 +51,7 @@ class CommonDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(height: 5);
+    return const SizedBox(height: NahpuSpacing.xs);
   }
 }
 
@@ -132,12 +133,14 @@ class SelectItemsInterface extends StatelessWidget {
     required this.onClearPressed,
     required this.onSelectAllPressed,
     required this.onSelectPressed,
+    this.leadingAction,
   });
 
   final bool isSelecting;
   final VoidCallback? onClearPressed;
   final VoidCallback? onSelectAllPressed;
   final VoidCallback? onSelectPressed;
+  final Widget? leadingAction;
 
   @override
   Widget build(BuildContext context) {
@@ -158,6 +161,7 @@ class SelectItemsInterface extends StatelessWidget {
           ),
         ),
         const Spacer(),
+        if (!isSelecting && leadingAction != null) leadingAction!,
         TextButton(
           onPressed: onSelectPressed,
           child: Text(isSelecting ? 'Done' : 'Select'),

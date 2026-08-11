@@ -6,7 +6,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
 
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {
@@ -104,7 +104,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
                 },
           child: const DuplicateMenuButton(text: 'Duplicate part'),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           enabled: widget.specimenUuid != null,
           onTap: widget.specimenUuid == null
@@ -128,7 +128,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
             title: Text('Import specimen'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           child: const DeleteMenuButton(deleteAll: false),
           onTap: () => _deleteSpecimen(),

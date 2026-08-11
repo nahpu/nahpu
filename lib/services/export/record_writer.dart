@@ -8,10 +8,11 @@ import 'package:nahpu/services/export/specimen_part_records.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/export/bird_attributes.dart';
 import 'package:nahpu/services/export/mammal_attributes.dart';
 import 'package:nahpu/services/export/herp_attributes.dart';
+import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 import 'package:nahpu/src/rust/api/export.dart';
 
 class SpecimenRecordWriter {
@@ -39,8 +40,10 @@ class SpecimenRecordWriter {
       ...siteExportList,
       ...collEventExportList,
       ..._getAttributeHeader(),
+      ...parasiteDetectionExportList,
+      ...parasiteExportList,
       partExportSimple,
-      'media::media'
+      'media::media',
     ];
 
     List<Map<String, dynamic>> jsonList = [];
@@ -51,8 +54,9 @@ class SpecimenRecordWriter {
         Map<String, dynamic> row = {};
         for (int i = 0; i < header.length; i++) {
           if (selectedColumns == null || selectedColumns!.contains(header[i])) {
-            String key =
-                useFieldNamesOnly ? header[i].split('::').last : header[i];
+            String key = useFieldNamesOnly
+                ? header[i].split('::').last
+                : header[i];
             row[key] = content[i];
           }
         }
@@ -85,26 +89,30 @@ class SpecimenRecordWriter {
     );
     List<String> attributes = await _getAttributes(data);
     String media = await _getSpecimenMedia(data.uuid);
+    final dynamicRecords = await DynamicRecordExporter(
+      ref: ref,
+      expansion: concatenateMultiEntry
+          ? MultiEntryExpansion.concatenate
+          : MultiEntryExpansion.parasites,
+    ).getRecord(data);
 
     List<String> baseContent = [
       ...collectingRecord,
       ...collSiteDetails,
       ...attributes,
     ];
-
-    if (parts.isEmpty) {
-      return [
-        [...baseContent, '', media]
-      ];
-    }
-
-    if (concatenateMultiEntry) {
-      return [
-        [...baseContent, parts.join('|'), media]
-      ];
-    } else {
-      return parts.map((p) => [...baseContent, p, media]).toList();
-    }
+    final partValue = parts.join('|');
+    return dynamicRecords
+        .map(
+          (record) => [
+            ...baseContent,
+            ...parasiteDetectionExportList.map((field) => record[field] ?? ''),
+            ...parasiteExportList.map((field) => record[field] ?? ''),
+            partValue,
+            media,
+          ],
+        )
+        .toList(growable: false);
   }
 
   Future<List<String>> _getCollectingRecord(SpecimenData data) async {
@@ -148,15 +156,20 @@ class SpecimenRecordWriter {
   }
 
   Future<List<String>> _getCollEventSiteDetails(int? collEventId) async {
-    return await CollEventRecordWriter(ref: ref)
-        .getCOllEventSiteDetails(collEventId);
+    return await CollEventRecordWriter(
+      ref: ref,
+    ).getCOllEventSiteDetails(collEventId);
   }
 
   Future<List<String>> _getPartListStrings(String specimenUuid) async {
-    SpecimenPartWriterServices service =
-        SpecimenPartWriterServices(ref: ref, isWithLabel: true);
-    List<List<String>> partList =
-        await service.getPartList(specimenUuid, isWithEmpty: false);
+    SpecimenPartWriterServices service = SpecimenPartWriterServices(
+      ref: ref,
+      isWithLabel: true,
+    );
+    List<List<String>> partList = await service.getPartList(
+      specimenUuid,
+      isWithEmpty: false,
+    );
     return partList.map((e) => e.join(';')).toList();
   }
 
@@ -209,7 +222,9 @@ class SpecimenRecordWriter {
   }
 
   Future<List<String>> _getMammalAttributes(
-      String specimenUuid, bool isBatRecord) async {
+    String specimenUuid,
+    bool isBatRecord,
+  ) async {
     MammalAttributes mammals = MammalAttributes(
       specimenUuid: specimenUuid,
       ref: ref,
@@ -219,22 +234,19 @@ class SpecimenRecordWriter {
   }
 
   Future<List<String>> _getBirdAttributes(String specimenUuid) async {
-    BirdAttributes birds =
-        BirdAttributes(specimenUuid: specimenUuid, ref: ref);
+    BirdAttributes birds = BirdAttributes(specimenUuid: specimenUuid, ref: ref);
     return await birds.getAttributes();
   }
 
   Future<List<String>> _getHerpAttributes(String specimenUuid) async {
-    HerpAttributes herps = HerpAttributes(
-      specimenUuid: specimenUuid,
-      ref: ref,
-    );
+    HerpAttributes herps = HerpAttributes(specimenUuid: specimenUuid, ref: ref);
     return await herps.getAttributes();
   }
 
   Future<String> _getSpecimenMedia(String specimenUuid) async {
-    String specimenMedia =
-        await MediaWriterServices(ref: ref).getSpecimenMedias(specimenUuid);
+    String specimenMedia = await MediaWriterServices(
+      ref: ref,
+    ).getSpecimenMedias(specimenUuid);
     return specimenMedia;
   }
 }

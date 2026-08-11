@@ -8,7 +8,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
 import 'package:nahpu/screens/sites/components/copy_from_project_dialog.dart';
-import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
   return SiteServices(ref: ref).createNewSite().then((newId) {
@@ -106,7 +106,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             title: Text('Copy from project ...'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           enabled: widget.siteId != null,
           onTap: widget.siteId == null
@@ -133,7 +133,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             title: Text('Export site'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           onTap: () => RecordExchangeActions(
             context: context,
@@ -154,7 +154,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             title: Text('Import site'),
           ),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           enabled: widget.siteId != null,
           onTap: () => _deleteSite(),

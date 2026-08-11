@@ -8,7 +8,7 @@ import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_viewport_projection.dart';
 import 'package:nahpu/screens/shared/maps/map_point_hit_test.dart';
 import 'package:nahpu/screens/shared/maps/map_tooltip_card.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
@@ -400,8 +400,8 @@ class _MapLibreAttribution extends StatelessWidget {
     color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
     borderRadius: BorderRadius.circular(4),
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      child: Text(label, style: const TextStyle(fontSize: 10)),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: Text(label, style: const TextStyle(fontSize: 12)),
     ),
   );
 }

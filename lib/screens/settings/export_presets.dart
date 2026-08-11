@@ -9,7 +9,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/export_preset_edit.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:path/path.dart' as path;
 import 'package:nahpu/services/types/export.dart';
 
@@ -95,8 +95,9 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
       final data = ExportPresetModel.fromJson(
         Map<String, dynamic>.from(decoded['data'] as Map),
       );
-      final currentPresets =
-          await ref.read(exportPresetNotifierProvider.future);
+      final currentPresets = await ref.read(
+        exportPresetNotifierProvider.future,
+      );
       if (currentPresets.length >= 20) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -119,9 +120,9 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
           .read(exportPresetNotifierProvider.notifier)
           .savePreset(finalName, data);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Imported preset "$finalName"')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Imported preset "$finalName"')));
       }
     } catch (_) {
       if (mounted) {
@@ -143,8 +144,9 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
 
       var importedCount = 0;
       for (final entry in decoded.entries) {
-        final currentPresets =
-            await ref.read(exportPresetNotifierProvider.future);
+        final currentPresets = await ref.read(
+          exportPresetNotifierProvider.future,
+        );
         if (currentPresets.length >= 20) break;
 
         final data = ExportPresetModel.fromJson(
@@ -175,13 +177,14 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
 
   Future<void> _exportPresetsFile() async {
     try {
-      final currentPresets =
-          await ref.read(exportPresetNotifierProvider.future);
+      final currentPresets = await ref.read(
+        exportPresetNotifierProvider.future,
+      );
       if (currentPresets.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No presets to export')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('No presets to export')));
         }
         return;
       }
@@ -319,7 +322,9 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
       child: Column(
         children: [
           Expanded(
-            child: ref.watch(exportPresetNotifierProvider).when(
+            child: ref
+                .watch(exportPresetNotifierProvider)
+                .when(
                   data: (presets) {
                     if (presets.isEmpty) {
                       return const Padding(
@@ -336,7 +341,9 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                         final isSelected = widget.selectedPresetName == name;
                         return Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 4, horizontal: 8),
+                            vertical: 4,
+                            horizontal: 8,
+                          ),
                           child: Material(
                             borderRadius: BorderRadius.circular(16.0),
                             color: Theme.of(context)
@@ -349,7 +356,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                   : const Icon(Icons.radio_button_unchecked),
                               title: Text(name),
                               subtitle: Text(
-                                  '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}'),
+                                '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}',
+                              ),
                               trailing: IconButton(
                                 icon: const Icon(Icons.delete_outline),
                                 tooltip: 'Delete',
@@ -420,11 +428,11 @@ class PresetEditColumn extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (selectedPresetName == null || selectedPresetMap == null) {
-      return const Center(
-        child: Text('Select a preset to edit'),
-      );
+      return const Center(child: Text('Select a preset to edit'));
     }
-    return ref.watch(exportPresetNotifierProvider).when(
+    return ref
+        .watch(exportPresetNotifierProvider)
+        .when(
           data: (presets) {
             if (!presets.containsKey(selectedPresetName!)) {
               return const Center(child: Text('Preset not found'));
@@ -483,8 +491,9 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
             _validate(_nameController.text);
             if (_errorText == null && _nameController.text.isNotEmpty) {
               final name = _nameController.text;
-              final currentPresets =
-                  await ref.read(exportPresetNotifierProvider.future);
+              final currentPresets = await ref.read(
+                exportPresetNotifierProvider.future,
+              );
               if (currentPresets.containsKey(name)) {
                 setState(() {
                   _errorText = 'A preset with this name already exists';

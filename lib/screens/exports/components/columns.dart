@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 
 class ColumnSelectionList extends StatefulWidget {
   const ColumnSelectionList({

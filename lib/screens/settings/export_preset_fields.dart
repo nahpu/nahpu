@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/inline_grouped_field_picker.dart';
 import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
-import 'package:nahpu/services/conditional_brackets.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/text_replacements.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 
 class ExportPresetFieldsScreen extends ConsumerStatefulWidget {
   const ExportPresetFieldsScreen({
@@ -76,7 +76,7 @@ class _ExportPresetFieldsScreenState
               ),
             ),
           ),
-          const Divider(height: 1.0),
+          const Divider(height: 2),
           Expanded(
             child: ReorderableListView.builder(
               padding: const EdgeInsets.all(8),
@@ -90,7 +90,7 @@ class _ExportPresetFieldsScreenState
               ),
             ),
           ),
-          const Divider(height: 1.0),
+          const Divider(height: 2),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Align(
@@ -484,7 +484,7 @@ class _AvailableFieldsSectionState
               ),
             ),
           ),
-          const Divider(height: 1.0),
+          const Divider(height: 2),
           Expanded(
             child: ListView.builder(
               shrinkWrap: true,
@@ -497,7 +497,7 @@ class _AvailableFieldsSectionState
                     databaseTableDisplayTitle(table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13.0,
+                      fontSize: 14,
                     ),
                   ),
                   dense: true,
@@ -516,7 +516,7 @@ class _AvailableFieldsSectionState
                         displayLabel,
                         style: const TextStyle(
                           fontFamily: 'monospace',
-                          fontSize: 13.0,
+                          fontSize: 14,
                         ),
                       ),
                       onChanged: (bool? val) {
@@ -846,7 +846,7 @@ class _GroupedFieldPickerContentState
             ),
           ),
         ),
-        const Divider(height: 1),
+        const Divider(height: 2),
         Expanded(
           child: filteredGroups.isEmpty
               ? const Center(child: Text('No matching fields.'))
@@ -1011,7 +1011,7 @@ class _ExportMappingCard extends StatelessWidget {
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: colorScheme.outlineVariant),
         ),
         child: ListTile(
@@ -1197,6 +1197,7 @@ class _MappingCustomizerFormState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButtonFormField<String>(
+          isExpanded: true,
           key: ValueKey('mapping-kind-$_mappingKind'),
           initialValue: _mappingKind,
           decoration: const InputDecoration(labelText: 'Mapping type'),
@@ -1272,6 +1273,7 @@ class _MappingCustomizerFormState
             ),
             if (_localMapping.listMode == ListExportMode.concatenate) ...[
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 key: ValueKey(
                   'separator-${_listSeparatorOption(_localMapping.formatOption)}',
                 ),
@@ -1328,6 +1330,7 @@ class _MappingCustomizerFormState
           ] else ...[
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               key: ValueKey('format-${_localMapping.textType}'),
               initialValue: _standardTextType(_localMapping.textType),
               decoration: const InputDecoration(labelText: 'Value format'),
@@ -1648,6 +1651,7 @@ class _MappingCustomizerFormState
               ],
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 key: ValueKey(
                   'null-fallback-${_localMapping.nullFallbackOption}',
                 ),
@@ -2150,6 +2154,7 @@ class _ConditionalBracketControls extends StatelessWidget {
           'Compare raw stored values. Blank controlling values never match.',
         ),
         DropdownButtonFormField<ConditionalMatchMode>(
+          isExpanded: true,
           key: ValueKey('bracket-mode-$mode'),
           initialValue: mode,
           decoration: const InputDecoration(labelText: 'Match logic'),
@@ -2304,6 +2309,7 @@ class _ConditionRowState extends State<_ConditionRow> {
             ),
           DropdownButton<ConditionalComparisonOperator>(
             value: condition.operator,
+            isExpanded: true,
             items: const [
               DropdownMenuItem(
                 value: ConditionalComparisonOperator.equals,
@@ -2354,6 +2360,7 @@ class _IndexedStyleField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<IndexedHeaderStyle>(
+      isExpanded: true,
       key: ValueKey('indexed-style-$value'),
       initialValue: value,
       decoration: const InputDecoration(labelText: 'Indexed column names'),

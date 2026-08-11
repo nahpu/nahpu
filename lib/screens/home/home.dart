@@ -8,7 +8,7 @@ import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/db_services.dart';
+import 'package:nahpu/services/database/db_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 
 class Home extends ConsumerStatefulWidget {

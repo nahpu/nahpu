@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_gallery.dart';
+import 'package:nahpu/screens/shared/media/audio_recorder.dart';
+import 'package:nahpu/screens/shared/media/media_capture.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/types/import.dart';
 
 class NarrativeMediaForm extends ConsumerStatefulWidget {
-  const NarrativeMediaForm({
-    super.key,
-    required this.narrativeId,
-  });
+  const NarrativeMediaForm({super.key, required this.narrativeId});
 
   final int narrativeId;
 
@@ -32,7 +32,9 @@ class NarrativeMediaFormState extends ConsumerState<NarrativeMediaForm> {
 
   @override
   Widget build(BuildContext context) {
-    return ref.watch(narrativeMediaProvider(widget.narrativeId)).when(
+    return ref
+        .watch(narrativeMediaProvider(widget.narrativeId))
+        .when(
           data: (data) {
             return NarrativeMediaViewer(
               narrativeId: widget.narrativeId,
@@ -40,11 +42,7 @@ class NarrativeMediaFormState extends ConsumerState<NarrativeMediaForm> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(
-            child: Text(
-              error.toString(),
-            ),
-          ),
+          error: (error, stackTrace) => Center(child: Text(error.toString())),
         );
   }
 }
@@ -69,74 +67,85 @@ class NarrativeMediaViewerState extends ConsumerState<NarrativeMediaViewer> {
     MediaCategory mediaCategory = MediaCategory.narrative;
     return MediaViewer(
       images: widget.data,
+      onOpenGallery: () =>
+          showMediaGallery(context, initialCategory: mediaCategory),
       onAddFromGallery: () async {
         try {
-          List<String> images =
-              await ImageServices(ref: ref, category: mediaCategory)
-                  .pickFromGallery();
+          List<String> images = await ImageServices(
+            ref: ref,
+            category: mediaCategory,
+          ).pickMediaFromGallery();
           if (images.isNotEmpty) {
-            await NarrativeServices(ref: ref).createNarrativeMediaFromList(
-              widget.narrativeId,
-              images,
-            );
+            await NarrativeServices(
+              ref: ref,
+            ).createNarrativeMediaFromList(widget.narrativeId, images);
             ref.invalidate(narrativeMediaProvider(widget.narrativeId));
           }
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  e.toString(),
-                ),
-              ),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
           }
         }
       },
       onAddFromFiles: () async {
         try {
-          List<String> mediaFiles =
-              await ImageServices(ref: ref, category: mediaCategory)
-                  .pickMediaFromFiles();
+          List<String> mediaFiles = await ImageServices(
+            ref: ref,
+            category: mediaCategory,
+          ).pickMediaFromFiles();
           if (mediaFiles.isNotEmpty) {
-            await NarrativeServices(ref: ref).createNarrativeMediaFromList(
-              widget.narrativeId,
-              mediaFiles,
-            );
+            await NarrativeServices(
+              ref: ref,
+            ).createNarrativeMediaFromList(widget.narrativeId, mediaFiles);
             ref.invalidate(narrativeMediaProvider(widget.narrativeId));
           }
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  e.toString(),
-                ),
-              ),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
           }
         }
       },
-      onAccessingCamera: () async {
+      onTakeMedia: () async {
         try {
-          String? image = await ImageServices(ref: ref, category: mediaCategory)
-              .accessCamera();
-          if (image != null) {
-            await NarrativeServices(ref: ref).createNarrativeMedia(
-              widget.narrativeId,
-              image,
-            );
-            ref.invalidate(narrativeMediaProvider(widget.narrativeId));
-          }
+          final captured = await showMediaCapture(context);
+          if (captured == null) return;
+          final media = await ImageServices(
+            ref: ref,
+            category: mediaCategory,
+          ).importCapturedMedia(captured);
+          await NarrativeServices(
+            ref: ref,
+          ).createNarrativeMedia(widget.narrativeId, media);
+          ref.invalidate(narrativeMediaProvider(widget.narrativeId));
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  e.toString(),
-                ),
-              ),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
+          }
+        }
+      },
+      onRecordAudio: () async {
+        try {
+          final recording = await showAudioRecorder(context);
+          if (recording == null) return;
+          final media = await ImageServices(
+            ref: ref,
+            category: mediaCategory,
+          ).importCapturedMedia(recording);
+          await NarrativeServices(
+            ref: ref,
+          ).createNarrativeMedia(widget.narrativeId, media);
+          ref.invalidate(narrativeMediaProvider(widget.narrativeId));
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
           }
         }
       },

@@ -5,8 +5,8 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/export/document_writer.dart'
     show documentFieldValuesForSpecimen;
-import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/document_selection.dart';

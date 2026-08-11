@@ -3,23 +3,25 @@ import 'dart:io';
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/media_services.dart';
-import 'package:nahpu/services/personnel_services.dart';
-import 'package:nahpu/services/project_transfer/project_transfer_service.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
+import 'package:nahpu/services/projects/project_transfer_service.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/birds.dart' as birds;
 import 'package:nahpu/services/types/herps.dart' as herps;
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/projects/orcid.dart';
+import 'package:nahpu/services/export/dwc_values.dart';
 import 'package:nahpu/src/rust/api/dwc.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/api/nahpu_dp.dart';
@@ -252,6 +254,27 @@ class DwcBundleWriter extends AppServices {
         'cataloger',
         agents,
       );
+      final determiner = await _resolveAgent(
+        specimen.determinerID,
+        null,
+        'determiner',
+        agents,
+      );
+      String? catalogNumber;
+      if (specimen.projectFieldNumber != null) {
+        catalogNumber = formatProjectFieldId(
+          project,
+          specimen.projectFieldNumber,
+        );
+      } else if (specimen.fieldNumber != null) {
+        final catalogerData = specimen.catalogerID == null
+            ? null
+            : await PersonnelServices(
+                ref: ref,
+              ).getPersonnelByUuid(specimen.catalogerID!);
+        catalogNumber =
+            '${catalogerData?.initial ?? ''}${specimen.fieldNumber}';
+      }
       var eventAgents = event == null
           ? <_ResolvedAgent>[]
           : await _resolveEventAgents(event.id, agents);
@@ -267,6 +290,8 @@ class DwcBundleWriter extends AppServices {
           site: site,
           coordinate: coordinate,
           recorders: recorders,
+          determiner: determiner,
+          catalogNumber: catalogNumber,
         ),
       );
       if (event != null) {
@@ -287,6 +312,14 @@ class DwcBundleWriter extends AppServices {
         agents: recorders,
         output: occurrenceAgentRoles,
       );
+      if (determiner != null) {
+        _addAgentRoles(
+          targetId: specimen.uuid,
+          targetKey: 'occurrenceID',
+          agents: [determiner],
+          output: occurrenceAgentRoles,
+        );
+      }
       materialRows.addAll(
         await _materialRows(specimen.uuid, eventId, agents, materialAgentRoles),
       );
@@ -502,6 +535,8 @@ class DwcBundleWriter extends AppServices {
     required SiteData? site,
     required CoordinateData? coordinate,
     required List<_ResolvedAgent> recorders,
+    required _ResolvedAgent? determiner,
+    required String? catalogNumber,
   }) {
     final released = specimen.condition?.toLowerCase() == 'released';
     final scientificName = [
@@ -512,7 +547,7 @@ class DwcBundleWriter extends AppServices {
       'occurrenceID': specimen.uuid,
       'basisOfRecord': released ? 'HumanObservation' : 'PreservedSpecimen',
       'occurrenceStatus': 'detected',
-      'catalogNumber': specimen.projectFieldNumber ?? specimen.fieldNumber,
+      'catalogNumber': catalogNumber,
       'eventID': eventId,
       'eventDate':
           specimen.collectionDate ??
@@ -524,13 +559,15 @@ class DwcBundleWriter extends AppServices {
       'samplingEffort': event?.collMethodNotes,
       'scientificName': scientificName,
       'scientificNameAuthorship': taxon?.authors,
-      'kingdom': getKingdom(taxon?.taxonClass),
-      'phylum': getPhylum(taxon?.taxonClass),
+      'kingdom': taxon?.kingdom ?? getKingdom(taxon?.taxonClass),
+      'phylum': taxon?.phylum ?? getPhylum(taxon?.taxonClass),
       'class': taxon?.taxonClass,
       'order': taxon?.taxonOrder,
       'family': taxon?.taxonFamily,
       'genus': taxon?.genus,
       'specificEpithet': taxon?.specificEpithet,
+      'infraspecificEpithet': taxon?.subspecificEpithet,
+      'taxonRank': taxon?.taxonRank,
       'vernacularName': taxon?.commonName,
       'taxonRemarks': taxon?.notes,
       'country': site?.country,
@@ -542,14 +579,22 @@ class DwcBundleWriter extends AppServices {
       'locationRemarks': site?.remark,
       'decimalLatitude': coordinate?.decimalLatitude,
       'decimalLongitude': coordinate?.decimalLongitude,
+      'verbatimLatitude': coordinate?.verbatimLatitude,
+      'verbatimLongitude': coordinate?.verbatimLongitude,
+      'verbatimCoordinates': coordinate?.verbatimCoordinates,
+      'verbatimCoordinateSystem': coordinate?.verbatimCoordinateSystem,
       'geodeticDatum': coordinate?.datum,
-      'coordinateUncertaintyInMeters': coordinate?.uncertaintyInMeters,
+      'coordinateUncertaintyInMeters': positiveCoordinateUncertainty(
+        coordinate?.uncertaintyInMeters?.toDouble(),
+        specimen.coordinateExtentMeters,
+      ),
       'minimumElevationInMeters': coordinate?.elevationInMeter,
       'maximumElevationInMeters': coordinate?.elevationInMeter,
       'georeferenceRemarks': coordinate?.notes,
-      'disposition': specimen.condition,
       'recordedBy': _agentNames(recorders),
       'recordedByID': _agentIds(recorders),
+      'identifiedBy': determiner?.name,
+      'identifiedByID': determiner?.id,
     };
   }
 
@@ -639,7 +684,9 @@ class DwcBundleWriter extends AppServices {
         'measurementID': '${specimen.uuid}:${entry.key}',
         'measurementType': entry.value.type,
         'measurementValue': value,
-        'measurementUnit': entry.value.unit,
+        'measurementUnit': entry.key == 'weight'
+            ? raw['weightUnit'] ?? entry.value.unit
+            : entry.value.unit,
       });
     }
     return rows;
@@ -747,15 +794,20 @@ class DwcBundleWriter extends AppServices {
     Map<String, _ResolvedAgent> agents,
   ) async {
     var name = storedName?.trim();
-    if ((name == null || name.isEmpty) && id != null && id.isNotEmpty) {
-      name = (await PersonnelServices(ref: ref).getPersonnelName(id))?.trim();
+    String? orcid;
+    if (id != null && id.isNotEmpty) {
+      final person = await PersonnelServices(ref: ref).getPersonnelByUuid(id);
+      if (name == null || name.isEmpty) name = person.name?.trim();
+      orcid = person.orcid;
     }
     if ((id == null || id.isEmpty) && (name == null || name.isEmpty)) {
       return null;
     }
-    final agentId = id?.isNotEmpty == true
-        ? id!
-        : 'name:${name!.toLowerCase().replaceAll(RegExp(r"[^a-z0-9]+"), "-")}';
+    final agentId =
+        canonicalOrcidUrl(orcid) ??
+        (id?.isNotEmpty == true
+            ? id!
+            : 'name:${name!.toLowerCase().replaceAll(RegExp(r"[^a-z0-9]+"), "-")}');
     final resolved = _ResolvedAgent(
       id: agentId,
       name: name?.isNotEmpty == true ? name! : agentId,
@@ -1072,6 +1124,36 @@ const _nahpuControlledVocabularyDefinitions = [
     configKey: conditionPrefKey,
     name: 'Specimen condition',
   ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteCategoryPrefKey,
+    name: 'Parasite category',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteDetectionMethodPrefKey,
+    name: 'Parasite detection method',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasitePreparationMethodPrefKey,
+    name: 'Parasite preparation method',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteAnatomicalLocationPrefKey,
+    name: 'Parasite anatomical location',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteStoragePrefKey,
+    name: 'Parasite storage',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'parasites',
+    configKey: parasiteTreatmentPrefKey,
+    name: 'Parasite treatment',
+  ),
 ];
 
 class _MeasurementDefinition {
@@ -1150,10 +1232,12 @@ const List<String> _nahpuTableNames = [
   'media',
   'narrativeMedia',
   'siteMedia',
+  'eventMedia',
   'specimenMedia',
   'associatedData',
   'specimenAssociatedData',
   'siteAssociatedData',
+  'eventAssociatedData',
   'personnelList',
   'personnel',
   'taxonomy',
@@ -1161,6 +1245,8 @@ const List<String> _nahpuTableNames = [
   'mammalAttribute',
   'birdAttribute',
   'herpAttribute',
+  'parasiteDetection',
+  'parasite',
   'specimenPart',
 ];
 

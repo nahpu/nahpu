@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/templates/template_field_catalog.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -229,7 +229,7 @@ class _AvailableFieldsSectionState
                     databaseTableDisplayTitle(table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13.0,
+                      fontSize: 14,
                     ),
                   ),
                   dense: true,
@@ -248,7 +248,7 @@ class _AvailableFieldsSectionState
                         _getDisplayLabel(label),
                         style: const TextStyle(
                           fontFamily: 'monospace',
-                          fontSize: 13.0,
+                          fontSize: 14,
                         ),
                       ),
                     );

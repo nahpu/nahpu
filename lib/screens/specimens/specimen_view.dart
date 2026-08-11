@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/features.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/search.dart';
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
@@ -14,7 +14,7 @@ import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/specimens/shared/menu_bar.dart';
 import 'package:nahpu/screens/specimens/specimen_form.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/navigation_services.dart';
+import 'package:nahpu/services/common/navigation_services.dart';
 
 class SpecimenViewer extends ConsumerStatefulWidget {
   const SpecimenViewer({super.key});
@@ -55,36 +55,36 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
     });
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Specimen Records",
-        ),
+        title: const Text("Specimen Records"),
         actions: [
           IconButton(
             onPressed: _specimenUuid == null
                 ? null
                 : () async {
-                    final specimenData =
-                        await SpecimenServices(ref: ref).getAllSpecimens();
+                    final specimenData = await SpecimenServices(
+                      ref: ref,
+                    ).getAllSpecimens();
                     if (context.mounted) {
                       // Pushed on top of the shell; Cancel pops back here.
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            SpecimenSearchView(specimenData: specimenData),
-                      ));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              SpecimenSearchView(specimenData: specimenData),
+                        ),
+                      );
                     }
                   },
             icon: const Icon(Icons.search),
           ),
           const NewSpecimens(),
-          SpecimenMenu(
-            specimenUuid: _specimenUuid,
-            catalogFmt: _catalogFmt,
-          ),
+          SpecimenMenu(specimenUuid: _specimenUuid, catalogFmt: _catalogFmt),
         ],
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
-        child: ref.watch(specimenEntryProvider).when(
+        child: ref
+            .watch(specimenEntryProvider)
+            .when(
               data: (specimenEntry) {
                 if (specimenEntry.isEmpty) {
                   return const EmptySpecimen(isButtonVisible: true);
@@ -97,7 +97,8 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
                     setState(() {
                       _specimenUuid = specimenEntry[index].uuid;
                       _catalogFmt = matchTaxonGroupToCatFmt(
-                          specimenEntry[index].taxonGroup);
+                        specimenEntry[index].taxonGroup,
+                      );
                       _updatePageNav(index);
                     });
                   },
@@ -109,9 +110,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
       ),
       bottomSheet: Visibility(
         visible: isVisible,
-        child: PageNavButton(
-          pageNav: _pageNav,
-        ),
+        child: PageNavButton(pageNav: _pageNav),
       ),
     );
   }
@@ -150,11 +149,13 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
   int? _landingIndex(List<SpecimenData> specimenEntry) {
     final firstLoad = !_loadedOnce;
     _loadedOnce = true;
-    final pendingJump =
-        ref.read(pendingRecordJumpProvider(RecordViewer.specimen));
+    final pendingJump = ref.read(
+      pendingRecordJumpProvider(RecordViewer.specimen),
+    );
     if (pendingJump != null) {
-      final target =
-          specimenEntry.indexWhere((specimen) => specimen.uuid == pendingJump);
+      final target = specimenEntry.indexWhere(
+        (specimen) => specimen.uuid == pendingJump,
+      );
       if (target != -1) {
         ref
             .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
@@ -191,29 +192,27 @@ class SearchOptionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-        title: const Text(
-          'Search Options',
-          textAlign: TextAlign.center,
+      title: const Text('Search Options', textAlign: TextAlign.center),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SpecimenSearchChips(
+              selectedValue: selectedSearchValue,
+              onSelected: onSelected,
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
         ),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SpecimenSearchChips(
-                selectedValue: selectedSearchValue,
-                onSelected: onSelected,
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancel'),
-              )
-            ],
-          ),
-        ));
+      ),
+    );
   }
 }
 
@@ -263,7 +262,9 @@ class _SpecimenPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentSpecimen = ref.watch(specimenEntryProvider).maybeWhen(
+    final currentSpecimen = ref
+        .watch(specimenEntryProvider)
+        .maybeWhen(
           data: (entries) => entries.firstWhere(
             (entry) => entry.uuid == specimen.uuid,
             orElse: () => specimen,
@@ -314,30 +315,33 @@ class SpecimenFormViewState extends ConsumerState<SpecimenFormView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Specimen Record'),
-      ),
+      appBar: AppBar(title: const Text('Specimen Record')),
       body: SafeArea(
-          child: ref.watch(specimenEntryProvider).when(
-                data: (specimenEntry) {
-                  if (specimenEntry.isEmpty) {
-                    return const EmptySpecimen(isButtonVisible: false);
-                  } else {
-                    final specimen = specimenEntry.firstWhere(
-                        (specimen) => specimen.uuid == widget.specimenUuid);
-                    CatalogFmt catalogFmt =
-                        matchTaxonGroupToCatFmt(specimen.taxonGroup);
-                    final specimenFormCtr = _updateController(specimen);
-                    return SpecimenForm(
-                      specimenUuid: specimen.uuid,
-                      specimenCtr: specimenFormCtr,
-                      catalogFmt: catalogFmt,
-                    );
-                  }
-                },
-                loading: () => const CommonProgressIndicator(),
-                error: (error, stack) => Text(error.toString()),
-              )),
+        child: ref
+            .watch(specimenEntryProvider)
+            .when(
+              data: (specimenEntry) {
+                if (specimenEntry.isEmpty) {
+                  return const EmptySpecimen(isButtonVisible: false);
+                } else {
+                  final specimen = specimenEntry.firstWhere(
+                    (specimen) => specimen.uuid == widget.specimenUuid,
+                  );
+                  CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(
+                    specimen.taxonGroup,
+                  );
+                  final specimenFormCtr = _updateController(specimen);
+                  return SpecimenForm(
+                    specimenUuid: specimen.uuid,
+                    specimenCtr: specimenFormCtr,
+                    catalogFmt: catalogFmt,
+                  );
+                }
+              },
+              loading: () => const CommonProgressIndicator(),
+              error: (error, stack) => Text(error.toString()),
+            ),
+      ),
     );
   }
 
@@ -347,10 +351,7 @@ class SpecimenFormViewState extends ConsumerState<SpecimenFormView> {
 }
 
 class EmptySpecimen extends ConsumerWidget {
-  const EmptySpecimen({
-    super.key,
-    required this.isButtonVisible,
-  });
+  const EmptySpecimen({super.key, required this.isButtonVisible});
 
   final bool isButtonVisible;
 

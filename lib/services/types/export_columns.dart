@@ -53,6 +53,8 @@ List<String> getAvailableExportColumns({
         ...siteExportList,
         ...collEventExportList,
         ...attributeList,
+        ...parasiteDetectionExportList,
+        ...parasiteExportList,
         partExportSimple,
         'media::media',
       ];

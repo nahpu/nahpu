@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
-import 'package:nahpu/services/site_copy_services.dart';
+import 'package:nahpu/services/sites/site_copy_services.dart';
 import 'package:nahpu/services/types/sites.dart';
 
 Future<SiteCopyResult?> showCopyFromProjectDialog({

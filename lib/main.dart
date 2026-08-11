@@ -9,7 +9,7 @@ import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nahpu/services/config_services.dart';
+import 'package:nahpu/services/settings/config_services.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:fvp/fvp.dart' as fvp;
 

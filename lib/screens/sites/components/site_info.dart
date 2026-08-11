@@ -10,8 +10,8 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 
 class SiteInfo extends ConsumerWidget {
   const SiteInfo({
@@ -33,7 +33,7 @@ class SiteInfo extends ConsumerWidget {
 
     return FormCard(
       isPrimary: true,
-      title: 'Site Info',
+      title: 'Site Identity',
       infoContent: const SiteInfoContent(),
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,

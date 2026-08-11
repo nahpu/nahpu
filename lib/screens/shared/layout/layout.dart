@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 /// A layout that centers its child and constrains its width to 500.
 /// Add padding to the child.
@@ -33,7 +34,7 @@ class ConstrainedLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600),
+        constraints: const BoxConstraints(maxWidth: NahpuContentWidth.form),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
           child: child,
@@ -76,7 +77,7 @@ class CommonScrollbar extends StatelessWidget {
     return Scrollbar(
         thumbVisibility: true,
         controller: scrollController,
-        thickness: 3,
+        thickness: NahpuStroke.regular,
         child: child);
   }
 }
@@ -92,7 +93,8 @@ class CommonPadding extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.fromLTRB(4, 0, 4, 0), child: child);
+        padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xs),
+        child: child);
   }
 }
 

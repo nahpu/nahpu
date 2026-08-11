@@ -18,16 +18,24 @@ class ProjectQuery extends DatabaseAccessor<Database> with _$ProjectQueryMixin {
   Future<ProjectData> getProjectByUuid(String uuid) async {
     return await (select(
       project,
-    )..where((t) => t.uuid.equals(uuid)))
-        .getSingle();
+    )..where((t) => t.uuid.equals(uuid))).getSingle();
+  }
+
+  Future<bool> projectUuidExists(String uuid) async {
+    final row =
+        await (selectOnly(project)
+              ..addColumns([project.uuid])
+              ..where(project.uuid.equals(uuid))
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
   }
 
   Future<ProjectData?> getProjectByName(String name) async {
     try {
       return await (select(
         project,
-      )..where((t) => t.name.equals(name)))
-          .getSingle();
+      )..where((t) => t.name.equals(name))).getSingle();
     } catch (e) {
       return null;
     }
@@ -35,6 +43,17 @@ class ProjectQuery extends DatabaseAccessor<Database> with _$ProjectQueryMixin {
 
   Future<void> updateProjectEntry(String uuid, ProjectCompanion entry) {
     return (update(project)..where((t) => t.uuid.equals(uuid))).write(entry);
+  }
+
+  Future<bool> hasProjectFieldNumbers(String projectUuid) async {
+    final row =
+        await (selectOnly(db.specimen)
+              ..addColumns([db.specimen.uuid])
+              ..where(db.specimen.projectUuid.equals(projectUuid))
+              ..where(db.specimen.projectFieldNumber.isNotNull())
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
   }
 
   Future<List<ProjectSummary>> getProjectList() async {

@@ -112,7 +112,7 @@ class _InlineGroupedFieldPickerState extends State<InlineGroupedFieldPicker> {
                       ),
                     ),
                   ),
-                  const Divider(height: 1),
+                  const Divider(height: 2),
                   Expanded(child: _fieldList(context)),
                 ],
               ),
@@ -130,7 +130,7 @@ class _InlineGroupedFieldPickerState extends State<InlineGroupedFieldPicker> {
       children: [
         for (final entry in groups.entries) ...[
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Text(
               entry.key,
               style: Theme.of(context).textTheme.labelLarge,

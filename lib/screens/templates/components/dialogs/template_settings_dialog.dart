@@ -233,7 +233,7 @@ class _SideChoiceCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: selected ? scheme.primary : scheme.outlineVariant,
-              width: selected ? 2 : 1,
+              width: selected ? 4 : 2,
             ),
           ),
           child: Row(

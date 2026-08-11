@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' as db;
 import 'package:file_selector/file_selector.dart';
+import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_archive.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_site_event.dart';
@@ -26,8 +27,16 @@ class RecordExchangeService extends AppServices {
   Future<RecordExchangePayload> exportSite(int siteId) =>
       siteEvent.exportSite(siteId);
 
-  Future<RecordExchangePayload> exportEvent(int eventId) =>
-      siteEvent.exportEvent(eventId);
+  Future<RecordExchangePayload> exportEvent(
+    int eventId, {
+    bool includeMedia = false,
+  }) => siteEvent.exportEvent(eventId, includeMedia: includeMedia);
+
+  Future<int> getEventMediaCount(int eventId) async {
+    return (await CollEventQuery(
+      dbAccess,
+    ).getEventMedia(eventId)).where((entry) => entry.mediaId != null).length;
+  }
 
   Future<RecordExchangePayload> exportSpecimen(
     String specimenUuid, {
@@ -67,6 +76,20 @@ class RecordExchangeService extends AppServices {
     required RecordArchiveFormat archiveFormat,
     Directory? destinationDirectory,
   }) {
+    return saveRecordArchive(
+      payload,
+      fileStem: fileStem,
+      archiveFormat: archiveFormat,
+      destinationDirectory: destinationDirectory,
+    );
+  }
+
+  Future<File> saveRecordArchive(
+    RecordExchangePayload payload, {
+    required String fileStem,
+    required RecordArchiveFormat archiveFormat,
+    Directory? destinationDirectory,
+  }) {
     return archive.save(
       payload,
       fileStem: fileStem,
@@ -95,6 +118,7 @@ class RecordExchangeService extends AppServices {
             targetId: targetId,
             linkedSiteId: linkedSiteId,
             createEmbeddedSite: createEmbeddedSite,
+            extractedMediaDirectory: extractedMediaDirectory,
           );
         case RecordExchangeType.specimen:
           return specimen.importSpecimen(
@@ -124,6 +148,8 @@ class RecordExchangeService extends AppServices {
 
   Future<XFile?> selectJsonFile() => FilePickerServices().selectJsonFile();
 
-  Future<RecordExchangeArchiveFile> readRecordFile(XFile file) =>
-      archive.read(file);
+  Future<RecordExchangeArchiveFile> readRecordFile(
+    XFile file, {
+    required RecordExchangeType expectedType,
+  }) => archive.read(file, expectedType: expectedType);
 }

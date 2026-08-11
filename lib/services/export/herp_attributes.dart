@@ -1,9 +1,9 @@
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 /// Formats herpetofauna attribute records for specimen exports.
 class HerpAttributes extends AppServices {

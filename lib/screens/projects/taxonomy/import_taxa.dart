@@ -7,11 +7,11 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
-import 'package:nahpu/services/io_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
@@ -111,12 +111,13 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
                 _parseDetails != null
                     ? const SizedBox(height: 8)
                     : const SizedBox.shrink(),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 _hasData ? const ColumnRowTitle() : const SizedBox.shrink(),
                 _hasData
                     ? ConstrainedBox(
                         constraints: BoxConstraints(
-                            maxHeight: MediaQuery.sizeOf(context).height * 0.5),
+                          maxHeight: MediaQuery.sizeOf(context).height * 0.5,
+                        ),
                         child: CommonScrollbar(
                           scrollController: _scrollController,
                           child: ListView(
@@ -124,7 +125,8 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
                             shrinkWrap: true,
                             children: _buildCsvHeaderField(),
                           ),
-                        ))
+                        ),
+                      )
                     : const SizedBox.shrink(),
                 const SizedBox(height: 8),
                 _parseError != null
@@ -138,10 +140,7 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            _parseError!,
-                            textAlign: TextAlign.center,
-                          ),
+                          Text(_parseError!, textAlign: TextAlign.center),
                         ],
                       )
                     : const SizedBox.shrink(),
@@ -156,7 +155,7 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
                               color: Theme.of(context).colorScheme.error,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Text(
                             _problems.join(', '),
                             textAlign: TextAlign.center,
@@ -205,13 +204,12 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
                   alignment: WrapAlignment.center,
                   children: [
                     SecondaryButton(
-                        text: 'Cancel',
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        }),
-                    const SizedBox(
-                      width: 20,
+                      text: 'Cancel',
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
                     ),
+                    const SizedBox(width: 20),
                     ProgressButton(
                       label: 'Import',
                       isRunning: _isRunning,
@@ -223,7 +221,7 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
                             },
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -244,19 +242,22 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
     List<Widget> headerFields = _csvData.header
         .asMap()
         .entries
-        .map((entry) => HeaderInputField(
-              header: entry.value,
-              value: _csvData.headerMap[entry.key],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _csvData.headerMap[entry.key] = value;
-                    _problems = TaxonEntryReader(ref: ref)
-                        .findProblems(_csvData.headerMap, rows: _csvData.data);
-                  });
-                }
-              },
-            ))
+        .map(
+          (entry) => HeaderInputField(
+            header: entry.value,
+            value: _csvData.headerMap[entry.key],
+            onChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  _csvData.headerMap[entry.key] = value;
+                  _problems = TaxonEntryReader(
+                    ref: ref,
+                  ).findProblems(_csvData.headerMap, rows: _csvData.data);
+                });
+              }
+            },
+          ),
+        )
         .toList();
     return headerFields;
   }
@@ -290,7 +291,8 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
   Future<void> _parseFile({bool useOverrideSelection = false}) async {
     if (_filePath != null) {
       TaxonEntryReader reader = TaxonEntryReader(ref: ref);
-      final parseOptions = useOverrideSelection ||
+      final parseOptions =
+          useOverrideSelection ||
               _isUnknownExtension ||
               _showAdvancedDelimiterOptions
           ? _buildParseOptions()
@@ -301,8 +303,10 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
           options: parseOptions,
         );
         _csvData = parsed.data;
-        _problems =
-            reader.findProblems(_csvData.headerMap, rows: _csvData.data);
+        _problems = reader.findProblems(
+          _csvData.headerMap,
+          rows: _csvData.data,
+        );
         setState(() {
           _hasData = true;
           _parseError = null;
@@ -318,7 +322,8 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
           _parseError = _toMessage(e);
           _parseDetails = null;
           _problems = [];
-          _customOnlyRecovery = parseException?.code ==
+          _customOnlyRecovery =
+              parseException?.code ==
                   TaxonFileParseErrorCode.autoDetectExhausted ||
               parseOptions?.mode == TaxonFileParseMode.auto;
           if (_customOnlyRecovery) {
@@ -429,11 +434,7 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
   }
 
   void _showError(String errors) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errors),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errors)));
   }
 
   Future<void> _parseData() async {
@@ -460,9 +461,7 @@ class TaxonImportFormState extends ConsumerState<TaxonImportForm> {
 
   void _navigate(ParsedCSVdata data) {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => ImportRecords(importData: data),
-      ),
+      MaterialPageRoute(builder: (context) => ImportRecords(importData: data)),
     );
   }
 }
@@ -490,7 +489,7 @@ class _DelimiterOverrideSection extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(
           color: Theme.of(context).colorScheme.secondary.withAlpha(40),
-          width: 1.5,
+          width: 2,
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -620,9 +619,7 @@ class ColumnRowTitle extends StatelessWidget {
           ),
         ),
         ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 200,
-          ),
+          constraints: const BoxConstraints(maxWidth: 200),
           child: Text(
             'Taxon Rank',
             style: Theme.of(context).textTheme.titleMedium,
@@ -652,24 +649,22 @@ class HeaderInputField extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Expanded(
-          child: Text(header.toSentenceCase()),
-        ),
+        Expanded(child: Text(header.toSentenceCase())),
         ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 200,
-          ),
+          constraints: const BoxConstraints(maxWidth: 200),
           child: DropdownButton<TaxonEntryHeader>(
             value: value,
             items: TaxonEntryHeader.values
-                .map((e) => DropdownMenuItem(
-                      value: e,
-                      child: CommonDropdownText(text: matchTaxonEntryHeader(e)),
-                    ))
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child: CommonDropdownText(text: matchTaxonEntryHeader(e)),
+                  ),
+                )
                 .toList(),
             onChanged: onChanged,
           ),
-        )
+        ),
       ],
     );
   }
@@ -687,18 +682,18 @@ class ImportRecords extends StatelessWidget {
         title: const Text('Import Records'),
         automaticallyImplyLeading: false,
         leading: Tooltip(
-            message: 'Close',
-            child: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  ProjectShell.popToShell(context);
-                })),
+          message: 'Close',
+          child: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              ProjectShell.popToShell(context);
+            },
+          ),
+        ),
       ),
       body: SafeArea(
         child: ConstrainedLayout(
-          child: Center(
-            child: RecordStatistics(importData: importData),
-          ),
+          child: Center(child: RecordStatistics(importData: importData)),
         ),
       ),
     );
@@ -719,11 +714,8 @@ class RecordStatistics extends StatelessWidget {
           importData.skippedSpecies.isEmpty
               ? const SuccessImport()
               : const WarningImport(),
-          const SizedBox(height: 18),
-          Text(
-            'Imported',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          const SizedBox(height: 16),
+          Text('Imported', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             'Species: ${importData.importedSpeciesCount}',
@@ -733,11 +725,8 @@ class RecordStatistics extends StatelessWidget {
             'Family: ${importData.importedFamilyCount}',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
-          const SizedBox(height: 18),
-          Text(
-            'Skipped',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          const SizedBox(height: 16),
+          Text('Skipped', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             'Total: ${importData.skippedSpecies.length}',
@@ -751,10 +740,7 @@ class RecordStatistics extends StatelessWidget {
 }
 
 class SkippedImport extends StatelessWidget {
-  const SkippedImport({
-    super.key,
-    required this.skippedRecords,
-  });
+  const SkippedImport({super.key, required this.skippedRecords});
 
   final HashSet<String> skippedRecords;
 
@@ -770,14 +756,13 @@ class SkippedImport extends StatelessWidget {
             margin: const EdgeInsets.all(8),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .secondary
-                  .withAlpha((0.1 * 255).toInt()),
-              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(
+                context,
+              ).colorScheme.secondary.withAlpha((0.1 * 255).toInt()),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(record),
-          )
+          ),
       ],
     );
   }
@@ -790,15 +775,8 @@ class SuccessImport extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Icon(
-          Icons.done,
-          color: Colors.green,
-          size: 50,
-        ),
-        Text(
-          'Success 🎉🎉🎉',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        const Icon(Icons.done, color: Colors.green, size: 50),
+        Text('Success 🎉🎉🎉', style: Theme.of(context).textTheme.titleLarge),
       ],
     );
   }
@@ -811,15 +789,8 @@ class WarningImport extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Icon(
-          Icons.warning,
-          color: Colors.orange,
-          size: 50,
-        ),
-        Text(
-          'Warning 🙁',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        const Icon(Icons.warning, color: Colors.orange, size: 50),
+        Text('Warning 🙁', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
         const Text(
           'Some records have been skipped.',

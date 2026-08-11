@@ -15,7 +15,7 @@ Future<Map<String, String>> documentFieldValuesForSpecimen(
   try {
     final exporter = DynamicRecordExporter(
       ref: ref,
-      concatenateMultiEntry: true,
+      expansion: MultiEntryExpansion.concatenate,
     );
     final records = await exporter.getRecord(s);
     if (records.isNotEmpty) {
@@ -35,7 +35,7 @@ Future<Map<String, String>> documentFieldValuesForSpecimenPart(
 ) async {
   final records = await DynamicRecordExporter(
     ref: ref,
-    concatenateMultiEntry: false,
+    expansion: MultiEntryExpansion.specimenParts,
   ).getRecord(record.specimen);
   final partId = record.part.id?.toString();
   for (final fields in records) {

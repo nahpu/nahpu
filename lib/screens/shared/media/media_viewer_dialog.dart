@@ -6,12 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
+import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:video_player/video_player.dart';
 
-const double _metadataPanelWidth = 300;
-const double _metadataPanelHeight = 220;
+const double _metadataPanelWidth = 360;
+const double _metadataPanelHeight = 280;
 const double _smallScreenBreakpoint = 600;
 const List<double> _playbackSpeeds = [
   0.25,
@@ -666,63 +667,9 @@ class _MediaMetadataPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = <MapEntry<String, String>>[
-      MapEntry('File name', media.fileName ?? ''),
-      MapEntry('Caption', media.caption ?? ''),
-      MapEntry('Tag', media.tag ?? ''),
-      MapEntry('Taken', _parseDateTaken()),
-      MapEntry('Camera', media.camera ?? ''),
-      MapEntry('Lenses', media.lenses ?? ''),
-      MapEntry('Additional info', media.additionalExif ?? ''),
-    ].where((entry) => entry.value.trim().isNotEmpty).toList();
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 8, 8),
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text('Details', style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
-            if (entries.isEmpty) const Text('No details available'),
-            for (final entry in entries)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.key,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      entry.value,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
+      child: MediaDetailsView(media: media),
     );
-  }
-
-  String _parseDateTaken() {
-    final value = parseMediaDateTime(media.taken ?? '');
-    if (value.date.isEmpty && value.time.isEmpty) {
-      return '';
-    }
-    return '${value.date} ${value.time}'.trim();
   }
 }

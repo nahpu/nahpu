@@ -6,9 +6,15 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 
 class ProjectOverview extends ConsumerWidget {
-  const ProjectOverview({super.key, required this.projectUuid, this.onEdit});
+  const ProjectOverview({
+    super.key,
+    required this.projectUuid,
+    required this.useHorizontalLayout,
+    this.onEdit,
+  });
 
   final String projectUuid;
+  final bool useHorizontalLayout;
   final VoidCallback? onEdit;
 
   @override
@@ -17,15 +23,38 @@ class ProjectOverview extends ConsumerWidget {
       title: 'Project Overview',
       infoContent: const ProjectInfoContent(),
       isPrimary: true,
+      isExpanded: useHorizontalLayout,
       mainAxisAlignment: MainAxisAlignment.start,
       child: ref
           .watch(projectInfoProvider(projectUuid))
           .when(
             data: (data) {
-              return Padding(
-                padding: const EdgeInsets.all(10),
-                child: ProjectInfo(projectData: data, onEdit: onEdit),
+              final projectInfo = Padding(
+                padding: const EdgeInsets.all(8),
+                child: ProjectInfo(
+                  projectData: data,
+                  showActions: false,
+                  useSectionContainers: false,
+                ),
               );
+              final actions = ProjectInfoActions(
+                projectData: data,
+                onEdit: onEdit,
+              );
+              if (useHorizontalLayout) {
+                return Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        key: const ValueKey('project-overview-scroll'),
+                        child: projectInfo,
+                      ),
+                    ),
+                    actions,
+                  ],
+                );
+              }
+              return Column(children: [projectInfo, actions]);
             },
             loading: () => const CommonProgressIndicator(),
             error: (error, stack) => Text(error.toString()),

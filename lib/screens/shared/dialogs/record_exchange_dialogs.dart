@@ -5,8 +5,8 @@ import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 
@@ -247,6 +247,12 @@ String _summary(RecordExchangePayload payload) {
       payload.data['weather'] != null) {
     parts.add('weather');
   }
+  if (payload.mediaCount > 0) {
+    parts.add(
+      '${payload.mediaCount} '
+      '${payload.mediaCount == 1 ? 'media file' : 'media files'}',
+    );
+  }
   return parts.isEmpty
       ? 'No associated records'
       : 'Includes ${parts.join(', ')}.';
@@ -411,7 +417,8 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
     if (!_hasMedia) {
       return 'Export this ${widget.payload.type.label} record as JSON.';
     }
-    return 'This specimen includes ${widget.payload.mediaCount} linked media '
+    return 'This ${widget.payload.type.label} includes '
+        '${widget.payload.mediaCount} linked media '
         'file${widget.payload.mediaCount == 1 ? '' : 's'} that will be '
         'included in the archive.';
   }

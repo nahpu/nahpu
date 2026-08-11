@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/forms/site_name_display.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/narrative/components/media.dart';
 import 'package:nahpu/screens/narrative/components/top_forms.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 class NarrativeForm extends ConsumerStatefulWidget {
@@ -70,6 +71,11 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
                       SiteForm(
                         narrativeId: widget.narrativeId,
                         narrativeCtr: widget.narrativeCtr,
+                        onSiteChanged: (siteId) {
+                          setState(() {
+                            widget.narrativeCtr.siteCtr = siteId;
+                          });
+                        },
                       ),
                       WriterForm(
                         narrativeId: widget.narrativeId,
@@ -77,7 +83,7 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
                       ),
                     ],
                   ),
-                  SiteNameField(siteId: widget.narrativeCtr.siteCtr),
+                  SiteNameDisplay(siteId: widget.narrativeCtr.siteCtr),
                 ],
               ),
             ),
@@ -89,10 +95,8 @@ class NarrativeFormState extends ConsumerState<NarrativeForm> {
                 narrativeId: widget.narrativeId,
               ),
             ),
-            NarrativeMediaForm(
-              narrativeId: widget.narrativeId,
-            ),
-            const BottomPadding()
+            NarrativeMediaForm(narrativeId: widget.narrativeId),
+            const BottomPadding(),
           ],
         );
       },

@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/screens/projects/components/action_buttons.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/components/overview.dart';
 import 'package:nahpu/screens/projects/personnel/personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class Dashboard extends ConsumerStatefulWidget {
   const Dashboard({super.key});
@@ -31,14 +32,16 @@ class DashboardState extends ConsumerState<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final useProjectRail = getScreenType(context) == ScreenType.desktop;
     return Scaffold(
-      appBar: AppBar(title: const Text("Project Dashboard")),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-      floatingActionButton: const ActionButtons(),
-      drawer: const ProjectMenuDrawer(),
+      appBar: AppBar(
+        title: const Text("Project Dashboard"),
+        automaticallyImplyLeading: !useProjectRail,
+      ),
+      drawer: useProjectRail ? null : const ProjectMenuDrawer(),
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints c) {
-          bool useHorizontalLayout = c.maxWidth > 600;
+          bool useHorizontalLayout = c.maxWidth > NahpuBreakpoints.compact;
           return SafeArea(
             child: SingleChildScrollView(
               child: Column(
@@ -69,6 +72,7 @@ class TopPanel extends ConsumerWidget {
       children: [
         ProjectOverview(
           projectUuid: projectUuid,
+          useHorizontalLayout: useHorizontalLayout,
           onEdit: () {
             Navigator.of(context).push(
               MaterialPageRoute(

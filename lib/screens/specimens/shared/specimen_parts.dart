@@ -1,27 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
-// import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
-import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
+import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/associated_data.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class PartDataForm extends ConsumerStatefulWidget {
   const PartDataForm({
@@ -40,7 +40,7 @@ class PartDataForm extends ConsumerStatefulWidget {
 class PartDataFormState extends ConsumerState<PartDataForm>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final int _length = 2;
+  final int _length = 3;
 
   @override
   void initState() {
@@ -71,9 +71,7 @@ class PartDataFormState extends ConsumerState<PartDataForm>
               matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true),
             ),
           ),
-          // Tab(
-          //   icon: Icon(MdiIcons.bugOutline),
-          // ),
+          const Tab(icon: Icon(Icons.bug_report_outlined)),
           Tab(icon: Icon(Icons.storage_rounded)),
         ],
         children: [
@@ -81,10 +79,7 @@ class PartDataFormState extends ConsumerState<PartDataForm>
             specimenUuid: widget.specimenUuid,
             catalogFmt: widget.catalogFmt,
           ),
-          // ParasiteForms(
-          //   specimenUuid: widget.specimenUuid,
-          //   catalogFmt: widget.catalogFmt,
-          // ),
+          ParasiteForms(specimenUuid: widget.specimenUuid),
           AssociatedDataViewer(specimenUuid: widget.specimenUuid),
         ],
       ),
@@ -625,13 +620,36 @@ class PartFormState extends ConsumerState<PartForm> {
             specimenUuid: widget.specimenUuid,
             partCtr: widget.partCtr,
           ),
-          SpecimenTypeField(partCtr: widget.partCtr),
-          SpecimenCountField(partCtr: widget.partCtr),
-          SpecimenTreatmentFields(
-            partCtr: widget.partCtr,
-            isVisible: _showMore,
+          FormSection(
+            title: 'Preparation',
+            child: Column(
+              children: [
+                SpecimenTypeField(partCtr: widget.partCtr),
+                SpecimenCountField(partCtr: widget.partCtr),
+                SpecimenTreatmentFields(
+                  partCtr: widget.partCtr,
+                  isVisible: _showMore,
+                ),
+              ],
+            ),
           ),
-          AdditionalPartFields(visible: _showMore, partCtr: widget.partCtr),
+          FormSection(
+            title: 'Sampling',
+            child: PartSamplingFields(
+              visible: _showMore,
+              partCtr: widget.partCtr,
+            ),
+          ),
+          Visibility(
+            visible: _showMore || _hasCurationData,
+            child: FormSection(
+              title: 'Curation',
+              child: PartCurationFields(
+                visible: _showMore,
+                partCtr: widget.partCtr,
+              ),
+            ),
+          ),
           ShowMoreButton(
             showMore: _showMore,
             onPressed: () {
@@ -652,6 +670,13 @@ class PartFormState extends ConsumerState<PartForm> {
       ),
     );
   }
+
+  bool get _hasCurationData =>
+      widget.partCtr.storageCtr.text.trim().isNotEmpty ||
+      widget.partCtr.storageLocationCtr.text.trim().isNotEmpty ||
+      widget.partCtr.museumPermanentCtr.text.trim().isNotEmpty ||
+      widget.partCtr.museumLoanCtr.text.trim().isNotEmpty ||
+      widget.partCtr.remarkCtr.text.trim().isNotEmpty;
 
   Future<void> _createPart() async {
     SpecimenPartCompanion form = _getForm();
@@ -677,6 +702,8 @@ class PartFormState extends ConsumerState<PartForm> {
       count: db.Value(widget.partCtr.countCtr.text),
       treatment: db.Value(widget.partCtr.treatmentCtr.text),
       additionalTreatment: db.Value(widget.partCtr.additionalTreatmentCtr.text),
+      storage: db.Value(widget.partCtr.storageCtr.text),
+      storageLocation: db.Value(widget.partCtr.storageLocationCtr.text),
       dateTaken: db.Value(widget.partCtr.dateTakenCtr.date),
       timeTaken: db.Value(widget.partCtr.timeTakenCtr.time),
       pmi: db.Value(widget.partCtr.pmiCtr.text),
@@ -758,6 +785,7 @@ class SpecimenTypeField extends ConsumerWidget {
           data: (data) {
             final options = includeCurrentVocabularyValue(data, _getValue());
             return DropdownButtonFormField(
+              isExpanded: true,
               initialValue: _getValue(),
               decoration: const InputDecoration(
                 labelText: 'Preparation type',
@@ -806,6 +834,7 @@ class SpecimenTreatmentField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField(
+      isExpanded: true,
       initialValue: _getValue(),
       decoration: const InputDecoration(
         labelText: 'Treatment',
@@ -851,6 +880,7 @@ class AdditionalTreatmentField extends StatelessWidget {
     return Visibility(
       visible: isVisible,
       child: DropdownButtonFormField(
+        isExpanded: true,
         initialValue: _getValue(),
         decoration: const InputDecoration(
           labelText: 'Additional treatment',
@@ -880,8 +910,8 @@ class AdditionalTreatmentField extends StatelessWidget {
   }
 }
 
-class AdditionalPartFields extends ConsumerWidget {
-  const AdditionalPartFields({
+class PartSamplingFields extends ConsumerWidget {
+  const PartSamplingFields({
     super.key,
     required this.visible,
     required this.partCtr,
@@ -894,24 +924,10 @@ class AdditionalPartFields extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        CommonTimeField(
-          labelText: 'Time taken',
-          hintText: 'Enter time',
-          controller: partCtr.timeTakenCtr,
-          initialTime: TimeOfDay.now(),
-          onTap: () {},
-          onClear: () {},
-        ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Recommended for fresh tissues',
-            style: Theme.of(context).textTheme.labelSmall,
-          ),
-        ),
         Visibility(
           visible: visible || partCtr.preparatorCtr != null,
           child: DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: partCtr.preparatorCtr,
             decoration: const InputDecoration(
               labelText: 'Preparator',
@@ -955,12 +971,64 @@ class AdditionalPartFields extends ConsumerWidget {
             onClear: () {},
           ),
         ),
+        CommonTimeField(
+          labelText: 'Time taken',
+          hintText: 'Enter time',
+          controller: partCtr.timeTakenCtr,
+          initialTime: TimeOfDay.now(),
+          onTap: () {},
+          onClear: () {},
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Recommended for fresh tissues',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+        ),
         Visibility(
           visible: visible || partCtr.pmiCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.pmiCtr,
             labelText: 'PMI',
             hintText: 'e.g., 1:30, 1:40',
+            isLastField: false,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class PartCurationFields extends StatelessWidget {
+  const PartCurationFields({
+    super.key,
+    required this.visible,
+    required this.partCtr,
+  });
+
+  final bool visible;
+  final PartFormCtrModel partCtr;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Visibility(
+          visible: visible || partCtr.storageCtr.text.isNotEmpty,
+          child: CommonTextField(
+            controller: partCtr.storageCtr,
+            labelText: 'Storage',
+            hintText: 'Enter storage medium or method',
+            isLastField: false,
+          ),
+        ),
+        Visibility(
+          visible: visible || partCtr.storageLocationCtr.text.isNotEmpty,
+          child: CommonTextField(
+            controller: partCtr.storageLocationCtr,
+            labelText: 'Storage location',
+            hintText: 'Enter freezer, cabinet, shelf, or container',
             isLastField: false,
           ),
         ),
@@ -989,7 +1057,7 @@ class AdditionalPartFields extends ConsumerWidget {
             maxLines: 3,
             labelText: 'Remarks',
             hintText: 'Enter a remark specific to this part',
-            isLastField: false,
+            isLastField: true,
           ),
         ),
       ],
@@ -1022,10 +1090,8 @@ class PartIdForm extends ConsumerWidget {
         ),
         child: Column(
           children: [
-            Text(
-              'Additional Part ID',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('IDs', style: Theme.of(context).textTheme.titleLarge),
+            SelectableText('Specimen UUID: $specimenUuid'),
             TissueIDform(
               specimenUuid: specimenUuid,
               tissueIdCtr: partCtr.tissueIdCtr,
@@ -1075,6 +1141,10 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ScannerScreen(
+                          supportedModes: const {
+                            ScannerMode.qr,
+                            ScannerMode.barcode,
+                          },
                           onDetect: (barcode) {
                             _onDetect(barcode);
                           },

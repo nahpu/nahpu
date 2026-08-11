@@ -7,13 +7,10 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
 
 class SelectPersonnel extends ConsumerStatefulWidget {
-  const SelectPersonnel({
-    super.key,
-    required this.addedPersonnel,
-  });
+  const SelectPersonnel({super.key, required this.addedPersonnel});
 
   final List<PersonnelData> addedPersonnel;
 
@@ -41,7 +38,9 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
 
   @override
   Widget build(BuildContext context) {
-    return ref.watch(allPersonnelProvider).when(
+    return ref
+        .watch(allPersonnelProvider)
+        .when(
           data: (data) {
             if (data.isEmpty) {
               return const Flexible(child: Center(child: Text('No personnel')));
@@ -50,47 +49,49 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
                 children: [
                   CommonPadding(
                     child: CommonSearchBar(
-                        controller: _searchController,
-                        focusNode: _focus,
-                        hintText: 'Search personnel',
-                        trailing: [
-                          _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _searchController.clear();
-                                      _filteredData.clear();
-                                    });
-                                  },
-                                  icon: const Icon(Icons.clear_rounded))
-                              : const SizedBox.shrink()
-                        ],
-                        onChanged: (query) {
-                          setState(() {
-                            _filteredData = _filterPersonnelList(
-                              data,
-                              query.toLowerCase(),
-                            );
-                          });
-                        }),
+                      controller: _searchController,
+                      focusNode: _focus,
+                      hintText: 'Search personnel',
+                      trailing: [
+                        _searchController.text.isNotEmpty
+                            ? IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _filteredData.clear();
+                                  });
+                                },
+                                icon: const Icon(Icons.clear_rounded),
+                              )
+                            : const SizedBox.shrink(),
+                      ],
+                      onChanged: (query) {
+                        setState(() {
+                          _filteredData = _filterPersonnelList(
+                            data,
+                            query.toLowerCase(),
+                          );
+                        });
+                      },
+                    ),
                   ),
                   AddPersonnelSelection(
                     data: _filteredData.isEmpty ? data : _filteredData,
                     addedPersonnel: widget.addedPersonnel,
-                  )
+                  ),
                 ],
               );
             }
           },
           loading: () => const CommonProgressIndicator(),
-          error: (error, stack) => const Center(
-            child: Text('Error'),
-          ),
+          error: (error, stack) => const Center(child: Text('Error')),
         );
   }
 
   List<PersonnelData> _filterPersonnelList(
-      List<PersonnelData> data, String query) {
+    List<PersonnelData> data,
+    String query,
+  ) {
     return PersonnelSearchService(data: data).search(query);
   }
 }
@@ -116,11 +117,11 @@ class AddPersonnelSelectionState extends ConsumerState<AddPersonnelSelection> {
   @override
   Widget build(BuildContext context) {
     return CommonPadding(
-        child: Column(
-      children: [
-        Row(
-          children: [
-            TextButton(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              TextButton(
                 onPressed: _selectedPersonnel.isEmpty
                     ? null
                     : () {
@@ -128,10 +129,12 @@ class AddPersonnelSelectionState extends ConsumerState<AddPersonnelSelection> {
                           _selectedPersonnel.clear();
                         });
                       },
-                child: const Text('Clear')),
-            TextButton(
+                child: const Text('Clear'),
+              ),
+              TextButton(
                 // if list is empty or all personnel are already selected, disable button
-                onPressed: _filteredNotInProjectPersonnel().isEmpty ||
+                onPressed:
+                    _filteredNotInProjectPersonnel().isEmpty ||
                         _selectedPersonnel.length ==
                             _filteredNotInProjectPersonnel().length
                     ? null
@@ -145,80 +148,84 @@ class AddPersonnelSelectionState extends ConsumerState<AddPersonnelSelection> {
                           });
                         }
                       },
-                child: const Text('Select all'))
-          ],
-        ),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.5,
-          child: CommonScrollbar(
-            scrollController: _scrollController,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: widget.data.length,
-              controller: _scrollController,
-              itemBuilder: (context, index) {
-                return ListTile(
+                child: const Text('Select all'),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: CommonScrollbar(
+              scrollController: _scrollController,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: widget.data.length,
+                controller: _scrollController,
+                itemBuilder: (context, index) {
+                  return ListTile(
                     title: Text(widget.data[index].name ?? ''),
                     subtitle: Text(widget.data[index].role ?? ''),
                     leading: ListCheckBox(
-                        isDisabled:
-                            widget.addedPersonnel.contains(widget.data[index]),
-                        value: _selectedPersonnel.contains(widget.data[index]),
-                        onChanged: (value) {
-                          setState(() {
-                            if (value == true) {
-                              _selectedPersonnel.add(widget.data[index]);
-                            } else {
-                              _selectedPersonnel.remove(widget.data[index]);
-                            }
-                          });
-                        }));
-              },
+                      isDisabled: widget.addedPersonnel.contains(
+                        widget.data[index],
+                      ),
+                      value: _selectedPersonnel.contains(widget.data[index]),
+                      onChanged: (value) {
+                        setState(() {
+                          if (value == true) {
+                            _selectedPersonnel.add(widget.data[index]);
+                          } else {
+                            _selectedPersonnel.remove(widget.data[index]);
+                          }
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 16,
-          children: [
-            SecondaryButton(
-              text: 'Cancel',
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            PrimaryButton(
-              label: 'Add ${_selectedPersonnel.length} personnel',
-              icon: Icons.add,
-              onPressed: _selectedPersonnel.isEmpty
-                  ? null
-                  : () async {
-                      try {
-                        await _addSelectedPersonnelToProject();
-                        ref.invalidate(projectPersonnelProvider);
-                        if (context.mounted) {
-                          ProjectShell.returnToTab(context, ref, 0);
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 16,
+            children: [
+              SecondaryButton(
+                text: 'Cancel',
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              PrimaryButton(
+                label: 'Add ${_selectedPersonnel.length} personnel',
+                icon: Icons.add,
+                onPressed: _selectedPersonnel.isEmpty
+                    ? null
+                    : () async {
+                        try {
+                          await _addSelectedPersonnelToProject();
+                          ref.invalidate(projectPersonnelProvider);
+                          if (context.mounted) {
+                            ProjectShell.returnToTab(context, ref, 0);
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          }
                         }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                            ),
-                          );
-                        }
-                      }
-                    },
-            ),
-          ],
-        ),
-      ],
-    ));
+                      },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _addSelectedPersonnelToProject() async {
-    await PersonnelServices(ref: ref)
-        .addMultiplePersonnelToProject(_selectedPersonnel);
+    await PersonnelServices(
+      ref: ref,
+    ).addMultiplePersonnelToProject(_selectedPersonnel);
   }
 
   List<PersonnelData> _filteredNotInProjectPersonnel() {

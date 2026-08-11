@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 
@@ -67,8 +68,8 @@ class ProgressButton extends StatelessWidget {
       ),
       icon: isRunning
           ? const SizedBox(
-              height: 10,
-              width: 10,
+              height: NahpuControlSize.indicator,
+              width: NahpuControlSize.indicator,
               child: CircularProgressIndicator(),
             )
           : Icon(icon),

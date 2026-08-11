@@ -33,6 +33,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  AngularCoordinate dco_decode_TraitDef_AngularCoordinate(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
 
   @protected
@@ -95,6 +98,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoordinateFileImportResult dco_decode_coordinate_file_import_result(
     dynamic raw,
   );
+
+  @protected
+  CoordinateInputFormat dco_decode_coordinate_input_format(dynamic raw);
 
   @protected
   CoordinateTransferRecord dco_decode_coordinate_transfer_record(dynamic raw);
@@ -235,6 +241,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<String>? dco_decode_opt_list_String(dynamic raw);
+
+  @protected
+  ParsedCoordinateInput dco_decode_parsed_coordinate_input(dynamic raw);
 
   @protected
   RecordExportPresetPreview dco_decode_record_export_preset_preview(
@@ -395,6 +404,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoordinateFileImportResult sse_decode_coordinate_file_import_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoordinateInputFormat sse_decode_coordinate_input_format(
     SseDeserializer deserializer,
   );
 
@@ -567,6 +581,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
+
+  @protected
+  ParsedCoordinateInput sse_decode_parsed_coordinate_input(
+    SseDeserializer deserializer,
+  );
 
   @protected
   RecordExportPresetPreview sse_decode_record_export_preset_preview(
@@ -764,6 +783,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_coordinate_file_import_result(
     CoordinateFileImportResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_coordinate_input_format(
+    CoordinateInputFormat self,
     SseSerializer serializer,
   );
 
@@ -979,6 +1004,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_parsed_coordinate_input(
+    ParsedCoordinateInput self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_record_export_preset_preview(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/services/navigation_services.dart';
+import 'package:nahpu/services/common/navigation_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/sites.dart';
@@ -73,7 +73,8 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
                                 ref.invalidate(siteEntryProvider);
                               });
                             },
-                            icon: const Icon(Icons.clear_rounded))
+                            icon: const Icon(Icons.clear_rounded),
+                          )
                         : const SizedBox.shrink(),
                   ],
                   onChanged: (value) {
@@ -92,7 +93,8 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
                           });
                           _focus.requestFocus();
                         },
-                  icon: const Icon(Icons.search))
+                  icon: const Icon(Icons.search),
+                )
               : TextButton(
                   onPressed: () {
                     setState(() {
@@ -101,42 +103,44 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
                       ref.invalidate(siteEntryProvider);
                     });
                   },
-                  child: const Text('Cancel')),
+                  child: const Text('Cancel'),
+                ),
           !_isSearching ? const NewSite() : const SizedBox.shrink(),
-          SiteMenu(
-            siteId: _siteId,
-          ),
+          SiteMenu(siteId: _siteId),
         ],
       ),
       body: SafeArea(
         child: Center(
-          child: siteEntries.when(data: (siteEntries) {
-            if (siteEntries.isEmpty) {
-              return EmptySite(isButtonVisible: !_isSearching);
-            }
-            return SitePages(
-              siteEntries: siteEntries,
-              pageNav: _pageNav,
-              isNavButtonVisible: _isVisible,
-              onPageChanged: (index) {
-                setState(() {
-                  _siteId = siteEntries[index].id;
-                  _updatePageNav(index);
-                });
-              },
-            );
-          }, loading: () {
-            return const CommonProgressIndicator();
-          }, error: (error, stackTrace) {
-            return Text(error.toString());
-          }),
+          child: siteEntries.when(
+            data: (siteEntries) {
+              if (siteEntries.isEmpty) {
+                return EmptySite(isButtonVisible: !_isSearching);
+              }
+              return SitePages(
+                siteEntries: siteEntries,
+                pageNav: _pageNav,
+                isNavButtonVisible: _isVisible,
+                onPageChanged: (index) {
+                  setState(() {
+                    _siteId = siteEntries[index].id;
+                    _updatePageNav(index);
+                  });
+                },
+              );
+            },
+            loading: () {
+              return const CommonProgressIndicator();
+            },
+            error: (error, stackTrace) {
+              return Text(error.toString());
+            },
+          ),
         ),
       ),
       bottomSheet: Visibility(
-          visible: _isVisible,
-          child: PageNavButton(
-            pageNav: _pageNav,
-          )),
+        visible: _isVisible,
+        child: PageNavButton(pageNav: _pageNav),
+      ),
     );
   }
 
@@ -149,6 +153,10 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
     }
     final index = _pageNav.clampToCount(count);
     setState(() {
+      if (landIndex != null && _isSearching) {
+        _isSearching = false;
+        _searchController.clear();
+      }
       _isVisible = count >= 2;
       if (count == 0) {
         _siteId = null;
@@ -227,10 +235,7 @@ class SitePages extends StatelessWidget {
         return PageViewer(
           pageNav: pageNav,
           isNavButtonVisible: isNavButtonVisible,
-          child: SiteForm(
-            id: siteEntries[index].id,
-            siteFormCtr: siteForm,
-          ),
+          child: SiteForm(id: siteEntries[index].id, siteFormCtr: siteForm),
         );
       },
       onPageChanged: onPageChanged,

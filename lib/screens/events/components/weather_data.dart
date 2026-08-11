@@ -5,7 +5,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 
@@ -27,16 +27,16 @@ class WeatherDataView extends ConsumerWidget {
           text: 'Weather Data',
           infoContent: WeatherInfoContent(),
         ),
-        ref.watch(weatherDataProvider(eventID)).when(
+        ref
+            .watch(weatherDataProvider(eventID))
+            .when(
               data: (weatherData) => WeatherDataForm(
                 useHorizontalLayout: useHorizontalLayout,
                 eventID: eventID,
                 weatherCtr: _getWeatherData(weatherData),
               ),
               loading: () => const CircularProgressIndicator(),
-              error: (error, stack) => const Center(
-                child: Text('Error'),
-              ),
+              error: (error, stack) => const Center(child: Text('Error')),
             ),
       ],
     );
@@ -80,12 +80,14 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
       'Full Moon',
       'Waning Gibbous',
       'Last Quarter',
-      'Waning Crescent'
+      'Waning Crescent',
     ];
     return Column(
       children: [
-        Text('Temperature (°C)',
-            style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          'Temperature (°C)',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
@@ -97,10 +99,11 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
               onChanged: (String? value) {
                 if (value != null) {
                   CollEventServices(ref: ref).updateWeatherData(
-                      widget.eventID,
-                      WeatherCompanion(
-                        lowestDayTempC: db.Value(double.tryParse(value)),
-                      ));
+                    widget.eventID,
+                    WeatherCompanion(
+                      lowestDayTempC: db.Value(double.tryParse(value)),
+                    ),
+                  );
                 }
               },
             ),
@@ -112,10 +115,11 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
               onChanged: (String? value) {
                 if (value != null) {
                   CollEventServices(ref: ref).updateWeatherData(
-                      widget.eventID,
-                      WeatherCompanion(
-                        highestDayTempC: db.Value(double.tryParse(value)),
-                      ));
+                    widget.eventID,
+                    WeatherCompanion(
+                      highestDayTempC: db.Value(double.tryParse(value)),
+                    ),
+                  );
                 }
               },
             ),
@@ -132,10 +136,11 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
               onChanged: (String? value) {
                 if (value != null) {
                   CollEventServices(ref: ref).updateWeatherData(
-                      widget.eventID,
-                      WeatherCompanion(
-                        lowestNightTempC: db.Value(double.tryParse(value)),
-                      ));
+                    widget.eventID,
+                    WeatherCompanion(
+                      lowestNightTempC: db.Value(double.tryParse(value)),
+                    ),
+                  );
                 }
               },
             ),
@@ -147,16 +152,17 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
               onChanged: (String? value) {
                 if (value != null) {
                   CollEventServices(ref: ref).updateWeatherData(
-                      widget.eventID,
-                      WeatherCompanion(
-                        highestNightTempC: db.Value(double.tryParse(value)),
-                      ));
+                    widget.eventID,
+                    WeatherCompanion(
+                      highestNightTempC: db.Value(double.tryParse(value)),
+                    ),
+                  );
                 }
               },
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text('Humidity (%)', style: Theme.of(context).textTheme.titleMedium),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -169,10 +175,11 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
               onChanged: (String? value) {
                 if (value != null) {
                   CollEventServices(ref: ref).updateWeatherData(
-                      widget.eventID,
-                      WeatherCompanion(
-                        averageHumidity: db.Value(double.tryParse(value)),
-                      ));
+                    widget.eventID,
+                    WeatherCompanion(
+                      averageHumidity: db.Value(double.tryParse(value)),
+                    ),
+                  );
                 }
               },
             ),
@@ -184,16 +191,17 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
               onChanged: (String? value) {
                 if (value != null) {
                   CollEventServices(ref: ref).updateWeatherData(
-                      widget.eventID,
-                      WeatherCompanion(
-                        dewPointTemp: db.Value(double.tryParse(value)),
-                      ));
+                    widget.eventID,
+                    WeatherCompanion(
+                      dewPointTemp: db.Value(double.tryParse(value)),
+                    ),
+                  );
                 }
               },
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text('Astronomy', style: Theme.of(context).textTheme.titleMedium),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -213,10 +221,9 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
                   final formattedTime = _formatTimeOfDay(value);
                   widget.weatherCtr.sunriseTimeCtr.text = formattedTime;
                   CollEventServices(ref: ref).updateWeatherData(
-                      widget.eventID,
-                      WeatherCompanion(
-                        sunriseTime: db.Value(formattedTime),
-                      ));
+                    widget.eventID,
+                    WeatherCompanion(sunriseTime: db.Value(formattedTime)),
+                  );
                 }
               },
             ),
@@ -234,16 +241,16 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
                 if (value != null && mounted) {
                   final formattedTime = _formatTimeOfDay(value);
                   widget.weatherCtr.sunsetTimeCtr.text = formattedTime;
-                  _updateWeatherData(WeatherCompanion(
-                    sunsetTime: db.Value(formattedTime),
-                  ));
+                  _updateWeatherData(
+                    WeatherCompanion(sunsetTime: db.Value(formattedTime)),
+                  );
                 }
               },
             ),
           ],
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 5, right: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           child: DropdownButtonFormField(
             initialValue: widget.weatherCtr.moonPhaseCtr,
             decoration: const InputDecoration(
@@ -262,16 +269,15 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
               if (value != null) {
                 widget.weatherCtr.moonPhaseCtr = value;
                 CollEventServices(ref: ref).updateWeatherData(
-                    widget.eventID,
-                    WeatherCompanion(
-                      moonPhase: db.Value(value),
-                    ));
+                  widget.eventID,
+                  WeatherCompanion(moonPhase: db.Value(value)),
+                );
               }
             },
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 5, right: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           child: CommonTextField(
             controller: widget.weatherCtr.noteCtr,
             labelText: 'Notes',
@@ -281,10 +287,9 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
             onChanged: (String? value) {
               if (value != null) {
                 CollEventServices(ref: ref).updateWeatherData(
-                    widget.eventID,
-                    WeatherCompanion(
-                      notes: db.Value(value),
-                    ));
+                  widget.eventID,
+                  WeatherCompanion(notes: db.Value(value)),
+                );
               }
             },
           ),
@@ -298,10 +303,7 @@ class WeatherDataFormState extends ConsumerState<WeatherDataForm> {
     required BuildContext context,
     required TimeOfDay initialTime,
   }) async {
-    return await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
+    return await showTimePicker(context: context, initialTime: initialTime);
   }
 
   void _updateWeatherData(WeatherCompanion weatherData) {

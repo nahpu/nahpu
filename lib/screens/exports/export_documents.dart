@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
-import 'package:nahpu/services/document_layout_service.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/templates/document_layout_service.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/templates/template_service.dart';
@@ -127,47 +127,40 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Export documents'),
-      ),
+      appBar: AppBar(title: const Text('Export documents')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!))
-              : isLargeScreen
-                  ? Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: settingsPane),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: previewPane,
-                          ),
-                        ],
-                      ),
-                    )
-                  : Column(
-                      children: [
-                        TabBar(
-                          controller: _mobileTabController,
-                          tabs: const [
-                            Tab(icon: Icon(Icons.settings_outlined)),
-                            Tab(icon: Icon(Icons.preview_outlined)),
-                          ],
-                        ),
-                        Expanded(
-                          child: TabBarView(
-                            controller: _mobileTabController,
-                            children: [
-                              settingsPane,
-                              previewPane,
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+          ? Center(child: Text(_error!))
+          : isLargeScreen
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: settingsPane),
+                  const SizedBox(width: 16),
+                  Expanded(child: previewPane),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                TabBar(
+                  controller: _mobileTabController,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.settings_outlined)),
+                    Tab(icon: Icon(Icons.preview_outlined)),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _mobileTabController,
+                    children: [settingsPane, previewPane],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -190,7 +183,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   }
 
   Future<RecordType> _getRecordTypeForLayout(
-      rust_config.DocumentLayoutPreset? layout) async {
+    rust_config.DocumentLayoutPreset? layout,
+  ) async {
     if (layout == null || layout.blocks.isEmpty) {
       return RecordType.specimenRecord;
     }
@@ -247,7 +241,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   }
 
   Future<void> _layoutChanged(
-      rust_config.DocumentLayoutPreset newLayout) async {
+    rust_config.DocumentLayoutPreset newLayout,
+  ) async {
     final recordType = await _getRecordTypeForLayout(newLayout);
     setState(() {
       _layout = newLayout;
@@ -314,9 +309,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
       }
     } finally {
       if (mounted) {

@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/projects/personnel/add_personnel.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class SpecimenSelection extends ConsumerStatefulWidget {
   const SpecimenSelection({super.key});
@@ -37,7 +43,8 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            bool isMobile = constraints.maxWidth < 600;
+            bool isMobile = constraints.maxWidth < NahpuBreakpoints.compact;
+            final catalogFmt = ref.watch(catalogFmtNotifierProvider);
             return CommonSettingList(
               sections: [
                 CommonSettingSection(
@@ -68,21 +75,30 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                 ),
                 FieldIDFields(isMobile: isMobile),
                 TissueIDFields(isMobile: isMobile),
-                SpecimenFormats(isMobile: isMobile),
-                UserDefinedSettingField(
+                const ControlledVocabularySetting(
+                  title: 'Specimen types',
                   typePrefKey: specimenTypePrefKey,
                   fmtPrefKey: specimenTypeFmtPrefKey,
-                  typeName: 'Specimen Type',
+                  typeName: 'specimen type',
                 ),
-                UserDefinedSettingField(
+                const ControlledVocabularySetting(
+                  title: 'Treatments',
                   typePrefKey: treatmentPrefKey,
                   fmtPrefKey: treatmentFmtPrefKey,
-                  typeName: 'Treatment',
+                  typeName: 'treatment',
                 ),
-                UserDefinedSettingField(
+                const ControlledVocabularySetting(
+                  title: 'Conditions',
                   typePrefKey: conditionPrefKey,
                   fmtPrefKey: conditionFmtPrefKey,
-                  typeName: 'Condition',
+                  typeName: 'condition',
+                ),
+                ...catalogFmt.when(
+                  data: (format) => supportsParasites(format)
+                      ? [ParasiteSettings(isMobile: isMobile)]
+                      : const <Widget>[],
+                  loading: () => const <Widget>[],
+                  error: (_, _) => const <Widget>[],
                 ),
               ],
             );
@@ -93,41 +109,139 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
   }
 }
 
-class SpecimenFormats extends ConsumerWidget {
-  const SpecimenFormats({super.key, required this.isMobile});
+class ParasiteSettings extends StatelessWidget {
+  const ParasiteSettings({super.key, required this.isMobile});
 
   final bool isMobile;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return CommonSettingSection(
-      title: 'Formats',
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-          child: AdaptiveLayout(
-            useHorizontalLayout: !isMobile,
-            children: [
-              TextCaseFmtDropDown(
-                ref: ref,
-                label: 'Specimen part types',
-                textCasePrefString: specimenTypeFmtPrefKey,
-              ),
-              TextCaseFmtDropDown(
-                ref: ref,
-                label: 'Treatment types',
-                textCasePrefString: treatmentFmtPrefKey,
-              ),
-              TextCaseFmtDropDown(
-                ref: ref,
-                label: 'Conditions',
-                textCasePrefString: conditionFmtPrefKey,
-              ),
-            ],
+          padding: const EdgeInsets.only(top: 16, bottom: 4),
+          child: Center(
+            child: Text(
+              'Parasites',
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
           ),
+        ),
+        CommonSettingSection(
+          title: 'Identification',
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+              child: _ParasiteIdSettingsFields(isMobile: isMobile),
+            ),
+          ],
+        ),
+        const ControlledVocabularySetting(
+          title: 'Categories',
+          typePrefKey: parasiteCategoryPrefKey,
+          fmtPrefKey: parasiteCategoryFmtPrefKey,
+          typeName: 'category',
+        ),
+        const ControlledVocabularySetting(
+          title: 'Detection methods',
+          typePrefKey: parasiteDetectionMethodPrefKey,
+          fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
+          typeName: 'detection method',
+        ),
+        const ControlledVocabularySetting(
+          title: 'Preparation methods',
+          typePrefKey: parasitePreparationMethodPrefKey,
+          fmtPrefKey: parasitePreparationMethodFmtPrefKey,
+          typeName: 'preparation method',
+        ),
+        const ControlledVocabularySetting(
+          title: 'Anatomical locations',
+          typePrefKey: parasiteAnatomicalLocationPrefKey,
+          fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
+          typeName: 'anatomical location',
+        ),
+        const ControlledVocabularySetting(
+          title: 'Storage',
+          typePrefKey: parasiteStoragePrefKey,
+          fmtPrefKey: parasiteStorageFmtPrefKey,
+          typeName: 'storage value',
+        ),
+        const ControlledVocabularySetting(
+          title: 'Treatments',
+          typePrefKey: parasiteTreatmentPrefKey,
+          fmtPrefKey: parasiteTreatmentFmtPrefKey,
+          typeName: 'treatment',
         ),
       ],
     );
+  }
+}
+
+class _ParasiteIdSettingsFields extends StatefulWidget {
+  const _ParasiteIdSettingsFields({required this.isMobile});
+
+  final bool isMobile;
+
+  @override
+  State<_ParasiteIdSettingsFields> createState() =>
+      _ParasiteIdSettingsFieldsState();
+}
+
+class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
+  final _prefixController = TextEditingController();
+  final _numberController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _prefixController.dispose();
+    _numberController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const services = ParasiteIdServices();
+    return AdaptiveLayout(
+      useHorizontalLayout: !widget.isMobile,
+      children: [
+        TextField(
+          controller: _prefixController,
+          decoration: const InputDecoration(
+            labelText: 'Parasite ID prefix',
+            hintText: 'Enter a prefix, e.g. P',
+          ),
+          onChanged: services.setPrefix,
+        ),
+        TextField(
+          controller: _numberController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Parasite ID number',
+            hintText: 'Enter the next number',
+          ),
+          onChanged: services.setNumber,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _load() async {
+    const services = ParasiteIdServices();
+    final values = await Future.wait([
+      services.getPrefix(),
+      services.getNumberString(),
+    ]);
+    if (!mounted) return;
+    _prefixController.text = values[0];
+    _numberController.text = values[1];
   }
 }
 
@@ -145,17 +259,17 @@ class FieldIDFields extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-          child: AdaptiveLayout(
-            useHorizontalLayout: !isMobile,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              FieldIdModeDropDown(ref: ref),
+              const UseProjectIdToggle(),
+              const SizedBox(height: 8),
               fieldIdModeNotifier.when(
-                data: (mode) => Visibility(
-                  visible: mode == FieldIdMode.project,
-                  child: ProjectFieldId(),
-                ),
-                loading: () => const SizedBox.shrink(),
-                error: (e, s) => const Text('Error'),
+                data: (mode) => mode == FieldIdMode.personnel
+                    ? const _PersonnelFieldIdNote()
+                    : ProjectFieldIdSettings(isMobile: isMobile),
+                loading: () => const CommonProgressIndicator(),
+                error: (error, stack) => Text(error.toString()),
               ),
             ],
           ),
@@ -165,34 +279,35 @@ class FieldIDFields extends ConsumerWidget {
   }
 }
 
-class FieldIdModeDropDown extends StatelessWidget {
-  const FieldIdModeDropDown({super.key, required this.ref});
-
-  final WidgetRef ref;
+class UseProjectIdToggle extends ConsumerWidget {
+  const UseProjectIdToggle({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ref
         .watch(fieldIdModeNotifierProvider)
         .when(
-          data: (mode) => DropdownButtonFormField<FieldIdMode>(
-            initialValue: mode,
-            decoration: InputDecoration(labelText: 'ID mode'),
-            items: FieldIdMode.values
-                .map(
-                  (e) => DropdownMenuItem<FieldIdMode>(
-                    value: e,
-                    child: CommonDropdownText(text: e.name.toTitleCase()),
-                  ),
-                )
-                .toList(),
-            onChanged: (FieldIdMode? selectedMode) {
-              if (selectedMode != null) {
+          data: (mode) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: SwitchListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 2,
+              ),
+              title: const Text('Use project ID'),
+              value: mode == FieldIdMode.project,
+              onChanged: (value) {
                 ref
                     .read(fieldIdModeNotifierProvider.notifier)
-                    .set(selectedMode);
-              }
-            },
+                    .set(value ? FieldIdMode.project : FieldIdMode.personnel);
+              },
+            ),
           ),
           loading: () => const CommonProgressIndicator(),
           error: (e, s) => const Text('Error'),
@@ -200,44 +315,242 @@ class FieldIdModeDropDown extends StatelessWidget {
   }
 }
 
-class ProjectFieldId extends ConsumerStatefulWidget {
-  const ProjectFieldId({super.key});
+class _PersonnelFieldIdNote extends StatelessWidget {
+  const _PersonnelFieldIdNote();
 
   @override
-  ProjectFieldIdState createState() => ProjectFieldIdState();
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CommonPadding(
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Personnel field IDs require a cataloger'),
+            subtitle: const Text(
+              'Add a personnel with at least one Cataloger role in the project '
+              'and assign a current field number to that role.',
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        PrimaryButton(
+          onPressed: () => _addPersonnel(context),
+          icon: Icons.add,
+          label: 'Add personnel',
+        ),
+      ],
+    );
+  }
+
+  Future<void> _addPersonnel(BuildContext context) async {
+    await Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (context) => const AddPersonnel()));
+  }
 }
 
-class ProjectFieldIdState extends ConsumerState<ProjectFieldId> {
-  late TextEditingController projectFieldIdCtr;
+class ProjectFieldIdSettings extends ConsumerStatefulWidget {
+  const ProjectFieldIdSettings({super.key, required this.isMobile});
+
+  final bool isMobile;
+
+  @override
+  ConsumerState<ProjectFieldIdSettings> createState() =>
+      _ProjectFieldIdSettingsState();
+}
+
+class _ProjectFieldIdSettingsState
+    extends ConsumerState<ProjectFieldIdSettings> {
+  final _prefixController = TextEditingController();
+  final _numberController = TextEditingController();
+  final _suffixController = TextEditingController();
+  String _savedPrefix = '';
+  String _savedSuffix = '';
+  bool _loading = true;
 
   @override
   void initState() {
-    projectFieldIdCtr = TextEditingController(text: _getNumber());
     super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _prefixController.dispose();
+    _numberController.dispose();
+    _suffixController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 480),
-      child: TextField(
-        controller: projectFieldIdCtr,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          labelText: 'Project number',
-          hintText: 'Enter the initial starting number',
+    if (_loading) return const CommonProgressIndicator();
+    final autoIncrement = ref.watch(projectFieldIdAutoIncrementProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AdaptiveLayout(
+          useHorizontalLayout: !widget.isMobile,
+          children: [
+            TextField(
+              controller: _prefixController,
+              decoration: const InputDecoration(
+                labelText: 'Prefix',
+                hintText: 'e.g. NAHPU-',
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            TextField(
+              controller: _numberController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                labelText: 'Current catalog number',
+                hintText: 'Enter the next number',
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            TextField(
+              controller: _suffixController,
+              decoration: const InputDecoration(
+                labelText: 'Suffix',
+                hintText: 'e.g. -M',
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+          ],
         ),
-        textInputAction: TextInputAction.done,
-        onChanged: (String? value) async {
-          await ProjectFieldIdServices(ref: ref).setNumber(value ?? '1');
-        },
-      ),
+        const SizedBox(height: 8),
+        CommonPadding(
+          child: Text(
+            'Preview: ${_prefixController.text}${_numberController.text}'
+            '${_suffixController.text}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        const SizedBox(height: 8),
+        autoIncrement.when(
+          data: (enabled) => CommonPadding(
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Auto-increment catalog number'),
+              value: enabled,
+              onChanged: (value) => ref
+                  .read(projectFieldIdAutoIncrementProvider.notifier)
+                  .set(value),
+            ),
+          ),
+          loading: () => const CommonProgressIndicator(),
+          error: (error, stack) => Text(error.toString()),
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: FilledButton(
+            onPressed: _save,
+            child: const Text('Save field ID settings'),
+          ),
+        ),
+      ],
     );
   }
 
-  String _getNumber() {
-    return ProjectFieldIdServices(ref: ref).getNumberString();
+  Future<void> _load() async {
+    final project = await ProjectFieldIdServices(ref: ref).getProject();
+    if (!mounted) return;
+    _savedPrefix = project.catalogNumberPrefix ?? '';
+    _savedSuffix = project.catalogNumberSuffix ?? '';
+    _prefixController.text = _savedPrefix;
+    _numberController.text = project.currentCatalogNumber?.toString() ?? '';
+    _suffixController.text = _savedSuffix;
+    setState(() => _loading = false);
   }
+
+  Future<void> _save() async {
+    final service = ProjectFieldIdServices(ref: ref);
+    final identifiersChanged =
+        _prefixController.text != _savedPrefix ||
+        _suffixController.text != _savedSuffix;
+    if (identifiersChanged &&
+        await service.hasAssignedProjectNumbers() &&
+        mounted &&
+        !await _confirmIdentifierChange(context)) {
+      return;
+    }
+
+    await service.updateSettings(
+      prefix: _prefixController.text,
+      suffix: _suffixController.text,
+      currentNumber: int.tryParse(_numberController.text),
+    );
+    _savedPrefix = _prefixController.text;
+    _savedSuffix = _suffixController.text;
+    ref.invalidate(currProjInfoProvider);
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Field ID settings saved.')));
+    }
+  }
+}
+
+Future<bool> _confirmIdentifierChange(BuildContext context) async {
+  const message =
+      'Changing the project field ID prefix or suffix changes existing '
+      'project IDs. These identifiers may already have been used in exports '
+      'or written on specimen labels. Double-check the new values before '
+      'changing them.';
+  if (MediaQuery.sizeOf(context).width < 600) {
+    return await showModalBottomSheet<bool>(
+          context: context,
+          showDragHandle: true,
+          builder: (context) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Change project field ID format?',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(message),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('I understand'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ) ??
+        false;
+  }
+  return await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Change project field ID format?'),
+          content: const Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('I understand'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 }
 
 class TissueIDFields extends ConsumerWidget {

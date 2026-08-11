@@ -8,9 +8,10 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
+import 'package:nahpu/screens/specimens/shared/weight_field.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/measurement_outlier_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/measurement_outlier_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:drift/drift.dart' as db;
 
@@ -274,16 +275,20 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            CommonNumField(
+            WeightField(
               controller: ctr.weightCtr,
               focusNode: _weightFocusNode,
               isBracketed:
                   _isMeasurementInaccurate('weight') &&
                   ctr.weightCtr.text.isNotEmpty,
-              labelText: 'Weight (grams)',
-              hintText: 'Enter specimen weight',
-              isDouble: true,
-              isLastField: false,
+              unit: ctr.weightUnitCtr,
+              onUnitChanged: (unit) {
+                setState(() => ctr.weightUnitCtr = unit);
+                SpecimenServices(ref: ref).updateMammalAttribute(
+                  widget.specimenUuid,
+                  MammalAttributeCompanion(weightUnit: db.Value(unit)),
+                );
+              },
               onChanged: (value) {
                 if (value != null && value.isNotEmpty) {
                   setState(() {
@@ -291,6 +296,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
                       widget.specimenUuid,
                       MammalAttributeCompanion(
                         weight: db.Value(double.tryParse(value)),
+                        weightUnit: db.Value(ctr.weightUnitCtr),
                       ),
                     );
                   });
@@ -433,6 +439,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
             },
           ),
         ),
+        ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
       ],
     );
   }

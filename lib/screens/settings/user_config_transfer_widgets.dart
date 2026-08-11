@@ -306,7 +306,7 @@ class _VocabularyPreview extends StatelessWidget {
           else
             for (final value in entry.values)
               Padding(
-                padding: const EdgeInsets.only(bottom: 3),
+                padding: const EdgeInsets.only(bottom: 4),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

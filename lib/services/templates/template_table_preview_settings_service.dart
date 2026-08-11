@@ -1,5 +1,5 @@
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/print_specimen_table_columns.dart';
+import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class TemplateTablePreviewSettingsService {

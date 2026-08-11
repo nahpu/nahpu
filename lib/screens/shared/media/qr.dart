@@ -5,10 +5,20 @@ import 'package:flutter_svg/svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr/qr.dart';
 
+enum ScannerMode { qr, barcode }
+
 class ScannerScreen extends StatefulWidget {
-  const ScannerScreen({super.key, required this.onDetect});
+  ScannerScreen({
+    super.key,
+    required this.onDetect,
+    this.supportedModes = const {ScannerMode.qr},
+    this.initialMode = ScannerMode.qr,
+  }) : assert(supportedModes.isNotEmpty),
+       assert(supportedModes.contains(initialMode));
 
   final void Function(BarcodeCapture) onDetect;
+  final Set<ScannerMode> supportedModes;
+  final ScannerMode initialMode;
 
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
@@ -19,11 +29,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
     detectionSpeed: DetectionSpeed.normal,
     facing: CameraFacing.back,
   );
+  late ScannerMode _mode;
   bool _hasDetected = false;
 
   @override
   void initState() {
     super.initState();
+    _mode = widget.initialMode;
     _controller.start();
   }
 
@@ -37,93 +49,202 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan QR code')),
+      appBar: AppBar(title: Text(_mode.screenTitle)),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          MobileScanner(
-            controller: _controller,
-            onDetect: (barcode) {
-              if (_hasDetected) return;
-              _hasDetected = true;
-              _controller.stop();
-              widget.onDetect(barcode);
-            },
+          MobileScanner(controller: _controller, onDetect: _onDetect),
+          ScannerCameraOverlay(
+            mode: _mode,
+            supportedModes: widget.supportedModes,
+            onModeChanged: (mode) => setState(() => _mode = mode),
           ),
-          const IgnorePointer(child: _ScannerOverlay()),
         ],
       ),
     );
   }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_hasDetected) return;
+    final filtered = filterScannerCapture(capture, _mode);
+    if (filtered.barcodes.isEmpty) return;
+    _hasDetected = true;
+    _controller.stop();
+    widget.onDetect(filtered);
+  }
 }
 
-class _ScannerOverlay extends StatelessWidget {
-  const _ScannerOverlay();
+class ScannerCameraOverlay extends StatelessWidget {
+  const ScannerCameraOverlay({
+    super.key,
+    required this.mode,
+    required this.supportedModes,
+    required this.onModeChanged,
+  });
+
+  final ScannerMode mode;
+  final Set<ScannerMode> supportedModes;
+  final ValueChanged<ScannerMode> onModeChanged;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final frameSize = constraints.maxWidth.clamp(220.0, 300.0);
-        final left = (constraints.maxWidth - frameSize) / 2;
-        final top = (constraints.maxHeight - frameSize) / 2 - 28;
+        final availableWidth = math.max(0.0, constraints.maxWidth - 48);
+        final hasModeSelector = supportedModes.length > 1;
+        final verticalReserve = hasModeSelector ? 152.0 : 104.0;
+        final availableFrameHeight = math.max(
+          0.0,
+          constraints.maxHeight - verticalReserve,
+        );
+        final frameWidth = mode == ScannerMode.qr
+            ? math.min(300.0, math.min(availableWidth, availableFrameHeight))
+            : math.min(360.0, availableWidth);
+        final frameHeight = mode == ScannerMode.qr
+            ? frameWidth
+            : math.min(
+                availableFrameHeight,
+                math.min(160.0, math.max(100.0, frameWidth * 0.42)),
+              );
+        final left = (constraints.maxWidth - frameWidth) / 2;
+        final desiredTop = (constraints.maxHeight - frameHeight) / 2 - 28;
+        final minTop = hasModeSelector ? 80.0 : 16.0;
+        final maxTop = math.max(
+          minTop,
+          constraints.maxHeight - frameHeight - 72,
+        );
+        final top = desiredTop.clamp(minTop, maxTop).toDouble();
         const scrim = Color(0x99000000);
         return Stack(
           children: [
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: top,
-              child: const ColoredBox(color: scrim),
-            ),
-            Positioned(
-              left: 0,
-              top: top,
-              width: left,
-              height: frameSize,
-              child: const ColoredBox(color: scrim),
-            ),
-            Positioned(
-              right: 0,
-              top: top,
-              width: left,
-              height: frameSize,
-              child: const ColoredBox(color: scrim),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: top + frameSize,
-              bottom: 0,
-              child: const ColoredBox(color: scrim),
-            ),
-            Positioned(
-              left: left,
-              top: top,
-              width: frameSize,
-              height: frameSize,
-              child: CustomPaint(painter: _ScannerFramePainter()),
-            ),
-            Positioned(
-              left: 24,
-              right: 24,
-              top: top + frameSize + 24,
-              child: const Text(
-                'Align the QR code within the frame',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+            IgnorePointer(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    height: top,
+                    child: const ColoredBox(color: scrim),
+                  ),
+                  Positioned(
+                    left: 0,
+                    top: top,
+                    width: left,
+                    height: frameHeight,
+                    child: const ColoredBox(color: scrim),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: top,
+                    width: left,
+                    height: frameHeight,
+                    child: const ColoredBox(color: scrim),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: top + frameHeight,
+                    bottom: 0,
+                    child: const ColoredBox(color: scrim),
+                  ),
+                  Positioned(
+                    left: left,
+                    top: top,
+                    width: frameWidth,
+                    height: frameHeight,
+                    child: CustomPaint(
+                      key: ValueKey('scanner-frame-${mode.name}'),
+                      painter: _ScannerFramePainter(),
+                    ),
+                  ),
+                  Positioned(
+                    left: 24,
+                    right: 24,
+                    top: top + frameHeight + 24,
+                    child: Text(
+                      mode.instruction,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+            if (hasModeSelector)
+              Positioned(
+                left: 24,
+                right: 24,
+                top: 16,
+                child: Center(
+                  child: Material(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(24),
+                    child: SegmentedButton<ScannerMode>(
+                      key: const ValueKey('scanner-mode-selector'),
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment(
+                          value: ScannerMode.qr,
+                          icon: Icon(Icons.qr_code_2_outlined),
+                          label: Text('QR'),
+                        ),
+                        ButtonSegment(
+                          value: ScannerMode.barcode,
+                          icon: Icon(Icons.barcode_reader),
+                          label: Text('Barcode'),
+                        ),
+                      ],
+                      selected: {mode},
+                      onSelectionChanged: (selection) {
+                        onModeChanged(selection.single);
+                      },
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
     );
   }
+}
+
+ScannerMode? scannerModeForBarcodeFormat(BarcodeFormat format) {
+  return switch (format) {
+    BarcodeFormat.qrCode || BarcodeFormat.microQrCode => ScannerMode.qr,
+    BarcodeFormat.unknown || BarcodeFormat.all => null,
+    _ => ScannerMode.barcode,
+  };
+}
+
+BarcodeCapture filterScannerCapture(BarcodeCapture capture, ScannerMode mode) {
+  return BarcodeCapture(
+    barcodes: capture.barcodes
+        .where((barcode) => scannerModeForBarcodeFormat(barcode.format) == mode)
+        .toList(growable: false),
+    image: capture.image,
+    raw: capture.raw,
+    size: capture.size,
+  );
+}
+
+extension on ScannerMode {
+  String get screenTitle => switch (this) {
+    ScannerMode.qr => 'Scan QR code',
+    ScannerMode.barcode => 'Scan barcode',
+  };
+
+  String get instruction => switch (this) {
+    ScannerMode.qr => 'Align the QR code within the frame',
+    ScannerMode.barcode => 'Align the barcode within the frame',
+  };
 }
 
 class _ScannerFramePainter extends CustomPainter {

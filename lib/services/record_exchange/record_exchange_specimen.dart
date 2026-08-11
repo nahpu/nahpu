@@ -5,14 +5,14 @@ import 'package:path/path.dart' as path;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/media_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_site_event.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:uuid/uuid.dart';
 
 /// Exchanges a specimen and its related attributes using the portable v1 wire
@@ -72,6 +72,7 @@ class RecordExchangeSpecimen extends AppServices {
 
     final personnel = <String, Map<String, dynamic>>{};
     await _addPersonnel(personnel, specimen.catalogerID);
+    await _addPersonnel(personnel, specimen.determinerID);
     await _addPersonnel(personnel, specimen.preparatorID);
     for (final part in await SpecimenPartQuery(
       dbAccess,
@@ -110,7 +111,12 @@ class RecordExchangeSpecimen extends AppServices {
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
     );
-    final eventId = await _resolveEvent(payload, references, personnelIds);
+    final resolvedEvent = await _resolveEvent(
+      payload,
+      references,
+      personnelIds,
+    );
+    final eventId = resolvedEvent.eventId;
     final taxonomyId = await _resolveTaxonomy(payload, references);
     final coordinateId = await _importCoordinate(payload, references.siteId);
 
@@ -154,7 +160,11 @@ class RecordExchangeSpecimen extends AppServices {
 
     invalidateEffectiveControlledVocabularies(ref);
 
-    return RecordExchangeResult(recordUuid: newUuid);
+    return RecordExchangeResult(
+      recordUuid: newUuid,
+      createdEventId: resolvedEvent.createdEventId,
+      createdSiteId: resolvedEvent.createdSiteId,
+    );
   }
 
   Future<Map<String, dynamic>> _exportAttributes(String uuid) async {
@@ -242,7 +252,7 @@ class RecordExchangeSpecimen extends AppServices {
       if (!source.existsSync()) {
         throw FormatException('Media file is missing: ${media.fileName}');
       }
-      final archivePath = path.join(
+      final archivePath = path.posix.join(
         'media',
         '$mediaId-${path.basename(media.fileName!)}',
       );
@@ -272,15 +282,26 @@ class RecordExchangeSpecimen extends AppServices {
         null;
   }
 
-  Future<int?> _resolveEvent(
+  Future<({int? eventId, int? createdEventId, int? createdSiteId})>
+  _resolveEvent(
     RecordExchangePayload payload,
     SpecimenImportReferences references,
     Map<String, String> personnelIds,
   ) async {
     final event = payload.data['event'];
-    if (event == null) return references.eventId;
+    if (event == null) {
+      return (
+        eventId: references.eventId,
+        createdEventId: null,
+        createdSiteId: null,
+      );
+    }
     if (references.eventId != null && !references.createEmbeddedEvent) {
-      return references.eventId;
+      return (
+        eventId: references.eventId,
+        createdEventId: null,
+        createdSiteId: null,
+      );
     }
     if (!references.createEmbeddedEvent) {
       throw const FormatException('Select or create the specimen event.');
@@ -295,7 +316,11 @@ class RecordExchangeSpecimen extends AppServices {
       linkedSiteId: references.siteId,
       createEmbeddedSite: references.createEmbeddedSite,
     );
-    return result.recordId;
+    return (
+      eventId: result.recordId,
+      createdEventId: result.recordId,
+      createdSiteId: result.createdSiteId,
+    );
   }
 
   Future<int?> _resolveTaxonomy(
@@ -393,11 +418,15 @@ class RecordExchangeSpecimen extends AppServices {
     );
     final mammal = attributes['mammal'];
     if (mammal is Map) {
+      final mammalJson = Map<String, dynamic>.from(mammal);
+      if (mammalJson['weight'] != null && mammalJson['weightUnit'] == null) {
+        mammalJson['weightUnit'] = 'g';
+      }
       await dbAccess
           .into(dbAccess.mammalAttribute)
           .insert(
             MammalAttributeData.fromJson({
-              ...Map<String, dynamic>.from(mammal),
+              ...mammalJson,
               'specimenUuid': uuid,
             }).toCompanion(true),
           );
@@ -409,6 +438,9 @@ class RecordExchangeSpecimen extends AppServices {
       birdJson['toeHex'] ??= birdJson['footHex'];
       birdJson.remove('footColor');
       birdJson.remove('footHex');
+      if (birdJson['weight'] != null && birdJson['weightUnit'] == null) {
+        birdJson['weightUnit'] = 'g';
+      }
       await dbAccess
           .into(dbAccess.birdAttribute)
           .insert(
@@ -420,11 +452,15 @@ class RecordExchangeSpecimen extends AppServices {
     }
     final herp = attributes['herp'];
     if (herp is Map) {
+      final herpJson = Map<String, dynamic>.from(herp);
+      if (herpJson['weight'] != null && herpJson['weightUnit'] == null) {
+        herpJson['weightUnit'] = 'g';
+      }
       await dbAccess
           .into(dbAccess.herpAttribute)
           .insert(
             HerpAttributeData.fromJson({
-              ...Map<String, dynamic>.from(herp),
+              ...herpJson,
               'specimenUuid': uuid,
             }).toCompanion(true),
           );
@@ -484,14 +520,19 @@ class RecordExchangeSpecimen extends AppServices {
       );
       final normalizedPath = archivePath == null
           ? null
-          : path.normalize(archivePath);
+          : path.posix.normalize(archivePath);
       if (archivePath == null ||
-          path.isAbsolute(archivePath) ||
+          path.posix.isAbsolute(archivePath) ||
           normalizedPath != archivePath ||
-          !archivePath.startsWith('media${path.separator}')) {
+          !archivePath.startsWith('media/')) {
         throw const FormatException('Media archive path is invalid.');
       }
-      final source = File(path.join(extractedMediaDirectory.path, archivePath));
+      final source = File(
+        path.joinAll([
+          extractedMediaDirectory.path,
+          ...path.posix.split(archivePath),
+        ]),
+      );
       if (!source.existsSync()) {
         throw FormatException('Media archive file is missing: $archivePath');
       }

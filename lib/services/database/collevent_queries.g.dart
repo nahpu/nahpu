@@ -17,6 +17,7 @@ mixin _$CollEventQueryMixin on DatabaseAccessor<Database> {
   Narrative get narrative => attachedDatabase.narrative;
   NarrativeMedia get narrativeMedia => attachedDatabase.narrativeMedia;
   SiteMedia get siteMedia => attachedDatabase.siteMedia;
+  EventMedia get eventMedia => attachedDatabase.eventMedia;
   Taxonomy get taxonomy => attachedDatabase.taxonomy;
   Specimen get specimen => attachedDatabase.specimen;
   SpecimenMedia get specimenMedia => attachedDatabase.specimenMedia;
@@ -25,6 +26,8 @@ mixin _$CollEventQueryMixin on DatabaseAccessor<Database> {
       attachedDatabase.specimenAssociatedData;
   SiteAssociatedData get siteAssociatedData =>
       attachedDatabase.siteAssociatedData;
+  EventAssociatedData get eventAssociatedData =>
+      attachedDatabase.eventAssociatedData;
   PersonnelList get personnelList => attachedDatabase.personnelList;
   MammalAttribute get mammalAttribute => attachedDatabase.mammalAttribute;
   BirdAttribute get birdAttribute => attachedDatabase.birdAttribute;
@@ -70,6 +73,8 @@ class CollEventQueryManager {
       $NarrativeMediaTableManager(_db.attachedDatabase, _db.narrativeMedia);
   $SiteMediaTableManager get siteMedia =>
       $SiteMediaTableManager(_db.attachedDatabase, _db.siteMedia);
+  $EventMediaTableManager get eventMedia =>
+      $EventMediaTableManager(_db.attachedDatabase, _db.eventMedia);
   $TaxonomyTableManager get taxonomy =>
       $TaxonomyTableManager(_db.attachedDatabase, _db.taxonomy);
   $SpecimenTableManager get specimen =>
@@ -87,6 +92,11 @@ class CollEventQueryManager {
       $SiteAssociatedDataTableManager(
         _db.attachedDatabase,
         _db.siteAssociatedData,
+      );
+  $EventAssociatedDataTableManager get eventAssociatedData =>
+      $EventAssociatedDataTableManager(
+        _db.attachedDatabase,
+        _db.eventAssociatedData,
       );
   $PersonnelListTableManager get personnelList =>
       $PersonnelListTableManager(_db.attachedDatabase, _db.personnelList);

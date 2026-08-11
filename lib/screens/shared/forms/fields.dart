@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/forms/pickers.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/services/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 
 class CommonDateField extends ConsumerStatefulWidget {
   const CommonDateField({
@@ -526,17 +526,24 @@ class UserDefinedSettingField extends ConsumerWidget {
     required this.typePrefKey,
     required this.fmtPrefKey,
     required this.typeName,
+    this.onCaseFormatPressed,
+    this.sectionTitle,
+    this.pluralName,
   });
 
   final String typePrefKey;
   final String fmtPrefKey;
   final String typeName;
+  final VoidCallback? onCaseFormatPressed;
+  final String? sectionTitle;
+  final String? pluralName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     TextEditingController controller = TextEditingController();
+    final plural = pluralName ?? '${typeName.toTitleCase()}s';
     return SettingChips(
-      title: '${typeName.toTitleCase()}s',
+      title: sectionTitle,
       controller: controller,
       ref: ref,
       textCasePrefString: fmtPrefKey,
@@ -567,16 +574,17 @@ class UserDefinedSettingField extends ConsumerWidget {
         ).addOption(typePrefKey, controller.text.trim());
         controller.clear();
       },
-      resetLabel: 'Match database ${typeName.toLowerCase()}s',
+      onCaseFormatPressed: onCaseFormatPressed,
+      resetLabel: 'Match database',
       onReset: () {
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return CommonAlertDialog(
-              titleText: 'Match database ${typeName.toLowerCase()}s?',
+              titleText: 'Match database ${plural.toLowerCase()}?',
               descText:
                   'Matching database types will'
-                  ' delete all unused ${typeName.toLowerCase()}s',
+                  ' delete all unused ${plural.toLowerCase()}',
               confirmFunction: () {
                 UtilityServices(ref: ref).getAllOptions(typePrefKey);
               },

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/projects/coordinate_input.dart';
+import 'package:nahpu/services/common/utility_services.dart';
+import 'package:uuid/uuid.dart';
 
 class DateEditingController extends TextEditingController {
   DateTime? _dateTime;
@@ -59,30 +61,42 @@ class ProjectFormCtrModel {
     required this.projectNameCtr,
     required this.descriptionCtr,
     required this.pICtr,
+    required this.accessionCtr,
     required this.locationCtr,
     required this.timeZoneCtr,
     required this.startDateCtr,
     required this.endDateCtr,
+    required this.catalogNumberPrefixCtr,
+    required this.currentCatalogNumberCtr,
+    required this.catalogNumberSuffixCtr,
     required this.createdCtr,
   });
 
   TextEditingController projectNameCtr;
   TextEditingController descriptionCtr;
   TextEditingController pICtr;
+  TextEditingController accessionCtr;
   TextEditingController locationCtr;
   TextEditingController timeZoneCtr;
   DateEditingController startDateCtr;
   DateEditingController endDateCtr;
+  TextEditingController catalogNumberPrefixCtr;
+  TextEditingController currentCatalogNumberCtr;
+  TextEditingController catalogNumberSuffixCtr;
   String? createdCtr;
 
   factory ProjectFormCtrModel.empty() => ProjectFormCtrModel(
     projectNameCtr: TextEditingController(),
     descriptionCtr: TextEditingController(),
     pICtr: TextEditingController(),
+    accessionCtr: TextEditingController(),
     locationCtr: TextEditingController(),
     timeZoneCtr: TextEditingController(),
     startDateCtr: DateEditingController(),
     endDateCtr: DateEditingController(),
+    catalogNumberPrefixCtr: TextEditingController(),
+    currentCatalogNumberCtr: TextEditingController(),
+    catalogNumberSuffixCtr: TextEditingController(),
     createdCtr: null,
   );
 
@@ -91,10 +105,20 @@ class ProjectFormCtrModel {
         projectNameCtr: TextEditingController(text: data?.name ?? ''),
         descriptionCtr: TextEditingController(text: data?.description ?? ''),
         pICtr: TextEditingController(text: data?.principalInvestigator ?? ''),
+        accessionCtr: TextEditingController(text: data?.accession ?? ''),
         locationCtr: TextEditingController(text: data?.location ?? ''),
         timeZoneCtr: TextEditingController(text: data?.timeZone),
         startDateCtr: DateEditingController(date: data?.startDate),
         endDateCtr: DateEditingController(date: data?.endDate),
+        catalogNumberPrefixCtr: TextEditingController(
+          text: data?.catalogNumberPrefix ?? '',
+        ),
+        currentCatalogNumberCtr: TextEditingController(
+          text: data?.currentCatalogNumber?.toString() ?? '',
+        ),
+        catalogNumberSuffixCtr: TextEditingController(
+          text: data?.catalogNumberSuffix ?? '',
+        ),
         createdCtr: data?.created,
       );
 
@@ -102,10 +126,14 @@ class ProjectFormCtrModel {
     projectNameCtr.text = data.name;
     descriptionCtr.text = data.description ?? '';
     pICtr.text = data.principalInvestigator ?? '';
+    accessionCtr.text = data.accession ?? '';
     locationCtr.text = data.location ?? '';
     timeZoneCtr.text = data.timeZone ?? '';
     startDateCtr.date = data.startDate ?? '';
     endDateCtr.date = data.endDate ?? '';
+    catalogNumberPrefixCtr.text = data.catalogNumberPrefix ?? '';
+    currentCatalogNumberCtr.text = data.currentCatalogNumber?.toString() ?? '';
+    catalogNumberSuffixCtr.text = data.catalogNumberSuffix ?? '';
     createdCtr = data.created ?? '';
   }
 
@@ -113,10 +141,14 @@ class ProjectFormCtrModel {
     projectNameCtr.dispose();
     descriptionCtr.dispose();
     pICtr.dispose();
+    accessionCtr.dispose();
     locationCtr.dispose();
     timeZoneCtr.dispose();
     startDateCtr.dispose();
     endDateCtr.dispose();
+    catalogNumberPrefixCtr.dispose();
+    currentCatalogNumberCtr.dispose();
+    catalogNumberSuffixCtr.dispose();
   }
 }
 
@@ -281,6 +313,7 @@ class SpecimenFormCtrModel {
     required this.idConfidenceCtr,
     required this.idMethodCtr,
     required this.catalogerCtr,
+    required this.determinerCtr,
     required this.museumIDCtr,
     required this.persFieldNumberCtr,
     required this.projFieldNumberCtr,
@@ -290,6 +323,7 @@ class SpecimenFormCtrModel {
     required this.collMethodCtr,
     required this.relativeTimeCtr,
     required this.coordinateCtr,
+    required this.coordinateExtentCtr,
     required this.preparatorCtr,
     required this.conditionCtr,
     required this.prepDateCtr,
@@ -304,6 +338,7 @@ class SpecimenFormCtrModel {
   });
 
   String? catalogerCtr;
+  String? determinerCtr;
   String? preparatorCtr;
   String? conditionCtr;
   int? speciesCtr;
@@ -314,6 +349,7 @@ class SpecimenFormCtrModel {
   int? collMethodCtr;
   int? relativeTimeCtr;
   int? coordinateCtr;
+  TextEditingController coordinateExtentCtr;
   TextEditingController idMethodCtr;
   TextEditingController museumIDCtr;
   TextEditingController persFieldNumberCtr;
@@ -330,6 +366,7 @@ class SpecimenFormCtrModel {
 
   factory SpecimenFormCtrModel.empty() => SpecimenFormCtrModel(
     catalogerCtr: null,
+    determinerCtr: null,
     preparatorCtr: null,
     conditionCtr: null,
     collEventIDCtr: null,
@@ -338,6 +375,7 @@ class SpecimenFormCtrModel {
     relativeTimeCtr: null,
     collMethodCtr: null,
     coordinateCtr: null,
+    coordinateExtentCtr: TextEditingController(),
     persFieldNumberCtr: TextEditingController(),
     projFieldNumberCtr: TextEditingController(),
     speciesCtr: null,
@@ -358,6 +396,7 @@ class SpecimenFormCtrModel {
   factory SpecimenFormCtrModel.fromData(SpecimenData specimen) =>
       SpecimenFormCtrModel(
         catalogerCtr: specimen.catalogerID,
+        determinerCtr: specimen.determinerID,
         preparatorCtr: specimen.preparatorID,
         conditionCtr: specimen.condition,
         collEventIDCtr: specimen.collEventID,
@@ -366,6 +405,9 @@ class SpecimenFormCtrModel {
         collMethodCtr: specimen.collMethodID,
         relativeTimeCtr: specimen.isRelativeTime,
         coordinateCtr: specimen.coordinateID,
+        coordinateExtentCtr: TextEditingController(
+          text: specimen.coordinateExtentMeters?.truncateZero(),
+        ),
         idConfidenceCtr: specimen.iDConfidence,
         idMethodCtr: TextEditingController(text: specimen.iDMethod ?? ''),
         museumIDCtr: TextEditingController(text: specimen.museumID ?? ''),
@@ -403,6 +445,7 @@ class SpecimenFormCtrModel {
     captureDateCtr.dispose();
     captureTimeCtr.dispose();
     trapTypeCtr.dispose();
+    coordinateExtentCtr.dispose();
   }
 }
 
@@ -422,6 +465,7 @@ class MammalAttributeCtrModel {
     required this.frequencyAtMaxEnergyCtr,
     required this.durationCtr,
     required this.weightCtr,
+    required this.weightUnitCtr,
     required this.accuracyCtr,
     required this.sexCtr,
     required this.ageCtr,
@@ -458,6 +502,7 @@ class MammalAttributeCtrModel {
   TextEditingController frequencyAtMaxEnergyCtr;
   TextEditingController durationCtr;
   TextEditingController weightCtr;
+  String weightUnitCtr;
   MammalAccuracyDetails accuracyCtr;
   int? sexCtr;
   int? ageCtr;
@@ -494,6 +539,7 @@ class MammalAttributeCtrModel {
     frequencyAtMaxEnergyCtr: TextEditingController(),
     durationCtr: TextEditingController(),
     weightCtr: TextEditingController(),
+    weightUnitCtr: 'g',
     accuracyCtr: MammalAccuracyDetails(status: MammalAccuracyStatus.accurate),
     sexCtr: null,
     ageCtr: null,
@@ -548,6 +594,7 @@ class MammalAttributeCtrModel {
       text: data.duration?.truncateZero() ?? '',
     ),
     weightCtr: TextEditingController(text: data.weight?.truncateZero() ?? ''),
+    weightUnitCtr: data.weightUnit ?? 'g',
     accuracyCtr: parseMammalAccuracy(
       data.accuracy,
       accuracySpecify: data.accuracySpecify,
@@ -640,6 +687,7 @@ class MammalAttributeCtrModel {
 class BirdAttributeCtrModel {
   BirdAttributeCtrModel({
     required this.weightCtr,
+    required this.weightUnitCtr,
     required this.wingspanCtr,
     required this.irisCtr,
     required this.billCtr,
@@ -678,6 +726,7 @@ class BirdAttributeCtrModel {
   });
 
   TextEditingController weightCtr;
+  String weightUnitCtr;
   TextEditingController wingspanCtr;
   TextEditingController irisCtr;
   TextEditingController billCtr;
@@ -716,6 +765,7 @@ class BirdAttributeCtrModel {
 
   factory BirdAttributeCtrModel.empty() => BirdAttributeCtrModel(
     weightCtr: TextEditingController(),
+    weightUnitCtr: 'g',
     wingspanCtr: TextEditingController(),
     irisCtr: TextEditingController(),
     billCtr: TextEditingController(),
@@ -757,6 +807,7 @@ class BirdAttributeCtrModel {
     BirdAttributeData data,
   ) => BirdAttributeCtrModel(
     weightCtr: TextEditingController(text: data.weight?.truncateZero()),
+    weightUnitCtr: data.weightUnit ?? 'g',
     wingspanCtr: TextEditingController(text: data.wingspan?.truncateZero()),
     irisCtr: TextEditingController(text: data.irisColor ?? ''),
     billCtr: TextEditingController(text: data.billColor ?? ''),
@@ -860,6 +911,7 @@ class HerpAttributeCtrModel {
     required this.sexCtr,
     required this.ageCtr,
     required this.weightCtr,
+    required this.weightUnitCtr,
     required this.svlCtr,
     required this.remarkCtr,
   });
@@ -867,6 +919,7 @@ class HerpAttributeCtrModel {
   int? sexCtr;
   int? ageCtr;
   TextEditingController weightCtr;
+  String weightUnitCtr;
   TextEditingController svlCtr;
   TextEditingController remarkCtr;
 
@@ -874,6 +927,7 @@ class HerpAttributeCtrModel {
     sexCtr: null,
     ageCtr: null,
     weightCtr: TextEditingController(),
+    weightUnitCtr: 'g',
     svlCtr: TextEditingController(),
     remarkCtr: TextEditingController(),
   );
@@ -885,6 +939,7 @@ class HerpAttributeCtrModel {
         weightCtr: TextEditingController(
           text: data.weight?.truncateZero() ?? '',
         ),
+        weightUnitCtr: data.weightUnit ?? 'g',
         svlCtr: TextEditingController(text: data.svl?.truncateZero() ?? ''),
         remarkCtr: TextEditingController(text: data.remark ?? ''),
       );
@@ -909,6 +964,8 @@ class PartFormCtrModel {
     required this.countCtr,
     required this.treatmentCtr,
     required this.additionalTreatmentCtr,
+    required this.storageCtr,
+    required this.storageLocationCtr,
     required this.dateTakenCtr,
     required this.timeTakenCtr,
     required this.pmiCtr,
@@ -924,6 +981,8 @@ class PartFormCtrModel {
   TextEditingController countCtr;
   TextEditingController treatmentCtr;
   TextEditingController additionalTreatmentCtr;
+  TextEditingController storageCtr;
+  TextEditingController storageLocationCtr;
   DateEditingController dateTakenCtr;
   TimeEditingController timeTakenCtr;
   TextEditingController pmiCtr;
@@ -939,6 +998,8 @@ class PartFormCtrModel {
     countCtr: TextEditingController(),
     treatmentCtr: TextEditingController(),
     additionalTreatmentCtr: TextEditingController(),
+    storageCtr: TextEditingController(),
+    storageLocationCtr: TextEditingController(),
     dateTakenCtr: DateEditingController(),
     timeTakenCtr: TimeEditingController(),
     pmiCtr: TextEditingController(),
@@ -957,6 +1018,8 @@ class PartFormCtrModel {
     additionalTreatmentCtr: TextEditingController(
       text: data.additionalTreatment ?? '',
     ),
+    storageCtr: TextEditingController(text: data.storage ?? ''),
+    storageLocationCtr: TextEditingController(text: data.storageLocation ?? ''),
     dateTakenCtr: DateEditingController(date: data.dateTaken ?? ''),
     timeTakenCtr: TimeEditingController(time: data.timeTaken ?? ''),
     pmiCtr: TextEditingController(text: data.pmi ?? ''),
@@ -972,6 +1035,8 @@ class PartFormCtrModel {
     countCtr.dispose();
     treatmentCtr.dispose();
     additionalTreatmentCtr.dispose();
+    storageCtr.dispose();
+    storageLocationCtr.dispose();
     dateTakenCtr.dispose();
     timeTakenCtr.dispose();
     pmiCtr.dispose();
@@ -987,6 +1052,7 @@ class PersonnelFormCtrModel {
     required this.initialCtr,
     required this.emailCtr,
     required this.phoneCtr,
+    required this.orcidCtr,
     required this.affiliationCtr,
     required this.roleCtr,
     required this.collectorNumCtr,
@@ -1002,6 +1068,7 @@ class PersonnelFormCtrModel {
   String? roleCtr;
   TextEditingController collectorNumCtr;
   TextEditingController phoneCtr;
+  TextEditingController orcidCtr;
   TextEditingController photoPathCtr;
   TextEditingController noteCtr;
   bool isRegisterField;
@@ -1011,6 +1078,7 @@ class PersonnelFormCtrModel {
     initialCtr: TextEditingController(),
     emailCtr: TextEditingController(),
     phoneCtr: TextEditingController(),
+    orcidCtr: TextEditingController(),
     affiliationCtr: TextEditingController(),
     roleCtr: null,
     collectorNumCtr: TextEditingController(),
@@ -1025,6 +1093,7 @@ class PersonnelFormCtrModel {
         initialCtr: TextEditingController(text: personnel.initial),
         emailCtr: TextEditingController(text: personnel.email),
         phoneCtr: TextEditingController(text: personnel.phone),
+        orcidCtr: TextEditingController(text: personnel.orcid),
         affiliationCtr: TextEditingController(text: personnel.affiliation),
         roleCtr: personnel.role,
         collectorNumCtr: TextEditingController(
@@ -1040,6 +1109,7 @@ class PersonnelFormCtrModel {
     initialCtr.dispose();
     emailCtr.dispose();
     phoneCtr.dispose();
+    orcidCtr.dispose();
     affiliationCtr.dispose();
     collectorNumCtr.dispose();
     photoPathCtr.dispose();
@@ -1049,11 +1119,15 @@ class PersonnelFormCtrModel {
 
 class TaxonRegistryCtrModel {
   TaxonRegistryCtrModel({
+    required this.taxonRankCtr,
+    required this.kingdomCtr,
+    required this.phylumCtr,
     required this.taxonClassCtr,
     required this.taxonOrderCtr,
     required this.taxonFamilyCtr,
     required this.genusCtr,
     required this.specificEpithetCtr,
+    required this.subspecificEpithetCtr,
     required this.authorCtr,
     required this.commonNameCtr,
     required this.redListCategoryCtr,
@@ -1063,11 +1137,15 @@ class TaxonRegistryCtrModel {
     required this.noteCtr,
   });
 
-  String? taxonClassCtr;
+  String? taxonRankCtr;
+  TextEditingController kingdomCtr;
+  TextEditingController phylumCtr;
+  TextEditingController taxonClassCtr;
   TextEditingController taxonOrderCtr;
   TextEditingController taxonFamilyCtr;
   TextEditingController genusCtr;
   TextEditingController specificEpithetCtr;
+  TextEditingController subspecificEpithetCtr;
   TextEditingController authorCtr;
   TextEditingController commonNameCtr;
   TextEditingController redListCategoryCtr;
@@ -1077,11 +1155,15 @@ class TaxonRegistryCtrModel {
   TextEditingController noteCtr;
 
   factory TaxonRegistryCtrModel.empty() => TaxonRegistryCtrModel(
-    taxonClassCtr: null,
+    taxonRankCtr: null,
+    kingdomCtr: TextEditingController(),
+    phylumCtr: TextEditingController(),
+    taxonClassCtr: TextEditingController(),
     taxonOrderCtr: TextEditingController(),
     taxonFamilyCtr: TextEditingController(),
     genusCtr: TextEditingController(),
     specificEpithetCtr: TextEditingController(),
+    subspecificEpithetCtr: TextEditingController(),
     authorCtr: TextEditingController(),
     commonNameCtr: TextEditingController(),
     redListCategoryCtr: TextEditingController(),
@@ -1094,11 +1176,17 @@ class TaxonRegistryCtrModel {
   factory TaxonRegistryCtrModel.fromData(
     TaxonomyData data,
   ) => TaxonRegistryCtrModel(
-    taxonClassCtr: data.taxonClass ?? '',
+    taxonRankCtr: data.taxonRank,
+    kingdomCtr: TextEditingController(text: data.kingdom ?? ''),
+    phylumCtr: TextEditingController(text: data.phylum ?? ''),
+    taxonClassCtr: TextEditingController(text: data.taxonClass ?? ''),
     taxonOrderCtr: TextEditingController(text: data.taxonOrder ?? ''),
     taxonFamilyCtr: TextEditingController(text: data.taxonFamily ?? ''),
     genusCtr: TextEditingController(text: data.genus ?? ''),
     specificEpithetCtr: TextEditingController(text: data.specificEpithet ?? ''),
+    subspecificEpithetCtr: TextEditingController(
+      text: data.subspecificEpithet ?? '',
+    ),
     authorCtr: TextEditingController(text: data.authors ?? ''),
     commonNameCtr: TextEditingController(text: data.commonName ?? ''),
     redListCategoryCtr: TextEditingController(text: data.redListCategory ?? ''),
@@ -1111,10 +1199,14 @@ class TaxonRegistryCtrModel {
   );
 
   void dispose() {
+    kingdomCtr.dispose();
+    phylumCtr.dispose();
+    taxonClassCtr.dispose();
     taxonOrderCtr.dispose();
     taxonFamilyCtr.dispose();
     genusCtr.dispose();
     specificEpithetCtr.dispose();
+    subspecificEpithetCtr.dispose();
     authorCtr.dispose();
     commonNameCtr.dispose();
     redListCategoryCtr.dispose();
@@ -1125,11 +1217,195 @@ class TaxonRegistryCtrModel {
   }
 }
 
+class ParasiteFormCtrModel {
+  ParasiteFormCtrModel({
+    required this.parasiteUuid,
+    required this.parasiteIdCtr,
+    required this.speciesId,
+    required this.identifierId,
+    required this.countCtr,
+    required this.preparationMethodCtr,
+    required this.storageCtr,
+    required this.storageLocationCtr,
+    required this.treatmentCtr,
+    required this.anatomicalLocationCtr,
+    required this.lifeStageCtr,
+    required this.categoryCtr,
+    required this.associationStatus,
+    required this.detectionMethodCtr,
+    required this.dateCollectedCtr,
+    required this.timeCollectedCtr,
+    required this.datePreservedCtr,
+    required this.timePreservedCtr,
+    required this.museumPermanentCtr,
+    required this.museumLoanCtr,
+    required this.remarkCtr,
+  });
+
+  final String parasiteUuid;
+  TextEditingController parasiteIdCtr;
+  int? speciesId;
+  String? identifierId;
+  TextEditingController countCtr;
+  TextEditingController preparationMethodCtr;
+  TextEditingController storageCtr;
+  TextEditingController storageLocationCtr;
+  TextEditingController treatmentCtr;
+  TextEditingController anatomicalLocationCtr;
+  TextEditingController lifeStageCtr;
+  TextEditingController categoryCtr;
+  int? associationStatus;
+  TextEditingController detectionMethodCtr;
+  DateEditingController dateCollectedCtr;
+  TimeEditingController timeCollectedCtr;
+  DateEditingController datePreservedCtr;
+  TimeEditingController timePreservedCtr;
+  TextEditingController museumPermanentCtr;
+  TextEditingController museumLoanCtr;
+  TextEditingController remarkCtr;
+
+  factory ParasiteFormCtrModel.empty() => ParasiteFormCtrModel(
+    parasiteUuid: const Uuid().v4(),
+    parasiteIdCtr: TextEditingController(),
+    speciesId: null,
+    identifierId: null,
+    countCtr: TextEditingController(text: '1'),
+    preparationMethodCtr: TextEditingController(),
+    storageCtr: TextEditingController(),
+    storageLocationCtr: TextEditingController(),
+    treatmentCtr: TextEditingController(),
+    anatomicalLocationCtr: TextEditingController(),
+    lifeStageCtr: TextEditingController(),
+    categoryCtr: TextEditingController(),
+    associationStatus: null,
+    detectionMethodCtr: TextEditingController(),
+    dateCollectedCtr: DateEditingController(),
+    timeCollectedCtr: TimeEditingController(),
+    datePreservedCtr: DateEditingController(),
+    timePreservedCtr: TimeEditingController(),
+    museumPermanentCtr: TextEditingController(),
+    museumLoanCtr: TextEditingController(),
+    remarkCtr: TextEditingController(),
+  );
+
+  factory ParasiteFormCtrModel.fromData(
+    ParasiteData data,
+  ) => ParasiteFormCtrModel(
+    parasiteUuid: data.parasiteUuid,
+    parasiteIdCtr: TextEditingController(text: data.parasiteID ?? ''),
+    speciesId: data.speciesID,
+    identifierId: data.identifierID,
+    countCtr: TextEditingController(text: data.count?.toString() ?? ''),
+    preparationMethodCtr: TextEditingController(
+      text: data.preparationMethod ?? '',
+    ),
+    storageCtr: TextEditingController(text: data.storage ?? ''),
+    storageLocationCtr: TextEditingController(text: data.storageLocation ?? ''),
+    treatmentCtr: TextEditingController(text: data.treatment ?? ''),
+    anatomicalLocationCtr: TextEditingController(
+      text: data.anatomicalLocation ?? '',
+    ),
+    lifeStageCtr: TextEditingController(text: data.lifeStage ?? ''),
+    categoryCtr: TextEditingController(text: data.category ?? ''),
+    associationStatus: data.associationStatus,
+    detectionMethodCtr: TextEditingController(text: data.detectionMethod ?? ''),
+    dateCollectedCtr: DateEditingController(date: data.dateCollected),
+    timeCollectedCtr: TimeEditingController(time: data.timeCollected),
+    datePreservedCtr: DateEditingController(date: data.datePreserved),
+    timePreservedCtr: TimeEditingController(time: data.timePreserved),
+    museumPermanentCtr: TextEditingController(text: data.museumPermanent ?? ''),
+    museumLoanCtr: TextEditingController(text: data.museumLoan ?? ''),
+    remarkCtr: TextEditingController(text: data.remark ?? ''),
+  );
+
+  void dispose() {
+    parasiteIdCtr.dispose();
+    countCtr.dispose();
+    preparationMethodCtr.dispose();
+    storageCtr.dispose();
+    storageLocationCtr.dispose();
+    treatmentCtr.dispose();
+    anatomicalLocationCtr.dispose();
+    lifeStageCtr.dispose();
+    categoryCtr.dispose();
+    detectionMethodCtr.dispose();
+    dateCollectedCtr.dispose();
+    timeCollectedCtr.dispose();
+    datePreservedCtr.dispose();
+    timePreservedCtr.dispose();
+    museumPermanentCtr.dispose();
+    museumLoanCtr.dispose();
+    remarkCtr.dispose();
+  }
+}
+
+class AngularCoordinateCtrModel {
+  AngularCoordinateCtrModel({
+    required this.degreesCtr,
+    required this.minutesCtr,
+    required this.secondsCtr,
+    this.direction,
+    this.invalidStoredValue,
+  });
+
+  TextEditingController degreesCtr;
+  TextEditingController minutesCtr;
+  TextEditingController secondsCtr;
+  AngularCoordinateDirection? direction;
+  String? invalidStoredValue;
+
+  factory AngularCoordinateCtrModel.empty() => AngularCoordinateCtrModel(
+    degreesCtr: TextEditingController(),
+    minutesCtr: TextEditingController(),
+    secondsCtr: TextEditingController(),
+  );
+
+  AngularCoordinateParts get parts => AngularCoordinateParts(
+    degrees: degreesCtr.text,
+    minutes: minutesCtr.text,
+    seconds: secondsCtr.text,
+    direction: direction,
+  );
+
+  bool get hasInput =>
+      degreesCtr.text.isNotEmpty ||
+      minutesCtr.text.isNotEmpty ||
+      secondsCtr.text.isNotEmpty ||
+      direction != null ||
+      invalidStoredValue != null;
+
+  void load(AngularCoordinateParts parts) {
+    degreesCtr.text = parts.degrees;
+    minutesCtr.text = parts.minutes;
+    secondsCtr.text = parts.seconds;
+    direction = parts.direction;
+    invalidStoredValue = null;
+  }
+
+  void clear() {
+    degreesCtr.clear();
+    minutesCtr.clear();
+    secondsCtr.clear();
+    direction = null;
+    invalidStoredValue = null;
+  }
+
+  void dispose() {
+    degreesCtr.dispose();
+    minutesCtr.dispose();
+    secondsCtr.dispose();
+  }
+}
+
 class CoordinateCtrModel {
   CoordinateCtrModel({
     required this.nameIdCtr,
+    required this.inputFormat,
     required this.latitudeCtr,
     required this.longitudeCtr,
+    required this.utmCtr,
+    required this.latitudeAngularCtr,
+    required this.longitudeAngularCtr,
     required this.elevationCtr,
     required this.datumCtr,
     required this.uncertaintyCtr,
@@ -1138,8 +1414,12 @@ class CoordinateCtrModel {
   });
 
   TextEditingController nameIdCtr;
+  String inputFormat;
   TextEditingController latitudeCtr;
   TextEditingController longitudeCtr;
+  TextEditingController utmCtr;
+  AngularCoordinateCtrModel latitudeAngularCtr;
+  AngularCoordinateCtrModel longitudeAngularCtr;
   TextEditingController elevationCtr;
   TextEditingController datumCtr;
   TextEditingController uncertaintyCtr;
@@ -1148,8 +1428,12 @@ class CoordinateCtrModel {
 
   factory CoordinateCtrModel.empty() => CoordinateCtrModel(
     nameIdCtr: TextEditingController(),
+    inputFormat: 'decimalDegrees',
     latitudeCtr: TextEditingController(),
     longitudeCtr: TextEditingController(),
+    utmCtr: TextEditingController(),
+    latitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+    longitudeAngularCtr: AngularCoordinateCtrModel.empty(),
     elevationCtr: TextEditingController(),
     datumCtr: TextEditingController(),
     uncertaintyCtr: TextEditingController(),
@@ -1157,27 +1441,116 @@ class CoordinateCtrModel {
     noteCtr: TextEditingController(),
   );
 
-  factory CoordinateCtrModel.fromData(
-    CoordinateData data,
-  ) => CoordinateCtrModel(
-    nameIdCtr: TextEditingController(text: data.nameId ?? ''),
-    latitudeCtr: TextEditingController(text: data.decimalLatitude.toString()),
-    longitudeCtr: TextEditingController(text: data.decimalLongitude.toString()),
-    elevationCtr: TextEditingController(
-      text: data.elevationInMeter?.truncateZero(),
-    ),
-    datumCtr: TextEditingController(text: data.datum ?? ''),
-    uncertaintyCtr: TextEditingController(
-      text: data.uncertaintyInMeters.toString(),
-    ),
-    gpsUnitCtr: TextEditingController(text: data.gpsUnit ?? ''),
-    noteCtr: TextEditingController(text: data.notes ?? ''),
-  );
+  factory CoordinateCtrModel.fromData(CoordinateData data) {
+    final controller = CoordinateCtrModel(
+      nameIdCtr: TextEditingController(text: data.nameId ?? ''),
+      inputFormat: 'decimalDegrees',
+      latitudeCtr: TextEditingController(),
+      longitudeCtr: TextEditingController(),
+      utmCtr: TextEditingController(),
+      latitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+      longitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+      elevationCtr: TextEditingController(
+        text: data.elevationInMeter?.truncateZero(),
+      ),
+      datumCtr: TextEditingController(text: data.datum ?? ''),
+      uncertaintyCtr: TextEditingController(
+        text: data.uncertaintyInMeters.toString(),
+      ),
+      gpsUnitCtr: TextEditingController(text: data.gpsUnit ?? ''),
+      noteCtr: TextEditingController(text: data.notes ?? ''),
+    );
+    controller.setCoordinateInputData(
+      decimalLatitude: data.decimalLatitude,
+      decimalLongitude: data.decimalLongitude,
+      verbatimLatitude: data.verbatimLatitude,
+      verbatimLongitude: data.verbatimLongitude,
+      verbatimCoordinates: data.verbatimCoordinates,
+      verbatimCoordinateSystem: data.verbatimCoordinateSystem,
+    );
+    return controller;
+  }
+
+  bool get hasCoordinateInput =>
+      latitudeCtr.text.isNotEmpty ||
+      longitudeCtr.text.isNotEmpty ||
+      utmCtr.text.isNotEmpty ||
+      latitudeAngularCtr.hasInput ||
+      longitudeAngularCtr.hasInput;
+
+  void setCoordinateInputData({
+    required double? decimalLatitude,
+    required double? decimalLongitude,
+    required String? verbatimLatitude,
+    required String? verbatimLongitude,
+    required String? verbatimCoordinates,
+    required String? verbatimCoordinateSystem,
+  }) {
+    clearCoordinateInput();
+    inputFormat = switch (verbatimCoordinateSystem) {
+      'degrees decimal minutes' => 'degreesDecimalMinutes',
+      'degrees minutes seconds' => 'degreesMinutesSeconds',
+      'UTM' => 'utm',
+      _ => 'decimalDegrees',
+    };
+    if (inputFormat == 'decimalDegrees') {
+      latitudeCtr.text = decimalLatitude?.toString() ?? '';
+      longitudeCtr.text = decimalLongitude?.toString() ?? '';
+      return;
+    }
+    if (inputFormat == 'utm') {
+      utmCtr.text = verbatimCoordinates ?? '';
+      return;
+    }
+
+    final includesSeconds = inputFormat == 'degreesMinutesSeconds';
+    _loadAngularInput(
+      latitudeAngularCtr,
+      verbatimLatitude,
+      axis: AngularCoordinateAxis.latitude,
+      includesSeconds: includesSeconds,
+    );
+    _loadAngularInput(
+      longitudeAngularCtr,
+      verbatimLongitude,
+      axis: AngularCoordinateAxis.longitude,
+      includesSeconds: includesSeconds,
+    );
+  }
+
+  void clearCoordinateInput() {
+    latitudeCtr.clear();
+    longitudeCtr.clear();
+    utmCtr.clear();
+    latitudeAngularCtr.clear();
+    longitudeAngularCtr.clear();
+  }
+
+  void _loadAngularInput(
+    AngularCoordinateCtrModel controller,
+    String? value, {
+    required AngularCoordinateAxis axis,
+    required bool includesSeconds,
+  }) {
+    final parts = CoordinateInputPartsCodec.tryParseVerbatim(
+      value,
+      axis: axis,
+      includesSeconds: includesSeconds,
+    );
+    if (parts == null) {
+      controller.invalidStoredValue = value ?? '';
+      return;
+    }
+    controller.load(parts);
+  }
 
   void dispose() {
     nameIdCtr.dispose();
     latitudeCtr.dispose();
     longitudeCtr.dispose();
+    utmCtr.dispose();
+    latitudeAngularCtr.dispose();
+    longitudeAngularCtr.dispose();
     elevationCtr.dispose();
     datumCtr.dispose();
     uncertaintyCtr.dispose();

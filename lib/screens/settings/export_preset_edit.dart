@@ -77,9 +77,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     final pending = _pendingSave;
     final presets = _presetProviderState.asData?.value;
     if (pending != null &&
-        presets?.containsKey(
-              _expectedPersistedNames[pending.editSession],
-            ) ==
+        presets?.containsKey(_expectedPersistedNames[pending.editSession]) ==
             true) {
       _flushPendingSave(updateUi: false);
     } else {
@@ -351,16 +349,15 @@ class _PresetSettingsCard extends StatelessWidget {
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
               DropdownButtonFormField<RecordType>(
+                isExpanded: true,
                 initialValue: preset.recordType,
                 decoration: const InputDecoration(labelText: 'Record type'),
                 items: RecordType.values
@@ -379,9 +376,11 @@ class _PresetSettingsCard extends StatelessWidget {
               if (preset.recordType == RecordType.specimenRecord) ...[
                 const SizedBox(height: 8),
                 DropdownButtonFormField<SpecimenRecordType>(
+                  isExpanded: true,
                   initialValue: preset.specimenRecordType,
-                  decoration:
-                      const InputDecoration(labelText: 'Specimen taxon group'),
+                  decoration: const InputDecoration(
+                    labelText: 'Specimen taxon group',
+                  ),
                   items: SpecimenRecordType.values
                       .map(
                         (type) => DropdownMenuItem(
@@ -397,9 +396,11 @@ class _PresetSettingsCard extends StatelessWidget {
               ],
               const SizedBox(height: 8),
               DropdownButtonFormField<ExportHeaderFormat>(
+                isExpanded: true,
                 initialValue: preset.headerFormat,
-                decoration:
-                    const InputDecoration(labelText: 'Generated header format'),
+                decoration: const InputDecoration(
+                  labelText: 'Generated header format',
+                ),
                 items: const [
                   DropdownMenuItem(
                     value: ExportHeaderFormat.tableFieldName,

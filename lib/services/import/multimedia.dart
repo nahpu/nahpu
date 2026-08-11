@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:exif/exif.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/media_services.dart';
-import 'package:nahpu/services/platform_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/import.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:path/path.dart' as path;
 
@@ -60,6 +60,18 @@ class ImageServices extends AppServices {
     return files?.path;
   }
 
+  /// Copies a captured or recorded temporary file into the current category's
+  /// project media directory and returns the persistent path.
+  Future<String> importCapturedMedia(String filePath) async {
+    validateSupportedMediaPaths([filePath]);
+    final source = File(filePath);
+    final imported = await _copySingleFile(filePath);
+    if (source.path != imported.path && await source.exists()) {
+      await source.delete();
+    }
+    return imported.path;
+  }
+
   Future<String> pickFromGallerySingle() async {
     final picker = ImagePicker();
     final result = await picker.pickImage(source: ImageSource.gallery);
@@ -74,9 +86,20 @@ class ImageServices extends AppServices {
     return files.map((e) => e.path).toList();
   }
 
+  Future<List<String>> pickMediaFromGallery() async {
+    final picker = ImagePicker();
+    final result = await picker.pickMultipleMedia();
+    final paths = result.map((file) => file.path).toList(growable: false);
+    validateSupportedMediaPaths(paths);
+    final files = await _copyFiles(paths);
+    return files.map((file) => file.path).toList(growable: false);
+  }
+
   Future<List<String>> pickFromFiles() async {
     List<XFile> result = await openFiles(
-        acceptedTypeGroups: [imageFmt], confirmButtonText: 'Import');
+      acceptedTypeGroups: [imageFmt],
+      confirmButtonText: 'Import',
+    );
     final paths = result.map((e) => e.path).toList();
     _validateImagePaths(paths);
     List<File> files = await _copyFiles(paths);
@@ -105,8 +128,9 @@ class ImageServices extends AppServices {
   }
 
   static void validateSupportedMediaPaths(List<String> paths) {
-    final unsupportedPaths =
-        paths.where((filePath) => !isSupportedMediaPath(filePath)).toList();
+    final unsupportedPaths = paths
+        .where((filePath) => !isSupportedMediaPath(filePath))
+        .toList();
     if (unsupportedPaths.isNotEmpty) {
       throw UnsupportedMediaFileException(unsupportedPaths);
     }
@@ -115,7 +139,8 @@ class ImageServices extends AppServices {
   void _validateImagePaths(List<String> paths) {
     final unsupportedPaths = paths
         .where(
-            (filePath) => matchMediaKindFromPath(filePath) != MediaKind.image)
+          (filePath) => matchMediaKindFromPath(filePath) != MediaKind.image,
+        )
         .toList();
     if (unsupportedPaths.isNotEmpty) {
       throw UnsupportedMediaFileException(
@@ -137,10 +162,12 @@ class ImageServices extends AppServices {
   Future<File> _copySingleFile(String path) async {
     File file = File(path);
     File newPath = category == MediaCategory.personnel
-        ? await FileServices(ref: ref)
-            .copyFileToAppDir(file, getMediaDir(category))
-        : await FileServices(ref: ref)
-            .copyFileToProjectDir(file, getMediaDir(category));
+        ? await FileServices(
+            ref: ref,
+          ).copyFileToAppDir(file, getMediaDir(category))
+        : await FileServices(
+            ref: ref,
+          ).copyFileToProjectDir(file, getMediaDir(category));
     return newPath;
   }
 }
@@ -241,8 +268,9 @@ class ExifData {
 
   Future<void> readExif(File file) async {
     try {
-      final Map<String, IfdTag> exif =
-          await readExifFromBytes(await file.readAsBytes());
+      final Map<String, IfdTag> exif = await readExifFromBytes(
+        await file.readAsBytes(),
+      );
       _getExifDate(exif);
       _getExifCameraModel(exif);
       _getExifLenseModel(exif);

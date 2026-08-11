@@ -5,12 +5,11 @@ import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/services.dart';
-import 'package:nahpu/services/types/export.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class TaxonRegistryLayout extends StatefulWidget {
   const TaxonRegistryLayout({super.key, required this.children});
@@ -72,11 +71,7 @@ class NewTaxon extends StatelessWidget {
       ),
       body: SafeArea(
         child: Center(
-          child: TaxonRegistryForm(
-            taxonId: null,
-            ctr: ctr,
-            isEditing: false,
-          ),
+          child: TaxonRegistryForm(taxonId: null, ctr: ctr, isEditing: false),
         ),
       ),
     );
@@ -84,11 +79,7 @@ class NewTaxon extends StatelessWidget {
 }
 
 class EditTaxon extends StatelessWidget {
-  const EditTaxon({
-    super.key,
-    required this.taxonId,
-    required this.ctr,
-  });
+  const EditTaxon({super.key, required this.taxonId, required this.ctr});
 
   final int taxonId;
   final TaxonRegistryCtrModel ctr;
@@ -102,11 +93,7 @@ class EditTaxon extends StatelessWidget {
       ),
       body: SafeArea(
         child: Center(
-          child: TaxonRegistryForm(
-            taxonId: taxonId,
-            ctr: ctr,
-            isEditing: true,
-          ),
+          child: TaxonRegistryForm(taxonId: taxonId, ctr: ctr, isEditing: true),
         ),
       ),
     );
@@ -114,11 +101,12 @@ class EditTaxon extends StatelessWidget {
 }
 
 class TaxonRegistryForm extends ConsumerStatefulWidget {
-  const TaxonRegistryForm(
-      {super.key,
-      required this.taxonId,
-      required this.ctr,
-      required this.isEditing});
+  const TaxonRegistryForm({
+    super.key,
+    required this.taxonId,
+    required this.ctr,
+    required this.isEditing,
+  });
 
   final int? taxonId;
   final TaxonRegistryCtrModel ctr;
@@ -143,104 +131,57 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          DropdownButtonFormField<String?>(
-              decoration: const InputDecoration(
-                labelText: 'Class',
-                hintText: 'Select a taxon class',
-              ),
-              initialValue: widget.ctr.taxonClassCtr,
-              items: supportedTaxonClass
-                  .map((e) => DropdownMenuItem(
-                        value: e,
-                        child: CommonDropdownText(text: e),
-                      ))
-                  .toList(),
-              onChanged: (String? value) {
-                if (value != null) {
-                  setState(() {
-                    widget.ctr.taxonClassCtr = value;
-                  });
-                }
-              }),
-          TextField(
+          DropdownButtonFormField<TaxonRank>(
+            decoration: const InputDecoration(
+              labelText: 'Taxon rank',
+              hintText: 'Select the rank represented by this record',
+            ),
+            initialValue: _rank,
+            items: TaxonRank.values
+                .map(
+                  (rank) => DropdownMenuItem(
+                    value: rank,
+                    child: CommonDropdownText(text: rank.label),
+                  ),
+                )
+                .toList(),
+            onChanged: (rank) {
+              setState(() {
+                widget.ctr.taxonRankCtr = rank?.databaseValue;
+              });
+            },
+          ),
+          _RankTextField(controller: widget.ctr.kingdomCtr, label: 'Kingdom'),
+          _RankTextField(controller: widget.ctr.phylumCtr, label: 'Phylum'),
+          if (_shows(TaxonRank.taxonClass))
+            _RankTextField(
+              controller: widget.ctr.taxonClassCtr,
+              label: 'Class',
+            ),
+          if (_shows(TaxonRank.order))
+            _RankTextField(
               controller: widget.ctr.taxonOrderCtr,
-              decoration: const InputDecoration(
-                labelText: 'Order',
-                hintText: 'Enter an order',
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[a-zA-Z]+'),
-                ),
-              ],
-              onChanged: (String? value) {
-                if (value != null) {
-                  widget.ctr.taxonOrderCtr.value = TextEditingValue(
-                    text: value.toSentenceCase(),
-                    selection: widget.ctr.taxonOrderCtr.selection,
-                  );
-                }
-              }),
-          TextField(
-            controller: widget.ctr.taxonFamilyCtr,
-            decoration: const InputDecoration(
-              labelText: 'Family',
-              hintText: 'Enter a family',
+              label: 'Order',
             ),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp(r'[a-zA-Z]+'),
-              ),
-            ],
-            onChanged: (String? value) {
-              if (value != null) {
-                widget.ctr.taxonFamilyCtr.value = TextEditingValue(
-                  text: value.toSentenceCase(),
-                  selection: widget.ctr.taxonFamilyCtr.selection,
-                );
-              }
-            },
-          ),
-          TextField(
-            controller: widget.ctr.genusCtr,
-            decoration: const InputDecoration(
-              labelText: 'Genus',
-              hintText: 'Enter a genus',
+          if (_shows(TaxonRank.family))
+            _RankTextField(
+              controller: widget.ctr.taxonFamilyCtr,
+              label: 'Family',
             ),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp(r'[a-zA-Z]+'),
-              ),
-            ],
-            onChanged: (String? value) {
-              if (value != null) {
-                widget.ctr.genusCtr.value = TextEditingValue(
-                  text: value.toSentenceCase(),
-                  selection: widget.ctr.genusCtr.selection,
-                );
-              }
-            },
-          ),
-          TextField(
-            controller: widget.ctr.specificEpithetCtr,
-            decoration: const InputDecoration(
-              labelText: 'Specific epithet',
-              hintText: 'Enter specific epithet',
+          if (_shows(TaxonRank.genus))
+            _RankTextField(controller: widget.ctr.genusCtr, label: 'Genus'),
+          if (_shows(TaxonRank.species))
+            _RankTextField(
+              controller: widget.ctr.specificEpithetCtr,
+              label: 'Specific epithet',
+              lowercase: true,
             ),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp(r'[a-zA-Z]+'),
-              ),
-            ],
-            onChanged: (String? value) {
-              if (value != null) {
-                widget.ctr.specificEpithetCtr.value = TextEditingValue(
-                  text: value.toLowerCase(),
-                  selection: widget.ctr.specificEpithetCtr.selection,
-                );
-              }
-            },
-          ),
+          if (_shows(TaxonRank.subspecies))
+            _RankTextField(
+              controller: widget.ctr.subspecificEpithetCtr,
+              label: 'Subspecific epithet',
+              lowercase: true,
+            ),
           Visibility(
             visible: _isShowMore || widget.ctr.authorCtr.text.isNotEmpty,
             child: CommonTextField(
@@ -339,38 +280,77 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
             child: Text(_isShowMore ? 'Show less' : 'Show more'),
           ),
           const SizedBox(height: 16),
-          FormButton(
-            isEditing: widget.isEditing,
-            onSubmitted: () async {
-              widget.isEditing ? await _updateTaxon() : await _createTaxon();
-              ref.invalidate(taxonRegistryProvider);
-              if (context.mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
+          FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
         ],
       ),
     );
   }
 
-  Future<void> _createTaxon() async {
-    final taxon = _getForm();
-    await TaxonomyServices(ref: ref).createTaxon(taxon);
+  TaxonRank? get _rank => taxonRankFromString(widget.ctr.taxonRankCtr);
+
+  bool _shows(TaxonRank rank) => _rank != null && _rank!.index >= rank.index;
+
+  Future<void> _submit() async {
+    if (!_isValid()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select a rank and enter its name.')),
+      );
+      return;
+    }
+    final taxonId = widget.isEditing
+        ? await _updateTaxon()
+        : await _createTaxon();
+    ref.invalidate(taxonRegistryProvider);
+    ref.invalidate(taxonProvider);
+    if (!mounted) return;
+    Navigator.of(context).pop(taxonId);
   }
 
-  Future<void> _updateTaxon() async {
+  bool _isValid() {
+    final controller = switch (_rank) {
+      TaxonRank.taxonClass => widget.ctr.taxonClassCtr,
+      TaxonRank.order => widget.ctr.taxonOrderCtr,
+      TaxonRank.family => widget.ctr.taxonFamilyCtr,
+      TaxonRank.genus => widget.ctr.genusCtr,
+      TaxonRank.species => widget.ctr.specificEpithetCtr,
+      TaxonRank.subspecies => widget.ctr.subspecificEpithetCtr,
+      null => null,
+    };
+    return controller?.text.trim().isNotEmpty == true;
+  }
+
+  Future<int> _createTaxon() async {
+    final taxon = _getForm();
+    return TaxonomyServices(ref: ref).createTaxon(taxon);
+  }
+
+  Future<int> _updateTaxon() async {
     final taxon = _getForm();
     await TaxonomyServices(ref: ref).updateTaxonEntry(widget.taxonId!, taxon);
+    return widget.taxonId!;
   }
 
   TaxonomyCompanion _getForm() {
     return TaxonomyCompanion(
-      taxonClass: db.Value(widget.ctr.taxonClassCtr),
-      taxonOrder: db.Value(widget.ctr.taxonOrderCtr.text),
-      taxonFamily: db.Value(widget.ctr.taxonFamilyCtr.text),
-      genus: db.Value(widget.ctr.genusCtr.text),
-      specificEpithet: db.Value(widget.ctr.specificEpithetCtr.text),
+      taxonRank: db.Value(_rank?.databaseValue),
+      kingdom: db.Value(_optional(widget.ctr.kingdomCtr)),
+      phylum: db.Value(_optional(widget.ctr.phylumCtr)),
+      taxonClass: db.Value(
+        _valueThrough(TaxonRank.taxonClass, widget.ctr.taxonClassCtr),
+      ),
+      taxonOrder: db.Value(
+        _valueThrough(TaxonRank.order, widget.ctr.taxonOrderCtr),
+      ),
+      taxonFamily: db.Value(
+        _valueThrough(TaxonRank.family, widget.ctr.taxonFamilyCtr),
+      ),
+      genus: db.Value(_valueThrough(TaxonRank.genus, widget.ctr.genusCtr)),
+      specificEpithet: db.Value(
+        _valueThrough(TaxonRank.species, widget.ctr.specificEpithetCtr),
+      ),
+      subspecificEpithet: db.Value(
+        _valueThrough(TaxonRank.subspecies, widget.ctr.subspecificEpithetCtr),
+      ),
       authors: db.Value(widget.ctr.authorCtr.text),
       commonName: db.Value(widget.ctr.commonNameCtr.text),
       redListCategory: db.Value(widget.ctr.redListCategoryCtr.text),
@@ -378,6 +358,49 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
       countryStatus: db.Value(widget.ctr.countryStatusCtr.text),
       sortingOrder: db.Value(int.tryParse(widget.ctr.sortingOrderCtr.text)),
       notes: db.Value(widget.ctr.noteCtr.text),
+    );
+  }
+
+  String? _valueThrough(TaxonRank rank, TextEditingController controller) {
+    return _shows(rank) ? _optional(controller) : null;
+  }
+
+  String? _optional(TextEditingController controller) {
+    final value = controller.text.trim();
+    return value.isEmpty ? null : value;
+  }
+}
+
+class _RankTextField extends StatelessWidget {
+  const _RankTextField({
+    required this.controller,
+    required this.label,
+    this.lowercase = false,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final bool lowercase;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: 'Enter ${label.toLowerCase()}',
+      ),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z .'-]+")),
+      ],
+      onChanged: (value) {
+        final text = lowercase ? value.toLowerCase() : value.toSentenceCase();
+        if (text == controller.text) return;
+        controller.value = controller.value.copyWith(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+        );
+      },
     );
   }
 }

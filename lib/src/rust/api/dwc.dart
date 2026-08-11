@@ -44,6 +44,7 @@ class DwcHeader {
   /// Static MeasurementOrFact values, when this source is a measurement.
   final String? measurementType;
   final String? measurementUnit;
+  final String? measurementUnitSource;
 
   const DwcHeader({
     required this.sourceKey,
@@ -51,6 +52,7 @@ class DwcHeader {
     required this.headers,
     this.measurementType,
     this.measurementUnit,
+    this.measurementUnitSource,
   });
 
   @override
@@ -59,7 +61,8 @@ class DwcHeader {
       header.hashCode ^
       headers.hashCode ^
       measurementType.hashCode ^
-      measurementUnit.hashCode;
+      measurementUnit.hashCode ^
+      measurementUnitSource.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -70,5 +73,6 @@ class DwcHeader {
           header == other.header &&
           headers == other.headers &&
           measurementType == other.measurementType &&
-          measurementUnit == other.measurementUnit;
+          measurementUnit == other.measurementUnit &&
+          measurementUnitSource == other.measurementUnitSource;
 }

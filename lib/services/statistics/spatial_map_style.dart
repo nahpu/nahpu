@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:nahpu/services/maps/coordinate_map_point.dart';
+import 'package:nahpu/services/sites/coordinate_map_point.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
