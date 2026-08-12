@@ -192,6 +192,57 @@ class SiteFormCtrModel {
   }
 }
 
+/// Controllers for the fossil site fields shown in the sedimentology form.
+class FossilSiteFormCtrModel {
+  FossilSiteFormCtrModel({
+    required this.rockTypeCtr,
+    required this.depositionalEnvironmentTypeCtr,
+    required this.depositionalContinentCtr,
+    required this.depositionalMarineCtr,
+    required this.standardPreservationTypeCtr,
+    required this.sedimentologyRemarkCtr,
+  });
+
+  TextEditingController rockTypeCtr;
+  int? depositionalEnvironmentTypeCtr;
+  String? depositionalContinentCtr;
+  String? depositionalMarineCtr;
+  String? standardPreservationTypeCtr;
+  TextEditingController sedimentologyRemarkCtr;
+
+  factory FossilSiteFormCtrModel.empty() => FossilSiteFormCtrModel(
+    rockTypeCtr: TextEditingController(),
+    depositionalEnvironmentTypeCtr: null,
+    depositionalContinentCtr: null,
+    depositionalMarineCtr: null,
+    standardPreservationTypeCtr: null,
+    sedimentologyRemarkCtr: TextEditingController(),
+  );
+
+  /// Builds from [fossilSite], falling back to empty controllers when the
+  /// site has no fossil data recorded yet.
+  factory FossilSiteFormCtrModel.fromData(FossilSiteData? fossilSite) {
+    if (fossilSite == null) {
+      return FossilSiteFormCtrModel.empty();
+    }
+    return FossilSiteFormCtrModel(
+      rockTypeCtr: TextEditingController(text: fossilSite.rockType),
+      depositionalEnvironmentTypeCtr: fossilSite.depositionalEnvironmentType,
+      depositionalContinentCtr: fossilSite.depositionalContinent,
+      depositionalMarineCtr: fossilSite.depositionalMarine,
+      standardPreservationTypeCtr: fossilSite.standardPreservationType,
+      sedimentologyRemarkCtr: TextEditingController(
+        text: fossilSite.sedimentologyRemark,
+      ),
+    );
+  }
+
+  void dispose() {
+    rockTypeCtr.dispose();
+    sedimentologyRemarkCtr.dispose();
+  }
+}
+
 class CollEventFormCtrModel {
   CollEventFormCtrModel({
     required this.siteIDCtr,

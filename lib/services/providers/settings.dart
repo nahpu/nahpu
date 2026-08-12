@@ -197,6 +197,47 @@ class CatalogFmtNotifier extends AsyncNotifier<CatalogFmt> {
       return fmt;
     });
   }
+
+  // TODO: Placeholder per-project catalog-format persistence.
+  //
+  // The project table does not yet store a catalog format, so a project's type
+  // is remembered here via SharedPreferences keyed by its UUID. This lets the
+  // active format follow whichever project is opened (e.g. so paleontology
+  // sites show the Sedimentology section). Replace with a real column on the
+  // project table once the schema is updated.
+  String _projectFmtKey(String projectUuid) =>
+      '${catalogFmtPrefKey}_$projectUuid';
+
+  /// Persists [fmt] as the active catalog format and updates state if this
+  /// notifier is still mounted. Writing the pref directly (rather than via
+  /// [set]) keeps the change correct even when this autoDispose provider is
+  /// torn down mid-call: the next widget to watch it rebuilds and re-reads
+  /// the pref. Touching `state` after disposal would throw, so it is guarded.
+  Future<void> _applyActive(CatalogFmt fmt) async {
+    final prefs = ref.read(settingProvider);
+    await prefs.setString(catalogFmtPrefKey, matchCatFmtToTaxonGroup(fmt));
+    if (ref.mounted) {
+      state = AsyncData(fmt);
+    }
+  }
+
+  /// Persists [fmt] for [projectUuid] and makes it the active format.
+  Future<void> setForProject(String projectUuid, CatalogFmt fmt) async {
+    final prefs = ref.read(settingProvider);
+    await prefs.setString(
+        _projectFmtKey(projectUuid), matchCatFmtToTaxonGroup(fmt));
+    await _applyActive(fmt);
+  }
+
+  /// Restores the active format from [projectUuid]'s stored value, if any.
+  /// Called when a project is opened so each project keeps its own type.
+  Future<void> loadForProject(String projectUuid) async {
+    final prefs = ref.read(settingProvider);
+    final stored = prefs.getString(_projectFmtKey(projectUuid));
+    if (stored != null) {
+      await _applyActive(matchTaxonGroupToCatFmt(stored));
+    }
+  }
 }
 
 final userDefinedFieldProvider = AsyncNotifierProvider.family

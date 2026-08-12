@@ -3,9 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 
 part 'site_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   SiteQuery(super.db);
 
@@ -16,8 +14,9 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   }
 
   Future<List<SiteData>> getAllSites(String projectUuid) {
-    return (select(site)..where((t) => t.projectUuid.equals(projectUuid)))
-        .get();
+    return (select(
+      site,
+    )..where((t) => t.projectUuid.equals(projectUuid))).get();
   }
 
   Future<void> createSiteMedia(SiteMediaCompanion form) {
@@ -25,18 +24,21 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   }
 
   Future<List<SiteMediaData>> getSiteMedia(int siteId) async {
-    return await (select(siteMedia)..where((t) => t.siteId.equals(siteId)))
-        .get();
+    return await (select(
+      siteMedia,
+    )..where((t) => t.siteId.equals(siteId))).get();
   }
 
   Future<SiteMediaData> getSiteMediaById(int mediaId) async {
-    return await (select(siteMedia)..where((t) => t.mediaId.equals(mediaId)))
-        .getSingle();
+    return await (select(
+      siteMedia,
+    )..where((t) => t.mediaId.equals(mediaId))).getSingle();
   }
 
   Future<void> updateSiteMedia(int siteId, SiteMediaCompanion form) {
-    return (update(siteMedia)..where((t) => t.siteId.equals(siteId)))
-        .write(form);
+    return (update(
+      siteMedia,
+    )..where((t) => t.siteId.equals(siteId))).write(form);
   }
 
   Future<void> deleteSiteMedia(int mediaId) {
@@ -77,5 +79,34 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
 
     final result = await query.get();
     return result.map((row) => row.read(site.siteType)!).toList();
+  }
+}
+
+/// Stratigraphic and sedimentological data recorded for fossil sites.
+///
+/// Rows are keyed by the owning site's id. A site only gains a row once
+/// one of its fossil fields is filled in, so reads are nullable.
+@DriftAccessor(include: {'tables.drift'})
+class FossilSiteQuery extends DatabaseAccessor<Database>
+    with _$FossilSiteQueryMixin {
+  FossilSiteQuery(super.db);
+
+  Future<int> createFossilSite(FossilSiteCompanion form) =>
+      into(fossilSite).insert(form);
+
+  Future<int> updateFossilSiteEntry(int siteId, FossilSiteCompanion entry) {
+    return (update(
+      fossilSite,
+    )..where((t) => t.siteID.equals(siteId))).write(entry);
+  }
+
+  Future<FossilSiteData?> getFossilSiteBySiteId(int siteId) {
+    return (select(
+      fossilSite,
+    )..where((t) => t.siteID.equals(siteId))).getSingleOrNull();
+  }
+
+  Future<void> deleteFossilSite(int siteId) {
+    return (delete(fossilSite)..where((t) => t.siteID.equals(siteId))).go();
   }
 }
