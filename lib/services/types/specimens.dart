@@ -33,7 +33,9 @@ enum FieldIdMode { personnel, project }
 
 /// Stable database codes for specimen sex.
 ///
-/// Codes 0, 1, and 2 were used by earlier NAHPU versions and must not change.
+/// DO NOT CHANGE THE KEYS.
+/// The database uses these codes to store specimen sex, and changing them
+/// would break existing records.
 /// All reads and writes go through these maps rather than enum indexes.
 const Map<int, SpecimenSex> specimenSexByCode = {
   0: SpecimenSex.male,
@@ -249,7 +251,6 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
       return CatalogFmt.mammals;
     case 'Herpetofauna':
       return CatalogFmt.herpetofauna;
-    case 'Arthropoda':
     case 'Arthropods':
       return CatalogFmt.arthropods;
     default:
@@ -298,7 +299,6 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
       return SpecimenRecordType.bats;
     case 'Herpetofauna':
       return SpecimenRecordType.herpetofauna;
-    case 'Arthropoda':
     case 'Arthropods':
       return SpecimenRecordType.arthropods;
     default:
