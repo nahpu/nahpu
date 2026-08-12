@@ -21,6 +21,29 @@ String _placeholderForDisplayOption(String label, String displayOption) {
   return isImageField ? '[$shortField-img]' : '[$shortField]';
 }
 
+class _ClearTextButton extends StatelessWidget {
+  const _ClearTextButton({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, child) {
+        return Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: value.text.isEmpty ? null : controller.clear,
+            icon: const Icon(Icons.clear),
+            label: const Text('Clear'),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class AvailableSymbolsWrap extends StatelessWidget {
   const AvailableSymbolsWrap({super.key, required this.onSelectSymbol});
 
@@ -367,6 +390,8 @@ class _TextElementEditorDialogState
                       ),
                     ),
                   ),
+                  const SizedBox(height: 4.0),
+                  _ClearTextButton(controller: _controller),
                 ],
               ),
             ),
@@ -498,14 +523,16 @@ class _TextElementEditorBottomSheetState
             ),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Edit Custom Text',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  'Edit Custom Text',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8.0),
               Row(
                 children: [
                   TextButton(
@@ -541,6 +568,8 @@ class _TextElementEditorBottomSheetState
               ),
             ),
           ),
+          const SizedBox(height: 4.0),
+          _ClearTextButton(controller: _controller),
           const SizedBox(height: 16.0),
           Expanded(
             child: SingleChildScrollView(

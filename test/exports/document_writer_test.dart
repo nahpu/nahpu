@@ -818,6 +818,60 @@ void main() {
         expect(sheets.single.cellData.map((data) => data['id']), ['A', 'A']);
       },
     );
+
+    test('oversized auto-fill rows are isolated and never repeated', () async {
+      final longText = List.filled(
+        120,
+        'A long dynamic narrative paragraph.',
+      ).join(' ');
+      final template = Template(
+        name: 'oversized',
+        widthMm: 60,
+        heightMm: 20,
+        page1: TemplatePage(
+          customTexts: [
+            CustomTextElement(
+              id: 'narrative',
+              text: longText,
+              xMm: 0,
+              yMm: 0,
+              maxWidthMm: 60,
+              isDynamic: true,
+            ),
+          ],
+        ),
+        page2: const TemplatePage(),
+      );
+
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [
+            _block(
+              templateName: template.name,
+              templateCount: 1,
+              rows: -1,
+              cols: 1,
+            ),
+          ],
+        ),
+        templates: [template],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+            {'id': 'B'},
+          ],
+        ],
+        useTemplateDimensions: true,
+        usableHeightPt: 120,
+      );
+
+      expect(sheets, hasLength(2));
+      expect(
+        sheets.expand((sheet) => sheet.cellData).map((data) => data['id']),
+        ['A', 'B'],
+      );
+      expect(sheets.every((sheet) => sheet.cellData.length == 1), isTrue);
+    });
   });
 
   group('DocumentWriter auto-fill sizing tests', () {
@@ -1075,6 +1129,52 @@ void main() {
       );
 
       expect(height, greaterThan(documentPdfMmToPt(10)));
+    });
+
+    test('auto-height dynamic text uses a breakable flow cell', () {
+      final page = TemplatePage(
+        customTexts: [
+          const CustomTextElement(
+            id: 'header',
+            text: 'Narrative header',
+            xMm: 2,
+            yMm: 2,
+          ),
+          CustomTextElement(
+            id: 'dynamic',
+            text: List.filled(80, 'Dynamic narrative text').join(' '),
+            xMm: 2,
+            yMm: 10,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+        ],
+        customLines: const [
+          CustomLineElement(id: 'after-dynamic', xMm: 2, yMm: 20, lengthMm: 55),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: documentPdfMmToPt(60),
+        hPt: documentPdfMmToPt(30),
+        autoHeight: true,
+      );
+
+      expect(typst, contains('grid.cell(breakable: true)'));
+      expect(typst, contains('block(width: 100%, breakable: true'));
+      expect(typst, contains('flow_top_dynamic'));
+      expect(typst, contains('#place(left, dx:'));
+      expect(
+        typst,
+        isNot(
+          contains(
+            '#place(top + left, dx: ${documentPdfMmToPt(2)}pt, '
+            'dy: ${documentPdfMmToPt(10)}pt',
+          ),
+        ),
+      );
     });
 
     test(
@@ -1707,7 +1807,10 @@ void main() {
       expect(formatTemplateText('4', 'sex', 'letter:unknown'), 'H');
       expect(formatTemplateText('5', 'sex', 'symbol:unknown'), '\u2640?');
       expect(formatTemplateText('Male?', 'sex', 'letter:unknown'), 'M?');
-      expect(formatTemplateText('\u26A5', 'sex', 'text:unknown'), 'Hermaphrodite');
+      expect(
+        formatTemplateText('\u26A5', 'sex', 'text:unknown'),
+        'Hermaphrodite',
+      );
     });
 
     test('Typst keeps sex symbols and selects a glyph-capable font', () {

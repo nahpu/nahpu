@@ -268,20 +268,44 @@ class DocumentWriter {
     required double wPt,
     required double hPt,
     Map<String, String> data = const {},
+    bool autoHeight = false,
+    double templatePadTopMm = 0,
+    double templatePadLeftMm = 0,
+    double templatePadRightMm = 0,
+    double templatePadBottomMm = 0,
   }) {
     final typst = StringBuffer();
-    const _DocumentTypstRenderer().writeSingleDocumentCell(
-      typst: typst,
-      page: page,
-      data: data,
-      wPt: wPt,
-      hPt: hPt,
-      templatePadTopMm: 0,
-      templatePadLeftMm: 0,
-      templatePadRightMm: 0,
-      templatePadBottomMm: 0,
-      mirror: false,
-    );
+    const renderer = _DocumentTypstRenderer();
+    if (autoHeight &&
+        page.customTexts.any(
+          TemplateDynamicLayoutService.isFlowingDynamicText,
+        )) {
+      renderer.writeBreakableAutoHeightDocumentCell(
+        typst: typst,
+        page: page,
+        data: data,
+        wPt: wPt,
+        hPt: hPt,
+        templatePadTopMm: templatePadTopMm,
+        templatePadLeftMm: templatePadLeftMm,
+        templatePadRightMm: templatePadRightMm,
+        templatePadBottomMm: templatePadBottomMm,
+      );
+    } else {
+      renderer.writeSingleDocumentCell(
+        typst: typst,
+        page: page,
+        data: data,
+        wPt: wPt,
+        hPt: hPt,
+        templatePadTopMm: templatePadTopMm,
+        templatePadLeftMm: templatePadLeftMm,
+        templatePadRightMm: templatePadRightMm,
+        templatePadBottomMm: templatePadBottomMm,
+        mirror: false,
+        autoHeight: autoHeight,
+      );
+    }
     return typst.toString();
   }
 
