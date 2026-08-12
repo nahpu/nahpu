@@ -47,18 +47,10 @@ const List<String> defaultSiteTypes = [
   'Other',
 ];
 
-const List<String> defaultFossilSiteTypes = [
-  'Badlands',
-  'Hot desert flats',
-  'Mining outcrop',
-  'Polar desert',
-  'Shrubland',
-  'Tidal / Coastal',
-  'Tar pit',
-  'Urban',
-  'Volcanic',
-  'Wetland',
-  'Woodland',
+const List<String> defaultCoordinateDatum = [
+  'WGS84',
+  'NAD83',
+  'NAD27',
   'Other',
 ];
 

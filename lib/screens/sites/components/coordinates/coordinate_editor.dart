@@ -591,7 +591,6 @@ class CoordinateForms extends ConsumerStatefulWidget {
 }
 
 class CoordinateFormsState extends ConsumerState<CoordinateForms> {
-  final List<String> _datum = ['WGS84', 'NAD83', 'NAD27', 'Other'];
   bool _isFetchingLocation = false;
   String _dmsLatitude = '';
   String _dmsLongitude = '';
@@ -742,7 +741,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
                 labelText: 'Datum',
                 hintText: 'Specify the datum',
               ),
-              items: _datum
+              items: defaultCoordinateDatum
                   .map(
                     (e) => DropdownMenuItem(
                       value: e,
@@ -920,7 +919,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
   String _getDatum() {
     if (widget.coordCtr.datumCtr.text.isEmpty) {
       setState(() {
-        widget.coordCtr.datumCtr.text = _datum[0];
+        widget.coordCtr.datumCtr.text = defaultCoordinateDatum[0];
       });
       return widget.coordCtr.datumCtr.text;
     } else {

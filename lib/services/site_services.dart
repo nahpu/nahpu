@@ -46,6 +46,7 @@ class SiteServices extends AppServices {
         habitatDescription: db.Value(siteData.habitatDescription),
       ),
     );
+    await FossilSiteServices(ref: ref).duplicateFossilSite(originID, newSiteId);
     invalidateSite();
     return newSiteId;
   }
@@ -109,6 +110,9 @@ class SiteServices extends AppServices {
     try {
       await CoordinateServices(ref: ref).deleteCoordinateBySiteID(id);
       await SiteQuery(dbAccess).deleteAllSiteMedias(id);
+      // The fossil row references the site, so it must go first to keep
+      // the foreign key constraint satisfied.
+      await FossilSiteQuery(dbAccess).deleteFossilSite(id);
       await SiteQuery(dbAccess).deleteSite(id);
     } catch (e) {
       rethrow;
@@ -124,6 +128,7 @@ class SiteServices extends AppServices {
       for (SiteData site in sites) {
         await CoordinateServices(ref: ref).deleteCoordinateBySiteID(site.id);
         await SiteQuery(dbAccess).deleteAllSiteMedias(site.id);
+        await FossilSiteQuery(dbAccess).deleteFossilSite(site.id);
       }
       await SiteQuery(dbAccess).deleteAllSites(projectUuid);
       invalidateSite();
@@ -134,6 +139,43 @@ class SiteServices extends AppServices {
 
   void invalidateSite() {
     ref.invalidate(siteEntryProvider);
+  }
+}
+
+/// Reads and writes the fossil site data attached to a site.
+class FossilSiteServices extends AppServices {
+  const FossilSiteServices({required super.ref});
+
+  Future<FossilSiteData?> getFossilSite(int? siteId) async {
+    if (siteId == null) {
+      return null;
+    }
+    return FossilSiteQuery(dbAccess).getFossilSiteBySiteId(siteId);
+  }
+
+  /// Writes [entries] for [siteId], creating the row when the site does not
+  /// have fossil data yet.
+  Future<void> updateFossilSite(int siteId, FossilSiteCompanion entries) async {
+    final query = FossilSiteQuery(dbAccess);
+    final updatedRows = await query.updateFossilSiteEntry(siteId, entries);
+    if (updatedRows == 0) {
+      await query.createFossilSite(entries.copyWith(siteID: db.Value(siteId)));
+    }
+  }
+
+  Future<void> duplicateFossilSite(int originId, int newSiteId) async {
+    final origin = await getFossilSite(originId);
+    if (origin == null) {
+      return;
+    }
+    await FossilSiteQuery(dbAccess).createFossilSite(
+      origin.toCompanion(true).copyWith(siteID: db.Value(newSiteId)),
+    );
+    invalidateFossilSite(newSiteId);
+  }
+
+  void invalidateFossilSite(int siteId) {
+    ref.invalidate(fossilSiteProvider(siteId));
   }
 }
 

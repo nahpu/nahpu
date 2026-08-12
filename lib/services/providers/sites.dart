@@ -42,6 +42,16 @@ class SiteEntry extends AsyncNotifier<List<SiteData>> {
   }
 }
 
+/// Fossil (stratigraphy and sedimentology) data for a site.
+///
+/// Resolves to null until the site has fossil data recorded.
+final fossilSiteProvider = FutureProvider.family
+    .autoDispose<FossilSiteData?, int>(
+      (ref, siteId) => FossilSiteQuery(
+        ref.read(databaseProvider),
+      ).getFossilSiteBySiteId(siteId),
+    );
+
 final coordinateBySiteProvider = FutureProvider.family
     .autoDispose<List<CoordinateData>, int>(
       (ref, siteId) => CoordinateQuery(
