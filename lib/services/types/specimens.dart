@@ -326,11 +326,9 @@ IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
     case CatalogFmt.mammals:
       return isFilledIcon ? NahpuIcons.ratFilled : NahpuIcons.ratOutlined;
     case CatalogFmt.herpetofauna:
-      return isFilledIcon
-          ? NahpuIcons.amphibianFilled
-          : NahpuIcons.amphibianOutlined;
+      return isFilledIcon ? NahpuIcons.frogFilled : NahpuIcons.frogOutlined;
     case CatalogFmt.arthropods:
-      return isFilledIcon ? NahpuIcons.miteFilled : NahpuIcons.miteOutlined;
+      return isFilledIcon ? NahpuIcons.beetleFilled : NahpuIcons.beetleOutlined;
   }
 }
 
@@ -359,9 +357,9 @@ String matchCatalogFmtToIconPath(CatalogFmt fmt) {
     case CatalogFmt.birds:
       return 'assets/icons/bird_outlined.svg';
     case CatalogFmt.herpetofauna:
-      return 'assets/icons/amphibian_outlined.svg';
+      return 'assets/icons/frog.svg';
     case CatalogFmt.arthropods:
-      return 'assets/icons/mite.svg';
+      return 'assets/icons/beetle.svg';
   }
 }
 
