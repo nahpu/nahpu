@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/parasites.dart';
@@ -10,6 +11,7 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/export/common.dart';
 import 'package:nahpu/services/export/dwc_values.dart';
 import 'package:nahpu/services/projects/orcid.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 enum MultiEntryExpansion { concatenate, specimenParts, parasites }
 
@@ -82,6 +84,11 @@ class DynamicRecordExporter {
     }
 
     await _getSpecimenData(data, baseRecord);
+    await _addCustomFieldData(
+      CustomFieldOwner.specimen(data.uuid),
+      'customSpecimen',
+      baseRecord,
+    );
     await _getProjectData(data.projectUuid, baseRecord);
     await _getCollEventData(data.collEventID, baseRecord);
     await _getCoordinateData(data.coordinateID, baseRecord);
@@ -225,6 +232,11 @@ class DynamicRecordExporter {
           final site = await SiteServices(ref: ref).getSite(event.siteID!);
           if (site != null) {
             _addData(record, 'site', site.toJson());
+            await _addCustomFieldData(
+              CustomFieldOwner.site(site.id),
+              'customSite',
+              record,
+            );
           }
         }
 
@@ -339,7 +351,20 @@ class DynamicRecordExporter {
     final parts = await (db.select(
       db.specimenPart,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).get();
-    return parts.map((e) => e.toJson()).toList();
+    return Future.wait(
+      parts.map((part) async {
+        final json = part.toJson();
+        if (part.id != null) {
+          json.addAll(
+            await _customFieldData(
+              CustomFieldOwner.specimenPart(part.id!),
+              'customSpecimenPart',
+            ),
+          );
+        }
+        return json;
+      }),
+    );
   }
 
   Future<List<Map<String, dynamic>>> _getParasiteData(
@@ -352,6 +377,14 @@ class DynamicRecordExporter {
     return Future.wait(
       records.map((record) async {
         final json = record.toJson()..remove('id');
+        if (record.id != null) {
+          json.addAll(
+            await _customFieldData(
+              CustomFieldOwner.parasite(record.id!),
+              'customParasite',
+            ),
+          );
+        }
         json['associationStatus'] =
             parasiteAssociationStatuses[record.associationStatus] ?? '';
         if (record.speciesID != null) {
@@ -378,7 +411,7 @@ class DynamicRecordExporter {
   ) {
     final keys = rows.expand((row) => row.keys).toSet();
     for (final key in keys) {
-      record['$table::$key'] = rows
+      record[_exportKey(table, key)] = rows
           .map((row) => row[key]?.toString() ?? '')
           .join(writerSeparator);
     }
@@ -387,8 +420,34 @@ class DynamicRecordExporter {
   Map<String, String> _namespacedData(String table, Map<String, dynamic> data) {
     return {
       for (final entry in data.entries)
-        '$table::${entry.key}': entry.value?.toString() ?? '',
+        _exportKey(table, entry.key): entry.value?.toString() ?? '',
     };
+  }
+
+  String _exportKey(String table, String key) =>
+      key.startsWith('custom') && key.contains('::') ? key : '$table::$key';
+
+  Future<Map<String, String>> _customFieldData(
+    CustomFieldOwner owner,
+    String namespace,
+  ) async {
+    final entries = await CustomFieldService(
+      ref.read(databaseProvider),
+    ).getExportEntries(owner);
+    return {
+      for (final entry in entries)
+        '$namespace::${entry.definition.uuid}': entry.value == null
+            ? ''
+            : entry.definition.displayValue(entry.value!.value),
+    };
+  }
+
+  Future<void> _addCustomFieldData(
+    CustomFieldOwner owner,
+    String namespace,
+    Map<String, String> record,
+  ) async {
+    record.addAll(await _customFieldData(owner, namespace));
   }
 
   void _addData(

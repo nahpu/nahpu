@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-const int recordExchangeVersion = 2;
-const Set<int> supportedRecordExchangeVersions = {1, 2};
+const int recordExchangeVersion = 3;
+const Set<int> supportedRecordExchangeVersions = {1, 2, 3};
 
 enum RecordExchangeType { site, event, specimen }
 
@@ -135,6 +135,7 @@ class RecordExchangePayload {
     mapList(data['coordinates']);
     if (type == RecordExchangeType.site) {
       mapList(data['associatedData']);
+      _validateCustomFields(data['customFields']);
       return;
     }
 
@@ -156,6 +157,7 @@ class RecordExchangePayload {
           throw const FormatException('Event linked site data is missing.');
         }
         mapList(linked['coordinates']);
+        _validateCustomFields(linked['customFields']);
       }
       final media = data['media'];
       if (media != null) mapList(media);
@@ -163,6 +165,7 @@ class RecordExchangePayload {
     }
 
     mapList(data['parts']);
+    mapList(data['parasites']);
     mapList(data['associatedData']);
     final measurements = data['measurements'];
     if (measurements != null && measurements is! Map) {
@@ -178,6 +181,16 @@ class RecordExchangePayload {
     }
     final media = data['media'];
     if (media != null) mapList(media);
+    _validateCustomFields(data['customFields']);
+  }
+
+  static void _validateCustomFields(Object? value) {
+    if (value == null) return;
+    if (value is! Map) {
+      throw const FormatException('Custom field data is invalid.');
+    }
+    mapList(value['definitions']);
+    mapList(value['values']);
   }
 
   static List<Map<String, dynamic>> mapList(dynamic value) {

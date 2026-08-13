@@ -112,6 +112,14 @@ class ProjectTransferService extends AppServices {
       'specimenUuid',
       specimenUuids,
     );
+    records['customFieldValue'] = await _projectRows('customFieldValue');
+    records['customFieldDefinition'] = await _query(
+      'SELECT DISTINCT d.* FROM customFieldDefinition d '
+      'LEFT JOIN customFieldValue v ON v.fieldDefinitionId = d.id '
+      'WHERE (d.scope = ? AND d.projectUuid = ?) '
+      'OR (d.scope = ? AND v.projectUuid = ?)',
+      ['project', currentProjectUuid, 'global', currentProjectUuid],
+    );
     records['associatedData'] = await _projectRows('associatedData');
     records['specimenAssociatedData'] = await _rowsForStrings(
       'specimenAssociatedData',
@@ -766,6 +774,8 @@ class ProjectTransferService extends AppServices {
         }
 
         final specimenMap = <String, String?>{};
+        final specimenPartMap = <int, int?>{};
+        final parasiteMap = <int, int?>{};
         final specimensUsingImportedChildren = <String>{};
         for (final row in plan.payload.rows('specimen')) {
           final sourceUuid = row['uuid'] as String;
@@ -837,6 +847,8 @@ class ProjectTransferService extends AppServices {
           personnelMap,
           taxonomyMap,
           specimensUsingImportedChildren,
+          specimenPartMap,
+          parasiteMap,
         );
         await _importAssociatedData(
           plan.payload,
@@ -847,6 +859,16 @@ class ProjectTransferService extends AppServices {
           sitesUsingImportedChildren,
           eventsUsingImportedChildren,
           targetProjectUuid,
+        );
+        await _importCustomFields(
+          plan.payload,
+          targetProjectUuid,
+          siteMap,
+          specimenMap,
+          specimenPartMap,
+          parasiteMap,
+          sitesUsingImportedChildren,
+          specimensUsingImportedChildren,
         );
 
         final narrativeMap = <int, int?>{};
@@ -1108,6 +1130,8 @@ class ProjectTransferService extends AppServices {
     Map<String, String?> personnelMap,
     Map<int, int?> taxonomyMap,
     Set<String> specimensUsingImportedChildren,
+    Map<int, int?> specimenPartMap,
+    Map<int, int?> parasiteMap,
   ) async {
     for (final table in [
       'mammalAttribute',
@@ -1135,7 +1159,7 @@ class ProjectTransferService extends AppServices {
       final uuid = specimenMap[sourceUuid];
       final personnelId = personnelMap[row['personnelId'] as String?];
       if (uuid != null && (row['personnelId'] == null || personnelId != null)) {
-        await _insert(
+        specimenPartMap[row['id'] as int] = await _insert(
           'specimenPart',
           {...row, 'specimenUuid': uuid, 'personnelId': personnelId},
           omit: {'id'},
@@ -1170,7 +1194,7 @@ class ProjectTransferService extends AppServices {
       if (parasiteUuid == null || duplicate.isNotEmpty) {
         parasiteUuid = const Uuid().v4();
       }
-      await _insert(
+      parasiteMap[row['id'] as int] = await _insert(
         'parasite',
         {
           ...row,
@@ -1182,6 +1206,166 @@ class ProjectTransferService extends AppServices {
         omit: {'id'},
       );
     }
+  }
+
+  Future<void> _importCustomFields(
+    ProjectTransferPayload payload,
+    String targetProjectUuid,
+    Map<int, int?> siteMap,
+    Map<String, String?> specimenMap,
+    Map<int, int?> specimenPartMap,
+    Map<int, int?> parasiteMap,
+    Set<int> sitesUsingImportedChildren,
+    Set<String> specimensUsingImportedChildren,
+  ) async {
+    if (payload.version < 6) return;
+    final definitionMap = <int, int>{};
+    for (final source in payload.rows('customFieldDefinition')) {
+      final sourceId = source['id'] as int?;
+      if (sourceId == null) continue;
+      final sourceUuid = source['uuid'] as String?;
+      final existing = sourceUuid == null
+          ? const <Map<String, dynamic>>[]
+          : await _query(
+              'SELECT * FROM customFieldDefinition WHERE uuid = ? LIMIT 1',
+              [sourceUuid],
+            );
+      if (existing.isNotEmpty &&
+          _sameCustomFieldConfiguration(existing.single, source)) {
+        definitionMap[sourceId] = existing.single['id'] as int;
+        continue;
+      }
+
+      final importedGlobal = source['scope'] == 'global';
+      if (importedGlobal) {
+        final globalMatches = await _query(
+          'SELECT * FROM customFieldDefinition WHERE scope = ? '
+          'AND lower(name) = lower(?) AND uiSection = ?',
+          ['global', source['name'], source['uiSection']],
+        );
+        final identical = globalMatches
+            .where((row) => _sameCustomFieldConfiguration(row, source))
+            .firstOrNull;
+        if (identical != null) {
+          definitionMap[sourceId] = identical['id'] as int;
+          continue;
+        }
+      }
+
+      final target = Map<String, dynamic>.from(source)
+        ..remove('id')
+        ..['uuid'] = existing.isEmpty && sourceUuid != null
+            ? sourceUuid
+            : const Uuid().v4()
+        ..['scope'] = 'project'
+        ..['projectUuid'] = targetProjectUuid
+        ..['name'] = await _uniqueCustomFieldName(
+          source['name'] as String? ?? 'Imported field',
+          source['uiSection'] as String? ?? 'specimenAttribute',
+          targetProjectUuid,
+        );
+      final templateUuid = target['sourceTemplateUuid'] as String?;
+      if (templateUuid != null) {
+        final duplicateTemplate = await _query(
+          'SELECT 1 FROM customFieldDefinition WHERE sourceTemplateUuid = ? '
+          'AND scope = ? AND projectUuid = ? LIMIT 1',
+          [templateUuid, 'project', targetProjectUuid],
+        );
+        if (duplicateTemplate.isNotEmpty) target['sourceTemplateUuid'] = null;
+      }
+      definitionMap[sourceId] = await _insert('customFieldDefinition', target);
+    }
+
+    for (final source in payload.rows('customFieldValue')) {
+      final definitionId = definitionMap[source['fieldDefinitionId'] as int?];
+      if (definitionId == null) continue;
+      final sourceSiteId = source['siteId'] as int?;
+      final sourceSpecimenUuid = source['specimenUuid'] as String?;
+      final sourcePartId = source['specimenPartId'] as int?;
+      final sourceParasiteId = source['parasiteId'] as int?;
+      final isLegacy = source['isLegacy'] == 1;
+      final siteId = sourceSiteId == null ? null : siteMap[sourceSiteId];
+      final specimenUuid = sourceSpecimenUuid == null
+          ? null
+          : specimenMap[sourceSpecimenUuid];
+      final partId = sourcePartId == null
+          ? null
+          : specimenPartMap[sourcePartId];
+      final parasiteId = sourceParasiteId == null
+          ? null
+          : parasiteMap[sourceParasiteId];
+      final ownerWasImported =
+          isLegacy ||
+          (sourceSiteId != null &&
+              sitesUsingImportedChildren.contains(sourceSiteId) &&
+              siteId != null) ||
+          (sourceSpecimenUuid != null &&
+              specimensUsingImportedChildren.contains(sourceSpecimenUuid) &&
+              specimenUuid != null) ||
+          (sourcePartId != null && partId != null) ||
+          (sourceParasiteId != null && parasiteId != null);
+      if (!ownerWasImported) continue;
+      await dbAccess.customStatement(
+        'DELETE FROM customFieldValue WHERE fieldDefinitionId = ? '
+        'AND siteId IS ? AND specimenUuid IS ? '
+        'AND specimenPartId IS ? AND parasiteId IS ?',
+        [definitionId, siteId, specimenUuid, partId, parasiteId],
+      );
+      await _insert(
+        'customFieldValue',
+        {
+          ...source,
+          'fieldDefinitionId': definitionId,
+          'projectUuid': targetProjectUuid,
+          'siteId': siteId,
+          'specimenUuid': specimenUuid,
+          'specimenPartId': partId,
+          'parasiteId': parasiteId,
+        },
+        omit: {'id'},
+      );
+    }
+  }
+
+  bool _sameCustomFieldConfiguration(
+    Map<String, dynamic> current,
+    Map<String, dynamic> imported,
+  ) {
+    const keys = [
+      'name',
+      'type',
+      'uiSection',
+      'options',
+      'catalogFormat',
+      'sortOrder',
+      'isArchived',
+      'dwcTarget',
+      'dwcField',
+      'dwcMode',
+      'allowDwcConflict',
+    ];
+    return keys.every((key) => current[key] == imported[key]);
+  }
+
+  Future<String> _uniqueCustomFieldName(
+    String original,
+    String placement,
+    String projectUuid,
+  ) async {
+    var candidate = original.trim().isEmpty
+        ? 'Imported field'
+        : original.trim();
+    var suffix = 2;
+    while ((await _query(
+      'SELECT 1 FROM customFieldDefinition WHERE uiSection = ? '
+      'AND lower(name) = lower(?) AND '
+      '(scope = ? OR projectUuid = ?) LIMIT 1',
+      [placement, candidate, 'global', projectUuid],
+    )).isNotEmpty) {
+      candidate = '${original.trim()} (imported $suffix)';
+      suffix++;
+    }
+    return candidate;
   }
 
   Future<void> _importAssociatedData(

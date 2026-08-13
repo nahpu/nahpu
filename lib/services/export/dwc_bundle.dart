@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
@@ -19,6 +20,8 @@ import 'package:nahpu/services/types/herps.dart' as herps;
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/projects/orcid.dart';
 import 'package:nahpu/services/export/dwc_values.dart';
@@ -226,7 +229,13 @@ class DwcBundleWriter extends AppServices {
     final occurrenceRows = <Map<String, dynamic>>[];
     final materialRows = <Map<String, dynamic>>[];
     final measurementRows = <Map<String, dynamic>>[];
+    final eventAssertionRows = <Map<String, dynamic>>[];
+    final materialAssertionRows = <Map<String, dynamic>>[];
+    final occurrenceAssertionRows = <Map<String, dynamic>>[];
+    final interactionAssertionRows = <Map<String, dynamic>>[];
+    final interactionRows = <Map<String, dynamic>>[];
     final mediaRows = <Map<String, dynamic>>[];
+    final warnings = <String>[];
     final agents = <String, _ResolvedAgent>{};
     final occurrenceAgentRoles = <Map<String, dynamic>>[];
     final eventAgentRoles = <Map<String, dynamic>>[];
@@ -285,27 +294,48 @@ class DwcBundleWriter extends AppServices {
           ? await _arthropodAttributeValues(specimen.uuid)
           : const <String, dynamic>{};
 
-      occurrenceRows.add(
-        _occurrenceRow(
-          specimen: specimen,
-          taxon: taxon,
-          event: event,
-          eventId: eventId,
-          site: site,
-          coordinate: coordinate,
-          recorders: recorders,
-          determiner: determiner,
-          catalogNumber: catalogNumber,
-          arthropodAttributes: arthropodAttributes,
-        ),
+      final occurrenceRow = _occurrenceRow(
+        specimen: specimen,
+        taxon: taxon,
+        event: event,
+        eventId: eventId,
+        site: site,
+        coordinate: coordinate,
+        recorders: recorders,
+        determiner: determiner,
+        catalogNumber: catalogNumber,
+        arthropodAttributes: arthropodAttributes,
       );
+      _applyCustomFields(
+        await CustomFieldService(
+          dbAccess,
+        ).getExportEntries(CustomFieldOwner.specimen(specimen.uuid)),
+        occurrenceRow,
+        assertionRows: occurrenceAssertionRows,
+        assertionOwnerKey: 'occurrenceID',
+        assertionOwnerId: specimen.uuid,
+        warnings: warnings,
+      );
+      occurrenceRows.add(occurrenceRow);
       if (event != null) {
-        events.putIfAbsent(
-          eventId!,
-          () => _eventRow(event, site, eventId, eventAgents),
-        );
+        if (!events.containsKey(eventId)) {
+          final eventRow = _eventRow(event, site, eventId!, eventAgents);
+          if (site != null) {
+            _applyCustomFields(
+              await CustomFieldService(
+                dbAccess,
+              ).getExportEntries(CustomFieldOwner.site(site.id)),
+              eventRow,
+              assertionRows: eventAssertionRows,
+              assertionOwnerKey: 'eventID',
+              assertionOwnerId: eventId,
+              warnings: warnings,
+            );
+          }
+          events[eventId] = eventRow;
+        }
         _addAgentRoles(
-          targetId: eventId,
+          targetId: eventId!,
           targetKey: 'eventID',
           agents: eventAgents,
           output: eventAgentRoles,
@@ -326,9 +356,25 @@ class DwcBundleWriter extends AppServices {
         );
       }
       materialRows.addAll(
-        await _materialRows(specimen.uuid, eventId, agents, materialAgentRoles),
+        await _materialRows(
+          specimen.uuid,
+          eventId,
+          agents,
+          materialAgentRoles,
+          materialAssertionRows,
+          warnings,
+        ),
       );
       measurementRows.addAll(await _measurementRows(specimen));
+      final parasiteExport = await _parasiteRows(
+        specimen,
+        eventId,
+        occurrenceAssertionRows,
+        interactionAssertionRows,
+        warnings,
+      );
+      occurrenceRows.addAll(parasiteExport.occurrences);
+      interactionRows.addAll(parasiteExport.interactions);
       mediaRows.addAll(
         await _mediaRows(specimen.uuid, agents, mediaAgentRoles),
       );
@@ -343,6 +389,22 @@ class DwcBundleWriter extends AppServices {
       'events': events.values.map(_removeEmpty).toList(growable: false),
       'materials': materialRows.map(_removeEmpty).toList(growable: false),
       'measurements': measurementRows.map(_removeEmpty).toList(growable: false),
+      'event_assertions': eventAssertionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'material_assertions': materialAssertionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'occurrence_assertions': occurrenceAssertionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'organism_interactions': interactionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'organism_interaction_assertions': interactionAssertionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'warnings': warnings,
       'media': mediaRows.map(_removeEmpty).toList(growable: false),
       'agents': agents.values
           .map((agent) => agent.toJson())
@@ -390,6 +452,7 @@ class DwcBundleWriter extends AppServices {
       await rust_config.exportConfigToFile(
         filePath: configsFile.path,
         sections: rust_config.UserConfigSection.values,
+        customFieldTemplates: const [],
       );
       final payload = await transferService.buildExport();
       final packageInfo = await PackageInfo.fromPlatform();
@@ -657,6 +720,8 @@ class DwcBundleWriter extends AppServices {
     String? eventId,
     Map<String, _ResolvedAgent> agents,
     List<Map<String, dynamic>> roles,
+    List<Map<String, dynamic>> assertionRows,
+    List<String> warnings,
   ) async {
     final parts = await SpecimenPartServices(
       ref: ref,
@@ -671,7 +736,7 @@ class DwcBundleWriter extends AppServices {
       final otherCatalogNumbers = part.barcodeID == part.tissueID
           ? null
           : part.barcodeID;
-      rows.add(<String, dynamic>{
+      final row = <String, dynamic>{
         'occurrenceID': specimenUuid,
         'eventID': eventId,
         'materialEntityID': materialEntityId,
@@ -680,7 +745,18 @@ class DwcBundleWriter extends AppServices {
         'otherCatalogNumbers': otherCatalogNumbers,
         'preparations': preparations,
         'materialEntityRemarks': part.remark,
-      });
+      };
+      _applyCustomFields(
+        await CustomFieldService(
+          dbAccess,
+        ).getExportEntries(CustomFieldOwner.specimenPart(part.id!)),
+        row,
+        assertionRows: assertionRows,
+        assertionOwnerKey: 'materialEntityID',
+        assertionOwnerId: materialEntityId,
+        warnings: warnings,
+      );
+      rows.add(row);
       final agent = await _resolveAgent(
         part.personnelId,
         null,
@@ -698,6 +774,158 @@ class DwcBundleWriter extends AppServices {
     }
     return rows;
   }
+
+  Future<
+    ({
+      List<Map<String, dynamic>> occurrences,
+      List<Map<String, dynamic>> interactions,
+    })
+  >
+  _parasiteRows(
+    SpecimenData host,
+    String? eventId,
+    List<Map<String, dynamic>> occurrenceAssertions,
+    List<Map<String, dynamic>> interactionAssertions,
+    List<String> warnings,
+  ) async {
+    final parasites = await (dbAccess.select(
+      dbAccess.parasite,
+    )..where((row) => row.specimenUuid.equals(host.uuid))).get();
+    final occurrences = <Map<String, dynamic>>[];
+    final interactions = <Map<String, dynamic>>[];
+    for (final parasite in parasites) {
+      final occurrenceId = parasite.parasiteUuid;
+      final taxon = parasite.speciesID == null
+          ? null
+          : await TaxonomyServices(ref: ref).getTaxonById(parasite.speciesID!);
+      final scientificName = [
+        taxon?.genus,
+        taxon?.specificEpithet,
+      ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
+      final occurrence = <String, dynamic>{
+        'occurrenceID': occurrenceId,
+        'eventID': eventId,
+        'basisOfRecord': 'PreservedSpecimen',
+        'occurrenceStatus': 'detected',
+        'scientificName': scientificName,
+        'class': taxon?.taxonClass,
+        'order': taxon?.taxonOrder,
+        'family': taxon?.taxonFamily,
+        'genus': taxon?.genus,
+        'specificEpithet': taxon?.specificEpithet,
+        'lifeStage': parasite.lifeStage,
+        'individualCount': parasite.count,
+        'preparations': parasite.preparationMethod,
+        'occurrenceRemarks': parasite.remark,
+        'associatedOccurrences': 'host:${host.uuid}',
+      };
+      final interactionId = occurrenceId;
+      final interaction = <String, dynamic>{
+        'organismInteractionID': interactionId,
+        'subjectOccurrenceID': occurrenceId,
+        'relatedOccurrenceID': host.uuid,
+        'eventID': eventId,
+        'organismInteractionType': parasite.category,
+        'relatedOrganismPart': parasite.anatomicalLocation,
+        'organismInteractionDescription': parasite.associationStatus == null
+            ? null
+            : parasiteAssociationStatuses[parasite.associationStatus],
+      };
+      final entries = await CustomFieldService(
+        dbAccess,
+      ).getExportEntries(CustomFieldOwner.parasite(parasite.id!));
+      _applyCustomFields(
+        entries
+            .where(
+              (entry) =>
+                  entry.definition.dwcMapping?.target != 'organismInteraction',
+            )
+            .toList(growable: false),
+        occurrence,
+        assertionRows: occurrenceAssertions,
+        assertionOwnerKey: 'occurrenceID',
+        assertionOwnerId: occurrenceId,
+        warnings: warnings,
+      );
+      _applyCustomFields(
+        entries
+            .where(
+              (entry) =>
+                  entry.definition.dwcMapping?.target == 'organismInteraction',
+            )
+            .toList(growable: false),
+        interaction,
+        assertionRows: interactionAssertions,
+        assertionOwnerKey: 'organismInteractionID',
+        assertionOwnerId: interactionId,
+        warnings: warnings,
+        includeUnmapped: false,
+      );
+      occurrences.add(occurrence);
+      interactions.add(interaction);
+    }
+    return (occurrences: occurrences, interactions: interactions);
+  }
+
+  void _applyCustomFields(
+    List<CustomFieldEntry> entries,
+    Map<String, dynamic> row, {
+    required List<Map<String, dynamic>> assertionRows,
+    required String assertionOwnerKey,
+    required String assertionOwnerId,
+    required List<String> warnings,
+    bool includeUnmapped = true,
+  }) {
+    final dynamicProperties = <String, dynamic>{};
+    for (final entry in entries) {
+      final value = entry.value;
+      if (value == null) continue;
+      final definition = entry.definition;
+      final display = definition.displayValue(value.value);
+      final mapping = definition.dwcMapping;
+      if (mapping == null) {
+        if (includeUnmapped) {
+          dynamicProperties[definition.name] = _typedCustomValue(
+            definition,
+            value.value,
+          );
+        }
+        continue;
+      }
+      if (mapping.mode == DwcMappingMode.assertion) {
+        assertionRows.add({
+          assertionOwnerKey: assertionOwnerId,
+          'assertionID': '$assertionOwnerId:custom:${definition.uuid}',
+          'assertionType': definition.name,
+          'assertionValue': display,
+        });
+        continue;
+      }
+      final targetField = mapping.field.split(':').last;
+      final builtIn = row[targetField]?.toString().trim();
+      if (builtIn != null && builtIn.isNotEmpty) {
+        row[targetField] = '$builtIn | $display';
+        warnings.add(
+          '${definition.name} adds another value to ${mapping.field} for '
+          '$assertionOwnerId.',
+        );
+      } else {
+        row[targetField] = display;
+      }
+    }
+    if (dynamicProperties.isNotEmpty) {
+      row['dynamicProperties'] = jsonEncode(dynamicProperties);
+    }
+  }
+
+  Object _typedCustomValue(
+    CustomFieldDefinitionData definition,
+    String value,
+  ) => switch (definition.fieldType) {
+    FieldType.boolean => value == 'true',
+    FieldType.number => num.tryParse(value) ?? value,
+    FieldType.text || FieldType.dropdown => definition.displayValue(value),
+  };
 
   Future<List<Map<String, dynamic>>> _measurementRows(
     SpecimenData specimen,
@@ -1304,6 +1532,8 @@ const List<String> _nahpuTableNames = [
   'parasiteDetection',
   'parasite',
   'specimenPart',
+  'customFieldDefinition',
+  'customFieldValue',
 ];
 
 Map<String, dynamic> _removeEmpty(Map<String, dynamic> source) {

@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 
-const int projectTransferVersion = 5;
-const Set<int> supportedProjectTransferVersions = {1, 2, 3, 4, 5};
+const int projectTransferVersion = 6;
+const Set<int> supportedProjectTransferVersions = {1, 2, 3, 4, 5, 6};
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
 
@@ -140,6 +140,7 @@ class ProjectTransferPayload {
     'Events': rows('collEvent').length,
     'Specimens': rows('specimen').length,
     'Narratives': rows('narrative').length,
+    'Custom fields': rows('customFieldDefinition').length,
     'Media': rows('media').length + rows('personnelPhoto').length,
   };
 

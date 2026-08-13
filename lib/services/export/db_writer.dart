@@ -113,6 +113,7 @@ class DbExport extends AppServices {
       await rust_config.exportConfigToFile(
         filePath: settingsFile.path,
         sections: rust_config.UserConfigSection.values,
+        customFieldTemplates: const [],
       );
 
       await _copyAssociatedFiles(staging);

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'dart:io';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/export/common.dart';
 
 import 'package:flutter/services.dart' show rootBundle, AssetManifest;
@@ -29,6 +30,7 @@ import 'package:nahpu/services/providers/document_selection.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/src/rust/api/document.dart' as rust_document;
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:path/path.dart' as path;

@@ -1,4 +1,6 @@
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/src/rust/api/dwc.dart' as rust_dwc;
 
 /// Darwin Core's recommended delimiter for multiple values of one term.
@@ -22,10 +24,9 @@ bool usesStandardizedExportHeaders(ExportHeaderFormat format) =>
     format == ExportHeaderFormat.nahpuNamespace;
 
 String? directExportSourceField(String expression) {
-  return RegExp(r'^\s*\[([^\]]+)\]\s*$')
-      .firstMatch(expression)
-      ?.group(1)
-      ?.trim();
+  return RegExp(
+    r'^\s*\[([^\]]+)\]\s*$',
+  ).firstMatch(expression)?.group(1)?.trim();
 }
 
 bool mappingRequiresHeaderOverride(
@@ -66,29 +67,39 @@ class DwcSourceMapping {
 }
 
 class ExportHeaderResolver {
-  ExportHeaderResolver._(this.preset, this._dwcMappings);
+  ExportHeaderResolver._(this.preset, this._dwcMappings, this._customLabels);
 
   /// Creates a resolver with known mappings for synchronous tests.
-  ExportHeaderResolver.forTesting(
-    this.preset,
-    Map<String, String> dwcHeaders,
-  ) : _dwcMappings = Map.unmodifiable({
-          for (final entry in dwcHeaders.entries)
-            entry.key: DwcSourceMapping(headers: [entry.value]),
-        });
+  ExportHeaderResolver.forTesting(this.preset, Map<String, String> dwcHeaders)
+    : _dwcMappings = Map.unmodifiable({
+        for (final entry in dwcHeaders.entries)
+          entry.key: DwcSourceMapping(headers: [entry.value]),
+      }),
+      _customLabels = const {};
 
   /// Creates a resolver with full mapping descriptors for tabular tests.
   ExportHeaderResolver.forDwcMappingsTesting(
     this.preset,
     Map<String, DwcSourceMapping> dwcMappings,
-  ) : _dwcMappings = Map.unmodifiable(dwcMappings);
+  ) : _dwcMappings = Map.unmodifiable(dwcMappings),
+      _customLabels = const {};
 
   final ExportPresetModel preset;
   final Map<String, DwcSourceMapping> _dwcMappings;
+  final Map<String, String> _customLabels;
 
-  static Future<ExportHeaderResolver> create(ExportPresetModel preset) async {
+  static Future<ExportHeaderResolver> create(
+    ExportPresetModel preset, {
+    Database? database,
+  }) async {
+    final definitions = database == null
+        ? const <CustomFieldDefinitionData>[]
+        : await database.select(database.customFieldDefinition).get();
+    final labels = {
+      for (final definition in definitions) definition.uuid: definition.name,
+    };
     if (preset.headerFormat != ExportHeaderFormat.darwinCore) {
-      return ExportHeaderResolver._(preset, const {});
+      return ExportHeaderResolver._(preset, const {}, labels);
     }
 
     final sourceKeys = <String>{};
@@ -102,22 +113,40 @@ class ExportHeaderResolver {
         if (source != null) sourceKeys.add(source);
       }
     }
-    if (sourceKeys.isEmpty) return ExportHeaderResolver._(preset, const {});
+    if (sourceKeys.isEmpty) {
+      return ExportHeaderResolver._(preset, const {}, labels);
+    }
 
-    final resolved =
-        await rust_dwc.getDwcHeaders(sourceKeys: sourceKeys.toList());
-    return ExportHeaderResolver._(
-      preset,
-      {
-        for (final entry in resolved)
-          entry.sourceKey: DwcSourceMapping(
-            headers: entry.headers,
-            measurementType: entry.measurementType,
-            measurementUnit: entry.measurementUnit,
-            measurementUnitSource: entry.measurementUnitSource,
-          ),
-      },
+    final resolved = await rust_dwc.getDwcHeaders(
+      sourceKeys: sourceKeys.toList(),
     );
+    final mappings = {
+      for (final entry in resolved)
+        entry.sourceKey: DwcSourceMapping(
+          headers: entry.headers,
+          measurementType: entry.measurementType,
+          measurementUnit: entry.measurementUnit,
+          measurementUnitSource: entry.measurementUnitSource,
+        ),
+    };
+    for (final definition in definitions) {
+      final mapping = definition.dwcMapping;
+      if (mapping == null) continue;
+      final source =
+          '${_namespaceForPlacement(definition.placement)}::'
+          '${definition.uuid}';
+      mappings[source] = mapping.mode == DwcMappingMode.assertion
+          ? DwcSourceMapping(
+              headers: const [
+                'measurementType',
+                'measurementValue',
+                'measurementUnit',
+              ],
+              measurementType: definition.name,
+            )
+          : DwcSourceMapping(headers: [mapping.field]);
+    }
+    return ExportHeaderResolver._(preset, mappings, labels);
   }
 
   DwcSourceMapping? dwcMappingForSource(String source) => _dwcMappings[source];
@@ -138,26 +167,24 @@ class ExportHeaderResolver {
       if (mapping.nestedMode == NestedExportMode.concatenate &&
           mapping.nestedFields.length == 1) {
         return _headerForSource(
-            '${mapping.nestedNamespace}::${mapping.nestedFields.single}');
+          '${mapping.nestedNamespace}::${mapping.nestedFields.single}',
+        );
       }
       return mapping.nestedNamespace!;
     }
 
     final source = directExportSourceField(mapping.expression);
     if (source == null) {
-      final firstSource =
-          RegExp(r'\[([^\]\s]+)\]').firstMatch(mapping.expression)?.group(1);
+      final firstSource = RegExp(
+        r'\[([^\]\s]+)\]',
+      ).firstMatch(mapping.expression)?.group(1);
       if (firstSource != null) return _headerForSource(firstSource);
       return mapping.expression.trim();
     }
     return _headerForSource(source);
   }
 
-  String nestedHeader(
-    ExportFieldMapping mapping,
-    String field, {
-    int? index,
-  }) {
+  String nestedHeader(ExportFieldMapping mapping, String field, {int? index}) {
     final override = mapping.headerOverride?.trim();
     final source = '${mapping.nestedNamespace}::$field';
     if (usesStandardizedExportHeaders(preset.headerFormat) &&
@@ -166,36 +193,57 @@ class ExportHeaderResolver {
       return index == null
           ? header
           : formatIndexedExportHeader(
-              header, index, mapping.indexedHeaderStyle);
+              header,
+              index,
+              mapping.indexedHeaderStyle,
+            );
     }
 
-    final prefix =
-        override?.isNotEmpty == true ? override! : mapping.nestedNamespace!;
+    final prefix = override?.isNotEmpty == true
+        ? override!
+        : mapping.nestedNamespace!;
     final fieldName = preset.headerFormat == ExportHeaderFormat.fieldName
         ? field
         : usesStandardizedExportHeaders(preset.headerFormat)
-            ? _headerForSource(source)
-            : source;
+        ? _headerForSource(source)
+        : source;
     return index == null
         ? '${prefix}_$fieldName'
         : '${formatIndexedExportHeader(prefix, index, mapping.indexedHeaderStyle)}_$fieldName';
   }
 
   String _headerForSource(String source) {
+    final customLabel = _customLabel(source);
     return switch (preset.headerFormat) {
       ExportHeaderFormat.tableFieldName => source,
-      ExportHeaderFormat.fieldName => source.split('::').last,
-      ExportHeaderFormat.nahpuNamespace => _nahpuNamespace(source),
+      ExportHeaderFormat.fieldName => customLabel ?? source.split('::').last,
+      ExportHeaderFormat.nahpuNamespace => _nahpuNamespace(
+        source,
+        customLabel: customLabel,
+      ),
       ExportHeaderFormat.darwinCore =>
-        _dwcMappings[source]?.headers.first ?? _nahpuNamespace(source),
+        _dwcMappings[source]?.headers.first ??
+            _nahpuNamespace(source, customLabel: customLabel),
     };
   }
 
-  String _nahpuNamespace(String source) {
+  String? _customLabel(String source) {
+    if (!source.startsWith('custom')) return null;
+    return _customLabels[source.split('::').last];
+  }
+
+  String _nahpuNamespace(String source, {String? customLabel}) {
     final parts = source.split('::');
     if (parts.length != 2 || parts.any((part) => part.isEmpty)) {
       return 'nahpu:$source';
     }
-    return 'nahpu:${parts.first}.${parts.last}';
+    return 'nahpu:${parts.first}.${customLabel ?? parts.last}';
   }
 }
+
+String _namespaceForPlacement(FieldUISection placement) => switch (placement) {
+  FieldUISection.siteAttribute => 'customSite',
+  FieldUISection.specimenAttribute => 'customSpecimen',
+  FieldUISection.specimenPart => 'customSpecimenPart',
+  FieldUISection.parasite => 'customParasite',
+};

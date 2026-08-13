@@ -45,7 +45,10 @@ class PresetRecordExporter {
       return const PresetExportPreviewData(headers: [], rows: []);
     }
     final sourceRecords = await _sourceRecords();
-    final headerResolver = await ExportHeaderResolver.create(preset);
+    final headerResolver = await ExportHeaderResolver.create(
+      preset,
+      database: ref.read(databaseProvider),
+    );
     if (preset.headerFormat == ExportHeaderFormat.darwinCore) {
       return _darwinCorePreviewData(sourceRecords, headerResolver);
     }
@@ -69,7 +72,10 @@ class PresetRecordExporter {
     if (errors.isNotEmpty) throw ArgumentError(errors.join('\n'));
 
     final sourceRecords = await _sourceRecords();
-    final headerResolver = await ExportHeaderResolver.create(preset);
+    final headerResolver = await ExportHeaderResolver.create(
+      preset,
+      database: ref.read(databaseProvider),
+    );
     if (preset.headerFormat == ExportHeaderFormat.darwinCore) {
       if (format == ExportFmt.json) {
         throw ArgumentError(

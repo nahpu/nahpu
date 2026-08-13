@@ -22074,23 +22074,43 @@ class CustomFieldDefinition extends Table
     requiredDuringInsert: false,
     $customConstraints: 'UNIQUE PRIMARY KEY AUTOINCREMENT',
   );
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL UNIQUE',
+  );
+  static const VerificationMeta _sourceTemplateUuidMeta =
+      const VerificationMeta('sourceTemplateUuid');
+  late final GeneratedColumn<String> sourceTemplateUuid =
+      GeneratedColumn<String>(
+        'sourceTemplateUuid',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
     'type',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _uiSectionMeta = const VerificationMeta(
     'uiSection',
@@ -22098,10 +22118,10 @@ class CustomFieldDefinition extends Table
   late final GeneratedColumn<String> uiSection = GeneratedColumn<String>(
     'uiSection',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _optionsMeta = const VerificationMeta(
     'options',
@@ -22118,10 +22138,101 @@ class CustomFieldDefinition extends Table
   late final GeneratedColumn<String> scope = GeneratedColumn<String>(
     'scope',
     aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _projectUuidMeta = const VerificationMeta(
+    'projectUuid',
+  );
+  late final GeneratedColumn<String> projectUuid = GeneratedColumn<String>(
+    'projectUuid',
+    aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
+  );
+  static const VerificationMeta _catalogFormatMeta = const VerificationMeta(
+    'catalogFormat',
+  );
+  late final GeneratedColumn<String> catalogFormat = GeneratedColumn<String>(
+    'catalogFormat',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sortOrder',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _isArchivedMeta = const VerificationMeta(
+    'isArchived',
+  );
+  late final GeneratedColumn<int> isArchived = GeneratedColumn<int>(
+    'isArchived',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (isArchived IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _dwcTargetMeta = const VerificationMeta(
+    'dwcTarget',
+  );
+  late final GeneratedColumn<String> dwcTarget = GeneratedColumn<String>(
+    'dwcTarget',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _dwcFieldMeta = const VerificationMeta(
+    'dwcField',
+  );
+  late final GeneratedColumn<String> dwcField = GeneratedColumn<String>(
+    'dwcField',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _dwcModeMeta = const VerificationMeta(
+    'dwcMode',
+  );
+  late final GeneratedColumn<String> dwcMode = GeneratedColumn<String>(
+    'dwcMode',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _allowDwcConflictMeta = const VerificationMeta(
+    'allowDwcConflict',
+  );
+  late final GeneratedColumn<int> allowDwcConflict = GeneratedColumn<int>(
+    'allowDwcConflict',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (allowDwcConflict IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -22148,11 +22259,21 @@ class CustomFieldDefinition extends Table
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    uuid,
+    sourceTemplateUuid,
     name,
     type,
     uiSection,
     options,
     scope,
+    projectUuid,
+    catalogFormat,
+    sortOrder,
+    isArchived,
+    dwcTarget,
+    dwcField,
+    dwcMode,
+    allowDwcConflict,
     createdAt,
     updatedAt,
   ];
@@ -22171,23 +22292,46 @@ class CustomFieldDefinition extends Table
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('sourceTemplateUuid')) {
+      context.handle(
+        _sourceTemplateUuidMeta,
+        sourceTemplateUuid.isAcceptableOrUnknown(
+          data['sourceTemplateUuid']!,
+          _sourceTemplateUuidMeta,
+        ),
+      );
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
         name.isAcceptableOrUnknown(data['name']!, _nameMeta),
       );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
         _typeMeta,
         type.isAcceptableOrUnknown(data['type']!, _typeMeta),
       );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
     }
     if (data.containsKey('uiSection')) {
       context.handle(
         _uiSectionMeta,
         uiSection.isAcceptableOrUnknown(data['uiSection']!, _uiSectionMeta),
       );
+    } else if (isInserting) {
+      context.missing(_uiSectionMeta);
     }
     if (data.containsKey('options')) {
       context.handle(
@@ -22199,6 +22343,65 @@ class CustomFieldDefinition extends Table
       context.handle(
         _scopeMeta,
         scope.isAcceptableOrUnknown(data['scope']!, _scopeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeMeta);
+    }
+    if (data.containsKey('projectUuid')) {
+      context.handle(
+        _projectUuidMeta,
+        projectUuid.isAcceptableOrUnknown(
+          data['projectUuid']!,
+          _projectUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('catalogFormat')) {
+      context.handle(
+        _catalogFormatMeta,
+        catalogFormat.isAcceptableOrUnknown(
+          data['catalogFormat']!,
+          _catalogFormatMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sortOrder')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sortOrder']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('isArchived')) {
+      context.handle(
+        _isArchivedMeta,
+        isArchived.isAcceptableOrUnknown(data['isArchived']!, _isArchivedMeta),
+      );
+    }
+    if (data.containsKey('dwcTarget')) {
+      context.handle(
+        _dwcTargetMeta,
+        dwcTarget.isAcceptableOrUnknown(data['dwcTarget']!, _dwcTargetMeta),
+      );
+    }
+    if (data.containsKey('dwcField')) {
+      context.handle(
+        _dwcFieldMeta,
+        dwcField.isAcceptableOrUnknown(data['dwcField']!, _dwcFieldMeta),
+      );
+    }
+    if (data.containsKey('dwcMode')) {
+      context.handle(
+        _dwcModeMeta,
+        dwcMode.isAcceptableOrUnknown(data['dwcMode']!, _dwcModeMeta),
+      );
+    }
+    if (data.containsKey('allowDwcConflict')) {
+      context.handle(
+        _allowDwcConflictMeta,
+        allowDwcConflict.isAcceptableOrUnknown(
+          data['allowDwcConflict']!,
+          _allowDwcConflictMeta,
+        ),
       );
     }
     if (data.containsKey('createdAt')) {
@@ -22229,18 +22432,26 @@ class CustomFieldDefinition extends Table
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       ),
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      sourceTemplateUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sourceTemplateUuid'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
-      ),
+      )!,
       type: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}type'],
-      ),
+      )!,
       uiSection: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}uiSection'],
-      ),
+      )!,
       options: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}options'],
@@ -22248,7 +22459,39 @@ class CustomFieldDefinition extends Table
       scope: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}scope'],
+      )!,
+      projectUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}projectUuid'],
       ),
+      catalogFormat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalogFormat'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sortOrder'],
+      )!,
+      isArchived: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}isArchived'],
+      )!,
+      dwcTarget: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dwcTarget'],
+      ),
+      dwcField: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dwcField'],
+      ),
+      dwcMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dwcMode'],
+      ),
+      allowDwcConflict: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}allowDwcConflict'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}createdAt'],
@@ -22266,6 +22509,13 @@ class CustomFieldDefinition extends Table
   }
 
   @override
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE',
+    'CHECK((scope = \'global\' AND projectUuid IS NULL)OR(scope = \'project\' AND projectUuid IS NOT NULL))',
+    'CHECK(uiSection != \'siteAttribute\' OR catalogFormat IS NULL)',
+    'CHECK((dwcTarget IS NULL AND dwcField IS NULL AND dwcMode IS NULL)OR(dwcTarget IS NOT NULL AND dwcField IS NOT NULL AND dwcMode IS NOT NULL))',
+  ];
+  @override
   bool get dontWriteConstraints => true;
 }
 
@@ -22274,20 +22524,40 @@ class CustomFieldDefinitionData extends DataClass
   final int? id;
 
   /// internal id
-  final String? name;
-  final String? type;
-  final String? uiSection;
+  final String uuid;
+  final String? sourceTemplateUuid;
+  final String name;
+  final String type;
+  final String uiSection;
   final String? options;
-  final String? scope;
+  final String scope;
+  final String? projectUuid;
+  final String? catalogFormat;
+  final int sortOrder;
+  final int isArchived;
+  final String? dwcTarget;
+  final String? dwcField;
+  final String? dwcMode;
+  final int allowDwcConflict;
   final String? createdAt;
   final String? updatedAt;
   const CustomFieldDefinitionData({
     this.id,
-    this.name,
-    this.type,
-    this.uiSection,
+    required this.uuid,
+    this.sourceTemplateUuid,
+    required this.name,
+    required this.type,
+    required this.uiSection,
     this.options,
-    this.scope,
+    required this.scope,
+    this.projectUuid,
+    this.catalogFormat,
+    required this.sortOrder,
+    required this.isArchived,
+    this.dwcTarget,
+    this.dwcField,
+    this.dwcMode,
+    required this.allowDwcConflict,
     this.createdAt,
     this.updatedAt,
   });
@@ -22297,21 +22567,35 @@ class CustomFieldDefinitionData extends DataClass
     if (!nullToAbsent || id != null) {
       map['id'] = Variable<int>(id);
     }
-    if (!nullToAbsent || name != null) {
-      map['name'] = Variable<String>(name);
+    map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || sourceTemplateUuid != null) {
+      map['sourceTemplateUuid'] = Variable<String>(sourceTemplateUuid);
     }
-    if (!nullToAbsent || type != null) {
-      map['type'] = Variable<String>(type);
-    }
-    if (!nullToAbsent || uiSection != null) {
-      map['uiSection'] = Variable<String>(uiSection);
-    }
+    map['name'] = Variable<String>(name);
+    map['type'] = Variable<String>(type);
+    map['uiSection'] = Variable<String>(uiSection);
     if (!nullToAbsent || options != null) {
       map['options'] = Variable<String>(options);
     }
-    if (!nullToAbsent || scope != null) {
-      map['scope'] = Variable<String>(scope);
+    map['scope'] = Variable<String>(scope);
+    if (!nullToAbsent || projectUuid != null) {
+      map['projectUuid'] = Variable<String>(projectUuid);
     }
+    if (!nullToAbsent || catalogFormat != null) {
+      map['catalogFormat'] = Variable<String>(catalogFormat);
+    }
+    map['sortOrder'] = Variable<int>(sortOrder);
+    map['isArchived'] = Variable<int>(isArchived);
+    if (!nullToAbsent || dwcTarget != null) {
+      map['dwcTarget'] = Variable<String>(dwcTarget);
+    }
+    if (!nullToAbsent || dwcField != null) {
+      map['dwcField'] = Variable<String>(dwcField);
+    }
+    if (!nullToAbsent || dwcMode != null) {
+      map['dwcMode'] = Variable<String>(dwcMode);
+    }
+    map['allowDwcConflict'] = Variable<int>(allowDwcConflict);
     if (!nullToAbsent || createdAt != null) {
       map['createdAt'] = Variable<String>(createdAt);
     }
@@ -22324,17 +22608,35 @@ class CustomFieldDefinitionData extends DataClass
   CustomFieldDefinitionCompanion toCompanion(bool nullToAbsent) {
     return CustomFieldDefinitionCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      type: type == null && nullToAbsent ? const Value.absent() : Value(type),
-      uiSection: uiSection == null && nullToAbsent
+      uuid: Value(uuid),
+      sourceTemplateUuid: sourceTemplateUuid == null && nullToAbsent
           ? const Value.absent()
-          : Value(uiSection),
+          : Value(sourceTemplateUuid),
+      name: Value(name),
+      type: Value(type),
+      uiSection: Value(uiSection),
       options: options == null && nullToAbsent
           ? const Value.absent()
           : Value(options),
-      scope: scope == null && nullToAbsent
+      scope: Value(scope),
+      projectUuid: projectUuid == null && nullToAbsent
           ? const Value.absent()
-          : Value(scope),
+          : Value(projectUuid),
+      catalogFormat: catalogFormat == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogFormat),
+      sortOrder: Value(sortOrder),
+      isArchived: Value(isArchived),
+      dwcTarget: dwcTarget == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dwcTarget),
+      dwcField: dwcField == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dwcField),
+      dwcMode: dwcMode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dwcMode),
+      allowDwcConflict: Value(allowDwcConflict),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -22351,11 +22653,23 @@ class CustomFieldDefinitionData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CustomFieldDefinitionData(
       id: serializer.fromJson<int?>(json['id']),
-      name: serializer.fromJson<String?>(json['name']),
-      type: serializer.fromJson<String?>(json['type']),
-      uiSection: serializer.fromJson<String?>(json['uiSection']),
+      uuid: serializer.fromJson<String>(json['uuid']),
+      sourceTemplateUuid: serializer.fromJson<String?>(
+        json['sourceTemplateUuid'],
+      ),
+      name: serializer.fromJson<String>(json['name']),
+      type: serializer.fromJson<String>(json['type']),
+      uiSection: serializer.fromJson<String>(json['uiSection']),
       options: serializer.fromJson<String?>(json['options']),
-      scope: serializer.fromJson<String?>(json['scope']),
+      scope: serializer.fromJson<String>(json['scope']),
+      projectUuid: serializer.fromJson<String?>(json['projectUuid']),
+      catalogFormat: serializer.fromJson<String?>(json['catalogFormat']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      isArchived: serializer.fromJson<int>(json['isArchived']),
+      dwcTarget: serializer.fromJson<String?>(json['dwcTarget']),
+      dwcField: serializer.fromJson<String?>(json['dwcField']),
+      dwcMode: serializer.fromJson<String?>(json['dwcMode']),
+      allowDwcConflict: serializer.fromJson<int>(json['allowDwcConflict']),
       createdAt: serializer.fromJson<String?>(json['createdAt']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
@@ -22365,11 +22679,21 @@ class CustomFieldDefinitionData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int?>(id),
-      'name': serializer.toJson<String?>(name),
-      'type': serializer.toJson<String?>(type),
-      'uiSection': serializer.toJson<String?>(uiSection),
+      'uuid': serializer.toJson<String>(uuid),
+      'sourceTemplateUuid': serializer.toJson<String?>(sourceTemplateUuid),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(type),
+      'uiSection': serializer.toJson<String>(uiSection),
       'options': serializer.toJson<String?>(options),
-      'scope': serializer.toJson<String?>(scope),
+      'scope': serializer.toJson<String>(scope),
+      'projectUuid': serializer.toJson<String?>(projectUuid),
+      'catalogFormat': serializer.toJson<String?>(catalogFormat),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'isArchived': serializer.toJson<int>(isArchived),
+      'dwcTarget': serializer.toJson<String?>(dwcTarget),
+      'dwcField': serializer.toJson<String?>(dwcField),
+      'dwcMode': serializer.toJson<String?>(dwcMode),
+      'allowDwcConflict': serializer.toJson<int>(allowDwcConflict),
       'createdAt': serializer.toJson<String?>(createdAt),
       'updatedAt': serializer.toJson<String?>(updatedAt),
     };
@@ -22377,20 +22701,44 @@ class CustomFieldDefinitionData extends DataClass
 
   CustomFieldDefinitionData copyWith({
     Value<int?> id = const Value.absent(),
-    Value<String?> name = const Value.absent(),
-    Value<String?> type = const Value.absent(),
-    Value<String?> uiSection = const Value.absent(),
+    String? uuid,
+    Value<String?> sourceTemplateUuid = const Value.absent(),
+    String? name,
+    String? type,
+    String? uiSection,
     Value<String?> options = const Value.absent(),
-    Value<String?> scope = const Value.absent(),
+    String? scope,
+    Value<String?> projectUuid = const Value.absent(),
+    Value<String?> catalogFormat = const Value.absent(),
+    int? sortOrder,
+    int? isArchived,
+    Value<String?> dwcTarget = const Value.absent(),
+    Value<String?> dwcField = const Value.absent(),
+    Value<String?> dwcMode = const Value.absent(),
+    int? allowDwcConflict,
     Value<String?> createdAt = const Value.absent(),
     Value<String?> updatedAt = const Value.absent(),
   }) => CustomFieldDefinitionData(
     id: id.present ? id.value : this.id,
-    name: name.present ? name.value : this.name,
-    type: type.present ? type.value : this.type,
-    uiSection: uiSection.present ? uiSection.value : this.uiSection,
+    uuid: uuid ?? this.uuid,
+    sourceTemplateUuid: sourceTemplateUuid.present
+        ? sourceTemplateUuid.value
+        : this.sourceTemplateUuid,
+    name: name ?? this.name,
+    type: type ?? this.type,
+    uiSection: uiSection ?? this.uiSection,
     options: options.present ? options.value : this.options,
-    scope: scope.present ? scope.value : this.scope,
+    scope: scope ?? this.scope,
+    projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
+    catalogFormat: catalogFormat.present
+        ? catalogFormat.value
+        : this.catalogFormat,
+    sortOrder: sortOrder ?? this.sortOrder,
+    isArchived: isArchived ?? this.isArchived,
+    dwcTarget: dwcTarget.present ? dwcTarget.value : this.dwcTarget,
+    dwcField: dwcField.present ? dwcField.value : this.dwcField,
+    dwcMode: dwcMode.present ? dwcMode.value : this.dwcMode,
+    allowDwcConflict: allowDwcConflict ?? this.allowDwcConflict,
     createdAt: createdAt.present ? createdAt.value : this.createdAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
@@ -22399,11 +22747,31 @@ class CustomFieldDefinitionData extends DataClass
   ) {
     return CustomFieldDefinitionData(
       id: data.id.present ? data.id.value : this.id,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      sourceTemplateUuid: data.sourceTemplateUuid.present
+          ? data.sourceTemplateUuid.value
+          : this.sourceTemplateUuid,
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
       uiSection: data.uiSection.present ? data.uiSection.value : this.uiSection,
       options: data.options.present ? data.options.value : this.options,
       scope: data.scope.present ? data.scope.value : this.scope,
+      projectUuid: data.projectUuid.present
+          ? data.projectUuid.value
+          : this.projectUuid,
+      catalogFormat: data.catalogFormat.present
+          ? data.catalogFormat.value
+          : this.catalogFormat,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      isArchived: data.isArchived.present
+          ? data.isArchived.value
+          : this.isArchived,
+      dwcTarget: data.dwcTarget.present ? data.dwcTarget.value : this.dwcTarget,
+      dwcField: data.dwcField.present ? data.dwcField.value : this.dwcField,
+      dwcMode: data.dwcMode.present ? data.dwcMode.value : this.dwcMode,
+      allowDwcConflict: data.allowDwcConflict.present
+          ? data.allowDwcConflict.value
+          : this.allowDwcConflict,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -22413,11 +22781,21 @@ class CustomFieldDefinitionData extends DataClass
   String toString() {
     return (StringBuffer('CustomFieldDefinitionData(')
           ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
+          ..write('sourceTemplateUuid: $sourceTemplateUuid, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
           ..write('uiSection: $uiSection, ')
           ..write('options: $options, ')
           ..write('scope: $scope, ')
+          ..write('projectUuid: $projectUuid, ')
+          ..write('catalogFormat: $catalogFormat, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('dwcTarget: $dwcTarget, ')
+          ..write('dwcField: $dwcField, ')
+          ..write('dwcMode: $dwcMode, ')
+          ..write('allowDwcConflict: $allowDwcConflict, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -22427,11 +22805,21 @@ class CustomFieldDefinitionData extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    uuid,
+    sourceTemplateUuid,
     name,
     type,
     uiSection,
     options,
     scope,
+    projectUuid,
+    catalogFormat,
+    sortOrder,
+    isArchived,
+    dwcTarget,
+    dwcField,
+    dwcMode,
+    allowDwcConflict,
     createdAt,
     updatedAt,
   );
@@ -22440,11 +22828,21 @@ class CustomFieldDefinitionData extends DataClass
       identical(this, other) ||
       (other is CustomFieldDefinitionData &&
           other.id == this.id &&
+          other.uuid == this.uuid &&
+          other.sourceTemplateUuid == this.sourceTemplateUuid &&
           other.name == this.name &&
           other.type == this.type &&
           other.uiSection == this.uiSection &&
           other.options == this.options &&
           other.scope == this.scope &&
+          other.projectUuid == this.projectUuid &&
+          other.catalogFormat == this.catalogFormat &&
+          other.sortOrder == this.sortOrder &&
+          other.isArchived == this.isArchived &&
+          other.dwcTarget == this.dwcTarget &&
+          other.dwcField == this.dwcField &&
+          other.dwcMode == this.dwcMode &&
+          other.allowDwcConflict == this.allowDwcConflict &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -22452,50 +22850,104 @@ class CustomFieldDefinitionData extends DataClass
 class CustomFieldDefinitionCompanion
     extends UpdateCompanion<CustomFieldDefinitionData> {
   final Value<int?> id;
-  final Value<String?> name;
-  final Value<String?> type;
-  final Value<String?> uiSection;
+  final Value<String> uuid;
+  final Value<String?> sourceTemplateUuid;
+  final Value<String> name;
+  final Value<String> type;
+  final Value<String> uiSection;
   final Value<String?> options;
-  final Value<String?> scope;
+  final Value<String> scope;
+  final Value<String?> projectUuid;
+  final Value<String?> catalogFormat;
+  final Value<int> sortOrder;
+  final Value<int> isArchived;
+  final Value<String?> dwcTarget;
+  final Value<String?> dwcField;
+  final Value<String?> dwcMode;
+  final Value<int> allowDwcConflict;
   final Value<String?> createdAt;
   final Value<String?> updatedAt;
   const CustomFieldDefinitionCompanion({
     this.id = const Value.absent(),
+    this.uuid = const Value.absent(),
+    this.sourceTemplateUuid = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
     this.uiSection = const Value.absent(),
     this.options = const Value.absent(),
     this.scope = const Value.absent(),
+    this.projectUuid = const Value.absent(),
+    this.catalogFormat = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.dwcTarget = const Value.absent(),
+    this.dwcField = const Value.absent(),
+    this.dwcMode = const Value.absent(),
+    this.allowDwcConflict = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   CustomFieldDefinitionCompanion.insert({
     this.id = const Value.absent(),
-    this.name = const Value.absent(),
-    this.type = const Value.absent(),
-    this.uiSection = const Value.absent(),
+    required String uuid,
+    this.sourceTemplateUuid = const Value.absent(),
+    required String name,
+    required String type,
+    required String uiSection,
     this.options = const Value.absent(),
-    this.scope = const Value.absent(),
+    required String scope,
+    this.projectUuid = const Value.absent(),
+    this.catalogFormat = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.dwcTarget = const Value.absent(),
+    this.dwcField = const Value.absent(),
+    this.dwcMode = const Value.absent(),
+    this.allowDwcConflict = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  });
+  }) : uuid = Value(uuid),
+       name = Value(name),
+       type = Value(type),
+       uiSection = Value(uiSection),
+       scope = Value(scope);
   static Insertable<CustomFieldDefinitionData> custom({
     Expression<int>? id,
+    Expression<String>? uuid,
+    Expression<String>? sourceTemplateUuid,
     Expression<String>? name,
     Expression<String>? type,
     Expression<String>? uiSection,
     Expression<String>? options,
     Expression<String>? scope,
+    Expression<String>? projectUuid,
+    Expression<String>? catalogFormat,
+    Expression<int>? sortOrder,
+    Expression<int>? isArchived,
+    Expression<String>? dwcTarget,
+    Expression<String>? dwcField,
+    Expression<String>? dwcMode,
+    Expression<int>? allowDwcConflict,
     Expression<String>? createdAt,
     Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (uuid != null) 'uuid': uuid,
+      if (sourceTemplateUuid != null) 'sourceTemplateUuid': sourceTemplateUuid,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
       if (uiSection != null) 'uiSection': uiSection,
       if (options != null) 'options': options,
       if (scope != null) 'scope': scope,
+      if (projectUuid != null) 'projectUuid': projectUuid,
+      if (catalogFormat != null) 'catalogFormat': catalogFormat,
+      if (sortOrder != null) 'sortOrder': sortOrder,
+      if (isArchived != null) 'isArchived': isArchived,
+      if (dwcTarget != null) 'dwcTarget': dwcTarget,
+      if (dwcField != null) 'dwcField': dwcField,
+      if (dwcMode != null) 'dwcMode': dwcMode,
+      if (allowDwcConflict != null) 'allowDwcConflict': allowDwcConflict,
       if (createdAt != null) 'createdAt': createdAt,
       if (updatedAt != null) 'updatedAt': updatedAt,
     });
@@ -22503,21 +22955,41 @@ class CustomFieldDefinitionCompanion
 
   CustomFieldDefinitionCompanion copyWith({
     Value<int?>? id,
-    Value<String?>? name,
-    Value<String?>? type,
-    Value<String?>? uiSection,
+    Value<String>? uuid,
+    Value<String?>? sourceTemplateUuid,
+    Value<String>? name,
+    Value<String>? type,
+    Value<String>? uiSection,
     Value<String?>? options,
-    Value<String?>? scope,
+    Value<String>? scope,
+    Value<String?>? projectUuid,
+    Value<String?>? catalogFormat,
+    Value<int>? sortOrder,
+    Value<int>? isArchived,
+    Value<String?>? dwcTarget,
+    Value<String?>? dwcField,
+    Value<String?>? dwcMode,
+    Value<int>? allowDwcConflict,
     Value<String?>? createdAt,
     Value<String?>? updatedAt,
   }) {
     return CustomFieldDefinitionCompanion(
       id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      sourceTemplateUuid: sourceTemplateUuid ?? this.sourceTemplateUuid,
       name: name ?? this.name,
       type: type ?? this.type,
       uiSection: uiSection ?? this.uiSection,
       options: options ?? this.options,
       scope: scope ?? this.scope,
+      projectUuid: projectUuid ?? this.projectUuid,
+      catalogFormat: catalogFormat ?? this.catalogFormat,
+      sortOrder: sortOrder ?? this.sortOrder,
+      isArchived: isArchived ?? this.isArchived,
+      dwcTarget: dwcTarget ?? this.dwcTarget,
+      dwcField: dwcField ?? this.dwcField,
+      dwcMode: dwcMode ?? this.dwcMode,
+      allowDwcConflict: allowDwcConflict ?? this.allowDwcConflict,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -22528,6 +23000,12 @@ class CustomFieldDefinitionCompanion
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (sourceTemplateUuid.present) {
+      map['sourceTemplateUuid'] = Variable<String>(sourceTemplateUuid.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -22544,6 +23022,30 @@ class CustomFieldDefinitionCompanion
     if (scope.present) {
       map['scope'] = Variable<String>(scope.value);
     }
+    if (projectUuid.present) {
+      map['projectUuid'] = Variable<String>(projectUuid.value);
+    }
+    if (catalogFormat.present) {
+      map['catalogFormat'] = Variable<String>(catalogFormat.value);
+    }
+    if (sortOrder.present) {
+      map['sortOrder'] = Variable<int>(sortOrder.value);
+    }
+    if (isArchived.present) {
+      map['isArchived'] = Variable<int>(isArchived.value);
+    }
+    if (dwcTarget.present) {
+      map['dwcTarget'] = Variable<String>(dwcTarget.value);
+    }
+    if (dwcField.present) {
+      map['dwcField'] = Variable<String>(dwcField.value);
+    }
+    if (dwcMode.present) {
+      map['dwcMode'] = Variable<String>(dwcMode.value);
+    }
+    if (allowDwcConflict.present) {
+      map['allowDwcConflict'] = Variable<int>(allowDwcConflict.value);
+    }
     if (createdAt.present) {
       map['createdAt'] = Variable<String>(createdAt.value);
     }
@@ -22557,11 +23059,21 @@ class CustomFieldDefinitionCompanion
   String toString() {
     return (StringBuffer('CustomFieldDefinitionCompanion(')
           ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
+          ..write('sourceTemplateUuid: $sourceTemplateUuid, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
           ..write('uiSection: $uiSection, ')
           ..write('options: $options, ')
           ..write('scope: $scope, ')
+          ..write('projectUuid: $projectUuid, ')
+          ..write('catalogFormat: $catalogFormat, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('dwcTarget: $dwcTarget, ')
+          ..write('dwcField: $dwcField, ')
+          ..write('dwcMode: $dwcMode, ')
+          ..write('allowDwcConflict: $allowDwcConflict, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -22591,10 +23103,10 @@ class CustomFieldValue extends Table
   late final GeneratedColumn<int> fieldDefinitionId = GeneratedColumn<int>(
     'fieldDefinitionId',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _projectUuidMeta = const VerificationMeta(
     'projectUuid',
@@ -22611,10 +23123,10 @@ class CustomFieldValue extends Table
   late final GeneratedColumn<String> value = GeneratedColumn<String>(
     'value',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _unitMeta = const VerificationMeta('unit');
   late final GeneratedColumn<String> unit = GeneratedColumn<String>(
@@ -22625,6 +23137,60 @@ class CustomFieldValue extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _siteIdMeta = const VerificationMeta('siteId');
+  late final GeneratedColumn<int> siteId = GeneratedColumn<int>(
+    'siteId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
+    'specimenUuid',
+  );
+  late final GeneratedColumn<String> specimenUuid = GeneratedColumn<String>(
+    'specimenUuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _specimenPartIdMeta = const VerificationMeta(
+    'specimenPartId',
+  );
+  late final GeneratedColumn<int> specimenPartId = GeneratedColumn<int>(
+    'specimenPartId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _parasiteIdMeta = const VerificationMeta(
+    'parasiteId',
+  );
+  late final GeneratedColumn<int> parasiteId = GeneratedColumn<int>(
+    'parasiteId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _isLegacyMeta = const VerificationMeta(
+    'isLegacy',
+  );
+  late final GeneratedColumn<int> isLegacy = GeneratedColumn<int>(
+    'isLegacy',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (isLegacy IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -22632,6 +23198,11 @@ class CustomFieldValue extends Table
     projectUuid,
     value,
     unit,
+    siteId,
+    specimenUuid,
+    specimenPartId,
+    parasiteId,
+    isLegacy,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -22656,6 +23227,8 @@ class CustomFieldValue extends Table
           _fieldDefinitionIdMeta,
         ),
       );
+    } else if (isInserting) {
+      context.missing(_fieldDefinitionIdMeta);
     }
     if (data.containsKey('projectUuid')) {
       context.handle(
@@ -22671,11 +23244,49 @@ class CustomFieldValue extends Table
         _valueMeta,
         value.isAcceptableOrUnknown(data['value']!, _valueMeta),
       );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
     }
     if (data.containsKey('unit')) {
       context.handle(
         _unitMeta,
         unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('siteId')) {
+      context.handle(
+        _siteIdMeta,
+        siteId.isAcceptableOrUnknown(data['siteId']!, _siteIdMeta),
+      );
+    }
+    if (data.containsKey('specimenUuid')) {
+      context.handle(
+        _specimenUuidMeta,
+        specimenUuid.isAcceptableOrUnknown(
+          data['specimenUuid']!,
+          _specimenUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('specimenPartId')) {
+      context.handle(
+        _specimenPartIdMeta,
+        specimenPartId.isAcceptableOrUnknown(
+          data['specimenPartId']!,
+          _specimenPartIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('parasiteId')) {
+      context.handle(
+        _parasiteIdMeta,
+        parasiteId.isAcceptableOrUnknown(data['parasiteId']!, _parasiteIdMeta),
+      );
+    }
+    if (data.containsKey('isLegacy')) {
+      context.handle(
+        _isLegacyMeta,
+        isLegacy.isAcceptableOrUnknown(data['isLegacy']!, _isLegacyMeta),
       );
     }
     return context;
@@ -22694,7 +23305,7 @@ class CustomFieldValue extends Table
       fieldDefinitionId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}fieldDefinitionId'],
-      ),
+      )!,
       projectUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}projectUuid'],
@@ -22702,11 +23313,31 @@ class CustomFieldValue extends Table
       value: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}value'],
-      ),
+      )!,
       unit: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}unit'],
       ),
+      siteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}siteId'],
+      ),
+      specimenUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}specimenUuid'],
+      ),
+      specimenPartId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}specimenPartId'],
+      ),
+      parasiteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}parasiteId'],
+      ),
+      isLegacy: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}isLegacy'],
+      )!,
     );
   }
 
@@ -22717,8 +23348,13 @@ class CustomFieldValue extends Table
 
   @override
   List<String> get customConstraints => const [
-    'FOREIGN KEY(fieldDefinitionId)REFERENCES customFieldDefinition(id)',
-    'FOREIGN KEY(projectUuid)REFERENCES project(uuid)',
+    'FOREIGN KEY(fieldDefinitionId)REFERENCES customFieldDefinition(id)ON DELETE CASCADE',
+    'FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE',
+    'FOREIGN KEY(siteId)REFERENCES site(id)ON DELETE CASCADE',
+    'FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE',
+    'FOREIGN KEY(specimenPartId)REFERENCES specimenPart(id)ON DELETE CASCADE',
+    'FOREIGN KEY(parasiteId)REFERENCES parasite(id)ON DELETE CASCADE',
+    'CHECK((isLegacy = 1 AND siteId IS NULL AND specimenUuid IS NULL AND specimenPartId IS NULL AND parasiteId IS NULL)OR(isLegacy = 0 AND projectUuid IS NOT NULL AND((siteId IS NOT NULL)+(specimenUuid IS NOT NULL)+(specimenPartId IS NOT NULL)+(parasiteId IS NOT NULL))= 1))',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -22729,16 +23365,26 @@ class CustomFieldValueData extends DataClass
   final int? id;
 
   /// internal id
-  final int? fieldDefinitionId;
+  final int fieldDefinitionId;
   final String? projectUuid;
-  final String? value;
+  final String value;
   final String? unit;
+  final int? siteId;
+  final String? specimenUuid;
+  final int? specimenPartId;
+  final int? parasiteId;
+  final int isLegacy;
   const CustomFieldValueData({
     this.id,
-    this.fieldDefinitionId,
+    required this.fieldDefinitionId,
     this.projectUuid,
-    this.value,
+    required this.value,
     this.unit,
+    this.siteId,
+    this.specimenUuid,
+    this.specimenPartId,
+    this.parasiteId,
+    required this.isLegacy,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -22746,34 +23392,52 @@ class CustomFieldValueData extends DataClass
     if (!nullToAbsent || id != null) {
       map['id'] = Variable<int>(id);
     }
-    if (!nullToAbsent || fieldDefinitionId != null) {
-      map['fieldDefinitionId'] = Variable<int>(fieldDefinitionId);
-    }
+    map['fieldDefinitionId'] = Variable<int>(fieldDefinitionId);
     if (!nullToAbsent || projectUuid != null) {
       map['projectUuid'] = Variable<String>(projectUuid);
     }
-    if (!nullToAbsent || value != null) {
-      map['value'] = Variable<String>(value);
-    }
+    map['value'] = Variable<String>(value);
     if (!nullToAbsent || unit != null) {
       map['unit'] = Variable<String>(unit);
     }
+    if (!nullToAbsent || siteId != null) {
+      map['siteId'] = Variable<int>(siteId);
+    }
+    if (!nullToAbsent || specimenUuid != null) {
+      map['specimenUuid'] = Variable<String>(specimenUuid);
+    }
+    if (!nullToAbsent || specimenPartId != null) {
+      map['specimenPartId'] = Variable<int>(specimenPartId);
+    }
+    if (!nullToAbsent || parasiteId != null) {
+      map['parasiteId'] = Variable<int>(parasiteId);
+    }
+    map['isLegacy'] = Variable<int>(isLegacy);
     return map;
   }
 
   CustomFieldValueCompanion toCompanion(bool nullToAbsent) {
     return CustomFieldValueCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      fieldDefinitionId: fieldDefinitionId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(fieldDefinitionId),
+      fieldDefinitionId: Value(fieldDefinitionId),
       projectUuid: projectUuid == null && nullToAbsent
           ? const Value.absent()
           : Value(projectUuid),
-      value: value == null && nullToAbsent
-          ? const Value.absent()
-          : Value(value),
+      value: Value(value),
       unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      siteId: siteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(siteId),
+      specimenUuid: specimenUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specimenUuid),
+      specimenPartId: specimenPartId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specimenPartId),
+      parasiteId: parasiteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parasiteId),
+      isLegacy: Value(isLegacy),
     );
   }
 
@@ -22784,10 +23448,15 @@ class CustomFieldValueData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CustomFieldValueData(
       id: serializer.fromJson<int?>(json['id']),
-      fieldDefinitionId: serializer.fromJson<int?>(json['fieldDefinitionId']),
+      fieldDefinitionId: serializer.fromJson<int>(json['fieldDefinitionId']),
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
-      value: serializer.fromJson<String?>(json['value']),
+      value: serializer.fromJson<String>(json['value']),
       unit: serializer.fromJson<String?>(json['unit']),
+      siteId: serializer.fromJson<int?>(json['siteId']),
+      specimenUuid: serializer.fromJson<String?>(json['specimenUuid']),
+      specimenPartId: serializer.fromJson<int?>(json['specimenPartId']),
+      parasiteId: serializer.fromJson<int?>(json['parasiteId']),
+      isLegacy: serializer.fromJson<int>(json['isLegacy']),
     );
   }
   @override
@@ -22795,27 +23464,42 @@ class CustomFieldValueData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int?>(id),
-      'fieldDefinitionId': serializer.toJson<int?>(fieldDefinitionId),
+      'fieldDefinitionId': serializer.toJson<int>(fieldDefinitionId),
       'projectUuid': serializer.toJson<String?>(projectUuid),
-      'value': serializer.toJson<String?>(value),
+      'value': serializer.toJson<String>(value),
       'unit': serializer.toJson<String?>(unit),
+      'siteId': serializer.toJson<int?>(siteId),
+      'specimenUuid': serializer.toJson<String?>(specimenUuid),
+      'specimenPartId': serializer.toJson<int?>(specimenPartId),
+      'parasiteId': serializer.toJson<int?>(parasiteId),
+      'isLegacy': serializer.toJson<int>(isLegacy),
     };
   }
 
   CustomFieldValueData copyWith({
     Value<int?> id = const Value.absent(),
-    Value<int?> fieldDefinitionId = const Value.absent(),
+    int? fieldDefinitionId,
     Value<String?> projectUuid = const Value.absent(),
-    Value<String?> value = const Value.absent(),
+    String? value,
     Value<String?> unit = const Value.absent(),
+    Value<int?> siteId = const Value.absent(),
+    Value<String?> specimenUuid = const Value.absent(),
+    Value<int?> specimenPartId = const Value.absent(),
+    Value<int?> parasiteId = const Value.absent(),
+    int? isLegacy,
   }) => CustomFieldValueData(
     id: id.present ? id.value : this.id,
-    fieldDefinitionId: fieldDefinitionId.present
-        ? fieldDefinitionId.value
-        : this.fieldDefinitionId,
+    fieldDefinitionId: fieldDefinitionId ?? this.fieldDefinitionId,
     projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
-    value: value.present ? value.value : this.value,
+    value: value ?? this.value,
     unit: unit.present ? unit.value : this.unit,
+    siteId: siteId.present ? siteId.value : this.siteId,
+    specimenUuid: specimenUuid.present ? specimenUuid.value : this.specimenUuid,
+    specimenPartId: specimenPartId.present
+        ? specimenPartId.value
+        : this.specimenPartId,
+    parasiteId: parasiteId.present ? parasiteId.value : this.parasiteId,
+    isLegacy: isLegacy ?? this.isLegacy,
   );
   CustomFieldValueData copyWithCompanion(CustomFieldValueCompanion data) {
     return CustomFieldValueData(
@@ -22828,6 +23512,17 @@ class CustomFieldValueData extends DataClass
           : this.projectUuid,
       value: data.value.present ? data.value.value : this.value,
       unit: data.unit.present ? data.unit.value : this.unit,
+      siteId: data.siteId.present ? data.siteId.value : this.siteId,
+      specimenUuid: data.specimenUuid.present
+          ? data.specimenUuid.value
+          : this.specimenUuid,
+      specimenPartId: data.specimenPartId.present
+          ? data.specimenPartId.value
+          : this.specimenPartId,
+      parasiteId: data.parasiteId.present
+          ? data.parasiteId.value
+          : this.parasiteId,
+      isLegacy: data.isLegacy.present ? data.isLegacy.value : this.isLegacy,
     );
   }
 
@@ -22838,14 +23533,29 @@ class CustomFieldValueData extends DataClass
           ..write('fieldDefinitionId: $fieldDefinitionId, ')
           ..write('projectUuid: $projectUuid, ')
           ..write('value: $value, ')
-          ..write('unit: $unit')
+          ..write('unit: $unit, ')
+          ..write('siteId: $siteId, ')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('specimenPartId: $specimenPartId, ')
+          ..write('parasiteId: $parasiteId, ')
+          ..write('isLegacy: $isLegacy')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, fieldDefinitionId, projectUuid, value, unit);
+  int get hashCode => Object.hash(
+    id,
+    fieldDefinitionId,
+    projectUuid,
+    value,
+    unit,
+    siteId,
+    specimenUuid,
+    specimenPartId,
+    parasiteId,
+    isLegacy,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -22854,35 +23564,61 @@ class CustomFieldValueData extends DataClass
           other.fieldDefinitionId == this.fieldDefinitionId &&
           other.projectUuid == this.projectUuid &&
           other.value == this.value &&
-          other.unit == this.unit);
+          other.unit == this.unit &&
+          other.siteId == this.siteId &&
+          other.specimenUuid == this.specimenUuid &&
+          other.specimenPartId == this.specimenPartId &&
+          other.parasiteId == this.parasiteId &&
+          other.isLegacy == this.isLegacy);
 }
 
 class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
   final Value<int?> id;
-  final Value<int?> fieldDefinitionId;
+  final Value<int> fieldDefinitionId;
   final Value<String?> projectUuid;
-  final Value<String?> value;
+  final Value<String> value;
   final Value<String?> unit;
+  final Value<int?> siteId;
+  final Value<String?> specimenUuid;
+  final Value<int?> specimenPartId;
+  final Value<int?> parasiteId;
+  final Value<int> isLegacy;
   const CustomFieldValueCompanion({
     this.id = const Value.absent(),
     this.fieldDefinitionId = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.value = const Value.absent(),
     this.unit = const Value.absent(),
+    this.siteId = const Value.absent(),
+    this.specimenUuid = const Value.absent(),
+    this.specimenPartId = const Value.absent(),
+    this.parasiteId = const Value.absent(),
+    this.isLegacy = const Value.absent(),
   });
   CustomFieldValueCompanion.insert({
     this.id = const Value.absent(),
-    this.fieldDefinitionId = const Value.absent(),
+    required int fieldDefinitionId,
     this.projectUuid = const Value.absent(),
-    this.value = const Value.absent(),
+    required String value,
     this.unit = const Value.absent(),
-  });
+    this.siteId = const Value.absent(),
+    this.specimenUuid = const Value.absent(),
+    this.specimenPartId = const Value.absent(),
+    this.parasiteId = const Value.absent(),
+    this.isLegacy = const Value.absent(),
+  }) : fieldDefinitionId = Value(fieldDefinitionId),
+       value = Value(value);
   static Insertable<CustomFieldValueData> custom({
     Expression<int>? id,
     Expression<int>? fieldDefinitionId,
     Expression<String>? projectUuid,
     Expression<String>? value,
     Expression<String>? unit,
+    Expression<int>? siteId,
+    Expression<String>? specimenUuid,
+    Expression<int>? specimenPartId,
+    Expression<int>? parasiteId,
+    Expression<int>? isLegacy,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -22890,15 +23626,25 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
       if (projectUuid != null) 'projectUuid': projectUuid,
       if (value != null) 'value': value,
       if (unit != null) 'unit': unit,
+      if (siteId != null) 'siteId': siteId,
+      if (specimenUuid != null) 'specimenUuid': specimenUuid,
+      if (specimenPartId != null) 'specimenPartId': specimenPartId,
+      if (parasiteId != null) 'parasiteId': parasiteId,
+      if (isLegacy != null) 'isLegacy': isLegacy,
     });
   }
 
   CustomFieldValueCompanion copyWith({
     Value<int?>? id,
-    Value<int?>? fieldDefinitionId,
+    Value<int>? fieldDefinitionId,
     Value<String?>? projectUuid,
-    Value<String?>? value,
+    Value<String>? value,
     Value<String?>? unit,
+    Value<int?>? siteId,
+    Value<String?>? specimenUuid,
+    Value<int?>? specimenPartId,
+    Value<int?>? parasiteId,
+    Value<int>? isLegacy,
   }) {
     return CustomFieldValueCompanion(
       id: id ?? this.id,
@@ -22906,6 +23652,11 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
       projectUuid: projectUuid ?? this.projectUuid,
       value: value ?? this.value,
       unit: unit ?? this.unit,
+      siteId: siteId ?? this.siteId,
+      specimenUuid: specimenUuid ?? this.specimenUuid,
+      specimenPartId: specimenPartId ?? this.specimenPartId,
+      parasiteId: parasiteId ?? this.parasiteId,
+      isLegacy: isLegacy ?? this.isLegacy,
     );
   }
 
@@ -22927,6 +23678,21 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     if (unit.present) {
       map['unit'] = Variable<String>(unit.value);
     }
+    if (siteId.present) {
+      map['siteId'] = Variable<int>(siteId.value);
+    }
+    if (specimenUuid.present) {
+      map['specimenUuid'] = Variable<String>(specimenUuid.value);
+    }
+    if (specimenPartId.present) {
+      map['specimenPartId'] = Variable<int>(specimenPartId.value);
+    }
+    if (parasiteId.present) {
+      map['parasiteId'] = Variable<int>(parasiteId.value);
+    }
+    if (isLegacy.present) {
+      map['isLegacy'] = Variable<int>(isLegacy.value);
+    }
     return map;
   }
 
@@ -22937,7 +23703,12 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
           ..write('fieldDefinitionId: $fieldDefinitionId, ')
           ..write('projectUuid: $projectUuid, ')
           ..write('value: $value, ')
-          ..write('unit: $unit')
+          ..write('unit: $unit, ')
+          ..write('siteId: $siteId, ')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('specimenPartId: $specimenPartId, ')
+          ..write('parasiteId: $parasiteId, ')
+          ..write('isLegacy: $isLegacy')
           ..write(')'))
         .toString();
   }
@@ -22994,6 +23765,34 @@ abstract class _$Database extends GeneratedDatabase {
   late final CustomFieldDefinition customFieldDefinition =
       CustomFieldDefinition(this);
   late final CustomFieldValue customFieldValue = CustomFieldValue(this);
+  late final Index customFieldSiteValueIdx = Index(
+    'custom_field_site_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_site_value_idx ON customFieldValue (fieldDefinitionId, siteId) WHERE siteId IS NOT NULL',
+  );
+  late final Index customFieldSpecimenValueIdx = Index(
+    'custom_field_specimen_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_specimen_value_idx ON customFieldValue (fieldDefinitionId, specimenUuid) WHERE specimenUuid IS NOT NULL',
+  );
+  late final Index customFieldPartValueIdx = Index(
+    'custom_field_part_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_part_value_idx ON customFieldValue (fieldDefinitionId, specimenPartId) WHERE specimenPartId IS NOT NULL',
+  );
+  late final Index customFieldParasiteValueIdx = Index(
+    'custom_field_parasite_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_parasite_value_idx ON customFieldValue (fieldDefinitionId, parasiteId) WHERE parasiteId IS NOT NULL',
+  );
+  late final Index customFieldTemplateTargetIdx = Index(
+    'custom_field_template_target_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_template_target_idx ON customFieldDefinition (sourceTemplateUuid, scope, ifnull(projectUuid, \'\')) WHERE sourceTemplateUuid IS NOT NULL',
+  );
+  late final Trigger customFieldValueValidateInsert = Trigger(
+    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'custom_field_value_validate_insert',
+  );
+  late final Trigger customFieldValueValidateUpdate = Trigger(
+    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'custom_field_value_validate_update',
+  );
   late final Index specimenProjectSpeciesIdx = Index(
     'specimen_project_species_idx',
     'CREATE INDEX IF NOT EXISTS specimen_project_species_idx ON specimen (projectUuid, speciesID)',
@@ -23090,6 +23889,13 @@ abstract class _$Database extends GeneratedDatabase {
     specimenPart,
     customFieldDefinition,
     customFieldValue,
+    customFieldSiteValueIdx,
+    customFieldSpecimenValueIdx,
+    customFieldPartValueIdx,
+    customFieldParasiteValueIdx,
+    customFieldTemplateTargetIdx,
+    customFieldValueValidateInsert,
+    customFieldValueValidateUpdate,
     specimenProjectSpeciesIdx,
     specimenProjectEventIdx,
     siteProjectIdx,
@@ -23174,6 +23980,69 @@ abstract class _$Database extends GeneratedDatabase {
       on: TableUpdateQuery.onTableName(
         'eventAssociatedData',
         limitUpdateKind: UpdateKind.insert,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'project',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldDefinition', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'customFieldDefinition',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'project',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'site',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'specimen',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'specimenPart',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'parasite',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'customFieldValue',
+        limitUpdateKind: UpdateKind.insert,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'customFieldValue',
+        limitUpdateKind: UpdateKind.update,
       ),
       result: [],
     ),
@@ -34232,22 +35101,42 @@ typedef $SpecimenPartProcessedTableManager =
 typedef $CustomFieldDefinitionCreateCompanionBuilder =
     CustomFieldDefinitionCompanion Function({
       Value<int?> id,
-      Value<String?> name,
-      Value<String?> type,
-      Value<String?> uiSection,
+      required String uuid,
+      Value<String?> sourceTemplateUuid,
+      required String name,
+      required String type,
+      required String uiSection,
       Value<String?> options,
-      Value<String?> scope,
+      required String scope,
+      Value<String?> projectUuid,
+      Value<String?> catalogFormat,
+      Value<int> sortOrder,
+      Value<int> isArchived,
+      Value<String?> dwcTarget,
+      Value<String?> dwcField,
+      Value<String?> dwcMode,
+      Value<int> allowDwcConflict,
       Value<String?> createdAt,
       Value<String?> updatedAt,
     });
 typedef $CustomFieldDefinitionUpdateCompanionBuilder =
     CustomFieldDefinitionCompanion Function({
       Value<int?> id,
-      Value<String?> name,
-      Value<String?> type,
-      Value<String?> uiSection,
+      Value<String> uuid,
+      Value<String?> sourceTemplateUuid,
+      Value<String> name,
+      Value<String> type,
+      Value<String> uiSection,
       Value<String?> options,
-      Value<String?> scope,
+      Value<String> scope,
+      Value<String?> projectUuid,
+      Value<String?> catalogFormat,
+      Value<int> sortOrder,
+      Value<int> isArchived,
+      Value<String?> dwcTarget,
+      Value<String?> dwcField,
+      Value<String?> dwcMode,
+      Value<int> allowDwcConflict,
       Value<String?> createdAt,
       Value<String?> updatedAt,
     });
@@ -34263,6 +35152,16 @@ class $CustomFieldDefinitionFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceTemplateUuid => $composableBuilder(
+    column: $table.sourceTemplateUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -34291,6 +35190,46 @@ class $CustomFieldDefinitionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get projectUuid => $composableBuilder(
+    column: $table.projectUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogFormat => $composableBuilder(
+    column: $table.catalogFormat,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dwcTarget => $composableBuilder(
+    column: $table.dwcTarget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dwcField => $composableBuilder(
+    column: $table.dwcField,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dwcMode => $composableBuilder(
+    column: $table.dwcMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get allowDwcConflict => $composableBuilder(
+    column: $table.allowDwcConflict,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -34313,6 +35252,16 @@ class $CustomFieldDefinitionOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceTemplateUuid => $composableBuilder(
+    column: $table.sourceTemplateUuid,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -34341,6 +35290,46 @@ class $CustomFieldDefinitionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get projectUuid => $composableBuilder(
+    column: $table.projectUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogFormat => $composableBuilder(
+    column: $table.catalogFormat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dwcTarget => $composableBuilder(
+    column: $table.dwcTarget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dwcField => $composableBuilder(
+    column: $table.dwcField,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dwcMode => $composableBuilder(
+    column: $table.dwcMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get allowDwcConflict => $composableBuilder(
+    column: $table.allowDwcConflict,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -34364,6 +35353,14 @@ class $CustomFieldDefinitionAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceTemplateUuid => $composableBuilder(
+    column: $table.sourceTemplateUuid,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -34378,6 +35375,38 @@ class $CustomFieldDefinitionAnnotationComposer
 
   GeneratedColumn<String> get scope =>
       $composableBuilder(column: $table.scope, builder: (column) => column);
+
+  GeneratedColumn<String> get projectUuid => $composableBuilder(
+    column: $table.projectUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get catalogFormat => $composableBuilder(
+    column: $table.catalogFormat,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<int> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dwcTarget =>
+      $composableBuilder(column: $table.dwcTarget, builder: (column) => column);
+
+  GeneratedColumn<String> get dwcField =>
+      $composableBuilder(column: $table.dwcField, builder: (column) => column);
+
+  GeneratedColumn<String> get dwcMode =>
+      $composableBuilder(column: $table.dwcMode, builder: (column) => column);
+
+  GeneratedColumn<int> get allowDwcConflict => $composableBuilder(
+    column: $table.allowDwcConflict,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -34422,40 +35451,80 @@ class $CustomFieldDefinitionTableManager
           updateCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
-                Value<String?> name = const Value.absent(),
-                Value<String?> type = const Value.absent(),
-                Value<String?> uiSection = const Value.absent(),
+                Value<String> uuid = const Value.absent(),
+                Value<String?> sourceTemplateUuid = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> uiSection = const Value.absent(),
                 Value<String?> options = const Value.absent(),
-                Value<String?> scope = const Value.absent(),
+                Value<String> scope = const Value.absent(),
+                Value<String?> projectUuid = const Value.absent(),
+                Value<String?> catalogFormat = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> isArchived = const Value.absent(),
+                Value<String?> dwcTarget = const Value.absent(),
+                Value<String?> dwcField = const Value.absent(),
+                Value<String?> dwcMode = const Value.absent(),
+                Value<int> allowDwcConflict = const Value.absent(),
                 Value<String?> createdAt = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => CustomFieldDefinitionCompanion(
                 id: id,
+                uuid: uuid,
+                sourceTemplateUuid: sourceTemplateUuid,
                 name: name,
                 type: type,
                 uiSection: uiSection,
                 options: options,
                 scope: scope,
+                projectUuid: projectUuid,
+                catalogFormat: catalogFormat,
+                sortOrder: sortOrder,
+                isArchived: isArchived,
+                dwcTarget: dwcTarget,
+                dwcField: dwcField,
+                dwcMode: dwcMode,
+                allowDwcConflict: allowDwcConflict,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
-                Value<String?> name = const Value.absent(),
-                Value<String?> type = const Value.absent(),
-                Value<String?> uiSection = const Value.absent(),
+                required String uuid,
+                Value<String?> sourceTemplateUuid = const Value.absent(),
+                required String name,
+                required String type,
+                required String uiSection,
                 Value<String?> options = const Value.absent(),
-                Value<String?> scope = const Value.absent(),
+                required String scope,
+                Value<String?> projectUuid = const Value.absent(),
+                Value<String?> catalogFormat = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> isArchived = const Value.absent(),
+                Value<String?> dwcTarget = const Value.absent(),
+                Value<String?> dwcField = const Value.absent(),
+                Value<String?> dwcMode = const Value.absent(),
+                Value<int> allowDwcConflict = const Value.absent(),
                 Value<String?> createdAt = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => CustomFieldDefinitionCompanion.insert(
                 id: id,
+                uuid: uuid,
+                sourceTemplateUuid: sourceTemplateUuid,
                 name: name,
                 type: type,
                 uiSection: uiSection,
                 options: options,
                 scope: scope,
+                projectUuid: projectUuid,
+                catalogFormat: catalogFormat,
+                sortOrder: sortOrder,
+                isArchived: isArchived,
+                dwcTarget: dwcTarget,
+                dwcField: dwcField,
+                dwcMode: dwcMode,
+                allowDwcConflict: allowDwcConflict,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -34491,18 +35560,28 @@ typedef $CustomFieldDefinitionProcessedTableManager =
 typedef $CustomFieldValueCreateCompanionBuilder =
     CustomFieldValueCompanion Function({
       Value<int?> id,
-      Value<int?> fieldDefinitionId,
+      required int fieldDefinitionId,
       Value<String?> projectUuid,
-      Value<String?> value,
+      required String value,
       Value<String?> unit,
+      Value<int?> siteId,
+      Value<String?> specimenUuid,
+      Value<int?> specimenPartId,
+      Value<int?> parasiteId,
+      Value<int> isLegacy,
     });
 typedef $CustomFieldValueUpdateCompanionBuilder =
     CustomFieldValueCompanion Function({
       Value<int?> id,
-      Value<int?> fieldDefinitionId,
+      Value<int> fieldDefinitionId,
       Value<String?> projectUuid,
-      Value<String?> value,
+      Value<String> value,
       Value<String?> unit,
+      Value<int?> siteId,
+      Value<String?> specimenUuid,
+      Value<int?> specimenPartId,
+      Value<int?> parasiteId,
+      Value<int> isLegacy,
     });
 
 class $CustomFieldValueFilterComposer
@@ -34536,6 +35615,31 @@ class $CustomFieldValueFilterComposer
 
   ColumnFilters<String> get unit => $composableBuilder(
     column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get siteId => $composableBuilder(
+    column: $table.siteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get specimenPartId => $composableBuilder(
+    column: $table.specimenPartId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get parasiteId => $composableBuilder(
+    column: $table.parasiteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isLegacy => $composableBuilder(
+    column: $table.isLegacy,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -34573,6 +35677,31 @@ class $CustomFieldValueOrderingComposer
     column: $table.unit,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get siteId => $composableBuilder(
+    column: $table.siteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get specimenPartId => $composableBuilder(
+    column: $table.specimenPartId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get parasiteId => $composableBuilder(
+    column: $table.parasiteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isLegacy => $composableBuilder(
+    column: $table.isLegacy,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $CustomFieldValueAnnotationComposer
@@ -34602,6 +35731,27 @@ class $CustomFieldValueAnnotationComposer
 
   GeneratedColumn<String> get unit =>
       $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<int> get siteId =>
+      $composableBuilder(column: $table.siteId, builder: (column) => column);
+
+  GeneratedColumn<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get specimenPartId => $composableBuilder(
+    column: $table.specimenPartId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get parasiteId => $composableBuilder(
+    column: $table.parasiteId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get isLegacy =>
+      $composableBuilder(column: $table.isLegacy, builder: (column) => column);
 }
 
 class $CustomFieldValueTableManager
@@ -34636,30 +35786,50 @@ class $CustomFieldValueTableManager
           updateCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
-                Value<int?> fieldDefinitionId = const Value.absent(),
+                Value<int> fieldDefinitionId = const Value.absent(),
                 Value<String?> projectUuid = const Value.absent(),
-                Value<String?> value = const Value.absent(),
+                Value<String> value = const Value.absent(),
                 Value<String?> unit = const Value.absent(),
+                Value<int?> siteId = const Value.absent(),
+                Value<String?> specimenUuid = const Value.absent(),
+                Value<int?> specimenPartId = const Value.absent(),
+                Value<int?> parasiteId = const Value.absent(),
+                Value<int> isLegacy = const Value.absent(),
               }) => CustomFieldValueCompanion(
                 id: id,
                 fieldDefinitionId: fieldDefinitionId,
                 projectUuid: projectUuid,
                 value: value,
                 unit: unit,
+                siteId: siteId,
+                specimenUuid: specimenUuid,
+                specimenPartId: specimenPartId,
+                parasiteId: parasiteId,
+                isLegacy: isLegacy,
               ),
           createCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
-                Value<int?> fieldDefinitionId = const Value.absent(),
+                required int fieldDefinitionId,
                 Value<String?> projectUuid = const Value.absent(),
-                Value<String?> value = const Value.absent(),
+                required String value,
                 Value<String?> unit = const Value.absent(),
+                Value<int?> siteId = const Value.absent(),
+                Value<String?> specimenUuid = const Value.absent(),
+                Value<int?> specimenPartId = const Value.absent(),
+                Value<int?> parasiteId = const Value.absent(),
+                Value<int> isLegacy = const Value.absent(),
               }) => CustomFieldValueCompanion.insert(
                 id: id,
                 fieldDefinitionId: fieldDefinitionId,
                 projectUuid: projectUuid,
                 value: value,
                 unit: unit,
+                siteId: siteId,
+                specimenUuid: specimenUuid,
+                specimenPartId: specimenPartId,
+                parasiteId: parasiteId,
+                isLegacy: isLegacy,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

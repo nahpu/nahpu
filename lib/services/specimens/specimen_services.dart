@@ -877,10 +877,11 @@ class TissueIdServices extends AppServices {
 class SpecimenPartServices extends AppServices {
   const SpecimenPartServices({required super.ref});
 
-  Future<void> createSpecimenPart(SpecimenPartCompanion form) async {
-    await SpecimenPartQuery(dbAccess).createSpecimenPart(form);
+  Future<int> createSpecimenPart(SpecimenPartCompanion form) async {
+    final id = await SpecimenPartQuery(dbAccess).createSpecimenPart(form);
     ref.invalidate(partBySpecimenProvider);
     ref.invalidate(specimenPartEntryProvider);
+    return id;
   }
 
   Future<List<SpecimenPartData>> getSpecimenParts(String specimenUuid) {

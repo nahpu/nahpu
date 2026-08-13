@@ -71,6 +71,15 @@ Future<Map<String, String>> documentFieldValuesForSite(
   m['site::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
   m['site::coordinates'] = await writer.getCoordinates(s.id);
 
+  final customEntries = await CustomFieldService(
+    db,
+  ).getExportEntries(CustomFieldOwner.site(s.id));
+  for (final entry in customEntries) {
+    m['customSite::${entry.definition.uuid}'] = entry.value == null
+        ? ''
+        : entry.definition.displayValue(entry.value!.value);
+  }
+
   final coordinates = await CoordinateServices(
     ref: ref,
   ).getCoordinatesBySiteID(s.id);

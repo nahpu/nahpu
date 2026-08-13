@@ -11,6 +11,7 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
+import 'package:nahpu/services/record_exchange/record_exchange_custom_fields.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/associated_data.dart';
@@ -52,6 +53,9 @@ class RecordExchangeSiteEvent extends AppServices {
               site.id,
             )).map(support.portableAssociatedData).toList(growable: false),
         'personnel': personnel,
+        'customFields': await RecordExchangeCustomFields(
+          ref: ref,
+        ).export(siteId: site.id),
       },
     );
   }
@@ -100,6 +104,9 @@ class RecordExchangeSiteEvent extends AppServices {
           'coordinates': coordinates
               .map(support.portableCoordinate)
               .toList(growable: false),
+          'customFields': await RecordExchangeCustomFields(
+            ref: ref,
+          ).export(siteId: site.id),
         };
         if (site.leadStaffId != null) {
           final leadStaff = await support.getPersonnel(site.leadStaffId!);
@@ -207,6 +214,9 @@ class RecordExchangeSiteEvent extends AppServices {
         ).toCompanion(true),
       );
     }
+    await RecordExchangeCustomFields(
+      ref: ref,
+    ).import(payload.data['customFields'], siteId: siteId);
     return RecordExchangeResult(recordId: siteId);
   }
 
@@ -232,6 +242,9 @@ class RecordExchangeSiteEvent extends AppServices {
         RecordExchangePayload.mapList(linked['coordinates']),
         personnelIds,
       );
+      await RecordExchangeCustomFields(
+        ref: ref,
+      ).import(linked['customFields'], siteId: createdSiteId);
       resolvedSiteId = createdSiteId;
     }
     if (siteData != null && resolvedSiteId == null) {

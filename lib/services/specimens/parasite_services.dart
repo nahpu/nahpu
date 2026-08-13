@@ -23,15 +23,16 @@ class ParasiteServices extends AppServices {
     ref.invalidate(parasiteDetectionProvider(specimenUuid));
   }
 
-  Future<void> createParasite(
+  Future<int> createParasite(
     String specimenUuid,
     ParasiteCompanion form,
   ) async {
     final entry = form.parasiteUuid.present
         ? form
         : form.copyWith(parasiteUuid: db.Value(uuid));
-    await ParasiteQuery(dbAccess).createParasite(entry);
+    final id = await ParasiteQuery(dbAccess).createParasite(entry);
     _invalidate(specimenUuid);
+    return id;
   }
 
   Future<void> updateParasite(

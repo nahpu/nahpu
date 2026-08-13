@@ -25,6 +25,7 @@ class _MigrationCoordinator {
       14: (m) => _Version15Migration(db).upgrade(m),
       15: (m) => _Version16Migration(db).upgrade(m),
       16: (m) => _Version17Migration(db).upgrade(m),
+      17: (m) => _Version18Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -37,6 +38,160 @@ class _MigrationCoordinator {
       await step(migrator);
       currentVersion++;
     }
+  }
+}
+
+class _Version18Migration {
+  const _Version18Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await db.customStatement(
+      'ALTER TABLE customFieldValue RENAME TO customFieldValueV17',
+    );
+    await db.customStatement(
+      'ALTER TABLE customFieldDefinition RENAME TO customFieldDefinitionV17',
+    );
+    await migrator.createTable(db.customFieldDefinition);
+    await migrator.createTable(db.customFieldValue);
+
+    final definitions = await db
+        .customSelect(
+          'SELECT * FROM customFieldDefinitionV17 ORDER BY id',
+          readsFrom: const {},
+        )
+        .get();
+    for (final row in definitions) {
+      final id = row.read<int>('id');
+      final hasLegacyValues = await db
+          .customSelect(
+            'SELECT 1 FROM customFieldValueV17 '
+            'WHERE fieldDefinitionId = ? LIMIT 1',
+            variables: [Variable.withInt(id)],
+            readsFrom: const {},
+          )
+          .getSingleOrNull();
+      final rawType = row.readNullable<String>('type') ?? 'text';
+      final rawSection =
+          row.readNullable<String>('uiSection') ?? 'specimenAttribute';
+      await db
+          .into(db.customFieldDefinition)
+          .insert(
+            CustomFieldDefinitionCompanion.insert(
+              id: Value(id),
+              uuid: const Uuid().v4(),
+              name: row.readNullable<String>('name')?.trim().isNotEmpty == true
+                  ? row.read<String>('name').trim()
+                  : 'Legacy custom field $id',
+              type: switch (rawType.split('.').last) {
+                'numeric' => 'number',
+                'boolean' => 'boolean',
+                'dropdown' => 'dropdown',
+                _ => 'text',
+              },
+              uiSection: switch (rawSection.split('.').last) {
+                'siteHabitat' => 'siteAttribute',
+                'siteAttribute' => 'siteAttribute',
+                _ => 'specimenAttribute',
+              },
+              scope: 'global',
+              options: Value(row.readNullable<String>('options')),
+              isArchived: Value(hasLegacyValues != null ? 1 : 0),
+              createdAt: Value(row.readNullable<String>('createdAt')),
+              updatedAt: Value(row.readNullable<String>('updatedAt')),
+            ),
+          );
+    }
+
+    final values = await db
+        .customSelect(
+          'SELECT * FROM customFieldValueV17 ORDER BY id',
+          readsFrom: const {},
+        )
+        .get();
+    for (final row in values) {
+      await db
+          .into(db.customFieldValue)
+          .insert(
+            CustomFieldValueCompanion.insert(
+              id: Value(row.read<int>('id')),
+              fieldDefinitionId: row.read<int>('fieldDefinitionId'),
+              projectUuid: Value(row.readNullable<String>('projectUuid')),
+              value: row.readNullable<String>('value') ?? '',
+              unit: Value(row.readNullable<String>('unit')),
+              isLegacy: const Value(1),
+            ),
+          );
+    }
+
+    await db.customStatement('DROP TABLE customFieldValueV17');
+    await db.customStatement('DROP TABLE customFieldDefinitionV17');
+    await _createIndexesAndTriggers(migrator);
+    await _validate();
+  }
+
+  Future<void> _createIndexesAndTriggers(Migrator migrator) async {
+    for (final statement in const [
+      'CREATE UNIQUE INDEX custom_field_site_value_idx '
+          'ON customFieldValue(fieldDefinitionId, siteId) '
+          'WHERE siteId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_specimen_value_idx '
+          'ON customFieldValue(fieldDefinitionId, specimenUuid) '
+          'WHERE specimenUuid IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_part_value_idx '
+          'ON customFieldValue(fieldDefinitionId, specimenPartId) '
+          'WHERE specimenPartId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_parasite_value_idx '
+          'ON customFieldValue(fieldDefinitionId, parasiteId) '
+          'WHERE parasiteId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_template_target_idx '
+          "ON customFieldDefinition(sourceTemplateUuid, scope, ifnull(projectUuid, '')) "
+          'WHERE sourceTemplateUuid IS NOT NULL',
+    ]) {
+      await db.customStatement(statement);
+    }
+
+    // Use the canonical trigger entities so an upgrade matches a fresh v18
+    // database exactly.
+    await migrator.create(db.customFieldValueValidateInsert);
+    await migrator.create(db.customFieldValueValidateUpdate);
+  }
+
+  Future<void> _validate() async {
+    final definitionColumns = await _columnNames('customFieldDefinition');
+    final valueColumns = await _columnNames('customFieldValue');
+    if (!definitionColumns.containsAll({
+          'uuid',
+          'projectUuid',
+          'catalogFormat',
+          'isArchived',
+          'dwcField',
+        }) ||
+        !valueColumns.containsAll({
+          'siteId',
+          'specimenUuid',
+          'specimenPartId',
+          'parasiteId',
+          'isLegacy',
+        })) {
+      throw StateError(
+        'Database migration did not create the v18 custom fields.',
+      );
+    }
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v18 migration.');
+    }
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
   }
 }
 
