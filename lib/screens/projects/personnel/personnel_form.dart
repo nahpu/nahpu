@@ -1,6 +1,6 @@
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/projects/orcid.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/personnel/avatars.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';

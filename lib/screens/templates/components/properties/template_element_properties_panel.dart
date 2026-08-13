@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/properties/image_properties_panel.dart';
 import 'package:nahpu/screens/templates/components/properties/line_properties_panel.dart';
 import 'package:nahpu/screens/templates/components/properties/shape_properties_panel.dart';

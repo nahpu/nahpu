@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/template_outline.dart'
     show templateAreaStackDecoration, TemplateOutlineOverlayPainter;
 import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart'

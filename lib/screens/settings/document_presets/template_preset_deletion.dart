@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;

@@ -1082,7 +1082,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
 
   Future<Position?> _getLocation() async {
     try {
-      return GeoLocationServices().getCurrentCoordinates();
+      return await GeoLocationServices().getCurrentCoordinates();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

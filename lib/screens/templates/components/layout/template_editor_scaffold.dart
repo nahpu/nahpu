@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/canvas/template_canvas_workspace.dart';
 import 'package:nahpu/screens/templates/components/controls/template_editor_toolbar.dart';
 import 'package:nahpu/screens/templates/components/properties/template_element_properties_panel.dart';

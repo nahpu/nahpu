@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/controls/mirror_toggle_button.dart';
 import 'package:nahpu/screens/templates/template_size_selector.dart';
 import 'package:nahpu/screens/templates/template_model.dart';

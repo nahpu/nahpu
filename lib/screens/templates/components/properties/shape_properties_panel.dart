@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_dim_field.dart';
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';

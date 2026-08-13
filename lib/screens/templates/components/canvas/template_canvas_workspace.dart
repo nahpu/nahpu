@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:nahpu/screens/templates/components/canvas/template_canvas_editor.dart';
 import 'package:nahpu/screens/templates/components/controls/front_back_page_pickers.dart';

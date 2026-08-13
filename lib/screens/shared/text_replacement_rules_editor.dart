@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 
 /// Inline editor for ordered exact and regular-expression replacements.

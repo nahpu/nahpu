@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/statistics/spatial.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 

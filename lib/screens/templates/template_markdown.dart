@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as flutter;
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 WrapAlignment templateMarkdownAlign(TextAlign align) {
@@ -17,7 +18,7 @@ MarkdownStyleSheet templateMarkdownStyleSheet({
 }) {
   final align = templateMarkdownAlign(textAlign);
   const tableBorderColor = Color(0xFFBDBDBD);
-  return MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+  return MarkdownStyleSheet.fromTheme(flutter.Theme.of(context)).copyWith(
     p: textStyle,
     h1: textStyle.copyWith(
       fontSize: textStyle.fontSize == null ? null : textStyle.fontSize! * 1.6,

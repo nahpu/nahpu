@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/settings/user_config_transfer_widgets.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;

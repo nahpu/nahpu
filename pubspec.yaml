@@ -61,7 +61,7 @@ dependencies:
   rust_lib_nahpu:
     path: rust_builder
   timezone: ^0.11.0
-  material_ui: ^0.0.1
+  material_ui: ^1.0.0
   qr: ^4.0.0
   flutter_markdown_plus: ^1.0.7
   flex_color_picker: ^3.8.0
@@ -76,6 +76,7 @@ dependencies:
   video_player: ^2.13.0
   fvp: ^0.37.3
   record: ^7.1.1
+  cupertino_ui: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

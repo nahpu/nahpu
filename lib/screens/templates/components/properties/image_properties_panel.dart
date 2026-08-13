@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 
 class ImagePropertiesPanel extends StatelessWidget {

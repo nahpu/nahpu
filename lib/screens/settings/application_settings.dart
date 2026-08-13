@@ -4,7 +4,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/common/utility_services.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
 class ApplicationSettings extends ConsumerWidget {

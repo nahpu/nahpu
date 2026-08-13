@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
