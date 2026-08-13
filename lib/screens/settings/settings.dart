@@ -15,9 +15,12 @@ import 'package:nahpu/screens/settings/application_settings.dart';
 import 'package:nahpu/screens/settings/specimen_settings.dart';
 import 'package:nahpu/screens/settings/document_presets.dart';
 import 'package:nahpu/screens/settings/export_presets.dart';
+import 'package:nahpu/screens/settings/custom_fields.dart';
 
 class AppSettings extends ConsumerStatefulWidget {
-  const AppSettings({super.key});
+  const AppSettings({super.key, this.projectUuid});
+
+  final String? projectUuid;
 
   @override
   ProjectSettingState createState() => ProjectSettingState();
@@ -27,14 +30,18 @@ class ProjectSettingState extends ConsumerState<AppSettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: SafeArea(
         child: CommonSettingList(
           sections: [
-            ref.watch(catalogFmtNotifierProvider).when(
-                  data: (data) => CatalogSettings(ref: ref, catalogFmt: data),
+            ref
+                .watch(catalogFmtNotifierProvider)
+                .when(
+                  data: (data) => CatalogSettings(
+                    ref: ref,
+                    catalogFmt: data,
+                    projectUuid: widget.projectUuid,
+                  ),
                   loading: () => const CommonProgressIndicator(),
                   error: (e, s) => const Text('Error'),
                 ),
@@ -53,10 +60,12 @@ class CatalogSettings extends StatelessWidget {
     super.key,
     required this.ref,
     required this.catalogFmt,
+    required this.projectUuid,
   });
 
   final WidgetRef ref;
   final CatalogFmt catalogFmt;
+  final String? projectUuid;
 
   @override
   Widget build(BuildContext context) {
@@ -73,12 +82,25 @@ class CatalogSettings extends StatelessWidget {
           isNavigation: true,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const SiteSelection(),
-            ),
+            MaterialPageRoute(builder: (context) => const SiteSelection()),
           ),
         ),
         SpecimenSection(catalogFmt: catalogFmt),
+        CommonSettingTile(
+          title: 'Custom fields',
+          icon: Icons.dynamic_form_outlined,
+          label: 'Manage fields for sites, specimens, parts, and parasites',
+          isNavigation: true,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CustomFieldsSettings(
+                projectUuid: projectUuid,
+                currentCatalog: catalogFmt,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -94,40 +116,38 @@ class DatabaseSettingSections extends StatelessWidget {
       isDivided: true,
       children: [
         CommonSettingTile(
-            title: 'Taxa',
-            label: 'Manage taxonomy records',
-            isNavigation: true,
-            icon: Icons.emoji_nature_outlined,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TaxonRegistryPage(),
-                ),
-              );
-            }),
+          title: 'Taxa',
+          label: 'Manage taxonomy records',
+          isNavigation: true,
+          icon: Icons.emoji_nature_outlined,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const TaxonRegistryPage(),
+              ),
+            );
+          },
+        ),
         CommonSettingTile(
-            title: 'Personnel',
-            icon: Icons.group_outlined,
-            label: 'Manage personnel records',
-            isNavigation: true,
-            onTap: (() {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ManagePersonnel(),
-                ),
-              );
-            })),
+          title: 'Personnel',
+          icon: Icons.group_outlined,
+          label: 'Manage personnel records',
+          isNavigation: true,
+          onTap: (() {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ManagePersonnel()),
+            );
+          }),
+        ),
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.storage_outlined,
           title: 'Replace database',
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const DatabaseSettings(),
-            ),
+            MaterialPageRoute(builder: (context) => const DatabaseSettings()),
           ),
         ),
       ],
@@ -143,19 +163,18 @@ class CatalogFmtSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CommonSettingTile(
-        isNavigation: true,
-        icon: Icons.archive_outlined,
-        title: 'Format',
-        label: 'Set catalog format',
-        value: matchCatFmtToTaxonGroup(selectedFmt),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CatalogFmtSelection(),
-            ),
-          );
-        });
+      isNavigation: true,
+      icon: Icons.archive_outlined,
+      title: 'Format',
+      label: 'Set catalog format',
+      value: matchCatFmtToTaxonGroup(selectedFmt),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CatalogFmtSelection()),
+        );
+      },
+    );
   }
 }
 
@@ -167,19 +186,18 @@ class SpecimenSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CommonSettingTile(
-        isNavigation: true,
-        icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
-        title: 'Specimens',
-        label:
-            'Manage field, tissue ID settings, and controlled vocabularies for specimen forms',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const SpecimenSelection(),
-            ),
-          );
-        });
+      isNavigation: true,
+      icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
+      title: 'Specimens',
+      label:
+          'Manage field, tissue ID settings, and controlled vocabularies for specimen forms',
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SpecimenSelection()),
+        );
+      },
+    );
   }
 }
 
@@ -196,9 +214,7 @@ class CollEventSection extends StatelessWidget {
           'Manage controlled vocabularies for collection methods and event personnel roles',
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const CollEventSelection(),
-        ),
+        MaterialPageRoute(builder: (context) => const CollEventSelection()),
       ),
     );
   }
@@ -214,18 +230,19 @@ class ExportSettingsSection extends StatelessWidget {
       isDivided: true,
       children: [
         CommonSettingTile(
-            title: 'Tabular Data',
-            label: 'Manage presets for exporting in tabular formats',
-            isNavigation: true,
-            icon: Icons.table_view_outlined,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ExportPresetsScreen(),
-                ),
-              );
-            }),
+          title: 'Tabular Data',
+          label: 'Manage presets for exporting in tabular formats',
+          isNavigation: true,
+          icon: Icons.table_view_outlined,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ExportPresetsScreen(),
+              ),
+            );
+          },
+        ),
         CommonSettingTile(
           title: 'Documents',
           label: 'Manage presets for exporting documents',

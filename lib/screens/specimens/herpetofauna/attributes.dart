@@ -10,6 +10,8 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/herps.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class HerpAttributeForms extends ConsumerStatefulWidget {
   const HerpAttributeForms({
@@ -154,6 +156,7 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
           ],
         ),
         ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
+        CustomFieldForm(owner: CustomFieldOwner.specimen(widget.specimenUuid)),
       ],
     );
   }

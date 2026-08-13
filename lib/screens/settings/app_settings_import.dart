@@ -8,6 +8,9 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
@@ -28,6 +31,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
   bool _isSelectingFile = false;
   bool _isImporting = false;
   String? _error;
+  UserConfigImportDestination _destination = UserConfigImportDestination.global;
 
   @override
   void initState() {
@@ -81,9 +85,22 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
               });
             },
           ),
+          if (_selectedSections.contains(
+            rust_config.UserConfigSection.customFields,
+          )) ...[
+            const SizedBox(height: 8),
+            _CustomFieldDestinationCard(
+              destination: _destination,
+              projectAvailable: ref.watch(projectUuidProvider).isNotEmpty,
+              enabled: !_isImporting,
+              onChanged: (destination) {
+                setState(() => _destination = destination);
+              },
+            ),
+          ],
           const SizedBox(height: 24),
           ProgressButton(
-            label: 'Replace selected configs',
+            label: 'Import selected configs',
             icon: Icons.refresh_rounded,
             isRunning: _isImporting,
             onPressed: _canImport ? _confirmImport : null,
@@ -183,7 +200,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Replace selected configs?'),
+        title: const Text('Import selected configs?'),
         content: _ImportConfirmation(sections: _selectedSections),
         actions: [
           TextButton(
@@ -192,7 +209,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Replace'),
+            child: const Text('Import'),
           ),
         ],
       ),
@@ -205,11 +222,20 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
     if (source == null) return;
     setState(() => _isImporting = true);
     try {
-      await _service.import(source, _selectedSections);
+      await _service.import(
+        source,
+        _selectedSections,
+        database: ref.read(databaseProvider),
+        destination: _destination,
+        projectUuid: switch (ref.read(projectUuidProvider)) {
+          final uuid when uuid.isNotEmpty => uuid,
+          _ => null,
+        },
+      );
       _invalidateSettingsProviders();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selected user configs were replaced.')),
+        const SnackBar(content: Text('Selected user configs were imported.')),
       );
     } catch (error) {
       if (!mounted) return;
@@ -231,6 +257,8 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
     ref.invalidate(fieldIdModeNotifierProvider);
     ref.invalidate(projectFieldIdAutoIncrementProvider);
     ref.invalidate(exportPresetNotifierProvider);
+    ref.invalidate(allCustomFieldDefinitionsProvider);
+    ref.invalidate(manageableCustomFieldsProvider);
   }
 }
 
@@ -246,8 +274,9 @@ class _ImportConfirmation extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'The following groups will be completely replaced. '
-          'Unselected groups will remain unchanged.',
+          'Selected redb-backed groups will be replaced. Custom fields are '
+          'matched by template ID and safely merged into SQLite. Unselected '
+          'groups remain unchanged.',
         ),
         const SizedBox(height: 12),
         for (final section in userConfigSectionOrder)
@@ -257,6 +286,59 @@ class _ImportConfirmation extends StatelessWidget {
               child: Text('• ${section.label}'),
             ),
       ],
+    );
+  }
+}
+
+class _CustomFieldDestinationCard extends StatelessWidget {
+  const _CustomFieldDestinationCard({
+    required this.destination,
+    required this.projectAvailable,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final UserConfigImportDestination destination;
+  final bool projectAvailable;
+  final bool enabled;
+  final ValueChanged<UserConfigImportDestination> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = projectAvailable
+        ? destination
+        : UserConfigImportDestination.global;
+    return Card(
+      elevation: 0,
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: DropdownButtonFormField<UserConfigImportDestination>(
+          key: ValueKey(value),
+          initialValue: value,
+          decoration: const InputDecoration(
+            labelText: 'Custom field destination',
+          ),
+          items: [
+            const DropdownMenuItem(
+              value: UserConfigImportDestination.global,
+              child: Text('Global'),
+            ),
+            if (projectAvailable)
+              const DropdownMenuItem(
+                value: UserConfigImportDestination.currentProject,
+                child: Text('Current project'),
+              ),
+          ],
+          onChanged: enabled
+              ? (next) {
+                  if (next != null) onChanged(next);
+                }
+              : null,
+        ),
+      ),
     );
   }
 }

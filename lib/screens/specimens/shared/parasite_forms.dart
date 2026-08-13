@@ -21,6 +21,10 @@ import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/providers/custom_fields.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class ParasiteForms extends StatelessWidget {
   const ParasiteForms({super.key, required this.specimenUuid});
@@ -304,6 +308,7 @@ class ParasiteRecordForm extends ConsumerStatefulWidget {
 
 class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
   bool _showMore = false;
+  final Map<int, String?> _customValues = {};
 
   bool get _isEditing => widget.parasite != null;
 
@@ -396,6 +401,18 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             showMore: _showMore,
             onPressed: () => setState(() => _showMore = !_showMore),
           ),
+          if (_isEditing)
+            CustomFieldForm(
+              owner: CustomFieldOwner.parasite(widget.parasite!.id!),
+            )
+          else
+            CustomFieldDraftForm(
+              placement: FieldUISection.parasite,
+              specimenUuid: widget.specimenUuid,
+              onChanged: (definitionId, value) {
+                _customValues[definitionId] = value;
+              },
+            ),
           const SizedBox(height: 16),
           FormButton(isEditing: _isEditing, onSubmitted: _submit),
         ],
@@ -411,9 +428,15 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
           ref: ref,
         ).updateParasite(widget.parasite!.id!, widget.specimenUuid, form);
       } else {
-        await ParasiteServices(
-          ref: ref,
-        ).createParasite(widget.specimenUuid, form);
+        final database = ref.read(databaseProvider);
+        await database.transaction(() async {
+          final id = await ParasiteServices(
+            ref: ref,
+          ).createParasite(widget.specimenUuid, form);
+          await ref
+              .read(customFieldServiceProvider)
+              .setValues(CustomFieldOwner.parasite(id), _customValues);
+        });
       }
       if (mounted) Navigator.of(context).pop();
     } catch (error) {

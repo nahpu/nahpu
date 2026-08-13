@@ -14,6 +14,8 @@ import 'package:nahpu/services/specimens/measurement_outlier_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class MammalAttributeForms extends ConsumerStatefulWidget {
   const MammalAttributeForms({
@@ -427,6 +429,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           ),
         ),
         ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
+        CustomFieldForm(owner: CustomFieldOwner.specimen(widget.specimenUuid)),
       ],
     );
   }

@@ -9,6 +9,8 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class Habitat extends ConsumerWidget {
   const Habitat({
@@ -25,7 +27,7 @@ class Habitat extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
-      title: 'Habitat',
+      title: 'Site Attributes',
       infoContent: const HabitatInfoContent(),
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
@@ -103,6 +105,7 @@ class Habitat extends ConsumerWidget {
                     SiteCompanion(habitatDescription: db.Value(value)),
                   ),
                 ),
+                CustomFieldForm(owner: CustomFieldOwner.site(id)),
               ],
             ),
           ),
@@ -121,8 +124,8 @@ class HabitatInfoContent extends StatelessWidget {
       content: [
         InfoContent(
           content:
-              'Information about the habitat of the site.'
-              ' Note important information about the habitat in the description.'
+              'Information about the attributes and habitat of the site.'
+              ' Note important habitat information in the description.'
               ' For example, the dominant tree species, ground cover, etc.',
         ),
       ],

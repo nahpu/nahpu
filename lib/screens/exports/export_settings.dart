@@ -10,6 +10,10 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class ExportSettingsForm extends ConsumerStatefulWidget {
@@ -29,6 +33,8 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
   late final TabController _tabController;
   UserConfigFileFormat _format = UserConfigFileFormat.json;
   rust_config.UserConfigTransferPreview? _preview;
+  List<CustomFieldDefinitionData> _customFields = const [];
+  final Set<int> _selectedCustomFieldIds = {};
   Directory? _selectedDirectory;
   File? _savedFile;
   bool _isLoadingPreview = true;
@@ -70,6 +76,25 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
               });
             },
           ),
+          if (_selectedSections.contains(
+            rust_config.UserConfigSection.customFields,
+          )) ...[
+            const SizedBox(height: 8),
+            _CustomFieldDefinitionPicker(
+              definitions: _customFields,
+              selectedIds: _selectedCustomFieldIds,
+              enabled: !_isRunning,
+              onChanged: (ids) {
+                setState(() {
+                  _selectedCustomFieldIds
+                    ..clear()
+                    ..addAll(ids);
+                  _savedFile = null;
+                });
+                _refreshPreview();
+              },
+            ),
+          ],
           const SizedBox(height: 8),
           GenericFileSettingsCard<UserConfigFileFormat>(
             exportCtr: _exportController,
@@ -155,7 +180,47 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
 
   Future<void> _loadPreview() async {
     try {
-      final preview = await _service.currentPreview();
+      final database = ref.read(databaseProvider);
+      final projectUuid = ref.read(projectUuidProvider);
+      final definitions = await _service.availableCustomFields(
+        database,
+        projectUuid: projectUuid.isEmpty ? null : projectUuid,
+      );
+      _selectedCustomFieldIds.addAll(
+        definitions.map((definition) => definition.id!),
+      );
+      final preview = await _service.currentPreview(
+        database: database,
+        projectUuid: projectUuid.isEmpty ? null : projectUuid,
+        selectedDefinitionIds: _selectedCustomFieldIds,
+      );
+      if (!mounted) return;
+      setState(() {
+        _customFields = definitions;
+        _preview = preview;
+        _isLoadingPreview = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _previewError = error.toString();
+        _isLoadingPreview = false;
+      });
+    }
+  }
+
+  Future<void> _refreshPreview() async {
+    setState(() {
+      _isLoadingPreview = true;
+      _previewError = null;
+    });
+    try {
+      final projectUuid = ref.read(projectUuidProvider);
+      final preview = await _service.currentPreview(
+        database: ref.read(databaseProvider),
+        projectUuid: projectUuid.isEmpty ? null : projectUuid,
+        selectedDefinitionIds: _selectedCustomFieldIds,
+      );
       if (!mounted) return;
       setState(() {
         _preview = preview;
@@ -191,6 +256,12 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
         output: output,
         format: _format,
         sections: _selectedSections,
+        database: ref.read(databaseProvider),
+        projectUuid: switch (ref.read(projectUuidProvider)) {
+          final uuid when uuid.isNotEmpty => uuid,
+          _ => null,
+        },
+        selectedDefinitionIds: _selectedCustomFieldIds,
       );
       if (!mounted) return;
       setState(() => _savedFile = output);
@@ -221,5 +292,85 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
         context,
       ).showSnackBar(SnackBar(content: ErrorText(error: error.toString())));
     }
+  }
+}
+
+class _CustomFieldDefinitionPicker extends StatelessWidget {
+  const _CustomFieldDefinitionPicker({
+    required this.definitions,
+    required this.selectedIds,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final List<CustomFieldDefinitionData> definitions;
+  final Set<int> selectedIds;
+  final bool enabled;
+  final ValueChanged<Set<int>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Custom field templates',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                TextButton(
+                  onPressed: enabled
+                      ? () => onChanged(
+                          definitions.map((field) => field.id!).toSet(),
+                        )
+                      : null,
+                  child: const Text('Select all'),
+                ),
+                TextButton(
+                  onPressed: enabled && selectedIds.isNotEmpty
+                      ? () => onChanged({})
+                      : null,
+                  child: const Text('Clear'),
+                ),
+              ],
+            ),
+            if (definitions.isEmpty)
+              const ListTile(title: Text('No custom fields available'))
+            else
+              for (final definition in definitions)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(definition.name),
+                  subtitle: Text(
+                    '${definition.placement.label} • '
+                    '${definition.fieldScope.name}',
+                  ),
+                  value: selectedIds.contains(definition.id),
+                  onChanged: enabled
+                      ? (selected) {
+                          final next = Set<int>.of(selectedIds);
+                          if (selected ?? false) {
+                            next.add(definition.id!);
+                          } else {
+                            next.remove(definition.id);
+                          }
+                          onChanged(next);
+                        }
+                      : null,
+                ),
+          ],
+        ),
+      ),
+    );
   }
 }

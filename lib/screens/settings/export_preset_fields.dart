@@ -10,6 +10,9 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
+import 'package:nahpu/services/providers/custom_fields.dart';
+import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 class ExportPresetFieldsScreen extends ConsumerStatefulWidget {
   const ExportPresetFieldsScreen({
@@ -40,11 +43,14 @@ class _ExportPresetFieldsScreenState
   Widget build(BuildContext context) {
     final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
     final scheme = Theme.of(context).colorScheme;
+    final customDefinitions =
+        ref.watch(allCustomFieldDefinitionsProvider).value ?? const [];
     final canAddNested = _nestedFieldGroups(
       _availableFieldGroups(
         ref.read(databaseProvider),
         _preset.recordType,
         _preset.specimenRecordType,
+        customDefinitions,
       ),
     ).isNotEmpty;
 
@@ -204,6 +210,7 @@ class _ExportPresetFieldsScreenState
         ref.read(databaseProvider),
         _preset.recordType,
         _preset.specimenRecordType,
+        ref.read(allCustomFieldDefinitionsProvider).value ?? const [],
       ),
     );
     if (groups.isEmpty) return;
@@ -418,7 +425,9 @@ class _AvailableFieldsSectionState
 
   @override
   Widget build(BuildContext context) {
-    final groups = _getAllGroups();
+    final customDefinitions =
+        ref.watch(allCustomFieldDefinitionsProvider).value ?? const [];
+    final groups = _getAllGroups(customDefinitions);
     final groupKeys = groups.keys.toList();
     final scheme = Theme.of(context).colorScheme;
 
@@ -503,8 +512,12 @@ class _AvailableFieldsSectionState
                   dense: true,
                   childrenPadding: EdgeInsets.zero,
                   children: fields.map((field) {
+                    final customLabel = _customFieldLabel(
+                      field,
+                      customDefinitions,
+                    );
                     final displayLabel = _fieldDisplayOption == 'short'
-                        ? '[${field.split('::').last}]'
+                        ? '[${customLabel ?? field.split('::').last}]'
                         : '[$field]';
                     final isSelected = _isFieldSelected(field);
 
@@ -535,11 +548,14 @@ class _AvailableFieldsSectionState
     );
   }
 
-  Map<String, List<String>> _getAllGroups() {
+  Map<String, List<String>> _getAllGroups(
+    List<CustomFieldDefinitionData> customDefinitions,
+  ) {
     return _availableFieldGroups(
       ref.read(databaseProvider),
       widget.recordType,
       widget.specimenRecordType,
+      customDefinitions,
     );
   }
 }
@@ -547,8 +563,9 @@ class _AvailableFieldsSectionState
 Map<String, List<String>> _availableFieldGroups(
   Database db,
   RecordType recordType,
-  SpecimenRecordType specimenRecordType,
-) {
+  SpecimenRecordType specimenRecordType, [
+  List<CustomFieldDefinitionData> customDefinitions = const [],
+]) {
   final Map<String, List<String>> groups = {};
   final Set<String> allowedTables;
   switch (recordType) {
@@ -620,7 +637,60 @@ Map<String, List<String>> _availableFieldGroups(
           .toList();
     }
   }
+  for (final definition in customDefinitions) {
+    final namespace = switch (definition.placement) {
+      FieldUISection.siteAttribute => 'customSite',
+      FieldUISection.specimenAttribute => 'customSpecimen',
+      FieldUISection.specimenPart => 'customSpecimenPart',
+      FieldUISection.parasite => 'customParasite',
+    };
+    final isAvailable = switch (recordType) {
+      RecordType.site ||
+      RecordType.collEvent ||
+      RecordType.narrative => namespace == 'customSite',
+      RecordType.specimenRecord || RecordType.specimenParts => true,
+      RecordType.none => false,
+    };
+    if (!isAvailable ||
+        !_matchesSpecimenRecordType(definition, specimenRecordType)) {
+      continue;
+    }
+    groups
+        .putIfAbsent(namespace, () => <String>[])
+        .add('$namespace::${definition.uuid}');
+  }
   return groups;
+}
+
+bool _matchesSpecimenRecordType(
+  CustomFieldDefinitionData definition,
+  SpecimenRecordType recordType,
+) {
+  final catalog = definition.applicableCatalog;
+  if (catalog == null || definition.placement == FieldUISection.siteAttribute) {
+    return true;
+  }
+  return switch (recordType) {
+    SpecimenRecordType.birds => catalog == CatalogFmt.birds,
+    SpecimenRecordType.generalMammals ||
+    SpecimenRecordType.bats ||
+    SpecimenRecordType.allMammals => catalog == CatalogFmt.mammals,
+    SpecimenRecordType.herpetofauna => catalog == CatalogFmt.herpetofauna,
+    SpecimenRecordType.arthropods => catalog == CatalogFmt.arthropods,
+    SpecimenRecordType.allTaxa => true,
+  };
+}
+
+String? _customFieldLabel(
+  String key,
+  List<CustomFieldDefinitionData> definitions,
+) {
+  if (!key.startsWith('custom')) return null;
+  final uuid = key.split('::').last;
+  return definitions
+      .where((definition) => definition.uuid == uuid)
+      .map((definition) => definition.name)
+      .firstOrNull;
 }
 
 Map<String, List<String>> _nestedFieldGroups(Map<String, List<String>> groups) {
@@ -1172,10 +1242,13 @@ class _MappingCustomizerFormState
 
   @override
   Widget build(BuildContext context) {
+    final customDefinitions =
+        ref.watch(allCustomFieldDefinitionsProvider).value ?? const [];
     final groups = _availableFieldGroups(
       ref.read(databaseProvider),
       widget.recordType,
       widget.specimenRecordType,
+      customDefinitions,
     );
     final selectedSource = _exactSourceField(_expressionController.text);
     final sourceGroups = _fieldGroupsWithValue(groups, selectedSource);

@@ -131,7 +131,9 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AppSettings()),
+                MaterialPageRoute(
+                  builder: (context) => AppSettings(projectUuid: projectUuid),
+                ),
               );
             },
           ),

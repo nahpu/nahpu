@@ -8,6 +8,7 @@ const userConfigSectionOrder = [
   rust_config.UserConfigSection.templatePresets,
   rust_config.UserConfigSection.documentLayouts,
   rust_config.UserConfigSection.templateTablePreview,
+  rust_config.UserConfigSection.customFields,
 ];
 
 extension UserConfigSectionDisplay on rust_config.UserConfigSection {
@@ -20,6 +21,7 @@ extension UserConfigSectionDisplay on rust_config.UserConfigSection {
     rust_config.UserConfigSection.documentLayouts => 'Document layout presets',
     rust_config.UserConfigSection.templateTablePreview =>
       'Template table preview columns',
+    rust_config.UserConfigSection.customFields => 'Custom fields',
   };
 
   IconData get icon => switch (this) {
@@ -31,6 +33,7 @@ extension UserConfigSectionDisplay on rust_config.UserConfigSection {
       Icons.dashboard_customize_outlined,
     rust_config.UserConfigSection.templateTablePreview =>
       Icons.view_column_outlined,
+    rust_config.UserConfigSection.customFields => Icons.dynamic_form_outlined,
   };
 }
 
@@ -195,6 +198,7 @@ class _SectionPreview extends StatelessWidget {
         preview.documentLayouts.length,
       rust_config.UserConfigSection.templateTablePreview =>
         preview.templateTablePreviewColumns.length,
+      rust_config.UserConfigSection.customFields => preview.customFields.length,
     };
     return ExpansionTile(
       initiallyExpanded: true,
@@ -219,7 +223,35 @@ class _SectionPreview extends StatelessWidget {
               _TemplateTablePreviewColumnsPreview(
                 columns: preview.templateTablePreviewColumns,
               ),
+            rust_config.UserConfigSection.customFields => _CustomFieldsPreview(
+              entries: preview.customFields,
+            ),
           },
+      ],
+    );
+  }
+}
+
+class _CustomFieldsPreview extends StatelessWidget {
+  const _CustomFieldsPreview({required this.entries});
+
+  final List<rust_config.CustomFieldTemplate> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (final entry in entries)
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.dynamic_form_outlined),
+            title: Text(entry.label),
+            subtitle: Text(
+              '${entry.placement} • ${entry.fieldType}'
+              '${entry.catalogFormat == null ? '' : ' • ${entry.catalogFormat}'}'
+              '${entry.dwcField == null ? '' : ' • ${entry.dwcField}'}',
+            ),
+          ),
       ],
     );
   }

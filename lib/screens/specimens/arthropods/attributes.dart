@@ -1,4 +1,6 @@
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -187,6 +189,7 @@ class _ArthropodAttributeFormsState
             ),
           ],
         ),
+        CustomFieldForm(owner: CustomFieldOwner.specimen(widget.specimenUuid)),
       ],
     );
   }

@@ -177,13 +177,29 @@ class TitleForm extends StatelessWidget {
       padding: isCentered
           ? const EdgeInsets.fromLTRB(46, 0, 0, 4)
           : const EdgeInsets.only(right: NahpuSpacing.md),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.values[1],
-        children: [
-          Text(text, style: Theme.of(context).textTheme.titleLarge),
-          InfoButton(content: infoContent),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final title = Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge,
+          );
+          return Row(
+            mainAxisSize: constraints.hasBoundedWidth
+                ? MainAxisSize.max
+                : MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (constraints.hasBoundedWidth)
+                Flexible(child: title)
+              else
+                title,
+              InfoButton(content: infoContent),
+            ],
+          );
+        },
       ),
     );
   }

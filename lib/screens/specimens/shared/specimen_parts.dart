@@ -24,6 +24,10 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/providers/custom_fields.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class PartDataForm extends ConsumerStatefulWidget {
   const PartDataForm({
@@ -620,6 +624,7 @@ class PartForm extends ConsumerStatefulWidget {
 
 class PartFormState extends ConsumerState<PartForm> {
   bool _showMore = false;
+  final Map<int, String?> _customValues = {};
 
   @override
   void dispose() {
@@ -675,14 +680,20 @@ class PartFormState extends ConsumerState<PartForm> {
               });
             },
           ),
+          if (widget.isEditing)
+            CustomFieldForm(
+              owner: CustomFieldOwner.specimenPart(widget.specimenPartId!),
+            )
+          else
+            CustomFieldDraftForm(
+              placement: FieldUISection.specimenPart,
+              specimenUuid: widget.specimenUuid,
+              onChanged: (definitionId, value) {
+                _customValues[definitionId] = value;
+              },
+            ),
           const SizedBox(height: 16),
-          FormButton(
-            isEditing: widget.isEditing,
-            onSubmitted: () {
-              widget.isEditing ? _updatePart() : _createPart();
-              Navigator.of(context).pop();
-            },
-          ),
+          FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
         ],
       ),
     );
@@ -695,18 +706,30 @@ class PartFormState extends ConsumerState<PartForm> {
       widget.partCtr.museumLoanCtr.text.trim().isNotEmpty ||
       widget.partCtr.remarkCtr.text.trim().isNotEmpty;
 
-  Future<void> _createPart() async {
-    SpecimenPartCompanion form = _getForm();
-
-    await SpecimenPartServices(ref: ref).createSpecimenPart(form);
-  }
-
-  Future<void> _updatePart() async {
-    SpecimenPartCompanion form = _getForm();
-
-    await SpecimenPartServices(
-      ref: ref,
-    ).updateSpecimenPart(widget.specimenPartId!, form);
+  Future<void> _submit() async {
+    try {
+      if (widget.isEditing) {
+        await SpecimenPartServices(
+          ref: ref,
+        ).updateSpecimenPart(widget.specimenPartId!, _getForm());
+      } else {
+        final database = ref.read(databaseProvider);
+        await database.transaction(() async {
+          final id = await SpecimenPartServices(
+            ref: ref,
+          ).createSpecimenPart(_getForm());
+          await ref
+              .read(customFieldServiceProvider)
+              .setValues(CustomFieldOwner.specimenPart(id), _customValues);
+        });
+      }
+      if (mounted) Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to save specimen part: $error')),
+      );
+    }
   }
 
   SpecimenPartCompanion _getForm() {
